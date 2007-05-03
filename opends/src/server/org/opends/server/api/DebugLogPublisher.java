@@ -22,40 +22,50 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 
-import org.opends.server.loggers.LogLevel;
-import org.opends.server.loggers.debug.TraceSettings;
-import org.opends.server.types.*;
-import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.config.ConfigException;
+
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.OperationStatus;
 
-import java.util.*;
+import org.opends.server.admin.std.server.DebugLogPublisherCfg;
+import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.LogLevel;
+import org.opends.server.loggers.debug.TraceSettings;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.InitializationException;
+
+
 
 /**
  * This class defines the set of methods and structures that must be
  * implemented for a Directory Server debug log publisher.
  *
- * @param <T> The type of debug log publisher configuration handled
- *            by this log publisher implementation.
+ * @param  <T>  The type of debug log publisher configuration handled
+ *              by this log publisher implementation.
  */
 public abstract class DebugLogPublisher
-    <T extends DebugLogPublisherCfg>
+       <T extends DebugLogPublisherCfg>
 {
   //The default global settings key.
   private static final String GLOBAL= "_global";
 
   //The map of class names to their trace settings.
-  private Map<String, TraceSettings> classTraceSettings;
+  private Map<String,TraceSettings> classTraceSettings;
 
   //The map of class names to their method trace settings.
-  private Map<String, Map<String, TraceSettings>> methodTraceSettings;
+  private Map<String,Map<String,TraceSettings>> methodTraceSettings;
+
+
 
   /**
    * Construct a default configuration where the global scope will
@@ -70,49 +80,55 @@ public abstract class DebugLogPublisher
     addTraceSettings(null, new TraceSettings(DebugLogLevel.ERROR));
   }
 
+
+
   /**
    * Initializes this debug publisher provider based on the
    * information in the provided debug publisher configuration.
    *
-   * @param config
-   *          The debug publisher configuration that contains the
-   *          information to use to initialize this debug publisher.
-   * @throws org.opends.server.config.ConfigException
-   *           If an unrecoverable problem arises in the process of
-   *           performing the initialization as a result of the server
-   *           configuration.
-   * @throws org.opends.server.types.InitializationException
-   *           If a problem occurs during initialization that is not
-   *           related to the server configuration.
+   * @param  config  The debug publisher configuration that contains
+   *                 the information to use to initialize this debug
+   *                 publisher.
+   *
+   * @throws  ConfigException  If an unrecoverable problem arises in
+   *                           the process of performing the
+   *                           initialization as a result of the
+   *                           server configuration.
+   *
+   * @throws   InitializationException  If a problem occurs during
+   *                                    initialization that is not
+   *                                    related to the server
+   *                                    configuration.
    */
   public abstract void initializeDebugLogPublisher(T config)
-      throws ConfigException, InitializationException;
+         throws ConfigException, InitializationException;
+
+
 
   /**
    * Gets the method trace levels for a specified class.
-   * @param className - a fully qualified class name to get method
-   * trace levels for
-   * @return an unmodifiable map of trace levels keyed by method name.
-   * If no method level tracing is configured for the scope,
-   * <b>null</b> is returned.
+   *
+   * @param  className  The fully-qualified name of the class for
+   *                    which to get the trace levels.
+   *
+   *@return  An unmodifiable map of trace levels keyed by method name,
+   *         or {@code null} if no method-level tracing is configured
+   *         for the scope.
    */
-  public Map<String, TraceSettings> getMethodSettings(
-      String className)
+  public Map<String,TraceSettings> getMethodSettings(String className)
   {
-    /*if (methodTraceSettings != null) {
-      // Method levels are always at leaves in the
-      // hierarchy, so don't bother searching up.
-      return methodTraceSettings.get(className);
-    }
-    return null;*/
     return new HashMap<String, TraceSettings>();
   }
 
+
+
   /**
    * Get the trace settings for a specified class.
-   * @param className - a fully qualified class name to get the
-   * trace level for
-   * @return the current trace settings for the class.
+   *
+   * @param  className  The fully-qualified name of the class for
+   *                    which to get the trace levels.
+   *
+   * @return  The current trace settings for the class.
    */
   public TraceSettings getClassSettings(String className)
   {
@@ -148,16 +164,19 @@ public abstract class DebugLogPublisher
     return settings;
   }
 
+
+
   /**
    * Adds a trace settings to the current set for a specified scope.
    * If a scope is not specified, the settings will be set for the
    * global scope. The global scope settings are used when no other
    * scope matches.
    *
-   * @param scope - the scope to set trace settings for; this is a
-   * fully qualified class name or null to set the trace settings for
-   * the global scope.
-   * @param settings - the trace settings for the scope
+   * @param  scope     The scope for which to set the trace settings.
+   *                   This should be a fully-qualified class name, or
+   *                   {@code null} to set the trace settings for the
+   *                   global scope.
+   * @param  settings  The trace settings for the specified scope.
    */
   public void addTraceSettings(String scope, TraceSettings settings)
   {
@@ -177,15 +196,20 @@ public abstract class DebugLogPublisher
     }
   }
 
+
+
   /**
-   * See if a trace setting is alreadly defined for a particular
-   * scope.
+   * Determine whether a trace setting is alreadly defined for a
+   * particular scope.
    *
-   * @param scope - the scope to test; this is a fully
-   * qualified class name or null to set the trace settings for the
-   * globalscope.
-   * @return The trace settings for that scope or null if it doesn't
-   *       exist.
+   * @param  scope  The scope for which to make the determination.
+   *                This should be a fully-qualified class name, or
+   *                {@code null} to make the determination for the
+   *                global scope.
+   *
+   * @return  The trace settings for the specified scope, or
+   *          {@code null} if no trace setting is defined for that
+   *          scope.
    */
   public TraceSettings getTraceSettings(String scope)
   {
@@ -223,14 +247,19 @@ public abstract class DebugLogPublisher
     }
   }
 
+
+
   /**
    * Remove a trace setting by scope.
    *
-   * @param scope - the scope to remove; this is a fully
-   * qualified class name or null to set the trace settings for the
-   * global scope.
-   * @return The trace settings for that scope or null if it doesn't
-   *       exist.
+   * @param  scope  The scope for which to remove the trace setting.
+   *                This should be a fully-qualified class name, or
+   *                {@code null} to remove the trace setting for the
+   *                global scope.
+   *
+   * @return  The trace settings for the specified scope, or
+   *          {@code null} if no trace setting is defined for that
+   *          scope.
    */
   public TraceSettings removeTraceSettings(String scope)
   {
@@ -271,11 +300,13 @@ public abstract class DebugLogPublisher
     return removedSettings;
   }
 
+
+
   /**
    * Set the trace settings for a class.
    *
-   * @param className The class name.
-   * @param settings  The trace settings for the class.
+   * @param  className  The class name.
+   * @param  settings   The trace settings for the class.
    */
   private synchronized void setClassSettings(String className,
                                              TraceSettings settings)
@@ -286,12 +317,14 @@ public abstract class DebugLogPublisher
     classTraceSettings.put(className, settings);
   }
 
+
+
   /**
    * Set the method settings for a particular method in a class.
    *
-   * @param className The class name.
-   * @param methodName The method name.
-   * @param settings The trace settings for the method.
+   * @param  className   The class name.
+   * @param  methodName  The method name.
+   * @param  settings    The trace settings for the method.
    */
   private synchronized void setMethodSettings(String className,
                                               String methodName,
@@ -309,14 +342,17 @@ public abstract class DebugLogPublisher
     methodLevels.put(methodName, settings);
   }
 
+
+
   /**
    * Log a constructor entry.
    *
-   * @param level The level of the log message.
-   * @param settings The current trace settings in effect.
-   * @param signature The constuctor method signature.
-   * @param sourceLocation The location of the method in the source.
-   * @param args The parameters provided to the constructor call.
+   * @param  level           The log level for the message.
+   * @param  settings        The current trace settings in effect.
+   * @param  signature       The constuctor signature.
+   * @param  sourceLocation  The location of the method in the source.
+   * @param  args            The parameters provided to the
+   *                         constructor.
    */
   public abstract void traceConstructor(LogLevel level,
                                         TraceSettings settings,
@@ -324,15 +360,18 @@ public abstract class DebugLogPublisher
                                         String sourceLocation,
                                         Object[] args);
 
+
+
   /**
-   * Log a non static method entry.
+   * Log a non-static method entry.
    *
-   * @param level The level of the log message.
-   * @param settings The current trace settings in effect.
-   * @param signature The constuctor method signature.
-   * @param sourceLocation The location of the method in the source.
-   * @param obj the object this method operations on.
-   * @param args The parameters provided to the constructor call
+   * @param  level           The log level for the message.
+   * @param  settings        The current trace settings in effect.
+   * @param  signature       The method signature.
+   * @param  sourceLocation  The location of the method in the source.
+   * @param  obj             The object instance on which the method
+   *                         has been invoked.
+   * @param  args            The parameters provided to the method.
    */
   public abstract void traceNonStaticMethodEntry(LogLevel level,
                                                TraceSettings settings,
@@ -341,14 +380,16 @@ public abstract class DebugLogPublisher
                                                Object obj,
                                                Object[] args);
 
+
+
   /**
    * Log a static method entry.
    *
-   * @param level The level of the log message.
-   * @param settings The current trace settings in effect.
-   * @param signature The constuctor method signature.
-   * @param sourceLocation The location of the method in the source.
-   * @param args The parameters provided to the constructor call
+   * @param  level           The log level for the message.
+   * @param  settings        The current trace settings in effect.
+   * @param  signature       The method signature.
+   * @param  sourceLocation  The location of the method in the source.
+   * @param  args            The parameters provided to the method.
    */
   public abstract void traceStaticMethodEntry(LogLevel level,
                                               TraceSettings settings,
@@ -356,14 +397,16 @@ public abstract class DebugLogPublisher
                                               String sourceLocation,
                                               Object[] args);
 
+
+
   /**
    * Log a method return.
    *
-   * @param level The level of the log message.
-   * @param settings The current trace settings in effect.
-   * @param signature The constuctor method signature.
-   * @param sourceLocation The location of the method in the source.
-   * @param ret the return value of the method.
+   * @param  level           The log level for the message.
+   * @param  settings        The current trace settings in effect.
+   * @param  signature       The method signature.
+   * @param  sourceLocation  The location of the method in the source.
+   * @param  ret             The return value for the method.
    */
   public abstract void traceReturn(LogLevel level,
                                    TraceSettings settings,
@@ -371,14 +414,16 @@ public abstract class DebugLogPublisher
                                    String sourceLocation,
                                    Object ret);
 
+
+
   /**
    * Log an arbitrary event in a method.
    *
-   * @param level The level of the log message.
-   * @param settings The current trace settings in effect.
-   * @param signature The constuctor method signature.
-   * @param sourceLocation The location of the method in the source.
-   * @param msg message to format and log.
+   * @param  level           The log level for the message.
+   * @param  settings        The current trace settings in effect.
+   * @param  signature       The method signature.
+   * @param  sourceLocation  The location of the method in the source.
+   * @param  msg             The message to be logged.
    */
   public abstract void traceMessage(LogLevel level,
                                     TraceSettings settings,
@@ -386,14 +431,16 @@ public abstract class DebugLogPublisher
                                     String sourceLocation,
                                     String msg);
 
+
+
   /**
    * Log a thrown exception in a method.
    *
-   * @param level The level of the log message.
-   * @param settings The current trace settings in effect.
-   * @param signature The constuctor method signature.
-   * @param sourceLocation The location of the method in the source.
-   * @param ex the exception thrown.
+   * @param  level           The log level for the message.
+   * @param  settings        The current trace settings in effect.
+   * @param  signature       The method signature.
+   * @param  sourceLocation  The location of the method in the source.
+   * @param  ex              The exception that was thrown.
    */
   public abstract void traceThrown(LogLevel level,
                                    TraceSettings settings,
@@ -401,14 +448,16 @@ public abstract class DebugLogPublisher
                                    String sourceLocation,
                                    Throwable ex);
 
+
+
   /**
    * Log a caught exception in a method.
    *
-   * @param level The level of the log message.
-   * @param settings The current trace settings in effect.
-   * @param signature The constuctor method signature.
-   * @param sourceLocation The location of the method in the source.
-   * @param ex the exception caught.
+   * @param  level           The log level for the message.
+   * @param  settings        The current trace settings in effect.
+   * @param  signature       The method signature.
+   * @param  sourceLocation  The location of the method in the source.
+   * @param  ex              The exception that was caught.
    */
   public abstract void traceCaught(LogLevel level,
                                    TraceSettings settings,
@@ -416,18 +465,21 @@ public abstract class DebugLogPublisher
                                    String sourceLocation,
                                    Throwable ex);
 
+
+
   /**
    * Log an JE database access in a method.
    *
-   * @param level The level of the log message.
-   * @param settings The current trace settings in effect.
-   * @param signature The constuctor method signature.
-   * @param sourceLocation The location of the method in the source.
-   * @param status status of the JE operation.
-   * @param database the database handle.
-   * @param txn  transaction handle (may be null).
-   * @param key  the key to dump.
-   * @param data the data to dump.
+   * @param  level           The log level for the message.
+   * @param  settings        The current trace settings in effect.
+   * @param  signature       The method signature.
+   * @param  sourceLocation  The location of the method in the source.
+   * @param  status          The status of the JE operation.
+   * @param  database        The database handle.
+   * @param  txn             The transaction handle (may be
+   *                         {@code null}).
+   * @param  key             The key to dump.
+   * @param  data            The data to dump.
    */
   public abstract void traceJEAccess(LogLevel level,
                                      TraceSettings settings,
@@ -439,14 +491,16 @@ public abstract class DebugLogPublisher
                                      DatabaseEntry key,
                                      DatabaseEntry data);
 
+
+
   /**
    * Log raw data in a method.
    *
-   * @param level The level of the log message.
-   * @param settings The current trace settings in effect.
-   * @param signature The constuctor method signature.
-   * @param sourceLocation The location of the method in the source.
-   * @param data the data to dump.
+   * @param  level           The log level for the message.
+   * @param  settings        The current trace settings in effect.
+   * @param  signature       The method signature.
+   * @param  sourceLocation  The location of the method in the source.
+   * @param  data            The data to dump.
    */
   public abstract void traceData(LogLevel level,
                                  TraceSettings settings,
@@ -454,14 +508,16 @@ public abstract class DebugLogPublisher
                                  String sourceLocation,
                                  byte[] data);
 
+
+
   /**
    * Log a protocol element in a method.
    *
-   * @param level The level of the log message.
-   * @param settings The current trace settings in effect.
-   * @param signature The constuctor method signature.
-   * @param sourceLocation The location of the method in the source.
-   * @param element the protocol element to dump.
+   * @param  level           The log level for the message.
+   * @param  settings        The current trace settings in effect.
+   * @param  signature       The method signature.
+   * @param  sourceLocation  The location of the method in the source.
+   * @param  element         The protocol element to dump.
    */
   public abstract void traceProtocolElement(LogLevel level,
                                             TraceSettings settings,
@@ -469,8 +525,11 @@ public abstract class DebugLogPublisher
                                             String sourceLocation,
                                             ProtocolElement element);
 
+
+
   /**
    * Close this publisher.
    */
   public abstract void close();
 }
+
