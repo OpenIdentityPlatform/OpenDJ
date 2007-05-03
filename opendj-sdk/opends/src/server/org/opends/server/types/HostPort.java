@@ -117,5 +117,37 @@ public final class HostPort
       return host + ":" + port;
     }
   }
+
+  /**
+   * Returns {@code true} if the provided Object is a HostPort object
+   * with the same host name and port than this HostPort object.
+   * @param obj the reference object with which to compare.
+   * @return  {@code true} if this object is the same as the obj
+   * argument; {@code false} otherwise.
+   */
+  public boolean equals(Object obj)
+  {
+    boolean equals = false;
+    if (obj != null)
+    {
+      if (obj == this)
+      {
+        equals = true;
+      }
+      else if (obj instanceof HostPort)
+      {
+        equals = toString().equals(obj.toString());
+      }
+    }
+    return equals;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int hashCode()
+  {
+    return toString().hashCode();
+  }
 }
 

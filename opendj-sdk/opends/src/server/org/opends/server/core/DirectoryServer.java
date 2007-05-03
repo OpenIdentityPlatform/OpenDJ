@@ -1106,14 +1106,9 @@ public class DirectoryServer
       }
 
 
-      // At this point, we should be ready to go.  Start all the connection
-      // handlers.
       if (startConnectionHandlers)
       {
-        for (ConnectionHandler c : connectionHandlers)
-        {
-          c.start();
-        }
+        startConnectionHandlers();
       }
 
 
@@ -6991,7 +6986,81 @@ public class DirectoryServer
     }
   }
 
+  /**
+   * Starts the connection handlers defined in the Directory Server
+   * Configuration.
+   *
+   * @throws  ConfigException If there are more than one connection handlers
+   *                          using the same host port or no connection handler
+   *                          are enabled or we could not bind to any of the
+   *                          listeners.
+   */
+  private void startConnectionHandlers() throws ConfigException
+  {
+    LinkedHashSet<HostPort> usedListeners = new LinkedHashSet<HostPort>();
+    LinkedHashSet<String> errorMessages = new LinkedHashSet<String>();
+    // Check that the port specified in the connection handlers is
+    // available.
+    for (ConnectionHandler<?> c : connectionHandlers)
+    {
+      for (HostPort listener : c.getListeners())
+      {
+        if (usedListeners.contains(listener))
+        {
+          // The port was already specified: this is a configuration error,
+          // log a message.
+          int msgID = MSGID_HOST_PORT_ALREADY_SPECIFIED;
+          String message = getMessage(msgID, c.getConnectionHandlerName(),
+              listener.toString());
+          logError(ErrorLogCategory.CONNECTION_HANDLING,
+              ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+          errorMessages.add(message);
 
+        }
+        else if (!SetupUtils.canUseAsPort(
+            listener.getHost(), listener.getPort()))
+        {
+          // Cannot use the specified HostPort: log a message and throw an
+          // InitializationException.
+          int msgID = MSGID_HOST_PORT_CANNOT_BE_USED;
+          String message = getMessage(msgID, listener.toString(),
+              c.getConnectionHandlerName());
+          logError(ErrorLogCategory.CONNECTION_HANDLING,
+              ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+          errorMessages.add(message);
+        }
+        else
+        {
+          usedListeners.add(listener);
+        }
+      }
+    }
+
+    if (errorMessages.size() > 0)
+    {
+      throw new ConfigException(MSGID_ERROR_STARTING_CONNECTION_HANDLERS,
+          getMessage(MSGID_ERROR_STARTING_CONNECTION_HANDLERS));
+    }
+
+
+    // If there are no connection handlers log a message.
+    if (connectionHandlers.isEmpty())
+    {
+      int msgID = MSGID_NOT_AVAILABLE_CONNECTION_HANDLERS;
+      String message = getMessage(msgID);
+      logError(ErrorLogCategory.CONNECTION_HANDLING,
+          ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+      throw new ConfigException(MSGID_ERROR_STARTING_CONNECTION_HANDLERS,
+          getMessage(MSGID_ERROR_STARTING_CONNECTION_HANDLERS));
+    }
+
+    // At this point, we should be ready to go.  Start all the connection
+    // handlers.
+    for (ConnectionHandler c : connectionHandlers)
+    {
+      c.start();
+    }
+  }
 
   /**
    * Retrieves a reference to the Directory Server work queue.
@@ -8871,15 +8940,13 @@ public class DirectoryServer
 
       int    msgID   = MSGID_DSCORE_CANNOT_START;
       String message = getMessage(msgID, ie.getMessage());
-      System.err.println(message);
-      System.exit(1);
+      shutDown(directoryServer.getClass().getName(), message);
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_DSCORE_CANNOT_START;
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      System.err.println(message);
-      System.exit(1);
+      shutDown(directoryServer.getClass().getName(), message);
     }
   }
 

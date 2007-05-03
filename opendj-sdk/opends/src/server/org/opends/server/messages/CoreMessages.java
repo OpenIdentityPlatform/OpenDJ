@@ -6089,8 +6089,6 @@ public class CoreMessages
   public static final int MSGID_SORTORDER_DECODE_NO_KEYS =
        CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 607;
 
-
-
   /**
    * The message ID for the string representation of the result code that will
    * be used for search operations containing the VLV request control that do
@@ -6131,6 +6129,40 @@ public class CoreMessages
     CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 611;
 
 
+  /**
+   * The message ID for the message that will be used if a connection handler
+   * has a host port already in use by another connection handler.  This takes
+   * two parameters: the connection handler name and the host port that
+   * is trying to be used twice.
+   */
+  public static final int MSGID_HOST_PORT_ALREADY_SPECIFIED =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 612;
+
+
+  /**
+   * The message ID for the message that will be used if a connection handler
+   * has a host port that we could not use.  This takes two parameters: the host
+   * port and the connection handler name.
+   */
+  public static final int MSGID_HOST_PORT_CANNOT_BE_USED =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 613;
+
+  /**
+   * The message ID for the message that will be used if no connection handler
+   * was enabled and we are not in the mode where we start
+   * the server with no connection handlers.  This does not take any arguments.
+   */
+  public static final int MSGID_NOT_AVAILABLE_CONNECTION_HANDLERS =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 614;
+
+
+  /**
+   * The message ID for the message that will be used if no connection handler
+   * could be properly started and we are not in the mode where we start
+   * the server with no connection handlers.  This does not take any arguments.
+   */
+  public static final int MSGID_ERROR_STARTING_CONNECTION_HANDLERS =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 615;
   /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
@@ -8336,6 +8368,22 @@ public class CoreMessages
     registerMessage(MSGID_SORTORDER_DECODE_NO_KEYS,
                     "The provided sort order string \"%s\" is invalid " +
                     "because it does not contain any sort keys");
+
+    registerMessage(MSGID_HOST_PORT_ALREADY_SPECIFIED,
+                    "The connection handler %s is trying to use the listener " +
+                    "%s which is already in use by another connection handler");
+
+    registerMessage(MSGID_HOST_PORT_CANNOT_BE_USED,
+                    "The server cannot use the listener %s of connection " +
+                    "handler %s because it is already being used by another " +
+                    "process or because it does not have the rights to use it");
+
+    registerMessage(MSGID_NOT_AVAILABLE_CONNECTION_HANDLERS,
+                    "No enabled connection handler available");
+
+    registerMessage(MSGID_ERROR_STARTING_CONNECTION_HANDLERS,
+                    "Could not start connection handlers");
+
   }
 }
 
