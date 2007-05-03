@@ -39,7 +39,7 @@ goto callExtractor
 if "%JAVA_HOME%" == "" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
 set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-set jAVAWS_BIN=%JAVA_HOME%\bin\javaws.exe
+set JAVAWS_BIN=%JAVA_HOME%\bin\javaws.exe
 if "%*" == "" goto callWebStartUpgrade
 goto callExtractor
 
@@ -47,7 +47,7 @@ goto callExtractor
 if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto noSetJavaHome
 call "%INSTANCE_ROOT%\lib\set-java-home.bat"
 set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-set jAVAWS_BIN=%JAVA_HOME%\bin\javaws.exe
+set JAVAWS_BIN=%JAVA_HOME%\bin\javaws.exe
 if "%*" == "" goto callWebStartUpgrade
 goto callExtractor
 
@@ -75,8 +75,7 @@ if EXIST %INSTANCE_ROOT%\tmp\upgrade rd %INSTANCE_ROOT%\tmp\upgrade /s /q
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.BuildExtractor %*
-if %ERRORLEVEL%==0 goto callUpgrader
-goto end
+goto prepUpgrader
 
 :callWebStartUpgrade
 rem set JAVAWS_VM_ARGS=-Dorg.opends.quicksetup.upgrader.Root="%INSTANCE_ROOT%"
@@ -84,9 +83,16 @@ if "%OPENDS_UPGRADE_JNLP%" == "" set OPENDS_UPGRADE_JNLP=http://build.opends.org
 "%JAVAWS_BIN%" "%OPENDS_UPGRADE_JNLP%"
 goto end
 
-:callUpgrader
+:prepUpgrader
+if EXIST %INSTANCE_ROOT%\tmp\upgrade goto setClassPathToStageDir
+goto callUpgrader
+
+:setClassPathToStageDir
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\tmp\upgrade\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
+goto callUpgrader
+
+:callUpgrader
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.UpgradeLauncher %*
 if EXIST %INSTANCE_ROOT%\tmp\upgrade rd %INSTANCE_ROOT%\tmp\upgrade /s /q
 goto end
