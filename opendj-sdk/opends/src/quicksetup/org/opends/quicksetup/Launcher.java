@@ -33,6 +33,7 @@ import org.opends.quicksetup.i18n.ResourceProvider;
 import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -168,7 +169,28 @@ public abstract class Launcher {
         }
         catch (Throwable t)
         {
-          t.printStackTrace();
+          try {
+            QuickSetupLog.initLogFileHandler(File.createTempFile(
+                "opends-launcher-", ".log"));
+            LOG.log(Level.WARNING, "Error launching GUI: "+t);
+            while (t != null)
+            {
+              StackTraceElement[] stack = t.getStackTrace();
+              for (int i = 0; i < stack.length; i++)
+              {
+                LOG.log(Level.WARNING, stack[i].toString());
+              }
+
+              t = t.getCause();
+              if (t != null)
+              {
+                LOG.log(Level.WARNING, "Root cause:");
+              }
+            }
+          } catch (Throwable t2) {
+            System.err.println("Unable to initialize log");
+            t2.printStackTrace();
+          }
         }
       }
     });
