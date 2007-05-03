@@ -1085,6 +1085,13 @@ cn: SHA-1
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.SHA1PasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
 
+dn: cn=CRYPT,cn=Password Storage Schemes,cn=config
+objectClass: top
+objectClass: ds-cfg-password-storage-scheme
+cn: CRYPT
+ds-cfg-password-storage-scheme-class: org.opends.server.extensions.CryptPasswordStorageScheme
+ds-cfg-password-storage-scheme-enabled: true
+
 dn: cn=Password Validators,cn=config
 objectClass: top
 objectClass: ds-cfg-branch

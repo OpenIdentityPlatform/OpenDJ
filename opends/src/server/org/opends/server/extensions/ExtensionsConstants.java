@@ -191,6 +191,14 @@ public class ExtensionsConstants
 
 
   /**
+   * The password storage scheme name that will be used for passwords stored in
+   * a UNIX crypt representation.
+   */
+  public static final String STORAGE_SCHEME_NAME_CRYPT = "CRYPT";
+
+
+
+  /**
    * The string that will appear before the name of the password storage scheme
    * in an encoded password.
    */

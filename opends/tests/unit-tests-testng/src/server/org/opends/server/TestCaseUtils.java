@@ -45,6 +45,7 @@ import java.util.logging.ConsoleHandler;
 import java.net.ServerSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.net.Socket;
 
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.backends.jeb.BackendImpl;
@@ -61,6 +62,12 @@ import org.opends.server.loggers.debug.DebugConfiguration;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
@@ -75,6 +82,7 @@ import org.opends.server.util.ModifyChangeRecordEntry;
 import org.opends.server.util.ModifyDNChangeRecordEntry;
 
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -787,6 +795,40 @@ public final class TestCaseUtils {
 
 
 
+  public static boolean canBind(String dn, String pw) throws Exception
+  {
+    // Check that the user can bind.
+    Socket s = null;
+    try {
+      s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+      ASN1Reader r = new ASN1Reader(s);
+      ASN1Writer w = new ASN1Writer(s);
+      r.setIOTimeout(3000);
+
+      BindRequestProtocolOp bindRequest =
+        new BindRequestProtocolOp(
+                 new ASN1OctetString(dn),
+                 3,
+                new ASN1OctetString(pw));
+      LDAPMessage message = new LDAPMessage(1, bindRequest);
+      w.writeElement(message.encode());
+
+      message = LDAPMessage.decode(r.readElement().decodeAsSequence());
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      if (bindResponse.getResultCode() == 0) {
+        return true;
+      }
+    } catch (Exception t) {
+      t.printStackTrace();
+    } finally {
+      if (s != null) {
+        s.close();
+      }
+    }
+    return false;
+  }
+
+
   /**
    * Adds the provided entry to the Directory Server using an internal
    * operation.
@@ -886,6 +928,8 @@ public final class TestCaseUtils {
 
     return LDAPModify.mainModify(args, false, null, null);
   }
+
+
 
 
 
@@ -1042,6 +1086,29 @@ public final class TestCaseUtils {
           throws IOException {
     byte[] bytes = readFileBytes(file);
     return new String(bytes);
+  }
+
+  /**
+   * Returns the contents of file as a List of the lines as defined by
+   * java.io.BufferedReader#readLine() (i.e. the line terminator is not
+   * included).  An ArrayList is explicitly returned, so that callers know that
+   * random access is not expensive.  
+   */
+  public static ArrayList<String> readFileToLines(File file)
+          throws IOException {
+    BufferedReader reader =
+      new BufferedReader(
+        new InputStreamReader(
+          new DataInputStream(
+                  new FileInputStream(file))));
+
+    ArrayList<String> lines = new ArrayList<String>();
+    String line;
+    while ((line = reader.readLine()) != null)   {
+      lines.add(line);
+    }
+
+    return lines;
   }
 
 

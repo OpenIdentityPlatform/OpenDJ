@@ -36,15 +36,25 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.PasswordPolicy;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.Attribute;
 
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
+import java.util.ArrayList;
 
 
 /**
@@ -220,12 +230,116 @@ public abstract class PasswordStorageSchemeTestCase
   }
 
 
+  @DataProvider
+  public Object[][] passwordsForBinding()
+  {
+    return new Object[][]
+    {
+      // In the case of a clear-text password, these values will be shoved
+      // un-excaped into an LDIF file, so make sure they don't include \n
+      // or other characters that will cause LDIF parsing errors.
+      // We really don't need many test cases here, since that functionality
+      // is tested above.
+      new Object[] { new ASN1OctetString("a") },
+      new Object[] { new ASN1OctetString("abcdefgh") },
+      new Object[] { new ASN1OctetString("abcdefghi") },
+    };
+  }
+
+  /**
+   * An end-to-end test that verifies that we can set a pre-encoded password
+   * in a user entry, and then bind as that user using the cleartext password.
+   */
+  @Test(dataProvider = "passwordsForBinding")
+  public void testSettingEncodedPassword(ASN1OctetString plainPassword) throws Exception
+  {
+    // Start/clear-out the memory backend
+    TestCaseUtils.initializeTestBackend(true);
+
+    boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
+
+    try {
+      PasswordStorageScheme scheme = getScheme();
+      ByteString schemeEncodedPassword =
+           scheme.encodePasswordWithScheme(plainPassword);
+
+      //
+      // This code creates a user with the encoded password,
+      // and then verifies that they can bind with the raw password.
+      //
+
+      Entry userEntry = TestCaseUtils.makeEntry(
+           "dn: uid=test.user,o=test",
+           "objectClass: top",
+           "objectClass: person",
+           "objectClass: organizationalPerson",
+           "objectClass: inetOrgPerson",
+           "uid: test.user",
+           "givenName: Test",
+           "sn: User",
+           "cn: Test User",
+           "ds-privilege-name: bypass-acl",
+           "userPassword: " + schemeEncodedPassword.stringValue());
+
+      // Add the entry
+      TestCaseUtils.addEntry(userEntry);
+
+      assertTrue(TestCaseUtils.canBind("uid=test.user,o=test",
+                 plainPassword.stringValue()),
+                 "Failed to bind when pre-encoded password = \"" +
+                         schemeEncodedPassword.stringValue() + "\" and " +
+                         "plaintext password = \"" +
+                         plainPassword.stringValue() + "\"");
+    } finally {
+      setAllowPreencodedPasswords(allowPreencodedDefault);
+    }
+  }
+
+
+  /**
+   * Sets whether or not to allow pre-encoded password values for the
+   * current password storage scheme and returns the previous value so that
+   * it can be restored.
+   *
+   * @param allowPreencoded whether or not to allow pre-encoded passwords
+   * @return the previous value for the allow preencoded passwords
+   */
+  private boolean setAllowPreencodedPasswords(boolean allowPreencoded)
+          throws Exception
+  {
+    // This code was borrowed from
+    // PasswordPolicyTestCase.testAllowPreEncodedPasswordsAuth
+    boolean previousValue = false;
+    try {
+      DN dn = DN.decode("cn=Default Password Policy,cn=Password Policies,cn=config");
+      PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+      previousValue = p.allowPreEncodedPasswords();
+
+      String attr  = "ds-cfg-allow-pre-encoded-passwords";
+
+      ArrayList<Modification> mods = new ArrayList<Modification>();
+      mods.add(new Modification(ModificationType.REPLACE,
+                                new Attribute(attr, ""+allowPreencoded)));
+
+      InternalClientConnection conn =
+           InternalClientConnection.getRootConnection();
+      ModifyOperation modifyOperation = conn.processModify(dn, mods);
+      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
+      p = DirectoryServer.getPasswordPolicy(dn);
+      assertEquals(p.allowPreEncodedPasswords(), allowPreencoded);
+    } catch (Exception e) {
+      System.err.println("Failed to set ds-cfg-allow-pre-encoded-password " +
+                         " to " + allowPreencoded);
+      e.printStackTrace();
+      throw e;
+    }
+
+    return previousValue;
+  }
 
   /**
    * Retrieves an initialized instance of this password storage scheme.
-   *
-   * @param  configEntry  The configuration entry for the password storage
-   *                      scheme, or <CODE>null</CODE> if none is available.
    *
    * @return  An initialized instance of this password storage scheme.
    *
