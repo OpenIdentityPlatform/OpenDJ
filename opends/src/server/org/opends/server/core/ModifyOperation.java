@@ -2344,8 +2344,8 @@ modifyProcessing:
 
         // FIXME: earlier checks to see if the entry already exists may
         // have already exposed sensitive information to the client.
-        if (AccessControlConfigManager.getInstance()
-            .getAccessControlHandler().isAllowed(this) == false) {
+        if (!AccessControlConfigManager.getInstance()
+             .getAccessControlHandler().isAllowed(this)) {
           setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
 
           int msgID = MSGID_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
@@ -2358,51 +2358,54 @@ modifyProcessing:
         boolean wasLocked = false;
         if (passwordChanged)
         {
-            // See if the account was locked for any reason.
-            wasLocked = pwPolicyState.lockedDueToIdleInterval() ||
-                    pwPolicyState.lockedDueToMaximumResetAge() ||
-                    pwPolicyState.lockedDueToFailures();
+          // See if the account was locked for any reason.
+          wasLocked = pwPolicyState.lockedDueToIdleInterval() ||
+               pwPolicyState.lockedDueToMaximumResetAge() ||
+               pwPolicyState.lockedDueToFailures();
 
-            // Update the password policy state attributes in the user's entry.
-            // If the modification fails, then these changes won't be applied.
-            pwPolicyState.setPasswordChangedTime();
-            pwPolicyState.clearFailureLockout();
-            pwPolicyState.clearGraceLoginTimes();
-           pwPolicyState.clearWarnedTime();
+          // Update the password policy state attributes in the user's entry.
+          // If the modification fails, then these changes won't be applied.
+          pwPolicyState.setPasswordChangedTime();
+          pwPolicyState.clearFailureLockout();
+          pwPolicyState.clearGraceLoginTimes();
+          pwPolicyState.clearWarnedTime();
 
-            if (pwPolicyState.getPolicy().forceChangeOnAdd() ||
-                    pwPolicyState.getPolicy().forceChangeOnReset())
+          if (selfChange && pwPolicyState.getPolicy().forceChangeOnAdd())
+          {
+            pwPolicyState.setMustChangePassword(false);
+          }
+          else if( pwPolicyState.getPolicy().forceChangeOnReset())
+          {
+            pwPolicyState.setMustChangePassword(! selfChange);
+          }
+
+          if (pwPolicyState.getPolicy().getRequireChangeByTime() > 0)
+          {
+            pwPolicyState.setRequiredChangeTime();
+          }
+          modifications.addAll(pwPolicyState.getModifications());
+          //Apply pwd Policy modifications to modified entry.
+          try {
+            modifiedEntry.applyModifications(pwPolicyState.getModifications());
+          } catch (DirectoryException e) {
+            if (debugEnabled())
             {
-                pwPolicyState.setMustChangePassword(! selfChange);
+              debugCaught(DebugLogLevel.ERROR, e);
             }
 
-            if (pwPolicyState.getPolicy().getRequireChangeByTime() > 0)
-            {
-                pwPolicyState.setRequiredChangeTime();
-            }
-             modifications.addAll(pwPolicyState.getModifications());
-            //Apply pwd Policy modifications to modified entry.
-            try {
-             modifiedEntry.applyModifications(pwPolicyState.getModifications());
-            } catch (DirectoryException e) {
-                if (debugEnabled())
-                {
-                  debugCaught(DebugLogLevel.ERROR, e);
-                }
-
-                setResponseData(e);
-                break modifyProcessing;
-              }
+            setResponseData(e);
+            break modifyProcessing;
+          }
         }
         else if(pwPolicyState.mustChangePassword())
         {
-            // The user will not be allowed to do anything else before
-            // the password gets changed.
-            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          // The user will not be allowed to do anything else before
+          // the password gets changed.
+          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-            int msgID = MSGID_MODIFY_MUST_CHANGE_PASSWORD;
-            appendErrorMessage(getMessage(msgID));
-            break modifyProcessing;
+          int msgID = MSGID_MODIFY_MUST_CHANGE_PASSWORD;
+          appendErrorMessage(getMessage(msgID));
+          break modifyProcessing;
         }
 
         // Make sure that the new entry is valid per the server schema.
