@@ -246,17 +246,18 @@ public class SetupUtils
   /**
    * Returns {@code true} if the provided port is free and we can use it,
    * {@code false} otherwise.
+   * @param hostname the host name we are analyzing.
    * @param port the port we are analyzing.
    * @return {@code true} if the provided port is free and we can use it,
    * {@code false} otherwise.
    */
-  public static boolean canUseAsPort(int port)
+  public static boolean canUseAsPort(String hostname, int port)
   {
     boolean canUseAsPort = false;
     ServerSocket serverSocket = null;
     try
     {
-      InetSocketAddress socketAddress = new InetSocketAddress(port);
+      InetSocketAddress socketAddress = new InetSocketAddress(hostname, port);
       serverSocket = new ServerSocket();
       if (!isWindows())
       {
@@ -273,7 +274,7 @@ public class SetupUtils
        */
       try
       {
-        new Socket("localhost", port);
+        new Socket(hostname, port);
         canUseAsPort = false;
 
       } catch (IOException ioe)
@@ -297,6 +298,18 @@ public class SetupUtils
     }
 
     return canUseAsPort;
+  }
+
+  /**
+   * Returns {@code true} if the provided port is free and we can use it,
+   * {@code false} otherwise.
+   * @param port the port we are analyzing.
+   * @return {@code true} if the provided port is free and we can use it,
+   * {@code false} otherwise.
+   */
+  public static boolean canUseAsPort(int port)
+  {
+    return canUseAsPort("localhost", port);
   }
 
   /**
