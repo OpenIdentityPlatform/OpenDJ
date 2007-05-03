@@ -860,7 +860,7 @@ public class EntryContainer
                                 PagedResultsControl pageRequest)
        throws DirectoryException
   {
-    EntryCache entryCache = DirectoryServer.getEntryCache();
+    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     DN baseDN = searchOperation.getBaseDN();
     SearchScope searchScope = searchOperation.getScope();
     boolean manageDsaIT = isManageDsaITOperation(searchOperation);
@@ -1154,7 +1154,7 @@ public class EntryContainer
                              PagedResultsControl pageRequest)
        throws DirectoryException
   {
-    EntryCache entryCache = DirectoryServer.getEntryCache();
+    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     SearchScope searchScope = searchOperation.getScope();
     DN baseDN = searchOperation.getBaseDN();
     boolean manageDsaIT = isManageDsaITOperation(searchOperation);
