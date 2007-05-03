@@ -45,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.zip.Deflater;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -73,6 +74,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.tools.LDIFModify;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
@@ -80,6 +83,7 @@ import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.CryptoManager;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -102,9 +106,8 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import org.opends.server.types.DebugLogLevel;
+import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -141,6 +144,11 @@ public class ConfigFileHandler
 
 
 
+  // A SHA-1 digest of the last known configuration.  This should only be
+  // incorrect if the server configuration file has been manually edited with
+  // the server online, which is a bad thing.
+  private byte[] configurationDigest;
+
   // The mapping that holds all of the configuration entries that have been read
   // from the LDIF file.
   private ConcurrentHashMap<DN,ConfigEntry> configEntries;
@@ -171,7 +179,6 @@ public class ConfigFileHandler
   public ConfigFileHandler()
   {
     super();
-
   }
 
 
@@ -233,6 +240,38 @@ public class ConfigFileHandler
     }
 
 
+    // Check to see if a configuration archive exists.  If not, then create one.
+    // If so, then check whether the current configuration matches the last
+    // configuration in the archive.  If it doesn't, then archive it.
+    try
+    {
+      configurationDigest = calculateConfigDigest();
+    }
+    catch (DirectoryException de)
+    {
+      throw new InitializationException(de.getMessageID(),
+                                        de.getErrorMessage(), de.getCause());
+    }
+
+    File archiveDirectory = new File(f.getParent(), CONFIG_ARCHIVE_DIR_NAME);
+    if (archiveDirectory.exists())
+    {
+      try
+      {
+        byte[] lastDigest = getLastConfigDigest(archiveDirectory);
+        if (! Arrays.equals(configurationDigest, lastDigest))
+        {
+          writeConfigArchive();
+        }
+      } catch (Exception e) {}
+    }
+    else
+    {
+      writeConfigArchive();
+    }
+
+
+
     // Fixme -- Should we add a hash or signature check here?
 
 
@@ -244,6 +283,8 @@ public class ConfigFileHandler
       if (changesFile.exists())
       {
         applyChangesFile(f, changesFile);
+        configurationDigest = calculateConfigDigest();
+        writeConfigArchive();
       }
     }
     catch (Exception e)
@@ -711,6 +752,165 @@ public class ConfigFileHandler
 
 
   /**
+   * Calculates a SHA-1 digest of the current configuration file.
+   *
+   * @return  The calculated configuration digest.
+   *
+   * @throws  DirectoryException  If a problem occurs while calculating the
+   *                              digest.
+   */
+  private byte[] calculateConfigDigest()
+          throws DirectoryException
+  {
+    try
+    {
+      MessageDigest sha1Digest =
+           MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_1);
+      FileInputStream inputStream = new FileInputStream(configFile);
+      byte[] buffer = new byte[8192];
+      while (true)
+      {
+        int bytesRead = inputStream.read(buffer);
+        if (bytesRead < 0)
+        {
+          break;
+        }
+
+        sha1Digest.update(buffer, 0, bytesRead);
+      }
+
+      return sha1Digest.digest();
+    }
+    catch (Exception e)
+    {
+      int    msgID   = MSGID_CONFIG_CANNOT_CALCULATE_DIGEST;
+      String message = getMessage(msgID, configFile,
+                                  stackTraceToSingleLineString(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, msgID, e);
+    }
+  }
+
+
+
+  /**
+   * Looks at the existing archive directory, finds the latest archive file,
+   * and calculates a SHA-1 digest of that file.
+   *
+   * @return  The calculated digest of the most recent archived configuration
+   *          file.
+   *
+   * @throws  DirectoryException  If a problem occurs while calculating the
+   *                              digest.
+   */
+  private byte[] getLastConfigDigest(File archiveDirectory)
+          throws DirectoryException
+  {
+    int    latestCounter   = 0;
+    long   latestTimestamp = -1;
+    String latestFileName  = null;
+    for (String name : archiveDirectory.list())
+    {
+      if (! name.startsWith("config-"))
+      {
+        continue;
+      }
+
+      int dotPos = name.indexOf('.', 7);
+      if (dotPos < 0)
+      {
+        continue;
+      }
+
+      int dashPos = name.indexOf('-', 7);
+      if (dashPos < 0)
+      {
+        try
+        {
+          ASN1OctetString ts = new ASN1OctetString(name.substring(7, dotPos));
+          long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ts);
+          if (timestamp > latestTimestamp)
+          {
+            latestFileName  = name;
+            latestTimestamp = timestamp;
+            latestCounter   = 0;
+            continue;
+          }
+        }
+        catch (Exception e)
+        {
+          continue;
+        }
+      }
+      else
+      {
+        try
+        {
+          ASN1OctetString ts = new ASN1OctetString(name.substring(7, dashPos));
+          long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ts);
+          int counter = Integer.parseInt(name.substring(dashPos+1, dotPos));
+
+          if (timestamp > latestTimestamp)
+          {
+            latestFileName  = name;
+            latestTimestamp = timestamp;
+            latestCounter   = counter;
+            continue;
+          }
+          else if ((timestamp == latestTimestamp) && (counter > latestCounter))
+          {
+            latestFileName  = name;
+            latestTimestamp = timestamp;
+            latestCounter   = counter;
+            continue;
+          }
+        }
+        catch (Exception e)
+        {
+          continue;
+        }
+      }
+    }
+
+    if (latestFileName == null)
+    {
+      return null;
+    }
+    File latestFile = new File(archiveDirectory, latestFileName);
+
+    try
+    {
+      MessageDigest sha1Digest =
+           MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_1);
+      GZIPInputStream inputStream =
+           new GZIPInputStream(new FileInputStream(latestFile));
+      byte[] buffer = new byte[8192];
+      while (true)
+      {
+        int bytesRead = inputStream.read(buffer);
+        if (bytesRead < 0)
+        {
+          break;
+        }
+
+        sha1Digest.update(buffer, 0, bytesRead);
+      }
+
+      return sha1Digest.digest();
+    }
+    catch (Exception e)
+    {
+      int    msgID   = MSGID_CONFIG_CANNOT_CALCULATE_DIGEST;
+      String message = getMessage(msgID, latestFile.getAbsolutePath(),
+                                  stackTraceToSingleLineString(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, msgID, e);
+    }
+  }
+
+
+
+  /**
    * Applies the updates in the provided changes file to the content in the
    * specified source file.  The result will be written to a temporary file, the
    * current source file will be moved out of place, and then the updated file
@@ -731,9 +931,6 @@ public class ConfigFileHandler
   private void applyChangesFile(File sourceFile, File changesFile)
           throws IOException, LDIFException
   {
-    // FIXME -- Do we need to do anything special for configuration archiving?
-
-
     // Create the appropriate LDIF readers and writer.
     LDIFImportConfig importConfig =
          new LDIFImportConfig(sourceFile.getAbsolutePath());
@@ -1731,150 +1928,6 @@ public class ConfigFileHandler
     // FIXME -- This needs support for encryption.
 
 
-    // Try to write the configuration archive.  If any part of this fails, then
-    // we'll abort that, but still try to write the updated configuration
-    // later.
-writeConfigArchive:
-    {
-      // Determine the path to the directory that will hold the archived
-      // configuration files.
-      File configDirectory  = new File(configFile).getParentFile();
-      File archiveDirectory = new File(configDirectory,
-                                       CONFIG_ARCHIVE_DIR_NAME);
-
-
-      // If the archive directory doesn't exist, then create it.
-      if (! archiveDirectory.exists())
-      {
-        try
-        {
-          if (! archiveDirectory.mkdirs())
-          {
-            int msgID = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON;
-            String message = getMessage(msgID,
-                                        archiveDirectory.getAbsolutePath());
-
-            logError(ErrorLogCategory.CONFIGURATION,
-                     ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-
-            DirectoryServer.sendAlertNotification(this,
-                 ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
-
-            break writeConfigArchive;
-          }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          int    msgID   = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR;
-          String message = getMessage(msgID, archiveDirectory.getAbsolutePath(),
-                                      stackTraceToSingleLineString(e));
-
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-
-          DirectoryServer.sendAlertNotification(this,
-               ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
-
-          break writeConfigArchive;
-        }
-      }
-
-
-      // Determine the appropriate name to use for the current configuration.
-      File archiveFile;
-      try
-      {
-        String timestamp = TimeThread.getGMTTime();
-        archiveFile = new File(archiveDirectory, "config-" + timestamp + ".gz");
-        if (archiveFile.exists())
-        {
-          int counter = 2;
-          archiveFile = new File(archiveDirectory,
-                                 "config-" + timestamp + "-" + counter + ".gz");
-
-          while (archiveFile.exists())
-          {
-            counter++;
-            archiveFile = new File(archiveDirectory,
-                                   "config-" + timestamp + "." + counter +
-                                   ".gz");
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
-
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-
-        DirectoryServer.sendAlertNotification(this,
-             ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
-
-        break writeConfigArchive;
-      }
-
-
-      // Copy the current configuration to the new configuration file.
-      byte[]           buffer       = new byte[8192];
-      FileInputStream  inputStream  = null;
-      GZIPOutputStream outputStream = null;
-      try
-      {
-        inputStream  = new FileInputStream(configFile);
-        outputStream = new GZIPOutputStream(new FileOutputStream(archiveFile));
-
-        int bytesRead = inputStream.read(buffer);
-        while (bytesRead > 0)
-        {
-          outputStream.write(buffer, 0, bytesRead);
-          bytesRead = inputStream.read(buffer);
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e));
-
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-
-        DirectoryServer.sendAlertNotification(this,
-             ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
-
-        break writeConfigArchive;
-      }
-      finally
-      {
-        try
-        {
-          inputStream.close();
-        } catch (Exception e) {}
-
-        try
-        {
-          outputStream.close();
-        } catch (Exception e) {}
-      }
-    }
-
-
     // Write the new configuration to a temporary file.
     String tempConfig = configFile + ".tmp";
     try
@@ -1930,6 +1983,152 @@ writeConfigArchive:
       DirectoryServer.sendAlertNotification(this,
            ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
       return;
+    }
+
+    configurationDigest = calculateConfigDigest();
+
+
+    // Try to write the archive for the new configuration.
+    writeConfigArchive();
+  }
+
+
+
+  /**
+   * Writes the current configuration to the configuration archive.  This will
+   * be a best-effort attempt.
+   */
+  private void writeConfigArchive()
+  {
+    // Determine the path to the directory that will hold the archived
+    // configuration files.
+    File configDirectory  = new File(configFile).getParentFile();
+    File archiveDirectory = new File(configDirectory, CONFIG_ARCHIVE_DIR_NAME);
+
+
+    // If the archive directory doesn't exist, then create it.
+    if (! archiveDirectory.exists())
+    {
+      try
+      {
+        if (! archiveDirectory.mkdirs())
+        {
+          int msgID = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR_NO_REASON;
+          String message = getMessage(msgID,
+                                      archiveDirectory.getAbsolutePath());
+
+          logError(ErrorLogCategory.CONFIGURATION,
+                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+
+          DirectoryServer.sendAlertNotification(this,
+               ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+          return;
+        }
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        int    msgID   = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR;
+        String message = getMessage(msgID, archiveDirectory.getAbsolutePath(),
+                                    stackTraceToSingleLineString(e));
+
+        logError(ErrorLogCategory.CONFIGURATION,
+                 ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+
+        DirectoryServer.sendAlertNotification(this,
+             ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+        return;
+      }
+    }
+
+
+    // Determine the appropriate name to use for the current configuration.
+    File archiveFile;
+    try
+    {
+      String timestamp = TimeThread.getGMTTime();
+      archiveFile = new File(archiveDirectory, "config-" + timestamp + ".gz");
+      if (archiveFile.exists())
+      {
+        int counter = 2;
+        archiveFile = new File(archiveDirectory,
+                               "config-" + timestamp + "-" + counter + ".gz");
+
+        while (archiveFile.exists())
+        {
+          counter++;
+          archiveFile = new File(archiveDirectory,
+                                 "config-" + timestamp + "-" + counter + ".gz");
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
+      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+
+      logError(ErrorLogCategory.CONFIGURATION,
+               ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+
+      DirectoryServer.sendAlertNotification(this,
+           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+      return;
+    }
+
+
+    // Copy the current configuration to the new configuration file.
+    byte[]           buffer       = new byte[8192];
+    FileInputStream  inputStream  = null;
+    GZIPOutputStream outputStream = null;
+    try
+    {
+      inputStream  = new FileInputStream(configFile);
+      outputStream = new GZIPOutputStream(new FileOutputStream(archiveFile));
+
+      int bytesRead = inputStream.read(buffer);
+      while (bytesRead > 0)
+      {
+        outputStream.write(buffer, 0, bytesRead);
+        bytesRead = inputStream.read(buffer);
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
+      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+
+      logError(ErrorLogCategory.CONFIGURATION,
+               ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+
+      DirectoryServer.sendAlertNotification(this,
+           ALERT_TYPE_CANNOT_WRITE_CONFIGURATION, msgID, message);
+      return;
+    }
+    finally
+    {
+      try
+      {
+        inputStream.close();
+      } catch (Exception e) {}
+
+      try
+      {
+        outputStream.close();
+      } catch (Exception e) {}
     }
   }
 

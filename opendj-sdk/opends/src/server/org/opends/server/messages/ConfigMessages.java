@@ -6584,6 +6584,17 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used an error occurs while
+   * attempting to calculate a digest of the server configuration.  This takes
+   * two arguments, which are the path to the file the server is trying to
+   * digest, and a string representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_CANNOT_CALCULATE_DIGEST =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_FATAL_ERROR | 654;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6750,6 +6761,9 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE,
                     "An unexpected error occurred while attempting to " +
                     "determine whether configuration file %s exists:  %s");
+    registerMessage(MSGID_CONFIG_CANNOT_CALCULATE_DIGEST,
+                    "An error occurred while attempting to calculate a SHA-1 " +
+                    "digest of file %s:  %s");
     registerMessage(MSGID_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES,
                     "An error occurred while attempting to apply the changes " +
                     "contained in file %s to the server configuration at " +
