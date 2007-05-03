@@ -245,7 +245,7 @@ public class ReplicationDomain extends DirectoryThread
   private ConfigEntry backendConfigEntry;
   private List<DN> branches = new ArrayList<DN>(0);
 
-  private int listenerThreadNumber = 10;
+  private int listenerThreadNumber = 1;
   private boolean receiveStatus = true;
 
   private Collection<String> replicationServers;
