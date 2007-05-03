@@ -143,6 +143,17 @@ public final class IPAddressPropertyDefinition extends
    * {@inheritDoc}
    */
   @Override
+  public String encodeValue(InetAddress value)
+      throws IllegalPropertyValueException {
+    return value.getHostName();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitIPAddress(this, p);
   }
