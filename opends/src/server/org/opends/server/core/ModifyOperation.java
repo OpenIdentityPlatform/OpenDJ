@@ -2370,13 +2370,18 @@ modifyProcessing:
           pwPolicyState.clearGraceLoginTimes();
           pwPolicyState.clearWarnedTime();
 
-          if (selfChange && pwPolicyState.getPolicy().forceChangeOnAdd())
+          if(pwPolicyState.getPolicy().forceChangeOnAdd()
+             || pwPolicyState.getPolicy().forceChangeOnReset())
           {
-            pwPolicyState.setMustChangePassword(false);
-          }
-          else if( pwPolicyState.getPolicy().forceChangeOnReset())
-          {
-            pwPolicyState.setMustChangePassword(! selfChange);
+            if (selfChange)
+            {
+              pwPolicyState.setMustChangePassword(false);
+            }
+            else
+            {
+              pwPolicyState.setMustChangePassword(
+                   pwPolicyState.getPolicy().forceChangeOnReset());
+            }
           }
 
           if (pwPolicyState.getPolicy().getRequireChangeByTime() > 0)
