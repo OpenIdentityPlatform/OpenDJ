@@ -43,7 +43,7 @@ import org.opends.server.types.operation.PostOperationAbandonOperation;
 import org.opends.server.types.operation.PreParseAbandonOperation;
 
 import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.loggers.Access.*;
+import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 

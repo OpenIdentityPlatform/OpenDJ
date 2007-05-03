@@ -37,7 +37,9 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.StartupErrorLogger;
+import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
@@ -52,10 +54,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
 
 
@@ -68,12 +71,34 @@ import static org.opends.server.tools.ToolConstants.*;
  */
 public class VerifyIndex
 {
+  private static DN publisherDN = null;
   /**
    * Processes the command-line arguments and invokes the verify process.
    *
    * @param  args  The command-line arguments provided to this program.
    */
   public static void main(String[] args)
+  {
+    int retCode = mainVerifyIndex(args);
+
+    if(publisherDN != null)
+    {
+      ErrorLogger.removeErrorLogPublisher(publisherDN);
+    }
+
+    if(retCode != 0)
+    {
+      System.exit(retCode);
+    }
+  }
+
+  /**
+   * Processes the command-line arguments and invokes the verify process.
+   *
+   * @param  args  The command-line arguments provided to this program.
+   * @return The error code.
+   */
+  public static int mainVerifyIndex(String[] args)
   {
     // Define the command-line arguments that may be used with this program.
     StringArgument  configClass             = null;
@@ -146,7 +171,7 @@ public class VerifyIndex
       String message = getMessage(msgID, ae.getMessage());
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
 
 
@@ -162,14 +187,14 @@ public class VerifyIndex
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
-      System.exit(1);
+      return 1;
     }
 
 
     // If we should just display usage information, then print it and exit.
     if (argParser.usageDisplayed())
     {
-      System.exit(0);
+      return 0;
     }
 
 
@@ -180,7 +205,7 @@ public class VerifyIndex
     if (numArgs == 0)
     {
       System.out.println(argParser.getUsage());
-      System.exit(1);
+      return 1;
     }
 
 
@@ -191,7 +216,7 @@ public class VerifyIndex
 
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.out.println(argParser.getUsage());
-      System.exit(1);
+      return 1;
     }
 
     // Perform the initial bootstrap of the Directory Server and process the
@@ -208,7 +233,7 @@ public class VerifyIndex
       int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
       String message = getMessage(msgID, getExceptionMessage(e));
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
 
     try
@@ -221,14 +246,14 @@ public class VerifyIndex
       int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
       String message = getMessage(msgID, ie.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
       String message = getMessage(msgID, getExceptionMessage(e));
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
 
 
@@ -243,21 +268,21 @@ public class VerifyIndex
       int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, ce.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, ie.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
       String message = getMessage(msgID, getExceptionMessage(e));
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
 
 
@@ -272,21 +297,21 @@ public class VerifyIndex
       int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, ce.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, ie.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
       String message = getMessage(msgID, getExceptionMessage(e));
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
 
 
@@ -300,29 +325,40 @@ public class VerifyIndex
       int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, ce.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
     catch (InitializationException ie)
     {
       int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, ie.getMessage());
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
     catch (Exception e)
     {
       int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
       String message = getMessage(msgID, getExceptionMessage(e));
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.exit(1);
+      return 1;
     }
 
 
     // FIXME -- Install a custom logger to capture information about the state
     // of the verify process.
-    StartupErrorLogger startupLogger = new StartupErrorLogger();
-    startupLogger.initializeErrorLogger(null);
-    addErrorLogger(startupLogger);
+    try
+    {
+      publisherDN = DN.decode("cn=Custom Logger for VerifyIndex");
+      ThreadFilterTextErrorLogPublisher publisher =
+          new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
+                                                new TextWriter.STDOUT());
+      ErrorLogger.addErrorLogPublisher(publisherDN, publisher);
+
+    }
+    catch(Exception e)
+    {
+      System.err.println("Error installing the custom error logger: " +
+          StaticUtils.stackTraceToSingleLineString(e));
+    }
 
 
     // Decode the base DN provided by the user.
@@ -338,7 +374,7 @@ public class VerifyIndex
                                   de.getErrorMessage());
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
-      System.exit(1);
+      return 1;
     }
     catch (Exception e)
     {
@@ -347,7 +383,7 @@ public class VerifyIndex
                                   getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
-      System.exit(1);
+      return 1;
     }
 
 
@@ -386,7 +422,7 @@ public class VerifyIndex
             String message = getMessage(msgID, baseDNString.getValue());
             logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                      message, msgID);
-            System.exit(1);
+            return 1;
           }
           break;
         }
@@ -399,7 +435,7 @@ public class VerifyIndex
       String message = getMessage(msgID, baseDNString.getValue());
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
-      System.exit(1);
+      return 1;
     }
 
     if (!(backend instanceof BackendImpl))
@@ -408,7 +444,7 @@ public class VerifyIndex
       String message = getMessage(msgID);
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
-      System.exit(1);
+      return 1;
     }
 
     // Initialize the verify configuration.
@@ -442,7 +478,7 @@ public class VerifyIndex
                                     String.valueOf(failureReason));
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
-        return;
+        return 1;
       }
     }
     catch (Exception e)
@@ -452,7 +488,7 @@ public class VerifyIndex
                                   getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
-      return;
+      return 1;
     }
 
 
@@ -493,5 +529,7 @@ public class VerifyIndex
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
                message, msgID);
     }
+
+    return 0;
   }
 }

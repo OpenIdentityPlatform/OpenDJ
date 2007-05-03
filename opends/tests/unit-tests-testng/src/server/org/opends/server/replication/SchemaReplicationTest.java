@@ -26,7 +26,7 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 

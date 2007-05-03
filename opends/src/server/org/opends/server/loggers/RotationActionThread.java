@@ -88,16 +88,16 @@ public class RotationActionThread extends DirectoryThread
             action = new ZIPAction(filename, zipFile, true);
             break;
           case SIGN:
-            String alias = RotationConfigUtil.getCertificateAlias(configEntry);
-            action = new SignatureAction(filename, alias);
+           //String alias = RotationConfigUtil.getCertificateAlias(configEntry);
+            //action = new SignatureAction(filename, alias);
             break;
           case ENCRYPT:
             String encFile = filename + ".enc";
-            String certAlias =
-              RotationConfigUtil.getCertificateAlias(configEntry);
+            //String certAlias =
+            //  RotationConfigUtil.getCertificateAlias(configEntry);
             // FIXME - make the encryption algorithm configurable.
-            action = new EncryptAction(filename, encFile, false, certAlias,
-                                       "RSA");
+            //action = new EncryptAction(filename, encFile, false, certAlias,
+            //                           "RSA");
             break;
           default:
             System.err.println("Invalid post rollover action:" + at);

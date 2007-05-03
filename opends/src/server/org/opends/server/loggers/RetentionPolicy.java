@@ -26,21 +26,48 @@
  */
 package org.opends.server.loggers;
 
+import org.opends.server.admin.std.server.LogRetentionPolicyCfg;
+import org.opends.server.config.ConfigException;
+import org.opends.server.types.InitializationException;
 
 
 /**
  * This interface describes the retention policy that should be used
  * for the logger. Supported policies include number of files and
  * disk utilization (for Java 6).
+ *
+ * @param <T> The type of retention policy configuration handled by
+ *            this retention policy implementation.
  */
-public interface RetentionPolicy
+public interface RetentionPolicy<T extends LogRetentionPolicyCfg>
 {
+  /**
+   * Initializes this log retention policy based on the
+   * information in the provided retention policy configuration.
+   *
+   * @param config
+   *          The retention policy configuration that contains the
+   *          information to use to initialize this policy.
+   * @throws ConfigException
+   *           If an unrecoverable problem arises in the process of
+   *           performing the initialization as a result of the server
+   *           configuration.
+   * @throws InitializationException
+   *           If a problem occurs during initialization that is not
+   *           related to the server configuration.
+   */
+  public abstract void initializeLogRetentionPolicy(T config)
+      throws ConfigException, InitializationException;
+
   /**
    * This method checks for whether files should be deleted or not.
    *
-   * @return number of files deleted.
+   * @param writer The multi file writer writing the files to be
+   *        checked.
+   *
+   * @return number of files deleted, if any.
    */
-  public int deleteFiles();
+  public int deleteFiles(MultifileTextWriter writer);
 
 }
 

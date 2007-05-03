@@ -28,8 +28,8 @@ package org.opends.server.protocols.ldap;
 
 
 
-import static org.opends.server.loggers.Access.logConnect;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.AccessLogger.logConnect;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.getMessage;

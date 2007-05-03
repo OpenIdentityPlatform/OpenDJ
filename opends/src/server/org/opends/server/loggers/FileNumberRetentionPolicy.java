@@ -26,57 +26,91 @@
  */
 package org.opends.server.loggers;
 
+import org.opends.server.admin.std.server.FileCountLogRetentionPolicyCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.ResultCode;
 
 /**
  * This class implements a retention policy based on the number of files.
  * Files will be cleaned up based on the number of files on disk.
  */
-public class FileNumberRetentionPolicy implements RetentionPolicy
+public class FileNumberRetentionPolicy implements
+    RetentionPolicy<FileCountLogRetentionPolicyCfg>,
+    ConfigurationChangeListener<FileCountLogRetentionPolicyCfg>
 {
 
   private int numFiles = 0;
-  private File directory = null;
-  private String prefix = null;
 
   /**
-   * Create the retention policy based on the number of files.
-   *
-   * @param dir      The directory in which the log files reside.
-   * @param prefix   The prefix for the log file names.
-   * @param numFiles The number of files on disk.
+   * {@inheritDoc}
    */
-  public FileNumberRetentionPolicy(String dir, String prefix, int numFiles)
+  public void initializeLogRetentionPolicy(
+      FileCountLogRetentionPolicyCfg config)
   {
-    this.numFiles = numFiles;
-    this.directory = new File(dir);
-    this.prefix = prefix;
+    numFiles = config.getNumberOfFiles();
+
+    config.addFileCountChangeListener(this);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      FileCountLogRetentionPolicyCfg config,
+      List<String> unacceptableReasons)
+  {
+    // Changes should always be OK
+    return true;
+  }
 
   /**
-   * This method deletes files based on the policy.
-   *
-   * @return number of files deleted.
+   * {@inheritDoc}
    */
-  public int deleteFiles()
+  public ConfigChangeResult applyConfigurationChange(
+      FileCountLogRetentionPolicyCfg config)
+  {
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    numFiles = config.getNumberOfFiles();
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int deleteFiles(MultifileTextWriter writer)
   {
     int count = 0;
+    File[] files = writer.getNamingPolicy().listFiles();
 
-    File[] selectedFiles = directory.listFiles(new LogFileFilter(prefix));
-    if (selectedFiles.length <= numFiles)
+    if (files.length <= numFiles)
     {
       return 0;
     }
 
     // Sort files based on last modified time.
-    Arrays.sort(selectedFiles, new FileComparator());
+    Arrays.sort(files, new FileComparator());
 
-    for (int j = numFiles; j < selectedFiles.length; j++)
+    for (int j = numFiles; j < files.length; j++)
     {
-      // System.out.println("Deleting log file:" + selectedFiles[j]);
-      selectedFiles[j].delete();
+      if(debugEnabled())
+      {
+        debugInfo("Deleting log file:", files[j]);
+      }
+      files[j].delete();
       count++;
     }
 

@@ -26,7 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;

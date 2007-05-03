@@ -97,11 +97,10 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.loggers.Access.*;
+import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;

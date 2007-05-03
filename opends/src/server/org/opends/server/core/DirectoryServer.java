@@ -60,7 +60,10 @@ import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
-import org.opends.server.loggers.StartupErrorLogger;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
+import org.opends.server.loggers.RetentionPolicy;
+import org.opends.server.loggers.RotationPolicy;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.schema.*;
@@ -76,10 +79,11 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Access.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -274,6 +278,16 @@ public class DirectoryServer
   // The set of trust manager providers registered with the server.
   private ConcurrentHashMap<DN,TrustManagerProvider> trustManagerProviders;
 
+  // The set of log rotation policies registered with the Directory Server, as
+  // a mapping between the DN of the associated configuration entry and the
+  // policy implementation.
+  private ConcurrentHashMap<DN, RotationPolicy> rotationPolicies;
+
+  // The set of log retention policies registered with the Directory Server, as
+  // a mapping between the DN of the associated configuration entry and the
+  // policy implementation.
+  private ConcurrentHashMap<DN, RetentionPolicy> retentionPolicies;
+
   // The set of extended operation handlers registered with the server (mapped
   // between the OID of the extended operation and the handler).
   private ConcurrentHashMap<String,ExtendedOperationHandler>
@@ -407,6 +421,12 @@ public class DirectoryServer
   // with the server offline.
   private List<Modification> offlineSchemaChanges;
 
+  // The log rotation policy config manager for the Directory Server.
+  private LogRotationPolicyConfigManager rotationPolicyConfigManager;
+
+  // The log retention policy config manager for the Directory Server.
+  private LogRetentionPolicyConfigManager retentionPolicyConfigManager;
+
   // The logger configuration manager for the Directory Server.
   private LoggerConfigManager loggerConfigManager;
 
@@ -472,7 +492,7 @@ public class DirectoryServer
 
 
   // The error logger that will be used during the Directory Server startup.
-  private StartupErrorLogger startupErrorLogger;
+  private TextErrorLogPublisher startupErrorLogPublisher;
 
   // The fully-qualified name of the configuration handler class.
   private String configClass;
@@ -612,6 +632,10 @@ public class DirectoryServer
          new ConcurrentHashMap<DN,KeyManagerProvider>();
     directoryServer.trustManagerProviders =
          new ConcurrentHashMap<DN,TrustManagerProvider>();
+    directoryServer.rotationPolicies =
+         new ConcurrentHashMap<DN, RotationPolicy>();
+    directoryServer.retentionPolicies =
+         new ConcurrentHashMap<DN, RetentionPolicy>();
     directoryServer.certificateMappers =
          new ConcurrentHashMap<DN,CertificateMapper>();
     directoryServer.passwordPolicies =
@@ -711,11 +735,10 @@ public class DirectoryServer
     // Install default debug and error loggers for use until enough of the
     // configuration has been read to allow the real loggers to be installed.
 
-    removeAllErrorLoggers(true);
-    startupErrorLogger = new StartupErrorLogger();
-    startupErrorLogger.initializeErrorLogger(null);
-    addErrorLogger(startupErrorLogger);
-
+    startupErrorLogPublisher =
+        TextErrorLogPublisher.getStartupTextErrorPublisher(
+            new TextWriter.STDOUT());
+    addErrorLogPublisher(DN.NULL_DN, startupErrorLogPublisher);
 
     // Create the MBean server that we will use for JMX interaction.
     initializeJMX();
@@ -992,9 +1015,17 @@ public class DirectoryServer
       initializeCryptoManager();
 
 
+      // Initialize the log rotation policies.
+      rotationPolicyConfigManager = new LogRotationPolicyConfigManager();
+      rotationPolicyConfigManager.initializeLogRotationPolicyConfig();
+
+      // Initialize the log retention policies.
+      retentionPolicyConfigManager = new LogRetentionPolicyConfigManager();
+      retentionPolicyConfigManager.initializeLogRetentionPolicyConfig();
+
       // Initialize the server loggers.
       loggerConfigManager = new LoggerConfigManager();
-      loggerConfigManager.initializeLoggers();
+      loggerConfigManager.initializeLoggerConfig();
 
 
 
@@ -1125,7 +1156,8 @@ public class DirectoryServer
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, msgID, message);
 
 
-      removeErrorLogger(startupErrorLogger);
+      removeDebugLogPublisher(DN.NULL_DN);
+      removeErrorLogPublisher(DN.NULL_DN);
 
 
       // If a server.starting file exists, then remove it.
@@ -5050,6 +5082,105 @@ public class DirectoryServer
   }
 
 
+  /**
+   * Retrieves the log rotation policy registered for the provided configuration
+   * entry.
+   *
+   * @param  configEntryDN  The DN of the configuration entry for which to
+   *                        retrieve the associated rotation policy.
+   *
+   * @return  The rotation policy registered for the provided configuration
+   *          entry, or <CODE>null</CODE> if there is no such policy.
+   */
+  public static RotationPolicy getRotationPolicy(DN configEntryDN)
+  {
+    Validator.ensureNotNull(configEntryDN);
+
+    return directoryServer.rotationPolicies.get(configEntryDN);
+  }
+
+    /**
+   * Registers the provided log rotation policy with the Directory Server.  If a
+   * policy is already registered for the provided configuration entry DN, then
+   * it will be replaced.
+   *
+   * @param  configEntryDN  The DN of the configuration entry that defines the
+   *                        password policy.
+   * @param  policy         The rotation policy to register with the server.
+   */
+  public static void registerRotationPolicy(DN configEntryDN,
+                                            RotationPolicy policy)
+  {
+    Validator.ensureNotNull(configEntryDN, policy);
+
+    directoryServer.rotationPolicies.put(configEntryDN, policy);
+  }
+
+
+
+  /**
+   * Deregisters the provided log rotation policy with the Directory Server.
+   * If no such policy is registered, then no action will be taken.
+   *
+   * @param  configEntryDN  The DN of the configuration entry that defines the
+   *                        rotation policy to deregister.
+   */
+  public static void deregisterRotationPolicy(DN configEntryDN)
+  {
+    Validator.ensureNotNull(configEntryDN);
+
+    directoryServer.rotationPolicies.remove(configEntryDN);
+  }
+
+  /**
+   * Retrieves the log retention policy registered for the provided
+   * configuration entry.
+   *
+   * @param  configEntryDN  The DN of the configuration entry for which to
+   *                        retrieve the associated retention policy.
+   *
+   * @return  The retention policy registered for the provided configuration
+   *          entry, or <CODE>null</CODE> if there is no such policy.
+   */
+  public static RetentionPolicy getRetentionPolicy(DN configEntryDN)
+  {
+    Validator.ensureNotNull(configEntryDN);
+
+    return directoryServer.retentionPolicies.get(configEntryDN);
+  }
+
+  /**
+   * Registers the provided log retention policy with the Directory Server.
+   * If a policy is already registered for the provided configuration entry DN,
+   * then it will be replaced.
+   *
+   * @param  configEntryDN  The DN of the configuration entry that defines the
+   *                        password policy.
+   * @param  policy         The retention policy to register with the server.
+   */
+  public static void registerRetentionPolicy(DN configEntryDN,
+                                            RetentionPolicy policy)
+  {
+    Validator.ensureNotNull(configEntryDN, policy);
+
+    directoryServer.retentionPolicies.put(configEntryDN, policy);
+  }
+
+
+
+  /**
+   * Deregisters the provided log retention policy with the Directory Server.
+   * If no such policy is registered, then no action will be taken.
+   *
+   * @param  configEntryDN  The DN of the configuration entry that defines the
+   *                        retention policy to deregister.
+   */
+  public static void deregisterRetentionPolicy(DN configEntryDN)
+  {
+    Validator.ensureNotNull(configEntryDN);
+
+    directoryServer.retentionPolicies.remove(configEntryDN);
+  }
 
   /**
    * Retrieves the set of monitor providers that have been registered with the
@@ -7947,21 +8078,6 @@ public class DirectoryServer
       }
     }
 
-
-    // Shut down all the access loggers.
-    try
-    {
-      removeAllAccessLoggers(true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-
-
     // Release the exclusive lock for the Directory Server process.
     String lockFile = LockFileManager.getServerLockFileName();
     try
@@ -7995,31 +8111,9 @@ public class DirectoryServer
     logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.NOTICE,
              MSGID_SERVER_STOPPED);
 
-    try
-    {
-      removeAllErrorLoggers(true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-
-
-    // The JDK logger doesn't allow you to deregister things, so we have to
-    // reset it.  This is necessary to avoid exceptions if you perform an
-    // in-core restart or stop the server and start a new instance in the same
-    // JVM (which currently isn't possible through any means other than an
-    // in-core restart but might be exposed at some point).
-    //
-    // FIXME -- This could cause problems with an application that's embedding
-    //          OpenDS and also using the JDK logger.  The solution for this
-    //          will come once we have rewritten the loggers so that we no
-    //          longer use the JDK logging framework.
-    java.util.logging.LogManager.getLogManager().reset();
-
+    removeAllAccessLogPublishers();
+    removeAllErrorLogPublishers();
+    removeAllDebugLogPublishers();
 
     // Just in case there's something that isn't shut down properly, wait for
     // the monitor to give the OK to stop.

@@ -29,21 +29,20 @@ package org.opends.server.loggers;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InvokableMethod;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
+import org.opends.server.types.FilePermission;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.server.admin.std.server.SizeLimitLogRotationPolicyCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.util.TimeThread;
 
 import java.io.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A MultiFileTextWriter is a specialized TextWriter which supports publishing
@@ -54,15 +53,20 @@ import java.util.ArrayList;
  * When a switch is required, the writer closes the current file and opens a
  * new one named in accordance with a specified FileNamingPolicy.
  */
-public class MultifileTextWriter extends TextWriter
-    implements ServerShutdownListener
+public class MultifileTextWriter
+    implements ServerShutdownListener, TextWriter,
+    ConfigurationChangeListener<SizeLimitLogRotationPolicyCfg>
 {
   private static final String UTF8_ENCODING= "UTF-8";
-  private static final int BUFFER_SIZE= 65536;
 
-  private CopyOnWriteArrayList<RotationPolicy> rotationPolicies;
-  private CopyOnWriteArrayList<RetentionPolicy> retentionPolicies;
+  private CopyOnWriteArrayList<RotationPolicy> rotationPolicies =
+      new CopyOnWriteArrayList<RotationPolicy>();
+  private CopyOnWriteArrayList<RetentionPolicy> retentionPolicies =
+      new CopyOnWriteArrayList<RetentionPolicy>();
+
   private FileNamingPolicy namingPolicy;
+  private FilePermission filePermissions;
+  private LogPublisherErrorHandler errorHandler;
   //TODO: Implement actions.
   private ArrayList<ActionType> actions;
 
@@ -71,82 +75,22 @@ public class MultifileTextWriter extends TextWriter
   private int bufferSize;
   private boolean autoFlush;
   private boolean append;
-  private int interval;
+  private long interval;
   private boolean stopRequested;
+  private long sizeLimit = 0;
 
   private Thread rotaterThread;
 
-  /**
-   * Get the writer for the initial log file and initialize the
-   * rotation policy.
-   * @param naming - the file naming policy in use
-   * @param encoding - the encoding to use when writing log records.
-   * @param autoFlush - indicates whether the file should be flushed
-   * after every record written.
-   * @param append - indicates whether to append to the existing file or to
-   *                 overwrite it.
-   * @param bufferSize - the buffer size to use for the writer.
-   * @return a PrintWriter for the initial log file
-   * @throws IOException if the initial log file could not be opened
-   */
-  private static PrintWriter getInitialWriter(FileNamingPolicy naming,
-                                              String encoding,
-                                              boolean autoFlush,
-                                              boolean append,
-                                              int bufferSize)
-      throws IOException
-  {
-    File file = naming.getInitialName();
-    return constructWriter(file, encoding, autoFlush, append, bufferSize);
-  }
+  private long lastRotationTime = TimeThread.getTime();
+  private long lastCleanTime = TimeThread.getTime();
+  private long lastCleanCount = 0;
+  private long totalFilesRotated = 0;
+  private long totalFilesCleaned = 0;
 
-  /**
-   * Construct a PrintWriter for a file.
-   * @param file - the file to open for writing
-   * @param encoding - the encoding to use when writing log records.
-   * @param autoFlush - indicates whether the file should be flushed
-   * after every record written.
-   * @param append - indicates whether the file should be appended to or
-   * truncated.
-   * @param bufferSize - the buffer size to use for the writer.
-   * @return a PrintWriter for the specified file.
-   * @throws IOException if the PrintWriter could not be constructed
-   * or if the file already exists and it was indicated this should be
-   * an error.
-   */
-  private static PrintWriter constructWriter(File file, String encoding,
-                                             boolean autoFlush, boolean append,
-                                             int bufferSize)
-      throws IOException
-  {
-    FileOutputStream fos= new FileOutputStream(file, append);
-    OutputStreamWriter osw= new OutputStreamWriter(fos, encoding);
-    BufferedWriter bw = null;
-    if(bufferSize <= 0)
-    {
-      bw= new BufferedWriter(osw);
-    }
-    else
-    {
-      bw= new BufferedWriter(osw, bufferSize);
-    }
-    return new PrintWriter(bw, autoFlush);
-  }
-
-  /**
-   * Creates a new instance of MultiFileTextWriter with the supplied policies.
-   *
-   * @param name the name of the log rotation thread.
-   * @param namingPolicy the file naming policy to use to name rotated log
-   *                      files.
-   * @throws IOException if an error occurs while creating the log file.
-   */
-  public MultifileTextWriter(String name, FileNamingPolicy namingPolicy)
-      throws IOException
-  {
-    this(name, 5000, namingPolicy, UTF8_ENCODING,
-         true, true, BUFFER_SIZE, null, null);
-  }
+  /** The underlying output stream. */
+  private MeteredStream outputStream;
+  /** The underlaying buffered writer using the output steram. */
+  private BufferedWriter writer;
 
   /**
    * Creates a new instance of MultiFileTextWriter with the supplied policies.
@@ -155,40 +99,248 @@ public class MultifileTextWriter extends TextWriter
    * @param interval the interval to check whether the logs need to be rotated.
    * @param namingPolicy the file naming policy to use to name rotated log.
    *                      files.
+   * @param filePermissions the file permissions to set on the log files.
+   * @param errorHandler the log publisher error handler to notify when
+   *                     an error occurs.
    * @param encoding the encoding to use to write the log files.
    * @param autoFlush whether to flush the writer on every println.
    * @param append whether to append to an existing log file.
    * @param bufferSize the bufferSize to use for the writer.
-   * @param rotationPolicies the rotation policy to use for log rotation.
-   * @param retentionPolicies the retention policy to use for log rotation.
    * @throws IOException if an error occurs while creating the log file.
+   * @throws DirectoryException if an error occurs while preping the new log
+   *                            file.
    */
-  public MultifileTextWriter(String name, int interval,
-                             FileNamingPolicy namingPolicy, String encoding,
-                             boolean autoFlush, boolean append, int bufferSize,
-                        CopyOnWriteArrayList<RotationPolicy> rotationPolicies,
-                        CopyOnWriteArrayList<RetentionPolicy> retentionPolicies)
-      throws IOException
+  public MultifileTextWriter(String name, long interval,
+                             FileNamingPolicy namingPolicy,
+                             FilePermission filePermissions,
+                             LogPublisherErrorHandler errorHandler,
+                             String encoding,
+                             boolean autoFlush,
+                             boolean append,
+                             int bufferSize)
+      throws IOException, DirectoryException
   {
-    super(getInitialWriter(namingPolicy, encoding,
-                           autoFlush, append, bufferSize), true);
+    File file = namingPolicy.getInitialName();
+    constructWriter(file, filePermissions, encoding, append,
+                    bufferSize);
+
     this.name = name;
     this.interval = interval;
     this.namingPolicy = namingPolicy;
-    this.rotationPolicies = rotationPolicies;
-    this.retentionPolicies = retentionPolicies;
+    this.filePermissions = filePermissions;
+    this.errorHandler = errorHandler;
 
-    this.encoding = encoding;
+    this.encoding = UTF8_ENCODING;
     this.autoFlush = autoFlush;
     this.append = append;
     this.bufferSize = bufferSize;
 
     this.stopRequested = false;
 
-    // We will lazily launch the rotaterThread
-    // to ensure initialization safety.
+    rotaterThread = new RotaterThread(this);
+    rotaterThread.start();
 
     DirectoryServer.registerShutdownListener(this);
+  }
+
+  /**
+   * Construct a PrintWriter for a file.
+   * @param file - the file to open for writing
+   * @param filePermissions - the file permissions to set on the file.
+   * @param encoding - the encoding to use when writing log records.
+   * @param append - indicates whether the file should be appended to or
+   * truncated.
+   * @param bufferSize - the buffer size to use for the writer.
+   * @throws IOException if the PrintWriter could not be constructed
+   * or if the file already exists and it was indicated this should be
+   * an error.
+   * @throws DirectoryException if there was a problem setting permissions on
+   * the file.
+   */
+  private void constructWriter(File file, FilePermission filePermissions,
+                               String encoding, boolean append,
+                               int bufferSize)
+      throws IOException, DirectoryException
+  {
+    // Create new file if it doesn't exist
+    if(!file.exists())
+    {
+      file.createNewFile();
+    }
+
+    FileOutputStream stream = new FileOutputStream(file, append);
+    outputStream = new MeteredStream(stream, 0);
+
+    OutputStreamWriter osw = new OutputStreamWriter(outputStream, encoding);
+    BufferedWriter bw = null;
+    if(bufferSize <= 0)
+    {
+      writer = new BufferedWriter(osw);
+    }
+    else
+    {
+      writer = new BufferedWriter(osw, bufferSize);
+    }
+
+    if(FilePermission.canSetPermissions())
+    {
+      FilePermission.setPermissions(file, filePermissions);
+    }
+  }
+
+
+  /**
+   * Add a rotation policy to enforce on the files written by this writer.
+   *
+   * @param policy The rotation policy to add.
+   */
+  public void addRotationPolicy(RotationPolicy policy)
+  {
+    this.rotationPolicies.add(policy);
+
+    if(policy instanceof SizeBasedRotationPolicy)
+    {
+      SizeBasedRotationPolicy sizePolicy = ((SizeBasedRotationPolicy)policy);
+      if(sizeLimit == 0 ||
+          sizeLimit > sizePolicy.currentConfig.getFileSizeLimit())
+      {
+        sizeLimit = sizePolicy.currentConfig.getFileSizeLimit();
+      }
+      // Add this as a change listener so we can update the size limit.
+      sizePolicy.currentConfig.addSizeLimitChangeListener(this);
+    }
+  }
+
+  /**
+   * Add a retention policy to enforce on the files written by this writer.
+   *
+   * @param policy The retention policy to add.
+   */
+  public void addRetentionPolicy(RetentionPolicy policy)
+  {
+    this.retentionPolicies.add(policy);
+  }
+
+  /**
+   * Removes all the rotation policies currently enforced by this writer.
+   */
+  public void removeAllRotationPolicies()
+  {
+    for(RotationPolicy policy : rotationPolicies)
+    {
+      if(policy instanceof SizeBasedRotationPolicy)
+      {
+        sizeLimit = 0;
+
+        // Remove this as a change listener.
+        SizeBasedRotationPolicy sizePolicy = ((SizeBasedRotationPolicy)policy);
+        sizePolicy.currentConfig.removeSizeLimitChangeListener(this);
+      }
+    }
+  }
+
+  /**
+   * Removes all retention policies being enforced by this writer.
+   */
+  public void removeAllRetentionPolicies()
+  {
+    this.retentionPolicies.clear();
+  }
+
+  /**
+   * Set the auto flush setting for this writer.
+   *
+   * @param autoFlush If the writer should flush the buffer after every line.
+   */
+  public void setAutoFlush(boolean autoFlush)
+  {
+    this.autoFlush = autoFlush;
+  }
+
+  /**
+   * Set the append setting for this writter.
+   *
+   * @param append If the writer should append to an existing file.
+   */
+  public void setAppend(boolean append)
+  {
+    this.append = append;
+  }
+
+  /**
+   * Set the buffer size for this writter.
+   *
+   * @param bufferSize The size of the underlying output stream buffer.
+   */
+  public void setBufferSize(int bufferSize)
+  {
+    this.bufferSize = bufferSize;
+  }
+
+  /**
+   * Set the file permission to set for newly created log files.
+   *
+   * @param filePermissions The file permission to set for new log files.
+   */
+  public void setFilePermissions(FilePermission filePermissions)
+  {
+    this.filePermissions = filePermissions;
+  }
+
+  /**
+   * Retrieves the current naming policy used to generate log file names.
+   *
+   * @return The current naming policy in use.
+   */
+  public FileNamingPolicy getNamingPolicy()
+  {
+    return namingPolicy;
+  }
+
+  /**
+   * Set the naming policy to use when generating new log files.
+   *
+   * @param namingPolicy the naming policy to use to name log files.
+   */
+  public void setNamingPolicy(FileNamingPolicy namingPolicy)
+  {
+    this.namingPolicy = namingPolicy;
+  }
+
+  /**
+   * Set the internval in which the rotator thread checks to see if the log
+   * file should be rotated.
+   *
+   * @param interval The interval to check if the log file needs to be rotated.
+   */
+  public void setInterval(long interval)
+  {
+    this.interval = interval;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      SizeLimitLogRotationPolicyCfg config, List<String> unacceptableReasons)
+  {
+    // This should always be ok
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+      SizeLimitLogRotationPolicyCfg config)
+  {
+    if(sizeLimit == 0 || sizeLimit > config.getFileSizeLimit())
+    {
+      sizeLimit = config.getFileSizeLimit();
+    }
+
+    return new ConfigChangeResult(ResultCode.SUCCESS, false,
+                                  new ArrayList<String>());
   }
 
   /**
@@ -197,12 +349,14 @@ public class MultifileTextWriter extends TextWriter
    */
   private class RotaterThread extends DirectoryThread
   {
+    MultifileTextWriter writer;
     /**
      * Create a new rotater thread.
      */
-    public RotaterThread()
+    public RotaterThread(MultifileTextWriter writer)
     {
       super(name);
+      this.writer = writer;
     }
 
     /**
@@ -229,37 +383,28 @@ public class MultifileTextWriter extends TextWriter
           }
         }
 
-        if(rotationPolicies != null)
+        for(RotationPolicy rotationPolicy : rotationPolicies)
         {
-          for(RotationPolicy rotationPolicy : rotationPolicies)
+          if(rotationPolicy.rotateFile(writer))
           {
-            if(rotationPolicy.rotateFile())
-            {
-              try
-              {
-                rotate();
-              }
-              catch (IOException ioe)
-              {
-                //TODO: Comment this after AOP logging is complete.
-                //int msgID = MSGID_CONFIG_LOGGER_ROTATE_FAILED;
-                //Error.logError(ErrorLogCategory.CORE_SERVER,
-                //               ErrorLogSeverity.SEVERE_ERROR, msgID, ioe);
-              }
-            }
+            rotate();
           }
         }
 
-        if(retentionPolicies != null)
+        for(RetentionPolicy retentionPolicy : retentionPolicies)
         {
-          for(RetentionPolicy retentionPolicy : retentionPolicies)
+          int numFilesDeleted =
+              retentionPolicy.deleteFiles(writer);
+          if(numFilesDeleted > 0)
           {
-            int numFilesDeleted = retentionPolicy.deleteFiles();
-            if (debugEnabled())
-            {
-              debugVerbose("%d files deleted by rentention policy",
-                           numFilesDeleted);
-            }
+            lastCleanTime = TimeThread.getTime();
+            lastCleanCount = numFilesDeleted;
+            totalFilesCleaned++;
+          }
+          if (debugEnabled())
+          {
+            debugVerbose("%d files deleted by rentention policy",
+                         numFilesDeleted);
           }
         }
       }
@@ -285,11 +430,13 @@ public class MultifileTextWriter extends TextWriter
    */
   public void processServerShutdown(String reason)
   {
-    startShutDown();
+    stopRequested = true;
 
     // Wait for rotater to terminate
     while (rotaterThread != null && rotaterThread.isAlive()) {
       try {
+        // Interrupt if its sleeping
+        rotaterThread.interrupt();
         rotaterThread.join();
       }
       catch (InterruptedException ex) {
@@ -297,9 +444,14 @@ public class MultifileTextWriter extends TextWriter
       }
     }
 
-    writer.flush();
-    writer.close();
-    writer = null;
+    DirectoryServer.deregisterShutdownListener(this);
+
+    removeAllRotationPolicies();
+    removeAllRetentionPolicies();
+
+    // Don't close the writer as there might still be message to be
+    // written. manually shutdown just before the server process
+    // exists.
   }
 
   /**
@@ -307,17 +459,9 @@ public class MultifileTextWriter extends TextWriter
    *
    * @return if the publish is in shutdown mode.
    */
-  private synchronized boolean isShuttingDown()
+  private boolean isShuttingDown()
   {
     return stopRequested;
-  }
-
-  /**
-   * Tell the writer to start shutting down.
-   */
-  private synchronized void startShutDown()
-  {
-    stopRequested = true;
   }
 
   /**
@@ -327,7 +471,15 @@ public class MultifileTextWriter extends TextWriter
   {
     processServerShutdown(null);
 
-    DirectoryServer.deregisterShutdownListener(this);
+    try
+    {
+      writer.flush();
+      writer.close();
+    }
+    catch(Exception e)
+    {
+      errorHandler.handleCloseError(e);
+    }
   }
 
 
@@ -336,93 +488,84 @@ public class MultifileTextWriter extends TextWriter
    *
    * @param record the log record to write.
    */
-  public synchronized void writeRecord(String record)
+  public void writeRecord(String record)
   {
-    // Launch writer rotaterThread if not running
-    if (rotaterThread == null) {
-      rotaterThread = new RotaterThread();
-      rotaterThread.start();
+    synchronized(this)
+    {
+      try
+      {
+        writer.write(record);
+        writer.newLine();
+      }
+      catch(Exception e)
+      {
+        errorHandler.handleWriteError(record, e);
+      }
+
+      if(autoFlush)
+      {
+        flush();
+      }
     }
 
-    writer.println(record);
+    if(sizeLimit > 0 && outputStream.written >= sizeLimit)
+    {
+      rotate();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void flush()
+  {
+    try
+    {
+      writer.flush();
+    }
+    catch(Exception e)
+    {
+      errorHandler.handleFlushError(e);
+    }
   }
 
   /**
    * Tries to rotate the log files. If the new log file alreadly exists, it
    * tries to rename the file. On failure, all subsequent log write requests
    * will throw exceptions.
-   *
-   * @throws IOException if an error occurs while rotation the log files.
    */
-  public void rotate() throws IOException
+  public synchronized void rotate()
   {
-    writer.flush();
-    writer.close();
-    writer = null;
+    try
+    {
+      writer.flush();
+      writer.close();
+    }
+    catch(Exception e)
+    {
+      errorHandler.handleCloseError(e);
+    }
 
     File currentFile = namingPolicy.getInitialName();
     File newFile = namingPolicy.getNextName();
     currentFile.renameTo(newFile);
 
-    writer = constructWriter(currentFile, encoding,
-                             autoFlush, append, bufferSize);
+    try
+    {
+      constructWriter(currentFile, filePermissions, encoding, append,
+                      bufferSize);
+    }
+    catch (Exception e)
+    {
+      errorHandler.handleOpenError(currentFile, e);
+    }
 
     //RotationActionThread rotThread =
     //  new RotationActionThread(newFile, actions, configEntry);
     //rotThread.start();
-  }
 
-  /**
-   * Invokes the specified method with the provided arguments.
-   *
-   * @param  methodName  The name of the method to invoke.
-   * @param  arguments   The set of configuration attributes holding the
-   *                     arguments to use for the method.
-   *
-   * @return  The return value for the method, or <CODE>null</CODE> if it did
-   *          not return a value.
-   *
-   * @throws org.opends.server.types.DirectoryException
-   *   If there was no such method, or if an error occurred while attempting
-   *   to invoke it.
-   */
-  public Object invokeMethod(String methodName, ConfigAttribute[] arguments)
-      throws DirectoryException
-  {
-    if(!methodName.equals("rotateNow"))
-    {
-      int msgID = MSGID_CONFIG_JMX_NO_METHOD;
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                   getMessage(msgID), msgID);
-    }
-
-    try
-    {
-      rotate();
-    }
-    catch(Exception e)
-    {
-      //TODO: Comment when AOP logging framework is complete.
-      //int msgID = MSGID_CONFIG_LOGGER_ROTATE_FAILED;
-      //throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-      //                            getMessage(msgID, e), msgID);
-    }
-
-    return null;
-  }
-
-  /**
-   * Retrieves a list of the methods that may be invoked for this component.
-   *
-   * @return  A list of the methods that may be invoked for this component.
-   */
-  public InvokableMethod[] getOperationSignatures()
-  {
-    InvokableMethod[] methods = new InvokableMethod[1];
-    methods[0] = new InvokableMethod("rotateNow",
-                                     "Rotate the log file immediately",
-                                     null, "void", true, true);
-    return methods;
+    totalFilesRotated++;
+    lastRotationTime = TimeThread.getTime();
   }
 
   /**
@@ -433,5 +576,71 @@ public class MultifileTextWriter extends TextWriter
   public void setPostRotationActions(ArrayList<ActionType> actions)
   {
     this.actions = actions;
+  }
+
+  /**
+   * Retrieves the number of bytes written to the current log file.
+   *
+   * @return The number of bytes written to the current log file.
+   */
+  public long getBytesWritten()
+  {
+    return outputStream.written;
+  }
+
+  /**
+   * Retrieves the last time one or more log files are cleaned in this instance
+   * of the Directory Server. If log files have never been cleaned, this value
+   * will be the time the server started.
+   *
+   * @return The last time log files are cleaned.
+   */
+  public long getLastCleanTime()
+  {
+    return lastCleanTime;
+  }
+
+  /**
+   * Retrieves the number of files cleaned in the last cleanup run.
+   *
+   * @return The number of files cleaned int he last cleanup run.
+   */
+  public long getLastCleanCount()
+  {
+    return lastCleanCount;
+  }
+
+  /**
+   * Retrieves the last time a log file was rotated in this instance of
+   * Directory Server. If a log rotation never
+   * occured, this value will be the time the server started.
+   *
+   * @return The last time log rotation occured.
+   */
+  public long getLastRotationTime()
+  {
+    return lastRotationTime;
+  }
+
+  /**
+   * Retrieves the total number file rotations occured in this instance of the
+   * Directory Server.
+   *
+   * @return The total number of file rotations.
+   */
+  public long getTotalFilesRotated()
+  {
+    return totalFilesRotated;
+  }
+
+  /**
+   * Retrieves teh total number of files cleaned in this instance of the
+   * Directory Server.
+   *
+   * @return The total number of files cleaned.
+   */
+  public long getTotalFilesCleaned()
+  {
+    return totalFilesCleaned;
   }
 }

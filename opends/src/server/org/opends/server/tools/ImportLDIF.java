@@ -42,7 +42,9 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.StartupErrorLogger;
+import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
@@ -60,11 +62,12 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
 
 
@@ -82,6 +85,7 @@ public class ImportLDIF
    */
   public static final int LDIF_BUFFER_SIZE = 1048576;
 
+  private static DN publisherDN = null;
 
 
   /**
@@ -92,6 +96,11 @@ public class ImportLDIF
   public static void main(String[] args)
   {
     int retCode = mainImportLDIF(args);
+
+    if(publisherDN != null)
+    {
+      ErrorLogger.removeErrorLogPublisher(publisherDN);
+    }
 
     if(retCode != 0)
     {
@@ -489,9 +498,20 @@ public class ImportLDIF
       {
         // FIXME -- Install a custom logger to capture information about the
         // state of the import.
-        StartupErrorLogger startupLogger = new StartupErrorLogger();
-        startupLogger.initializeErrorLogger(null);
-        addErrorLogger(startupLogger);
+        try
+        {
+          publisherDN = DN.decode("cn=Custom Logger for ImportLDIF");
+          ThreadFilterTextErrorLogPublisher publisher =
+              new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
+                                                    new TextWriter.STDOUT());
+          ErrorLogger.addErrorLogPublisher(publisherDN, publisher);
+
+        }
+        catch(Exception e)
+        {
+          System.err.println("Error installing the custom error logger: " +
+              StaticUtils.stackTraceToSingleLineString(e));
+        }
       }
 
 

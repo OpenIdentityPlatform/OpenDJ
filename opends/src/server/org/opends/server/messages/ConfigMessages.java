@@ -6620,6 +6620,60 @@ public class ConfigMessages
 
 
 
+   /**
+   * The message ID for the message that will be used if a configuration entry
+   * defines a Directory Server rotation policy but the associated class cannot
+   * be instantiated as a rotation policy.  This takes three arguments, which
+   * are the class name, the DN of the configuration entry, and a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_ROTATION_POLICY_INVALID_CLASS =
+      CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 657;
+
+
+  /**
+   * The message ID for the message that will be used if a configuration entry
+   * defines a Directory Server retention policy but the associated class cannot
+   * be instantiated as a retention policy.  This takes three arguments, which
+   * are the class name, the DN of the configuration entry, and a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_RETENTION_POLICY_INVALID_CLASS =
+      CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 658;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create a rotation policy from a configuration entry.  This takes
+   * two arguments, which are the DN of the configuration entry and a message
+   * that explains the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_ROTATION_POLICY_CANNOT_CREATE_POLICY =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 659;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create a retention policy from a configuration entry.  This takes
+   * two arguments, which are the DN of the configuration entry and a message
+   * that explains the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_RETENTION_POLICY_CANNOT_CREATE_POLICY =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 660;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to create a text writer for a text log publisher.  This takes
+   * two arguments, the DN of the onfiguration entry and a message that explains
+   * the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 661;
+
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -9449,6 +9503,27 @@ public class ConfigMessages
                     "An error occurred while trying to load an instance " +
                     "of class %s referenced in configuration entry %s as a " +
                     "virtual attribute provider:  %s");
+    registerMessage(MSGID_CONFIG_ROTATION_POLICY_INVALID_CLASS,
+                    "Class %s specified in attribute " + ATTR_LOGGER_CLASS +
+                    " of configuration entry %s cannot be instantiated as " +
+                    "a Directory Server log rotation policy:  %s");
+    registerMessage(MSGID_CONFIG_RETENTION_POLICY_INVALID_CLASS,
+                    "Class %s specified in attribute " + ATTR_LOGGER_CLASS +
+                    " of configuration entry %s cannot be instantiated as " +
+                    "a Directory Server log retention policy:  %s");
+    registerMessage(MSGID_CONFIG_ROTATION_POLICY_CANNOT_CREATE_POLICY,
+                    "An error occurred while attempting to create a " +
+                    "Directory Server log rotation policy from the " +
+                    "information in configuration entry %s:  %s");
+    registerMessage(MSGID_CONFIG_RETENTION_POLICY_CANNOT_CREATE_POLICY,
+                    "An error occurred while attempting to create a " +
+                    "Directory Server log retention policy from the " +
+                    "information in configuration entry %s:  %s");
+    registerMessage(MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER,
+                    "An error occured while attempting create a text writer " +
+                    "for a Directory Server logger from the information " +
+                    "in configuration entry %s:  %s");
+
   }
 }
 

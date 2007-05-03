@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:managed-object
+    name="time-limit-log-rotation-policy"
+    plural-name="time-limit-log-rotation-policies"
+    package="org.opends.server.admin.std"
+    extends="log-rotation-policy"
+    xmlns:adm="http://www.opends.org/admin"
+    xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    Rotation policy based on the time since last rotation.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.108</ldap:oid>
+      <ldap:name>ds-cfg-time-limit-log-rotation-policy</ldap:name>
+      <ldap:superior>ds-cfg-log-rotation-policy</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="rotation-interval" mandatory="true">
+    <adm:synopsis>
+      The time interval between rotations.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="1" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.39</ldap:oid>
+        <ldap:name>ds-cfg-rotation-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

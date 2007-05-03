@@ -56,6 +56,7 @@ import org.opends.server.util.TimeThread;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -801,7 +802,7 @@ public abstract class Task
     String message = MessageHandler.getMessage(errorID);
 
     addLogMessage(severity, errorID, message);
-    org.opends.server.loggers.Error.logError(category, severity, errorID);
+    ErrorLogger.logError(category, severity, errorID);
   }
 
 
@@ -828,7 +829,7 @@ public abstract class Task
     String message = MessageHandler.getMessage(errorID);
 
     addLogMessage(severity, errorID, message);
-    org.opends.server.loggers.Error.logError(category, severity, errorID, args);
+    ErrorLogger.logError(category, severity, errorID,args);
   }
 
 
@@ -852,7 +853,7 @@ public abstract class Task
                               int errorID)
   {
     addLogMessage(severity, errorID, message);
-    org.opends.server.loggers.Error.logError(category, severity, message,
+    ErrorLogger.logError(category, severity, message,
         errorID);
   }
 

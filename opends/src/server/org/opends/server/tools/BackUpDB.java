@@ -40,13 +40,13 @@ import java.util.TimeZone;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.DNConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.StartupErrorLogger;
+import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;
@@ -59,13 +59,12 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Error.*;
-import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
 
 
@@ -80,6 +79,7 @@ import static org.opends.server.tools.ToolConstants.*;
  */
 public class BackUpDB
 {
+  private static DN publisherDN = null;
   /**
    * The main method for BackUpDB tool.
    *
@@ -88,6 +88,11 @@ public class BackUpDB
   public static void main(String[] args)
   {
     int retCode = mainBackUpDB(args);
+
+    if(publisherDN != null)
+    {
+      ErrorLogger.removeErrorLogPublisher(publisherDN);
+    }
 
     if(retCode != 0)
     {
@@ -481,9 +486,20 @@ public class BackUpDB
 
       // FIXME -- Install a custom logger to capture information about the state
       // of the export.
-      StartupErrorLogger startupLogger = new StartupErrorLogger();
-      startupLogger.initializeErrorLogger(null);
-      addErrorLogger(startupLogger);
+      try
+      {
+        publisherDN = DN.decode("cn=Custom Logger for BackUpDB");
+        ThreadFilterTextErrorLogPublisher publisher =
+            new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
+                                                  new TextWriter.STDOUT());
+        ErrorLogger.addErrorLogPublisher(publisherDN, publisher);
+
+      }
+      catch(Exception e)
+      {
+        System.err.println("Error installing the custom error logger: " +
+            StaticUtils.stackTraceToSingleLineString(e));
+      }
     }
 
 
@@ -492,7 +508,7 @@ public class BackUpDB
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
     ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
     ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
-    getBackends(backendList, entryList, dnList);
+    BackendToolUtils.getBackends(backendList, entryList, dnList);
     int numBackends = backendList.size();
 
     boolean multiple;
@@ -921,230 +937,6 @@ public class BackUpDB
                msgID);
     }
     return 0;
-  }
-
-
-
-  /**
-   * Retrieves information about the backends defined in the Directory Server
-   * configuration.
-   *
-   * @param  backendList  A list into which instantiated (but not initialized)
-   *                      backend instances will be placed.
-   * @param  entryList    A list into which the config entries associated with
-   *                      the backends will be placed.
-   * @param  dnList       A list into which the set of base DNs for each backend
-   *                      will be placed.
-   */
-  private static void getBackends(ArrayList<Backend> backendList,
-                                  ArrayList<ConfigEntry> entryList,
-                                  ArrayList<List<DN>> dnList)
-  {
-    // Get the base entry for all backend configuration.
-    DN backendBaseDN = null;
-    try
-    {
-      backendBaseDN = DN.decode(DN_BACKEND_BASE);
-    }
-    catch (DirectoryException de)
-    {
-      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
-      System.exit(1);
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
-
-      System.exit(1);
-    }
-
-    ConfigEntry baseEntry = null;
-    try
-    {
-      baseEntry = DirectoryServer.getConfigEntry(backendBaseDN);
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
-      System.exit(1);
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
-      System.exit(1);
-    }
-
-
-    // Iterate through the immediate children, attempting to parse them as
-    // backends.
-    for (ConfigEntry configEntry : baseEntry.getChildren().values())
-    {
-      // Get the backend ID attribute from the entry.  If there isn't one, then
-      // skip the entry.
-      String backendID = null;
-      try
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
-        StringConfigAttribute idStub =
-             new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID),
-                                       true, false, true);
-        StringConfigAttribute idAttr =
-             (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-        if (idAttr == null)
-        {
-          continue;
-        }
-        else
-        {
-          backendID = idAttr.activeValue();
-        }
-      }
-      catch (ConfigException ce)
-      {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    ce.getMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-
-
-      // Get the backend class name attribute from the entry.  If there isn't
-      // one, then just skip the entry.
-      String backendClassName = null;
-      try
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
-        StringConfigAttribute classStub =
-             new StringConfigAttribute(ATTR_BACKEND_CLASS, getMessage(msgID),
-                                       true, false, false);
-        StringConfigAttribute classAttr =
-             (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-        if (classAttr == null)
-        {
-          continue;
-        }
-        else
-        {
-          backendClassName = classAttr.activeValue();
-        }
-      }
-      catch (ConfigException ce)
-      {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_CLASS;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    ce.getMessage());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_CLASS;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-
-      Class backendClass = null;
-      try
-      {
-        backendClass = Class.forName(backendClassName);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_CANNOT_LOAD_BACKEND_CLASS;
-        String message = getMessage(msgID, backendClassName,
-                                    String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-
-      Backend backend = null;
-      try
-      {
-        backend = (Backend) backendClass.newInstance();
-        backend.setBackendID(backendID);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_CANNOT_INSTANTIATE_BACKEND_CLASS;
-        String message = getMessage(msgID, backendClassName,
-                                    String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-
-
-      // Get the base DN attribute from the entry.  If there isn't one, then
-      // just skip this entry.
-      List<DN> baseDNs = null;
-      try
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-        DNConfigAttribute baseDNStub =
-             new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID),
-                                   true, true, true);
-        DNConfigAttribute baseDNAttr =
-             (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-        if (baseDNAttr == null)
-        {
-          msgID = MSGID_NO_BASES_FOR_BACKEND;
-          String message = getMessage(msgID,
-                                      String.valueOf(configEntry.getDN()));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-        }
-        else
-        {
-          baseDNs = baseDNAttr.activeValues();
-        }
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        System.exit(1);
-      }
-
-
-      backendList.add(backend);
-      entryList.add(configEntry);
-      dnList.add(baseDNs);
-    }
   }
 }
 

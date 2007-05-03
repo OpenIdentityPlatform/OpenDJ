@@ -42,12 +42,8 @@ import org.opends.server.util.LevenshteinDistance;
 import org.opends.server.admin.std.server.SimilarityBasedPasswordValidatorCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.StaticUtils.*;
-
 
 
 /**

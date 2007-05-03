@@ -36,12 +36,6 @@ import org.testng.ITestContext;
 import org.testng.xml.XmlSuite;
 import static org.opends.server.util.ServerConstants.EOL;
 import static org.opends.server.TestCaseUtils.originalSystemErr;
-import org.opends.server.loggers.debug.DebugLogFormatter;
-import org.opends.server.loggers.debug.DebugConfiguration;
-import org.opends.server.loggers.debug.TraceSettings;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.LogLevel;
-import org.opends.server.types.DebugLogLevel;
 
 import java.util.List;
 import java.util.LinkedHashMap;
@@ -71,10 +65,22 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   public static final String ANT_TESTS_FAILED_FILE_NAME = ".tests-failed-marker";
 
   /**
-   * The Log Publisher for the Debug Logger
+   * The test text writer for the Debug Logger
    */
-  public static TestLogPublisher DEBUG_LOG_PUBLISHER =
-      new TestLogPublisher(new DebugLogFormatter());
+  public static TestTextWriter DEBUG_TEXT_WRITER =
+      new TestTextWriter();
+
+  /**
+   * The test text writer for the Debug Logger
+   */
+  public static TestTextWriter ERROR_TEXT_WRITER =
+      new TestTextWriter();
+
+  /**
+   * The test text writer for the Debug Logger
+   */
+  public static TestTextWriter ACCESS_TEXT_WRITER =
+      new TestTextWriter();
 
   private static final String DIVIDER_LINE = "-------------------------------------------------------------------------------" + EOL;
 
@@ -181,12 +187,11 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   public void onTestStart(ITestResult tr) {
     super.onTestStart(tr);
-    TestAccessLogger.clear();
-    TestErrorLogger.clear();
+    ACCESS_TEXT_WRITER.clear();
+    ERROR_TEXT_WRITER.clear();
+    DEBUG_TEXT_WRITER.clear();
     TestCaseUtils.clearSystemOutContents();
     TestCaseUtils.clearSystemErrContents();
-
-    DEBUG_LOG_PUBLISHER.clear();
   }
 
 
@@ -219,7 +224,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       failureInfo.append("parameter[" + i + "]: ").append(parameter).append(EOL);
     }
 
-    List<String> messages = TestAccessLogger.getMessages();
+    List<String> messages = ACCESS_TEXT_WRITER.getMessages();
     if (! messages.isEmpty())
     {
       failureInfo.append(EOL);
@@ -232,7 +237,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       }
     }
 
-    messages = TestErrorLogger.getMessages();
+    messages = ERROR_TEXT_WRITER.getMessages();
     if (! messages.isEmpty())
     {
       failureInfo.append(EOL);
@@ -245,7 +250,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       }
     }
 
-    messages = DEBUG_LOG_PUBLISHER.getMessages();
+    messages = DEBUG_TEXT_WRITER.getMessages();
     if(! messages.isEmpty())
     {
       failureInfo.append(EOL);

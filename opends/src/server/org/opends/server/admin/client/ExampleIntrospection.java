@@ -28,7 +28,7 @@ package org.opends.server.admin.client;
 
 
 
-import static org.opends.server.loggers.Error.removeAllErrorLoggers;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.PROPERTY_SERVER_ROOT;
 
 import java.io.File;
@@ -97,7 +97,7 @@ public final class ExampleIntrospection implements
     // generator.
     DirectoryServer.initializeJMX();
 
-    removeAllErrorLoggers(true);
+    removeAllErrorLogPublishers();
 
     // Initialize the configuration.
     File instanceRoot = new File("build/package/OpenDS-0.1");

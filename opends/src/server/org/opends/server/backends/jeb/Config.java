@@ -32,7 +32,7 @@ import static org.opends.server.messages.ConfigMessages.
 import static org.opends.server.messages.ConfigMessages.
     MSGID_CONFIG_BACKEND_INSANE_MODE;
 import static org.opends.server.messages.JebMessages.*;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import org.opends.server.config.ConfigConstants;

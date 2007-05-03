@@ -42,7 +42,9 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.StartupErrorLogger;
+import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
 import org.opends.server.types.DirectoryException;
@@ -56,11 +58,12 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
 
 
@@ -73,6 +76,7 @@ import static org.opends.server.tools.ToolConstants.*;
  */
 public class RestoreDB
 {
+  private static DN publisherDN = null;
   /**
    * The main method for RestoreDB tool.
    *
@@ -82,6 +86,11 @@ public class RestoreDB
   public static void main(String[] args)
   {
     int retCode = mainRestoreDB(args);
+
+    if(publisherDN != null)
+    {
+      ErrorLogger.removeErrorLogPublisher(publisherDN);
+    }
 
     if(retCode != 0)
     {
@@ -342,9 +351,20 @@ public class RestoreDB
 
       // FIXME -- Install a custom logger to capture information about the state
       // of the export.
-      StartupErrorLogger startupLogger = new StartupErrorLogger();
-      startupLogger.initializeErrorLogger(null);
-      addErrorLogger(startupLogger);
+      try
+      {
+        publisherDN = DN.decode("cn=Custom Logger for RestoreDB");
+        ThreadFilterTextErrorLogPublisher publisher =
+            new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
+                                                  new TextWriter.STDOUT());
+        ErrorLogger.addErrorLogPublisher(publisherDN, publisher);
+
+      }
+      catch(Exception e)
+      {
+        System.err.println("Error installing the custom error logger: " +
+            StaticUtils.stackTraceToSingleLineString(e));
+      }
     }
 
 

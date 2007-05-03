@@ -29,7 +29,7 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.*;

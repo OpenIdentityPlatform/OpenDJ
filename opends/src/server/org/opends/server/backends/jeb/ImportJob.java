@@ -62,7 +62,7 @@ import static org.opends.server.messages.JebMessages.
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.
      MSGID_JEB_IMPORT_PARENT_NOT_FOUND;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.messages.JebMessages.*;
 
 /**

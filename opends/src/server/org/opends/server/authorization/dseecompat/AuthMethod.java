@@ -30,7 +30,7 @@ package org.opends.server.authorization.dseecompat;
 import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.core.DirectoryServer;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 

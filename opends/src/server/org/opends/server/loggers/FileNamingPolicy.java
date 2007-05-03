@@ -27,6 +27,7 @@
 package org.opends.server.loggers;
 
 import java.io.File;
+import java.io.FilenameFilter;
 
 /**
  * A FileNamingPolicy is used by a MultiFileWriter to generate the
@@ -47,4 +48,21 @@ public interface FileNamingPolicy
    * @return the next file.
    */
   public File getNextName();
+
+  /**
+   * Gets the filename filter that can be used to filter files named by this
+   * policy.
+   *
+   * @return The FilenameFilter that can filter files named by this policy.
+   */
+  public FilenameFilter getFilenameFilter();
+
+  /**
+   * Gets all the existing files named by this policy.
+   *
+   * @return The files named by this policy.
+   */
+  public File[] listFiles();
+
+
 }

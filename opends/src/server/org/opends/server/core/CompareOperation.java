@@ -67,7 +67,7 @@ import org.opends.server.types.operation.PreOperationCompareOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
 
 import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.loggers.Access.*;
+import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;

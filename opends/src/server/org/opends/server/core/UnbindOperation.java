@@ -41,7 +41,7 @@ import org.opends.server.types.OperationType;
 import org.opends.server.types.operation.PostOperationUnbindOperation;
 import org.opends.server.types.operation.PreParseUnbindOperation;
 
-import static org.opends.server.loggers.Access.*;
+import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 

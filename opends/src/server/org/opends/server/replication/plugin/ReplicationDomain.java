@@ -30,7 +30,7 @@ import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_BASE_DN;
 import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_CLASS;
 import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_ID;
 import static org.opends.server.config.ConfigConstants.DN_BACKEND_BASE;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.messages.ConfigMessages.*;

@@ -30,84 +30,113 @@ import java.io.PrintWriter;
 
 /**
  * A TextWriter provides a character-based stream used by a
- * TextLogPublisher as a target for outputting log records.
- * Separating this from a LogPublisher implementation allows
- * better sharing of targets such as the console, since a
- * TextWriter imposes no format.
+ * Text Publishers as a target for outputting log records.
  */
-public class TextWriter
+public interface TextWriter
 {
-  /**
-   * A TextWriter which writes to standard out.
-   */
-  public static TextWriter STDOUT=
-      new TextWriter(new PrintWriter(System.out, true), false);
-  /**
-   * A TextWriter which writes to standard error.
-   */
-  public static TextWriter STDERR=
-      new TextWriter(new PrintWriter(System.err, true), false);
-
-  /** The underlying output stream. */
-  protected PrintWriter writer;
-
-  /** Indicates whether we should close the stream on shutdown. */
-  private boolean closable;
-
-  /**
-   * Create a new TextWriter for a specified writer.
-   * On shutdown, the writer will be closed.
-   *
-   * @param writer - a character stream used for output.
-   */
-  public TextWriter(PrintWriter writer)
-  {
-    this(writer, true);
-  }
-
-  /**
-   * Create a new TextWriter for a specified writer.
-   * On shutdown, the writer will be closed if requested.
-   *
-   * @param writer - a character stream used for output.
-   * @param closeOnShutdown - indicates whether the provided.
-   * stream should be closed when shutdown is invoked.
-   */
-  public TextWriter(PrintWriter writer, boolean closeOnShutdown)
-  {
-    this.writer = writer;
-    closable = closeOnShutdown;
-  }
-
   /**
    * Writes a text record to the output stream.
    *
    * @param record - the record to write.
    */
-  public void writeRecord(String record)
-  {
-    writer.println(record);
-  }
+  public void writeRecord(String record);
 
   /**
    * Flushes any buffered contents of the output stream.
    */
-  public void flush()
-  {
-    writer.flush();
-  }
+  public void flush();
 
   /**
    * Releases any resources held by the writer.
-   * Unless <b>closeOnShutdown</b> was <b>false</b> when the writer
-   * was constructed, the wrapped output stream will also be
-   * closed.
    */
-  public void shutdown()
+  public void shutdown();
+
+  /**
+   * Retrieves the number of bytes written by this writer.
+   *
+   * @return the number of bytes written by this writer.
+   */
+  public long getBytesWritten();
+
+  /**
+   * A TextWriter implementationwhich writes to standard out.
+   */
+  public static class STDOUT implements TextWriter
   {
-    // Close only if we were told to
-    if (closable) {
+    private MeteredStream stream = new MeteredStream(System.out, 0);
+    private PrintWriter writer = new PrintWriter(stream, true);
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeRecord(String record)
+    {
+      writer.println(record);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void flush()
+    {
+      writer.flush();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void shutdown()
+    {
       writer.close();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public long getBytesWritten()
+    {
+      return stream.written;
+    }
+  }
+
+  /**
+   * A TextWriter implementation which writes to standard error.
+   */
+  public static class STDERR implements TextWriter
+  {
+    private MeteredStream stream = new MeteredStream(System.err, 0);
+    private PrintWriter writer = new PrintWriter(stream, true);
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeRecord(String record)
+    {
+      writer.println(record);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void flush()
+    {
+      writer.flush();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void shutdown()
+    {
+      writer.close();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public long getBytesWritten()
+    {
+      return stream.written;
     }
   }
 }
