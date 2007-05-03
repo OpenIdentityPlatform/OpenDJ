@@ -1928,6 +1928,75 @@ public class ConfigFileHandler
     // FIXME -- This needs support for encryption.
 
 
+    // Calculate an archive for the current server configuration file and see if
+    // it matches what we expect.  If not, then the file has been manually
+    // edited with the server online which is a bad thing.  In that case, we'll
+    // copy the current config off to the side before writing the new config
+    // so that the manual changes don't get lost but also don't get applied.
+    // Also, send an admin alert notifying administrators about the problem.
+    try
+    {
+      byte[] currentDigest = calculateConfigDigest();
+      if (! Arrays.equals(configurationDigest, currentDigest))
+      {
+        File existingCfg   = new File(configFile);
+        File newConfigFile = new File(existingCfg.getParent(),
+                                      "config.manualedit-" +
+                                           TimeThread.getGMTTime() + ".ldif");
+        int counter = 2;
+        while (newConfigFile.exists())
+        {
+          newConfigFile = new File(newConfigFile.getAbsolutePath() + "." +
+                                   counter++);
+        }
+
+        FileInputStream  inputStream  = new FileInputStream(existingCfg);
+        FileOutputStream outputStream = new FileOutputStream(newConfigFile);
+        byte[] buffer = new byte[8192];
+        while (true)
+        {
+          int bytesRead = inputStream.read(buffer);
+          if (bytesRead < 0)
+          {
+            break;
+          }
+
+          outputStream.write(buffer, 0, bytesRead);
+        }
+
+        inputStream.close();
+        outputStream.close();
+
+        int    msgID   = MSGID_CONFIG_MANUAL_CHANGES_DETECTED;
+        String message = getMessage(msgID, configFile,
+                                    newConfigFile.getAbsolutePath());
+
+        logError(ErrorLogCategory.CONFIGURATION,
+                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+
+        DirectoryServer.sendAlertNotification(this,
+             ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, msgID, message);
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      int    msgID   = MSGID_CONFIG_MANUAL_CHANGES_LOST;
+      String message = getMessage(msgID, configFile,
+                                  stackTraceToSingleLineString(e));
+
+      logError(ErrorLogCategory.CONFIGURATION,
+               ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+
+      DirectoryServer.sendAlertNotification(this,
+           ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED, msgID, message);
+    }
+
+
     // Write the new configuration to a temporary file.
     String tempConfig = configFile + ".tmp";
     try
@@ -3391,6 +3460,10 @@ public class ConfigFileHandler
 
     alerts.put(ALERT_TYPE_CANNOT_WRITE_CONFIGURATION,
                ALERT_DESCRIPTION_CANNOT_WRITE_CONFIGURATION);
+    alerts.put(ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED,
+               ALERT_DESCRIPTION_MANUAL_CONFIG_EDIT_HANDLED);
+    alerts.put(ALERT_TYPE_MANUAL_CONFIG_EDIT_LOST,
+               ALERT_DESCRIPTION_MANUAL_CONFIG_EDIT_LOST);
 
     return alerts;
   }
