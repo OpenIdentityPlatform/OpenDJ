@@ -41,7 +41,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Operation;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;

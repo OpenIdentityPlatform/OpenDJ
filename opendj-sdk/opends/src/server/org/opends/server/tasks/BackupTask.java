@@ -32,7 +32,7 @@ import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.DATE_FORMAT_GMT_TIME;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.
      BACKUP_DIRECTORY_DESCRIPTOR_FILE;

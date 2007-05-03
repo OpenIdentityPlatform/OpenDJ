@@ -28,7 +28,7 @@ package org.opends.server.schema;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;

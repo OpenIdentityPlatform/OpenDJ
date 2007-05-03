@@ -41,7 +41,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;

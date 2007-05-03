@@ -42,11 +42,8 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Error.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.ServerConstants.*;
-
 
 
 /**

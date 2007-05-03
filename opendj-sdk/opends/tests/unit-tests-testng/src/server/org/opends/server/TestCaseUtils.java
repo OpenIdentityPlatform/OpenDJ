@@ -55,10 +55,11 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.Access;
-import org.opends.server.loggers.Error;
-import org.opends.server.loggers.debug.DebugLogFormatter;
-import org.opends.server.loggers.debug.DebugConfiguration;
+import org.opends.server.loggers.AccessLogger;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.TextAccessLogPublisher;
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -165,20 +166,6 @@ public final class TestCaseUtils {
       return;
     }
 
-    String debugTarget = System.getProperty("org.opends.test.debug.target");
-    if(debugTarget != null)
-    {
-      System.setProperty("org.opends.server.debug.enabled", "true");
-      System.setProperty("org.opends.server.debug.target.1", debugTarget);
-    }
-    DebugConfiguration testDebugConfig =
-        DebugConfiguration.getStartupConfiguration();
-    testDebugConfig.removeAllPublishers(true);
-    testDebugConfig.addPublisher(TestListener.DEBUG_LOG_PUBLISHER);
-
-    DebugLogger debugLogger = DebugLogger.getLogger();
-    debugLogger.updateConfiguration(testDebugConfig);
-
     InvocationCounterPlugin.resetStartupCalled();
 
     // Get the build root and use it to create a test package directory.
@@ -196,6 +183,8 @@ public final class TestCaseUtils {
     testRoot.mkdirs();
     //db_verify is second jeb backend used by the jeb verify test cases
     //db_rebuild is the third jeb backend used by the jeb rebuild test cases
+    //db_unindexed is the forth backend used by the unindexed search privilege
+    //test cases
     String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
                                 "config", "db", "db_verify", "ldif", "lib",
                                 "locks", "logs", "db_rebuild", "db_unindexed",
@@ -315,9 +304,43 @@ public final class TestCaseUtils {
     DirectoryServer directoryServer = DirectoryServer.getInstance();
     directoryServer.bootstrapServer();
     directoryServer.initializeConfiguration(configClass, configFile);
-    Error.removeAllErrorLoggers(false);
-    Access.addAccessLogger(TestAccessLogger.getInstance());
-    Error.addErrorLogger(TestErrorLogger.getInstance());
+
+    String debugTarget = System.getProperty("org.opends.test.debug.target");
+    if(debugTarget != null)
+    {
+      System.setProperty("org.opends.server.debug.enabled", "true");
+      System.setProperty("org.opends.server.debug.target.1", debugTarget);
+    }
+
+    try
+    {
+    TextDebugLogPublisher startupDebugPublisher =
+        TextDebugLogPublisher.getStartupTextDebugPublisher(
+            TestListener.DEBUG_TEXT_WRITER);
+    DebugLogger.removeAllDebugLogPublishers();
+    DebugLogger.addDebugLogPublisher(DN.decode("cn=Test Debug Publisher"),
+                                     startupDebugPublisher);
+
+    TextErrorLogPublisher startupErrorPublisher =
+        TextErrorLogPublisher.getStartupTextErrorPublisher(
+            TestListener.ERROR_TEXT_WRITER);
+    ErrorLogger.removeAllErrorLogPublishers();
+    ErrorLogger.addErrorLogPublisher(DN.decode("cn=Test Error Publisher"),
+                                     startupErrorPublisher);
+
+    TextAccessLogPublisher startupAccessPublisher =
+        TextAccessLogPublisher.getStartupTextAccessPublisher(
+            TestListener.ACCESS_TEXT_WRITER);
+    AccessLogger.removeAllAccessLogPublishers();
+    AccessLogger.addAccessLogPublisher(DN.decode("cn=Test Access Publisher"),
+                                       startupAccessPublisher);
+    }
+    catch(Exception e)
+    {
+      System.out.println("Error installing test log publishers: " +
+          e.toString());
+    }
+
     directoryServer.startServer();
 
     assertTrue(InvocationCounterPlugin.startupCalled());

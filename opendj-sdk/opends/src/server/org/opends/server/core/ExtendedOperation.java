@@ -52,7 +52,7 @@ import org.opends.server.types.operation.PreOperationExtendedOperation;
 import org.opends.server.types.operation.PreParseExtendedOperation;
 
 import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.loggers.Access.*;
+import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;

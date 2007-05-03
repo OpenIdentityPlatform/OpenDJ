@@ -148,7 +148,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.37
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.38 NAME 'ds-cfg-exclude-filter'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.39
-  NAME 'ds-cfg-fixed-time-limit' SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  NAME 'ds-cfg-rotation-interval' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.320  NAME 'ds-cfg-global-aci'
   SYNTAX 1.3.6.1.4.1.26027.1.3.4 X-ORIGIN 'OpenDS Directory Server' )
@@ -312,13 +312,13 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.89
   NAME 'ds-cfg-rotation-action' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.90
-  NAME 'ds-cfg-rotation-policy' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  NAME 'ds-cfg-rotation-policy-dn' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.91
-  NAME 'ds-cfg-retention-policy' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  NAME 'ds-cfg-retention-policy-dn' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.92 NAME 'ds-cfg-number-of-files'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'OpenDS Directory Server' )
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.93 NAME 'ds-cfg-disk-space-used'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.94 NAME 'ds-cfg-free-disk-space'
@@ -422,7 +422,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.125 NAME 'ds-cfg-syntax-enabled'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.126 NAME 'ds-cfg-time-of-day'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.36 SINGLE-VALUE
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.36
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.127
   NAME 'ds-cfg-trust-manager-provider-class'
@@ -1178,8 +1178,92 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.344
   NAME 'ds-cfg-virtual-attribute-value' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.345
+  NAME 'ds-cfg-default-debug-level'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.346
+  NAME 'ds-cfg-default-debug-category'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.347
+  NAME 'ds-cfg-default-omit-method-entry-arguments'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.348
+  NAME 'ds-cfg-default-omit-method-return-value'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.349
+  NAME 'ds-cfg-default-include-throwable-cause'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.350
+  NAME 'ds-cfg-default-throwable-stack-frames'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.351
+  NAME 'ds-cfg-debug-scope'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.352
+  NAME 'ds-cfg-debug-level'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.353
+  NAME 'ds-cfg-debug-category'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.354
+  NAME 'ds-cfg-omit-method-entry-arguments'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.355
+  NAME 'ds-cfg-omit-method-return-value'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.356
+  NAME 'ds-cfg-include-throwable-cause'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.357
+  NAME 'ds-cfg-throwable-stack-frames'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.358
+  NAME 'ds-cfg-asynchronous-writes'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.359
+  NAME 'ds-cfg-log-file-mode'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.360
+  NAME 'ds-cfg-writer-auto-flush'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.361
+  NAME 'ds-cfg-writer-append'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.375
   NAME 'ds-cfg-allow-retrieving-membership' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.376
+  NAME 'ds-cfg-rotation-policy-class'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.377
+  NAME 'ds-cfg-retention-policy-class'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.378
+  NAME 'ds-cfg-log-queue-size'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.379
+  NAME 'ds-cfg-file-size-limit'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1297,37 +1381,47 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.21
   ds-cfg-key-store-pin-environment-variable $ ds-cfg-key-store-pin-file )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.22 NAME 'ds-cfg-logger'
-  SUP top STRUCTURAL MUST ( cn $ ds-cfg-logger-class $
-  ds-cfg-logger-enabled ) X-ORIGIN 'OpenDS Directory Server' )
+  SUP top STRUCTURAL MUST ( cn $ ds-cfg-logger-enabled $ ds-cfg-logger-class )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.23 NAME 'ds-cfg-access-logger'
-  SUP ds-cfg-logger STRUCTURAL X-ORIGIN 'OpenDS Directory Server' )
+  SUP ds-cfg-logger
+  STRUCTURAL MAY ( ds-cfg-suppress-internal-operations )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.24 NAME 'ds-cfg-error-logger'
-  SUP ds-cfg-logger STRUCTURAL X-ORIGIN 'OpenDS Directory Server' )
+  SUP ds-cfg-logger
+  STRUCTURAL MAY ( ds-cfg-default-severity $ ds-cfg-override-severity )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.25 NAME 'ds-cfg-debug-logger'
-  SUP ds-cfg-logger STRUCTURAL X-ORIGIN 'OpenDS Directory Server' )
+  SUP ds-cfg-logger STRUCTURAL MUST ( ds-cfg-default-debug-level )
+  MAY ( ds-cfg-default-debug-category $
+  ds-cfg-default-omit-method-entry-arguments $
+  ds-cfg-default-omit-method-return-value $
+  ds-cfg-default-include-throwable-cause $
+  ds-cfg-throwable-stack-frames )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.26
   NAME 'ds-cfg-file-based-access-logger' SUP ds-cfg-access-logger STRUCTURAL
-  MUST ds-cfg-log-file MAY ( ds-cfg-rotation-policy $ ds-cfg-size-limit $
-  ds-cfg-fixed-time-limit $ ds-cfg-time-of-day $ ds-cfg-rotation-action $
-  ds-cfg-default-severity $ ds-cfg-override-severity $
-  ds-cfg-retention-policy $ ds-cfg-number-of-files $ ds-cfg-disk-space-used $
-  ds-cfg-thread-time-interval $ ds-cfg-buffer-size $ ds-cfg-free-disk-space $
-  ds-cfg-suppress-internal-operations ) X-ORIGIN 'OpenDS Directory Server' )
+  MUST ( ds-cfg-log-file $ ds-cfg-asynchronous-writes $ ds-cfg-log-file-mode )
+  MAY ( ds-cfg-rotation-policy-dn $
+  ds-cfg-rotation-action $ ds-cfg-retention-policy-dn $
+  ds-cfg-thread-time-interval $ ds-cfg-buffer-size $ ds-cfg-writer-auto-flush $
+  ds-cfg-writer-append )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.27
   NAME 'ds-cfg-file-based-debug-logger' SUP ds-cfg-debug-logger STRUCTURAL
-  MUST ds-cfg-log-file MAY ( ds-cfg-rotation-policy $ ds-cfg-size-limit $
-  ds-cfg-fixed-time-limit $ ds-cfg-time-of-day $ ds-cfg-rotation-action $
-  ds-cfg-retention-policy $ ds-cfg-number-of-files $ ds-cfg-disk-space-used $
-  ds-cfg-thread-time-interval $ ds-cfg-buffer-size $ ds-cfg-free-disk-space $
-  ds-cfg-default-severity $ ds-cfg-override-severity )
+  MUST ( ds-cfg-log-file $ ds-cfg-asynchronous-writes $ ds-cfg-log-file-mode )
+  MAY ( ds-cfg-rotation-policy-dn $
+  ds-cfg-rotation-action $ ds-cfg-retention-policy-dn $
+  ds-cfg-thread-time-interval $ ds-cfg-buffer-size $ ds-cfg-writer-auto-flush $
+  ds-cfg-writer-append )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.28
   NAME 'ds-cfg-file-based-error-logger' SUP ds-cfg-error-logger STRUCTURAL
-  MUST ds-cfg-log-file MAY ( ds-cfg-rotation-policy $ ds-cfg-size-limit $
-  ds-cfg-fixed-time-limit $ ds-cfg-time-of-day $ ds-cfg-rotation-action $
-  ds-cfg-retention-policy $ ds-cfg-number-of-files $ ds-cfg-disk-space-used $
-  ds-cfg-thread-time-interval $ ds-cfg-buffer-size $ ds-cfg-free-disk-space $
-  ds-cfg-default-severity $ ds-cfg-override-severity )
+  MUST ( ds-cfg-log-file $ ds-cfg-asynchronous-writes $ ds-cfg-log-file-mode )
+  MAY ( ds-cfg-rotation-policy-dn $
+  ds-cfg-rotation-action $ ds-cfg-retention-policy-dn $
+  ds-cfg-thread-time-interval $ ds-cfg-buffer-size $ ds-cfg-writer-auto-flush $
+  ds-cfg-writer-append )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.29 NAME 'ds-cfg-matching-rule'
   SUP top STRUCTURAL MUST ( cn $ ds-cfg-matching-rule-class $
@@ -1656,7 +1750,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.97
   ds-cfg-allow-unclassified-characters ) X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.98
   NAME 'ds-task-rebuild' SUP ds-task
-  MUST ( ds-task-rebuild-base-dn $ ds-task-rebuild-index )
+  STRUCTURAL MUST ( ds-task-rebuild-base-dn $ ds-task-rebuild-index )
   MAY ( ds-task-rebuild-max-threads )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.99 NAME 'ds-virtual-static-group'
@@ -1667,6 +1761,49 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.100
   STRUCTURAL MUST ds-cfg-virtual-attribute-value
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.101
+  NAME 'ds-cfg-debug-target'
+  STRUCTURAL MUST ( ds-cfg-debug-scope $ ds-cfg-debug-level )
+  MAY (ds-cfg-debug-category $ ds-cfg-omit-method-entry-arguments $
+  ds-cfg-omit-method-return-value $ ds-cfg-omit-method-return-value $
+  ds-cfg-include-throwable-cause $ ds-cfg-throwable-stack-frames )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.102
+  NAME 'ds-cfg-log-retention-policy'
+  STRUCTURAL MUST ( cn $ ds-cfg-retention-policy-class  )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.103
+  NAME 'ds-cfg-file-count-log-retention-policy' SUP ds-cfg-log-retention-policy
+  STRUCTURAL MUST ( ds-cfg-number-of-files )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.104
+  NAME 'ds-cfg-size-limit-log-retention-policy' SUP ds-cfg-log-retention-policy
+  STRUCTURAL MUST ( ds-cfg-disk-space-used )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.105
+  NAME 'ds-cfg-free-disk-space-log-retention-policy'
+  SUP ds-cfg-log-retention-policy
+  STRUCTURAL MUST ( ds-cfg-free-disk-space )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.106
+  NAME 'ds-cfg-log-rotation-policy'
+  STRUCTURAL MUST ( cn $ ds-cfg-rotation-policy-class  )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.107
+  NAME 'ds-cfg-size-limit-log-rotation-policy'
+  SUP ds-cfg-log-rotation-policy
+  STRUCTURAL MUST ( ds-cfg-file-size-limit )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.108
+  NAME 'ds-cfg-time-limit-log-rotation-policy'
+  SUP ds-cfg-log-rotation-policy
+  STRUCTURAL MUST ( ds-cfg-rotation-interval )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.109
+  NAME 'ds-cfg-fixed-time-log-rotation-policy'
+  SUP ds-cfg-log-rotation-policy
+  STRUCTURAL MUST ( ds-cfg-time-of-day )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.113
   NAME 'ds-cfg-member-virtual-attribute' SUP ds-cfg-virtual-attribute
   STRUCTURAL MUST ds-cfg-allow-retrieving-membership
   X-ORIGIN 'OpenDS Directory Server' )

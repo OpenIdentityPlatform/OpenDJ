@@ -32,7 +32,7 @@ import org.opends.server.api.AccessControlHandler;
 import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import org.opends.server.core.*;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;

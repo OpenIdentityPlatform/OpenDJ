@@ -29,36 +29,68 @@ package org.opends.server.loggers.debug;
 
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DebugLogCategory;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.ResultCode;
 import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.LogCategory;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.DebugTargetCfgDefn;
+import org.opends.server.admin.std.server.DebugTargetCfg;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class encapsulates the trace settings in effect at a given traceing
  * scope.
  */
 public class TraceSettings
+    implements ConfigurationChangeListener<DebugTargetCfg>
 {
   /** A TraceSettings object representing a fully disabled trace state. */
-  static final TraceSettings DISABLED =
+  public static final TraceSettings DISABLED =
       new TraceSettings(DebugLogLevel.DISABLED);
 
-  static final String STACK_DUMP_KEYWORD = "stack";
-  static final String INCLUDE_CAUSE_KEYWORD = "cause";
-  static final String SUPPRESS_ARG_KEYWORD = "noargs";
-  static final String SUPPRESS_RETVAL_KEYWORD = "noretval";
-  static final String INCLUDE_CATEGORY_KEYWORD = "category";
-  static final String LEVEL_KEYWORD = "level";
+  private static final String STACK_DUMP_KEYWORD = "stack";
+  private static final String INCLUDE_CAUSE_KEYWORD = "cause";
+  private static final String SUPPRESS_ARG_KEYWORD = "noargs";
+  private static final String SUPPRESS_RETVAL_KEYWORD = "noretval";
+  private static final String INCLUDE_CATEGORY_KEYWORD = "category";
+  private static final String LEVEL_KEYWORD = "level";
 
-  final LogLevel level;
-  final Set<LogCategory> includeCategories;
+  /**
+   * The log level of this setting.
+   */
+  LogLevel level;
 
-  final boolean noArgs;
-  final boolean noRetVal;
-  final int stackDepth;
-  final boolean includeCause;
+  /**
+   * The log categories for this setting.
+   */
+  Set<LogCategory> includeCategories;
+
+  /**
+   * Indicates if method arguments should be logged.
+   */
+  boolean noArgs;
+
+  /**
+   * Indicates if method return values should be logged.
+   */
+  boolean noRetVal;
+
+  /**
+   * The level of stack frames to include.
+   */
+  int stackDepth;
+
+  /**
+   * Indicates if the cause exception is included in exception messages.
+   */
+  boolean includeCause;
+
+  private DebugTargetCfg currentConfig;
 
   /**
    * Construct new trace settings at the specified log level.
@@ -123,6 +155,89 @@ public class TraceSettings
     this.noRetVal = noRetVal;
     this.stackDepth = stackDepth;
     this.includeCause = includeCause;
+  }
+
+  /**
+   * Construct a new trace settings from the provided configuration.
+   *
+   * @param config The debug target configuration that contains the information
+   *               to use to initialize this trace setting.
+   */
+  public TraceSettings(DebugTargetCfg config)
+  {
+    this.level =
+        DebugLogLevel.parse(config.getDebugLevel().name());
+
+    Set<LogCategory> logCategories = null;
+    if(!config.getDebugCategory().isEmpty())
+    {
+      logCategories =
+          new HashSet<LogCategory>(config.getDebugCategory().size());
+      for(DebugTargetCfgDefn.DebugCategory category :
+          config.getDebugCategory())
+      {
+        logCategories.add(DebugLogCategory.parse(category.name()));
+      }
+    }
+
+    this.includeCategories = logCategories;
+    this.noArgs = config.isOmitMethodEntryArguments();
+    this.noRetVal = config.isOmitMethodReturnValue();
+    this.stackDepth = config.getThrowableStackFrames();
+    this.includeCause = config.isIncludeThrowableCause();
+
+    currentConfig = config;
+    config.addChangeListener(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(DebugTargetCfg config,
+                                               List<String> unacceptableReasons)
+  {
+    // This should alwas be acceptable. We are assuing that the scope for this
+    // trace setting is the same sine its part of the DN.
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(DebugTargetCfg config)
+  {
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    // We can assume that the target scope did not change since its the
+    // naming attribute. Changing it would result in a modify DN.
+
+    this.level =
+        DebugLogLevel.parse(config.getDebugLevel().name());
+
+    Set<LogCategory> logCategories = null;
+    if(!config.getDebugCategory().isEmpty())
+    {
+      logCategories =
+          new HashSet<LogCategory>(config.getDebugCategory().size());
+      for(DebugTargetCfgDefn.DebugCategory category :
+          config.getDebugCategory())
+      {
+        logCategories.add(DebugLogCategory.parse(category.name()));
+      }
+    }
+
+    this.includeCategories = logCategories;
+    this.noArgs = config.isOmitMethodEntryArguments();
+    this.noRetVal = config.isOmitMethodReturnValue();
+    this.stackDepth = config.getThrowableStackFrames();
+    this.includeCause = config.isIncludeThrowableCause();
+
+    this.currentConfig = config;
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
   /**

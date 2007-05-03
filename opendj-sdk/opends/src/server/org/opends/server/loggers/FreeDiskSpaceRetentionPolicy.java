@@ -29,54 +29,92 @@ package org.opends.server.loggers;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.admin.std.server.FreeDiskSpaceLogRetentionPolicyCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 
 /**
  * This class implements a retention policy based on the free disk
  * space available expressed as a percentage. This policy is only
  * available on Java 6.
  */
-public class FreeDiskSpaceRetentionPolicy implements RetentionPolicy
+public class FreeDiskSpaceRetentionPolicy implements
+    RetentionPolicy<FreeDiskSpaceLogRetentionPolicyCfg>,
+    ConfigurationChangeListener<FreeDiskSpaceLogRetentionPolicyCfg>
 {
 
   private long freeDiskSpace = 0;
-  private File directory = null;
-  private String prefix = null;
 
   /**
-   * Create the retention policy based on the free disk space available.
-   *
-   * @param dir           The directory in which the log files reside.
-   * @param prefix        The prefix for the log file names.
-   * @param freeDiskSpace The free disk space needed.
+   * {@inheritDoc}
    */
-  public FreeDiskSpaceRetentionPolicy(String dir, String prefix,
-                                 long freeDiskSpace)
+  public void initializeLogRetentionPolicy(
+      FreeDiskSpaceLogRetentionPolicyCfg config)
   {
-    this.directory = new File(dir);
-    this.freeDiskSpace = freeDiskSpace;
-    this.prefix = prefix;
+    freeDiskSpace = config.getFreeDiskSpace();
+
+    config.addFreeDiskSpaceChangeListener(this);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      FreeDiskSpaceLogRetentionPolicyCfg config,
+      List<String> unacceptableReasons)
+  {
+    // Changes should always be OK
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+      FreeDiskSpaceLogRetentionPolicyCfg config)
+  {
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    freeDiskSpace = config.getFreeDiskSpace();
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
 
   /**
    * This method deletes files based on the policy.
    *
+   * @param writer the multi file text writer writing the log files.
    * @return number of files deleted.
    */
-  public int deleteFiles()
+  public int deleteFiles(MultifileTextWriter writer)
   {
+    File[] files = writer.getNamingPolicy().listFiles();
+
+    if(files.length <= 0)
+    {
+      return 0;
+    }
+
     int count = 0;
     long freeSpace = 0;
+
     try
     {
       // Use reflection to see use the getFreeSpace method if available.
       // this method is only available on Java 6.
       Method meth = File.class.getMethod("getFreeSpace", new Class[0]);
-      Object value = meth.invoke(this.directory);
+      Object value = meth.invoke(files[0]);
       freeSpace = ((Long) value).longValue();
     }
     catch (Exception e)
@@ -88,6 +126,12 @@ public class FreeDiskSpaceRetentionPolicy implements RetentionPolicy
       return 0;
     }
 
+          if(debugEnabled())
+      {
+        debugInfo("Current free disk space: %d, Required: %d", freeSpace,
+                  freeDiskSpace);
+      }
+
     if (freeSpace > freeDiskSpace)
     {
       // No cleaning needed.
@@ -95,17 +139,19 @@ public class FreeDiskSpaceRetentionPolicy implements RetentionPolicy
     }
 
     long freeSpaceNeeded = freeDiskSpace - freeSpace;
-    File[] selectedFiles = directory.listFiles(new LogFileFilter(prefix));
 
     // Sort files based on last modified time.
-    Arrays.sort(selectedFiles, new FileComparator());
+    Arrays.sort(files, new FileComparator());
 
     long freedSpace = 0;
-    for (int j = selectedFiles.length - 1; j < 1; j--)
+    for (int j = files.length - 1; j < 1; j--)
     {
-      freedSpace += selectedFiles[j].length();
-      // System.out.println("Deleting log file:" + selectedFiles[j]);
-      selectedFiles[j].delete();
+      freedSpace += files[j].length();
+      if(debugEnabled())
+      {
+        debugInfo("Deleting log file:", files[j]);
+      }
+      files[j].delete();
       if (freedSpace >= freeSpaceNeeded)
       {
         break;

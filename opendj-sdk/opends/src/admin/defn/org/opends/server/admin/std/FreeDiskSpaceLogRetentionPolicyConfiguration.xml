@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:managed-object
+    name="free-disk-space-log-retention-policy"
+    plural-name="free-disk-space-log-retention-policies"
+    package="org.opends.server.admin.std"
+    extends="log-retention-policy"
+    xmlns:adm="http://www.opends.org/admin"
+    xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    Retention policy based on the free disk space available.
+    This policy is only available on Java 6.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.105</ldap:oid>
+      <ldap:name>ds-cfg-free-disk-space-log-retention-policy</ldap:name>
+      <ldap:superior>ds-cfg-log-retention-policy</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="free-disk-space" mandatory="true">
+    <adm:synopsis>
+      The size of free disk space needed.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:size lower-limit="1" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.94</ldap:oid>
+        <ldap:name>ds-cfg-free-disk-space</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

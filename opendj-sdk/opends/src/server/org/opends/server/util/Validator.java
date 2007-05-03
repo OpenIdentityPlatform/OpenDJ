@@ -392,7 +392,7 @@ public class Validator {
     }
 
     // Log to the error log.
-    org.opends.server.loggers.Error.logError(ErrorLogCategory.CORE_SERVER,
+    org.opends.server.loggers.ErrorLogger.logError(ErrorLogCategory.CORE_SERVER,
             ErrorLogSeverity.SEVERE_ERROR,
             UtilityMessages.MSGID_VALIDATOR_PRECONDITION_NOT_MET,
             messageWithStack);

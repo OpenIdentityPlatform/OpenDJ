@@ -36,20 +36,13 @@ import java.util.*;
 public class DebugMessageFormatter
 {
   /**
-   * Construct a new debug message formatter.
-   */
-  public DebugMessageFormatter() {
-    //no implementation needed.
-  }
-
-  /**
    * Format the message format string with the provided arguments.
    *
    * @param msg the message format string to be formatted.
    * @param msgArgs the arguments to use when replacing tokens in the message.
    * @return the formatted message string.
    */
-  public String format(String msg, Object[] msgArgs)
+  public static String format(String msg, Object[] msgArgs)
   {
     StringBuilder buffer= new StringBuilder();
     Object[] decoratedArgs = decorateMessageArgs(msgArgs);
@@ -74,14 +67,14 @@ public class DebugMessageFormatter
     }
   }
 
-  private void concatenateArgs(Object[] args, StringBuilder buffer)
+  private static void concatenateArgs(Object[] args, StringBuilder buffer)
   {
     for (int i = 0; (args != null) && (i < args.length); i++) {
       buffer.append(" ").append(args[i]);
     }
   }
 
-  private Object[] decorateMessageArgs(Object[] undecoratedArgs)
+  private static Object[] decorateMessageArgs(Object[] undecoratedArgs)
   {
     Object[] args= null;
     if (undecoratedArgs != null) {
@@ -94,7 +87,7 @@ public class DebugMessageFormatter
     return args;
   }
 
-  private Object decorateArg(Object arg)
+  private static Object decorateArg(Object arg)
   {
     Object decoratedArg= arg;
 
@@ -132,12 +125,12 @@ public class DebugMessageFormatter
     return decoratedArg;
   }
 
-  private String decorateArrayArg(Object[] array)
+  private static String decorateArrayArg(Object[] array)
   {
     return decorateListArg(Arrays.asList(array));
   }
 
-  private String decorateArrayArg(boolean[] array)
+  private static String decorateArrayArg(boolean[] array)
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
@@ -151,7 +144,7 @@ public class DebugMessageFormatter
     return buffer.toString();
   }
 
-  private String decorateArrayArg(byte[] array)
+  private static String decorateArrayArg(byte[] array)
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
@@ -165,7 +158,7 @@ public class DebugMessageFormatter
     return buffer.toString();
   }
 
-  private String decorateArrayArg(char[] array)
+  private static String decorateArrayArg(char[] array)
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
@@ -179,7 +172,7 @@ public class DebugMessageFormatter
     return buffer.toString();
   }
 
-  private String decorateArrayArg(double[] array)
+  private static String decorateArrayArg(double[] array)
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
@@ -193,7 +186,7 @@ public class DebugMessageFormatter
     return buffer.toString();
   }
 
-  private String decorateArrayArg(float[] array)
+  private static String decorateArrayArg(float[] array)
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
@@ -207,7 +200,7 @@ public class DebugMessageFormatter
     return buffer.toString();
   }
 
-  private String decorateArrayArg(int[] array)
+  private static String decorateArrayArg(int[] array)
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
@@ -221,7 +214,7 @@ public class DebugMessageFormatter
     return buffer.toString();
   }
 
-  private String decorateArrayArg(long[] array)
+  private static String decorateArrayArg(long[] array)
   {
     StringBuilder buffer= new StringBuilder();
     buffer.append("[ ");
@@ -235,7 +228,7 @@ public class DebugMessageFormatter
     return buffer.toString();
   }
 
-  private String decorateListArg(List list)
+  private static String decorateListArg(List list)
   {
     StringBuilder buffer= new StringBuilder();
     Iterator iter= list.iterator();
@@ -252,7 +245,7 @@ public class DebugMessageFormatter
     return buffer.toString();
   }
 
-  private String decorateMapArg(Map map)
+  private static String decorateMapArg(Map map)
   {
     StringBuilder buffer= new StringBuilder();
     Iterator iter= map.entrySet().iterator();

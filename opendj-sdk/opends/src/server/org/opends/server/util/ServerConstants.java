@@ -2446,20 +2446,18 @@ public class ServerConstants
 
 
   /**
-   * The name of the system property that can be used to enable or disable
-   * the debug logger on startup.
-   */
-  public static final String PROPERTY_DEBUG_ENABLED =
-      "org.opends.server.debug.enabled";
-
-
-
-  /**
    * The name of the system property that can be used to specify a target
    * for the debug logger on startup.
    */
   public static final String PROPERTY_DEBUG_TARGET =
       "org.opends.server.debug.target";
+
+  /**
+   * The name of the system property that can be used to specify a level
+   * for the error logger on startup.
+   */
+  public static final String PROPERTY_ERROR_LEVEL =
+      "org.opends.server.error.level";
 
 
 

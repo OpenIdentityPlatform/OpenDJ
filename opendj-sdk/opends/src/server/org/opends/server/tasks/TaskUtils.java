@@ -41,7 +41,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.loggers.Error;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.messages.TaskMessages;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -97,8 +97,9 @@ public class TaskUtils
       int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
       String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                   ce.getMessage());
-      Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                           ErrorLogSeverity.SEVERE_ERROR,
+                           message, msgID);
       return null;
     }
     catch (Exception e)
@@ -106,8 +107,9 @@ public class TaskUtils
       int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
       String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                   getExceptionMessage(e));
-      Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-               message, msgID);
+      ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                           ErrorLogSeverity.SEVERE_ERROR,
+                           message, msgID);
       return null;
     }
   }
@@ -133,8 +135,9 @@ public class TaskUtils
     {
       int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
-      Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+      ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                           ErrorLogSeverity.SEVERE_ERROR,
+                           message, msgID);
       return configEntries;
     }
     catch (Exception e)
@@ -142,8 +145,9 @@ public class TaskUtils
       int    msgID   = MSGID_CANNOT_DECODE_BACKEND_BASE_DN;
       String message = getMessage(msgID, DN_BACKEND_BASE,
                                   getExceptionMessage(e));
-      Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+      ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                           ErrorLogSeverity.SEVERE_ERROR,
+                           message, msgID);
       return configEntries;
     }
 
@@ -156,8 +160,9 @@ public class TaskUtils
     {
       int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
-      Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+      ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                           ErrorLogSeverity.SEVERE_ERROR,
+                           message, msgID);
       return configEntries;
     }
     catch (Exception e)
@@ -165,8 +170,9 @@ public class TaskUtils
       int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
       String message = getMessage(msgID, DN_BACKEND_BASE,
                                   getExceptionMessage(e));
-      Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                     message, msgID);
+      ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                           ErrorLogSeverity.SEVERE_ERROR,
+                           message, msgID);
       return configEntries;
     }
 
@@ -200,8 +206,9 @@ public class TaskUtils
         int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     ce.getMessage());
-        Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                             ErrorLogSeverity.SEVERE_ERROR,
+                             message, msgID);
         continue;
       }
       catch (Exception e)
@@ -209,8 +216,9 @@ public class TaskUtils
         int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
         String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
                                     getExceptionMessage(e));
-        Error.logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
+        ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                             ErrorLogSeverity.SEVERE_ERROR,
+                             message, msgID);
         continue;
       }
 

@@ -29,60 +29,83 @@ package org.opends.server.loggers;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import org.opends.server.admin.std.server.SizeLimitLogRotationPolicyCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.ResultCode;
+import org.opends.server.config.ConfigException;
+
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * This class implements a rotation policy based on the size of the
  * file.
  */
-public class SizeBasedRotationPolicy implements RotationPolicy
+public class SizeBasedRotationPolicy implements
+    RotationPolicy<SizeLimitLogRotationPolicyCfg>,
+    ConfigurationChangeListener<SizeLimitLogRotationPolicyCfg>
 {
 
   private long sizeLimit;
-  private DirectoryFileHandler fileHandler;
+
+  SizeLimitLogRotationPolicyCfg currentConfig;
 
   /**
-   * Create the size based policy.
-   *
-   * @param size    The size of the file when rotation takes place.
+   * {@inheritDoc}
    */
-  public SizeBasedRotationPolicy(long size)
+  public void initializeLogRotationPolicy(SizeLimitLogRotationPolicyCfg config)
+      throws ConfigException, InitializationException
   {
-    sizeLimit = size;
+    sizeLimit = config.getFileSizeLimit();
+
+    config.addSizeLimitChangeListener(this);
+    currentConfig = config;
   }
 
   /**
-   * Set the file handler instance.
-   *
-   * @param handler The file handler which manages the file to be rotated.
+   * {@inheritDoc}
    */
-  public void setFileHandler(DirectoryFileHandler handler)
+  public boolean isConfigurationChangeAcceptable(
+      SizeLimitLogRotationPolicyCfg config, List<String> unacceptableReasons)
   {
-    this.fileHandler = handler;
+    // Changes should always be OK
+    return true;
   }
 
   /**
-   * Get the maximum allowable file size.
-   *
-   * @return  The maximum allowable file size.
+   * {@inheritDoc}
    */
-  public long getMaxFileSize()
+  public ConfigChangeResult applyConfigurationChange(
+      SizeLimitLogRotationPolicyCfg config)
   {
-    return sizeLimit;
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    sizeLimit = config.getFileSizeLimit();
+
+    currentConfig = config;
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
   /**
    * This method indicates if the log file should be
    * rotated or not.
    *
+   * @param writer The multi file text writer writing the log file.
    * @return true if the file needs to be rotated, false otherwise.
   */
-  public boolean rotateFile()
+  public boolean rotateFile(MultifileTextWriter writer)
   {
-    if (fileHandler.getFileSize() >= sizeLimit)
+    if (writer.getBytesWritten() >= sizeLimit)
     {
       if (debugEnabled())
       {
-        debugInfo("File Length: %d", fileHandler.getFileSize());
+        debugInfo("%d bytes written in current file", writer.getBytesWritten());
       }
       return true;
     }

@@ -41,7 +41,7 @@ import static org.opends.server.messages.JebMessages.
 import static org.opends.server.messages.JebMessages.
     MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 

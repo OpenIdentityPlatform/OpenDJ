@@ -43,10 +43,9 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
-import static org.opends.server.schema.PrintableString.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 

@@ -26,57 +26,53 @@
  */
 package org.opends.server;
 
-import org.opends.server.api.LogPublisher;
-import org.opends.server.loggers.LoggerErrorHandler;
-import org.opends.server.loggers.TextLogFormatter;
-import org.opends.server.loggers.LogRecord;
+import org.opends.server.loggers.TextWriter;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ArrayList;
 
-/**
- * This class provides an implementation of an log publisher which will store
- * all messages logged in memory.  It provides methods to retrieve and clear the
- * sets of accumulated log messages.  It is only intended for use in the context
- * of the unit test framework, where it will provide a means of getting any
- * log messages associated with failed test cases.
- */
-public class TestLogPublisher implements LogPublisher
+public class TestTextWriter implements TextWriter
 {
-  private TextLogFormatter formatter;
-
   // The list that will hold the messages logged.
   private final LinkedList<String> messageList;
 
-  public TestLogPublisher(TextLogFormatter formatter)
+  public TestTextWriter()
   {
-    this.messageList = new LinkedList<String>();
-    this.formatter = formatter;
+    messageList = new LinkedList<String>();
   }
 
-  public synchronized void publish(LogRecord record,
-                                   LoggerErrorHandler handler)
+  public synchronized void writeRecord(String record)
   {
-    try
-    {
-      messageList.add(formatter.format(record));
-    }
-    catch(Throwable t)
-    {
-      if(handler != null)
-      {
-        handler.handleError(record, t);
-      }
-    }
+    messageList.add(record);
   }
 
-  public synchronized void shutdown()
+  /**
+   * {@inheritDoc}
+   */
+  public void flush()
+  {
+    // No implementation is required.
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void shutdown()
   {
     messageList.clear();
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public long getBytesWritten()
+  {
+    // No implemention is required. Just return 0;
+    return 0;
+  }
+
+    /**
    * Retrieves a copy of the set of messages logged to this error logger since
    * the last time it was cleared.  A copy of the list is returned to avoid
    * a ConcurrentModificationException.
@@ -89,6 +85,8 @@ public class TestLogPublisher implements LogPublisher
       return new ArrayList<String>(messageList);
   }
 
+
+
   /**
    * Clears any messages currently stored by this logger.
    */
@@ -96,4 +94,6 @@ public class TestLogPublisher implements LogPublisher
   {
     messageList.clear();
   }
+
+
 }

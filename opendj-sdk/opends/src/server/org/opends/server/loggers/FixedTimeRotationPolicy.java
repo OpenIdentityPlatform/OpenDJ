@@ -26,117 +26,127 @@
  */
 package org.opends.server.loggers;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.*;
 
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import org.opends.server.admin.std.server.FixedTimeLogRotationPolicyCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.ResultCode;
 
 /**
  * This class implements a rotation policy based on fixed
  * day/time of day.
  */
-public class FixedTimeRotationPolicy implements RotationPolicy
+public class FixedTimeRotationPolicy implements
+    RotationPolicy<FixedTimeLogRotationPolicyCfg>,
+    ConfigurationChangeListener<FixedTimeLogRotationPolicyCfg>
 {
 
-  private static final long NEXT_DAY = 24 * 3600 * 1000;
+  private static final long MS_IN_DAY = 24 * 3600 * 1000;
 
+  // The scheduled rotation times as ms offsets from the beginnging of the day.
   private long[] rotationTimes;
-  private long nextRotationTime = 0;
 
   /**
-  * Time in HHmm format. Will be calculated as (hourOfDay*100) +
-  * minuteOfHour.
-  *
-  * @param  timeOfDays  The times at which log rotation should occur.
-  */
-
-  public FixedTimeRotationPolicy(int[] timeOfDays)
+   * {@inheritDoc}
+   */
+  public void initializeLogRotationPolicy(FixedTimeLogRotationPolicyCfg config)
   {
-    Calendar cal = new GregorianCalendar();
-    cal.set( Calendar.MILLISECOND, 0 );
-    cal.set( Calendar.SECOND, 0 );
-    cal.set( Calendar.MINUTE, 0 );
-    cal.set( Calendar.HOUR_OF_DAY, 0 );
-    long timeFromStartOfDay = cal.getTime().getTime();
+    rotationTimes = new long[config.getTimeOfDay().size()];
 
-    rotationTimes = new long[timeOfDays.length];
-
-    for(int i = 0; i < timeOfDays.length; i++)
+    int i = 0;
+    for(String time : config.getTimeOfDay())
     {
-      int hour = timeOfDays[i]/100;
-      int min = timeOfDays[i] - hour*100;
+      int hour = Integer.valueOf(time)/100;
+      int min = Integer.valueOf(time) - hour*100;
 
-      rotationTimes[i] = timeFromStartOfDay + hour*3600*1000 + min*60*1000;
+      rotationTimes[i++] = hour*3600*1000 + min*60*1000;
     }
 
-    long currTime = TimeThread.getTime();
+    Arrays.sort(rotationTimes);
 
-    nextRotationTime = getNextRotationTime(currTime, 0);
-
+    config.addFixedTimeChangeListener(this);
   }
 
   /**
-   * This method indicates if the log file should be
-   * rotated or not.
-   *
-   * @return true if the file needs to be rotated, false otherwise.
+   * {@inheritDoc}
    */
-  public boolean rotateFile()
+  public boolean isConfigurationChangeAcceptable(
+      FixedTimeLogRotationPolicyCfg config, List<String> unacceptableReasons)
   {
-    long currTime = TimeThread.getTime();
-    if (debugEnabled())
-    {
-      debugInfo("Rotation at fixed time: %d nextRotationTime: %d",
-                currTime, nextRotationTime);
-    }
-
-    if(currTime > nextRotationTime)
-    {
-      nextRotationTime = getNextRotationTime(currTime, nextRotationTime);
-      if (debugEnabled())
-      {
-        debugInfo("Setting next rotation to : %d", nextRotationTime);
-      }
-      return true;
-    }
-    return false;
+    // Changes should always be OK
+    return true;
   }
 
   /**
-   * Get the next rotation time.
-   *
-   * @param  currTime          The current time.
-   * @param  currRotationTime  The time we currently believe should be the next
-   *                           rotation time.
-   *
-   * @return  The time that should be used for the next log file rotation.
+   * {@inheritDoc}
    */
-  private long getNextRotationTime(long currTime, long currRotationTime)
+  public ConfigChangeResult applyConfigurationChange(
+      FixedTimeLogRotationPolicyCfg config)
   {
-    long prevRotationTime = currRotationTime;
-    for(int j = 0; j < rotationTimes.length; j++)
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    rotationTimes = new long[config.getTimeOfDay().size()];
+
+    int i = 0;
+    for(String time : config.getTimeOfDay())
     {
-      if (currTime < rotationTimes[j])
+      int hour = Integer.valueOf(time)/100;
+      int min = Integer.valueOf(time) - hour*100;
+
+      rotationTimes[i++] = hour*3600*1000 + min*60*1000;
+    }
+
+    Arrays.sort(rotationTimes);
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean rotateFile(MultifileTextWriter writer)
+  {
+    long currTime = TimeThread.getTime();
+    long lastRotationTime = writer.getLastRotationTime();
+    long dayOfLastRotation = MS_IN_DAY * (lastRotationTime / MS_IN_DAY);
+    long hourOfLastRotation = lastRotationTime - dayOfLastRotation;
+
+    // Find a scheduled rotation time thats right after the last rotation time.
+    long hourOfNextRotation = 0;
+    for(long time : rotationTimes)
+    {
+      if(time > hourOfLastRotation)
       {
-        currRotationTime = rotationTimes[j];
+        hourOfNextRotation = time;
         break;
       }
     }
 
-    if(currRotationTime == prevRotationTime)
+    if(hourOfNextRotation <= 0)
     {
-      for(int k = 0; k < rotationTimes.length; k++)
-      {
-        rotationTimes[k] += NEXT_DAY;
-      }
-      currRotationTime = rotationTimes[0];
+      // Rotation alrealy happened after the latest fixed time for that day.
+      // Set it the first rotation time for the next day.
+      hourOfNextRotation = rotationTimes[0] + MS_IN_DAY;
     }
 
-    return currRotationTime;
-  }
+    long nextRotationTime = dayOfLastRotation + hourOfNextRotation;
 
+    if (debugEnabled())
+    {
+      debugInfo("As of %d, the next rotation at fixed time is: %d",
+                currTime, nextRotationTime);
+    }
+
+    return currTime > nextRotationTime;
+
+  }
 }
 

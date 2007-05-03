@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:managed-object
+    name="size-limit-log-retention-policy"
+    plural-name="size-limit-log-retention-policies"
+    package="org.opends.server.admin.std"
+    extends="log-retention-policy"
+    xmlns:adm="http://www.opends.org/admin"
+    xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    Retention policy based on the amount of space taken by the log
+            files on disk.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.104</ldap:oid>
+      <ldap:name>ds-cfg-size-limit-log-retention-policy</ldap:name>
+      <ldap:superior>ds-cfg-log-retention-policy</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="disk-space-used" mandatory="true">
+    <adm:synopsis>
+      The maximum total disk space used by the log files.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:size lower-limit="1" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.93</ldap:oid>
+        <ldap:name>ds-cfg-disk-space-used</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
+

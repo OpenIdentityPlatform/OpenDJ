@@ -39,7 +39,7 @@ import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.EnvironmentStats;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.messages.JebMessages.
     MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;

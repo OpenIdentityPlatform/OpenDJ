@@ -26,62 +26,52 @@
  */
 package org.opends.server.api;
 
-
-
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AbandonOperation;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.core.UnbindOperation;
-import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-
-
+import org.opends.server.core.*;
 
 /**
  * This class defines the set of methods and structures that must be
- * implemented for a Directory Server access logger.
+ * implemented for a Directory Server access log publisher.
+ *
+ * @param <T> The type of access log publisher configuration handled
+ *            by this log publisher implementation.
  */
-public abstract class AccessLogger
+public abstract class AccessLogPublisher
+    <T extends AccessLogPublisherCfg>
 {
   /**
-   * Initializes this access logger based on the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this access
-   *                      logger.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during
-   *                                   initialization that is not
-   *                                   related to the server
-   *                                   configuration.
+   * Indicates if internal operations should be omited in the messages
+   * logged by this publisher.
    */
-  public abstract void initializeAccessLogger(ConfigEntry configEntry)
-         throws ConfigException, InitializationException;
-
-
+  protected boolean suppressInternalOperations = true;
 
   /**
-   * Closes this access logger and releases any resources it might
-   * have held.
+   * Initializes this access publisher provider based on the
+   * information in the provided debug publisher configuration.
+   *
+   * @param config
+   *          The access publisher configuration that contains the
+   *          information to use to initialize this access publisher.
+   * @throws org.opends.server.config.ConfigException
+   *           If an unrecoverable problem arises in the process of
+   *           performing the initialization as a result of the server
+   *           configuration.
+   * @throws org.opends.server.types.InitializationException
+   *           If a problem occurs during initialization that is not
+   *           related to the server configuration.
    */
-  public abstract void closeAccessLogger();
+  public abstract void initializeAccessLogPublisher(T config)
+      throws ConfigException, InitializationException;
 
-
+  /**
+   * Close this publisher.
+   */
+  public abstract void close();
 
   /**
    * Writes a message to the access logger with information about a
@@ -108,9 +98,9 @@ public abstract class AccessLogger
    *                           the disconnect.
    */
   public abstract void
-       logDisconnect(ClientConnection clientConnection,
-                     DisconnectReason disconnectReason,
-                     String message);
+  logDisconnect(ClientConnection clientConnection,
+                DisconnectReason disconnectReason,
+                String message);
 
 
 
@@ -123,7 +113,7 @@ public abstract class AccessLogger
    *                           request.
    */
   public abstract void logAbandonRequest(AbandonOperation
-                                              abandonOperation);
+      abandonOperation);
 
 
   /**
@@ -135,7 +125,7 @@ public abstract class AccessLogger
    *                           request.
    */
   public abstract void logAbandonResult(AbandonOperation
-                                             abandonOperation);
+      abandonOperation);
 
 
 
@@ -194,7 +184,7 @@ public abstract class AccessLogger
    *                           request.
    */
   public abstract void logCompareRequest(CompareOperation
-                                              compareOperation);
+      compareOperation);
 
 
 
@@ -207,7 +197,7 @@ public abstract class AccessLogger
    *                           response.
    */
   public abstract void logCompareResponse(CompareOperation
-                                               compareOperation);
+      compareOperation);
 
 
 
@@ -220,7 +210,7 @@ public abstract class AccessLogger
    *                          request.
    */
   public abstract void logDeleteRequest(DeleteOperation
-                                             deleteOperation);
+      deleteOperation);
 
 
 
@@ -233,7 +223,7 @@ public abstract class AccessLogger
    *                          response.
    */
   public abstract void logDeleteResponse(DeleteOperation
-                                              deleteOperation);
+      deleteOperation);
 
 
 
@@ -246,7 +236,7 @@ public abstract class AccessLogger
    *                            request.
    */
   public abstract void logExtendedRequest(ExtendedOperation
-                                               extendedOperation);
+      extendedOperation);
 
 
 
@@ -260,7 +250,7 @@ public abstract class AccessLogger
    *                            response.
    */
   public abstract void logExtendedResponse(ExtendedOperation
-                                                extendedOperation);
+      extendedOperation);
 
 
 
@@ -273,7 +263,7 @@ public abstract class AccessLogger
    *                          request.
    */
   public abstract void logModifyRequest(ModifyOperation
-                                             modifyOperation);
+      modifyOperation);
 
 
 
@@ -286,7 +276,7 @@ public abstract class AccessLogger
    *                          response.
    */
   public abstract void logModifyResponse(ModifyOperation
-                                              modifyOperation);
+      modifyOperation);
 
 
 
@@ -300,7 +290,7 @@ public abstract class AccessLogger
    *                            DN request.
    */
   public abstract void logModifyDNRequest(ModifyDNOperation
-                                               modifyDNOperation);
+      modifyDNOperation);
 
 
 
@@ -314,7 +304,7 @@ public abstract class AccessLogger
    *                            DN response.
    */
   public abstract void logModifyDNResponse(ModifyDNOperation
-                                                modifyDNOperation);
+      modifyDNOperation);
 
 
 
@@ -327,7 +317,7 @@ public abstract class AccessLogger
    *                          request.
    */
   public abstract void logSearchRequest(SearchOperation
-                                             searchOperation);
+      searchOperation);
 
 
 
@@ -341,8 +331,8 @@ public abstract class AccessLogger
    * @param  searchEntry      The search result entry to be logged.
    */
   public abstract void logSearchResultEntry(
-                            SearchOperation searchOperation,
-                            SearchResultEntry searchEntry);
+      SearchOperation searchOperation,
+      SearchResultEntry searchEntry);
 
 
 
@@ -357,8 +347,8 @@ public abstract class AccessLogger
    *                          logged.
    */
   public abstract void logSearchResultReference(
-                            SearchOperation searchOperation,
-                            SearchResultReference searchReference);
+      SearchOperation searchOperation,
+      SearchResultReference searchReference);
 
 
 
@@ -371,7 +361,7 @@ public abstract class AccessLogger
    *                          result done message.
    */
   public abstract void logSearchResultDone(SearchOperation
-                                                searchOperation);
+      searchOperation);
 
 
 
@@ -384,28 +374,4 @@ public abstract class AccessLogger
    *                          request.
    */
   public abstract void logUnbind(UnbindOperation unbindOperation);
-
-
-
-  /**
-   * Indicates whether the provided object is equal to this access
-   * logger.
-   *
-   * @param  o  The object for which to make the determination.
-   *
-   * @return  <CODE>true</CODE> if the provided object is determined
-   *          to be equal to this access logger, or <CODE>false</CODE>
-   *          if not.
-   */
-  public abstract boolean equals(Object o);
-
-
-
-  /**
-   * Retrieves the hash code for this access logger.
-   *
-   * @return  The hash code for this access logger.
-   */
-  public abstract int hashCode();
 }
-

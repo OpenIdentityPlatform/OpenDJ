@@ -29,7 +29,7 @@ package org.opends.server.extensions;
 
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 

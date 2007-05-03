@@ -46,7 +46,7 @@ import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;

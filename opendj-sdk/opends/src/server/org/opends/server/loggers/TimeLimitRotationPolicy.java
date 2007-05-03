@@ -27,26 +27,58 @@
 package org.opends.server.loggers;
 
 import org.opends.server.util.TimeThread;
+import org.opends.server.admin.std.server.TimeLimitLogRotationPolicyCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.ResultCode;
+
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * This class implements a fixed time based rotation policy.
  * Rotation will happen N seconds since the last rotation.
  */
-public class TimeLimitRotationPolicy implements RotationPolicy
+public class TimeLimitRotationPolicy implements
+    RotationPolicy<TimeLimitLogRotationPolicyCfg>,
+    ConfigurationChangeListener<TimeLimitLogRotationPolicyCfg>
 {
-
   private long timeInterval = 0;
-  private long lastModifiedTime = 0;
 
   /**
-   * Create the time based rotation policy.
-   *
-   * @param time The time interval between rotations.
+   * {@inheritDoc}
    */
-  public TimeLimitRotationPolicy(long time)
+  public void initializeLogRotationPolicy(TimeLimitLogRotationPolicyCfg config)
   {
-    timeInterval = time;
-    lastModifiedTime = TimeThread.getTime();
+    timeInterval = config.getRotationInterval();
+
+    config.addTimeLimitChangeListener(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      TimeLimitLogRotationPolicyCfg config, List<String> unacceptableReasons)
+  {
+    // Changes should always be OK
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+      TimeLimitLogRotationPolicyCfg config)
+  {
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    timeInterval = config.getRotationInterval();
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
 
@@ -54,24 +86,13 @@ public class TimeLimitRotationPolicy implements RotationPolicy
    * This method indicates if the log file should be
    * rotated or not.
    *
+   * @param writer The mutli file text writer written the log file.
    * @return true if the file should be rotated, false otherwise.
    */
-  public boolean rotateFile()
+  public boolean rotateFile(MultifileTextWriter writer)
   {
     long currTime = TimeThread.getTime();
-    if (currTime - lastModifiedTime > timeInterval)
-    {
-      do
-      {
-        lastModifiedTime += timeInterval;
-      }
-      while (lastModifiedTime < currTime);
-
-      // lastModifiedTime = currTime;
-      return true;
-    }
-
-    return false;
+    return currTime - writer.getLastRotationTime() > timeInterval;
   }
 
 }

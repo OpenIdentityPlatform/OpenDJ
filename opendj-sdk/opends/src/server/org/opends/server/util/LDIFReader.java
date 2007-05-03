@@ -33,7 +33,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugProtocolElement;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;

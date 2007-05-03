@@ -90,7 +90,7 @@ import static
 import static
     org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.Error.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;

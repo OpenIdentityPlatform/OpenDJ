@@ -175,5 +175,29 @@
       </ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
+  <adm:relation name="log-publisher">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Loggers,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="log-rotation-policy">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Log Rotation Policies,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="log-retention-policy">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Log Retention Policies,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
   <adm:product-name>OpenDS Directory Server</adm:product-name>
 </adm:root-managed-object>

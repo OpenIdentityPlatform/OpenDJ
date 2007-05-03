@@ -26,51 +26,61 @@
  */
 package org.opends.server.api;
 
-
-
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.config.ConfigException;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.InitializationException;
 
-
+import java.util.HashSet;
+import java.util.HashMap;
 
 /**
  * This class defines the set of methods and structures that must be
- * implemented for a Directory Server error logger.
+ * implemented for a Directory Server error log publisher.
+ *
+ * @param <T> The type of error log publisher configuration handled
+ *            by this log publisher implementation.
  */
-public abstract class ErrorLogger
+public abstract class ErrorLogPublisher
+    <T extends ErrorLogPublisherCfg>
 {
   /**
-   * Initializes this error logger based on the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this error
-   *                      logger.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during
-   *                                   initialization that is not
-   *                                   related to the server
-   *                                   configuration.
+   * The hash map that will be used to define specific log severities
+   * for the various categories.
    */
-  public abstract void initializeErrorLogger(ConfigEntry configEntry)
-         throws ConfigException, InitializationException;
-
-
+  protected HashMap<ErrorLogCategory,HashSet<ErrorLogSeverity>>
+      definedSeverities =
+      new HashMap<ErrorLogCategory, HashSet<ErrorLogSeverity>>();
 
   /**
-   * Closes this error logger and releases any resources it might have
-   * held.
+   * The set of default log severities that will be used if no custom
+   * severities have been defined for the associated category.
    */
-  public abstract void closeErrorLogger();
+  protected HashSet<ErrorLogSeverity> defaultSeverities =
+      new HashSet<ErrorLogSeverity>();
+  /**
+   * Initializes this access publisher provider based on the
+   * information in the provided debug publisher configuration.
+   *
+   * @param config
+   *          The error publisher configuration that contains the
+   *          information to use to initialize this error publisher.
+   * @throws org.opends.server.config.ConfigException
+   *           If an unrecoverable problem arises in the process of
+   *           performing the initialization as a result of the server
+   *           configuration.
+   * @throws org.opends.server.types.InitializationException
+   *           If a problem occurs during initialization that is not
+   *           related to the server configuration.
+   */
+  public abstract void initializeErrorLogPublisher(T config)
+      throws ConfigException, InitializationException;
 
-
+  /**
+   * Close this publisher.
+   */
+  public abstract void close();
 
   /**
    * Writes a message to the error log using the provided information.
@@ -88,27 +98,4 @@ public abstract class ErrorLogger
                                 ErrorLogSeverity severity,
                                 String message, int errorID);
 
-
-
-  /**
-   * Indicates whether the provided object is equal to this error
-   * logger.
-   *
-   * @param  o  The object for which to make the determination.
-   *
-   * @return  <CODE>true</CODE> if the provided object is determined
-   *          to be equal to this error logger, or <CODE>false</CODE>
-   *          if not.
-   */
-  public abstract boolean equals(Object o);
-
-
-
-  /**
-   * Retrieves the hash code for this error logger.
-   *
-   * @return  The hash code for this error logger.
-   */
-  public abstract int hashCode();
 }
-

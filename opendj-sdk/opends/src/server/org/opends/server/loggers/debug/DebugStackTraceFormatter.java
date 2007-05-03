@@ -26,6 +26,8 @@
  */
 package org.opends.server.loggers.debug;
 
+import static org.opends.server.util.ServerConstants.EOL;
+
 /**
  * A DebugStackTraceFormatter converts an exception's stack trace into
  * a String appropriate for tracing, optionally performing filtering
@@ -50,10 +52,11 @@ public class DebugStackTraceFormatter
     /**
      * Filters out all undesired stack frames from the given Throwable's
      * stack trace.
-     * @param t - the Throwable for which a stack trace is being generated.
+     * @param frames the frames to filter
      * @return an array of StackTraceElements to be used in formatting.
      */
-    public StackTraceElement[] getFilteredStackTrace(Throwable t);
+    public StackTraceElement[] getFilteredStackTrace(
+        StackTraceElement[] frames);
   }
 
   /**
@@ -78,12 +81,12 @@ public class DebugStackTraceFormatter
      * Return the stack trace of an exception with debug and trailing non
      * OpenDS frames filtered out.
      *
-     * @param t the throwable to filter.
+     * @param frames the frames to filter
      * @return the filtered stack trace.
      */
-    public StackTraceElement[] getFilteredStackTrace(Throwable t)
+    public StackTraceElement[] getFilteredStackTrace(
+        StackTraceElement[] frames)
     {
-      StackTraceElement[] frames= t.getStackTrace();
       StackTraceElement[] trimmedStack= null;
       if (frames != null && frames.length > 0) {
         int firstFrame= 0;
@@ -141,23 +144,29 @@ public class DebugStackTraceFormatter
 
     while(t != null)
     {
-      StackTraceElement[] frames= filter != null ?
-          filter.getFilteredStackTrace(t) : t.getStackTrace();
+      StackTraceElement[] frames = t.getStackTrace();
+      if(filter != null)
+      {
+        frames = filter.getFilteredStackTrace(frames);
+      }
+
       if (frames != null) {
         int frameLimit=  Math.min(maxDepth, frames.length);
         if (frameLimit > 0) {
 
 
           for (int i= 0; i < frameLimit; i++) {
+            buffer.append("  ");
             buffer.append(frames[i]);
-            buffer.append(" / ");
+            buffer.append(EOL);
           }
 
           if(frameLimit < frames.length)
           {
-            buffer.append("...(");
+            buffer.append("  ...(");
             buffer.append(frames.length - frameLimit);
             buffer.append(" more)");
+            buffer.append(EOL);
           }
         }
       }
@@ -165,11 +174,54 @@ public class DebugStackTraceFormatter
       if(includeCause && t.getCause() != null)
       {
         t = t.getCause();
-        buffer.append("; caused by ");
+        buffer.append("  caused by ");
       }
       else
       {
         t = null;
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  /**
+   * Generate a String representation of the possibly filtered stack trace
+   * from the current position in executation.
+   * @param filter - a FrameFilter to use to exclude some stack frames from
+   * the trace.  If null, no filtering is performed.
+   * @param maxDepth - the maximum number of stack frames to include in the
+   * trace.
+   * @return the stack trace.
+   */
+  public static String formatStackTrace(FrameFilter filter, int maxDepth)
+  {
+    StringBuffer buffer= new StringBuffer();
+
+    StackTraceElement[] frames = Thread.currentThread().getStackTrace();
+    if(filter != null)
+    {
+      frames = filter.getFilteredStackTrace(frames);
+    }
+
+    if (frames != null) {
+      int frameLimit=  Math.min(maxDepth, frames.length);
+      if (frameLimit > 0) {
+
+
+        for (int i= 0; i < frameLimit; i++) {
+          buffer.append("  ");
+          buffer.append(frames[i]);
+          buffer.append(EOL);
+        }
+
+        if(frameLimit < frames.length)
+        {
+          buffer.append("  ...(");
+          buffer.append(frames.length - frameLimit);
+          buffer.append(" more)");
+          buffer.append(EOL);
+        }
       }
     }
 

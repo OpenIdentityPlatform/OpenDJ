@@ -29,6 +29,7 @@ package org.opends.server.loggers;
 import org.opends.server.util.TimeThread;
 
 import java.io.File;
+import java.io.FilenameFilter;
 
 /**
  * A file name policy that names files suffixed by the time it was created.
@@ -36,6 +37,32 @@ import java.io.File;
 public class TimeStampNaming implements FileNamingPolicy
 {
   File file;
+
+  /**
+   * The FilenameFilter implementation for this naming policy to filter
+   * for all the files named by this policy.
+   */
+  private class TimeStampNamingFilter implements FilenameFilter
+  {
+    /**
+     * Select only files that are named by this policy.
+     *
+     * @param dir  The directory to search.
+     * @param name The filename to which to apply the filter.
+     *
+     * @return  <CODE>true</CODE> if the given filename matches the filter, or
+     *          <CODE>false</CODE> if it does not.
+     */
+    public boolean accept(File dir, String name)
+    {
+      if(new File(dir, name).isDirectory())
+      {
+        return false;
+      }
+      name = name.toLowerCase();
+      return name.startsWith(file.getName().toLowerCase());
+    }
+  }
 
   /**
    * Create a new instance of the TimeStampNaming policy. Files will be created
@@ -47,10 +74,9 @@ public class TimeStampNaming implements FileNamingPolicy
   {
     this.file = file;
   }
+
   /**
-   * Initializes the policy and returns the current name to use.
-   *
-   * @return the initial file.
+   * {@inheritDoc}
    */
   public File getInitialName()
   {
@@ -58,12 +84,28 @@ public class TimeStampNaming implements FileNamingPolicy
   }
 
   /**
-   * Gets the next name to use.
-   *
-   * @return the next file.
+   * {@inheritDoc}
    */
   public File getNextName()
   {
     return new File(file + "." + TimeThread.getGMTTime());
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public FilenameFilter getFilenameFilter()
+  {
+    return new TimeStampNamingFilter();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public File[] listFiles()
+  {
+    File directory = file.getParentFile();
+    return directory.listFiles(getFilenameFilter());
+  }
+
 }

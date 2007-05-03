@@ -28,7 +28,7 @@ package org.opends.server.admin;
 
 
 
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.AdminMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;

@@ -39,93 +39,75 @@ import static org.opends.server.messages.MessageHandler.*;
 public class LoggerMessages
 {
   /**
-   * The message ID for the message that will be used if the access logger
-   * cannot add an appropriate log handler.  This takes a single argument, which
-   * is a string representation of the exception that was caught.
+   * The message ID for the message that will be used if an error occured
+   * while writing a log record.  This takes a two arguments, which
+   * are the logger that encountered the error and  a string
+   * representation of the exception that was caught.
    */
-  public static final int MSGID_LOG_ACCESS_CANNOT_ADD_FILE_HANDLER =
+  public static final int MSGID_LOGGER_ERROR_WRITING_RECORD =
        CATEGORY_MASK_LOG | SEVERITY_MASK_SEVERE_ERROR | 1;
 
 
 
   /**
-   * The message ID for the message that will be used if the error logger
-   * cannot add an appropriate log handler.  This takes a single argument, which
-   * is a string representation of the exception that was caught.
+   * The message ID for the message that will be used if an error occured
+   * while opening a log file.  This takes a two arguments, which
+   * are the logger that encountered the error and  a string
+   * representation of the exception that was caught.
    */
-  public static final int MSGID_LOG_ERROR_CANNOT_ADD_FILE_HANDLER =
+  public static final int MSGID_LOGGER_ERROR_OPENING_FILE =
        CATEGORY_MASK_LOG | SEVERITY_MASK_SEVERE_ERROR | 2;
 
 
 
   /**
-   * The message ID for the message that will be used if the debug logger
-   * cannot add an appropriate log handler.  This takes a single argument, which
-   * is a string representation of the exception that was caught.
+   * The message ID for the message that will be used if an error occured
+   * while closing a log file.  This takes a two arguments, which
+   * are the logger that encountered the error and  a string
+   * representation of the exception that was caught.
    */
-  public static final int MSGID_LOG_DEBUG_CANNOT_ADD_FILE_HANDLER =
+  public static final int MSGID_LOGGER_ERROR_CLOSING_FILE =
        CATEGORY_MASK_LOG | SEVERITY_MASK_SEVERE_ERROR | 3;
 
 
-  /**
-   * The message ID for the message that will be used as the description of the
-   * configuration attribute specifying the nickname of the certificate to use
-   * for SSL and StartTLS communication.
-   */
-  public static final int MSGID_LOG_DESCRIPTION_SSL_CERT_NICKNAME =
-       CATEGORY_MASK_LOG | SEVERITY_MASK_INFORMATIONAL | 4;
 
   /**
-   * The message ID for the description of the configuration attribute that
-   * specifies the file size limit for rotation.
+   * The message ID for the message that will be used if an error occured
+   * while flushing the writer buffer.  This takes a two arguments, which
+   * are the logger that encountered the error and  a string
+   * representation of the exception that was caught.
    */
-  public static final int MSGID_LOGGER_ROTATION_SIZE_LIMIT =
-       CATEGORY_MASK_LOG | SEVERITY_MASK_INFORMATIONAL | 5;
+  public static final int MSGID_LOGGER_ERROR_FLUSHING_BUFFER =
+       CATEGORY_MASK_LOG | SEVERITY_MASK_SEVERE_ERROR | 4;
 
-  /**
-   * The message ID for the description of the configuration attribute that
-   * specifies the time limit for rotation.
-   */
-  public static final int MSGID_LOGGER_ROTATION_FIXED_TIME_LIMIT =
-       CATEGORY_MASK_LOG | SEVERITY_MASK_INFORMATIONAL | 6;
 
 
   /**
-   * The message ID for the description of the configuration attribute that
-   * specifies the number of files for the retention policy.
+   * The message ID for the message that will be used if the specified
+   * string is not a valid error severity name. This takes the name
+   * of the invalid severity as the argument.
    */
-  public static final int MSGID_LOGGER_RETENTION_NUMBER_OF_FILES =
-       CATEGORY_MASK_LOG | SEVERITY_MASK_INFORMATIONAL | 7;
+  public static final int MSGID_ERROR_LOGGER_INVALID_SEVERITY =
+        CATEGORY_MASK_LOG | SEVERITY_MASK_MILD_WARNING | 5;
 
-  /**
-   * The message ID for the description of the configuration attribute that
-   * specifies the disk space used for the size based retention policy.
+
+    /**
+   * The message ID for the message that will be used if the specified
+   * string is not a valid error category name. This takes the name
+   * of the invalid category as the argument.
    */
-  public static final int MSGID_LOGGER_RETENTION_DISK_SPACE_USED =
-       CATEGORY_MASK_LOG | SEVERITY_MASK_INFORMATIONAL | 8;
+  public static final int MSGID_ERROR_LOGGER_INVALID_CATEGORY =
+        CATEGORY_MASK_LOG | SEVERITY_MASK_MILD_WARNING | 6;
 
 
-  /**
-   * The message ID for the description of the configuration attribute that
-   * specifies the thread time interval.
+
+    /**
+   * The message ID for the message that will be used if the specified
+   * string is not a valid error override severity. This takes the name
+   * of the invalid severity as the argument.
    */
-  public static final int MSGID_LOGGER_THREAD_INTERVAL =
-       CATEGORY_MASK_LOG | SEVERITY_MASK_INFORMATIONAL | 9;
-
-  /**
-   * The message ID for the description of the configuration attribute that
-   * specifies the log buffer size.
-   */
-  public static final int MSGID_LOGGER_BUFFER_SIZE =
-       CATEGORY_MASK_LOG | SEVERITY_MASK_INFORMATIONAL | 10;
-
-
-  /**
-   * The message ID for the description of the configuration attribute that
-   * specifies the free disk space allowed.
-   */
-  public static final int MSGID_LOGGER_RETENTION_FREE_DISK_SPACE =
-       CATEGORY_MASK_LOG | SEVERITY_MASK_INFORMATIONAL | 11;
+  public static final int MSGID_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY =
+        CATEGORY_MASK_LOG | SEVERITY_MASK_MILD_WARNING | 7;
 
 
 
@@ -135,41 +117,21 @@ public class LoggerMessages
    */
   public static void registerMessages()
   {
-    registerMessage(MSGID_LOG_ACCESS_CANNOT_ADD_FILE_HANDLER,
-                    "Unable to add a file handler for the Directory Server " +
-                    "access logger:  %s");
-    registerMessage(MSGID_LOG_ERROR_CANNOT_ADD_FILE_HANDLER,
-                    "Unable to add a file handler for the Directory Server " +
-                    "error logger:  %s");
-    registerMessage(MSGID_LOG_DEBUG_CANNOT_ADD_FILE_HANDLER,
-                    "Unable to add a file handler for the Directory Server " +
-                    "debug logger:  %s");
-    registerMessage(MSGID_LOG_DESCRIPTION_SSL_CERT_NICKNAME,
-                    "Specifies the nickname of the certificate that the " +
-                    "connection handler should use when accepting SSL-based " +
-                    "connections or performing StartTLS negotiation.  " +
-                    "Changes to this configuration attribute will not take " +
-                    "effect until the connection handler is disabled and " +
-                    "re-enabled, or until the Directory Server is restarted");
-    registerMessage(MSGID_LOGGER_ROTATION_SIZE_LIMIT,
-                    "Specifies the size limit for the file before rotation " +
-                    "takes place");
-    registerMessage(MSGID_LOGGER_ROTATION_FIXED_TIME_LIMIT,
-                    "Specifies the time interval before the log file rotation" +
-                    " takes place");
-    registerMessage(MSGID_LOGGER_RETENTION_NUMBER_OF_FILES,
-                    "Specifies the number of log files that need to " +
-                    " be retained");
-    registerMessage(MSGID_LOGGER_RETENTION_DISK_SPACE_USED,
-                    "Specifies the amount of disk space that log files " +
-                    " can use");
-    registerMessage(MSGID_LOGGER_THREAD_INTERVAL,
-                    "Specifies the time interval that the logger thread " +
-                    " wakes up after");
-    registerMessage(MSGID_LOGGER_BUFFER_SIZE,
-                    "Specifies the log file buffer size");
-    registerMessage(MSGID_LOGGER_RETENTION_FREE_DISK_SPACE,
-                    "Specifies the free disk space allowed");
+    registerMessage(MSGID_LOGGER_ERROR_WRITING_RECORD,
+                    "Unable to write log record for logger  " +
+                    "%s: %s. Any further writing errors will be ignored");
+    registerMessage(MSGID_LOGGER_ERROR_OPENING_FILE,
+                    "Unable to open log file %s for logger %s: %s");
+    registerMessage(MSGID_LOGGER_ERROR_CLOSING_FILE,
+                    "Unable to close log file for logger %s: %s");
+    registerMessage(MSGID_LOGGER_ERROR_FLUSHING_BUFFER,
+                    "Unable to flush writer buffer for logger %s: %s");
+    registerMessage(MSGID_ERROR_LOGGER_INVALID_SEVERITY,
+                    "Invalid error log severity %s");
+    registerMessage(MSGID_ERROR_LOGGER_INVALID_CATEGORY,
+                    "Invalid error log category %s");
+    registerMessage(MSGID_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY,
+                    "invalid override of severity level %s");
 
   }
 }

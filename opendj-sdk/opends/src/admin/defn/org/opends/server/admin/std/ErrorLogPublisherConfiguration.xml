@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="error-log-publisher"
+  plural-name="error-log-publishers"
+  package="org.opends.server.admin.std"
+  extends="log-publisher"
+  abstract="true"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    <adm:user-friendly-plural-name />
+    are reponsible for distributing error log messages from the error logger to
+    a destination.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.24</ldap:oid>
+      <ldap:name>ds-cfg-error-logger</ldap:name>
+      <ldap:superior>ds-cfg-logger</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="java-implementation-class" mandatory="true">
+    <adm:synopsis>
+      The fully-qualified name of the Java class that provides the
+      <adm:user-friendly-name />
+      implementation.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:java-class>
+        <adm:instance-of>
+          org.opends.server.api.ErrorLogPublisher
+        </adm:instance-of>
+      </adm:java-class>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.60</ldap:oid>
+        <ldap:name>ds-cfg-logger-class</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="default-severity" multi-valued="true">
+    <adm:synopsis>
+      Property to specify the default severity levels for the logger.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Severities fatal-error, severe-warning, and severe-error will
+          be used for the logger.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="fatal-error">
+          <adm:synopsis>
+            The error log severity that will be used for messages that
+            provide information about fatal errors which may force the server
+            to shut down or operate in a significantly degraded state.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="generic-debug">
+          <adm:synopsis>
+            The error log severity that will be used for debug messages
+            generated during general processing that may be useful enough to
+            warrant making them available without restarting the server in
+            debug mode.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="informational">
+          <adm:synopsis>
+            The error log severity that will be used for messages that
+            provide information about significant events within the server
+            that are not warnings or errors.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="mild-error">
+          <adm:synopsis>
+            The error log severity that will be used for messages that
+            provide information about mild (recoverable) errors encountered
+            during processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="mild-warning">
+          <adm:synopsis>
+            The error log severity that will be used for messages that
+            provide information about mild warnings triggered during
+            processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="notice">
+          <adm:synopsis>
+            The error log severity that will be used for the most important
+            informational messages (i.e., information that should almost
+            always be logged but is not associated with a warning or error
+            condition).
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="severe-error">
+          <adm:synopsis>
+            The error log severity that will be used for messages that
+            provide information about severe errors encountered during
+            processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="severe-warning">
+          <adm:synopsis>
+            The error log severity that will be used for messages that
+            provide information about severe warnings triggered during
+            processing.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="shutdown-debug">
+          <adm:synopsis>
+            The error log severity that will be used for debug messages
+            generated during server shutdown.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="startup-debug">
+          <adm:synopsis>
+            The error log severity that will be used for debug messages
+            generated during server startup.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.31</ldap:oid>
+        <ldap:name>ds-cfg-default-severity</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="override-severity" multi-valued="true">
+    <adm:synopsis>
+      Property to specify the override severity levels for the logger.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Messages will use the default severity levels.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.74</ldap:oid>
+        <ldap:name>ds-cfg-override-severity</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

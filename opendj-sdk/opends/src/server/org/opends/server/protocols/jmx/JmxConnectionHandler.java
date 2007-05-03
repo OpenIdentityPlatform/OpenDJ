@@ -28,7 +28,7 @@ package org.opends.server.protocols.jmx;
 
 
 
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ProtocolMessages.*;
 

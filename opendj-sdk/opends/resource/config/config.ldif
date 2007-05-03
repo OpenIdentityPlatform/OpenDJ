@@ -504,14 +504,15 @@ objectClass: ds-cfg-logger
 objectClass: ds-cfg-access-logger
 objectClass: ds-cfg-file-based-access-logger
 cn: File-Based Access Logger
-ds-cfg-logger-class: org.opends.server.loggers.DirectoryAccessLogger
+ds-cfg-logger-class: org.opends.server.loggers.TextAccessLogPublisher
 ds-cfg-logger-enabled: true
 ds-cfg-log-file: logs/access
+ds-cfg-log-file-mode: 640
 ds-cfg-suppress-internal-operations: true
-ds-cfg-rotation-policy: Size
-ds-cfg-rotation-policy: FixedTime
-ds-cfg-size-limit: 104857600
-ds-cfg-fixed-time-limit: 86400000
+ds-cfg-asynchronous-writes: true
+ds-cfg-rotation-policy-dn: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-rotation-policy-dn: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-retention-policy-dn: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
 
 dn: cn=File-Based Audit Logger,cn=Loggers,cn=config
 objectClass: top
@@ -519,26 +520,15 @@ objectClass: ds-cfg-logger
 objectClass: ds-cfg-access-logger
 objectClass: ds-cfg-file-based-access-logger
 cn: File-Based Audit Logger
-ds-cfg-logger-class: org.opends.server.loggers.DirectoryAuditLogger
-ds-cfg-logger-enabled: false
-ds-cfg-log-file: logs/audit
-ds-cfg-suppress-internal-operations: true
-ds-cfg-rotation-policy: Size
-ds-cfg-rotation-policy: FixedTime
-ds-cfg-size-limit: 104857600
-ds-cfg-fixed-time-limit: 86400000
-
-dn: cn=File-Based Debug Logger,cn=Loggers,cn=config
-objectClass: top
-objectClass: ds-cfg-logger
-objectClass: ds-cfg-debug-logger
-objectClass: ds-cfg-file-based-debug-logger
-cn: File-Based Debug Logger
-ds-cfg-logger-class: org.opends.server.loggers.DirectoryDebugLogger
+ds-cfg-logger-class: org.opends.server.loggers.TextAuditLogPublisher
 ds-cfg-logger-enabled: true
-ds-cfg-log-file: logs/debug
-ds-cfg-default-severity: ERROR
-ds-cfg-default-severity: WARNING
+ds-cfg-log-file: logs/audit
+ds-cfg-log-file-mode: 640
+ds-cfg-suppress-internal-operations: true
+ds-cfg-asynchronous-writes: true
+ds-cfg-rotation-policy-dn: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-rotation-policy-dn: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-retention-policy-dn: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
 
 dn: cn=File-Based Error Logger,cn=Loggers,cn=config
 objectClass: top
@@ -546,17 +536,97 @@ objectClass: ds-cfg-logger
 objectClass: ds-cfg-error-logger
 objectClass: ds-cfg-file-based-error-logger
 cn: File-Based Error Logger
-ds-cfg-logger-class: org.opends.server.loggers.DirectoryErrorLogger
+ds-cfg-logger-class: org.opends.server.loggers.TextErrorLogPublisher
 ds-cfg-logger-enabled: true
-ds-cfg-log-file: logs/errors
-ds-cfg-default-severity: FATAL_ERROR
-ds-cfg-default-severity: NOTICE
-ds-cfg-default-severity: SEVERE_ERROR
-ds-cfg-default-severity: SEVERE_WARNING
-ds-cfg-rotation-policy: Size
-ds-cfg-rotation-policy: FixedTime
-ds-cfg-size-limit: 104857600
-ds-cfg-fixed-time-limit: 86400000
+ds-cfg-log-file: logs/error
+ds-cfg-log-file-mode: 640
+ds-cfg-default-severity: severe-warning
+ds-cfg-default-severity: severe-error
+ds-cfg-default-severity: fatal-error
+ds-cfg-default-severity: notice
+ds-cfg-asynchronous-writes: false
+ds-cfg-rotation-policy-dn: cn=7 Days Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-rotation-policy-dn: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-retention-policy-dn: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
+
+dn: cn=File-Based Debug Logger,cn=Loggers,cn=config
+objectClass: top
+objectClass: ds-cfg-logger
+objectClass: ds-cfg-debug-logger
+objectClass: ds-cfg-file-based-debug-logger
+cn: File-Based Debug Logger
+ds-cfg-logger-class: org.opends.server.loggers.debug.TextDebugLogPublisher
+ds-cfg-logger-enabled: false
+ds-cfg-log-file: logs/debug
+ds-cfg-log-file-mode: 640
+ds-cfg-default-debug-level: error
+ds-cfg-asynchronous-writes: false
+
+dn: cn=Log Rotation Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Log Rotation Policies
+
+dn: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-log-rotation-policy
+objectClass: ds-cfg-time-limit-log-rotation-policy
+cn: Time Limit Rotation Policy
+ds-cfg-rotation-policy-class: org.opends.server.loggers.TimeLimitRotationPolicy
+ds-cfg-rotation-interval: 24 hours
+
+dn: cn=7 Days Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-log-rotation-policy
+objectClass: ds-cfg-time-limit-log-rotation-policy
+cn: Time Limit Rotation Policy
+ds-cfg-rotation-policy-class: org.opends.server.loggers.TimeLimitRotationPolicy
+ds-cfg-rotation-interval: 7 days
+
+dn: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-log-rotation-policy
+objectClass: ds-cfg-size-limit-log-rotation-policy
+cn: Size Limit Rotation Policy
+ds-cfg-rotation-policy-class: org.opends.server.loggers.SizeBasedRotationPolicy
+ds-cfg-file-size-limit: 100 megabytes
+
+dn: cn=Fixed Time Rotation Policy,cn=Log Rotation Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-log-rotation-policy
+objectClass: ds-cfg-fixed-time-log-rotation-policy
+cn: Fixed Time Rotation Policy
+ds-cfg-rotation-policy-class: org.opends.server.loggers.FixedTimeRotationPolicy
+ds-cfg-time-of-day: 2359
+
+dn: cn=Log Retention Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Log Retention Policies
+
+dn: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-log-retention-policy
+objectClass: ds-cfg-file-count-log-retention-policy
+cn: File Count Retention Policy
+ds-cfg-retention-policy-class: org.opends.server.loggers.FileNumberRetentionPolicy
+ds-cfg-number-of-files: 10
+
+dn: cn=Free Disk Space Retention Policy,cn=Log Retention Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-log-retention-policy
+objectClass: ds-cfg-free-disk-space-log-retention-policy
+cn: Free Disk Space Retention Policy
+ds-cfg-retention-policy-class: org.opends.server.loggers.FreeDiskSpaceRetentionPolicy
+ds-cfg-free-disk-space: 500 megabytes
+
+dn: cn=Size Limit Retention Policy,cn=Log Retention Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-log-retention-policy
+objectClass: ds-cfg-size-limit-log-retention-policy
+cn: Size Limit Retention Policy
+ds-cfg-retention-policy-class: org.opends.server.loggers.SizeBasedRetentionPolicy
+ds-cfg-disk-space-used: 500 megabytes
 
 dn: cn=Matching Rules,cn=config
 objectClass: top

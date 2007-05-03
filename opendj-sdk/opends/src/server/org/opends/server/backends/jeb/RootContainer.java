@@ -44,7 +44,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;

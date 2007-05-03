@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="log-publisher"
+  plural-name="log-publishers"
+  package="org.opends.server.admin.std" abstract="true"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    <adm:user-friendly-plural-name />
+    are reponsible for distributing log messages from different loggers to
+    a destination.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.22</ldap:oid>
+      <ldap:name>ds-cfg-logger</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="enabled" mandatory="true">
+    <adm:synopsis>
+      Indicate whether the
+      <adm:user-friendly-name />
+      is enabled for use.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.61</ldap:oid>
+        <ldap:name>ds-cfg-logger-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

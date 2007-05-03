@@ -28,7 +28,7 @@ package com.example.opends;
 
 
 
-import static org.opends.server.loggers.Error.logError;
+import static org.opends.server.loggers.ErrorLogger.logError;
 
 import java.util.List;
 import java.util.Set;

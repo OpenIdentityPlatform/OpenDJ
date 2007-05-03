@@ -26,50 +26,86 @@
  */
 package org.opends.server.loggers;
 
+import org.opends.server.admin.std.server.SizeLimitLogRetentionPolicyCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.ResultCode;
+
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * This class implements a retention policy based on the amount of
  * space taken by the log files.
  */
-public class SizeBasedRetentionPolicy implements RetentionPolicy
+public class SizeBasedRetentionPolicy implements
+    RetentionPolicy<SizeLimitLogRetentionPolicyCfg>,
+    ConfigurationChangeListener<SizeLimitLogRetentionPolicyCfg>
 {
 
   private long size = 0;
-  private File directory = null;
-  private String prefix = null;
 
   /**
-   * Create the retention policy based on the disk space used by the log files.
-   *
-   * @param dir     The directory in which the log files reside.
-   * @param prefix  The prefix for the log file names.
-   * @param size    The total disk space used.
+   * {@inheritDoc}
    */
-  public SizeBasedRetentionPolicy(String dir, String prefix, long size)
+  public void initializeLogRetentionPolicy(
+      SizeLimitLogRetentionPolicyCfg config)
   {
-    this.size = size;
-    this.directory = new File(dir);
-    this.prefix = prefix;
+    size = config.getDiskSpaceUsed();
+
+    config.addSizeLimitChangeListener(this);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      SizeLimitLogRetentionPolicyCfg config,
+      List<String> unacceptableReasons)
+  {
+    // Changes should always be OK
+    return true;
+  }
 
   /**
-   * This method deletes files based on the policy.
-   *
-   * @return The number of files deleted.
+   * {@inheritDoc}
    */
-  public int deleteFiles()
+  public ConfigChangeResult applyConfigurationChange(
+      SizeLimitLogRetentionPolicyCfg config)
   {
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    size = config.getDiskSpaceUsed();
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int deleteFiles(MultifileTextWriter writer)
+  {
+    File[] files = writer.getNamingPolicy().listFiles();
     int count = 0;
 
-    File[] selectedFiles = directory.listFiles(new LogFileFilter(prefix));
     long totalLength = 0;
-    for (int i = 0; i < selectedFiles.length; i++)
+    for (File file : files)
     {
-      totalLength += selectedFiles[i].length();
+      totalLength += file.length();
     }
+
+    if(debugEnabled())
+    {
+      debugInfo("Total size of files: %d, Max: %d", totalLength, size);
+    }
+
     if (totalLength <= size)
     {
       return 0;
@@ -78,14 +114,17 @@ public class SizeBasedRetentionPolicy implements RetentionPolicy
     long freeSpaceNeeded = totalLength - size;
 
     // Sort files based on last modified time.
-    Arrays.sort(selectedFiles, new FileComparator());
+    Arrays.sort(files, new FileComparator());
 
     long freedSpace = 0;
-    for (int j = selectedFiles.length - 1; j < 1; j--)
+    for (int j = files.length - 1; j < 1; j--)
     {
-      freedSpace += selectedFiles[j].length();
-      // System.out.println("Deleting log file:" + selectedFiles[j]);
-      selectedFiles[j].delete();
+      freedSpace += files[j].length();
+      if(debugEnabled())
+      {
+        debugInfo("Deleting log file:", files[j]);
+      }
+      files[j].delete();
       if (freedSpace >= freeSpaceNeeded)
       {
         break;
