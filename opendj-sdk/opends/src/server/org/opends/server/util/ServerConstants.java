@@ -1326,6 +1326,56 @@ public class ServerConstants
 
   /**
    * The description for the alert type that will be used for the alert
+   * notification generated if the server detects that the configuration has
+   * been manually edited with the server online and those edits would have been
+   * lost by an online config change.
+   */
+  public static final String ALERT_DESCRIPTION_MANUAL_CONFIG_EDIT_HANDLED =
+      "This alert type will be used to notify administrators if the " +
+      "Directory Server detects that its configuration has been manually " +
+      "edited with the server online and those changes were overwritten by " +
+      "another change made through the server.  The manually-edited " +
+      "configuration will be copied off to another location.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if a problem occurs while attempting to write the Directory
+   * Server configuration to disk.
+   */
+  public static final String ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED =
+       "org.opends.server.ManualConfigEditHandled";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
+   * notification generated if the server detects that the configuration has
+   * been manually edited with the server online, but a problem occurred while
+   * trying to preserve the manual changes that may have caused them to be lost.
+   */
+  public static final String ALERT_DESCRIPTION_MANUAL_CONFIG_EDIT_LOST =
+      "This alert type will be used to notify administrators if the " +
+      "Directory Server detects that its configuration has been manually " +
+      "edited with the server online and those changes were overwritten by " +
+      "another change made through the server.  The manually-edited " +
+      "configuration could not be preserved due to an unexpected error.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if a problem occurs while attempting to write the Directory
+   * Server configuration to disk.
+   */
+  public static final String ALERT_TYPE_MANUAL_CONFIG_EDIT_LOST =
+       "org.opends.server.ManualConfigEditLost";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
    * notification generated if an error occurs while attempting to write the
    * tasks backing file.
    */

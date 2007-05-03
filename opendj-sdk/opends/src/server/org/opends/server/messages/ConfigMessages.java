@@ -6595,6 +6595,32 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used if the server detects that
+   * the configuration has been manually edited while the server is online, but
+   * that the manual edits have been copied off into another file before the
+   * configuration was updated by another change.  This takes two arguments,
+   * which are the path to the live configuration file and the path to the file
+   * containing the manual edits.
+   */
+  public static final int MSGID_CONFIG_MANUAL_CHANGES_DETECTED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 655;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server detects that
+   * the configuration may have been manually edited while the server is online,
+   * but a problem occurred that prevented the manual changes from being copied
+   * before the configuration was overwritten.  This takes two arguments, which
+   * are the path to the live configuration file and a string representation of
+   * the exception that was caught.
+   */
+  public static final int MSGID_CONFIG_MANUAL_CHANGES_LOST =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 656;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6917,6 +6943,19 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE,
                     "An error occurred while trying to write the current " +
                     "configuration to the configuration archive:  %s");
+    registerMessage(MSGID_CONFIG_MANUAL_CHANGES_DETECTED,
+                    "The Directory Server has detected that one or more " +
+                    "external changes have been made to the configuration " +
+                    "file %s while the server was online, but another change " +
+                    "has caused the server configuration to be overwritten.  " +
+                    "The manual changes have not been applied, but they have " +
+                    "been preserved in file %s");
+    registerMessage(MSGID_CONFIG_MANUAL_CHANGES_LOST,
+                    "The Directory Server encountered an error while " +
+                    "attempting to determine whether the configuration file " +
+                    "%s has been externally edited with the server online, " +
+                    "and/or trying to preserve such changes:  %s.  Any " +
+                    "manual changes made to that file may have been lost");
     registerMessage(MSGID_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG,
                     "An error occurred while attempting to export the new " +
                     "Directory Server configuration to file %s:  %s");
