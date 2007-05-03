@@ -4578,10 +4578,10 @@ public class ProtocolMessages
 
 
   /**
-  * The message ID for the message that will be used if an error occurs parsing
-  * the geteffectiverights authzid because it does not start with the required
-  * string "dn:". This takes one argument, which is the authzid string.
-  */
+   * The message ID for the message that will be used if an error occurs parsing
+   * the geteffectiverights authzid because it does not start with the required
+   * string "dn:". This takes one argument, which is the authzid string.
+   */
  public static final int MSGID_GETEFFECTIVERIGHTS_INVALID_AUTHZID =
       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 424;
 
@@ -4605,6 +4605,17 @@ public class ProtocolMessages
    */
   public static final int MSGID_CANNOT_DECODE_GETEFFECTIVERIGHTS_AUTHZID_DN =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 426;
+
+
+  /**
+   * The message ID for the message that will be used if an LDAP search filter
+   * is enclosed in apostrophes ("single-quotes").
+   * (FIXME -- This error is a workaround for
+   * https://opends.dev.java.net/issues/show_bug.cgi?id=1024. A correct fix
+   * is to validate the characters used in the attribute type.
+   */
+  public static final int MSGID_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 427;
 
 
   /**
@@ -6571,17 +6582,22 @@ public class ProtocolMessages
                     "Unable to process the provided VLV response control " +
                     "because an error occurred while attempting to decode " +
                     "the control value:  %s");
-   registerMessage(MSGID_GETEFFECTIVERIGHTS_INVALID_AUTHZID,
+
+
+    registerMessage(MSGID_GETEFFECTIVERIGHTS_INVALID_AUTHZID,
                     "The authorization ID \"%s\" contained in the " +
                      "geteffectiverights control is invalid because it does" +
                      " not start with \"dn:\" to indicate a user DN");
     registerMessage(MSGID_GETEFFECTIVERIGHTS_DECODE_ERROR,
-            "Cannot decode the provided geteffectiverights " +
-             "request control:  %s");
+                    "Cannot decode the provided geteffectiverights " +
+                    "request control:  %s");
     registerMessage(MSGID_CANNOT_DECODE_GETEFFECTIVERIGHTS_AUTHZID_DN,
                     "Unable to decode authzid DN string \"%s\" as a valid " +
-                    "distinguished name:  %s"); }
+                    "distinguished name:  %s");
 
 
+    registerMessage(MSGID_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES,
+                    "An LDAP filter enclosed in apostrophes is invalid:  %s");
+  }
 }
 

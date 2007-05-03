@@ -360,6 +360,18 @@ public class LDAPFilter
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
     }
 
+    // If the filter is enclosed in a pair of apostrophes ("single-quotes") it
+    // is invalid.
+    // (FIXME -- This error is a workaround for
+    //  https://opends.dev.java.net/issues/show_bug.cgi?id=1024. A correct fix
+    // is to validate the characters used in the attribute type.)
+    if (1 < filterString.length()
+         && filterString.startsWith("'") && filterString.endsWith("'"))
+    {
+      int msgID = MSGID_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES;
+      String message = getMessage(msgID, filterString);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+    }
 
     // If the filter is surrounded by parentheses (which it should be), then
     // strip them off.
