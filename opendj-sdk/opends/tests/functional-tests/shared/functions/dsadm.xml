@@ -600,8 +600,13 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>    
     </function-map-args>
-    
+      
     <sequence>
+        <script>
+          if dsPath:
+            dsBinPath='%s/%s' % (dsPath,fileFolder)   
+        </script>
+  
       <message>
         '%s/import-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
       </message>
@@ -1314,16 +1319,22 @@
     </function-map-args>
 
     <sequence>
+        
+      <script>
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)   
+      </script>
+      
       <message> 
-        '%s/bin/export-ldif%s -l %s -n %s %s' % (dsPath,fileExt,ldifFile,backEnd,extraParams)
+        '%s/export-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
       </message>
       <process name="'Ldif Export'">
         <location>'%s' % location </location>
-        <command>'%s/bin/export-ldif%s' % (dsPath,fileExt)</command>
+        <command>'%s/export-ldif%s' % (dsBinPath,fileExt)</command>
         <parms>'-l %s -n %s %s' % (ldifFile,backEnd,extraParams)</parms>
-        <workdir>'%s/bin' % dsPath</workdir>
+        <workdir>'%s' % dsBinPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <stderr mode="'stdout'"/>
         <returnstdout/>
