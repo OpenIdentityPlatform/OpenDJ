@@ -79,6 +79,13 @@ public class UpgradeLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
+  protected boolean isCli() {
+    return args.length > 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   protected void printUsage() {
     String arg;
     if (Utils.isWindows()) {

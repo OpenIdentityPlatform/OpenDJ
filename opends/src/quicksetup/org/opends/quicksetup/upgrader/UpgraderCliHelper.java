@@ -31,7 +31,6 @@ import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.ArgumentException;
 
@@ -52,8 +51,7 @@ public class UpgraderCliHelper extends CliApplicationHelper {
 
   static private final Logger LOG =
           Logger.getLogger(UpgraderCliHelper.class.getName());
-  BooleanArgument cliArg = null;
-  BooleanArgument dryRunArg = null;
+
   StringArgument localInstallPackFileNameArg = null;
 
   /**
@@ -85,7 +83,8 @@ public class UpgraderCliHelper extends CliApplicationHelper {
       } else {
         // TODO i18N
         throw new UserDataException(null,
-                "-f must be present");
+                "Option -f is required for the command line version of the " +
+                        "upgrade tool.");
       }
 
     } catch (ArgumentException e) {
@@ -108,10 +107,6 @@ public class UpgraderCliHelper extends CliApplicationHelper {
     // parser.
     // try {
     try {
-      cliArg =
-           new BooleanArgument("cli", 'c', "cli", 0);
-      argParser.addArgument(cliArg);
-
       localInstallPackFileNameArg =
            new StringArgument("install package file",
                    FILE_OPTION_SHORT, FILE_OPTION_LONG,
