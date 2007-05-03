@@ -434,7 +434,7 @@ public final class PropertySet implements PropertyProvider {
       new HashMap<PropertyDefinition, MyProperty>();
 
     // Copy the properties from the provider.
-    for (PropertyDefinition<?> pd : d.getPropertyDefinitions()) {
+    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
       createProperty(pd, p, i, properties, exceptions);
     }
 
@@ -472,7 +472,7 @@ public final class PropertySet implements PropertyProvider {
       new HashMap<PropertyDefinition, MyProperty>();
 
     // Copy the properties from the provider.
-    for (PropertyDefinition<?> pd : d.getPropertyDefinitions()) {
+    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
       createProperty(pd, p, i, properties, exceptions);
     }
 
@@ -692,7 +692,7 @@ public final class PropertySet implements PropertyProvider {
    *           If an attempt was made to remove a mandatory property.
    * @throws IllegalArgumentException
    *           If the specified property definition is not associated with this
-   *           managed object, or if the property is read-only.
+   *           managed object.
    */
   public <T> void setPropertyValue(PropertyDefinition<T> d, T value)
       throws IllegalPropertyValueException, PropertyIsReadOnlyException,
@@ -732,7 +732,7 @@ public final class PropertySet implements PropertyProvider {
    *           If an attempt was made to remove a mandatory property.
    * @throws IllegalArgumentException
    *           If the specified property definition is not associated with this
-   *           managed object, or if the property is read-only.
+   *           managed object.
    */
   public <T> void setPropertyValues(PropertyDefinition<T> d,
       Collection<T> values) throws IllegalPropertyValueException,

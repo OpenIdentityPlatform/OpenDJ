@@ -96,7 +96,7 @@ public final class ServerManagedObject<S extends Configuration>
       InheritedDefaultValueProvider {
 
     // The base path.
-    private final ManagedObjectPath path;
+    private final ManagedObjectPath<?, ?> path;
 
 
 
@@ -131,7 +131,8 @@ public final class ServerManagedObject<S extends Configuration>
         throw new ManagedObjectNotFoundException();
       }
 
-      ServerManagedObject<?> mo = decode(path, path
+      ManagedObjectPath<?, ?> tmp = path;
+      ServerManagedObject<?> mo = decode(tmp, tmp
           .getManagedObjectDefinition(), configEntry);
       ManagedObjectDefinition<?, ?> mod = mo
           .getManagedObjectDefinition();
@@ -295,7 +296,7 @@ public final class ServerManagedObject<S extends Configuration>
 
   // The managed object path identifying this managed object's
   // location.
-  private final ManagedObjectPath path;
+  private final ManagedObjectPath<?, ?> path;
 
   // The managed object's properties.
   private final PropertySet properties;

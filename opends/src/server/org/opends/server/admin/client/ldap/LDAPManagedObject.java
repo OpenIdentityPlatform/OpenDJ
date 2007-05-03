@@ -128,7 +128,8 @@ final class LDAPManagedObject<C extends ConfigurationClient>
     public Collection<?> getDefaultPropertyValues(
         ManagedObjectPath path, String propertyName)
         throws OperationsException, PropertyNotFoundException {
-      ManagedObject<?> mo = readEntry(dirContext, path, path
+      ManagedObjectPath<?, ?> tmp = path;
+      ManagedObject<?> mo = readEntry(dirContext, tmp, tmp
           .getManagedObjectDefinition());
       ManagedObjectDefinition<?, ?> mod = mo
           .getManagedObjectDefinition();
@@ -202,7 +203,7 @@ final class LDAPManagedObject<C extends ConfigurationClient>
       ManagedObjectDefinition<?, ?> d) {
     ArrayList<String> attrIds = new ArrayList<String>();
 
-    for (PropertyDefinition<?> pd : d.getPropertyDefinitions()) {
+    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
       String attrId = LDAPProfile.getInstance().getAttributeName(d,
           pd);
       attrIds.add(attrId);
@@ -348,7 +349,7 @@ final class LDAPManagedObject<C extends ConfigurationClient>
   private final DirContext dirContext;
 
   // The path associated with this managed object.
-  private final ManagedObjectPath path;
+  private final ManagedObjectPath<?, ?> path;
 
   // LDAP profile associated with this connection.
   private final LDAPProfile profile;
@@ -382,7 +383,7 @@ final class LDAPManagedObject<C extends ConfigurationClient>
     ManagedObjectDefinition<C, ?> d = getManagedObjectDefinition();
     LDAPChangeBuilder builder = new LDAPChangeBuilder(dirContext,
         path, d);
-    for (PropertyDefinition<?> pd : d.getPropertyDefinitions()) {
+    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
       // FIXME: should throw an error when there are missing mandatory
       // properties.
       Property<?> p = properties.getProperty(pd);
@@ -696,7 +697,7 @@ final class LDAPManagedObject<C extends ConfigurationClient>
     attributes.put(rdn.getType(), rdn.getValue().toString());
 
     // Create the remaining attributes.
-    for (PropertyDefinition<?> pd : d.getPropertyDefinitions()) {
+    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
       String attrID = profile.getAttributeName(d, pd);
       Attribute attribute = new BasicAttribute(attrID);
       encodeProperty(attribute, pd, properties);
