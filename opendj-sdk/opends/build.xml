@@ -796,14 +796,13 @@
       <fileset file="${resource.dir}/README" />
     </copy>
 
-    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup,uninstall,upgrade"
+    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup,uninstall"
          eol="lf" />
-    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.bat,uninstall.bat,upgrade.bat"
+    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.bat,uninstall.bat"
          eol="crlf" />
 
     <chmod file="${pdir}/setup" perm="755" />
     <chmod file="${pdir}/uninstall" perm="755" />
-    <chmod file="${pdir}/upgrade" perm="755" />
     <chmod perm="755">
       <fileset dir="${pdir}/bin">
       </fileset>
@@ -820,7 +819,7 @@
        description="Package the Directory Server for distribution.">
     <zip destfile="${package.dir}/OpenDS-${pkgversion}.zip">
       <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/**/*"
-           excludes="OpenDS-${pkgversion}/bin/*,OpenDS-${pkgversion}/lib/_client-script.sh,OpenDS-${pkgversion}/lib/_server-script.sh,OpenDS-${pkgversion}/setup,OpenDS-${pkgversion}/uninstall,OpenDS-${pkgversion}/upgrade"
+           excludes="OpenDS-${pkgversion}/bin/*,OpenDS-${pkgversion}/lib/_client-script.sh,OpenDS-${pkgversion}/lib/_server-script.sh,OpenDS-${pkgversion}/setup,OpenDS-${pkgversion}/uninstall"
            filemode="644" dirmode="755" />
       <zipfileset dir="${package.dir}"
            includes="OpenDS-${pkgversion}/lib/_client-script.sh,OpenDS-${pkgversion}/lib/_server-script.sh"
@@ -830,7 +829,7 @@
            filemode="755" dirmode="755" />
       <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/bin/README_WINDOWS.txt"
            filemode="644" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/setup,OpenDS-${pkgversion}/uninstall,OpenDS-${pkgversion}/upgrade"
+      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/setup,OpenDS-${pkgversion}/uninstall"
            filemode="755" dirmode="755" />
     </zip>
   </target>
