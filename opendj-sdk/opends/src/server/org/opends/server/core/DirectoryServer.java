@@ -83,6 +83,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -490,6 +491,8 @@ public class DirectoryServer
   // The schema configuration manager for the Directory Server.
   private SchemaConfigManager schemaConfigManager;
 
+  // The debug logger that will be used during the Directory Server startup.
+  private TextDebugLogPublisher startupDebugLogPublisher;
 
   // The error logger that will be used during the Directory Server startup.
   private TextErrorLogPublisher startupErrorLogPublisher;
@@ -739,6 +742,11 @@ public class DirectoryServer
         TextErrorLogPublisher.getStartupTextErrorPublisher(
             new TextWriter.STDOUT());
     addErrorLogPublisher(DN.NULL_DN, startupErrorLogPublisher);
+
+    startupDebugLogPublisher =
+        TextDebugLogPublisher.getStartupTextDebugPublisher(
+            new TextWriter.STDOUT());
+    addDebugLogPublisher(DN.NULL_DN, startupDebugLogPublisher);
 
     // Create the MBean server that we will use for JMX interaction.
     initializeJMX();
