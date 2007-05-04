@@ -170,9 +170,9 @@ public final class TestCaseUtils {
 
     // Get the build root and use it to create a test package directory.
     String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
-    File   testRoot  = new File(buildRoot + File.separator + "build" +
-                                File.separator + "unit-tests" + File.separator +
-                                "package");
+    File   buildDir  = new File(buildRoot, "build");
+    File   unitRoot  = new File(buildDir, "unit-tests");
+    File   testRoot  = new File(unitRoot, "package");
     File   testSrcRoot = new File(buildRoot + File.separator + "tests" +
                                   File.separator + "unit-tests-testng");
 
@@ -197,11 +197,19 @@ public final class TestCaseUtils {
 
     // Copy the configuration, schema, and MakeLDIF resources into the
     // appropriate place under the test package.
-    File resourceDir   = new File(buildRoot, "resource");
-    File testResourceDir = new File(testSrcRoot, "resource");
-    File testConfigDir = new File(testRoot, "config");
-    File testBinDir = new File(testRoot, "bin");
+    File serverClassesDir = new File(buildDir, "classes");
+    File unitClassesDir   = new File(unitRoot, "classes");
+    File libDir           = new File(buildRoot, "lib");
+    File resourceDir      = new File(buildRoot, "resource");
+    File testResourceDir  = new File(testSrcRoot, "resource");
+    File testConfigDir    = new File(testRoot, "config");
+    File testClassesDir   = new File(testRoot, "classes");
+    File testLibDir       = new File(testRoot, "lib");
+    File testBinDir       = new File(testRoot, "bin");
 
+    copyDirectory(serverClassesDir, testClassesDir);
+    copyDirectory(unitClassesDir, testClassesDir);
+    copyDirectory(libDir, testLibDir);
     copyDirectory(new File(resourceDir, "bin"), testBinDir);
     copyDirectory(new File(resourceDir, "config"), testConfigDir);
     copyDirectory(new File(resourceDir, "schema"),
@@ -220,6 +228,15 @@ public final class TestCaseUtils {
              new File(testConfigDir, "server-cert.p12"));
     copyFile(new File(testResourceDir, "client-cert.p12"),
              new File(testConfigDir, "client-cert.p12"));
+
+
+    for (File f : testBinDir.listFiles())
+    {
+      try
+      {
+        FilePermission.setPermissions(f, FilePermission.decodeUNIXMode("755"));
+      } catch (Exception e) {}
+    }
 
 
     // Make the shell scripts in the bin directory executable, if possible.
@@ -354,7 +371,7 @@ public final class TestCaseUtils {
    * to make sure that the server has finished processing all operations
    * from previous tests.
    */
-  public static void quiesceServer() 
+  public static void quiesceServer()
   {
     waitForOpsToComplete();
   }
@@ -1115,7 +1132,7 @@ public final class TestCaseUtils {
    * Returns the contents of file as a List of the lines as defined by
    * java.io.BufferedReader#readLine() (i.e. the line terminator is not
    * included).  An ArrayList is explicitly returned, so that callers know that
-   * random access is not expensive.  
+   * random access is not expensive.
    */
   public static ArrayList<String> readFileToLines(File file)
           throws IOException {
