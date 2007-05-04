@@ -100,34 +100,6 @@ public class DebugLogger implements
   // The singleton instance of this class for configuration purposes.
   static final DebugLogger instance = new DebugLogger();
 
-  static
-  {
-    // Install the startup publishers if necessary until the config kicks in and
-    // adds the real publishers.
-
-    if(DynamicConstants.WEAVE_ENABLED)
-    {
-      try
-      {
-        TextDebugLogPublisher startupDebugPublisher =
-            TextDebugLogPublisher.getStartupTextDebugPublisher(
-                new TextWriter.STDOUT());
-
-        debugPublishers.put(DN.NULL_DN,
-                            startupDebugPublisher);
-        enabled = true;
-
-        // Update all existing aspect instances
-        addTracerSettings(startupDebugPublisher);
-      }
-      catch(Exception e)
-      {
-        System.err.println("Error installing the startup debug logger: " +
-            StaticUtils.stackTraceToSingleLineString(e));
-      }
-    }
-  }
-
   /**
    * Add an debug log publisher to the debug logger.
    *
@@ -138,6 +110,10 @@ public class DebugLogger implements
                                                  DebugLogPublisher publisher)
   {
     debugPublishers.put(dn, publisher);
+
+    // Update all existing aspect instances
+    addTracerSettings(publisher);
+
     enabled = DynamicConstants.WEAVE_ENABLED;
   }
 
@@ -154,6 +130,7 @@ public class DebugLogger implements
     if(removed != null)
     {
       removed.close();
+      removeTracerSettings(removed);
     }
 
     if(debugPublishers.isEmpty())
@@ -172,6 +149,7 @@ public class DebugLogger implements
     for(DebugLogPublisher publisher : debugPublishers.values())
     {
       publisher.close();
+      removeTracerSettings(publisher);
     }
 
     debugPublishers.clear();
@@ -203,9 +181,6 @@ public class DebugLogger implements
         DebugLogPublisher debugLogPublisher = getDebugPublisher(config);
 
         addDebugLogPublisher(config.dn(), debugLogPublisher);
-
-        // Update all existing aspect instances
-        addTracerSettings(debugLogPublisher);
       }
     }
   }
@@ -250,8 +225,6 @@ public class DebugLogger implements
             getDebugPublisher(config);
 
         addDebugLogPublisher(config.dn(), debugLogPublisher);
-
-        addTracerSettings(debugLogPublisher);
       }
       catch(ConfigException e)
       {
@@ -317,7 +290,6 @@ public class DebugLogger implements
       else
       {
         // The publisher is being disabled so shut down and remove.
-        removeTracerSettings(debugLogPublisher);
         removeDebugLogPublisher(config.dn());
       }
     }
@@ -348,10 +320,6 @@ public class DebugLogger implements
     boolean adminActionRequired = false;
 
     DebugLogPublisher publisher = removeDebugLogPublisher(config.dn());
-    if(publisher != null)
-    {
-      removeTracerSettings(publisher);
-    }
 
     return new ConfigChangeResult(resultCode, adminActionRequired);
   }
