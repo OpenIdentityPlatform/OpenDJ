@@ -8,7 +8,7 @@ SHORT_NAME=OpenDS
 MAJOR_VERSION=0
 
 # The minor version number for the Directory Server.  It must be an integer.
-MINOR_VERSION=1
+MINOR_VERSION=8
 
 # The point version number for the Directory Server.  It must be an integer.
 # The point version will generally not be displayed to the end user but may be
