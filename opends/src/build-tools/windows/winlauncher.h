@@ -33,6 +33,6 @@
 
 #define PATH_SIZE 1024
 #define BUF_SIZE 1024
-#define COMMAND_SIZE 2048
+#define COMMAND_SIZE 2100
 
 

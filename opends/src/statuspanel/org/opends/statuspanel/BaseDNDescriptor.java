@@ -98,7 +98,11 @@ public class BaseDNDescriptor
         equals = (getType() == desc.getType()) &&
         Utils.areDnsEqual(getDn(), desc.getDn()) &&
         (getAgeOfOldestMissingChange() == desc.getAgeOfOldestMissingChange()) &&
-        (getMissingChanges() == desc.getMissingChanges());
+        (getMissingChanges() == desc.getMissingChanges()) &&
+        getDatabase().getBackendID().equals(
+            desc.getDatabase().getBackendID()) &&
+        (getDatabase().getEntries() == desc.getDatabase().getEntries());
+
       }
     }
     else

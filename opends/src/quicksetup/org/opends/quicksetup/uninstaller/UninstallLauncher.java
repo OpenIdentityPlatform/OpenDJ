@@ -27,9 +27,13 @@
 
 package org.opends.quicksetup.uninstaller;
 
+import java.io.File;
+import java.util.logging.Logger;
+
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -40,6 +44,15 @@ import org.opends.quicksetup.util.Utils;
  */
 public class UninstallLauncher extends Launcher {
 
+  /** Prefix for log files. */
+  static public final String LOG_FILE_PREFIX = "opends-uninstall-";
+
+  /** Suffix for log files. */
+  static public final String LOG_FILE_SUFFIX = ".log";
+
+  static private final Logger LOG =
+          Logger.getLogger(UninstallLauncher.class.getName());
+
   /**
    * The main method which is called by the setup command lines.
    *
@@ -48,6 +61,13 @@ public class UninstallLauncher extends Launcher {
    * will pass to the org.opends.server.tools.InstallDS class.
    */
   public static void main(String[] args) {
+    try {
+      QuickSetupLog.initLogFileHandler(
+              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
+    } catch (Throwable t) {
+      System.err.println("Unable to initialize log");
+      t.printStackTrace();
+    }
     new UninstallLauncher(args).launch();
   }
 
@@ -63,8 +83,16 @@ public class UninstallLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected void guiLaunchFailed() {
-    System.err.println(getMsg("uninstall-launcher-gui-launched-failed"));
+  protected void guiLaunchFailed(String logFilePath) {
+    if (logFilePath != null)
+    {
+      System.err.println(getMsg(
+          "uninstall-launcher-gui-launched-failed-details", logFilePath));
+    }
+    else
+    {
+      System.err.println(getMsg("uninstall-launcher-gui-launched-failed"));
+    }
   }
 
   /**

@@ -30,7 +30,6 @@ package org.opends.quicksetup.uninstaller;
 import org.opends.quicksetup.*;
 import static org.opends.quicksetup.Step.PROGRESS;
 import static org.opends.quicksetup.Step.REVIEW;
-import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.BackgroundTask;
@@ -39,6 +38,7 @@ import org.opends.server.tools.ConfigureWindowsService;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Logger;
 import java.awt.event.WindowEvent;
 
 /**
@@ -59,6 +59,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   private Boolean isWindowsServiceEnabled;
 
   private UninstallCliHelper cliHelper = new UninstallCliHelper();
+
+  private static final Logger LOG =
+    Logger.getLogger(Uninstaller.class.getName());
 
   /**
    * {@inheritDoc}
@@ -950,7 +953,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             getMsg("progress-disabling-windows-service")));
     int code = ConfigureWindowsService.disableService(System.out, System.err);
 
-    String errorMessage = getMsg("error-disabling-windows-service");
+    String errorMessage = getMsg("error-disabling-windows-service",
+        getInstallationPath());
 
     switch (code) {
       case ConfigureWindowsService.SERVICE_DISABLE_SUCCESS:

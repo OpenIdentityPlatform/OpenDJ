@@ -35,6 +35,7 @@ import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.*;
+import java.util.logging.Logger;
 import java.awt.event.WindowEvent;
 
 import javax.naming.NamingException;
@@ -87,6 +88,8 @@ public abstract class Installer extends GuiApplication {
   // Constants used to do checks
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
 
+  private static final Logger LOG = Logger.getLogger(Installer.class.getName());
+
   /**
    * The minimum integer value that can be used for a port.
    */
@@ -134,6 +137,15 @@ public abstract class Installer extends GuiApplication {
     lstSteps.add(NEW_SUFFIX_OPTIONS);
     lstSteps.add(REVIEW);
     lstSteps.add(PROGRESS);
+    try {
+      if (!QuickSetupLog.isInitialized())
+        QuickSetupLog.initLogFileHandler(
+                File.createTempFile(
+                        InstallLauncher.LOG_FILE_PREFIX,
+                        InstallLauncher.LOG_FILE_SUFFIX));
+    } catch (IOException e) {
+      System.err.println("Failed to initialize log");
+    }
   }
 
   /**
