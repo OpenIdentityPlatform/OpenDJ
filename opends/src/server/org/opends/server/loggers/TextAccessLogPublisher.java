@@ -529,6 +529,14 @@ public class TextAccessLogPublisher
       buffer.append("\"");
     }
 
+    msg = abandonOperation.getAdditionalLogMessage();
+    if ((msg != null) && (msg.length() > 0))
+    {
+      buffer.append(" additionalInfo=\"");
+      buffer.append(msg);
+      buffer.append("\"");
+    }
+
     buffer.append(" etime=");
     buffer.append(abandonOperation.getProcessingTime());
 
@@ -600,6 +608,20 @@ public class TextAccessLogPublisher
     {
       buffer.append("\" message=\"");
       buffer.append(msg);
+    }
+
+    msg = addOperation.getAdditionalLogMessage();
+    if ((msg != null) && (msg.length() > 0))
+    {
+      buffer.append("\" additionalInfo=\"");
+      buffer.append(msg);
+    }
+
+    DN proxiedAuthDN = addOperation.getProxiedAuthorizationDN();
+    if (proxiedAuthDN != null)
+    {
+      buffer.append("\" authzDN=\"");
+      proxiedAuthDN.toString(buffer);
     }
 
     buffer.append("\" etime=");
@@ -706,6 +728,37 @@ public class TextAccessLogPublisher
       }
     }
 
+    msg = bindOperation.getAdditionalLogMessage();
+    if ((msg != null) && (msg.length() > 0))
+    {
+      buffer.append("\" additionalInfo=\"");
+      buffer.append(msg);
+    }
+
+    if (bindOperation.getResultCode() == ResultCode.SUCCESS)
+    {
+      AuthenticationInfo authInfo = bindOperation.getAuthenticationInfo();
+      if (authInfo != null)
+      {
+        DN authDN = authInfo.getAuthenticationDN();
+        buffer.append("\" authDN=\"");
+        if (authDN != null)
+        {
+          authDN.toString(buffer);
+
+          DN authzDN = authInfo.getAuthorizationDN();
+          if (! authDN.equals(authzDN))
+          {
+            buffer.append("\" authzDN=\"");
+            if (authzDN != null)
+            {
+              authzDN.toString(buffer);
+            }
+          }
+        }
+      }
+    }
+
     buffer.append("\" etime=");
     buffer.append(bindOperation.getProcessingTime());
 
@@ -780,6 +833,20 @@ public class TextAccessLogPublisher
       buffer.append(msg);
     }
 
+    msg = compareOperation.getAdditionalLogMessage();
+    if ((msg != null) && (msg.length() > 0))
+    {
+      buffer.append("\" additionalInfo=\"");
+      buffer.append(msg);
+    }
+
+    DN proxiedAuthDN = compareOperation.getProxiedAuthorizationDN();
+    if (proxiedAuthDN != null)
+    {
+      buffer.append("\" authzDN=\"");
+      proxiedAuthDN.toString(buffer);
+    }
+
     buffer.append("\" etime=");
     buffer.append(compareOperation.getProcessingTime());
 
@@ -852,6 +919,20 @@ public class TextAccessLogPublisher
     {
       buffer.append("\" message=\"");
       buffer.append(msg);
+    }
+
+    msg = deleteOperation.getAdditionalLogMessage();
+    if ((msg != null) && (msg.length() > 0))
+    {
+      buffer.append("\" additionalInfo=\"");
+      buffer.append(msg);
+    }
+
+    DN proxiedAuthDN = deleteOperation.getProxiedAuthorizationDN();
+    if (proxiedAuthDN != null)
+    {
+      buffer.append("\" authzDN=\"");
+      proxiedAuthDN.toString(buffer);
     }
 
     buffer.append("\" etime=");
@@ -938,6 +1019,13 @@ public class TextAccessLogPublisher
       buffer.append(msg);
     }
 
+    msg = extendedOperation.getAdditionalLogMessage();
+    if ((msg != null) && (msg.length() > 0))
+    {
+      buffer.append("\" additionalInfo=\"");
+      buffer.append(msg);
+    }
+
     buffer.append("\" etime=");
     buffer.append(extendedOperation.getProcessingTime());
 
@@ -1011,6 +1099,20 @@ public class TextAccessLogPublisher
     {
       buffer.append("\" message=\"");
       buffer.append(msg);
+    }
+
+    msg = modifyOperation.getAdditionalLogMessage();
+    if ((msg != null) && (msg.length() > 0))
+    {
+      buffer.append("\" additionalInfo=\"");
+      buffer.append(msg);
+    }
+
+    DN proxiedAuthDN = modifyOperation.getProxiedAuthorizationDN();
+    if (proxiedAuthDN != null)
+    {
+      buffer.append("\" authzDN=\"");
+      proxiedAuthDN.toString(buffer);
     }
 
     buffer.append("\" etime=");
@@ -1097,6 +1199,20 @@ public class TextAccessLogPublisher
     {
       buffer.append("\" message=\"");
       buffer.append(msg);
+    }
+
+    msg = modifyDNOperation.getAdditionalLogMessage();
+    if ((msg != null) && (msg.length() > 0))
+    {
+      buffer.append("\" additionalInfo=\"");
+      buffer.append(msg);
+    }
+
+    DN proxiedAuthDN = modifyDNOperation.getProxiedAuthorizationDN();
+    if (proxiedAuthDN != null)
+    {
+      buffer.append("\" authzDN=\"");
+      proxiedAuthDN.toString(buffer);
     }
 
     buffer.append("\" etime=");
@@ -1230,6 +1346,22 @@ public class TextAccessLogPublisher
 
     buffer.append("\" nentries=");
     buffer.append(searchOperation.getEntriesSent());
+
+    msg = searchOperation.getAdditionalLogMessage();
+    if ((msg != null) && (msg.length() > 0))
+    {
+      buffer.append(" additionalInfo=\"");
+      buffer.append(msg);
+      buffer.append("\"");
+    }
+
+    DN proxiedAuthDN = searchOperation.getProxiedAuthorizationDN();
+    if (proxiedAuthDN != null)
+    {
+      buffer.append("\" authzDN=\"");
+      proxiedAuthDN.toString(buffer);
+    }
+
     buffer.append(" etime=");
     buffer.append(searchOperation.getProcessingTime());
 

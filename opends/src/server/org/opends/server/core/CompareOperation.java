@@ -88,9 +88,6 @@ public class CompareOperation
        implements PreParseCompareOperation, PreOperationCompareOperation,
                   PostOperationCompareOperation, PostResponseCompareOperation
 {
-
-
-
   // The attribute type for this compare operation.
   private AttributeType attributeType;
 
@@ -105,6 +102,9 @@ public class CompareOperation
 
   // The DN of the entry for the compare operation.
   private DN entryDN;
+
+  // The proxied authorization target DN for this operation.
+  private DN proxiedAuthorizationDN;
 
   // The entry to be compared.
   private Entry entry;
@@ -150,11 +150,12 @@ public class CompareOperation
     this.rawAttributeType = rawAttributeType;
     this.assertionValue   = assertionValue;
 
-    responseControls = new ArrayList<Control>();
-    entry            = null;
-    entryDN          = null;
-    attributeType    = null;
-    cancelRequest    = null;
+    responseControls       = new ArrayList<Control>();
+    entry                  = null;
+    entryDN                = null;
+    attributeType          = null;
+    cancelRequest          = null;
+    proxiedAuthorizationDN = null;
   }
 
 
@@ -184,11 +185,12 @@ public class CompareOperation
     this.attributeType  = attributeType;
     this.assertionValue = assertionValue;
 
-    responseControls = new ArrayList<Control>();
-    rawEntryDN       = new ASN1OctetString(entryDN.toString());
-    rawAttributeType = attributeType.getNameOrOID();
-    cancelRequest    = null;
-    entry            = null;
+    responseControls       = new ArrayList<Control>();
+    rawEntryDN             = new ASN1OctetString(entryDN.toString());
+    rawAttributeType       = attributeType.getNameOrOID();
+    cancelRequest          = null;
+    entry                  = null;
+    proxiedAuthorizationDN = null;
   }
 
 
@@ -468,6 +470,21 @@ public class CompareOperation
       new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
       new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
     };
+  }
+
+
+
+  /**
+   * Retrieves the proxied authorization DN for this operation if proxied
+   * authorization has been requested.
+   *
+   * @return  The proxied authorization DN for this operation if proxied
+   *          authorization has been requested, or {@code null} if proxied
+   *          authorization has not been requested.
+   */
+  public DN getProxiedAuthorizationDN()
+  {
+    return proxiedAuthorizationDN;
   }
 
 
@@ -837,6 +854,14 @@ compareProcessing:
                 break compareProcessing;
               }
               setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                proxiedAuthorizationDN = DN.nullDN();
+              }
+              else
+              {
+                proxiedAuthorizationDN = authorizationEntry.getDN();
+              }
             }
             else if (oid.equals(OID_PROXIED_AUTH_V2))
             {
@@ -907,6 +932,14 @@ compareProcessing:
                 break compareProcessing;
               }
               setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                proxiedAuthorizationDN = DN.nullDN();
+              }
+              else
+              {
+                proxiedAuthorizationDN = authorizationEntry.getDN();
+              }
             }
 
             // NYI -- Add support for additional controls.
