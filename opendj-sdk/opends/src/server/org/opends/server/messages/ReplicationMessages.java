@@ -361,6 +361,13 @@ public class ReplicationMessages {
     CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 50;
 
   /**
+   * The message ID for the message that will be used when
+   * a replication server hostname cannot be resolved as an IP address.
+   */
+  public static final int  MSGID_COULD_NOT_SOLVE_HOSTNAME =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 51;
+
+  /**
    * Register the messages from this class in the core server.
    *
    */
@@ -495,5 +502,7 @@ public class ReplicationMessages {
         "Multiple domains match the base DN provided");
     registerMessage(MSGID_INVALID_PROVIDER,
         "The provider class does not allow the operation requested");
+    registerMessage(MSGID_COULD_NOT_SOLVE_HOSTNAME,
+        "The hostname %s could not be resolved as an IP address");
   }
 }

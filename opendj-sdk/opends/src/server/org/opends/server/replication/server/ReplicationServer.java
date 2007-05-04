@@ -103,6 +103,7 @@ public class ReplicationServer
   private int queueSize;
   private String dbDirname = null;
   private long trimAge; // the time (in sec) after which the  changes must
+  private int replicationPort;
                         // de deleted from the persistent storage.
 
   /**
@@ -116,7 +117,7 @@ public class ReplicationServer
   {
     shutdown = false;
     runListen = true;
-    int replicationPort = configuration.getReplicationPort();
+    replicationPort = configuration.getReplicationPort();
     replicationServerId = (short) configuration.getReplicationServerId();
     replicationServers = configuration.getReplicationServer();
     if (replicationServers == null)
@@ -254,10 +255,29 @@ public class ReplicationServer
          */
         for (String serverURL : replicationServers)
         {
-          if ((serverURL.compareTo(this.serverURL) != 0) &&
-              (!connectedReplServers.contains(serverURL)))
+          String token[] = serverURL.split(":");
+          String hostname = token[0];
+          String port = token[1];
+
+          try
           {
-            this.connect(serverURL, replicationCache.getBaseDn());
+            InetAddress inetAddress = InetAddress.getByName(hostname);
+            String serverAddress = inetAddress.getHostAddress() + ":" + port;
+
+            if ((serverAddress.compareTo("127.0.0.1:" + replicationPort) != 0)
+                && (serverAddress.compareTo(this.localURL) != 0)
+                && (!connectedReplServers.contains(serverAddress)))
+            {
+              this.connect(serverURL, replicationCache.getBaseDn());
+            }
+          }
+          catch (IOException e)
+          {
+            int msgID = MSGID_COULD_NOT_SOLVE_HOSTNAME;
+            String message = getMessage(msgID, hostname);
+            logError(ErrorLogCategory.SYNCHRONIZATION,
+                     ErrorLogSeverity.SEVERE_ERROR,
+                     message, msgID);
           }
         }
       }
@@ -510,7 +530,6 @@ public class ReplicationServer
   public boolean isConfigurationChangeAcceptable(
       ReplicationServerCfg configuration, List<String> unacceptableReasons)
   {
-    // TODO : implement this
     return true;
   }
 }
