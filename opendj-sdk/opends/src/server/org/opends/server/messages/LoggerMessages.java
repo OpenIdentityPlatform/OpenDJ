@@ -101,13 +101,23 @@ public class LoggerMessages
 
 
 
-    /**
+  /**
    * The message ID for the message that will be used if the specified
    * string is not a valid error override severity. This takes the name
    * of the invalid severity as the argument.
    */
   public static final int MSGID_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY =
         CATEGORY_MASK_LOG | SEVERITY_MASK_MILD_WARNING | 7;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occured
+   * while setting file permissions on a log file. This takes the name of the
+   * file as the argument.
+   */
+  public static final int MSGID_LOGGER_SET_PERMISSION_FAILED =
+        CATEGORY_MASK_LOG | SEVERITY_MASK_MILD_WARNING | 8;
 
 
 
@@ -131,7 +141,9 @@ public class LoggerMessages
     registerMessage(MSGID_ERROR_LOGGER_INVALID_CATEGORY,
                     "Invalid error log category %s");
     registerMessage(MSGID_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY,
-                    "invalid override of severity level %s");
+                    "Invalid override of severity level %s");
+    registerMessage(MSGID_LOGGER_SET_PERMISSION_FAILED,
+                    "Unable to set file permissions for the log file %s");
 
   }
 }

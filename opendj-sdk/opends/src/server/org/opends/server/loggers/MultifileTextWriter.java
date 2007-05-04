@@ -182,10 +182,29 @@ public class MultifileTextWriter
       writer = new BufferedWriter(osw, bufferSize);
     }
 
+
+    // Try to apply file permissions. Causing problems with installer. Fix
+    // after 0.8.
+    /*
     if(FilePermission.canSetPermissions())
     {
-      FilePermission.setPermissions(file, filePermissions);
-    }
+      try
+      {
+        if(!FilePermission.setPermissions(file, filePermissions))
+        {
+          throw new Exception();
+        }
+      }
+      catch(Exception e)
+      {
+        // Log an warning that the permissions were not set.
+        int msgID = MSGID_LOGGER_SET_PERMISSION_FAILED;
+        String message = getMessage(msgID, file.toString());
+        logError(ErrorLogCategory.CONFIGURATION,
+                 ErrorLogSeverity.SEVERE_WARNING,
+                 message, msgID);
+      }
+    }*/
   }
 
 
