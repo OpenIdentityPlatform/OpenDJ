@@ -1035,6 +1035,11 @@ public class DebugTracer
   protected final LogLevel getEffectiveLevel(TraceSettings settings,
                                              LogCategory category)
   {
+    if (settings == null)
+    {
+      return DebugLogLevel.DISABLED;
+    }
+
     LogLevel level = settings.level;
     Set<LogCategory> includedCategories = settings.includeCategories;
 
