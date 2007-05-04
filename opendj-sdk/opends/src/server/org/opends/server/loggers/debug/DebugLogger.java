@@ -39,7 +39,6 @@ import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.loggers.*;
 import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
 import org.opends.server.admin.server.ConfigurationAddListener;
