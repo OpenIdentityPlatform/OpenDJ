@@ -139,7 +139,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     ServerSocket socket = TestCaseUtils.bindFreePort();
     replServerPort = socket.getLocalPort();
     socket.close();
-    
+
     // replication server
     String replServerLdif =
       "dn: cn=Replication Server, " + synchroPluginStringDN + "\n"
@@ -349,7 +349,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     Entry resultEntry;
 
     // Check that the entry has been created in the directory server.
-    resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
+    resultEntry = getEntry(personWithUUIDEntry.getDN(), 30000, true);
     assertNotNull(resultEntry,
         "The ADD replication message was not replayed");
 

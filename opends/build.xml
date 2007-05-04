@@ -1205,7 +1205,7 @@
     <echo message="      definition is the same as the org.opends.server.debug.target.x" />
     <echo message="      property when starting OpenDS. " />
     <echo message="      Default debug target:"/>
-    <echo message="      org.opends.server:level=verbose,category=caught|data|database_access|message|protocol" />
+    <echo message="      org.opends.server:level=warning,category=caught|data|database_access|message|protocol" />
     <echo message=""/>
     <echo message="  -Dtest.packages=org.opends.server.api"/>
     <echo message="      for example runs only the tests in the api package"/>
@@ -1273,7 +1273,7 @@
     <!-- This sets org.opends.test.debug.target if and only if its's not
          alreadly set. -->
     <condition property="org.opends.test.debug.target"
-               value="org.opends.server:level=info,category=caught|data|database_access|message|protocol">
+               value="org.opends.server:level=warning,category=caught|data|database_access|message|protocol">
       <not>
         <isset property="org.opends.test.debug.target" />
       </not>
