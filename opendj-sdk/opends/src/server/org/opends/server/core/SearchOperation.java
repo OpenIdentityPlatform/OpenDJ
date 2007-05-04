@@ -133,6 +133,9 @@ public class SearchOperation
   // The base DN for the search operation.
   private DN baseDN;
 
+  // The proxied authorization target DN for this operation.
+  private DN proxiedAuthorizationDN;
+
   // The number of entries that have been sent to the client.
   private int entriesSent;
 
@@ -1438,6 +1441,21 @@ public class SearchOperation
 
 
   /**
+   * Retrieves the proxied authorization DN for this operation if proxied
+   * authorization has been requested.
+   *
+   * @return  The proxied authorization DN for this operation if proxied
+   *          authorization has been requested, or {@code null} if proxied
+   *          authorization has not been requested.
+   */
+  public DN getProxiedAuthorizationDN()
+  {
+    return proxiedAuthorizationDN;
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override()
@@ -1766,6 +1784,14 @@ searchProcessing:
               break searchProcessing;
             }
             setAuthorizationEntry(authorizationEntry);
+            if (authorizationEntry == null)
+            {
+              proxiedAuthorizationDN = DN.nullDN();
+            }
+            else
+            {
+              proxiedAuthorizationDN = authorizationEntry.getDN();
+            }
           }
           else if (oid.equals(OID_PROXIED_AUTH_V2))
           {
@@ -1837,6 +1863,14 @@ searchProcessing:
             }
 
             setAuthorizationEntry(authorizationEntry);
+            if (authorizationEntry == null)
+            {
+              proxiedAuthorizationDN = DN.nullDN();
+            }
+            else
+            {
+              proxiedAuthorizationDN = authorizationEntry.getDN();
+            }
           }
           else if (oid.equals(OID_PERSISTENT_SEARCH))
           {

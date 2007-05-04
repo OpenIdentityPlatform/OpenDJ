@@ -106,6 +106,9 @@ public class DeleteOperation
   // The DN of the entry for the delete operation.
   private DN entryDN;
 
+  // The proxied authorization target DN for this operation.
+  private DN proxiedAuthorizationDN;
+
   // The entry to be deleted.
   private Entry entry;
 
@@ -418,6 +421,21 @@ public class DeleteOperation
       new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
       new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
     };
+  }
+
+
+
+  /**
+   * Retrieves the proxied authorization DN for this operation if proxied
+   * authorization has been requested.
+   *
+   * @return  The proxied authorization DN for this operation if proxied
+   *          authorization has been requested, or {@code null} if proxied
+   *          authorization has not been requested.
+   */
+  public DN getProxiedAuthorizationDN()
+  {
+    return proxiedAuthorizationDN;
   }
 
 
@@ -830,6 +848,14 @@ deleteProcessing:
                 break deleteProcessing;
               }
               setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                proxiedAuthorizationDN = DN.nullDN();
+              }
+              else
+              {
+                proxiedAuthorizationDN = authorizationEntry.getDN();
+              }
             }
             else if (oid.equals(OID_PROXIED_AUTH_V2))
             {
@@ -900,6 +926,14 @@ deleteProcessing:
               }
 
               setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                proxiedAuthorizationDN = DN.nullDN();
+              }
+              else
+              {
+                proxiedAuthorizationDN = authorizationEntry.getDN();
+              }
             }
 
             // NYI -- Add support for additional controls.

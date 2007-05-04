@@ -125,6 +125,9 @@ public class ModifyOperation
   // The DN of the entry for the modify operation.
   private DN entryDN;
 
+  // The proxied authorization target DN for this operation.
+  private DN proxiedAuthorizationDN;
+
   // The current entry, before any changes are applied.
   private Entry currentEntry;
 
@@ -613,6 +616,21 @@ public class ModifyOperation
 
 
   /**
+   * Retrieves the proxied authorization DN for this operation if proxied
+   * authorization has been requested.
+   *
+   * @return  The proxied authorization DN for this operation if proxied
+   *          authorization has been requested, or {@code null} if proxied
+   *          authorization has not been requested.
+   */
+  public DN getProxiedAuthorizationDN()
+  {
+    return proxiedAuthorizationDN;
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override()
@@ -1091,6 +1109,14 @@ modifyProcessing:
               }
 
               setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                proxiedAuthorizationDN = DN.nullDN();
+              }
+              else
+              {
+                proxiedAuthorizationDN = authorizationEntry.getDN();
+              }
             }
             else if (oid.equals(OID_PROXIED_AUTH_V2))
             {
@@ -1161,6 +1187,14 @@ modifyProcessing:
                 break modifyProcessing;
               }
               setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                proxiedAuthorizationDN = DN.nullDN();
+              }
+              else
+              {
+                proxiedAuthorizationDN = authorizationEntry.getDN();
+              }
             }
 
             // NYI -- Add support for additional controls.

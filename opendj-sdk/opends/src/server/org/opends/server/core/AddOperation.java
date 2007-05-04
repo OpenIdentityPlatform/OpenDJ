@@ -127,6 +127,9 @@ public class AddOperation
   // The processed DN of the entry to add.
   private DN entryDN;
 
+  // The proxied authorization target DN for this operation.
+  private DN proxiedAuthorizationDN;
+
   // The entry being added to the server.
   private Entry entry;
 
@@ -180,14 +183,15 @@ public class AddOperation
     this.rawEntryDN    = rawEntryDN;
     this.rawAttributes = rawAttributes;
 
-    responseControls      = new ArrayList<Control>();
-    cancelRequest         = null;
-    entry                 = null;
-    entryDN               = null;
-    userAttributes        = null;
-    operationalAttributes = null;
-    objectClasses         = null;
-    changeNumber          = -1;
+    responseControls       = new ArrayList<Control>();
+    cancelRequest          = null;
+    entry                  = null;
+    entryDN                = null;
+    userAttributes         = null;
+    operationalAttributes  = null;
+    objectClasses          = null;
+    proxiedAuthorizationDN = null;
+    changeNumber           = -1;
   }
 
 
@@ -252,9 +256,10 @@ public class AddOperation
       }
     }
 
-    responseControls = new ArrayList<Control>();
-    cancelRequest    = null;
-    changeNumber     = -1;
+    responseControls       = new ArrayList<Control>();
+    proxiedAuthorizationDN = null;
+    cancelRequest          = null;
+    changeNumber           = -1;
   }
 
 
@@ -692,6 +697,21 @@ public class AddOperation
       new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
       new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
     };
+  }
+
+
+
+  /**
+   * Retrieves the proxied authorization DN for this operation if proxied
+   * authorization has been requested.
+   *
+   * @return  The proxied authorization DN for this operation if proxied
+   *          authorization has been requested, or {@code null} if proxied
+   *          authorization has not been requested.
+   */
+  public DN getProxiedAuthorizationDN()
+  {
+    return proxiedAuthorizationDN;
   }
 
 
@@ -1778,6 +1798,14 @@ addProcessing:
                 break addProcessing;
               }
               setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                proxiedAuthorizationDN = DN.nullDN();
+              }
+              else
+              {
+                proxiedAuthorizationDN = authorizationEntry.getDN();
+              }
             }
             else if (oid.equals(OID_PROXIED_AUTH_V2))
             {
@@ -1848,6 +1876,14 @@ addProcessing:
                 break addProcessing;
               }
               setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                proxiedAuthorizationDN = DN.nullDN();
+              }
+              else
+              {
+                proxiedAuthorizationDN = authorizationEntry.getDN();
+              }
             }
 
             // NYI -- Add support for additional controls.

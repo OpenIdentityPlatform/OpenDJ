@@ -103,9 +103,6 @@ public class ModifyDNOperation
        implements PreParseModifyDNOperation, PreOperationModifyDNOperation,
                   PostOperationModifyDNOperation, PostResponseModifyDNOperation
 {
-
-
-
   // Indicates whether to delete the old RDN value from the entry.
   private boolean deleteOldRDN;
 
@@ -128,6 +125,9 @@ public class ModifyDNOperation
 
   // The new parent for the entry.
   private DN newSuperior;
+
+  // The proxied authorization target DN for this operation.
+  private DN proxiedAuthorizationDN;
 
   // The current entry, before it is renamed.
   private Entry currentEntry;
@@ -676,6 +676,21 @@ public class ModifyDNOperation
       new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
       new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
     };
+  }
+
+
+
+  /**
+   * Retrieves the proxied authorization DN for this operation if proxied
+   * authorization has been requested.
+   *
+   * @return  The proxied authorization DN for this operation if proxied
+   *          authorization has been requested, or {@code null} if proxied
+   *          authorization has not been requested.
+   */
+  public DN getProxiedAuthorizationDN()
+  {
+    return proxiedAuthorizationDN;
   }
 
 
@@ -1290,6 +1305,14 @@ modifyDNProcessing:
                 break modifyDNProcessing;
               }
               setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                proxiedAuthorizationDN = DN.nullDN();
+              }
+              else
+              {
+                proxiedAuthorizationDN = authorizationEntry.getDN();
+              }
             }
             else if (oid.equals(OID_PROXIED_AUTH_V2))
             {
@@ -1361,6 +1384,14 @@ modifyDNProcessing:
 
 
               setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                proxiedAuthorizationDN = DN.nullDN();
+              }
+              else
+              {
+                proxiedAuthorizationDN = authorizationEntry.getDN();
+              }
             }
 
             // NYI -- Add support for additional controls.
