@@ -102,7 +102,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:size lower-limit="1" upper-limit="100"/>
+      <adm:integer lower-limit="1" upper-limit="100"/>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -118,11 +118,11 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>0x7fffffffffffffffL</adm:value>
+        <adm:value>2147483647</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:size lower-limit="0" allow-unlimited="true"/>
+      <adm:integer lower-limit="0" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>

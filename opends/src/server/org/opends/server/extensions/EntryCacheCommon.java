@@ -254,7 +254,7 @@ public class EntryCacheCommon
     HashSet<SearchFilter> searchFilters = new HashSet<SearchFilter>();
 
     // Convert the string filters to search filters.
-    if (filters != null)
+    if ((filters != null) && (! filters.isEmpty()))
     {
       for (String curFilter: filters)
       {
