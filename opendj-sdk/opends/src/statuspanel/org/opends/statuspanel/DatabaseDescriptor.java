@@ -29,8 +29,6 @@ package org.opends.statuspanel;
 
 import java.util.Set;
 
-import org.opends.quicksetup.util.Utils;
-
 /**
  * This class is used to represent a Database and is aimed to be used by the
  * classes in the DatabasesTableModel class.
@@ -99,24 +97,7 @@ public class DatabaseDescriptor
 
         if (equals)
         {
-          for (BaseDNDescriptor baseDn1 : baseDns)
-          {
-            boolean found = false;
-            for (BaseDNDescriptor baseDn2 : desc.getBaseDns())
-            {
-              found = Utils.areDnsEqual(baseDn1.getDn(),
-                  baseDn2.getDn());
-              if (found)
-              {
-                break;
-              }
-            }
-            if (!found)
-            {
-              equals = false;
-              break;
-            }
-          }
+          equals = baseDns.equals(desc.getBaseDns());
         }
       }
     }

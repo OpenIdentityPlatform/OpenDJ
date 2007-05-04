@@ -61,6 +61,8 @@ public class ConfigureWindowsService
   private static final String CLASS_NAME =
     "org.opends.server.tools.ConfigureWindowsService";
 
+  private static final String DEBUG_OPTION = "--debug";
+
   private static int ERROR = 1;
 
   /**
@@ -387,7 +389,8 @@ public class ConfigureWindowsService
         "create",
         serverRoot,
         getMessage(MSGID_WINDOWS_SERVICE_NAME, (Object[]) null),
-        getMessage(MSGID_WINDOWS_SERVICE_DESCRIPTION, serverRoot)
+        getMessage(MSGID_WINDOWS_SERVICE_DESCRIPTION, serverRoot),
+        DEBUG_OPTION
         };
     try
     {
@@ -427,6 +430,8 @@ public class ConfigureWindowsService
     }
     catch (Throwable t)
     {
+      err.println("Fucking throwable: "+t);
+      t.printStackTrace();
       returnValue = SERVICE_ENABLE_ERROR;
       msg = getMessage(MSGID_WINDOWS_SERVICE_ENABLE_ERROR,
           (Object[])null);
@@ -453,7 +458,8 @@ public class ConfigureWindowsService
     String[] cmd = {
         getBinaryFullPath(),
         "remove",
-        serverRoot
+        serverRoot,
+        DEBUG_OPTION
         };
     try
     {
@@ -493,6 +499,7 @@ public class ConfigureWindowsService
     }
     catch (Throwable t)
     {
+      t.printStackTrace();
       returnValue = SERVICE_DISABLE_ERROR;
       msg = getMessage(MSGID_WINDOWS_SERVICE_DISABLE_ERROR,
           (Object[])null);
@@ -520,7 +527,8 @@ public class ConfigureWindowsService
     String[] cmd = {
         getBinaryFullPath(),
         "cleanup",
-        serviceName
+        serviceName,
+        DEBUG_OPTION
         };
     try
     {
@@ -582,7 +590,8 @@ public class ConfigureWindowsService
     String[] cmd = {
         getBinaryFullPath(),
         "state",
-        serverRoot
+        serverRoot,
+        DEBUG_OPTION
         };
     try
     {

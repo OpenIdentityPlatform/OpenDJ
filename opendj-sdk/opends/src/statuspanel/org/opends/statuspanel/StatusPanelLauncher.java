@@ -27,7 +27,10 @@
 package org.opends.statuspanel;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.PrintStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
@@ -40,12 +43,28 @@ import org.opends.statuspanel.i18n.ResourceProvider;
  */
 public class StatusPanelLauncher
 {
+  /** Prefix for log files. */
+  static public final String LOG_FILE_PREFIX = "opends-status-";
+
+  /** Suffix for log files. */
+  static public final String LOG_FILE_SUFFIX = ".log";
+
+  static private final Logger LOG =
+          Logger.getLogger(StatusPanelLauncher.class.getName());
+
   /**
    * The main method which is called by the control panel command lines.
    * @param args the arguments passed by the command lines.
    */
   public static void main(String[] args)
   {
+    try {
+      StatusLog.initLogFileHandler(
+              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
+    } catch (Throwable t) {
+      System.err.println("Unable to initialize log");
+      t.printStackTrace();
+    }
     boolean printUsage = false;
     if ((args != null) && (args.length > 4))
     {
@@ -70,7 +89,20 @@ public class StatusPanelLauncher
       int exitCode = launchGuiStatusPanel(args);
       if (exitCode != 0)
       {
-        System.err.println(getMsg("status-panel-launcher-gui-launch-failed"));
+        String logFileName = null;
+        if (StatusLog.getLogFile() != null)
+        {
+          logFileName = StatusLog.getLogFile().toString();
+        }
+        if (logFileName != null)
+        {
+          System.err.println(getMsg(
+              "status-panel-launcher-gui-launch-failed-details", logFileName));
+        }
+        else
+        {
+          System.err.println(getMsg("status-panel-launcher-gui-launch-failed"));
+        }
         System.exit(exitCode);
       }
     }
@@ -99,10 +131,36 @@ public class StatusPanelLauncher
     {
       public void run()
       {
-        // Setup MacOSX native menu bar before AWT is loaded.
-        Utils.setMacOSXMenuBar(getMsg("statuspanel-dialog-title"));
-        SplashScreen.main(args);
-        returnValue[0] = 0;
+        try
+        {
+          // Setup MacOSX native menu bar before AWT is loaded.
+          Utils.setMacOSXMenuBar(getMsg("statuspanel-dialog-title"));
+          SplashScreen.main(args);
+          returnValue[0] = 0;
+        }
+        catch (Throwable t)
+        {
+          if (StatusLog.isInitialized())
+          {
+            LOG.log(Level.WARNING, "Error launching GUI: "+t);
+            StringBuilder buf = new StringBuilder();
+            while (t != null)
+            {
+              StackTraceElement[] stack = t.getStackTrace();
+              for (int i = 0; i < stack.length; i++)
+              {
+                buf.append(stack[i].toString()+"\n");
+              }
+
+              t = t.getCause();
+              if (t != null)
+              {
+                buf.append("Root cause:\n");
+              }
+            }
+            LOG.log(Level.WARNING, buf.toString());
+          }
+        }
       }
     });
     /*
@@ -110,7 +168,7 @@ public class StatusPanelLauncher
      * problems with the display environment.
      */
     PrintStream printStream = System.err;
-    //System.setErr(new EmptyPrintStream());
+    System.setErr(new EmptyPrintStream());
     t.start();
     try
     {
@@ -151,6 +209,20 @@ public class StatusPanelLauncher
   private static String getMsg(String key)
   {
     return org.opends.server.util.StaticUtils.wrapText(getI18n().getMsg(key),
+        Utils.getCommandLineMaxLineWidth());
+  }
+
+  /**
+   * Creates an internationaized message based on the input key and
+   * properly formatted for the terminal.
+   * @param key for the message in the bundle
+   * @param args String... arguments for the message
+   * @return String message properly formatted for the terminal
+   */
+  private static String getMsg(String key, String... args)
+  {
+    return org.opends.server.util.StaticUtils.wrapText(
+        getI18n().getMsg(key, args),
         Utils.getCommandLineMaxLineWidth());
   }
 

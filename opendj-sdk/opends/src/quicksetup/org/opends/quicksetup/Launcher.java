@@ -169,27 +169,25 @@ public abstract class Launcher {
         }
         catch (Throwable t)
         {
-          try {
-            QuickSetupLog.initLogFileHandler(File.createTempFile(
-                "opends-launcher-", ".log"));
+          if (QuickSetupLog.isInitialized())
+          {
             LOG.log(Level.WARNING, "Error launching GUI: "+t);
+            StringBuilder buf = new StringBuilder();
             while (t != null)
             {
               StackTraceElement[] stack = t.getStackTrace();
               for (int i = 0; i < stack.length; i++)
               {
-                LOG.log(Level.WARNING, stack[i].toString());
+                buf.append(stack[i].toString()+"\n");
               }
 
               t = t.getCause();
               if (t != null)
               {
-                LOG.log(Level.WARNING, "Root cause:");
+                buf.append("Root cause:\n");
               }
             }
-          } catch (Throwable t2) {
-            System.err.println("Unable to initialize log");
-            t2.printStackTrace();
+            LOG.log(Level.WARNING, buf.toString());
           }
         }
       }
@@ -199,7 +197,7 @@ public abstract class Launcher {
      * problems with the display environment.
      */
     PrintStream printStream = System.err;
-    //System.setErr(new EmptyPrintStream());
+    System.setErr(new EmptyPrintStream());
     t.start();
     try
     {
@@ -269,8 +267,10 @@ public abstract class Launcher {
    * Called if launching of the GUI failed.  Here
    * subclasses can so application specific things
    * like print a message.
+   * @param logFileName the log file containing more information about why
+   * the launch failed.
    */
-  protected abstract void guiLaunchFailed();
+  protected abstract void guiLaunchFailed(String logFileName);
 
   /**
    * The main method which is called by the uninstall command lines.
@@ -286,7 +286,15 @@ public abstract class Launcher {
       willLaunchGui();
       int exitCode = launchGui(args);
       if (exitCode != 0) {
-        guiLaunchFailed();
+        File logFile = QuickSetupLog.getLogFile();
+        if (logFile != null)
+        {
+          guiLaunchFailed(logFile.toString());
+        }
+        else
+        {
+          guiLaunchFailed(null);
+        }
         exitCode = launchCli(args, createCliApplication());
         if (exitCode != 0) {
           preExit();

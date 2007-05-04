@@ -121,8 +121,16 @@ public class UpgradeLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected void guiLaunchFailed() {
-    System.err.println(getMsg("upgrade-launcher-gui-launched-failed"));
+  protected void guiLaunchFailed(String logFilePath) {
+    if (logFilePath != null)
+    {
+      System.err.println(getMsg("upgrade-launcher-gui-launched-failed-details",
+          logFilePath));
+    }
+    else
+    {
+      System.err.println(getMsg("upgrade-launcher-gui-launched-failed"));
+    }
   }
 
   private UpgradeLauncher(String[] args) {
