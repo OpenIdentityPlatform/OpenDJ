@@ -561,6 +561,12 @@ public class DirectoryServerPluginTestCase
     Class pluginClass = DirectoryServerPlugin.class;
     for (Method m : pluginClass.getMethods())
     {
+      if (m.getName().startsWith("ajc$"))
+      {
+        // This is a method added by AspectJ weaving.  We can ignore it.
+        continue;
+      }
+
       if (Modifier.isPublic(m.getModifiers()) &&
           (! Modifier.isAbstract(m.getModifiers())))
       {
