@@ -1432,7 +1432,7 @@ public class FIFOEntryCache
     newMaxEntries    = configuration.getMaxEntries();
 
     // Maximum memory the cache can use.
-    newMaxMemoryPercent = (int) configuration.getMaxMemoryPercent();
+    newMaxMemoryPercent = configuration.getMaxMemoryPercent();
     long maxJvmHeapSize = Runtime.getRuntime().maxMemory();
     newMaxAllowedMemory = (maxJvmHeapSize / 100) * newMaxMemoryPercent;
 
