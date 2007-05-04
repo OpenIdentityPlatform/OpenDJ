@@ -1919,10 +1919,6 @@ public class ReplicationDomain extends DirectoryThread
     if (debugEnabled())
     {
       debugInfo("DebugInfo" + message);
-      int    msgID   = MSGID_UNKNOWN_TYPE;
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.NOTICE,
-          "ReplicationDomain/ " + message, msgID);
     }
   }
 
