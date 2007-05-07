@@ -214,7 +214,7 @@
     </xslt>
 
     <!-- Compile the Directory Server extension configuration I18N message files. -->
-    <xslt basedir="${src.dir}" destdir="${classes.dir}/admin/messages" style="${admin.dir}/messageMO.xsl">
+    <xslt basedir="${src.dir}" destdir="${classes.dir}/admin/messages" style="${admin.dir}/messagesMO.xsl">
       <include name="**/*Configuration.xml" />
       <exclude name="org/opends/server/admin/std/*.xml" />
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
