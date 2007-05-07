@@ -25,11 +25,11 @@
 *      Portions Copyright 2007 Sun Microsystems, Inc.
 */
 
+#include "common.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <process.h>
-#include "common.h"
 
 #define PATH_SIZE 1024
 #define BUF_SIZE 1024

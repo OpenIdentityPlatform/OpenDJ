@@ -28,8 +28,14 @@
 // Just some functions and constants to be used by winlauncher.c
 // and service.c
 
+// This stops warnings about deprecation of stdio functions
+#define _CRT_SECURE_NO_DEPRECATE 1
+
 #include <Windows.h>
 
 int spawn(const char* command, BOOL background);
 BOOL createChildProcess(char* command, BOOL background,
 PROCESS_INFORMATION* procInfo);
+void debug(const char *msg, ...);
+void debugError(const char *msg, ...);
+void updateDebugFlag(char* argv[], int argc);
