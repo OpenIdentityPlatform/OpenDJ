@@ -42,7 +42,7 @@ BOOL getPidFile(const char* instanceDir, char* pidFile, unsigned int maxSize)
 
   if ((strlen(relativePath) + strlen(instanceDir)) < maxSize)
   {
-    sprintf(pidFile, maxSize, "%s\\logs\\server.pid", instanceDir);
+    sprintf(pidFile, "%s\\logs\\server.pid", instanceDir);
     returnValue = TRUE;
     debug("PID file name is '%s'.", pidFile);
   }
@@ -573,7 +573,7 @@ int main(int argc, char* argv[])
   else
   {
     char * msg = "Unknown subcommand: [%s]\n";
-    debugError(msg, argc - 1);
+    debugError(msg, subcommand);
     fprintf(stderr, msg, subcommand);
     returnCode = -1;
   }
