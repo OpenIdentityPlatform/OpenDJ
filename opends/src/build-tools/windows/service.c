@@ -545,8 +545,7 @@ ServiceReturnCode doStartApplication()
     {
       
       returnValue = SERVICE_RETURN_ERROR;
-      debug("doStartApplication: spawn failed.  Sent command:");
-      debug(command);
+      debug("doStartApplication: spawn failed.  Sent command: '%s'", command);
     }
   }
   else
@@ -609,8 +608,7 @@ ServiceReturnCode doStopApplication()
     else
     {
       returnValue = SERVICE_RETURN_ERROR;
-      debug("doStopApplication: spawn failed.  Sent command:");
-      debug(command);
+      debug("doStopApplication: spawn failed.  Sent command: %s", command);
     }
   }
   else
@@ -1664,11 +1662,13 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
   // open the service
   if (returnValue == SERVICE_RETURN_OK)
   {
+    debug("About to open service '%s'.", serviceName);
     myService = OpenService(
     scm,
     serviceName,
     SERVICE_ALL_ACCESS | DELETE
     );
+    debug("After opening service myService=%d.", myService);
     if (myService == NULL)
     {
       debugError("Failed to open the service '%s'. Last error = %d", serviceName, GetLastError());
@@ -1678,7 +1678,9 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
 
   if (returnValue == SERVICE_RETURN_OK)
   {
-    BOOL success = QueryServiceStatus(
+    BOOL success;
+    debug("About to query the service '%s'.", serviceName);
+    success = QueryServiceStatus(
     myService,
     &serviceStatus
     );
@@ -1692,6 +1694,7 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
   // stop the service if necessary
   if (returnValue == SERVICE_RETURN_OK)
   {
+    debug("Successfully queried the service '%s'.", serviceName);
     if (serviceStatus.dwCurrentState != SERVICE_STOPPED)
     {
       BOOL success;
@@ -1725,7 +1728,7 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
   if (returnValue == SERVICE_RETURN_OK)
   {
     BOOL success;
-    debug("Deleting the service '%s'.");
+    debug("Deleting the service '%s'.", serviceName);
     success = DeleteService (myService);
     if (!success)
     {
