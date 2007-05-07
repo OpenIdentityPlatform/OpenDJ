@@ -33,6 +33,15 @@ set OPENDS_INVOKE_CLASS="org.opends.server.tools.StopDS"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
 set DIR_HOME=%~dP0..
 
+set INSTANCE_ROOT=%DIR_HOME%
+
+set LOG=%INSTANCE_ROOT%\logs\native-windows.out
+set SCRIPT=stop-ds.bat
+
+rem This is the template to use for logging.  Make sure to use >>
+rem echo %SCRIPT%: your-message-here >> %LOG%
+echo %SCRIPT%: invoked >> %LOG%
+
 :checkJavaBin
 if "%JAVA_BIN%" == "" goto noJavaBin
 goto setClassPath
@@ -52,15 +61,19 @@ goto setClassPath
 :noSetJavaHome
 echo Error: JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 (or later) installation.
+echo %SCRIPT%: JAVA_HOME environment variable is not set. >> %LOG%
 goto end
 
 :noValidJavaHome
+echo %SCRIPT%: The detected Java version could not be used. JAVA_HOME=[%JAVA_HOME%] >> %LOG%
 echo ERROR:  The detected Java version could not be used.  Please set 
 echo         JAVA_HOME to to a valid Java 5 (or later) installation.
 goto end
 
 :setClassPath
 FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
+
+echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
 
 rem Test that the provided JDK is 1.5 compatible.
 "%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
@@ -79,33 +92,41 @@ rem An error or we display usage
 goto end
 
 :serverAlreadyStopped
+echo %SCRIPT%: server already stopped >> %LOG%
 if exist "%DIR_HOME%\logs\server.pid" erase "%DIR_HOME%\logs\server.pid"
 goto end
 
 :startUsingSystemCall
+echo %SCRIPT%: start using system call >> %LOG%
 "%DIR_HOME%\bat\start-ds.bat"
 goto end
 
 :stopUsingSystemCall
+echo %SCRIPT%: stop using system call >> %LOG%
 "%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%"
 goto end
 
 :restartUsingSystemCall
+echo %SCRIPT%: restart using system call >> %LOG%
 "%DIR_HOME%\lib\winlauncher.exe" stop "%DIR_HOME%"
 if not %errorlevel% == 0 goto end
 goto startUsingSystemCall
 
 :stopUsingProtocol
+echo %SCRIPT%: stop using protocol >> %LOG%
 call "%DIR_HOME%\lib\_client-script.bat" %*
 goto end
 
 :stopAsWindowsService
+echo %SCRIPT%: stop as windows service >> %LOG%
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StopWindowsService
 goto end
 
 :restartAsWindowsService
+echo %SCRIPT%: restart as windows service, stopping >> %LOG%
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StopWindowsService
 if not %errorlevel% == 0 goto end
+echo %SCRIPT%: restart as windows service, starting >> %LOG%
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StartWindowsService
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.startingservice"
 rem Type the contents the winwervice.out file and delete it.
@@ -115,3 +136,4 @@ goto end
 
 :end
 
+echo %SCRIPT%: finished >> %LOG%

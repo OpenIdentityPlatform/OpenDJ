@@ -27,7 +27,6 @@
 
 #include "winlauncher.h"
 
-
 // ----------------------------------------------------
 // Generates the pid file name for a given instanceDir.
 // Returns TRUE if the command name could be initiated and
@@ -38,13 +37,18 @@ BOOL getPidFile(const char* instanceDir, char* pidFile, unsigned int maxSize)
 {
   BOOL returnValue;
   char* relativePath = "\\logs\\server.pid";
+
+  debug("Attempting to get the PID file for instanceDir='%s'", instanceDir);
+
   if ((strlen(relativePath) + strlen(instanceDir)) < maxSize)
   {
-    sprintf(pidFile, "%s\\logs\\server.pid", instanceDir);
+    sprintf(pidFile, maxSize, "%s\\logs\\server.pid", instanceDir);
     returnValue = TRUE;
+    debug("PID file name is '%s'.", pidFile);
   }
   else
   {
+    debugError("Unable to get the PID file name because the path was too long.");
     returnValue = FALSE;
   }
   return returnValue;
@@ -68,7 +72,9 @@ BOOL fileExists(const char *fileName)
   {
     returnValue = TRUE;
   }
-  
+
+  debug("File '%s' does%s exist.", fileName, (returnValue ? "" : " not"));
+
   return returnValue;
 } // fileExists
 
@@ -84,23 +90,28 @@ BOOL deletePidFile(const char* instanceDir)
   char pidFile[PATH_SIZE];
   int nTries = 10;
   
+  debug("Attempting to delete the PID file from instanceDir='%s'.", instanceDir);
   // Sometimes the lock on the system in windows takes time to be released.
   if (getPidFile(instanceDir, pidFile, PATH_SIZE))
   {
     while (fileExists(pidFile) && (nTries > 0) && !returnValue)
     {
+      debug("PID file '%s' exists, attempting to remove it.", instanceDir);
       if (remove(pidFile) == 0)
       {
+        debug("Successfully removed PID file: '%s'.", pidFile);
         returnValue = TRUE;
       }
       else
       {
-        Sleep(500);
         nTries--;
+        debug("Failed to remove the PID file.  Sleeping for a bit.  Will try %d more time(s).", nTries);
+        Sleep(500);
       }
     }
   }
   
+  debug("deletePidFile('%s') returning %d.", instanceDir, returnValue);
   return returnValue;
 }  // deletePidFile
 
@@ -118,11 +129,13 @@ int getPid(const char* instanceDir)
   char buf[BUF_SIZE];
   int read;
   
+  debug("Attempting to get the PID for the server rooted at '%s'.", instanceDir);
   if (getPidFile(instanceDir, pidFile, PATH_SIZE))
   {
     if ((f = fopen(pidFile, "r")) != NULL)
     {
       read = fread(buf, 1, sizeof(buf),f);
+      debug("Read '%s' from the PID file '%s'.", buf, pidFile);
     }
     
     if (f != NULL)
@@ -132,7 +145,9 @@ int getPid(const char* instanceDir)
     }
     else
     {
-      fprintf(stderr, "File %s could not be opened", pidFile);
+      char * msg = "File %s could not be opened.\nMost likely the server has already stopped.\n\n";
+      debug(msg, pidFile);
+      fprintf(stderr, msg, pidFile);
       returnValue = 0;
     }
   }
@@ -140,6 +155,7 @@ int getPid(const char* instanceDir)
   {
     returnValue = 0;
   }
+  debug("getPid('%s') returning %d.", instanceDir, returnValue);
   return returnValue;
 }  // getPid
 
@@ -152,7 +168,12 @@ int getPid(const char* instanceDir)
 BOOL killProcess(int pid)
 {
   BOOL processDead;
-  HANDLE procHandle = OpenProcess(
+  HANDLE procHandle;
+
+  debug("killProcess(pid=%d)", pid);
+
+  debug("Opening process with pid=%d.", pid);
+  procHandle = OpenProcess(
   PROCESS_TERMINATE               // to terminate the process
   | PROCESS_QUERY_INFORMATION,    // to get exit code
   FALSE,                          // handle is not inheritable
@@ -161,6 +182,7 @@ BOOL killProcess(int pid)
   
   if (procHandle == NULL)
   {
+    debug("The process with pid=%d has already terminated.", pid);
     // process already dead
     processDead = TRUE;
   }
@@ -168,14 +190,17 @@ BOOL killProcess(int pid)
   {
     if (!TerminateProcess(procHandle, 0))
     {
+      debugError("Failed to terminate process (pid=%d) lastError=%d.", pid, GetLastError());
       // failed to terminate the process
       processDead = FALSE;
     }
     else
     {
-      // wait for the process to end.
       DWORD exitCode;
       int nTries = 20;
+
+      debug("Successfully began termination process for (pid=%d).", pid);
+      // wait for the process to end.
       
       processDead = FALSE;
       while ((nTries > 0) && !processDead)
@@ -184,18 +209,21 @@ BOOL killProcess(int pid)
         if (exitCode == STILL_ACTIVE)
         {
           // process is still alive, let's wait 1 sec and loop again
-          Sleep(1000);
           nTries--;
+          debug("Process (pid=%d) has not yet exited.  Sleeping for 1 second and will try %d more time(s).", pid, nTries);
+          Sleep(1000);
         }
         else
         {
+          debug("Process (pid=%d) has exited with exit code %d.", pid, exitCode);
           processDead = TRUE;
         }
       }
     }
     CloseHandle(procHandle);
   }
-  
+
+  debug("killProcess(pid=%d) returning %d", pid, processDead);
   return processDead;
 } // killProcess
 
@@ -206,11 +234,13 @@ BOOL killProcess(int pid)
 // otherwise.
 // ----------------------------------------------------
 BOOL createPidFile(const char* instanceDir, int pid)
-{
+{ 
   BOOL returnValue = FALSE;
   char pidFile[PATH_SIZE];
   FILE *f;
   
+  debug("createPidFile(instanceDir='%s',pid=%d)", instanceDir, pid);
+
   if (getPidFile(instanceDir, pidFile, PATH_SIZE))
   {
     if ((f = fopen(pidFile, "w")) != NULL)
@@ -218,14 +248,17 @@ BOOL createPidFile(const char* instanceDir, int pid)
       fprintf(f, "%d", pid);
       fclose (f);
       returnValue = TRUE;
+      debug("Successfully put pid=%d in the pid file '%s'.", pid, pidFile);
     }
     else
     {
+      debugError("Couldn't create the pid file '%s' because the file could not be opened.", pidFile);
       returnValue = FALSE;
     }
   }
   else
   {
+    debugError("Couldn't create the pid file because the pid file name could not be constructed.");
     returnValue = FALSE;
   }
   
@@ -246,7 +279,14 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
   int curCmdInd = 0;
   int i = 0;
   BOOL overflow = FALSE;
+
+  debug("Constructing full command line from arguments:");
+  for (i = 0; (argv[i] != NULL); i++) 
+  {
+    debug(" argv[%d]: %s", i, argv[i]);
+  }
   
+  i = 0;
   while ((argv[i] != NULL) && !overflow)
   {
     const char* curarg = argv[i++];
@@ -319,6 +359,15 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
       }
     }
   }
+
+  if (overflow) 
+  {
+    debugError("Failed to construct the full commandline because the buffer wasn't big enough.");
+  } 
+  else 
+  {
+    debug("The full commandline is '%s'.", command);
+  }
   
   return !overflow;
 } // getCommandLine
@@ -350,7 +399,7 @@ int start(const char* instanceDir, char* argv[])
   int childPid;
   
   char command[COMMAND_SIZE];
-  
+
   if (getCommandLine(argv, command, COMMAND_SIZE))
   {
     childPid = spawn(command, TRUE);
@@ -362,11 +411,13 @@ int start(const char* instanceDir, char* argv[])
     }
     else
     {
+      debugError("Couldn't start the child process because the spawn failed.");
       returnValue = -1;
     }
   }
   else
   {
+    debugError("Couldn't start the child process because the full command line could not be constructed.");
     returnValue = -1;
   }
   
@@ -401,6 +452,8 @@ int stop(const char* instanceDir)
   
   int childPid;
   
+  debug("Attempting to stop the server running at root '%s'.", instanceDir);
+
   childPid = getPid(instanceDir);
   
   if (childPid != 0)
@@ -411,7 +464,11 @@ int stop(const char* instanceDir)
       deletePidFile(instanceDir);
     }
   }
-  
+  else 
+  {
+    debug("Could not stop the server running at root '%s' because the pid could not be located.", instanceDir);
+  }
+
   return returnCode;
 } // stop
 
@@ -450,9 +507,18 @@ int launch(char* argv[])
   if (getCommandLine(argv, command, COMMAND_SIZE))
   {
     returnValue = spawn(command, TRUE);
+    if (returnValue <= 0) 
+    {
+      debugError("Failed to launch the child process '%s'.", command);
+    }
+    else
+    {
+      debug("Successfully launched the child process '%s'.", command);
+    }
   }
   else
   {
+    debugError("Couldn't launch the child process because the full command line could not be constructed.");
     returnValue = -1;
   }
   
@@ -471,9 +537,25 @@ int launch(char* argv[])
 int main(int argc, char* argv[])
 {
   int returnCode;
-  char* subcommand = argv[1];
-  char* instanceDir = argv[2];
+  char* subcommand = NULL;
+  char* instanceDir = NULL;
+  int i;
   
+  debug("main called.");
+  for (i = 0; i < argc; i++) {
+    debug("  argv[%d] = '%s'", i, argv[i]);
+  }
+
+  if (argc < 3) {
+    char * msg = "Expected command line args of [subcommand] [server directory], but got %d arguments.\n";
+    debugError(msg, argc - 1);
+    fprintf(stderr, msg, argc - 1);
+	  return -1;
+  }
+
+  subcommand = argv[1];
+  instanceDir = argv[2];
+
   argv += 3;
   
   if (strcmp(subcommand, "start") == 0)
@@ -490,9 +572,12 @@ int main(int argc, char* argv[])
   }
   else
   {
-    fprintf(stderr, "Unknown subcommand: [%s]", subcommand);
+    char * msg = "Unknown subcommand: [%s]\n";
+    debugError(msg, argc - 1);
+    fprintf(stderr, msg, subcommand);
     returnCode = -1;
   }
+  debug("main finished. Returning %d", returnCode);
   return returnCode;
 }
 

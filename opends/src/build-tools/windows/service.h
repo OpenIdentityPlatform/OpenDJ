@@ -25,12 +25,12 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
+#include "common.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <io.h>
 #include <stdio.h>
 #include <sys/locking.h>
-#include "common.h"
 #include "EventLogMsg.h"
 
 #define MAX_SERVICE_NAME 256

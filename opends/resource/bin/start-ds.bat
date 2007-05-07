@@ -30,6 +30,11 @@ setlocal
 set DIR_HOME=%~dP0..
 set INSTANCE_ROOT=%DIR_HOME%
 
+set LOG=%INSTANCE_ROOT%\logs\native-windows.out
+set SCRIPT=start-ds.bat
+
+echo %SCRIPT%: invoked >> %LOG%
+
 :checkJavaBin
 if "%JAVA_BIN%" == "" goto noJavaBin
 goto setClassPath
@@ -47,11 +52,13 @@ set JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
 :noSetJavaHome
+echo %SCRIPT%: JAVA_HOME environment variable is not set. >> %LOG%
 echo Error: JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 (or later) installation.
 goto end
 
 :noValidJavaHome
+echo %SCRIPT%: The detected Java version could notf be used. JAVA_HOME=[%JAVA_HOME%] >> %LOG%
 echo ERROR:  The detected Java version could not be used.  Please set 
 echo         JAVA_HOME to to a valid Java 5 (or later) installation.
 goto end
@@ -59,7 +66,11 @@ goto end
 :setClassPath
 FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
 
+echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
+
 set PATH=%SystemRoot%
+
+echo %SCRIPT%: PATH=%PATH% >> %LOG%
 
 set SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=start-ds
 
@@ -77,9 +88,11 @@ if %errorlevel% == 102 goto runDetachCalledByWinService
 goto end
 
 :serverAlreadyStarted
+echo %SCRIPT%: Server already started  >> %LOG%
 goto end
 
 :runNoDetach
+echo %SCRIPT%: Run no detach  >> %LOG%
 if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
 if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
 "%JAVA_BIN%" %JAVA_ARGS% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
@@ -87,28 +100,35 @@ goto end
 
 
 :runDetach
+echo %SCRIPT%: Run detach  >> %LOG%
 if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
 if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
 "%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%JAVA_BIN%" %JAVA_ARGS%  org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out"
 goto end
 
 :runDetachCalledByWinService
 rem We write the output of the start command to the winwervice.out file.
+echo %SCRIPT%: Run detach called by windows service  >> %LOG%
 if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
 if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
 echo. > "%DIR_HOME%\logs\server.startingservice"
 echo. > "%DIR_HOME%\logs\winservice.out"
 "%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%JAVA_BIN%" %JAVA_ARGS%  org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out" --outputFile "%DIR_HOME%\logs\winservice.out"
 erase "%DIR_HOME%\logs\server.startingservice"
 goto end
 
 :runAsService
+echo %SCRIPT%: Run as service >> %LOG%
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StartWindowsService
+echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.startingservice" to be deleted >> %LOG%
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.startingservice"
 rem Type the contents the winwervice.out file and delete it.
 if exist "%DIR_HOME%\logs\winservice.out" type "%DIR_HOME%\logs\winservice.out"
 if exist "%DIR_HOME%\logs\winservice.out" erase "%DIR_HOME%\logs\winservice.out"
 :end
 
+echo %SCRIPT%: finished >> %LOG%
