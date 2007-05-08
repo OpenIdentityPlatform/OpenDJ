@@ -85,6 +85,7 @@ public class StatusPanelDialog extends JFrame
   private static final long serialVersionUID = 6832422469078074151L;
 
   private ServerStatusDescriptor lastDescriptor;
+  private ServerStatusDescriptor lastPackDescriptor;
 
   private HashSet<StatusPanelButtonListener> listeners =
     new HashSet<StatusPanelButtonListener>();
@@ -174,6 +175,8 @@ public class StatusPanelDialog extends JFrame
     }
     Utils.centerOnScreen(this);
 
+    lastPackDescriptor = lastDescriptor;
+
     setVisible(true);
   }
 
@@ -204,6 +207,27 @@ public class StatusPanelDialog extends JFrame
     updateDatabaseContents(desc);
 
     updateErrorContents(desc);
+
+    boolean mustRepack;
+    if (lastPackDescriptor == null)
+    {
+      mustRepack = true;
+    }
+    else
+    {
+      boolean lastSmall =
+       (lastPackDescriptor.getListeners().size() == 0) &&
+       (lastPackDescriptor.getDatabases().size() == 0);
+      boolean currentBig =
+        (lastDescriptor.getListeners().size() > 0) ||
+        (lastDescriptor.getDatabases().size() > 0);
+      mustRepack = lastSmall && currentBig;
+    }
+    if (mustRepack)
+    {
+      pack();
+      lastPackDescriptor = lastDescriptor;
+    }
   }
 
   /**
