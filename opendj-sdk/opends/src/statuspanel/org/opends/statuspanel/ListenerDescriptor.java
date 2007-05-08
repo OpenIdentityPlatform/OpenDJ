@@ -145,4 +145,21 @@ public class ListenerDescriptor
     return (getAddressPort() + getProtocolDescription() +
         getState()).hashCode();
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean equals(Object o)
+  {
+    boolean equals = false;
+    if (o == this)
+    {
+      equals = true;
+    }
+    else if (o instanceof ListenerDescriptor)
+    {
+      equals = hashCode() == o.hashCode();
+    }
+    return equals;
+  }
 }

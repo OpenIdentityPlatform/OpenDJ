@@ -27,7 +27,7 @@
 
 package org.opends.statuspanel;
 
-import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * This class is used to represent a Database and is aimed to be used by the
@@ -36,7 +36,7 @@ import java.util.Set;
 public class DatabaseDescriptor
 {
   private String backendID;
-  private Set<BaseDNDescriptor> baseDns;
+  private SortedSet<BaseDNDescriptor> baseDns;
   private int entries;
 
   /**
@@ -45,7 +45,8 @@ public class DatabaseDescriptor
    * @param baseDns the base DNs associated with the Database.
    * @param entries the number of entries in the Database.
    */
-  public DatabaseDescriptor(String backendID, Set<BaseDNDescriptor> baseDns,
+  public DatabaseDescriptor(String backendID,
+      SortedSet<BaseDNDescriptor> baseDns,
       int entries)
   {
     this.backendID = backendID;
@@ -66,7 +67,7 @@ public class DatabaseDescriptor
    * Returns the Base DN objects associated with the database.
    * @return the Base DN objects associated with the database.
    */
-  public Set<BaseDNDescriptor> getBaseDns()
+  public SortedSet<BaseDNDescriptor> getBaseDns()
   {
     return baseDns;
   }
@@ -97,7 +98,7 @@ public class DatabaseDescriptor
 
         if (equals)
         {
-          equals = baseDns.equals(desc.getBaseDns());
+          equals = desc.getBaseDns().equals(getBaseDns());
         }
       }
     }
@@ -116,8 +117,10 @@ public class DatabaseDescriptor
     StringBuilder buf = new StringBuilder();
     for (BaseDNDescriptor rep: getBaseDns())
     {
-      buf.append(rep.getDn());
+      buf.append(rep.hashCode()+";");
     }
-    return (getBackendID() + buf.toString() + getEntries()).hashCode();
+    buf.append(getBackendID() + getEntries());
+
+    return buf.toString().hashCode();
   }
 }

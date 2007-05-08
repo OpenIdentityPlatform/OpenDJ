@@ -100,13 +100,14 @@ public class ConfigFromFile
     administrativeUsers.clear();
     replicationConfigured = false;
     replicatedSuffixes.clear();
+    LDIFReader reader = null;
     try
     {
       Installation installation =
               new Installation(Utils.getInstallPathFromClasspath());
       LDIFImportConfig c = new LDIFImportConfig(
           Utils.getPath(installation.getCurrentConfigurationFile()));
-      LDIFReader reader = new LDIFReader(c);
+      reader = new LDIFReader(c);
       for (Entry entry = reader.readEntry(false); entry != null;
       entry = reader.readEntry(false))
       {
@@ -131,6 +132,19 @@ public class ConfigFromFile
       errorMessage = Utils.getThrowableMsg(getI18n(),
           "error-reading-config-file", null, t);
     }
+    finally
+    {
+      if (reader != null)
+      {
+        try
+        {
+          reader.close();
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+    }
   }
 
   /**
@@ -139,7 +153,9 @@ public class ConfigFromFile
    */
   public HashSet<String> getAdministrativeUsers()
   {
-    return administrativeUsers;
+    HashSet<String> copy = new HashSet<String>();
+    copy.addAll(administrativeUsers);
+    return copy;
   }
 
   /**
@@ -148,7 +164,9 @@ public class ConfigFromFile
    */
   public HashSet<DatabaseDescriptor> getDatabases()
   {
-    return databases;
+    HashSet<DatabaseDescriptor> copy = new HashSet<DatabaseDescriptor>();
+    copy.addAll(databases);
+    return copy;
   }
 
   /**
@@ -157,7 +175,9 @@ public class ConfigFromFile
    */
   public HashSet<ListenerDescriptor> getListeners()
   {
-    return listeners;
+    HashSet<ListenerDescriptor> copy = new HashSet<ListenerDescriptor>();
+    copy.addAll(listeners);
+    return copy;
   }
 
   /**
@@ -377,21 +397,18 @@ public class ConfigFromFile
 
     if (!isConfigBackend(id))
     {
-      Set<String> baseDns = new TreeSet<String>();
-      baseDns.addAll(getValues(entry, "ds-cfg-backend-base-dn"));
-      Set<BaseDNDescriptor> replicas = new LinkedHashSet<BaseDNDescriptor>();
+      Set<String> baseDns = getValues(entry, "ds-cfg-backend-base-dn");
+      TreeSet<BaseDNDescriptor> replicas = new TreeSet<BaseDNDescriptor>();
+
+      DatabaseDescriptor db = new DatabaseDescriptor(id, replicas, nEntries);
 
       for (String baseDn : baseDns)
       {
-        replicas.add(getBaseDNDescriptor(entry, baseDn));
-      }
-
-      DatabaseDescriptor db = new DatabaseDescriptor(id, replicas, nEntries);
-      databases.add(db);
-      for (BaseDNDescriptor rep: replicas)
-      {
+        BaseDNDescriptor rep = getBaseDNDescriptor(entry, baseDn);
         rep.setDatabase(db);
+        db.getBaseDns().add(rep);
       }
+      databases.add(db);
     }
   }
 
@@ -453,8 +470,7 @@ public class ConfigFromFile
         }
         if (replica != null)
         {
-          replica.setType(BaseDNDescriptor.Type.REPLICATED);
-        }
+          replica.setType(BaseDNDescriptor.Type.REPLICATED);        }
       }
     }
   }

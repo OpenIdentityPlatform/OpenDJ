@@ -61,6 +61,17 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
   };
   private int sortColumn = 0;
   private boolean sortAscending = true;
+  private boolean displayReplicationInformation;
+
+  /**
+   * Constructor for this table model.
+   * @param displayReplicationInformation whether to display replication
+   * monitoring information or not.
+   */
+  public DatabasesTableModel(boolean displayReplicationInformation)
+  {
+    this.displayReplicationInformation = displayReplicationInformation;
+  }
 
   /**
    * Sets the data for this table model.
@@ -296,7 +307,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
    */
   public int getColumnCount()
   {
-    return 6;
+    return displayReplicationInformation ? 6 : 4;
   }
 
   /**

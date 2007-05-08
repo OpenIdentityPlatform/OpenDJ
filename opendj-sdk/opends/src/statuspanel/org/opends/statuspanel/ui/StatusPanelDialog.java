@@ -33,6 +33,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -112,8 +113,10 @@ public class StatusPanelDialog extends JFrame
 
   private HashSet<JLabel> subsectionLabels = new HashSet<JLabel>();
 
-  private DatabasesTableModel dbTableModel;
-  private JTable dbTable;
+  private DatabasesTableModel dbTableModelWithReplication;
+  private DatabasesTableModel dbTableModelWithoutReplication;
+  private JTable dbTableWithReplication;
+  private JTable dbTableWithoutReplication;
 
   private ListenersTableModel listenersTableModel;
   private JTable listenersTable;
@@ -121,9 +124,6 @@ public class StatusPanelDialog extends JFrame
   private InstantaneousToolTipManager toolTipManager;
 
   private final String NOT_AVAILABLE = getMsg("not-available-label");
-
-  private final int MAXIMAL_WIDTH = 1000;
-  private final int MAXIMAL_HEIGHT = 1000;
 
   /**
    * ProgressDialog constructor.
@@ -163,8 +163,8 @@ public class StatusPanelDialog extends JFrame
     int packedMinWidth = (int) getPreferredSize().getWidth();
     int packedMinHeight = (int) getPreferredSize().getHeight();
 
-    int minWidth = Math.min(packedMinWidth, MAXIMAL_WIDTH);
-    int minHeight = Math.min(packedMinHeight, MAXIMAL_HEIGHT);
+    int minWidth = Math.min(packedMinWidth, getMaximalWidth());
+    int minHeight = Math.min(packedMinHeight, getMaximalHeight());
 
     addComponentListener(new MinimumSizeComponentListener(this,
         minWidth, minHeight));
@@ -226,6 +226,18 @@ public class StatusPanelDialog extends JFrame
     if (mustRepack)
     {
       pack();
+      int packedMinWidth = (int) getPreferredSize().getWidth();
+      int packedMinHeight = (int) getPreferredSize().getHeight();
+
+      int minWidth = Math.min(packedMinWidth, getMaximalWidth());
+      int minHeight = Math.min(packedMinHeight, getMaximalHeight());
+
+      if ((minWidth != packedMinWidth) || (minHeight != packedMinHeight))
+      {
+        setPreferredSize(new Dimension(minWidth, minHeight));
+        pack();
+      }
+
       lastPackDescriptor = lastDescriptor;
     }
   }
@@ -744,18 +756,35 @@ public class StatusPanelDialog extends JFrame
 
     p.add(createSubsectionTitle(getMsg("databases-title")), gbc);
 
-    dbTableModel = new DatabasesTableModel();
-    dbTable = UIFactory.makeSortableTable(dbTableModel,
+    dbTableModelWithReplication = new DatabasesTableModel(true);
+    dbTableModelWithoutReplication = new DatabasesTableModel(false);
+    dbTableWithReplication =
+      UIFactory.makeSortableTable(dbTableModelWithReplication,
         new DatabasesCellRenderer(),
         UIFactory.makeHeaderRenderer());
-    toolTipManager.registerComponent(dbTable);
+    toolTipManager.registerComponent(dbTableWithReplication);
+    dbTableWithoutReplication =
+      UIFactory.makeSortableTable(dbTableModelWithoutReplication,
+        new DatabasesCellRenderer(),
+        UIFactory.makeHeaderRenderer());
+    toolTipManager.registerComponent(dbTableWithoutReplication);
 
     gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
-    p.add(dbTable.getTableHeader(), gbc);
-    int height = (int)dbTable.getTableHeader().getPreferredSize().getHeight();
-    dbTable.setRowHeight(height);
+    p.add(dbTableWithReplication.getTableHeader(), gbc);
+    int height = (int)dbTableWithReplication.getTableHeader().
+    getPreferredSize().getHeight();
+    dbTableWithReplication.setRowHeight(height);
     gbc.insets.top = 0;
-    p.add(dbTable, gbc);
+    p.add(dbTableWithReplication, gbc);
+
+    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+    p.add(dbTableWithoutReplication.getTableHeader(), gbc);
+    height = (int)dbTableWithoutReplication.getTableHeader().
+    getPreferredSize().getHeight();
+    dbTableWithoutReplication.setRowHeight(height);
+    gbc.insets.top = 0;
+    p.add(dbTableWithoutReplication, gbc);
+    dbTableWithoutReplication.setVisible(false);
 
     gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
     lDbTableEmpty = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, "",
@@ -1063,12 +1092,16 @@ public class StatusPanelDialog extends JFrame
     {
       replicas.addAll(db.getBaseDns());
     }
-    dbTableModel.setData(replicas);
+    dbTableModelWithReplication.setData(replicas);
+    dbTableModelWithoutReplication.setData(replicas);
 
-    if (dbTableModel.getRowCount() == 0)
+    if (dbTableModelWithReplication.getRowCount() == 0)
     {
-      dbTable.setVisible(false);
-      dbTable.getTableHeader().setVisible(false);
+
+      dbTableWithoutReplication.setVisible(false);
+      dbTableWithoutReplication.getTableHeader().setVisible(false);
+      dbTableWithReplication.setVisible(false);
+      dbTableWithReplication.getTableHeader().setVisible(false);
       lDbTableEmpty.setVisible(true);
       if (desc.getStatus() == ServerStatusDescriptor.ServerStatus.STARTED)
       {
@@ -1088,10 +1121,22 @@ public class StatusPanelDialog extends JFrame
     }
     else
     {
-      dbTable.setVisible(true);
-      dbTable.getTableHeader().setVisible(true);
+      boolean replicated = false;
+      for (BaseDNDescriptor suffix: replicas)
+      {
+        if (suffix.getType() == BaseDNDescriptor.Type.REPLICATED)
+        {
+          replicated = true;
+        }
+      }
+
+      updateTableSizes(dbTableWithoutReplication);
+      updateTableSizes(dbTableWithReplication);
+      dbTableWithoutReplication.setVisible(!replicated);
+      dbTableWithoutReplication.getTableHeader().setVisible(!replicated);
+      dbTableWithReplication.setVisible(replicated);
+      dbTableWithReplication.getTableHeader().setVisible(replicated);
       lDbTableEmpty.setVisible(false);
-      updateTableSizes(dbTable);
     }
   }
 
@@ -1232,6 +1277,32 @@ public class StatusPanelDialog extends JFrame
     }
   }
 
+  private int getMaximalWidth()
+  {
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+    boolean multipleScreen = screenSize.width / screenSize.height >= 2;
+
+    if (multipleScreen)
+    {
+      return Math.min((screenSize.width/2) - 100, 1000);
+    }
+    else
+    {
+      return Math.min(screenSize.width - 100, 1000);
+    }
+  }
+
+  /**
+   * Returns the maximum height we allow this dialog to have after pack.
+   * @return the maximum height we allow this dialog to have after pack.
+   */
+  private int getMaximalHeight()
+  {
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+    return Math.min(screenSize.height - 100, 800);
+  }
   /**
    * Method written for testing purposes.
    * @param args the arguments to be passed to the test program.

@@ -60,8 +60,8 @@ public class ServerStatusPooler
   private int nTriesWithErrorOnline;
 
   /* The pooling periods */
-  private static final int OFFLINE_POOLING_PERIOD = 3000;
-  private static final int ONLINE_POOLING_PERIOD = 5000;
+  private static final int OFFLINE_POOLING_PERIOD = 6000;
+  private static final int ONLINE_POOLING_PERIOD = 4000;
 
   /**
    * Default constructor.
