@@ -111,8 +111,8 @@ public class BuildExtractor extends Application implements Runnable {
         expandZipFile(buildFile);
       }
     } catch (Throwable t) {
+      LOG.log(Level.INFO, "unexpected error extracting build", t);
       retCode = 1;
-      notifyListeners(t.getLocalizedMessage() + getLineBreak());
     }
     LOG.log(Level.INFO, "extractor exiting code=" + retCode);
     System.exit(retCode);
