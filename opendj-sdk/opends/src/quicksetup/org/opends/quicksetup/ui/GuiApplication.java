@@ -479,18 +479,12 @@ public abstract class GuiApplication extends Application {
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
           msg, e);
-    } catch (org.opends.server.types.InitializationException e) {
-      String msg = "Failed to start server due to initialization error:" +
-      e.getLocalizedMessage();
-      LOG.log(Level.INFO, msg, e);
+    } catch (Throwable t) {
+      String msg = getMsg("error-starting-server-with-no-connection-handlers",
+          (t.getMessage() == null) ? t.toString() : t.getMessage());
+      LOG.log(Level.INFO, msg, t);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-          msg, e);
-    } catch (org.opends.server.config.ConfigException e) {
-      String msg = "Failed to start server due to configuration error: " +
-      e.getLocalizedMessage();
-      LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-          msg, e);
+          msg, t);
     }
   }
 
