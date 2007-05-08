@@ -49,6 +49,9 @@ public class ZipExtractor {
   static private final Logger LOG =
           Logger.getLogger(ZipExtractor.class.getName());
 
+  /** Path separator for zip file entry names on Windows and *nix. */
+  static private final char ZIP_ENTRY_NAME_SEP = '/';
+
   private InputStream is;
   private int minRatio;
   private int maxRatio;
@@ -131,6 +134,22 @@ public class ZipExtractor {
    * @throws ApplicationException if something goes wrong
    */
   public void extract(String destination) throws ApplicationException {
+    extract(destination, true);
+  }
+
+  /**
+   * Performs the zip extraction.
+   * @param destDir String representing the directory where the zip file will
+   * be extracted
+   * @param removeFirstPath when true removes each zip entry's initial path
+   * when copied to the destination folder.  So for instance if the zip enty's
+   * name was /OpenDS-0.8/some_file the file would appear in the destination
+   * directory as 'some_file'.
+   * @throws ApplicationException if something goes wrong
+   */
+  public void extract(String destDir, boolean removeFirstPath)
+          throws ApplicationException
+  {
 
     ZipInputStream zipIn = new ZipInputStream(is);
     int nEntries = 1;
@@ -144,34 +163,37 @@ public class ZipExtractor {
     Map<String, ArrayList<String>> permissions =
         new HashMap<String, ArrayList<String>>();
 
-    String zipFirstPath = null;
-    try
-    {
+    try {
       ZipEntry entry = zipIn.getNextEntry();
-      while (entry != null)
-      {
+      while (entry != null) {
         int ratioBeforeCompleted = minRatio
-        + ((nEntries - 1) * (maxRatio - minRatio) / numberZipEntries);
+                + ((nEntries - 1) * (maxRatio - minRatio) / numberZipEntries);
         int ratioWhenCompleted =
-          minRatio + (nEntries * (maxRatio - minRatio) / numberZipEntries);
+                minRatio + (nEntries * (maxRatio - minRatio) /
+                        numberZipEntries);
 
-        if (nEntries == 1)
-        {
-          zipFirstPath = entry.getName();
-        } else
-        {
-          try
-          {
-            copyZipEntry(entry, destination, zipFirstPath, zipIn,
-            ratioBeforeCompleted, ratioWhenCompleted, permissions);
+        String name = entry.getName();
+        if (name != null && removeFirstPath) {
+          int sepPos = name.indexOf(ZIP_ENTRY_NAME_SEP);
+          if (sepPos != -1) {
+            name = name.substring(sepPos + 1);
+          } else {
+            LOG.log(Level.WARNING,
+                    "zip entry name does not contain a path separator");
+          }
+        }
+        if (name != null && name.length() > 0) {
+          try {
+            File destination = new File(destDir, name);
+            copyZipEntry(entry, destination, zipIn,
+                    ratioBeforeCompleted, ratioWhenCompleted, permissions);
 
-          } catch (IOException ioe)
-          {
+          } catch (IOException ioe) {
             String[] arg =
-              { entry.getName() };
+                    {entry.getName()};
             String errorMsg =
                     Utils.getThrowableMsg(ResourceProvider.getInstance(),
-                      "error-copying", arg, ioe);
+                            "error-copying", arg, ioe);
 
             throw new ApplicationException(
                     ApplicationException.Type.FILE_SYSTEM_ERROR,
@@ -184,111 +206,95 @@ public class ZipExtractor {
         nEntries++;
       }
 
-      if (Utils.isUnix())
-      {
+      if (Utils.isUnix()) {
         // Change the permissions for UNIX systems
-        for (String perm : permissions.keySet())
-        {
+        for (String perm : permissions.keySet()) {
           ArrayList<String> paths = permissions.get(perm);
-          try
-          {
+          try {
             int result = Utils.setPermissionsUnix(paths, perm);
-            if (result != 0)
-            {
+            if (result != 0) {
               throw new IOException("Could not set permissions on files "
-                  + paths + ".  The chmod error code was: " + result);
+                      + paths + ".  The chmod error code was: " + result);
             }
-          } catch (InterruptedException ie)
-          {
+          } catch (InterruptedException ie) {
             IOException ioe =
-                new IOException("Could not set permissions on files " + paths
-                    + ".  The chmod call returned an InterruptedException.");
+                    new IOException("Could not set permissions on files " +
+                            paths + ".  The chmod call returned an " +
+                            "InterruptedException.");
             ioe.initCause(ie);
             throw ioe;
           }
         }
       }
 
-    } catch (IOException ioe)
-    {
+    } catch (IOException ioe) {
       String[] arg =
-        { zipFileName };
+              {zipFileName};
       String errorMsg =
               Utils.getThrowableMsg(ResourceProvider.getInstance(),
                       "error-zip-stream", arg, ioe);
       throw new ApplicationException(
-          ApplicationException.Type.FILE_SYSTEM_ERROR, errorMsg, ioe);
+              ApplicationException.Type.FILE_SYSTEM_ERROR, errorMsg, ioe);
     }
   }
 
   /**
-   * Copies a zip entry in the file system.
-   * @param entry the ZipEntry object.
-   * @param basePath the basePath (the installation path)
-   * @param zipFirstPath the first zip file path.  This is required because the
-   * zip file contain a directory of type
-   * 'OpenDS-(major version).(minor version)' that we want to get rid of.  The
-   * first zip file path corresponds to this path.
-   * @param is the ZipInputStream that contains the contents to be copied.
-   * @param ratioBeforeCompleted the progress ratio before the zip file is
-   * copied.
-   * @param ratioWhenCompleted the progress ratio after the zip file is
-   * copied.
-   * @param permissions an ArrayList with permissions whose contents will be
-   * updated.
-   * @throws IOException if an error occurs.
-   */
-  private void copyZipEntry(ZipEntry entry, String basePath,
-      String zipFirstPath, ZipInputStream is, int ratioBeforeCompleted,
+    * Copies a zip entry in the file system.
+    * @param entry the ZipEntry object.
+    * @param destination File where the entry will be copied.
+    * @param is the ZipInputStream that contains the contents to be copied.
+    * @param ratioBeforeCompleted the progress ratio before the zip file is
+    * copied.
+    * @param ratioWhenCompleted the progress ratio after the zip file is
+    * copied.
+    * @param permissions an ArrayList with permissions whose contents will be
+    * updated.
+    * @throws IOException if an error occurs.
+    */
+  private void copyZipEntry(ZipEntry entry, File destination,
+      ZipInputStream is, int ratioBeforeCompleted,
       int ratioWhenCompleted, Map<String, ArrayList<String>> permissions)
       throws IOException
   {
-    String entryName = entry.getName();
-    // Get rid of the zipFirstPath
-    if (entryName.startsWith(zipFirstPath))
-    {
-      entryName = entryName.substring(zipFirstPath.length());
-    }
-    File path = new File(basePath, entryName);
     if (application != null) {
       String progressSummary =
               ResourceProvider.getInstance().getMsg("progress-extracting",
-                      new String[]{ Utils.getPath(path) });
+                      new String[]{ Utils.getPath(destination) });
       application.notifyListeners(ratioBeforeCompleted, progressSummary);
     }
-    LOG.log(Level.INFO, "extracting " + Utils.getPath(path));
-    if (Utils.insureParentsExist(path))
+    LOG.log(Level.INFO, "extracting " + Utils.getPath(destination));
+    if (Utils.insureParentsExist(destination))
     {
       if (entry.isDirectory())
       {
-        String perm = getDirectoryFileSystemPermissions(path);
+        String perm = getDirectoryFileSystemPermissions(destination);
         ArrayList<String> list = permissions.get(perm);
         if (list == null)
         {
           list = new ArrayList<String>();
         }
-        list.add(Utils.getPath(path));
+        list.add(Utils.getPath(destination));
         permissions.put(perm, list);
 
-        if (!Utils.createDirectory(path))
+        if (!Utils.createDirectory(destination))
         {
-          throw new IOException("Could not create path: " + path);
+          throw new IOException("Could not create path: " + destination);
         }
       } else
       {
-        String perm = Utils.getFileSystemPermissions(path);
+        String perm = Utils.getFileSystemPermissions(destination);
         ArrayList<String> list = permissions.get(perm);
         if (list == null)
         {
           list = new ArrayList<String>();
         }
-        list.add(Utils.getPath(path));
+        list.add(Utils.getPath(destination));
         permissions.put(perm, list);
-        Utils.createFile(path, is);
+        Utils.createFile(destination, is);
       }
     } else
     {
-      throw new IOException("Could not create parent path: " + path);
+      throw new IOException("Could not create parent path: " + destination);
     }
     if (application != null) {
       application.notifyListenersDone(ratioWhenCompleted);
