@@ -55,12 +55,14 @@ goto setClassPath
 echo %SCRIPT%: JAVA_HOME environment variable is not set. >> %LOG%
 echo Error: JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 (or later) installation.
+pause
 goto end
 
 :noValidJavaHome
 echo %SCRIPT%: The detected Java version could notf be used. JAVA_HOME=[%JAVA_HOME%] >> %LOG%
 echo ERROR:  The detected Java version could not be used.  Please set 
 echo         JAVA_HOME to to a valid Java 5 (or later) installation.
+pause
 goto end
 
 :setClassPath
@@ -115,7 +117,7 @@ if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
 if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
 echo. > "%DIR_HOME%\logs\server.startingservice"
 echo. > "%DIR_HOME%\logs\winservice.out"
-"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%JAVA_BIN%" %JAVA_ARGS%  org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%JAVA_BIN%" -Xrs %JAVA_ARGS%  org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
 echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
 "%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out" --outputFile "%DIR_HOME%\logs\winservice.out"
 erase "%DIR_HOME%\logs\server.startingservice"

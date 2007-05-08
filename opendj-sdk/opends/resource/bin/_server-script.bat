@@ -38,6 +38,7 @@ goto checkJavaBin
 
 :noInvokeClass
 echo Error:  OPENDS_INVOKE_CLASS environment variable is not set.
+pause
 goto end
 
 :checkJavaBin
@@ -59,6 +60,7 @@ goto setClassPath
 :noSetJavaHome
 echo Error: JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 (or later) installation.
+pause
 goto end
 
 :setClassPath

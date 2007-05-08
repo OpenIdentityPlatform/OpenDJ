@@ -62,12 +62,14 @@ goto setClassPath
 echo Error: JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 (or later) installation.
 echo %SCRIPT%: JAVA_HOME environment variable is not set. >> %LOG%
+pause
 goto end
 
 :noValidJavaHome
 echo %SCRIPT%: The detected Java version could not be used. JAVA_HOME=[%JAVA_HOME%] >> %LOG%
 echo ERROR:  The detected Java version could not be used.  Please set 
 echo         JAVA_HOME to to a valid Java 5 (or later) installation.
+pause
 goto end
 
 :setClassPath
