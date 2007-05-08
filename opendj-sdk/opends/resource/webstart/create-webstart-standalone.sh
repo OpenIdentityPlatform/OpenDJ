@@ -204,7 +204,7 @@ cat > "${UPGRADE_JNLP_FILENAME}" <<ENDOFUPGRADEJNLP
 <jnlp spec="1.5+"
   codebase="${INSTALLER_URI}" href="${UPGRADE_JNLP_FILENAME}">
   <information>
-    <title>OpenDS Quick Setup Application</title>
+    <title>OpenDS Quick Upgrade Application</title>
     <vendor>http://www.opends.org/</vendor>
     <homepage href="http://www.opends.org"/>
     <description>OpenDS Quick Upgrade Application</description>
