@@ -53,7 +53,7 @@ PROCESS_INFORMATION* procInfo)
   STARTUPINFO startInfo; // info to pass to the new process
   DWORD processFlag; // background process flag
 
-  debug("Attempting to child process '%s' background=%d.", command, background);
+  debug("Attempting to create child process '%s' background=%d.", command, background);
 
   // reset process info first
   ZeroMemory(procInfo, sizeof(PROCESS_INFORMATION));
