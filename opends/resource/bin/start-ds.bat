@@ -30,7 +30,7 @@ setlocal
 set DIR_HOME=%~dP0..
 set INSTANCE_ROOT=%DIR_HOME%
 
-set LOG=%INSTANCE_ROOT%\logs\native-windows.out
+set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
 set SCRIPT=start-ds.bat
 
 echo %SCRIPT%: invoked >> %LOG%

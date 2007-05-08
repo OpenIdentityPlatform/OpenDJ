@@ -35,7 +35,7 @@ set DIR_HOME=%~dP0..
 
 set INSTANCE_ROOT=%DIR_HOME%
 
-set LOG=%INSTANCE_ROOT%\logs\native-windows.out
+set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
 set SCRIPT=stop-ds.bat
 
 rem This is the template to use for logging.  Make sure to use >>

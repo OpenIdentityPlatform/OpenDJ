@@ -662,10 +662,10 @@ ServiceReturnCode createServiceBinPath(char* serviceBinPath)
     }
     else
     {
-      if ((strlen(fileName) + strlen(" start ") + strlen(_instanceDir) + strlen("\"\""))
+      if ((strlen(fileName) + strlen(" start ") + strlen(_instanceDir) + 2 * strlen("\"\""))
         < COMMAND_SIZE)
       {
-        sprintf(serviceBinPath, "%s start \"%s\"", fileName,
+        sprintf(serviceBinPath, "\"%s\" start \"%s\"", fileName,
         _instanceDir);
       }
       else
