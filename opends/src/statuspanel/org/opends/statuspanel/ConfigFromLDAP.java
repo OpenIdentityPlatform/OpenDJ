@@ -29,7 +29,6 @@ package org.opends.statuspanel;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -204,25 +203,31 @@ public class ConfigFromLDAP
    */
   public HashSet<String> getAdministrativeUsers()
   {
-    return administrativeUsers;
+    HashSet<String> copy = new HashSet<String>();
+    copy.addAll(administrativeUsers);
+    return copy;
   }
 
   /**
-   * Returns the database descriptors found using LDAP.
-   * @return the database descriptors found using LDAP.
+   * Returns the database descriptors found in the config.ldif.
+   * @return the database descriptors found in the config.ldif.
    */
   public HashSet<DatabaseDescriptor> getDatabases()
   {
-    return databases;
+    HashSet<DatabaseDescriptor> copy = new HashSet<DatabaseDescriptor>();
+    copy.addAll(databases);
+    return copy;
   }
 
   /**
-   * Returns the listener descriptors found using LDAP.
-   * @return the listeners descriptors found using LDAP.
+   * Returns the listener descriptors found in the config.ldif.
+   * @return the listeners descriptors found in the config.ldif.
    */
   public HashSet<ListenerDescriptor> getListeners()
   {
-    return listeners;
+    HashSet<ListenerDescriptor> copy = new HashSet<ListenerDescriptor>();
+    copy.addAll(listeners);
+    return copy;
   }
 
   /**
@@ -794,22 +799,20 @@ public class ConfigFromLDAP
 
     if (!isConfigBackend(id))
     {
-      Set<String> baseDns = new TreeSet<String>();
-      baseDns.addAll(getValues(entry, "ds-cfg-backend-base-dn"));
-      Set<BaseDNDescriptor> replicas = new LinkedHashSet<BaseDNDescriptor>();
+      Set<String> baseDns = getValues(entry, "ds-cfg-backend-base-dn");
+      TreeSet<BaseDNDescriptor> replicas = new TreeSet<BaseDNDescriptor>();
       int nEntries = getEntryCount(ctx, id);
+
+      DatabaseDescriptor db = new DatabaseDescriptor(id, replicas, nEntries);
 
       for (String baseDn : baseDns)
       {
-        replicas.add(getBaseDNDescriptor(ctx, baseDn));
+        BaseDNDescriptor rep = getBaseDNDescriptor(ctx, baseDn);
+        rep.setDatabase(db);
+        db.getBaseDns().add(rep);
       }
 
-      DatabaseDescriptor db = new DatabaseDescriptor(id, replicas, nEntries);
       databases.add(db);
-      for (BaseDNDescriptor rep: replicas)
-      {
-        rep.setDatabase(db);
-      }
     }
   }
 

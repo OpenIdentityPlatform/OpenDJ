@@ -238,6 +238,11 @@ public class ServerStatusDescriptor
 
         if (equals)
         {
+          equals = desc.getListeners().equals(getListeners());
+        }
+
+        if (equals)
+        {
           equals = desc.getDatabases().equals(getDatabases());
         }
 
@@ -266,8 +271,7 @@ public class ServerStatusDescriptor
    */
   public int hashCode()
   {
-    return status.hashCode() + openConnections + databases.hashCode() +
-    listeners.hashCode() + administrativeUsers.hashCode() +
+    return status.hashCode() + openConnections +
     (String.valueOf(
         installPath+openDSVersion+javaVersion+errorMsg+isAuthenticated)).
         hashCode();

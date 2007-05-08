@@ -34,7 +34,7 @@ import org.opends.quicksetup.util.Utils;
  * used by the classes in the DatabasesTableModel class.
  *
  */
-public class BaseDNDescriptor
+public class BaseDNDescriptor implements Comparable
 {
   /**
    * An enumeration describing the type of base DN for a given Database.
@@ -102,7 +102,6 @@ public class BaseDNDescriptor
         getDatabase().getBackendID().equals(
             desc.getDatabase().getBackendID()) &&
         (getDatabase().getEntries() == desc.getDatabase().getEntries());
-
       }
     }
     else
@@ -118,8 +117,22 @@ public class BaseDNDescriptor
   public int hashCode()
   {
     return (getType().toString() + getAgeOfOldestMissingChange() + getDn() +
-        getMissingChanges()).hashCode();
+        getDatabase().getBackendID() + getMissingChanges()).hashCode();
   }
+  /**
+   * {@inheritDoc}
+   */
+  public int compareTo(Object o)
+  {
+    int returnValue = -1;
+    if (o instanceof BaseDNDescriptor)
+    {
+      BaseDNDescriptor desc = (BaseDNDescriptor)o;
+      returnValue = desc.getDn().compareTo(getDn());
+    }
+    return returnValue;
+  }
+
 
   /**
    * Returns the number of missing changes in the replication topology for

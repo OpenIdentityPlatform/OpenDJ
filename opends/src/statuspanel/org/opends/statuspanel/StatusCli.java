@@ -719,7 +719,7 @@ class StatusCli
     }
     else
     {
-      DatabasesTableModel databasesTableModel = new DatabasesTableModel();
+      DatabasesTableModel databasesTableModel = new DatabasesTableModel(true);
       Set<BaseDNDescriptor> replicas = new HashSet<BaseDNDescriptor>();
       Set<DatabaseDescriptor> dbs = desc.getDatabases();
       for (DatabaseDescriptor db: dbs)
