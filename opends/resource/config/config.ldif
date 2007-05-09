@@ -521,7 +521,7 @@ objectClass: ds-cfg-access-logger
 objectClass: ds-cfg-file-based-access-logger
 cn: File-Based Audit Logger
 ds-cfg-logger-class: org.opends.server.loggers.TextAuditLogPublisher
-ds-cfg-logger-enabled: true
+ds-cfg-logger-enabled: false
 ds-cfg-log-file: logs/audit
 ds-cfg-log-file-mode: 640
 ds-cfg-suppress-internal-operations: true

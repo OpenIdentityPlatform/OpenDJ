@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AbandonOperation;
@@ -44,20 +46,16 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.UnbindOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-import static org.opends.server.util.StaticUtils.getFileForPath;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
+import static org.opends.server.util.StaticUtils.*;
 
 
 /**
@@ -73,13 +71,14 @@ public class TextAuditLogPublisher
   private FileBasedAccessLogPublisherCfg currentConfig;
 
 
-    /**
+  /**
    * {@inheritDoc}
    */
+  @Override()
   public void initializeAccessLogPublisher(
         FileBasedAccessLogPublisherCfg config)
       throws ConfigException, InitializationException
-    {
+  {
     File logFile = getFileForPath(config.getLogFile());
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
@@ -173,6 +172,8 @@ public class TextAuditLogPublisher
 
     config.addFileBasedAccessChangeListener(this);
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -366,6 +367,7 @@ public class TextAuditLogPublisher
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void close()
   {
     writer.shutdown();
@@ -373,28 +375,21 @@ public class TextAuditLogPublisher
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about a new client
-   * connection that has been established, regardless of whether it will be
-   * immediately terminated.
-   *
-   * @param  clientConnection  The client connection that has been established.
+   * {@inheritDoc}
    */
+  @Override()
   public void logConnect(ClientConnection clientConnection)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the
-   * termination of an existing client connection.
-   *
-   * @param  clientConnection  The client connection that has been terminated.
-   * @param  disconnectReason  A generic disconnect reason for the connection
-   *                           termination.
-   * @param  message           A human-readable message that can provide
-   *                           additional information about the disconnect.
+   * {@inheritDoc}
    */
+  @Override()
   public void logDisconnect(ClientConnection clientConnection,
                             DisconnectReason disconnectReason,
                             String message)
@@ -404,48 +399,39 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Writes a message to the audit logger with information about the abandon
-   * request associated with the provided abandon operation.
-   *
-   * @param  abandonOperation  The abandon operation containing the information
-   *                           to use to log the abandon request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logAbandonRequest(AbandonOperation abandonOperation)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the result
-   * of the provided abandon operation.
-   *
-   * @param  abandonOperation  The abandon operation containing the information
-   *                           to use to log the abandon request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logAbandonResult(AbandonOperation abandonOperation)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the add
-   * request associated with the provided add operation.
-   *
-   * @param  addOperation  The add operation containing the information to use
-   *                       to log the add request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logAddRequest(AddOperation addOperation)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the add
-   * response associated with the provided add operation.
-   *
-   * @param  addOperation  The add operation containing the information to use
-   *                       to log the add response.
+   * {@inheritDoc}
    */
+  @Override()
   public void logAddResponse(AddOperation addOperation)
   {
     long connectionID = addOperation.getConnectionID();
@@ -457,38 +443,53 @@ public class TextAuditLogPublisher
 
     if(code == SUCCESS)
     {
-      StringBuilder buffer = new StringBuilder(50);
-      buffer.append("[");
-      buffer.append(TimeThread.getLocalTime());
-      buffer.append("]");
-      buffer.append("dn:");
-      ByteString dnString = addOperation.getRawEntryDN();
-      encodeValue(dnString, buffer);
+      Entry entry = addOperation.getEntryToAdd();
 
+      StringBuilder buffer = new StringBuilder(50);
+      buffer.append("# ");
+      buffer.append(TimeThread.getLocalTime());
       buffer.append(EOL);
+
+      buffer.append("dn:");
+      encodeValue(entry.getDN().toString(), buffer);
+      buffer.append(EOL);
+
       buffer.append("changetype: add");
       buffer.append(EOL);
-      List<RawAttribute> rawAttributes = addOperation.getRawAttributes();
-      for (RawAttribute attr : rawAttributes)
+
+      for (String ocName : entry.getObjectClasses().values())
       {
-        buffer.append(attr.getAttributeType());
-        buffer.append(":");
-        List<ASN1OctetString> values = attr.getValues();
-        if (!values.isEmpty())
+        buffer.append("objectClass: ");
+        buffer.append(ocName);
+        buffer.append(EOL);
+      }
+
+      for (List<Attribute> attrList : entry.getUserAttributes().values())
+      {
+        for (Attribute a : attrList)
         {
-          Iterator<ASN1OctetString> iterator = values.iterator();
-          ASN1OctetString nextString = iterator.next();
-          encodeValue(nextString, buffer);
-          while (iterator.hasNext())
+          for (AttributeValue v : a.getValues())
           {
-            buffer.append(EOL);
-            buffer.append(attr.getAttributeType());
+            buffer.append(a.getName());
             buffer.append(":");
-            nextString = iterator.next();
-            encodeValue(nextString, buffer);
+            encodeValue(v.getValue(), buffer);
+            buffer.append(EOL);
           }
         }
-        buffer.append(EOL);
+      }
+
+      for (List<Attribute> attrList : entry.getOperationalAttributes().values())
+      {
+        for (Attribute a : attrList)
+        {
+          for (AttributeValue v : a.getValues())
+          {
+            buffer.append(a.getName());
+            buffer.append(":");
+            encodeValue(v.getValue(), buffer);
+            buffer.append(EOL);
+          }
+        }
       }
 
       writer.writeRecord(buffer.toString());
@@ -498,72 +499,59 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Writes a message to the audit logger with information about the bind
-   * request associated with the provided bind operation.
-   *
-   * @param  bindOperation  The bind operation with the information to use
-   *                        to log the bind request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logBindRequest(BindOperation bindOperation)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the bind
-   * response associated with the provided bind operation.
-   *
-   * @param  bindOperation  The bind operation containing the information to use
-   *                        to log the bind response.
+   * {@inheritDoc}
    */
+  @Override()
   public void logBindResponse(BindOperation bindOperation)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the compare
-   * request associated with the provided compare operation.
-   *
-   * @param  compareOperation  The compare operation containing the information
-   *                           to use to log the compare request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logCompareRequest(CompareOperation compareOperation)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the compare
-   * response associated with the provided compare operation.
-   *
-   * @param  compareOperation  The compare operation containing the information
-   *                           to use to log the compare response.
+   * {@inheritDoc}
    */
+  @Override()
   public void logCompareResponse(CompareOperation compareOperation)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the delete
-   * request associated with the provided delete operation.
-   *
-   * @param  deleteOperation  The delete operation with the information to
-   *                          use to log the delete request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logDeleteRequest(DeleteOperation deleteOperation)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the delete
-   * response associated with the provided delete operation.
-   *
-   * @param  deleteOperation The delete operation containing the information to
-   *                           use to log the delete response.
+   * {@inheritDoc}
    */
+  @Override()
   public void logDeleteResponse(DeleteOperation deleteOperation)
   {
     long connectionID = deleteOperation.getConnectionID();
@@ -575,16 +563,18 @@ public class TextAuditLogPublisher
 
     if(code == SUCCESS)
     {
+      Entry entry = deleteOperation.getEntryToDelete();
+
       StringBuilder buffer = new StringBuilder(50);
-      buffer.append("[");
+      buffer.append("# ");
       buffer.append(TimeThread.getLocalTime());
-      buffer.append("]");
+      buffer.append(EOL);
+
       buffer.append("dn:");
-      ByteString dnString = deleteOperation.getRawEntryDN();
-      encodeValue(dnString, buffer);
+      encodeValue(entry.getDN().toString(), buffer);
       buffer.append(EOL);
+
       buffer.append("changetype: delete");
-      buffer.append(EOL);
       buffer.append(EOL);
 
       writer.writeRecord(buffer.toString());
@@ -595,12 +585,9 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Writes a message to the audit logger with information about the extended
-   * request associated with the provided extended operation.
-   *
-   * @param  extendedOperation  The extended operation containing the
-   *                            information to use to log the extended request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logExtendedRequest(ExtendedOperation extendedOperation)
   {
   }
@@ -608,12 +595,9 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Writes a message to the audit logger with information about the extended
-   * response associated with the provided extended operation.
-   *
-   * @param  extendedOperation  The extended operation containing the
-   *                            info to use to log the extended response.
+   * {@inheritDoc}
    */
+  @Override()
   public void logExtendedResponse(ExtendedOperation extendedOperation)
   {
   }
@@ -621,12 +605,9 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Writes a message to the audit logger with information about the modify
-   * request associated with the provided modify operation.
-   *
-   * @param  modifyOperation The modify operation containing the information to
-   *                         use to log the modify request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logModifyRequest(ModifyOperation modifyOperation)
   {
   }
@@ -634,12 +615,9 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Writes a message to the audit logger with information about the modify
-   * response associated with the provided modify operation.
-   *
-   * @param  modifyOperation The modify operation containing the information to
-   *                         use to log the modify response.
+   * {@inheritDoc}
    */
+  @Override()
   public void logModifyResponse(ModifyOperation modifyOperation)
   {
     long connectionID = modifyOperation.getConnectionID();
@@ -651,23 +629,34 @@ public class TextAuditLogPublisher
 
     if(code == SUCCESS)
     {
+      Entry entry = modifyOperation.getModifiedEntry();
+
       StringBuilder buffer = new StringBuilder(50);
-      buffer.append("[");
+      buffer.append("# ");
       buffer.append(TimeThread.getLocalTime());
-      buffer.append("]");
-      buffer.append("dn:");
-      ByteString dnString = modifyOperation.getRawEntryDN();
-      encodeValue(dnString, buffer);
       buffer.append(EOL);
+
+      buffer.append("dn:");
+      encodeValue(entry.getDN().toString(), buffer);
+      buffer.append(EOL);
+
       buffer.append("changetype: modify");
       buffer.append(EOL);
-      List<RawModification> modifications =
-          modifyOperation.getRawModifications();
-      for (RawModification modification : modifications)
+
+      boolean first = true;
+      for (Modification mod : modifyOperation.getModifications())
       {
-        ModificationType modType = modification.getModificationType();
-        RawAttribute attr = modification.getAttribute();
-        switch (modType)
+        if (first)
+        {
+          first = false;
+        }
+        else
+        {
+          buffer.append("-");
+          buffer.append(EOL);
+        }
+
+        switch (mod.getModificationType())
         {
           case ADD:
             buffer.append("add: ");
@@ -678,29 +667,25 @@ public class TextAuditLogPublisher
           case REPLACE:
             buffer.append("replace: ");
             break;
-          default:
+          case INCREMENT:
+            buffer.append("increment: ");
             break;
+          default:
+            continue;
         }
-        buffer.append(attr.getAttributeType());
-        List<ASN1OctetString> values = attr.getValues();
-        if (!values.isEmpty())
-        {
-          Iterator<ASN1OctetString> iterator = values.iterator();
-          ASN1OctetString nextString = iterator.next();
-          encodeValue(nextString, buffer);
-          while (iterator.hasNext())
-          {
-            buffer.append(EOL);
-            buffer.append(attr.getAttributeType());
-            buffer.append(":");
-            nextString = iterator.next();
-            encodeValue(nextString, buffer);
-          }
-        }
-        buffer.append(EOL);
-      }
 
-      buffer.append(EOL);
+        Attribute a = mod.getAttribute();
+        buffer.append(a.getName());
+        buffer.append(EOL);
+
+        for (AttributeValue v : a.getValues())
+        {
+          buffer.append(a.getName());
+          buffer.append(":");
+          encodeValue(v.getValue(), buffer);
+          buffer.append(EOL);
+        }
+      }
 
       writer.writeRecord(buffer.toString());
     }
@@ -709,12 +694,9 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Writes a message to the audit logger with information about the modify DN
-   * request associated with the provided modify DN operation.
-   *
-   * @param  modifyDNOperation  The modify DN operation containing the
-   *                            info to use to log the modify DN request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
   {
   }
@@ -722,13 +704,9 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Writes a message to the audit logger with information about the modify DN
-   * response associated with the provided modify DN operation.
-   *
-   * @param  modifyDNOperation  The modify DN operation containing the
-   *                            information to use to log the modify DN
-   *                            response.
+   * {@inheritDoc}
    */
+  @Override()
   public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
     long connectionID = modifyDNOperation.getConnectionID();
@@ -741,19 +719,21 @@ public class TextAuditLogPublisher
     if(code == SUCCESS)
     {
       StringBuilder buffer = new StringBuilder(50);
-      buffer.append("[");
+      buffer.append("# ");
       buffer.append(TimeThread.getLocalTime());
-      buffer.append("]");
-      buffer.append("dn:");
-      ByteString dnString = modifyDNOperation.getRawEntryDN();
-      encodeValue(dnString, buffer);
       buffer.append(EOL);
+
+      buffer.append("dn:");
+      encodeValue(modifyDNOperation.getEntryDN().toString(), buffer);
+      buffer.append(EOL);
+
       buffer.append("changetype: moddn");
       buffer.append(EOL);
-      buffer.append("newrdn: ");
-      ByteString newrdnString = modifyDNOperation.getRawNewRDN();
-      encodeValue(newrdnString, buffer);
+
+      buffer.append("newrdn:");
+      encodeValue(modifyDNOperation.getNewRDN().toString(), buffer);
       buffer.append(EOL);
+
       buffer.append("deleteoldrdn: ");
       if (modifyDNOperation.deleteOldRDN())
       {
@@ -764,57 +744,46 @@ public class TextAuditLogPublisher
         buffer.append("0");
       }
       buffer.append(EOL);
-      if (modifyDNOperation.getRawNewSuperior() != null)
+
+      DN newSuperior = modifyDNOperation.getNewSuperior();
+      if (newSuperior != null)
       {
-        buffer.append("newsuperior: ");
-        ByteString newSuperior = modifyDNOperation.getRawNewSuperior();
-        encodeValue(newSuperior, buffer);
+        buffer.append("newsuperior:");
+        encodeValue(newSuperior.toString(), buffer);
         buffer.append(EOL);
       }
-
-      buffer.append(EOL);
 
       writer.writeRecord(buffer.toString());
     }
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the search
-   * request associated with the provided search operation.
-   *
-   * @param  searchOperation  The search operation containing the info to
-   *                          use to log the search request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logSearchRequest(SearchOperation searchOperation)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the search
-   * result entry that matches the criteria associated with the provided search
-   * operation.
-   *
-   * @param  searchOperation  The search operation with which the search result
-   *                          entry is associated.
-   * @param  searchEntry      The search result entry to be logged.
+   * {@inheritDoc}
    */
+  @Override()
   public void logSearchResultEntry(SearchOperation searchOperation,
                                      SearchResultEntry searchEntry)
   {
   }
 
 
+
   /**
-   * Writes a message to the audit logger with information about the search
-   * result reference returned while processing the associated search
-   * operation.
-   *
-   * @param  searchOperation  The search operation with which the search result
-   *                          reference is associated.
-   * @param  searchReference  The search result reference to be logged.
+   * {@inheritDoc}
    */
+  @Override()
   public void logSearchResultReference(SearchOperation searchOperation,
                             SearchResultReference searchReference)
   {
@@ -823,12 +792,9 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Writes a message to the audit logger with information about the
-   * completion of the provided search operation.
-   *
-   * @param  searchOperation  The search operation containing the information
-   *                          to use to log the search result done message.
+   * {@inheritDoc}
    */
+  @Override()
   public void logSearchResultDone(SearchOperation searchOperation)
   {
   }
@@ -836,15 +802,13 @@ public class TextAuditLogPublisher
 
 
   /**
-   * Writes a message to the audit logger with information about the unbind
-   * request associated with the provided unbind operation.
-   *
-   * @param  unbindOperation  The unbind operation containing the info to
-   *                          use to log the unbind request.
+   * {@inheritDoc}
    */
+  @Override()
   public void logUnbind(UnbindOperation unbindOperation)
   {
   }
+
 
 
   /**
@@ -864,6 +828,27 @@ public class TextAuditLogPublisher
       {
         buffer.append(" ");
         str.toString(buffer);
+      }
+  }
+
+
+
+  /**
+   * Appends the appropriately-encoded attribute value to the provided buffer.
+   *
+   * @param  str     The string containing the value to append.
+   * @param  buffer  The buffer to which to append the value.
+   */
+  private void encodeValue(String str, StringBuilder buffer)
+  {
+      if(StaticUtils.needsBase64Encoding(str))
+      {
+        buffer.append(": ");
+        buffer.append(Base64.encode(getBytes(str)));
+      } else
+      {
+        buffer.append(" ");
+        buffer.append(str);
       }
   }
 }
