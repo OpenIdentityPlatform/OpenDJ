@@ -83,19 +83,7 @@ public class DSMLExtendedOperation
     throws IOException, LDAPException, ASN1Exception
   {
     ExtendedResponse extendedResponse = objFactory.createExtendedResponse();
-
-    String requestID = extendedRequest.getRequestID();
-    int reqID = 1;
-    try
-    {
-      reqID = Integer.parseInt(requestID);
-    } catch (NumberFormatException nfe)
-    {
-      throw new IOException(nfe.getMessage());
-    }
-
-    // Set the response id.
-    extendedResponse.setRequestID(requestID);
+    extendedResponse.setRequestID(extendedRequest.getRequestID());
 
     String requestName = extendedRequest.getRequestName();
     Object value = extendedRequest.getRequestValue();
@@ -103,7 +91,7 @@ public class DSMLExtendedOperation
 
     // Create and send the LDAP request to the server.
     ProtocolOp op = new ExtendedRequestProtocolOp(requestName, asnValue);
-    LDAPMessage msg = new LDAPMessage(reqID, op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
     int numBytes = connection.getASN1Writer().writeElement(msg.encode());
 
     // Read and decode the LDAP response from the server.

@@ -85,24 +85,12 @@ public class DSMLDeleteOperation
     throws IOException, LDAPException, ASN1Exception
   {
     LDAPResult delResponse = objFactory.createLDAPResult();
-
-    String requestID = deleteRequest.getRequestID();
-    int reqID = 1;
-    try
-    {
-      reqID = Integer.parseInt(requestID);
-    } catch (NumberFormatException nfe)
-    {
-      throw new IOException(nfe.getMessage());
-    }
-
-    // Set the response id.
-    delResponse.setRequestID(requestID);
+    delResponse.setRequestID(deleteRequest.getRequestID());
 
     // Create and send the LDAP delete request to the server.
     ASN1OctetString dnStr = new ASN1OctetString(deleteRequest.getDn());
     ProtocolOp op = new DeleteRequestProtocolOp(dnStr);
-    LDAPMessage msg = new LDAPMessage(reqID, op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
     int numBytes = connection.getASN1Writer().writeElement(msg.encode());
 
     // Read and decode the LDAP response from the server.

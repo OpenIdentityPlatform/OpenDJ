@@ -93,18 +93,7 @@ public class DSMLSearchOperation
          throws IOException, LDAPException
   {
     SearchResponse searchResponse = objFactory.createSearchResponse();
-
-    String requestID = searchRequest.getRequestID();
-    int reqID = 1;
-    try
-    {
-      reqID = Integer.parseInt(requestID);
-    } catch (NumberFormatException nfe)
-    {
-      throw new IOException(nfe.getMessage());
-    }
-
-    searchResponse.setRequestID(requestID);
+    searchResponse.setRequestID(searchRequest.getRequestID());
 
     ArrayList<LDAPFilter> filters = new ArrayList<LDAPFilter> ();
     LDAPFilter f = null;
@@ -124,12 +113,27 @@ public class DSMLSearchOperation
     {
       filters.add(f);
     }
-    DereferencePolicy derefPolicy = DereferencePolicy.DEREF_IN_SEARCHING;
+    DereferencePolicy derefPolicy = DereferencePolicy.NEVER_DEREF_ALIASES;
+    String derefStr = searchRequest.getDerefAliases().toLowerCase();
+    if (derefStr.equals("derefinsearching"))
+    {
+      derefPolicy = DereferencePolicy.DEREF_IN_SEARCHING;
+    }
+    else if (derefStr.equals("dereffindingbaseobj"))
+    {
+      derefPolicy = DereferencePolicy.DEREF_FINDING_BASE_OBJECT;
+    }
+    else if (derefStr.equals("derefalways"))
+    {
+      derefPolicy = DereferencePolicy.DEREF_ALWAYS;
+    }
+
     SearchScope scope = SearchScope.WHOLE_SUBTREE;
-    if(searchRequest.getScope().equals("singleLevel"))
+    String scopeStr = searchRequest.getScope().toLowerCase();
+    if(scopeStr.equals("singlelevel") || scopeStr.equals("one"))
     {
       scope = SearchScope.SINGLE_LEVEL;
-    } else if(searchRequest.getScope().equals("baseObject"))
+    } else if(scopeStr.equals("baseobject") || scopeStr.equals("base"))
     {
       scope = SearchScope.BASE_OBJECT;
     }
@@ -157,7 +161,8 @@ public class DSMLSearchOperation
           false, filter, attributes);
       try
       {
-        LDAPMessage msg = new LDAPMessage(reqID, protocolOp);
+        LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(),
+                                          protocolOp);
         int numBytes = connection.getASN1Writer().writeElement(msg.encode());
 
         byte opType;
@@ -250,8 +255,6 @@ public class DSMLSearchOperation
         ae.printStackTrace();
         throw new IOException(ae.getMessage());
       }
-
-      reqID++;
     }
     return searchResponse;
   }

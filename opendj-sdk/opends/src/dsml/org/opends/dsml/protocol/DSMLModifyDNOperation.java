@@ -84,17 +84,7 @@ public class DSMLModifyDNOperation
     throws IOException, LDAPException, ASN1Exception
   {
     LDAPResult modDNResponse = objFactory.createLDAPResult();
-
-    String requestID = modifyDNRequest.getRequestID();
-    int reqID = 1;
-    try
-    {
-      reqID = Integer.parseInt(requestID);
-    } catch (NumberFormatException nfe)
-    {
-      throw new IOException(nfe.getMessage());
-    }
-    modDNResponse.setRequestID(requestID);
+    modDNResponse.setRequestID(modifyDNRequest.getRequestID());
 
     ASN1OctetString dnStr = new ASN1OctetString(modifyDNRequest.getDn());
 
@@ -114,7 +104,7 @@ public class DSMLModifyDNOperation
     }
 
     // Create and send the LDAP request to the server.
-    LDAPMessage msg = new LDAPMessage(reqID, op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
     int numBytes = connection.getASN1Writer().writeElement(msg.encode());
 
     // Read and decode the LDAP response from the server.
