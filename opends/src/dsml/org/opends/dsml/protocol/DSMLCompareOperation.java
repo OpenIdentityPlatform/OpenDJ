@@ -83,25 +83,7 @@ public class DSMLCompareOperation
     throws IOException, LDAPException, ASN1Exception
   {
     LDAPResult compareResponse = objFactory.createLDAPResult();
-
-    String requestID = compareRequest.getRequestID();
-    int reqID = 1;
-    try
-    {
-      if(requestID != null)
-      {
-        reqID = Integer.parseInt(requestID);
-      }
-    } catch (NumberFormatException nfe)
-    {
-      throw new IOException(nfe.getMessage());
-    }
-
-    // Set the response id.
-    if(requestID != null)
-    {
-      compareResponse.setRequestID(requestID);
-    }
+    compareResponse.setRequestID(compareRequest.getRequestID());
 
     // Read the attribute name and value for the compare request.
     AttributeValueAssertion attrValAssertion = compareRequest.getAssertion();
@@ -113,7 +95,7 @@ public class DSMLCompareOperation
 
     // Create and send the LDAP compare request to the server.
     ProtocolOp op = new CompareRequestProtocolOp(dnStr, attrName, attrValue);
-    LDAPMessage msg = new LDAPMessage(reqID, op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
     int numBytes = connection.getASN1Writer().writeElement(msg.encode());
 
     // Read and decode the LDAP response from the server.

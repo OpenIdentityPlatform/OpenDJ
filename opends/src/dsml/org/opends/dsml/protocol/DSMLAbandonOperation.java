@@ -70,18 +70,8 @@ public class DSMLAbandonOperation
   {
     LDAPResult abandonResponse = objFactory.createLDAPResult();
 
-    String requestID = abandonRequest.getRequestID();
-    int reqID = 0;
-    try
-    {
-      reqID = Integer.parseInt(requestID);
-    } catch (NumberFormatException nfe)
-    {
-      throw new IOException(nfe.getMessage());
-    }
-
     // Set the id for the response.
-    abandonResponse.setRequestID(requestID);
+    abandonResponse.setRequestID(abandonRequest.getRequestID());
 
     String abandonIdStr = abandonRequest.getAbandonID();
     int abandonId = 0;
@@ -95,7 +85,7 @@ public class DSMLAbandonOperation
 
     // Create and send an LDAP request to the server.
     ProtocolOp op = new AbandonRequestProtocolOp(abandonId);
-    LDAPMessage msg = new LDAPMessage(reqID, op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
     int numBytes = connection.getASN1Writer().writeElement(msg.encode());
 
     return abandonResponse;

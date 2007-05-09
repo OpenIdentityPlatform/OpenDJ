@@ -65,6 +65,7 @@ public class DSMLServlet extends HttpServlet {
   private static final String PORT = "ldap.port";
   private static final String HOST = "ldap.host";
   private static final long serialVersionUID = -3748022009593442973L;
+  private static final AtomicInteger nextMessageID = new AtomicInteger(1);
 
   private Unmarshaller unmarshaller;
   private Marshaller marshaller;
@@ -303,7 +304,7 @@ public class DSMLServlet extends HttpServlet {
       }
     } finally {
       if (connection != null) {
-        connection.close(new AtomicInteger(1));
+        connection.close(nextMessageID);
       }
     }
   }
@@ -346,6 +347,26 @@ public class DSMLServlet extends HttpServlet {
     OutputStream os = res.getOutputStream();
     reply.writeTo(os);
     os.flush();
+  }
+
+
+
+  /**
+   * Retrieves a message ID that may be used for the next LDAP message sent to
+   * the Directory Server.
+   *
+   * @return  A message ID that may be used for the next LDAP message sent to
+   *          the Directory Server.
+   */
+  public static int nextMessageID()
+  {
+    int nextID = nextMessageID.getAndIncrement();
+    if (nextID == Integer.MAX_VALUE)
+    {
+      nextMessageID.set(1);
+    }
+
+    return nextID;
   }
 }
 

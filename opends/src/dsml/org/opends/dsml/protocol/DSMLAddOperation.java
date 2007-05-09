@@ -85,19 +85,7 @@ public class DSMLAddOperation
     throws IOException, LDAPException, ASN1Exception
   {
     LDAPResult addResponse = objFactory.createLDAPResult();
-
-    String requestID = addRequest.getRequestID();
-    int reqID = 1;
-    try
-    {
-      reqID = Integer.parseInt(requestID);
-    } catch (NumberFormatException nfe)
-    {
-      throw new IOException(nfe.getMessage());
-    }
-
-    // Set the response id.
-    addResponse.setRequestID(requestID);
+    addResponse.setRequestID(addRequest.getRequestID());
 
     ASN1OctetString dnStr = new ASN1OctetString(addRequest.getDn());
     ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
@@ -117,7 +105,7 @@ public class DSMLAddOperation
 
     // Create and send the LDAP request to the server.
     ProtocolOp op = new AddRequestProtocolOp(dnStr, attributes);
-    LDAPMessage msg = new LDAPMessage(reqID, op);
+    LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
     int numBytes = connection.getASN1Writer().writeElement(msg.encode());
 
     // Read and decode the LDAP response from the server.
