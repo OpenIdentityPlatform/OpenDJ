@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AWTTestScript>
+  <component class="org.opends.quicksetup.ui.ButtonsPanel" id="ButtonsPanel Instance" index="3" parent="FramePanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JButton" id="Close" index="2" parent="JPanel Instance 2" text="Close" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JDialog" id="Confirmation Required" parent="OpenDS QuickSetup" title="Confirmation Required" />
+  <component class="org.opends.quicksetup.ui.CurrentStepPanel" id="CurrentStepPanel Instance" index="0" parent="JPanel Instance 5" window="OpenDS QuickSetup" />
+  <component class="org.opends.quicksetup.installer.ui.DataOptionsPanel" id="DataOptionsPanel Instance" index="4" parent="CurrentStepPanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JButton" id="Finish" index="1" parent="JPanel Instance 4" text="Finish" window="OpenDS QuickSetup" />
+  <component class="org.opends.quicksetup.ui.FramePanel" id="FramePanel Instance" index="0" parent="JPanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JRadioButton" id="Import Automatically-Generated Example Data" index="4" parent="JPanel Instance 10" text="Import Automatically-Generated Example Data" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JEditorPane" id="JEditorPane Instance" index="0" parent="JPanel Instance 12" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JLayeredPane" id="JLayeredPane Instance" index="1" parent="JRootPane Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JLayeredPane" id="JLayeredPane Instance 2" index="1" parent="JRootPane Instance 2" window="Confirmation Required" />
+  <component class="javax.swing.JOptionPane" id="JOptionPane Instance" index="0" parent="JPanel Instance 3" window="Confirmation Required" />
+  <component class="javax.swing.JPanel" id="JPanel Instance" index="0" parent="JLayeredPane Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 10" index="3" parent="JPanel Instance 9" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 11" index="5" parent="JPanel Instance 10" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 12" index="1" parent="ProgressPanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 2" index="3" parent="ButtonsPanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 3" index="0" parent="JLayeredPane Instance 2" window="Confirmation Required" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 4" index="1" parent="ButtonsPanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 5" index="1" parent="FramePanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 6" index="2" parent="ServerSettingsPanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 7" index="7" parent="JPanel Instance 6" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 8" index="9" parent="JPanel Instance 6" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPanel" id="JPanel Instance 9" index="2" parent="DataOptionsPanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JRootPane" id="JRootPane Instance" index="0" parent="OpenDS QuickSetup" />
+  <component class="javax.swing.JRootPane" id="JRootPane Instance 2" index="0" parent="Confirmation Required" />
+  <component class="javax.swing.JButton" id="Next &gt;" index="0" parent="JPanel Instance 4" text="Next &gt;" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JTextField" id="Number of User Entries:" index="1" label="Number of User Entries:" parent="JPanel Instance 11" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JFrame" id="OpenDS QuickSetup" root="true" title="OpenDS QuickSetup" />
+  <component class="javax.swing.JButton" id="OptionPane.button" index="0" name="OptionPane.button" parent="OptionPane.buttonArea" text="Yes" window="Confirmation Required" />
+  <component class="javax.swing.JPanel" id="OptionPane.buttonArea" index="1" name="OptionPane.buttonArea" parent="JOptionPane Instance" window="Confirmation Required" />
+  <component class="javax.swing.JPasswordField" id="Password (confirm):" index="0" label="Password (confirm):" parent="JPanel Instance 8" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JPasswordField" id="Password:" index="0" label="Password:" parent="JPanel Instance 7" window="OpenDS QuickSetup" />
+  <component class="org.opends.quicksetup.ui.ProgressPanel" id="ProgressPanel Instance" index="1" parent="CurrentStepPanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JButton" id="Quit" index="1" parent="JPanel Instance 2" text="Quit" window="OpenDS QuickSetup" />
+  <component class="org.opends.quicksetup.installer.ui.ServerSettingsPanel" id="ServerSettingsPanel Instance" index="3" parent="CurrentStepPanel Instance" window="OpenDS QuickSetup" />
+  <component class="javax.swing.JButton" id="Uninstall" index="3" parent="ButtonsPanel Instance" text="Uninstall" window="OpenDS QuickSetup" />
+  <launch args="[]" class="org.opends.quicksetup.uninstaller.UninstallLauncher" classpath=".:${instance.path}/classes:${instance.path}/lib/activation.jar:${instance.path}/lib/aspectjrt.jar:${instance.path}/lib/je.jar:${instance.path}/lib/mail.jar:${instance.path}/lib/OpenDS.jar:${instance.path}/lib/quicksetup.jar:${instance.path}/lib/statuspanel.jar" desc="Launch org.opends.quicksetup.uninstaller.UninstallLauncher" method="main" />
+  <sequence>
+    <action args="Uninstall" class="javax.swing.AbstractButton" method="actionClick" />
+    <wait args="Confirmation Required" class="abbot.tester.ComponentTester" method="assertComponentShowing" />
+    <action args="OptionPane.button" class="javax.swing.AbstractButton" method="actionClick" />
+    <wait args="Confirmation Required" class="abbot.tester.ComponentTester" invert="true" method="assertComponentShowing" />
+    <action args="20000" method="actionDelay" />
+    <expression><![CDATA[assertTrue("Uninstall failed", component("JEditorPane Instance").getText().contains("Completed Successfully") )]]></expression>
+    <action args="Close" class="javax.swing.AbstractButton" method="actionClick" />
+  </sequence>
+  <terminate />
+</AWTTestScript>
+
