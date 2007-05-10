@@ -30,6 +30,7 @@ package org.opends.quicksetup.upgrader.ui;
 import org.opends.quicksetup.ui.ReviewPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.LabelFieldDescriptor;
+import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.upgrader.Upgrader;
 import org.opends.quicksetup.upgrader.UpgradeUserData;
 import org.opends.quicksetup.upgrader.Build;
@@ -85,8 +86,18 @@ public class UpgraderReviewPanel extends ReviewPanel {
   /**
    * {@inheritDoc}
    */
-  public boolean blockingBeginDisplay()
-  {
+  public Object getFieldValue(FieldName fieldName) {
+    Object value = null;
+    if (fieldName == FieldName.SERVER_START) {
+      value = getCheckBox().isSelected();
+    }
+    return value;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean blockingBeginDisplay() {
     return true;
   }
 

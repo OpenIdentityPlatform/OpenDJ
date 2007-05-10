@@ -267,7 +267,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
-  public void finishClicked(final WizardStep cStep, final QuickSetup qs) {
+  public boolean finishClicked(final WizardStep cStep, final QuickSetup qs) {
     if (cStep == Step.REVIEW) {
         updateUserDataForReviewPanel(qs);
         qs.launch();
@@ -276,6 +276,8 @@ public abstract class Installer extends GuiApplication {
         throw new IllegalStateException(
                 "Cannot click on finish when we are not in the Review window");
     }
+    // Installer responsible for updating the user data and launching
+    return false;
   }
 
   /**
