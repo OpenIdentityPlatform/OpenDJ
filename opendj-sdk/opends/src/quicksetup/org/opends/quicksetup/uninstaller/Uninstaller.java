@@ -253,21 +253,21 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public String getCloseButtonToolTip() {
+  public String getCloseButtonToolTipKey() {
     return "close-button-uninstall-tooltip";
   }
 
   /**
    * {@inheritDoc}
    */
-  public String getFinishButtonToolTip() {
+  public String getFinishButtonToolTipKey() {
     return "finish-button-uninstall-tooltip";
   }
 
   /**
    * {@inheritDoc}
    */
-  public String getFinishButtonLabel() {
+  public String getFinishButtonLabelKey() {
     return "finish-button-uninstall-label";
   }
 
@@ -616,6 +616,16 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   public String getSummary(ProgressStep step) {
     return hmSummary.get(step);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isFinished() {
+    return getCurrentProgressStep() ==
+            UninstallProgressStep.FINISHED_SUCCESSFULLY
+    || getCurrentProgressStep() ==
+            UninstallProgressStep.FINISHED_WITH_ERROR;
   }
 
   /**

@@ -28,6 +28,7 @@
 package org.opends.quicksetup;
 
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.i18n.ResourceProvider;
 
 import java.util.HashMap;
 import java.util.List;
@@ -163,7 +164,18 @@ public class BuildInformation implements Comparable {
    * {@inheritDoc}
    */
   public String toString() {
-    return getName() + " rev=" + getRevisionNumber();
+    StringBuilder sb = new StringBuilder();
+    sb.append(getName());
+    String id = getBuildId();
+    if (id != null) {
+      sb.append(" (")
+              .append(ResourceProvider.getInstance().
+                      getMsg("general-build-id"))
+              .append(": ")
+              .append(id)
+              .append(")");
+    }
+    return sb.toString();
   }
 
   /**

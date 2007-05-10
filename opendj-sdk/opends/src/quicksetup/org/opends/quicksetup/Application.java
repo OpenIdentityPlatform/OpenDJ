@@ -523,10 +523,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return <CODE>true</CODE> if the install is finished or <CODE>false
    * </CODE> if not.
    */
-  public boolean isFinished()
-  {
-    return getCurrentProgressStep().isLast();
-  }
+  abstract public boolean isFinished();
 
   /**
    * This class is used to notify the ProgressUpdateListeners of events

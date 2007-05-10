@@ -59,7 +59,9 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
   private JRadioButton rbLocal = null;
   private ButtonGroup grpRemoteLocal = null;
   private JComboBox cboBuild = null;
+  private JLabel lblFile = null;
   private JTextField tfFile = null;
+  private JButton butBrowse = null;
   private boolean loadBuildListAttempted = false;
   private RemoteBuildListComboBoxModelCreator bld = null;
 
@@ -101,7 +103,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
         public void actionPerformed(ActionEvent evt) {
           rbLocal.setSelected(true);
           rbRemote.setEnabled(false);
-          cboBuild.setEnabled(false);
+          setComponentEnablement();
           cboBuild.setRenderer(new BuildListLoadingComboBoxRenderer());
           try {
             loadBuildList();
@@ -164,7 +166,8 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     tfFile = new JTextField();
     tfFile.setColumns(20);
 
-    JButton butBrowse = UIFactory.makeJButton(getMsg("browse-button-label"),
+    butBrowse =
+            UIFactory.makeJButton(getMsg("browse-button-label"),
             getMsg("browse-button-tooltip"));
 
     BrowseActionListener l =
@@ -173,12 +176,23 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
                     getMainWindow());
     butBrowse.addActionListener(l);
 
-    JPanel pnlBrowse = Utilities.createBrowseButtonPanel(
-            UIFactory.makeJLabel(null,
+    lblFile = UIFactory.makeJLabel(null,
                     getMsg("upgrade-choose-version-local-path"),
-                    UIFactory.TextStyle.SECONDARY_FIELD_VALID),
+                    UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+
+    JPanel pnlBrowse = Utilities.createBrowseButtonPanel(
+            lblFile,
             tfFile,
             butBrowse);
+
+    ActionListener radioListener = new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        setComponentEnablement();
+      }
+    };
+
+    rbRemote.addActionListener(radioListener);
+    rbLocal.addActionListener(radioListener);
 
     p.setLayout(new GridBagLayout());
     // p.setBorder(BorderFactory.createLineBorder(Color.RED));
@@ -416,6 +430,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
               rbRemote.setSelected(false);
               // grpRemoteLocal.setSelected(rbRemote.getModel(), false);
               rbRemote.setEnabled(false);
+              setComponentEnablement();
             }
           });
         } else {
@@ -433,11 +448,11 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
             cboBuild.setModel(cbmFinal);
             cboBuild.setRenderer(new DefaultListCellRenderer());
             // Disable the remote widgets
-            cboBuild.setEnabled(true);
             rbLocal.setSelected(false);
             rbRemote.setSelected(true);
             // grpRemoteLocal.setSelected(rbRemote.getModel(), false);
             rbRemote.setEnabled(true);
+            setComponentEnablement();
           }
         });
       }
@@ -452,4 +467,10 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     }
   }
 
+  private void setComponentEnablement() {
+    cboBuild.setEnabled(rbRemote.isSelected());
+    lblFile.setEnabled(rbLocal.isSelected());
+    tfFile.setEnabled(rbLocal.isSelected());
+    butBrowse.setEnabled((rbLocal.isSelected()));
+  }
 }

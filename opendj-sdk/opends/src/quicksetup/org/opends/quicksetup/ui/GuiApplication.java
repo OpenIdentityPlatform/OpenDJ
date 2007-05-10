@@ -323,21 +323,27 @@ public abstract class GuiApplication extends Application {
    * @param cStep WizardStep at which the user clicked the close button
    * @param qs QuickSetup controller
    */
-  public abstract void closeClicked(WizardStep cStep, QuickSetup qs);
+  public void closeClicked(WizardStep cStep, QuickSetup qs) {
+    qs.quit();
+  }
 
   /**
    * Called when the user has clicked the 'cancel' button.
    * @param cStep WizardStep at which the user clicked the cancel button
    * @param qs QuickSetup controller
    */
-  public abstract void cancelClicked(WizardStep cStep, QuickSetup qs);
+  public void cancelClicked(WizardStep cStep, QuickSetup qs) {
+    qs.quit();
+  }
 
   /**
    * Called when the user has clicked the 'quit' button.
    * @param step WizardStep at which the user clicked the quit button
    * @param qs QuickSetup controller
    */
-  abstract public void quitClicked(WizardStep step, QuickSetup qs);
+  public void quitClicked(WizardStep step, QuickSetup qs) {
+    qs.quit();
+  }
 
   /**
    * Called whenever this application should update its user data from
@@ -354,15 +360,23 @@ public abstract class GuiApplication extends Application {
    * Gets the key for the close button's tool tip text.
    * @return String key of the text in the resource bundle
    */
-  public String getCloseButtonToolTip() {
+  public String getCloseButtonToolTipKey() {
     return "close-button-tooltip";
+  }
+
+  /**
+   * Gets the key for the quit button's tool tip text.
+   * @return String key of the text in the resource bundle
+   */
+  public String getQuitButtonToolTipKey() {
+    return "quit-button-install-tooltip";
   }
 
   /**
    * Gets the key for the finish button's tool tip text.
    * @return String key of the text in the resource bundle
    */
-  public String getFinishButtonToolTip() {
+  public String getFinishButtonToolTipKey() {
     return "finish-button-tooltip";
   }
 
@@ -370,7 +384,7 @@ public abstract class GuiApplication extends Application {
    * Gets the key for the finish button's label.
    * @return String key of the text in the resource bundle
    */
-  public String getFinishButtonLabel() {
+  public String getFinishButtonLabelKey() {
     return "finish-button-label";
   }
 
