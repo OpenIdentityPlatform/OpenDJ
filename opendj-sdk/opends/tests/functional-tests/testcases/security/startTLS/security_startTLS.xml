@@ -31,72 +31,77 @@
 
   <function name="security_startTLS">
 
-    <sequence>
+  	<sequence>
 
-      <script>
-        CurrentTestPath['suite']='startTLS'
-      </script>
-      
-      <call function="'testSuite_Preamble'"/>
-        
-      <!--- Start DS -->
-      <message>
-         'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
-      </message>
+  	  <block name="'start-tls'">
 
-      <!--- Start DS -->
-      <call function="'StartDsWithScript'">
-       { 'location'  : STAF_REMOTE_HOSTNAME }
-      </call>
+  	    <sequence>
 
-      <call function="'checkRC'">
-          { 'returncode' : RC ,
-            'result'     : STAXResult }
-      </call>
+  	      <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
 
-      <!--- Check that DS started -->
-      <call function="'isAlive'">
-        { 'noOfLoops'        : 5 ,
-          'noOfMilliSeconds' : 2000 }
-      </call>
+  	      <call function="'testSuite_Preamble'" />
 
-      <import machine="'%s' % STAF_LOCAL_HOSTNAME"
-        file="'%s/testcases/security/startTLS/security_setup_startTLS.xml' % (TESTS_DIR)"/>
-      <call function="'setup_startTLS'" />
+  	      <!--- Start DS -->
+  	      <message>
+  	        'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
+  	      </message>
 
-      <import machine="'%s' % STAF_LOCAL_HOSTNAME"
-        file="'%s/testcases/security/startTLS/security_bob_startTLS.xml' % (TESTS_DIR)"/>
-      <call function="'bob_startTLS'" />
+  	      <!--- Start DS -->
+  	      <call function="'StartDsWithScript'">
+  	        { 'location' : STAF_REMOTE_HOSTNAME }
+  	      </call>
 
-      <import machine="'%s' % STAF_LOCAL_HOSTNAME"
-        file="'%s/testcases/security/startTLS/security_force_pwd_change_startTLS.xml' % (TESTS_DIR)"/>
-      <call function="'force_pwd_change_startTLS'" />
+  	      <call function="'checkRC'">
+  	        { 'returncode' : RC , 'result' : STAXResult }
+  	      </call>
 
-      <import machine="'%s' % STAF_LOCAL_HOSTNAME"
-        file="'%s/testcases/security/startTLS/security_teardown_startTLS.xml' % (TESTS_DIR)"/>
-      <call function="'teardown_startTLS'" />
+  	      <!--- Check that DS started -->
+  	      <call function="'isAlive'">
+  	        { 'noOfLoops' : 5 , 'noOfMilliSeconds' : 2000 }
+  	      </call>
 
-      <!--- Stop DS -->
-      <message>
-         'Stop DS running on port %s' % DIRECTORY_INSTANCE_PORT
-      </message>
+  	      <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+  	        file="'%s/testcases/security/startTLS/security_setup_startTLS.xml' % (TESTS_DIR)" />
+  	      <call function="'setup_startTLS'" />
 
-      <call function="'StopDsWithScript'">
-          { 'location'  : STAF_REMOTE_HOSTNAME,
-            'dsHost'    : DIRECTORY_INSTANCE_HOST,
-            'dsPort'    : DIRECTORY_INSTANCE_PORT,
-            'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-            'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
-      </call>
+  	      <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+  	        file="'%s/testcases/security/startTLS/security_bob_startTLS.xml' % (TESTS_DIR)" />
+  	      <call function="'bob_startTLS'" />
 
-      <call function="'checkRC'">
-          { 'returncode' : RC ,
-            'result'     : STAXResult }
-      </call>
+  	      <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+  	        file="'%s/testcases/security/startTLS/security_force_pwd_change_startTLS.xml' % (TESTS_DIR)" />
+  	      <call function="'force_pwd_change_startTLS'" />
 
-      <call function="'testSuite_Postamble'"/>
-        
-    </sequence>
+  	      <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+  	        file="'%s/testcases/security/startTLS/security_teardown_startTLS.xml' % (TESTS_DIR)" />
+  	      <call function="'teardown_startTLS'" />
+
+  	      <!--- Stop DS -->
+  	      <message>
+  	        'Stop DS running on port %s' % DIRECTORY_INSTANCE_PORT
+  	      </message>
+
+  	      <call function="'StopDsWithScript'">
+  	        { 'location'  : STAF_REMOTE_HOSTNAME, 
+              'dsHost'    : DIRECTORY_INSTANCE_HOST,
+              'dsPort'    : DIRECTORY_INSTANCE_PORT, 
+              'dsBindDN'  : DIRECTORY_INSTANCE_DN, 
+              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+  	      </call>
+
+  	      <call function="'checkRC'">
+  	        { 'returncode' : RC , 'result' : STAXResult }
+  	      </call>
+
+  	      <call function="'testSuite_Postamble'" />
+
+  	    </sequence>
+
+  	  </block>
+
+  	</sequence>
 
   </function>
 
