@@ -33,7 +33,7 @@
       This function configures a Directory Server using a script
     </function-prolog>    
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -2359,8 +2359,8 @@
       </script>
              
       <!-- Wait for the task to be COMPLETED_SUCCESSFULLY -->
-      <script>RC=1</script>
-      <loop from="1" to="5" while="RC != 0">
+      <script>taskRC=1</script>
+      <loop from="1" to="5" while="taskRC != 0">
         <sequence>
         
           <message>
@@ -2391,7 +2391,7 @@
   
           <if expr='re.search(searchre, result) != None'>
             <sequence>
-              <script>RC=0</script>
+              <script>taskRC=0</script>
               <message>
                 '%s' % searchResult
               </message>
