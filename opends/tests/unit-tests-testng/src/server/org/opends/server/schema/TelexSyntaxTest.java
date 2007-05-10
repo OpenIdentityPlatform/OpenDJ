@@ -54,17 +54,7 @@ public class TelexSyntaxTest extends AttributeSyntaxTest
     return new Object [][] {
         {"123$france$456", true},
         {"abcdefghijk$lmnopqr$stuvwxyz", true},
-        {"12345$67890$()+,-./:? ", true},    
-        /*
-         * disabled because of issue : 701
-         * should accept "
-        {"12345$67890$\"\"\"", true},
-        */
-        /* disabled because of issue : 701
-         * should not accept backslash and equal sign 
-        {"12345$67890$\'\'", false},
-        {"12345$67890$===", false},*/
-        
+        {"12345$67890$()+,-./:? ", true},
     };
   }
 

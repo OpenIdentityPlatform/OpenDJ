@@ -57,9 +57,6 @@ public class NumericStringOrderingMatchingRuleTest extends
   public Object[][] createOrderingMatchingRuleTestData()
   {
     return new Object[][] {
-        // following test is currently disabled because it does not work
-        // {"1", "09", -1},
-        // see issue 638
         {"1", "999999999999999999999", -1},
         {"1", "9",  -1},
         {"1", " 1 ", 0},
