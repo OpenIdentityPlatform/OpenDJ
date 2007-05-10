@@ -33,7 +33,7 @@
       This function configures a Directory Server using a script
     </function-prolog>    
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -194,7 +194,7 @@
           STAFCmd='%s/start-ds%s' % (dsBinPath,fileExt)
                   
         if dsVersion:
-          STAFCmdParamsList.append('-v')
+          STAFCmdParamsList.append('-V')
         
         if dsSystemInfo:
           STAFCmdParamsList.append('-s')
@@ -569,7 +569,7 @@
       This function performs an offline import of an ldif file
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
