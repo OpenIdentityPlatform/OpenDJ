@@ -41,6 +41,7 @@ import org.opends.quicksetup.util.Utils;
 import javax.swing.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Handler;
 import java.util.Map;
 
 /**
@@ -424,7 +425,18 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    */
   public void quit()
   {
+    LOG.log(Level.INFO, "quitting application");
+    flushLogs();
     System.exit(0);
+  }
+
+  private void flushLogs() {
+    Handler[] handlers = LOG.getHandlers();
+    if (handlers != null) {
+      for (Handler h : handlers) {
+        h.flush();
+      }
+    }
   }
 
   /**

@@ -78,6 +78,8 @@ public class BuildExtractor extends Application implements Runnable {
 
   private String[] args = null;
 
+  private boolean finished = false;
+
   private BuildExtractor(String[] args) {
     this.args = args;
     setProgressMessageFormatter(new PlainTextProgressMessageFormatter());
@@ -140,10 +142,14 @@ public class BuildExtractor extends Application implements Runnable {
 
   private void expandZipFile(File buildFile)
           throws ApplicationException, IOException {
-    LOG.log(Level.INFO, "expanding zip file " + buildFile.getPath());
-    ZipExtractor extractor = new ZipExtractor(buildFile);
-    extractor.extract(getStageDirectory());
-    LOG.log(Level.INFO, "extraction finished");
+    try {
+      LOG.log(Level.INFO, "expanding zip file " + buildFile.getPath());
+      ZipExtractor extractor = new ZipExtractor(buildFile);
+      extractor.extract(getStageDirectory());
+      LOG.log(Level.INFO, "extraction finished");
+    } finally {
+      finished = true;
+    }
   }
 
   private File getStageDirectory() throws ApplicationException {
@@ -190,5 +196,12 @@ public class BuildExtractor extends Application implements Runnable {
    */
   public String getSummary(ProgressStep step) {
     return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isFinished() {
+    return finished;
   }
 }

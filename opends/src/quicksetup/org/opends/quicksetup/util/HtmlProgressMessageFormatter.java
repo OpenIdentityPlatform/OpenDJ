@@ -92,12 +92,18 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   public String getFormattedError(String text, boolean applyMargin)
   {
-    String html =
-        UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE)
-            + SPACE
-            + SPACE
-            + UIFactory.applyFontToHtml(getHtml(text),
-                UIFactory.PROGRESS_ERROR_FONT);
+    String html;
+    if (!containsHtml(text)) {
+      html = UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE)
+          + SPACE
+          + SPACE
+          + UIFactory.applyFontToHtml(getHtml(text),
+              UIFactory.PROGRESS_ERROR_FONT);
+    } else {
+      html =
+          UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE) + SPACE
+          + SPACE + UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
+    }
 
     String result = UIFactory.applyErrorBackgroundToHtml(html);
     if (applyMargin)
@@ -119,12 +125,19 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   public String getFormattedWarning(String text, boolean applyMargin)
   {
-    String html =
+    String html;
+    if (!containsHtml(text)) {
+      html =
         UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE)
             + SPACE
             + SPACE
             + UIFactory.applyFontToHtml(getHtml(text),
                 UIFactory.PROGRESS_WARNING_FONT);
+    } else {
+      html =
+          UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE) + SPACE
+          + SPACE + UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
+    }
 
     String result = UIFactory.applyWarningBackgroundToHtml(html);
     if (applyMargin)
@@ -590,6 +603,12 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
       return getErrorWithStackHtml(openDiv, hideText, showText, stackText,
           closeDiv, inverse);
     }
+  }
+
+  private boolean containsHtml(String text) {
+    return (text != null &&
+            text.indexOf('<') != -1 &&
+            text.indexOf('>') != -1);
   }
 }
 

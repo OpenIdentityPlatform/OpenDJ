@@ -151,6 +151,15 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  public UserData createUserData() {
+    UserData ud = new UserData();
+    ud.setServerLocation(Utils.getDefaultServerLocation());
+    return ud;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public void forceToDisplay() {
     forceToDisplaySetup = true;
   }
@@ -300,6 +309,15 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  public boolean isFinished()
+  {
+    return getCurrentProgressStep() == InstallProgressStep.FINISHED_SUCCESSFULLY
+        || getCurrentProgressStep() == InstallProgressStep.FINISHED_WITH_ERROR;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public void cancelClicked(WizardStep cStep, QuickSetup qs) {
     // do nothing;
   }
@@ -408,14 +426,21 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
-  public String getCloseButtonToolTip() {
+  public String getCloseButtonToolTipKey() {
     return "close-button-install-tooltip";
   }
 
   /**
    * {@inheritDoc}
    */
-  public String getFinishButtonToolTip() {
+  public String getQuitButtonToolTipKey() {
+    return "quit-button-install-tooltip";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getFinishButtonToolTipKey() {
     return "finish-button-install-tooltip";
   }
 
@@ -1938,7 +1963,7 @@ public abstract class Installer extends GuiApplication {
    * Validate the data provided by the user in the create global administrator
    * panel and update the UserInstallData object according to that content.
    *
-   * @throws an
+   * @throws
    *           UserInstallDataException if the data provided by the user is not
    *           valid.
    *
@@ -2010,7 +2035,7 @@ public abstract class Installer extends GuiApplication {
    * Validate the data provided by the user in the replicate suffixes options
    * panel and update the UserInstallData object according to that content.
    *
-   * @throws an
+   * @throws
    *           UserInstallDataException if the data provided by the user is not
    *           valid.
    *
@@ -2072,8 +2097,7 @@ public abstract class Installer extends GuiApplication {
    * Validate the data provided by the user in the new suffix data options panel
    * and update the UserInstallData object according to that content.
    *
-   * @throws an
-   *           UserInstallDataException if the data provided by the user is not
+   * @throws UserInstallDataException if the data provided by the user is not
    *           valid.
    *
    */

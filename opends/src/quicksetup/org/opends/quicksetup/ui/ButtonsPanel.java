@@ -47,7 +47,7 @@ import java.util.HashSet;
  * The layout is updated calling setCurrentStep method.
  *
  */
-class ButtonsPanel extends QuickSetupPanel
+public class ButtonsPanel extends QuickSetupPanel
 {
   private static final long serialVersionUID = -8460400337486357976L;
 
@@ -177,17 +177,18 @@ class ButtonsPanel extends QuickSetupPanel
 
     String tooltip;
 
-    tooltip = "quit-button-install-tooltip";
+    GuiApplication application = getApplication();
+    tooltip = application.getQuitButtonToolTipKey();
     quitButton =
         createButton("quit-button-label", tooltip, ButtonName.QUIT);
 
-    GuiApplication application = getApplication();
 
-    tooltip = application.getCloseButtonToolTip();
+
+    tooltip = application.getCloseButtonToolTipKey();
     closeButton = createButton("close-button-label", tooltip, ButtonName.CLOSE);
 
-    String label = application.getFinishButtonLabel();
-    tooltip = application.getFinishButtonToolTip();
+    String label = application.getFinishButtonLabelKey();
+    tooltip = application.getFinishButtonToolTipKey();
     finishButton = createButton(label, tooltip, ButtonName.FINISH);
 
     cancelButton =

@@ -35,9 +35,9 @@ import org.opends.quicksetup.upgrader.UpgradeUserData;
 import org.opends.quicksetup.upgrader.Build;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.BuildInformation;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,9 +53,9 @@ public class UpgraderReviewPanel extends ReviewPanel {
 
   private static final long serialVersionUID = 5942916658585976799L;
 
-  JTextComponent tcServerLocation = null;
-  JTextComponent tcOldBuild = null;
-  JTextComponent tcNewBuild = null;
+  JLabel tcServerLocation = null;
+  JLabel tcOldBuild = null;
+  JLabel tcNewBuild = null;
   private JCheckBox checkBox;
 
   /**
@@ -134,6 +134,18 @@ public class UpgraderReviewPanel extends ReviewPanel {
       0
     );
 
+    // Here we use labels instead of calling UIFactory.makeJTextComponent.
+    // which supplies us with a JEditorPane for read-only values.  We don't
+    // know the values of these fields at this time.  If we use JEditorPanes
+    // here when the panel is made visible there is an effect where the text
+    // is seen racing left when first seen.
+    tcServerLocation = UIFactory.makeJLabel(serverDescriptor);
+    UIFactory.setTextStyle(tcServerLocation, UIFactory.TextStyle.READ_ONLY);
+    tcOldBuild = UIFactory.makeJLabel(oldVersionDescriptor);
+    UIFactory.setTextStyle(tcOldBuild, UIFactory.TextStyle.READ_ONLY);
+    tcNewBuild = UIFactory.makeJLabel(newVersionDescriptor);
+    UIFactory.setTextStyle(tcNewBuild, UIFactory.TextStyle.READ_ONLY);
+
     p.setLayout(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
 
@@ -149,8 +161,7 @@ public class UpgraderReviewPanel extends ReviewPanel {
     gbc.gridy = 0;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    p.add(tcServerLocation = UIFactory.makeJTextComponent(serverDescriptor,
-            null), gbc);
+    p.add(tcServerLocation, gbc);
 
     gbc.gridx = 0;
     gbc.gridy = 1;
@@ -160,8 +171,7 @@ public class UpgraderReviewPanel extends ReviewPanel {
     gbc.gridx = 1;
     gbc.gridy = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    p.add(tcOldBuild = UIFactory.makeJTextComponent(oldVersionDescriptor,
-            null), gbc);
+    p.add(tcOldBuild, gbc);
 
     gbc.gridx = 0;
     gbc.gridy = 2;
@@ -172,8 +182,7 @@ public class UpgraderReviewPanel extends ReviewPanel {
     gbc.gridy = 2;
     gbc.weighty = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    p.add(tcNewBuild = UIFactory.makeJTextComponent(newVersionDescriptor,
-            null), gbc);
+    p.add(tcNewBuild, gbc);
 
     return p;
   }
@@ -183,12 +192,17 @@ public class UpgraderReviewPanel extends ReviewPanel {
   }
 
   private String getOldBuildString() {
-    String oldVersion;
+    String oldVersion = null;
     try {
-      oldVersion = getApplication().getInstallation().
-              getBuildInformation().getBuildId();
+      BuildInformation bi = getApplication().getInstallation().
+              getBuildInformation();
+      if (bi != null) {
+        oldVersion = bi.toString();
+      }
     } catch (ApplicationException e) {
       LOG.log(Level.INFO, "error", e);
+    }
+    if (oldVersion == null) {
       oldVersion = getMsg("upgrade-build-id-unknown");
     }
     return oldVersion;
@@ -210,7 +224,6 @@ public class UpgraderReviewPanel extends ReviewPanel {
       newVersion = getMsg("upgrade-build-id-unknown");
     }
     return newVersion;
-
   }
 
   /**
@@ -227,4 +240,28 @@ public class UpgraderReviewPanel extends ReviewPanel {
     }
     return checkBox;
   }
+
+//  public static void main(String[] args) {
+//    final UserData ud = new UpgradeUserData();
+//    ud.setServerLocation("XXX/XXXXX/XX/XXXXXXXXXXXX/XXXX");
+//    Upgrader app = new Upgrader();
+//    app.setUserData(ud);
+//    final UpgraderReviewPanel p = new UpgraderReviewPanel(app);
+//    p.initialize();
+//    JFrame frame = new JFrame();
+//    frame.getContentPane().add(p);
+//    frame.addComponentListener(new ComponentAdapter() {
+//      public void componentHidden(ComponentEvent componentEvent) {
+//        System.exit(0);
+//      }
+//    });
+//    frame.pack();
+//    frame.setVisible(true);
+//    new Thread(new Runnable() {
+//      public void run() {
+//        p.beginDisplay(ud);
+//      }
+//    }).start();
+//
+//  }
 }

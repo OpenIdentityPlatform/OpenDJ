@@ -40,7 +40,7 @@ import org.opends.quicksetup.util.Utils;
  * This class is used to provide a data model for the different parameters
  * that the user can provide in the installation wizard.
  *
- * @see DataOptions.
+ * @see org.opends.quicksetup.DataOptions
  *
  */
 public class UserData
@@ -82,7 +82,6 @@ public class UserData
         NewSuffixOptions.Type.CREATE_BASE_ENTRY, "dc=example,dc=com");
     setNewSuffixOptions(defaultNewSuffixOptions);
 
-    setServerLocation(Utils.getDefaultServerLocation());
     // See what we can propose as port
     int defaultPort = getDefaultPort();
     if (defaultPort != -1)
