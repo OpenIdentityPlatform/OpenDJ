@@ -39,4 +39,12 @@ public interface WizardStep {
    */
   String getMessageKey();
 
+  /**
+   * Indicates that when this step is displayed the application will
+   * be asked to launch itself.
+   * @return true indicating that this is the progress step for the
+   * application
+   */
+  boolean isProgressStep();
+
 }

@@ -307,8 +307,12 @@ public abstract class GuiApplication extends Application {
    * Called when the user has clicked the 'finish' button.
    * @param cStep WizardStep at which the user clicked the previous button
    * @param qs QuickSetup controller
+   * @return boolean that the application uses to indicate the the
+   * application should be launched.  If false, the application is
+   * responsible for updating the user data for the final screen and
+   * launching the application if this is the desired behavior.
    */
-  public abstract void finishClicked(final WizardStep cStep,
+  public abstract boolean finishClicked(final WizardStep cStep,
                                      final QuickSetup qs);
 
   /**

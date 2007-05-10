@@ -96,4 +96,13 @@ public enum Step implements WizardStep
   public String getMessageKey() {
     return msgKey;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isProgressStep() {
+    return this == PROGRESS;
+  }
+
+
 }

@@ -284,7 +284,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public void finishClicked(final WizardStep cStep, final QuickSetup qs) {
+  public boolean finishClicked(final WizardStep cStep, final QuickSetup qs) {
     if (cStep == Step.CONFIRM_UNINSTALL) {
       BackgroundTask worker = new BackgroundTask() {
         public Object processBackgroundTask() throws UserDataException {
@@ -333,6 +333,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       qs.getDialog().workerStarted();
       worker.startBackgroundTask();
     }
+    // Uninstaller is responsible for updating user data and launching
+    return false;
   }
 
   /**

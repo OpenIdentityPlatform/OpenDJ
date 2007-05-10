@@ -28,7 +28,6 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.*;
-import static org.opends.quicksetup.Step.PROGRESS;
 import org.opends.quicksetup.upgrader.ui.WelcomePanel;
 import org.opends.quicksetup.upgrader.ui.ChooseVersionPanel;
 import org.opends.quicksetup.upgrader.ui.UpgraderReviewPanel;
@@ -85,6 +84,14 @@ public class Upgrader extends GuiApplication implements CliApplication {
     public String getMessageKey() {
       return msgKey;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isProgressStep() {
+      return this == PROGRESS;
+    }
+
   }
 
   /**
@@ -130,6 +137,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     FINISHED_WITH_ERRORS("summary-upgrade-finished-with-errors", 100),
 
+    FINISHED_WITH_WARNINGS("summary-upgrade-finished-with-warnings", 100),
+
     FINISHED("summary-upgrade-finished-successfully", 100);
 
     private String summaryMsgKey;
@@ -162,7 +171,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
      */
     public boolean isLast() {
       return this == FINISHED ||
-              this == FINISHED_WITH_ERRORS;
+              this == FINISHED_WITH_ERRORS ||
+              this == FINISHED_WITH_WARNINGS;
     }
 
     /**
@@ -207,7 +217,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
   /**
    * Assigned if an exception occurs during run().
    */
-  private ApplicationException runException = null;
+  private ApplicationException runError = null;
+
+  /**
+   * Assigned if a non-fatal error happened during the upgrade that the
+   * user needs to be warned about during run().
+   */
+  private ApplicationException runWarning = null;
 
   /**
    * Helps with CLI specific tasks.
@@ -380,6 +396,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
       txt = getFinalSuccessMessage();
     } else if (step == UpgradeProgressStep.FINISHED_WITH_ERRORS) {
       txt = getFinalErrorMessage();
+    } else if (step == UpgradeProgressStep.FINISHED_WITH_WARNINGS) {
+      txt = getFinalWarningMessage();
     }
     else {
       txt = getMsg(((UpgradeProgressStep) step).getSummaryMesssageKey());
@@ -524,8 +542,10 @@ public class Upgrader extends GuiApplication implements CliApplication {
   public boolean isFinished() {
     return getCurrentProgressStep() ==
             UpgradeProgressStep.FINISHED
-    || getCurrentProgressStep() ==
-            UpgradeProgressStep.FINISHED_WITH_ERRORS;
+            || getCurrentProgressStep() ==
+            UpgradeProgressStep.FINISHED_WITH_ERRORS
+            || getCurrentProgressStep() ==
+            UpgradeProgressStep.FINISHED_WITH_WARNINGS;
   }
 
   /**
@@ -618,6 +638,10 @@ public class Upgrader extends GuiApplication implements CliApplication {
       }
       uud.setBuildToDownload(buildToDownload);
       uud.setInstallPackage(buildFile);
+    } else if (cStep == UpgradeWizardStep.REVIEW) {
+      Boolean startServer =
+              (Boolean) qs.getFieldValue(FieldName.SERVER_START);
+      uud.setStartServer(startServer);
     }
 
     if (errorMsgs.size() > 0) {
@@ -636,9 +660,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public void finishClicked(final WizardStep cStep, final QuickSetup qs) {
-    qs.launch();
-    qs.setCurrentStep(UpgradeWizardStep.PROGRESS);
+  public boolean finishClicked(final WizardStep cStep, final QuickSetup qs) {
+    return true;
   }
 
   /**
@@ -668,7 +691,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   public void run() {
     // Reset exception just in case this application is rerun
     // for some reason
-    runException = null;
+    runError = null;
 
     try {
 
@@ -943,10 +966,42 @@ public class Upgrader extends GuiApplication implements CliApplication {
         throw e;
       }
 
+      // Leave the server in the state requested by the user via the
+      // checkbox on the review panel.  The upgrade has already been
+      // verified at this point to in the unlikely event of an error,
+      // we call this a warning instead of an error.
+      try {
+        ServerController control = getServerController();
+        boolean serverRunning = getInstallation().getStatus().isServerRunning();
+        boolean userRequestsStart = getUserData().getStartServer();
+        if (userRequestsStart && !serverRunning) {
+          try {
+            LOG.log(Level.INFO, "starting server");
+            control.startServer();
+          } catch (ApplicationException e) {
+            LOG.log(Level.INFO, "error starting server");
+            this.runWarning = e;
+          }
+        } else if (!userRequestsStart && serverRunning) {
+          try {
+            LOG.log(Level.INFO, "stopping server");
+            control.stopServer();
+          } catch (ApplicationException e) {
+            LOG.log(Level.INFO, "error stopping server");
+            this.runWarning = e;
+          }
+        }
+      } catch (IOException ioe) {
+        LOG.log(Level.INFO, "error determining if server running");
+        this.runWarning = new ApplicationException(
+                ApplicationException.Type.TOOL_ERROR,
+                "Error determining whether or not server running", ioe);
+      }
+
     } catch (ApplicationException ae) {
-      this.runException = ae;
+      this.runError = ae;
     } catch (Throwable t) {
-      this.runException =
+      this.runError =
               new ApplicationException(ApplicationException.Type.BUG,
                       "Unexpected error: " + t.getLocalizedMessage(),
                       t);
@@ -954,11 +1009,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
       try {
         HistoricalRecord.Status status;
         String note = null;
-        if (runException == null) {
+        if (runError == null) {
           status = HistoricalRecord.Status.SUCCESS;
         } else {
           status = HistoricalRecord.Status.FAILURE;
-          note = runException.getLocalizedMessage();
+          note = runError.getLocalizedMessage();
 
           // Abort the upgrade and put things back like we found it
           LOG.log(Level.INFO, "canceling upgrade");
@@ -1007,7 +1062,34 @@ public class Upgrader extends GuiApplication implements CliApplication {
       // skipped because the process has already exited by the time
       // processing messages has finished.  Need to resolve these
       // issues.
-      if (runException == null) {
+      if (runError != null) {
+        LOG.log(Level.INFO, "upgrade completed with errors", runError);
+        if (!Utils.isCli()) {
+          notifyListenersOfLog();
+          this.currentProgressStep = UpgradeProgressStep.FINISHED_WITH_ERRORS;
+          notifyListeners(formatter.getFormattedError(runError, true));
+        } else {
+          notifyListeners(formatter.getFormattedError(runError, true) +
+                          formatter.getLineBreak());
+          notifyListeners(formatter.getLineBreak());
+          setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_ERRORS);
+          notifyListeners(formatter.getLineBreak());
+        }
+      } else if (runWarning != null) {
+        LOG.log(Level.INFO, "upgrade completed with warnings");
+        String warningText = runWarning.getLocalizedMessage();
+        if (!Utils.isCli()) {
+          notifyListenersOfLog();
+          this.currentProgressStep = UpgradeProgressStep.FINISHED_WITH_WARNINGS;
+          notifyListeners(formatter.getFormattedWarning(warningText, true));
+        } else {
+          notifyListeners(formatter.getFormattedWarning(warningText, true) +
+                          formatter.getLineBreak());
+          notifyListeners(formatter.getLineBreak());
+          setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_WARNINGS);
+          notifyListeners(formatter.getLineBreak());
+        }
+      } else {
         LOG.log(Level.INFO, "upgrade completed successfully");
         if (!Utils.isCli()) {
           notifyListenersOfLog();
@@ -1016,19 +1098,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
         } else {
           notifyListeners(null);
           this.currentProgressStep = UpgradeProgressStep.FINISHED;
-        }
-      } else {
-        LOG.log(Level.INFO, "upgrade completed with errors", runException);
-        if (!Utils.isCli()) {
-          notifyListenersOfLog();
-          this.currentProgressStep = UpgradeProgressStep.FINISHED_WITH_ERRORS;
-          notifyListeners(formatter.getFormattedError(runException, true));
-        } else {
-          notifyListeners(formatter.getFormattedError(runException, true) +
-                          formatter.getLineBreak());
-          notifyListeners(formatter.getLineBreak());
-          setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_ERRORS);
-          notifyListeners(formatter.getLineBreak());
         }
       }
     }
@@ -1066,9 +1135,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
       control.stopServer();
     } catch (Exception e) {
       throw new ApplicationException(ApplicationException.Type.APPLICATION,
-              "Server health check failed.  Make sure the server is capable " +
-                      "of starting without errors before running the upgrade " +
-                      "tool.", e);
+              "Server health check failed.  Please resolve the following " +
+                      "before running the upgrade " +
+                      "tool: " + e.getLocalizedMessage(), e);
     }
   }
 
@@ -1591,7 +1660,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public ApplicationException getException() {
-    return runException;
+    return runError;
   }
 
   private void setCurrentProgressStep(UpgradeProgressStep step) {
@@ -1642,6 +1711,17 @@ public class Upgrader extends GuiApplication implements CliApplication {
     } else {
       txt = getFormattedError(
               getMsg("summary-upgrade-finished-with-errors"));
+    }
+    return txt;
+  }
+
+  private String getFinalWarningMessage() {
+    String txt;
+    if (Utils.isCli()) {
+      txt = getMsg("summary-upgrade-finished-with-warnings-cli");
+    } else {
+      txt = getFormattedWarning(
+              getMsg("summary-upgrade-finished-with-warnings"));
     }
     return txt;
   }

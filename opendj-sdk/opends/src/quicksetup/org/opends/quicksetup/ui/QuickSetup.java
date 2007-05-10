@@ -258,6 +258,10 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     final WizardStep cStep = getCurrentStep();
     application.nextClicked(cStep, this);
+    updateUserData(cStep);
+  }
+
+  private void updateUserData(final WizardStep cStep) {
     BackgroundTask worker = new BackgroundTask() {
       public Object processBackgroundTask() throws UserDataException {
         try {
@@ -294,6 +298,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
         } else {
           setCurrentStep(application.getNextWizardStep(cStep));
         }
+        if (currentStep.isProgressStep()) {
+          launch();
+        }
       }
     };
     getDialog().workerStarted();
@@ -307,7 +314,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   private void finishClicked()
   {
     final WizardStep cStep = getCurrentStep();
-    application.finishClicked(cStep, this);
+    if (application.finishClicked(cStep, this)) {
+      updateUserData(cStep);
+    }
   }
 
   /**
@@ -445,7 +454,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   public void launch()
   {
     application.addProgressUpdateListener(this);
-    new Thread(application).start();
+    new Thread(application, "Application Thread").start();
     Thread t = new Thread(new Runnable()
     {
       public void run()
