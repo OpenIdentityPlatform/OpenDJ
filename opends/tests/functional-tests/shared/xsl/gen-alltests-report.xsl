@@ -41,7 +41,17 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="fail-tests"   select="count($testcase[@result='fail'])"/>
   <xsl:variable name="inconc-tests" select="count($testcase[@result='unknown'])"/>
 
-  <xsl:variable name="percent-tests" select="round((($pass-tests div $total-tests) * 100) - 0.5)"/>
+  <!-- Overall Test Percentage -->
+  <xsl:variable name="percent-tests">
+    <xsl:choose>
+      <xsl:when test="$total-tests &gt; 0">
+        <xsl:value-of select="round((($pass-tests div $total-tests) * 100) - 0.5)"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="0"/>
+      </xsl:otherwise>     
+    </xsl:choose>
+  </xsl:variable>
 
   <!-- Shaded Line -->
   <xsl:element name="hr">
