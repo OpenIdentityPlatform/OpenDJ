@@ -23,297 +23,22 @@
 #      Portions Copyright 2007 Sun Microsystems, Inc.
 #
 
-dn: o=ACI Tests, dc=example,dc=com
-o: ACI Tests
+dn: o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+o: Bind Type Tests
 objectclass: top
 objectclass: organization
 
-dn: ou=People, o=ACI Tests, dc=example,dc=com
-objectclass: top
-objectclass: organizationalunit
-ou: People
-
-dn: uid=auser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Aci User
-sn: User
-givenname: Aci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Accounting
-ou: People
-l: Sunnyvale
-uid: auser
-mail: auser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=buser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Baci User
-sn: User
-givenname: Baci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Accounting
-ou: People
-l: Sunnyvale
-uid: buser
-mail: buser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=cuser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Caci User
-sn: User
-givenname: Caci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Marketing
-ou: People
-l: Austin
-uid: cuser
-mail: cuser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=duser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Daci User
-sn: User
-givenname: Daci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Marketing
-ou: People
-l: Austin
-uid: duser
-mail: duser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=euser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Eaci User
-sn: User
-givenname: Eaci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Marketing
-ou: People
-l: Grenoble
-uid: euser
-mail: euser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=fuser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Faci User
-sn: User
-givenname: Faci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Sales
-ou: People
-l: Grenoble
-uid: fuser
-mail: fuser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=guser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Gaci User
-sn: User
-givenname: Gaci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Sales
-ou: People
-l: Grenoble
-uid: guser
-mail: guser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=huser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Haci User
-sn: User
-givenname: Haci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Sales
-ou: People
-l: Austin
-uid: huser
-mail: huser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=iuser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Iaci User
-sn: User
-givenname: Iaci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Research
-ou: People
-l: Austin
-uid: iuser
-mail: iuser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=juser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Jaci User
-sn: User
-givenname: Jaci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Research
-ou: People
-l: Austin
-uid: juser
-mail: juser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=kuser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Kaci User
-sn: User
-givenname: Kaci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Research
-ou: People
-l: Grenoble
-uid: kuser
-mail: kuser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=luser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Laci User
-sn: User
-givenname: Laci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Development
-ou: People
-l: Grenoble
-uid: luser
-mail: luser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=muser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Maci User
-sn: User
-givenname: Maci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Development
-ou: People
-l: Grenoble
-uid: muser
-mail: muser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=nuser, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Naci User
-sn: User
-givenname: Naci
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Development
-ou: People
-l: Austin
-uid: nuser
-mail: nuser@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: uid=amanager, ou=People, o=ACI Tests, dc=example,dc=com
-cn: Ana Manager
-sn: manager
-givenname: Ana
-objectclass: top
-objectclass: person
-objectclass: organizationalPerson
-objectclass: inetOrgPerson
-ou: Development
-ou: People
-l: Grenoble
-uid: amanager
-mail: amanager@example.com
-telephonenumber: +1 408 555 4798
-facsimiletelephonenumber: +1 408 555 9751
-roomnumber: 4612
-userpassword: ACIRules
-
-dn: ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: aci branch
 
-dn: ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: People
 
-dn: uid=scarter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=scarter, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Sam Carter
 sn: Carter
 givenname: Sam
@@ -321,17 +46,21 @@ objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-ou: Accounting
+ou: Ssales
 ou: People
-l: Sunnyvale
+l: Austin
 uid: scarter
 mail: scarter@example.com
 telephonenumber: +1 408 555 4798
 facsimiletelephonenumber: +1 408 555 9751
 roomnumber: 4612
 userpassword: sprain
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=tmorris, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=tmorris, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Ted Morris
 sn: Morris
 givenname: Ted
@@ -339,17 +68,21 @@ objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-ou: Accounting
+ou: Marketing
 ou: People
-l: Santa Clara
+l: Austin
 uid: tmorris
 mail: tmorris@example.com
 telephonenumber: +1 408 555 9187
 facsimiletelephonenumber: +1 408 555 8473
 roomnumber: 4117
 userpassword: irrefutable
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=kvaughan, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=kvaughan, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Kirsten Vaughan
 sn: Vaughan
 givenname: Kirsten
@@ -357,17 +90,21 @@ objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-ou: Human Resources
+ou: Sales
 ou: People
-l: Sunnyvale
+l: Grenoble
 uid: kvaughan
 mail: kvaughan@example.com
 telephonenumber: +1 408 555 5625
 facsimiletelephonenumber: +1 408 555 3372
 roomnumber: 2871
 userpassword: bribery
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=abergin, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=abergin, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Andy Bergin
 sn: Bergin
 givenname: Andy
@@ -375,17 +112,21 @@ objectclass: top
 objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
-ou: Product Testing
+ou: Marketing
 ou: People
-l: Cupertino
+l: Grenoble
 uid: abergin
 mail: abergin@example.com
 telephonenumber: +1 408 555 8585
 facsimiletelephonenumber: +1 408 555 7472
 roomnumber: 3472
 userpassword: inflict
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=dmiller, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=dmiller, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: David Miller
 sn: Miller
 givenname: David
@@ -396,14 +137,65 @@ objectclass: inetOrgPerson
 ou: Accounting
 ou: People
 l: Sunnyvale
+manager: uid=amanager, ou=People, o=ACI Tests, dc=example,dc=com
 uid: dmiller
 mail: dmiller@example.com
 telephonenumber: +1 408 555 9423
 facsimiletelephonenumber: +1 408 555 0111
 roomnumber: 4135
 userpassword: gosling
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=gfarmer, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=dmillerone, uid=dmiller, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+cn: David Millerone
+sn: Millerone
+givenname: David
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+manager: uid=amanager, ou=People, o=ACI Tests, dc=example,dc=com
+uid: dmillerone
+mail: dmillerone@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=dmillertwo, uid=dmillerone, uid=dmiller, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+cn: David Millertwo
+sn: Millertwo
+givenname: David
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+manager: uid=amanager, ou=People, o=ACI Tests, dc=example,dc=com
+uid: dmillertwo
+mail: dmillertwo@example.com
+telephonenumber: +1 408 555 9423
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 4135
+userpassword: gosling
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=gfarmer, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Gern Farmer
 sn: Farmer
 givenname: Gern
@@ -414,17 +206,19 @@ objectclass: inetOrgPerson
 ou: Accounting
 ou: People
 l: Cupertino
+manager: uid=amanager, ou=People, o=ACI Tests, dc=example,dc=com
 uid: gfarmer
 mail: gfarmer@example.com
 telephonenumber: +1 408 555 6201
 facsimiletelephonenumber: +1 408 555 8473
 roomnumber: 1269
 userpassword: ruling
-title: Engineer
+title: engineer
 title: architect
 title: sweeper
+carlicense: ABC 123
 
-dn: uid=kwinters, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=kwinters, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Kelly Winters
 sn: Winters
 givenname: Kelly
@@ -435,14 +229,19 @@ objectclass: inetOrgPerson
 ou: Product Development
 ou: People
 l: Santa Clara
+manager: cn=Marketing,ou=Groups, o=ACI Tests, dc=example,dc=com
 uid: kwinters
 mail: kwinters@example.com
 telephonenumber: +1 408 555 9069
 facsimiletelephonenumber: +1 408 555 1992
 roomnumber: 4178
 userpassword: forsook
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=trigden, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=trigden, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Torrey Rigden
 sn: Rigden
 givenname: Torrey
@@ -452,15 +251,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Product Development
 ou: People
-l: Santa Clara
 uid: trigden
-mail: trigden@example.com
-telephonenumber: +1 408 555 9280
-facsimiletelephonenumber: +1 408 555 8473
-roomnumber: 3584
 userpassword: sensitive
 
-dn: uid=cschmith, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=cschmith, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Chris Schmith
 sn: Schmith
 givenname: Chris
@@ -470,15 +264,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Human Resources
 ou: People
-l: Santa Clara
 uid: cschmith
-mail: cschmith@example.com
-telephonenumber: +1 408 555 8011
-facsimiletelephonenumber: +1 408 555 4774
-roomnumber: 0416
 userpassword: hypotenuse
 
-dn: uid=jwallace, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=jwallace, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Judy Wallace
 sn: Wallace
 givenname: Judy
@@ -488,15 +277,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Accounting
 ou: People
-l: Sunnyvale
 uid: jwallace
-mail: jwallace@example.com
-telephonenumber: +1 408 555 0319
-facsimiletelephonenumber: +1 408 555 8473
-roomnumber: 1033
 userpassword: linear
 
-dn: uid=jcrawler, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=jcrawler, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: John Crawler
 sn: Crawler
 givenname: John
@@ -506,15 +290,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Product Testing
 ou: People
-l: Cupertino
 uid: jcrawler
-mail: jcrawler@example.com
-telephonenumber: +1 408 555 1476
-facsimiletelephonenumber: +1 408 555 1992
-roomnumber: 3915
 userpassword: dogleg
 
-dn: uid=jsprinter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=jsprinter, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: John Sprinter
 sn: Sprinter
 givenname: John
@@ -524,15 +303,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Product Testing
 ou: People
-l: Cupertino
 uid: jsprinter
-mail: jsprinter@example.com
-telephonenumber: +1 408 555 1476
-facsimiletelephonenumber: +1 408 555 1992
-roomnumber: 3915
 userpassword: dogleg
 
-dn: uid=jrunner, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=jrunner, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: John Runner
 sn: Runner
 givenname: John
@@ -542,15 +316,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Product Testing
 ou: People
-l: Cupertino
 uid: jrunner
-mail: jrunner@example.com
-telephonenumber: +1 408 555 1476
-facsimiletelephonenumber: +1 408 555 1992
-roomnumber: 3915
 userpassword: dogleg
 
-dn: uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=tclow, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Torrey Clow
 sn: Clow
 givenname: Torrey
@@ -560,15 +329,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Human Resources
 ou: People
-l: Santa Clara
 uid: tclow
-mail: tclow@example.com
-telephonenumber: +1 408 555 8825
-facsimiletelephonenumber: +1 408 555 1992
-roomnumber: 4376
 userpassword: cardreader
 
-dn: uid=rdaugherty, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=rdaugherty, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Robert Daugherty
 sn: Daugherty
 givenname: Robert
@@ -585,8 +349,12 @@ telephonenumber: +1 408 555 1296
 facsimiletelephonenumber: +1 408 555 1992
 roomnumber: 0194
 userpassword: apples
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=jreuter, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Jayne Reuter
 sn: Reuter
 givenname: Jayne
@@ -603,8 +371,12 @@ telephonenumber: +1 408 555 1122
 facsimiletelephonenumber: +1 408 555 8721
 roomnumber: 2942
 userpassword: destroy
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=tmason, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=tmason, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Torrey Mason
 sn: Mason
 givenname: Torrey
@@ -621,8 +393,12 @@ telephonenumber: +1 408 555 1596
 facsimiletelephonenumber: +1 408 555 9751
 roomnumber: 1124
 userpassword: squatted
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=bhall, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=bhall, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Benjamin Hall
 sn: Hall
 givenname: Benjamin
@@ -639,18 +415,88 @@ telephonenumber: +1 408 555 6067
 facsimiletelephonenumber: +1 408 555 0111
 roomnumber: 2511
 userpassword: oranges
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=cfish, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com 
+cn: Cat Fish
+sn: Fish
+givenname: Cat
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: cfish
+mail: cfish@example.com
+telephonenumber: +1 408 555 6067
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 2511
+userpassword: oranges
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=cbear, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+cn: Clare Bear
+sn: Bear
+givenname: Clare
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: cbear
+mail: cbear@example.com
+telephonenumber: +1 408 555 6067
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 2511
+userpassword: oranges
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=slion, ou=People, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+cn: Sea Lion
+sn: Lion
+givenname: Sea
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: slion
+mail: slion@example.com
+telephonenumber: +1 408 555 6067
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 2511
+userpassword: oranges
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: non-aci branch
 
-dn: ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: People
 
-dn: uid=scarter, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=scarter, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Sam Carter
 sn: Carter
 givenname: Sam
@@ -660,15 +506,19 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Accounting
 ou: People
-l: Sunnyvale
+l: Austin
 uid: scarter
 mail: scarter@example.com
 telephonenumber: +1 408 555 4798
 facsimiletelephonenumber: +1 408 555 9751
 roomnumber: 4612
 userpassword: sprain
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=tmorris, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=tmorris, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Ted Morris
 sn: Morris
 givenname: Ted
@@ -685,8 +535,12 @@ telephonenumber: +1 408 555 9187
 facsimiletelephonenumber: +1 408 555 8473
 roomnumber: 4117
 userpassword: irrefutable
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=kvaughan, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=kvaughan, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Kirsten Vaughan
 sn: Vaughan
 givenname: Kirsten
@@ -696,15 +550,19 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Human Resources
 ou: People
-l: Sunnyvale
+l: Grenoble
 uid: kvaughan
 mail: kvaughan@example.com
 telephonenumber: +1 408 555 5625
 facsimiletelephonenumber: +1 408 555 3372
 roomnumber: 2871
 userpassword: bribery
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=abergin, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=abergin, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Andy Bergin
 sn: Bergin
 givenname: Andy
@@ -721,8 +579,12 @@ telephonenumber: +1 408 555 8585
 facsimiletelephonenumber: +1 408 555 7472
 roomnumber: 3472
 userpassword: inflict
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=dmiller, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=dmiller, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: David Miller
 sn: Miller
 givenname: David
@@ -739,8 +601,12 @@ telephonenumber: +1 408 555 9423
 facsimiletelephonenumber: +1 408 555 0111
 roomnumber: 4135
 userpassword: gosling
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=gfarmer, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=gfarmer, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Gern Farmer
 sn: Farmer
 givenname: Gern
@@ -751,14 +617,19 @@ objectclass: inetOrgPerson
 ou: Accounting
 ou: People
 l: Cupertino
+manager: uid=amanager, ou=People, o=ACI Tests, dc=example,dc=com
 uid: gfarmer
 mail: gfarmer@example.com
 telephonenumber: +1 408 555 6201
 facsimiletelephonenumber: +1 408 555 8473
 roomnumber: 1269
 userpassword: ruling
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=kwinters, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=kwinters, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Kelly Winters
 sn: Winters
 givenname: Kelly
@@ -769,14 +640,19 @@ objectclass: inetOrgPerson
 ou: Product Development
 ou: People
 l: Santa Clara
+manager: cn=Marketing,ou=Groups, o=ACI Tests, dc=example,dc=com
 uid: kwinters
 mail: kwinters@example.com
 telephonenumber: +1 408 555 9069
 facsimiletelephonenumber: +1 408 555 1992
 roomnumber: 4178
 userpassword: forsook
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=trigden, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=trigden, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Torrey Rigden
 sn: Rigden
 givenname: Torrey
@@ -786,15 +662,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Product Development
 ou: People
-l: Santa Clara
 uid: trigden
-mail: trigden@example.com
-telephonenumber: +1 408 555 9280
-facsimiletelephonenumber: +1 408 555 8473
-roomnumber: 3584
 userpassword: sensitive
 
-dn: uid=cschmith, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=cschmith, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Chris Schmith
 sn: Schmith
 givenname: Chris
@@ -804,15 +675,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Human Resources
 ou: People
-l: Santa Clara
 uid: cschmith
-mail: cschmith@example.com
-telephonenumber: +1 408 555 8011
-facsimiletelephonenumber: +1 408 555 4774
-roomnumber: 0416
 userpassword: hypotenuse
 
-dn: uid=jwallace, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=jwallace, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Judy Wallace
 sn: Wallace
 givenname: Judy
@@ -822,15 +688,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Accounting
 ou: People
-l: Sunnyvale
 uid: jwallace
-mail: jwallace@example.com
-telephonenumber: +1 408 555 0319
-facsimiletelephonenumber: +1 408 555 8473
-roomnumber: 1033
 userpassword: linear
 
-dn: uid=jcrawler, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=jcrawler, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: John Crawler
 sn: Crawler
 givenname: John
@@ -840,15 +701,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Product Testing
 ou: People
-l: Cupertino
 uid: jcrawler
-mail: jcrawler@example.com
-telephonenumber: +1 408 555 1476
-facsimiletelephonenumber: +1 408 555 1992
-roomnumber: 3915
 userpassword: dogleg
 
-dn: uid=jsprinter, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=jsprinter, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: John Sprinter
 sn: Sprinter
 givenname: John
@@ -858,15 +714,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Product Testing
 ou: People
-l: Cupertino
 uid: jsprinter
-mail: jsprinter@example.com
-telephonenumber: +1 408 555 1476
-facsimiletelephonenumber: +1 408 555 1992
-roomnumber: 3915
 userpassword: dogleg
 
-dn: uid=jrunner, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=jrunner, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: John Runner
 sn: Runner
 givenname: John
@@ -876,15 +727,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Product Testing
 ou: People
-l: Cupertino
 uid: jrunner
-mail: jrunner@example.com
-telephonenumber: +1 408 555 1476
-facsimiletelephonenumber: +1 408 555 1992
-roomnumber: 3915
 userpassword: dogleg
 
-dn: uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=tclow, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Torrey Clow
 sn: Clow
 givenname: Torrey
@@ -894,15 +740,10 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ou: Human Resources
 ou: People
-l: Santa Clara
 uid: tclow
-mail: tclow@example.com
-telephonenumber: +1 408 555 8825
-facsimiletelephonenumber: +1 408 555 1992
-roomnumber: 4376
 userpassword: cardreader
 
-dn: uid=rdaugherty, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=rdaugherty, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Robert Daugherty
 sn: Daugherty
 givenname: Robert
@@ -919,8 +760,12 @@ telephonenumber: +1 408 555 1296
 facsimiletelephonenumber: +1 408 555 1992
 roomnumber: 0194
 userpassword: apples
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=jreuter, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=jreuter, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Jayne Reuter
 sn: Reuter
 givenname: Jayne
@@ -937,8 +782,12 @@ telephonenumber: +1 408 555 1122
 facsimiletelephonenumber: +1 408 555 8721
 roomnumber: 2942
 userpassword: destroy
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=tmason, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=tmason, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Torrey Mason
 sn: Mason
 givenname: Torrey
@@ -955,8 +804,12 @@ telephonenumber: +1 408 555 1596
 facsimiletelephonenumber: +1 408 555 9751
 roomnumber: 1124
 userpassword: squatted
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 
-dn: uid=bhall, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com
+dn: uid=bhall, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 cn: Benjamin Hall
 sn: Hall
 givenname: Benjamin
@@ -973,4 +826,138 @@ telephonenumber: +1 408 555 6067
 facsimiletelephonenumber: +1 408 555 0111
 roomnumber: 2511
 userpassword: oranges
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: ou=extra branch 1, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+
+dn: ou=People, ou=extra branch 1, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+
+dn: uid=aextra, ou=People, ou=extra branch 1, ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+cn: Benjamin Hall
+sn: Hall
+givenname: Benjamin
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: bhall
+mail: bhall@example.com
+telephonenumber: +1 408 555 6067
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 2511
+userpassword: oranges
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: ou=extra branch 1, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+
+dn: ou=People, ou=extra branch 1, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+
+dn: uid=aextra, ou=People, ou=extra branch 1, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+cn: Benjamin Hall
+sn: Hall
+givenname: Benjamin
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: bhall
+mail: bhall@example.com
+telephonenumber: +1 408 555 6067
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 2511
+userpassword: oranges
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=cfish, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+cn: Cat Fish
+sn: Fish
+givenname: Cat
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: cfish
+mail: cfish@example.com
+telephonenumber: +1 408 555 6067
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 2511
+userpassword: oranges
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=cbear, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+cn: Clare Bear
+sn: Bear
+givenname: Clare
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: cbear
+mail: cbear@example.com
+telephonenumber: +1 408 555 6067
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 2511
+userpassword: oranges
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
+
+dn: uid=slion, ou=People, ou=non-aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+cn: Sea Lion
+sn: Lion
+givenname: Sea
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Product Development
+ou: People
+l: Santa Clara
+uid: slion
+mail: slion@example.com
+telephonenumber: +1 408 555 6067
+facsimiletelephonenumber: +1 408 555 0111
+roomnumber: 2511
+userpassword: oranges
+title: engineer
+title: architect
+title: sweeper
+carlicense: ABC 123
 

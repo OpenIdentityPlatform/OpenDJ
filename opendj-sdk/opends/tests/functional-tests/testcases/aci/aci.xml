@@ -69,6 +69,10 @@
           <call function="'aci_setup'" />
   
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/global_acis.xml' % (TESTS_DIR)"/>
+          <call function="'global_acis'" />
+  
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/aci/aci_target.xml' % (TESTS_DIR)"/>
           <call function="'aci_target'" />
   
@@ -115,6 +119,10 @@
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/aci/aci_rdn_wildcards.xml' % (TESTS_DIR)"/>
           <call function="'aci_rdn_wildcards'" />
+  
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_bindtypes.xml' % (TESTS_DIR)"/>
+          <call function="'aci_bindtypes'" />
   
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/aci/aci_teardown.xml' % (TESTS_DIR)"/>

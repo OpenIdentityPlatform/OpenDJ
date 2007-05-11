@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="global_acis"/>
+
+  <function name="global_acis">
+
+    <sequence>
+
+      <block name="'global-acis'">
+      
+        <sequence>
+  
+          <script>
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             ACI Global Tests
+                #@TestSuitePurpose          Test the basic global ACI Support. 
+                #@TestSuiteGroup            Global ACI Tests
+                #@TestScript                global_acis.xml
+          -->
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Search
+                #@TestIssue                 1402
+                #@TestPurpose               Search against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client searches entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and entry for step 1.
+                                            The attributes, sn and dn, should be returned 
+                                            but not userpassword.
+            -->
+            <testcase name="'ACI: Global: Search'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Search, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid userpassword' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'sn' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'userpassword' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Search
+                #@TestIssue                 1479
+                #@TestPurpose               Search operational attribute against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client searches operational attribute of an entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and entry for step 1.
+                                            The attributes, creatorsname and dn, should be returned.
+            -->
+            <!-- The following will be uncommented when Issue 1479 is fixed. -->
+            <!--
+            <testcase name="'ACI: Global: Search Operational Attribute'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Search, user searching operational attribute of an entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'creatorsName'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'creatorsName' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+            -->
+            
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Search
+                #@TestIssue                 1479
+                #@TestPurpose               Search all operational attributes against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client searches all operational attributes of an entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and entry for step 1.
+                                            The attribute, dn, should be returned.
+            -->
+            <!-- The following will be uncommented when Issue 1479 is fixed. -->
+            <!--
+            <testcase name="'ACI: Global: Search All Operational Attributes'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Search, user searching all operational attributes of an entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : '+'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'creatorsName' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+            -->
+            
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Compare
+                #@TestIssue                 1402
+                #@TestPurpose               Compare against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client compares attribute in an entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and returns true for step 1.
+            -->
+            <testcase name="'ACI: Global: Compare'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Compare, user comparing entry'
+                </message>
+    
+                <call function="'compareEntry'">
+                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'attrToBeCompared'      : 'l:Santa Clara',
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'true' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Modify
+                #@TestIssue                 1402
+                #@TestPurpose               Modify against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client modifies attribute in an entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50.
+            -->
+            <testcase name="'ACI: Global: Modify'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Modify, user modifying entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'entryToBeModified'     : '%s/aci/global_acis/mod_entry1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Delete
+                #@TestIssue                 1402
+                #@TestPurpose               Delete against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client deletes an entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50.
+            -->
+            <testcase name="'ACI: Global: Delete'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Delete, user deleting entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'entryToBeModified'     : '%s/aci/global_acis/del_entry1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Modify RDN
+                #@TestIssue                 1402
+                #@TestPurpose               Modify RDN against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client modifies the RDN of an entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50.
+            -->
+            <testcase name="'ACI: Global: Modify RDN'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Modify RDN, user modifying rdn of an entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'entryToBeModified'     : '%s/aci/global_acis/modrdn_entry1.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Modify Self
+                #@TestIssue                 1402
+                #@TestPurpose               Modify self against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client modifies attribute in the user entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0.
+            -->
+            <testcase name="'ACI: Global: Self Modify'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Self Modify, user modifying itself'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'        : 'ACIRules' ,
+                    'entryToBeModified'     : '%s/aci/global_acis/mod_entry2.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+       
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>
