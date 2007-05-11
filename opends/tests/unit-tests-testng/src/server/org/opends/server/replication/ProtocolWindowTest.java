@@ -32,8 +32,6 @@ import static org.testng.Assert.*;
 
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
@@ -47,16 +45,12 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
@@ -242,10 +236,6 @@ public class ProtocolWindowTest extends ReplicationTestCase
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
 
-    // Disable schema check
-    schemaCheck = DirectoryServer.checkSchema();
-    DirectoryServer.setCheckSchema(false);
-
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
 
@@ -323,22 +313,6 @@ public class ProtocolWindowTest extends ReplicationTestCase
     personEntry = TestCaseUtils.entryFromLdifString(personLdif);
 
     configureReplication();
-  }
-
-  /**
-   * @return
-   */
-  private List<Modification> generatemods(String attrName, String attrValue)
-  {
-    AttributeType attrType =
-      DirectoryServer.getAttributeType(attrName.toLowerCase(), true);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(attrType, attrValue));
-    Attribute attr = new Attribute(attrType, attrName, values);
-    List<Modification> mods = new ArrayList<Modification>();
-    Modification mod = new Modification(ModificationType.REPLACE, attr);
-    mods.add(mod);
-    return mods;
   }
 
   private void processModify(int count)

@@ -139,8 +139,9 @@ public class AddMsg extends UpdateMessage
     for (Attribute a : userAttributes)
       elems.add(new LDAPAttribute(a).encode());
 
-    for (Attribute a : operationalAttributes)
-      elems.add(new LDAPAttribute(a).encode());
+    if (operationalAttributes != null)
+      for (Attribute a : operationalAttributes)
+        elems.add(new LDAPAttribute(a).encode());
 
     encodedAttributes = ASN1Element.encodeValue(elems);
   }

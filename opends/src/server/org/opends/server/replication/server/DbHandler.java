@@ -238,10 +238,13 @@ public class DbHandler implements Runnable
       {}
     }
 
-    if ( (recentChangeNumber != null) &&
-         (recentChangeNumber.getTimeSec() - changeNumber.getTimeSec() < 2))
+    if ( (recentChangeNumber != null) && (changeNumber != null))
     {
-      flush();
+      if (((recentChangeNumber.getTimeSec() - changeNumber.getTimeSec()) < 2) ||
+         ((recentChangeNumber.getSeqnum() - changeNumber.getSeqnum()) < 20))
+      {
+        flush();
+      }
     }
 
     return new ReplicationIterator(serverId, db, changeNumber);

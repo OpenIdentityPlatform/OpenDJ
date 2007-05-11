@@ -90,7 +90,7 @@ public abstract class UpdateMessage extends ReplicationMessage
    * @throws DataFormatException if the encoded byte array is not valid.
    * @throws UnsupportedEncodingException if UTF-8 is not supprted.
    */
-  public UpdateMessage(byte[] in) throws DataFormatException,
+  protected UpdateMessage(byte[] in) throws DataFormatException,
                                          UnsupportedEncodingException
   {
     /* read the changeNumber */

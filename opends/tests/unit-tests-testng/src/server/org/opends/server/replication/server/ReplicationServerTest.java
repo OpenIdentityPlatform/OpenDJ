@@ -76,7 +76,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   /**
    * The port of the replicationServer.
    */
-  private int changelogPort;
+  private int replicationServerPort;
 
   private ChangeNumber firstChangeNumberServer1 = null;
   private ChangeNumber secondChangeNumberServer1 = null;
@@ -97,11 +97,11 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     //  find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();
-    changelogPort = socket.getLocalPort();
+    replicationServerPort = socket.getLocalPort();
     socket.close();
 
     ReplServerFakeConfiguration conf =
-      new ReplServerFakeConfiguration(changelogPort, null, 0, 1, 0, 0, null); 
+      new ReplServerFakeConfiguration(replicationServerPort, null, 0, 1, 0, 0, null); 
     replicationServer = new ReplicationServer(conf);
   }
 
@@ -124,10 +124,10 @@ public class ReplicationServerTest extends ReplicationTestCase
        * Open a sender session and a receiver session to the replicationServer
        */
       server1 = openReplicationSession(
-          DN.decode("dc=example,dc=com"), (short) 1, 100, changelogPort,
+          DN.decode("dc=example,dc=com"), (short) 1, 100, replicationServerPort,
           1000, true);
       server2 = openReplicationSession(
-          DN.decode("dc=example,dc=com"), (short) 2, 100, changelogPort,
+          DN.decode("dc=example,dc=com"), (short) 2, 100, replicationServerPort,
           1000, true);
 
       /*
@@ -240,7 +240,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     try {
       broker =
         openReplicationSession(DN.decode("dc=example,dc=com"), (short) 3,
-                             100, changelogPort, 1000, false);
+                             100, replicationServerPort, 1000, false);
 
       ReplicationMessage msg2 = broker.receive();
       if (!(msg2 instanceof DeleteMsg))
@@ -277,7 +277,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     try {
       broker =
         openReplicationSession(DN.decode("dc=example,dc=com"), (short) 3,
-                             100, changelogPort, 1000, state);
+                             100, replicationServerPort, 1000, state);
 
       ReplicationMessage msg2 = broker.receive();
       if (!(msg2 instanceof DeleteMsg))
@@ -425,7 +425,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        * Open a sender session
        */
       server = openReplicationSession(
-          DN.decode("dc=example,dc=com"), (short) 5, 100, changelogPort,
+          DN.decode("dc=example,dc=com"), (short) 5, 100, replicationServerPort,
           1000, 1000, 0, true);
 
       BrokerReader reader = new BrokerReader(server);
@@ -436,7 +436,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       for (int i =0; i< CLIENT_THREADS; i++)
       {
         clientBroker[i] = openReplicationSession(
-            DN.decode("dc=example,dc=com"), (short) (100+i), 100, changelogPort,
+            DN.decode("dc=example,dc=com"), (short) (100+i), 100, replicationServerPort,
             1000, true);
         client[i] = new BrokerReader(clientBroker[i]);
       }
@@ -510,7 +510,7 @@ public class ReplicationServerTest extends ReplicationTestCase
           new ChangeNumberGenerator(serverId , (long) 0);
         ReplicationBroker broker =
           openReplicationSession( DN.decode("dc=example,dc=com"), serverId,
-            100, changelogPort, 1000, 1000, 0, true);
+            100, replicationServerPort, 1000, 1000, 0, true);
 
         producer[i] = new BrokerWriter(broker, gen, TOTAL_MSG/THREADS);
         reader[i] = new BrokerReader(broker);

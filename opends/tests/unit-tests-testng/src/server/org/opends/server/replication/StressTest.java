@@ -33,8 +33,6 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -50,15 +48,12 @@ import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
@@ -187,10 +182,6 @@ public class StressTest extends ReplicationTestCase
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
 
-    // Disable schema check
-    schemaCheck = DirectoryServer.checkSchema();
-    DirectoryServer.setCheckSchema(false);
-
     // Create backend top level entries
     String[] topEntries = new String[2];
     topEntries[0] = "dn: dc=example,dc=com\n" + "objectClass: top\n"
@@ -261,22 +252,6 @@ public class StressTest extends ReplicationTestCase
     personEntry = TestCaseUtils.entryFromLdifString(personLdif);
 
     configureReplication();
-  }
-
-  /**
-   * @return
-   */
-  private List<Modification> generatemods(String attrName, String attrValue)
-  {
-    AttributeType attrType =
-      DirectoryServer.getAttributeType(attrName.toLowerCase(), true);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(attrType, attrValue));
-    Attribute attr = new Attribute(attrType, attrName, values);
-    List<Modification> mods = new ArrayList<Modification>();
-    Modification mod = new Modification(ModificationType.REPLACE, attr);
-    mods.add(mod);
-    return mods;
   }
 
   private class BrokerWriter extends Thread

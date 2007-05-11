@@ -221,6 +221,7 @@ public class ReplicationServer
         newSocket =  listenSocket.accept();
         newSocket.setReceiveBufferSize(1000000);
         newSocket.setTcpNoDelay(true);
+        newSocket.setKeepAlive(true);
         ServerHandler handler = new ServerHandler(
                                      new SocketSession(newSocket), queueSize);
         handler.start(null, serverId, serverURL, rcvWindow, this);

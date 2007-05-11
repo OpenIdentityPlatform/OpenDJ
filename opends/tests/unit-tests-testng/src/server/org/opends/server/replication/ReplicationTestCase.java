@@ -26,12 +26,16 @@
  */
 package org.opends.server.replication;
 
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_COMPLETION_TIME;
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.List;
@@ -42,7 +46,10 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.plugin.PersistentServerState;
+import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
+import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -53,6 +60,10 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.AttributeType;
@@ -87,11 +98,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected Entry replServerEntry;
 
   /**
-   * schema check flag
-   */
-  protected boolean schemaCheck;
-
-  /**
    * The replication plugin entry
    */
   protected String synchroPluginStringDN =
@@ -108,7 +114,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
-    schemaCheck = DirectoryServer.checkSchema();
 
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
@@ -152,7 +157,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         }
       }
       catch (Exception e)
-      { 
+      {
         logError(ErrorLogCategory.SYNCHRONIZATION,
             ErrorLogSeverity.NOTICE,
             "ReplicationTestCase/openChangelogSession" + e.getMessage(), 1);
@@ -244,7 +249,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
              logError(ErrorLogCategory.SYNCHRONIZATION,
             ErrorLogSeverity.NOTICE,
             "cleaning config entry " + dn, 1);
-        
+
         op = new DeleteOperation(connection, InternalClientConnection
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,
             dn);
@@ -256,7 +261,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       // done
     }
   }
-  
+
   /**
    * suppress all the real entries created by the tests in this class
    */
@@ -265,7 +270,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   	logError(ErrorLogCategory.SYNCHRONIZATION,
         ErrorLogSeverity.NOTICE,
         "ReplicationTestCase/Cleaning entries" , 1);
-  
+
     DeleteOperation op;
     // Delete entries
     try
@@ -298,8 +303,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   @AfterClass
   public void classCleanUp() throws Exception
   {
-    DirectoryServer.setCheckSchema(schemaCheck);
-
     cleanConfigEntries();
     cleanRealEntries();
   }
@@ -323,7 +326,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     assertNotNull(DirectoryServer.getConfigEntry(DN
         .decode(synchroPluginStringDN)),
         "Unable to add the Multimaster replication plugin");
-    
+
     // domains container entry.
     String domainsLdif = "dn: "
       + "cn=domains," + synchroPluginStringDN + "\n"
@@ -335,7 +338,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     assertNotNull(DirectoryServer.getConfigEntry(
       DN.decode(synchroPluginStringDN)),
       "Unable to add the Multimaster replication plugin");
-      
+
 
     // Add the replication server
     DirectoryServer.getConfigHandler().addEntry(replServerEntry, null);
@@ -380,7 +383,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected boolean checkEntryHasAttribute(DN dn, String attrTypeStr,
       String valueString, int timeout, boolean hasAttribute) throws Exception
   {
-    boolean found;
+    boolean found = false;
     int count = timeout/100;
     if (count<1)
       count=1;
@@ -408,15 +411,15 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         newEntry = DirectoryServer.getEntry(dn);
 
 
-        if (newEntry == null)
-          fail("The entry " + dn +
-          " has incorrectly been deleted from the database.");
-        List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
-        Attribute tmpAttr = tmpAttrList.get(0);
+        if (newEntry != null)
+        {
+          List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
+          Attribute tmpAttr = tmpAttrList.get(0);
 
-        AttributeType attrType =
-          DirectoryServer.getAttributeType(attrTypeStr, true);
-        found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
+          AttributeType attrType =
+            DirectoryServer.getAttributeType(attrTypeStr, true);
+          found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
+        }
 
       }
       finally
@@ -476,6 +479,97 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       LockManager.unlock(dn, lock);
     }
+  }
+
+  /**
+   * Generate a new modification replace with the given information.
+   *
+   * @param attrName The attribute to replace.
+   * @param attrValue The new value for the attribute
+   *
+   * @return The modification replace.
+   */
+  protected List<Modification> generatemods(String attrName, String attrValue)
+  {
+    AttributeType attrType =
+      DirectoryServer.getAttributeType(attrName.toLowerCase(), true);
+    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    values.add(new AttributeValue(attrType, attrValue));
+    Attribute attr = new Attribute(attrType, attrName, values);
+    List<Modification> mods = new ArrayList<Modification>();
+    Modification mod = new Modification(ModificationType.REPLACE, attr);
+    mods.add(mod);
+    return mods;
+  }
+  
+  /**
+   * Utility method to create, run a task and check its result.
+   */
+  protected void task(String task) throws Exception
+  {
+    Entry taskEntry = TestCaseUtils.makeEntry(task);
+
+    InternalClientConnection connection =
+         InternalClientConnection.getRootConnection();
+
+    // Add the task.
+    AddOperation addOperation =
+         connection.processAdd(taskEntry.getDN(),
+                               taskEntry.getObjectClasses(),
+                               taskEntry.getUserAttributes(),
+                               taskEntry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
+                 "Add of the task definition was not successful");
+
+    // Wait until the task completes.
+    AttributeType completionTimeType = DirectoryServer.getAttributeType(
+         ATTR_TASK_COMPLETION_TIME.toLowerCase());
+    SearchFilter filter =
+         SearchFilter.createFilterFromString("(objectclass=*)");
+    Entry resultEntry = null;
+    String completionTime = null;
+    long startMillisecs = System.currentTimeMillis();
+    do
+    {
+      InternalSearchOperation searchOperation =
+           connection.processSearch(taskEntry.getDN(),
+                                    SearchScope.BASE_OBJECT,
+                                    filter);
+      try
+      {
+        resultEntry = searchOperation.getSearchEntries().getFirst();
+      } catch (Exception e)
+      {
+        continue;
+      }
+      completionTime =
+           resultEntry.getAttributeValue(completionTimeType,
+                                         DirectoryStringSyntax.DECODER);
+
+      if (completionTime == null)
+      {
+        if (System.currentTimeMillis() - startMillisecs > 1000*30)
+        {
+          break;
+        }
+        Thread.sleep(10);
+      }
+    } while (completionTime == null);
+
+    if (completionTime == null)
+    {
+      fail("The task has not completed after 30 seconds.");
+    }
+
+    // Check that the task state is as expected.
+    AttributeType taskStateType =
+         DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
+    String stateString =
+         resultEntry.getAttributeValue(taskStateType,
+                                       DirectoryStringSyntax.DECODER);
+    TaskState taskState = TaskState.fromString(stateString);
+    assertEquals(taskState, TaskState.COMPLETED_SUCCESSFULLY,
+                 "The task completed in an unexpected state");
   }
 
 }

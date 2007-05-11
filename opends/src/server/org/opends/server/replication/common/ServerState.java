@@ -304,4 +304,25 @@ public class ServerState implements Iterable<Short>
   {
     return list.keySet().iterator();
   }
+
+  /**
+   * Check that all the ChangeNumbers in the covered serverState are also in
+   * this serverState.
+   *
+   * @param covered The ServerState that needs to be checked.
+   * @return A boolean indicating if this ServerState covers the ServerState
+   *         given in parameter.
+   */
+  public boolean cover(ServerState covered)
+  {
+    for (ChangeNumber coveredChange : covered.list.values())
+    {
+      ChangeNumber change = this.list.get(coveredChange.getServerId());
+      if ((change == null) || (change.older(coveredChange)))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 }
