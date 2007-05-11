@@ -4118,8 +4118,227 @@
               </sequence>
             </testcase>
             
-            
-           
+<!-- syntax tests -->          
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Bind Type Tests
+                #@TestName                  syntax - groupdn with missing slash
+                #@TestIssue                 455
+                #@TestPurpose               Test behavior with groupdn with missing slash in the url
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry in the targeted branch dn as a group member.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <testcase name="'ACI: Bind Types: groupdn with missing slash'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_syntax_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Bind Types: groupdn with missing slash, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Bind Type Tests
+                #@TestName                  syntax - groupdn with single quotes
+                #@TestIssue                 455
+                #@TestPurpose               Test behavior with groupdn with single quotes
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry in the targeted branch dn as a group member.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <testcase name="'ACI: Bind Types: groupdn with single quote'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_syntax_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Bind Types: groupdn with single quote, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Bind Type Tests
+                #@TestName                  syntax - groupdn is null
+                #@TestIssue                 454
+                #@TestPurpose               Test behavior with groupdn equals null
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry in the targeted branch dn as a group member.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <testcase name="'ACI: Bind Types: groupdn with null value'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_syntax_aci3.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Bind Types: groupdn with null value, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Bind Type Tests
+                #@TestName                  syntax - userdn is null
+                #@TestIssue                 453
+                #@TestPurpose               Test behavior with userdn equals null
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry in the targeted branch dn as a group member.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <testcase name="'ACI: Bind Types: userdn with null value'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_syntax_aci4.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Bind Types: userdn with null value, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Bind Type Tests
+                #@TestName                  syntax - userattr is null
+                #@TestIssue                 455
+                #@TestPurpose               Test behavior with userattr equals null
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry in the targeted branch dn as a group member.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <testcase name="'ACI: Bind Types: userattr with null value'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_syntax_aci5.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Bind Types: userattr with null value, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
         <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.

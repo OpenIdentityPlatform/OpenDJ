@@ -26,5 +26,5 @@
 dn: ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
 changetype: modify
 add: aci
-aci: (targetattr="*")(version 3.0; acl "add_syntax_aci1"; allow (search,read) groupdn="ldap://cn=Marketing,ou=Groups, o=ACI Tests, dc=example,dc=com";)
+aci: (targetattr="*")(version 3.0; acl "add_syntax_aci2"; allow (search,read) groupdn='ldap:///cn=Marketing,ou=Groups, o=ACI Tests, dc=example,dc=com';)
 
