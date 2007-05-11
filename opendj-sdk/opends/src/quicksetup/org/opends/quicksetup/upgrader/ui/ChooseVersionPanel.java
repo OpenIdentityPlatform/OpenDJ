@@ -34,11 +34,12 @@ import org.opends.quicksetup.upgrader.Build;
 import org.opends.quicksetup.upgrader.RemoteBuildManager;
 import org.opends.quicksetup.upgrader.Upgrader;
 import org.opends.quicksetup.util.BackgroundTask;
+import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +56,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
 
   static private final long serialVersionUID = -6941309163077121917L;
 
+  private JLabel lblCurrentVersion = null;
   private JRadioButton rbRemote = null;
   private JRadioButton rbLocal = null;
   private ButtonGroup grpRemoteLocal = null;
@@ -78,8 +80,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
   /**
    * {@inheritDoc}
    */
-  public boolean blockingBeginDisplay()
-  {
+  public boolean blockingBeginDisplay() {
     return true;
   }
 
@@ -88,6 +89,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
    */
   public void beginDisplay(UserData data) {
     super.beginDisplay(data);
+
     if (!loadBuildListAttempted) {
 
       // Begin display is called outside the UI
@@ -116,6 +118,10 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
       t.setRepeats(false);
       t.start();
     }
+
+    lblCurrentVersion.setText(
+            Utils.getBuildString(getApplication().getInstallation()));
+
   }
 
   /**
@@ -143,6 +149,18 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     Component c;
 
     JPanel p = UIFactory.makeJPanel();
+
+    LabelFieldDescriptor currentVersionDescriptor = new LabelFieldDescriptor(
+      getMsg("upgrade-review-panel-old-version-label"),
+      getMsg("upgrade-review-panel-old-version-tooltip"),
+      LabelFieldDescriptor.FieldType.READ_ONLY,
+      LabelFieldDescriptor.LabelType.PRIMARY,
+      0
+    );
+
+    lblCurrentVersion = UIFactory.makeJLabel(
+            UIFactory.IconType.NO_ICON,
+            "", UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
     rbRemote = UIFactory.makeJRadioButton(
             getMsg("upgrade-choose-version-remote-label"),
@@ -197,50 +215,72 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     p.setLayout(new GridBagLayout());
     // p.setBorder(BorderFactory.createLineBorder(Color.RED));
     GridBagConstraints gbc = new GridBagConstraints();
+
     gbc.gridx = 0;
     gbc.gridy = 0;
+    gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
+    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+    p.add(UIFactory.makeJLabel(currentVersionDescriptor), gbc);
+
+    gbc.gridx = 1;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.insets = UIFactory.getEmptyInsets();
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets = UIFactory.getEmptyInsets();
-    gbc.insets.top = 15; // non-standard but looks better
+    gbc.anchor = GridBagConstraints.FIRST_LINE_START;
+    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
+    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+    p.add(lblCurrentVersion, gbc);
+
+    gbc.gridx = 0;
+    gbc.gridy++;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.weightx = 1.0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.insets.top = UIFactory.TOP_INSET_RADIOBUTTON + 15;
+    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.anchor = GridBagConstraints.FIRST_LINE_START;
     p.add(rbRemote, gbc);
 
-    gbc.gridy = 1;
-    gbc.gridwidth = 1;
-    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.gridy++;
+    gbc.gridwidth = 2;
     gbc.insets.top = UIFactory.TOP_INSET_RADIO_SUBORDINATE;
-    gbc.insets.left = UIFactory.LEFT_INSET_RADIO_SUBORDINATE;
+    gbc.insets.left = UIFactory.LEFT_INSET_RADIO_SUBORDINATE +
+            UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.anchor = GridBagConstraints.LINE_START;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.weightx = 2;
     p.add(cboBuild, gbc);
 
-    gbc.gridy = 1;
     gbc.gridx = 1;
     gbc.weightx = 1.5;
-    gbc.anchor = GridBagConstraints.CENTER;
+    gbc.anchor = GridBagConstraints.LINE_START;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets = UIFactory.getEmptyInsets();
     JPanel fill = UIFactory.makeJPanel();
     // fill.setBorder(BorderFactory.createLineBorder(Color.BLUE));
     p.add(fill, gbc);
 
-    gbc.gridy = 2;
+    gbc.gridy++;
     gbc.gridx = 0;
-    gbc.insets = UIFactory.getEmptyInsets();
-    gbc.insets.top = 15; // UIFactory.TOP_INSET_RADIOBUTTON;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     p.add(rbLocal, gbc);
 
-    gbc.gridy = 3;
+    gbc.gridy++;
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.insets.top = UIFactory.TOP_INSET_RADIO_SUBORDINATE;
-    gbc.insets.left = UIFactory.LEFT_INSET_RADIO_SUBORDINATE;
+    gbc.insets.left = UIFactory.LEFT_INSET_RADIO_SUBORDINATE +
+            UIFactory.LEFT_INSET_PRIMARY_FIELD;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.weightx = 2;
+    gbc.fill = GridBagConstraints.BOTH;
+    // pnlBrowse.setBorder(BorderFactory.createLineBorder(Color.BLUE));
     p.add(pnlBrowse, gbc);
 
-    gbc.gridy = 4;
+    gbc.gridy++;
     gbc.weighty = 1.0;
     gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.BOTH;
@@ -473,4 +513,29 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     tfFile.setEnabled(rbLocal.isSelected());
     butBrowse.setEnabled((rbLocal.isSelected()));
   }
+
+//  public static void main(String[] args) {
+//    final UserData ud = new UpgradeUserData();
+//    ud.setServerLocation("XXX/XXXXX/XX/XXXXXXXXXXXX/XXXX");
+//    Upgrader app = new Upgrader();
+//    app.setUserData(ud);
+//    final ChooseVersionPanel p = new ChooseVersionPanel(app);
+//    p.initialize();
+//    JFrame frame = new JFrame();
+//    frame.getContentPane().add(p);
+//    frame.addComponentListener(new ComponentAdapter() {
+//      public void componentHidden(ComponentEvent componentEvent) {
+//        System.exit(0);
+//      }
+//    });
+//    frame.pack();
+//    frame.setVisible(true);
+//    new Thread(new Runnable() {
+//      public void run() {
+//        p.beginDisplay(ud);
+//      }
+//    }).start();
+//
+//  }
+
 }

@@ -27,20 +27,18 @@
 
 package org.opends.quicksetup.upgrader.ui;
 
+import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.ui.FieldName;
+import org.opends.quicksetup.ui.LabelFieldDescriptor;
 import org.opends.quicksetup.ui.ReviewPanel;
 import org.opends.quicksetup.ui.UIFactory;
-import org.opends.quicksetup.ui.LabelFieldDescriptor;
-import org.opends.quicksetup.ui.FieldName;
-import org.opends.quicksetup.upgrader.Upgrader;
-import org.opends.quicksetup.upgrader.UpgradeUserData;
 import org.opends.quicksetup.upgrader.Build;
-import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.UserData;
-import org.opends.quicksetup.BuildInformation;
+import org.opends.quicksetup.upgrader.UpgradeUserData;
+import org.opends.quicksetup.upgrader.Upgrader;
+import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -73,9 +71,8 @@ public class UpgraderReviewPanel extends ReviewPanel {
   public void beginDisplay(UserData data) {
     tcServerLocation.setText(getServerToUpgrade());
 
-    // Unfortunately these string are different.  The
-    // old build string is the build ID (14 digit number)
-    // and the new build is the build display name that
+    // Unfortunately these string are different.
+    // The new build is the build display name that
     // appears in the available builds information page.
     // It is currently not feasible to correlate these.
     tcOldBuild.setText(getOldBuildString());
@@ -203,20 +200,7 @@ public class UpgraderReviewPanel extends ReviewPanel {
   }
 
   private String getOldBuildString() {
-    String oldVersion = null;
-    try {
-      BuildInformation bi = getApplication().getInstallation().
-              getBuildInformation();
-      if (bi != null) {
-        oldVersion = bi.toString();
-      }
-    } catch (ApplicationException e) {
-      LOG.log(Level.INFO, "error", e);
-    }
-    if (oldVersion == null) {
-      oldVersion = getMsg("upgrade-build-id-unknown");
-    }
-    return oldVersion;
+    return Utils.getBuildString(getApplication().getInstallation());
   }
 
   /**

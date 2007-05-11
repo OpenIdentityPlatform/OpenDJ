@@ -29,6 +29,11 @@ package org.opends.quicksetup;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 import org.opends.quicksetup.util.Utils;
 
@@ -236,6 +241,9 @@ public class Installation {
     }
   }
 
+  static private final Logger LOG =
+          Logger.getLogger(Installation.class.getName());
+
   private File rootDirectory;
 
   private Status status;
@@ -284,8 +292,19 @@ public class Installation {
     // Hold off on doing validation of rootDirectory since
     // some applications (like the Installer) create an Installation
     // before the actual bits have been laid down on the filesyste.
-
     this.rootDirectory = rootDirectory;
+
+    // Obtaining build information is a fairly time consuming operation.
+    // Try to get a head start if possible.
+    if (isValid()) {
+      try {
+        BuildInformation bi = getBuildInformation();
+        LOG.log(Level.INFO, "build info for " + rootDirectory.getName() +
+                ": " + bi);
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO, "error determining build information", e);
+      }
+    }
   }
 
   /**
@@ -682,7 +701,20 @@ public class Installation {
    */
   public BuildInformation getBuildInformation() throws ApplicationException {
     if (buildInformation == null) {
-      buildInformation = BuildInformation.create(this);
+      FutureTask<BuildInformation> ft = new FutureTask<BuildInformation>(
+              new Callable<BuildInformation>() {
+                public BuildInformation call() throws ApplicationException {
+                  return BuildInformation.create(Installation.this);
+                }
+              });
+      new Thread(ft).start();
+      try {
+        buildInformation = ft.get();
+      } catch (InterruptedException e) {
+        LOG.log(Level.INFO, "interrupted trying to get build information", e);
+      } catch (ExecutionException e) {
+        throw (ApplicationException)e.getCause();
+      }
     }
     return buildInformation;
   }

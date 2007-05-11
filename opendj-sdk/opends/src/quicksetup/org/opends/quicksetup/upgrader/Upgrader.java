@@ -186,6 +186,14 @@ public class Upgrader extends GuiApplication implements CliApplication {
   static private final Logger LOG = Logger.getLogger(Upgrader.class.getName());
 
   /**
+   * Passed in from the shell script if the root is known at the time
+   * of invocation.
+   */
+  static private final String SYS_PROP_INSTALL_ROOT =
+          "org.opends.quicksetup.upgrader.Root";
+
+
+  /**
    * If set to true, an error is introduced during the
    * upgrade process for testing.
    */
@@ -265,6 +273,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * Creates a default instance.
    */
   public Upgrader() {
+
+    // Initialize the logs if necessary
     try {
       if (!QuickSetupLog.isInitialized())
         QuickSetupLog.initLogFileHandler(
@@ -274,9 +284,18 @@ public class Upgrader extends GuiApplication implements CliApplication {
     } catch (IOException e) {
       System.err.println("Failed to initialize log");
     }
+
+    // Get started on downloading the web start jars
     if (Utils.isWebStart()) {
       initLoader();
     }
+
+    final String instanceRootFromSystem =
+            System.getProperty(SYS_PROP_INSTALL_ROOT);
+    if (instanceRootFromSystem != null) {
+      setInstallation(new Installation(instanceRootFromSystem));
+    }
+
   }
 
   /**
@@ -587,22 +606,20 @@ public class Upgrader extends GuiApplication implements CliApplication {
             File serverLocation = new File(serverLocationString);
             Installation.validateRootDirectory(serverLocation);
 
-            // If we get here the value is acceptable
-            final Installation installation = new Installation(serverLocation);
-            setInstallation(installation);
+            // If we get here the value is acceptable and not null
 
-            // The build ID is needed on the review panel and it is
-            // fairly time consuming to get.  So prime this cached
-            // value in a separate thread.
-            new Thread(new Runnable() {
-              public void run() {
-                try {
-                  installation.getBuildInformation().getBuildId();
-                } catch (ApplicationException e) {
-                  LOG.log(Level.INFO, "error", e);
-                }
-              }
-            }).start();
+            Installation currentInstallation = getInstallation();
+            if (currentInstallation == null ||
+                !serverLocation.equals(getInstallation().getRootDirectory())) {
+              LOG.log(Level.INFO,
+                      "user changed server root from " +
+                      (currentInstallation == null ?
+                              "'null'" :
+                              currentInstallation.getRootDirectory()) +
+                      " to " + serverLocation);
+              Installation installation = new Installation(serverLocation);
+              setInstallation(installation);
+            }
 
             uud.setServerLocation(serverLocationString);
 
@@ -1640,8 +1657,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   public UserData createUserData() {
     UpgradeUserData uud = new UpgradeUserData();
-    String instanceRootFromSystem =
-            System.getProperty("org.opends.quicksetup.upgrader.Root");
+    String instanceRootFromSystem = System.getProperty(SYS_PROP_INSTALL_ROOT);
     if (instanceRootFromSystem != null) {
       uud.setServerLocation(instanceRootFromSystem);
     }
