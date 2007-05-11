@@ -35,7 +35,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.tasks.TaskUtils;
 import static org.opends.server.util.ServerConstants.OC_TOP;
 import static org.opends.server.util.ServerConstants.OC_EXTENSIBLE_OBJECT;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
@@ -46,8 +45,6 @@ import java.util.LinkedHashMap;
 
 public class TestRebuildJob extends JebTestCase
 {
-  private  String cfgDN=
-      "ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config";
   private  String beID="rebuildRoot";
   private static String suffix="dc=rebuild,dc=jeb";
   private static  String vBranch="ou=rebuild tests," + suffix;
@@ -55,9 +52,7 @@ public class TestRebuildJob extends JebTestCase
   //Attribute type in stat entry containing error count
   private  String errorCount="verify-error-count";
 
-  private  DN configDN;
   private  DN[] baseDNs;
-  private ConfigEntry configEntry;
   private BackendImpl be;
 
   @DataProvider(name = "systemIndexes")
@@ -131,11 +126,9 @@ public class TestRebuildJob extends JebTestCase
   @BeforeClass
   public void setup() throws Exception {
     TestCaseUtils.startServer();
-    configDN = DN.decode(cfgDN);
     baseDNs = new DN[] {
         DN.decode(suffix)
     };
-    configEntry = DirectoryServer.getConfigEntry(configDN);
   }
 
   @AfterClass
@@ -169,7 +162,7 @@ public class TestRebuildJob extends JebTestCase
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
     be=(BackendImpl) DirectoryServer.getBackend(beID);
-    be.rebuildBackend(rebuildConfig, configEntry, baseDNs);
+    be.rebuildBackend(rebuildConfig);
 
     assertEquals(verifyBackend("mail"), 0);
 
@@ -183,7 +176,7 @@ public class TestRebuildJob extends JebTestCase
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
     be=(BackendImpl) DirectoryServer.getBackend(beID);
-    be.rebuildBackend(rebuildConfig, configEntry, baseDNs);
+    be.rebuildBackend(rebuildConfig);
   }
 
   @Test(dataProvider = "systemIndexes",
@@ -195,21 +188,21 @@ public class TestRebuildJob extends JebTestCase
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
     be=(BackendImpl) DirectoryServer.getBackend(beID);
-    be.rebuildBackend(rebuildConfig, configEntry, baseDNs);
+    be.rebuildBackend(rebuildConfig);
   }
 
   @Test(dataProvider = "systemIndexes")
   public void testRebuildSystemIndexesOffline(String index) throws Exception
   {
-    cleanAndLoad(10);  
+    cleanAndLoad(10);
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
     be=(BackendImpl) DirectoryServer.getBackend(beID);
 
-    TaskUtils.setBackendEnabled(configEntry, false);
+    TaskUtils.disableBackend(beID);
 
-    be.rebuildBackend(rebuildConfig, configEntry, baseDNs);
+    be.rebuildBackend(rebuildConfig);
 
     //TODO: Verify dn2uri database as well.
     if(!index.equalsIgnoreCase("dn2uri"))
@@ -217,7 +210,7 @@ public class TestRebuildJob extends JebTestCase
       assertEquals(verifyBackend(index), 0);
     }
 
-    TaskUtils.setBackendEnabled(configEntry, true);
+    TaskUtils.enableBackend(beID);
   }
 
   @Test
@@ -231,13 +224,13 @@ public class TestRebuildJob extends JebTestCase
 
     be=(BackendImpl) DirectoryServer.getBackend(beID);
 
-    TaskUtils.setBackendEnabled(configEntry, false);
+    TaskUtils.disableBackend(beID);
 
-    be.rebuildBackend(rebuildConfig, configEntry, baseDNs);
+    be.rebuildBackend(rebuildConfig);
 
     assertEquals(verifyBackend(null), 0);
 
-    TaskUtils.setBackendEnabled(configEntry, true);
+    TaskUtils.enableBackend(beID);
   }
 
   @Test
@@ -293,7 +286,7 @@ public class TestRebuildJob extends JebTestCase
       verifyConfig.addCleanIndex(index);
     }
     Entry statEntry=bldStatEntry("");
-    be.verifyBackend(verifyConfig, configEntry, baseDNs, statEntry);
+    be.verifyBackend(verifyConfig, statEntry);
 
     return getStatEntryCount(statEntry, errorCount);
   }

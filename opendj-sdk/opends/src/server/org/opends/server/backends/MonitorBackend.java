@@ -45,7 +45,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.BackendConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -68,6 +67,7 @@ import org.opends.server.types.SearchScope;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
+import org.opends.server.util.Validator;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
@@ -80,6 +80,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.Configuration;
 
 
 /**
@@ -132,13 +133,18 @@ public class MonitorBackend
   }
 
 
-
   /**
    * {@inheritDoc}
    */
-  public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
-         throws ConfigException, InitializationException
+  public void configureBackend(Configuration config) throws ConfigException
   {
+    Validator.ensureNotNull(config);
+    Validator.ensureTrue(config instanceof BackendCfg);
+
+    BackendCfg cfg = (BackendCfg)config;
+    ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
+
+
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
     if (configEntry == null)
@@ -148,7 +154,6 @@ public class MonitorBackend
       throw new ConfigException(msgID, message);
     }
 
-    BackendCfg cfg = BackendConfigManager.getBackendCfg(configEntry);
     configEntryDN = configEntry.getDN();
 
 
@@ -180,6 +185,20 @@ public class MonitorBackend
     }
 
 
+    // Construct the set of objectclasses to include in the base monitor entry.
+    monitorObjectClasses = new LinkedHashMap<ObjectClass,String>(2);
+    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
+    monitorObjectClasses.put(topOC, OC_TOP);
+
+    ObjectClass monitorOC = DirectoryServer.getObjectClass(OC_MONITOR_ENTRY,
+                                                           true);
+    monitorObjectClasses.put(monitorOC, OC_MONITOR_ENTRY);
+
+
+    // Define an empty sets for the supported controls and features.
+    supportedControls = new HashSet<String>(0);
+    supportedFeatures = new HashSet<String>(0);
+
     // Create the set of base DNs that we will handle.  In this case, it's just
     // the DN of the base monitor entry.
     try
@@ -195,31 +214,24 @@ public class MonitorBackend
 
       int msgID = MSGID_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN;
       String message = getMessage(msgID, getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      throw new ConfigException(msgID, message, e);
     }
 
     // FIXME -- Deal with this more correctly.
     this.baseDNs = new DN[] { baseMonitorDN };
 
 
-    // Construct the set of objectclasses to include in the base monitor entry.
-    monitorObjectClasses = new LinkedHashMap<ObjectClass,String>(2);
-    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
-    monitorObjectClasses.put(topOC, OC_TOP);
-
-    ObjectClass monitorOC = DirectoryServer.getObjectClass(OC_MONITOR_ENTRY,
-                                                           true);
-    monitorObjectClasses.put(monitorOC, OC_MONITOR_ENTRY);
-
-
-    // Define an empty sets for the supported controls and features.
-    supportedControls = new HashSet<String>(0);
-    supportedFeatures = new HashSet<String>(0);
-
-
-    // Register with the Directory Server as a configurable component.
     currentConfig = cfg;
-    cfg.addChangeListener(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void initializeBackend()
+         throws ConfigException, InitializationException
+  {
+    // Register with the Directory Server as a configurable component.
+    currentConfig.addChangeListener(this);
 
 
     // Register the monitor base as a private suffix.
@@ -951,71 +963,10 @@ public class MonitorBackend
   /**
    * {@inheritDoc}
    */
-  public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFExportConfig exportConfig)
+  public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
     // TODO export-ldif reports nonsense for upTime etc.
-
-    configEntryDN = configEntry.getDN();
-
-
-    // Get the set of user-defined attributes for the configuration entry.  Any
-    // attributes that we don't recognize will be included directly in the base
-    // monitor entry.
-    userDefinedAttributes = new ArrayList<Attribute>();
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getUserAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isMonitorConfigAttribute(a))
-        {
-          userDefinedAttributes.add(a);
-        }
-      }
-    }
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getOperationalAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isMonitorConfigAttribute(a))
-        {
-          userDefinedAttributes.add(a);
-        }
-      }
-    }
-
-
-    // Create the set of base DNs that we will handle.  In this case, it's just
-    // the DN of the base monitor entry.
-    try
-    {
-      baseMonitorDN = DN.decode(DN_MONITOR_ROOT);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = MSGID_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, msgID, e);
-    }
-
-    // Construct the set of objectclasses to include in the base monitor entry.
-    monitorObjectClasses = new LinkedHashMap<ObjectClass,String>(2);
-    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
-    monitorObjectClasses.put(topOC, OC_TOP);
-
-    ObjectClass monitorOC = DirectoryServer.getObjectClass(OC_MONITOR_ENTRY,
-                                                           true);
-    monitorObjectClasses.put(monitorOC, OC_MONITOR_ENTRY);
-
 
     // Create the LDIF writer.
     LDIFWriter ldifWriter;
@@ -1140,8 +1091,7 @@ public class MonitorBackend
   /**
    * {@inheritDoc}
    */
-  public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFImportConfig importConfig)
+  public void importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
@@ -1199,7 +1149,7 @@ public class MonitorBackend
   /**
    * {@inheritDoc}
    */
-  public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
+  public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
@@ -1253,8 +1203,7 @@ public class MonitorBackend
   /**
    * {@inheritDoc}
    */
-  public void restoreBackup(ConfigEntry configEntry,
-                            RestoreConfig restoreConfig)
+  public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.

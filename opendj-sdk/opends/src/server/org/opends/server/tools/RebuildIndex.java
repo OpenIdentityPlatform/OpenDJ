@@ -35,7 +35,6 @@ import org.opends.server.extensions.ConfigFileHandler;
 
 import static org.opends.server.messages.ToolMessages.*;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.ConfigEntry;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
@@ -51,6 +50,7 @@ import org.opends.server.types.*;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.jeb.RebuildConfig;
+import org.opends.server.admin.std.server.BackendCfg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -349,7 +349,7 @@ public class RebuildIndex
     }
 
     // Decode the base DN provided by the user.
-    DN rebuildBaseDN = null;
+    DN rebuildBaseDN;
     try
     {
       rebuildBaseDN = DN.decode(baseDNString.getValue());
@@ -375,11 +375,10 @@ public class RebuildIndex
 
     // Get information about the backends defined in the server.
     Backend backend = null;
-    ConfigEntry configEntry = null;
-    DN[]          baseDNArray = null;
+    DN[]          baseDNArray;
 
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
+    ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
     ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
     int code = BackendToolUtils.getBackends(backendList, entryList, dnList);
 
@@ -387,7 +386,6 @@ public class RebuildIndex
     for (int i=0; i < numBackends; i++)
     {
       Backend     b       = backendList.get(i);
-      ConfigEntry entry   = entryList.get(i);
       List<DN>    baseDNs = dnList.get(i);
 
       for (DN baseDN : baseDNs)
@@ -397,7 +395,6 @@ public class RebuildIndex
           if (backend == null)
           {
             backend         = b;
-            configEntry     = entry;
             baseDNArray     = new DN[baseDNs.size()];
             baseDNs.toArray(baseDNArray);
           }
@@ -470,7 +467,7 @@ public class RebuildIndex
     try
     {
       BackendImpl jebBackend = (BackendImpl)backend;
-      jebBackend.rebuildBackend(rebuildConfig, configEntry, baseDNArray);
+      jebBackend.rebuildBackend(rebuildConfig);
     }
     catch (Exception e)
     {

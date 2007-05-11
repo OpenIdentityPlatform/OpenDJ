@@ -42,7 +42,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
@@ -285,7 +284,6 @@ public class ImportTask extends Task
 
     // Get the backend into which the LDIF should be imported.
     Backend       backend;
-    ConfigEntry   configEntry;
     ArrayList<DN> defaultIncludeBranches;
     ArrayList<DN> excludeBranches = new ArrayList<DN>();
 
@@ -307,9 +305,6 @@ public class ImportTask extends Task
                msgID);
       return TaskState.STOPPED_BY_ERROR;
     }
-
-    // Get the config entry for this backend.
-    configEntry = TaskUtils.getConfigEntry(backend);
 
     // Find backends with subordinate base DNs that should be excluded from the
     // import.
@@ -479,7 +474,7 @@ public class ImportTask extends Task
     // Disable the backend.
     try
     {
-      TaskUtils.setBackendEnabled(configEntry, false);
+      TaskUtils.disableBackend(backendID);
     }
     catch (DirectoryException e)
     {
@@ -530,7 +525,7 @@ public class ImportTask extends Task
       // Launch the import.
       try
       {
-        backend.importLDIF(configEntry, baseDNs, importConfig);
+        backend.importLDIF(importConfig);
       }
       catch (DirectoryException de)
       {
@@ -599,7 +594,7 @@ public class ImportTask extends Task
       // Enable the backend.
       try
       {
-        TaskUtils.setBackendEnabled(configEntry, true);
+        TaskUtils.enableBackend(backendID);
         // It is necessary to retrieve the backend structure again
         // because disabling and enabling it again may have resulted
         // in a new backend being registered to the server.

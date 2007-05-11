@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -58,7 +57,7 @@ import org.opends.server.types.WritabilityMode;
 
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-
+import org.opends.server.admin.Configuration;
 
 
 /**
@@ -111,14 +110,24 @@ public abstract class Backend
 
 
   /**
-   * Initializes this backend based on the information in the provided
-   * configuration entry.
+   * Configure this backend based on the information in the provided
+   * configuration.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      backend.
-   * @param  baseDNs      The set of base DNs that have been
-   *                      configured for this backend.
+   * @param  cfg          The configuration of this backend.
+   *
+   * @throws  ConfigException
+   *                      If there is an error in the configuration.
+   */
+  public abstract void configureBackend(Configuration cfg)
+         throws ConfigException;
+
+
+
+  /**
+   * Initializes this backend based on the information provided
+   * when the backend was configured.
+   *
+   * @see #configureBackend
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -129,8 +138,7 @@ public abstract class Backend
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializeBackend(ConfigEntry configEntry,
-                                         DN[] baseDNs)
+  public abstract void initializeBackend()
          throws ConfigException, InitializationException;
 
 
@@ -453,18 +461,13 @@ public abstract class Backend
    * <CODE>true</CODE>.  Note that the server will not explicitly
    * initialize this backend before calling this method.
    *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this
-   *                       backend.
    * @param  exportConfig  The configuration to use when performing
    *                       the export.
    *
    * @throws  DirectoryException  If a problem occurs while performing
    *                              the LDIF export.
    */
-  public abstract void exportLDIF(ConfigEntry configEntry,
-                                  DN[] baseDNs,
-                                  LDIFExportConfig exportConfig)
+  public abstract void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException;
 
 
@@ -486,18 +489,13 @@ public abstract class Backend
    * returns <CODE>true</CODE>.  Note that the server will not
    * explicitly initialize this backend before calling this method.
    *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this
-   *                       backend.
    * @param  importConfig  The configuration to use when performing
    *                       the import.
    *
    * @throws  DirectoryException  If a problem occurs while performing
    *                              the LDIF import.
    */
-  public abstract void importLDIF(ConfigEntry configEntry,
-                                  DN[] baseDNs,
-                                  LDIFImportConfig importConfig)
+  public abstract void importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException;
 
 
@@ -546,15 +544,13 @@ public abstract class Backend
    * <CODE>true</CODE>.  Note that the server will not explicitly
    * initialize this backend before calling this method.
    *
-   * @param  configEntry   The configuration entry for this backend.
    * @param  backupConfig  The configuration to use when performing
    *                       the backup.
    *
    * @throws  DirectoryException  If a problem occurs while performing
    *                              the backup.
    */
-  public abstract void createBackup(ConfigEntry configEntry,
-                                    BackupConfig backupConfig)
+  public abstract void createBackup(BackupConfig backupConfig)
          throws DirectoryException;
 
 
@@ -597,15 +593,13 @@ public abstract class Backend
    * <CODE>true</CODE>.  Note that the server will not explicitly
    * initialize this backend before calling this method.
    *
-   * @param  configEntry    The configuration entry for this backend.
    * @param  restoreConfig  The configuration to use when performing
    *                        the restore.
    *
    * @throws  DirectoryException  If a problem occurs while performing
    *                              the restore.
    */
-  public abstract void restoreBackup(ConfigEntry configEntry,
-                                     RestoreConfig restoreConfig)
+  public abstract void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException;
 
 
@@ -847,9 +841,9 @@ public abstract class Backend
       {
         boolean thisMatches = false;
         DN[] subBaseDNs = b.getBaseDNs();
-        for (int i=0; i < subBaseDNs.length; i++)
+        for (DN dn : subBaseDNs)
         {
-          if (subBaseDNs[i].equals(subSuffixDN))
+          if (dn.equals(subSuffixDN))
           {
             if (subBaseDNs.length > 1)
             {
@@ -977,14 +971,14 @@ public abstract class Backend
   public boolean handlesEntry(DN entryDN)
   {
     DN[] baseDNs = getBaseDNs();
-    for (int i=0; i < baseDNs.length; i++)
+    for (DN dn : baseDNs)
     {
-      if (entryDN.isDescendantOf(baseDNs[i]))
+      if (entryDN.isDescendantOf(dn))
       {
         Backend[] subBackends = subordinateBackends;
-        for (int j=0; j < subBackends.length; j++)
+        for (Backend b : subBackends)
         {
-          if (subBackends[j].handlesEntry(entryDN))
+          if (b.handlesEntry(entryDN))
           {
             return false;
           }

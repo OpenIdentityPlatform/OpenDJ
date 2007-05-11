@@ -250,10 +250,10 @@ public class RestoreTask extends Task
     // Get the DN of the backend configuration entry from the backup.
     DN configEntryDN = backupDir.getConfigEntryDN();
 
-    // Get the backend configuration entry.
     ConfigEntry configEntry;
     try
     {
+      // Get the backend configuration entry.
       configEntry = DirectoryServer.getConfigEntry(configEntryDN);
     }
     catch (ConfigException e)
@@ -298,7 +298,7 @@ public class RestoreTask extends Task
     // Disable the backend.
     try
     {
-      TaskUtils.setBackendEnabled(configEntry, false);
+      TaskUtils.disableBackend(backendID);
     }
     catch (DirectoryException e)
     {
@@ -325,7 +325,7 @@ public class RestoreTask extends Task
           // Perform the restore.
           try
           {
-            backend.restoreBackup(configEntry, restoreConfig);
+            backend.restoreBackup(restoreConfig);
           }
           catch (DirectoryException de)
           {
@@ -363,7 +363,7 @@ public class RestoreTask extends Task
       // Enable the backend.
       try
       {
-        TaskUtils.setBackendEnabled(configEntry, true);
+        TaskUtils.enableBackend(backendID);
         // it is necessary to retrieve the backend structure again
         // because disabling and enabling it again may have resulted
         // in a new backend being registered to the server.

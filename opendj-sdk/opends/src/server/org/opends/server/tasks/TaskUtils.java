@@ -57,6 +57,9 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.server.ServerManagementContext;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -89,8 +92,7 @@ public class TaskUtils
                                      true, false, true);
       StringConfigAttribute idAttr =
            (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-      String backendID = idAttr.activeValue();
-      return backendID;
+      return idAttr.activeValue();
     }
     catch (ConfigException ce)
     {
@@ -126,7 +128,7 @@ public class TaskUtils
     // FIXME The error messages should not be the LDIF import messages
 
     // Get the base entry for all backend configuration.
-    DN backendBaseDN = null;
+    DN backendBaseDN;
     try
     {
       backendBaseDN = DN.decode(DN_BACKEND_BASE);
@@ -151,7 +153,7 @@ public class TaskUtils
       return configEntries;
     }
 
-    ConfigEntry baseEntry = null;
+    ConfigEntry baseEntry;
     try
     {
       baseEntry = DirectoryServer.getConfigEntry(backendBaseDN);
@@ -183,7 +185,7 @@ public class TaskUtils
     {
       // Get the backend ID attribute from the entry.  If there isn't one, then
       // skip the entry.
-      String backendID = null;
+      String backendID;
       try
       {
         int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
@@ -235,35 +237,47 @@ public class TaskUtils
    * @return The configuration entry of the backend, or null if it could not
    * be found.
    */
-  public static ConfigEntry getConfigEntry(Backend backend)
+  public static BackendCfg getConfigEntry(Backend backend)
   {
-    Map<String,ConfigEntry> configEntries = getBackendConfigEntries();
-    return configEntries.get(backend.getBackendID());
+    RootCfg root = ServerManagementContext.getInstance().
+         getRootConfiguration();
+    try
+    {
+      return root.getBackend(backend.getBackendID());
+    }
+    catch (ConfigException e)
+    {
+      return null;
+    }
   }
 
 
 
   /**
-   * Enable or disable a backend using an internal modify operation on the
+   * Enables a backend using an internal modify operation on the
    * backend configuration entry.
    *
-   * @param configEntry The configuration entry of the backend to be enabled
-   * or disabled.
-   * @param enable Specifies whether the backend should be enabled or disabled.
+   * @param backendID Identifies the backend to be enabled.
    * @throws DirectoryException If the internal modify operation failed.
    */
-  public static void setBackendEnabled(ConfigEntry configEntry, boolean enable)
+  public static void enableBackend(String backendID)
        throws DirectoryException
   {
+    DN configEntryDN;
+    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+    try
+    {
+      BackendCfg cfg = root.getBackend(backendID);
+      configEntryDN = cfg.dn();
+    }
+    catch (ConfigException e)
+    {
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   e.getMessage(), e.getMessageID(), e);
+    }
+
     ArrayList<ASN1OctetString> valueList = new ArrayList<ASN1OctetString>(1);
-    if (enable)
-    {
-      valueList.add(new ASN1OctetString("TRUE"));
-    }
-    else
-    {
-      valueList.add(new ASN1OctetString("FALSE"));
-    }
+    valueList.add(new ASN1OctetString("TRUE"));
     LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, valueList);
 
     LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
@@ -273,7 +287,7 @@ public class TaskUtils
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    String backendDNString = configEntry.getDN().toString();
+    String backendDNString = configEntryDN.toString();
     ASN1OctetString rawEntryDN =
          new ASN1OctetString(backendDNString);
     ModifyOperation internalModify = conn.processModify(rawEntryDN, modList);
@@ -282,14 +296,58 @@ public class TaskUtils
     if (resultCode != ResultCode.SUCCESS)
     {
       int msgID;
-      if (enable)
-      {
-        msgID = TaskMessages.MSGID_TASK_CANNOT_ENABLE_BACKEND;
-      }
-      else
-      {
-        msgID = TaskMessages.MSGID_TASK_CANNOT_DISABLE_BACKEND;
-      }
+      msgID = TaskMessages.MSGID_TASK_CANNOT_ENABLE_BACKEND;
+      String message = getMessage(msgID, backendDNString);
+      throw new DirectoryException(resultCode, message, msgID);
+    }
+  }
+
+
+
+  /**
+   * Disables a backend using an internal modify operation on the
+   * backend configuration entry.
+   *
+   * @param backendID Identifies the backend to be disabled.
+   * @throws DirectoryException If the internal modify operation failed.
+   */
+  public static void disableBackend(String backendID)
+       throws DirectoryException
+  {
+    DN configEntryDN;
+    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+    try
+    {
+      BackendCfg cfg = root.getBackend(backendID);
+      configEntryDN = cfg.dn();
+    }
+    catch (ConfigException e)
+    {
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   e.getMessage(), e.getMessageID(), e);
+    }
+
+    ArrayList<ASN1OctetString> valueList = new ArrayList<ASN1OctetString>(1);
+    valueList.add(new ASN1OctetString("FALSE"));
+    LDAPAttribute a = new LDAPAttribute(ATTR_BACKEND_ENABLED, valueList);
+
+    LDAPModification m = new LDAPModification(ModificationType.REPLACE, a);
+
+    ArrayList<RawModification> modList = new ArrayList<RawModification>(1);
+    modList.add(m);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    String backendDNString = configEntryDN.toString();
+    ASN1OctetString rawEntryDN =
+         new ASN1OctetString(backendDNString);
+    ModifyOperation internalModify = conn.processModify(rawEntryDN, modList);
+
+    ResultCode resultCode = internalModify.getResultCode();
+    if (resultCode != ResultCode.SUCCESS)
+    {
+      int msgID;
+      msgID = TaskMessages.MSGID_TASK_CANNOT_DISABLE_BACKEND;
       String message = getMessage(msgID, backendDNString);
       throw new DirectoryException(resultCode, message, msgID);
     }

@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.TimeZone;
 
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
@@ -66,7 +65,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
-
+import org.opends.server.admin.std.server.BackendCfg;
 
 
 /**
@@ -366,8 +365,8 @@ public class BackUpDB
     {
       try
       {
-        directoryServer.bootstrapClient();
-        directoryServer.initializeJMX();
+        DirectoryServer.bootstrapClient();
+        DirectoryServer.initializeJMX();
       }
       catch (Exception e)
       {
@@ -506,15 +505,15 @@ public class BackUpDB
     // Get information about the backends defined in the server, and determine
     // whether we are backing up multiple backends or a single backend.
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
+    ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
     ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
     int numBackends = backendList.size();
 
     boolean multiple;
     ArrayList<Backend> backendsToArchive = new ArrayList<Backend>(numBackends);
-    HashMap<String,ConfigEntry> configEntries =
-         new HashMap<String,ConfigEntry>(numBackends);
+    HashMap<String,BackendCfg> configEntries =
+         new HashMap<String,BackendCfg>(numBackends);
     if (backUpAll.isPresent())
     {
       for (int i=0; i < numBackends; i++)
@@ -629,7 +628,7 @@ public class BackUpDB
 
 
       // Get the config entry for this backend.
-      ConfigEntry configEntry = configEntries.get(b.getBackendID());
+      BackendCfg configEntry = configEntries.get(b.getBackendID());
 
 
       // Get the path to the directory to use for this backup.  If we will be
@@ -650,7 +649,7 @@ public class BackUpDB
 
       // If the directory doesn't exist, then create it.  If it does exist, then
       // see if it has a backup descriptor file.
-      BackupDirectory backupDir = null;
+      BackupDirectory backupDir;
       backupDirFile = new File(backupDirPath);
       if (backupDirFile.exists())
       {
@@ -731,7 +730,7 @@ public class BackUpDB
         }
         else
         {
-          backupDir = new BackupDirectory(backupDirPath, configEntry.getDN());
+          backupDir = new BackupDirectory(backupDirPath, configEntry.dn());
         }
       }
       else
@@ -773,7 +772,7 @@ public class BackUpDB
           continue;
         }
 
-        backupDir = new BackupDirectory(backupDirPath, configEntry.getDN());
+        backupDir = new BackupDirectory(backupDirPath, configEntry.dn());
       }
 
 
@@ -826,7 +825,7 @@ public class BackUpDB
       // Perform the backup.
       try
       {
-        b.createBackup(configEntry, backupConfig);
+        b.createBackup(backupConfig);
       }
       catch (DirectoryException de)
       {

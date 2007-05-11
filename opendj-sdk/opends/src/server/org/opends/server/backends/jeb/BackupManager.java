@@ -26,7 +26,6 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.DynamicConstants;
@@ -77,6 +76,7 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.admin.std.server.JEBackendCfg;
 
 /**
  * A backup manager for JE backends.
@@ -138,19 +138,19 @@ public class BackupManager
    * log files that are unchanged since the previous backup.  The remaining
    * zip entries are the JE log files themselves, which, for an incremental,
    * only include those files that have changed.
-   * @param configEntry The configuration entry of the backend instance for
+   * @param cfg The configuration of the backend instance for
    * which the backup is required.
    * @param  backupConfig  The configuration to use when performing the backup.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
+  public void createBackup(JEBackendCfg cfg, BackupConfig backupConfig)
        throws DirectoryException
   {
     // Parse our backend configuration.
     Config config = new Config();
     try
     {
-      config.initializeConfig(configEntry, null);
+      config.initializeConfig(cfg);
     }
     catch (ConfigException e)
     {
@@ -747,12 +747,12 @@ public class BackupManager
 
   /**
    * Restore a JE backend from backup, or verify the backup.
-   * @param configEntry The configuration entry of the backend instance to be
+   * @param cfg The configuration of the backend instance to be
    * restored.
    * @param  restoreConfig The configuration to use when performing the restore.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void restoreBackup(ConfigEntry configEntry,
+  public void restoreBackup(JEBackendCfg cfg,
                             RestoreConfig restoreConfig)
        throws DirectoryException
   {
@@ -767,7 +767,7 @@ public class BackupManager
     Config config = new Config();
     try
     {
-      config.initializeConfig(configEntry, null);
+      config.initializeConfig(cfg);
     }
     catch (ConfigException e)
     {

@@ -35,7 +35,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
 
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server configuration handler.

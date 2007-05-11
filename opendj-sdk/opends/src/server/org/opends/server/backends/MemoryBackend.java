@@ -34,7 +34,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -58,6 +57,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.Validator;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -66,7 +66,8 @@ import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.Configuration;
 
 
 /**
@@ -135,13 +136,38 @@ public class MemoryBackend
   }
 
 
+  /**
+   * Set the base DNs for this backend.  This is used by the unit tests
+   * to set the base DNs without having to provide a configuration
+   * object when initializing the backend.
+   * @param baseDNs The set of base DNs to be served by this memory backend.
+   */
+  public void setBaseDNs(DN[] baseDNs)
+  {
+    this.baseDNs = baseDNs;
+  }
+
 
   /**
    * {@inheritDoc}
    */
-  public synchronized void initializeBackend(ConfigEntry configEntry,
-                                             DN[] baseDNs)
-         throws ConfigException, InitializationException
+  public void configureBackend(Configuration config) throws ConfigException
+  {
+    if (config != null)
+    {
+      Validator.ensureTrue(config instanceof BackendCfg);
+      BackendCfg cfg = (BackendCfg)config;
+      DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
+      cfg.getBackendBaseDN().toArray(baseDNs);
+      setBaseDNs(baseDNs);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized void initializeBackend()
+       throws ConfigException, InitializationException
   {
     // We won't support anything other than exactly one base DN in this
     // implementation.  If we were to add such support in the future, we would
@@ -153,9 +179,6 @@ public class MemoryBackend
       String message = getMessage(msgID);
       throw new ConfigException(msgID, message);
     }
-
-
-    this.baseDNs = baseDNs;
 
     baseDNSet = new HashSet<DN>();
     for (DN dn : baseDNs)
@@ -643,8 +666,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
-  public synchronized void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                                      LDIFExportConfig exportConfig)
+  public synchronized void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
     // Create the LDIF writer.
@@ -716,8 +738,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
-  public synchronized void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                                      LDIFImportConfig importConfig)
+  public synchronized void importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     clearMemoryBackend();
@@ -820,7 +841,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
-  public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
+  public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
     int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;
@@ -860,8 +881,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
-  public void restoreBackup(ConfigEntry configEntry,
-                            RestoreConfig restoreConfig)
+  public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
     int    msgID   = MSGID_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED;

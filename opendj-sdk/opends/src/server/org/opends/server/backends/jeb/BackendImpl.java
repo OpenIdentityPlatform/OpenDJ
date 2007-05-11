@@ -37,14 +37,12 @@ import com.sleepycat.je.DatabaseException;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.BackendConfigManager;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.Validator;
 
@@ -57,8 +55,8 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.*;
 import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.JEBackendCfg;
-import org.opends.server.admin.std.meta.JEBackendCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.Configuration;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries
@@ -73,7 +71,7 @@ public class BackendImpl
    * The configuration of this JE backend.
    */
   private Config config;
-  private JEBackendCfg currentConfig;
+  private JEBackendCfg cfg;
 
   /**
    * The root JE container to use for this backend.
@@ -214,16 +212,28 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
-  public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
-       throws ConfigException, InitializationException
+  public void configureBackend(Configuration cfg)
+       throws ConfigException
   {
-    Validator.ensureNotNull(configEntry);
-    JEBackendCfg backendCfg = getJEBackendCfg(configEntry);
+    Validator.ensureNotNull(cfg);
+    Validator.ensureTrue(cfg instanceof JEBackendCfg);
 
     // Initialize a config object
-    config = new Config();
-    config.initializeConfig(backendCfg, baseDNs);
+    Config config = new Config();
+    config.initializeConfig((JEBackendCfg)cfg);
 
+    this.cfg = (JEBackendCfg)cfg;
+    this.config = config;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void initializeBackend()
+       throws ConfigException, InitializationException
+  {
     // Open the database environment
     try
     {
@@ -243,7 +253,7 @@ public class BackendImpl
 
     try
     {
-      rootContainer.openEntryContainers(baseDNs);
+      rootContainer.openEntryContainers(config.getBaseDNs());
     }
     catch (DatabaseException databaseException)
     {
@@ -264,7 +274,8 @@ public class BackendImpl
     {
       // Log an informational message about the number of entries.
       int msgID = MSGID_JEB_BACKEND_STARTED;
-      String message = getMessage(msgID, rootContainer.getEntryCount());
+      String message = getMessage(msgID, cfg.getBackendId(),
+                                  rootContainer.getEntryCount());
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE, message,
                msgID);
     }
@@ -280,7 +291,7 @@ public class BackendImpl
                                         message, databaseException);
     }
 
-    for (DN dn : baseDNs)
+    for (DN dn : config.getBaseDNs())
     {
       try
       {
@@ -307,10 +318,9 @@ public class BackendImpl
     DirectoryServer.registerMonitorProvider(monitorProvider);
 
     // Register this backend as a change listener.
-    currentConfig = backendCfg;
-    backendCfg.addJEChangeListener(this);
-    backendCfg.addJEChangeListener(config);
-    backendCfg.addJEChangeListener(rootContainer);
+    cfg.addJEChangeListener(this);
+    cfg.addJEChangeListener(config);
+    cfg.addJEChangeListener(rootContainer);
   }
 
   /**
@@ -325,9 +335,9 @@ public class BackendImpl
   public void finalizeBackend()
   {
     // Deregister as a change listener.
-    currentConfig.removeJEChangeListener(rootContainer);
-    currentConfig.removeJEChangeListener(config);
-    currentConfig.removeJEChangeListener(this);
+    cfg.removeJEChangeListener(rootContainer);
+    cfg.removeJEChangeListener(config);
+    cfg.removeJEChangeListener(this);
 
     // Deregister our base DNs.
     for (DN dn : rootContainer.getBaseDNs())
@@ -379,9 +389,6 @@ public class BackendImpl
     // Make sure the thread counts are zero for next initialization.
     threadTotalCount.set(0);
     threadWriteCount.set(0);
-
-    // We will not reuse the config object.
-    config = null;
   }
 
 
@@ -871,28 +878,9 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
-  public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFExportConfig exportConfig)
+  public void exportLDIF(LDIFExportConfig exportConfig)
        throws DirectoryException
   {
-    // Initialize a config object.
-    config = new Config();
-
-    try
-    {
-      config.initializeConfig(configEntry, baseDNs);
-    }
-    catch (ConfigException e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
-    }
-
     // If the backend already has the root container open, we must use the same
     // underlying root container
     boolean openRootContainer = rootContainer == null;
@@ -906,7 +894,7 @@ public class BackendImpl
         rootContainer.open(config.getBackendDirectory(),
                            config.getBackendPermission(),
                            true, false, false, false, true, true);
-        rootContainer.openEntryContainers(baseDNs);
+        rootContainer.openEntryContainers(config.getBaseDNs());
       }
 
       ExportJob exportJob = new ExportJob(exportConfig);
@@ -981,28 +969,9 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
-  public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFImportConfig importConfig)
+  public void importLDIF(LDIFImportConfig importConfig)
        throws DirectoryException
   {
-    // Initialize a config object.
-    config = new Config();
-
-    try
-    {
-      config.initializeConfig(configEntry, baseDNs);
-    }
-    catch (ConfigException e)
-    {
-      if (debugEnabled())
-      {
-        debugCaught(DebugLogLevel.ERROR, e);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
-    }
-
     try
     {
       ImportJob importJob = new ImportJob(this, config, importConfig);
@@ -1047,9 +1016,6 @@ public class BackendImpl
   /**
    * Verify the integrity of the backend instance.
    * @param verifyConfig The verify configuration.
-   * @param configEntry The backend instance configuration entry.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
    * @param statEntry Optional entry to save stats into.
    * @throws  ConfigException  If an unrecoverable problem arises during
    *                           initialization.
@@ -1058,14 +1024,9 @@ public class BackendImpl
    *                                   configuration.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void verifyBackend(VerifyConfig verifyConfig, ConfigEntry configEntry,
-                            DN[] baseDNs, Entry statEntry)
+  public void verifyBackend(VerifyConfig verifyConfig, Entry statEntry)
        throws InitializationException, ConfigException, DirectoryException
   {
-    // Initialize a config object.
-    config = new Config();
-    config.initializeConfig(configEntry, baseDNs);
-
     // If the backend already has the root container open, we must use the same
     // underlying root container
     boolean openRootContainer = rootContainer == null;
@@ -1079,7 +1040,7 @@ public class BackendImpl
         rootContainer.open(config.getBackendDirectory(),
                            config.getBackendPermission(),
                            true, false, false, false, true, true);
-        rootContainer.openEntryContainers(baseDNs);
+        rootContainer.openEntryContainers(config.getBaseDNs());
       }
 
       VerifyJob verifyJob = new VerifyJob(config, verifyConfig);
@@ -1133,9 +1094,6 @@ public class BackendImpl
    * Rebuild index(es) in the backend instance. Note that the server will not
    * explicitly initialize this backend before calling this method.
    * @param rebuildConfig The rebuild configuration.
-   * @param configEntry The backend instance configuration entry.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
    * @throws  ConfigException  If an unrecoverable problem arises during
    *                           initialization.
    * @throws  InitializationException  If a problem occurs during initialization
@@ -1143,12 +1101,9 @@ public class BackendImpl
    *                                   configuration.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void rebuildBackend(RebuildConfig rebuildConfig,
-                             ConfigEntry configEntry, DN[] baseDNs)
+  public void rebuildBackend(RebuildConfig rebuildConfig)
        throws InitializationException, ConfigException, DirectoryException
   {
-    JEBackendCfg backendCfg = getJEBackendCfg(configEntry);
-
     // If the backend already has the root container open, we must use the same
     // underlying root container
     boolean openRootContainer = rootContainer == null;
@@ -1168,14 +1123,10 @@ public class BackendImpl
     {
       if (openRootContainer)
       {
-        // Initialize a config object.
-        config = new Config();
-        config.initializeConfig(backendCfg, baseDNs);
-
         // Open the database environment
         rootContainer = new RootContainer(config, this);
         rootContainer.open();
-        rootContainer.openEntryContainers(baseDNs);
+        rootContainer.openEntryContainers(config.getBaseDNs());
       }
 
       RebuildJob rebuildJob = new RebuildJob(rebuildConfig);
@@ -1229,12 +1180,12 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
-  public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
+  public void createBackup(BackupConfig backupConfig)
        throws DirectoryException
   {
     BackupManager backupManager =
          new BackupManager(getBackendID());
-    backupManager.createBackup(configEntry, backupConfig);
+    backupManager.createBackup(cfg, backupConfig);
   }
 
 
@@ -1255,13 +1206,12 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
-  public void restoreBackup(ConfigEntry configEntry,
-                            RestoreConfig restoreConfig)
+  public void restoreBackup(RestoreConfig restoreConfig)
        throws DirectoryException
   {
     BackupManager backupManager =
          new BackupManager(getBackendID());
-    backupManager.restoreBackup(configEntry, restoreConfig);
+    backupManager.restoreBackup(cfg, restoreConfig);
   }
 
 
@@ -1346,7 +1296,7 @@ public class BackendImpl
       }
 
       // Put the new configuration in place.
-      currentConfig = cfg;
+      this.cfg = cfg;
     }
     catch (Exception e)
     {
@@ -1375,36 +1325,15 @@ public class BackendImpl
    * Clears all the entries from the backend.  This method is for test cases
    * that use the JE backend.
    *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this backend.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
-   *
    * @throws  ConfigException  If an unrecoverable problem arises in the
    *                           process of performing the initialization.
    *
    * @throws  JebException     If an error occurs while removing the data.
    */
-  public void clearBackend(ConfigEntry configEntry, DN[] baseDNs)
+  public void clearBackend()
        throws ConfigException, JebException
   {
-    Config config = new Config();
-    config.initializeConfig(configEntry, baseDNs);
     EnvManager.removeFiles(config.getBackendDirectory().getPath());
-  }
-
-  /**
-   * Gets the JE backend configuration corresponding to a JE
-   * backend config entry.
-   *
-   * @param configEntry A JE backend config entry.
-   * @return Returns the JE backend configuration.
-   * @throws ConfigException If the config entry could not be decoded.
-   */
-  static JEBackendCfg getJEBackendCfg(ConfigEntry configEntry)
-      throws ConfigException {
-    return BackendConfigManager.getConfiguration(
-         JEBackendCfgDefn.getInstance(), configEntry);
   }
 
 

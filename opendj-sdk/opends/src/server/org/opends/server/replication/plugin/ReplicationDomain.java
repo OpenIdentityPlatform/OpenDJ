@@ -26,14 +26,10 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_BASE_DN;
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_CLASS;
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_ID;
 import static org.opends.server.config.ConfigConstants.DN_BACKEND_BASE;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.ReplicationMessages.*;
@@ -57,16 +53,14 @@ import java.util.zip.DataFormatException;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MultimasterDomainCfg;
+import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.DNConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -251,9 +245,8 @@ public class ReplicationDomain extends DirectoryThread
   // Null when none is being processed.
   private IEContext ieContext = null;
 
-  // The backend informations necessary to make an import or export.
+  // The backend information necessary to make an import or export.
   private Backend backend;
-  private ConfigEntry backendConfigEntry;
   private List<DN> branches = new ArrayList<DN>(0);
 
   private int listenerThreadNumber = 10;
@@ -1859,13 +1852,9 @@ public class ReplicationDomain extends DirectoryThread
       String dn) throws Exception
   {
     BackendImpl backend = (BackendImpl)DirectoryServer.getBackend(beID);
-    DN[] baseDNs = backend.getBaseDNs();
-
-    // FIXME Should getConfigEntry be part of TaskUtils ?
-    ConfigEntry configEntry = TaskUtils.getConfigEntry(backend);
 
     // FIXME Should setBackendEnabled be part of TaskUtils ?
-    TaskUtils.setBackendEnabled(configEntry, false);
+    TaskUtils.disableBackend(beID);
 
     try
     {
@@ -1879,7 +1868,7 @@ public class ReplicationDomain extends DirectoryThread
 
       try
       {
-        backend.clearBackend(configEntry, baseDNs);
+        backend.clearBackend();
       }
       finally
       {
@@ -1888,7 +1877,7 @@ public class ReplicationDomain extends DirectoryThread
     }
     finally
     {
-      TaskUtils.setBackendEnabled(configEntry, true);
+      TaskUtils.enableBackend(beID);
     }
 
     if (createBaseEntry)
@@ -1951,12 +1940,14 @@ public class ReplicationDomain extends DirectoryThread
     ReplLDIFOutputStream os = new ReplLDIFOutputStream(this);
 
     LDIFExportConfig exportConfig = new LDIFExportConfig(os);
+    List<DN> includeBranches = new ArrayList<DN>(1);
+    includeBranches.add(this.baseDN);
+    exportConfig.setIncludeBranches(includeBranches);
 
     //  Launch the export.
     try
     {
-      DN[] baseDNs = {this.baseDN};
-      backend.exportLDIF(backendConfigEntry, baseDNs, exportConfig);
+      backend.exportLDIF(exportConfig);
     }
     catch (DirectoryException de)
     {
@@ -2020,14 +2011,6 @@ public class ReplicationDomain extends DirectoryThread
    */
   protected void retrievesBackendInfos(DN baseDN) throws DirectoryException
   {
-    ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
-    ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
-
-    Backend backend = null;
-    ConfigEntry backendConfigEntry = null;
-    List<DN> branches = new ArrayList<DN>(0);
-
     // Retrieves the backend related to this domain
     Backend domainBackend = DirectoryServer.getBackend(baseDN);
     if (domainBackend == null)
@@ -2038,44 +2021,9 @@ public class ReplicationDomain extends DirectoryThread
           ResultCode.OTHER, message, msgID, null);
     }
 
-    // Retrieves its config entry and its DNs
-    int code = getBackends(backendList, entryList, dnList);
-    if (code != 0)
-    {
-      int    msgID   = MSGID_CANNOT_DECODE_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE);
-      throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
-    }
-
-    int numBackends = backendList.size();
-    for (int i=0; i < numBackends; i++)
-    {
-      Backend b = backendList.get(i);
-
-      if (domainBackend.getBackendID() != b.getBackendID())
-      {
-        continue;
-      }
-
-      if (backend == null)
-      {
-        backend = domainBackend;
-        backendConfigEntry = entryList.get(i).duplicate();
-        branches = dnList.get(i);
-      }
-      else
-      {
-        int msgID = MSGID_LDIFIMPORT_MULTIPLE_BACKENDS_FOR_ID;
-        String message = getMessage(msgID, domainBackend.getBackendID());
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-            message, msgID);
-        throw new DirectoryException(
-            ResultCode.OTHER, message, msgID, null);
-      }
-    }
-
-    if (backend == null)
+    // Retrieves its configuration
+    BackendCfg backendCfg = TaskUtils.getConfigEntry(domainBackend);
+    if (backendCfg == null)
     {
       int    msgID   = MSGID_LDIFIMPORT_NO_BACKENDS_FOR_ID;
       String message = getMessage(msgID, domainBackend.getBackendID());
@@ -2084,10 +2032,11 @@ public class ReplicationDomain extends DirectoryThread
       throw new DirectoryException(
           ResultCode.OTHER, message, msgID, null);
     }
-    else if (! backend.supportsLDIFExport())
+
+    if (! domainBackend.supportsLDIFExport())
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_IMPORT;
-      String message = getMessage(msgID, 0); // FIXME
+      String message = getMessage(msgID, domainBackend.getBackendID());
       logError(ErrorLogCategory.BACKEND,
           ErrorLogSeverity.SEVERE_ERROR, message, msgID);
       throw new DirectoryException(
@@ -2095,9 +2044,12 @@ public class ReplicationDomain extends DirectoryThread
     }
 
 
-    this.backend = backend;
-    this.backendConfigEntry = backendConfigEntry;
-    this.branches = branches;
+    this.backend = domainBackend;
+    this.branches = new ArrayList<DN>(backendCfg.getBackendBaseDN().size());
+    for (DN dn : backendCfg.getBackendBaseDN())
+    {
+      this.branches.add(dn);
+    }
   }
 
 
@@ -2125,216 +2077,6 @@ public class ReplicationDomain extends DirectoryThread
 
     ieContext.updateTaskCounters();
   }
-
-  /**
-   * Retrieves information about the backends defined in the Directory Server
-   * configuration.
-   *
-   * @param  backendList  A list into which instantiated (but not initialized)
-   *                      backend instances will be placed.
-   * @param  entryList    A list into which the config entries associated with
-   *                      the backends will be placed.
-   * @param  dnList       A list into which the set of base DNs for each backend
-   *                      will be placed.
-   */
-  private static int getBackends(ArrayList<Backend> backendList,
-                                 ArrayList<ConfigEntry> entryList,
-                                 ArrayList<List<DN>> dnList)
-  throws DirectoryException
-  {
-    //  Get the base entry for all backend configuration.
-    DN backendBaseDN = null;
-    try
-    {
-      backendBaseDN = DN.decode(DN_BACKEND_BASE);
-    }
-    catch (DirectoryException de)
-    {
-      int    msgID   = MSGID_CANNOT_DECODE_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE, de.getErrorMessage());
-      throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_CANNOT_DECODE_BASE_DN;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-          stackTraceToSingleLineString(e));
-      throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
-    }
-
-    ConfigEntry baseEntry = null;
-    try
-    {
-      baseEntry = DirectoryServer.getConfigEntry(backendBaseDN);
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE, ce.getMessage());
-      throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY;
-      String message = getMessage(msgID, DN_BACKEND_BASE,
-          stackTraceToSingleLineString(e));
-      throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
-    }
-
-
-    //  Iterate through the immediate children, attempting to parse them as
-    //  backends.
-    for (ConfigEntry configEntry : baseEntry.getChildren().values())
-    {
-      // Get the backend ID attribute from the entry.  If there isn't one, then
-      // skip the entry.
-      String backendID = null;
-      try
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
-        StringConfigAttribute idStub =
-          new StringConfigAttribute(ATTR_BACKEND_ID, getMessage(msgID),
-              true, false, true);
-        StringConfigAttribute idAttr =
-          (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
-        if (idAttr == null)
-        {
-          continue;
-        }
-        else
-        {
-          backendID = idAttr.activeValue();
-        }
-      }
-      catch (ConfigException ce)
-      {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-            ce.getMessage());
-        throw new DirectoryException(
-            ResultCode.OTHER, message, msgID, null);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_ID;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-            stackTraceToSingleLineString(e));
-        throw new DirectoryException(
-            ResultCode.OTHER, message, msgID, null);
-      }
-
-
-      //    Get the backend class name attribute from the entry.  If there isn't
-      //    one, then just skip the entry.
-      String backendClassName = null;
-      try
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
-        StringConfigAttribute classStub =
-          new StringConfigAttribute(ATTR_BACKEND_CLASS, getMessage(msgID),
-              true, false, false);
-        StringConfigAttribute classAttr =
-          (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-        if (classAttr == null)
-        {
-          continue;
-        }
-        else
-        {
-          backendClassName = classAttr.activeValue();
-        }
-      }
-      catch (ConfigException ce)
-      {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_CLASS;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-            ce.getMessage());
-        throw new DirectoryException(
-            ResultCode.OTHER, message, msgID, null);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BACKEND_CLASS;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-            stackTraceToSingleLineString(e));
-        throw new DirectoryException(
-            ResultCode.OTHER, message, msgID, null);
-      }
-
-      Class backendClass = null;
-      try
-      {
-        backendClass = Class.forName(backendClassName);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_CANNOT_LOAD_BACKEND_CLASS;
-        String message = getMessage(msgID, backendClassName,
-            String.valueOf(configEntry.getDN()),
-            stackTraceToSingleLineString(e));
-        throw new DirectoryException(
-            ResultCode.OTHER, message, msgID, null);
-      }
-
-      Backend backend = null;
-      try
-      {
-        backend = (Backend) backendClass.newInstance();
-        backend.setBackendID(backendID);
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_CANNOT_INSTANTIATE_BACKEND_CLASS;
-        String message = getMessage(msgID, backendClassName,
-            String.valueOf(configEntry.getDN()),
-            stackTraceToSingleLineString(e));
-        throw new DirectoryException(
-            ResultCode.OTHER, message, msgID, null);      }
-
-
-      // Get the base DN attribute from the entry.  If there isn't one, then
-      // just skip this entry.
-      List<DN> baseDNs = null;
-      try
-      {
-        int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS;
-        DNConfigAttribute baseDNStub =
-          new DNConfigAttribute(ATTR_BACKEND_BASE_DN, getMessage(msgID),
-              true, true, true);
-        DNConfigAttribute baseDNAttr =
-          (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
-        if (baseDNAttr == null)
-        {
-          msgID = MSGID_NO_BASES_FOR_BACKEND;
-          String message = getMessage(msgID,
-              String.valueOf(configEntry.getDN()));
-          throw new DirectoryException(
-              DirectoryServer.getServerErrorResultCode(), message,msgID, null);
-        }
-        else
-        {
-          baseDNs = baseDNAttr.activeValues();
-        }
-      }
-      catch (Exception e)
-      {
-        int    msgID   = MSGID_CANNOT_DETERMINE_BASES_FOR_BACKEND;
-        String message = getMessage(msgID, String.valueOf(configEntry.getDN()),
-            stackTraceToSingleLineString(e));
-        throw new DirectoryException(
-            ResultCode.OTHER, message, msgID, null);      }
-
-
-      backendList.add(backend);
-      entryList.add(configEntry);
-      dnList.add(baseDNs);
-    }
-    return 0;
-      }
 
   /**
    * Initializes this domain from another source server.
@@ -2526,11 +2268,9 @@ public class ReplicationDomain extends DirectoryThread
   /**
    * Process backend before import.
    * @param backend The backend.
-   * @param backendConfigEntry The config entry of the backend.
    * @throws Exception
    */
-  private void preBackendImport(Backend backend,
-      ConfigEntry backendConfigEntry)
+  private void preBackendImport(Backend backend)
   throws Exception
   {
     // Stop saving state
@@ -2540,7 +2280,7 @@ public class ReplicationDomain extends DirectoryThread
     clearJEBackend(false,backend.getBackendID(),null);
 
     // FIXME setBackendEnabled should be part of TaskUtils ?
-    TaskUtils.setBackendEnabled(backendConfigEntry, false);
+    TaskUtils.disableBackend(backend.getBackendID());
 
     // Acquire an exclusive lock for the backend.
     String lockFile = LockFileManager.getBackendLockFileName(backend);
@@ -2583,9 +2323,8 @@ public class ReplicationDomain extends DirectoryThread
       ieContext.entryLeftCount = initializeMessage.getEntryCount();
       ieContext.initTaskCounters(initializeMessage.getEntryCount());
 
-      preBackendImport(this.backend, this.backendConfigEntry);
+      preBackendImport(this.backend);
 
-      DN[] baseDNs = {baseDN};
       ieContext.ldifImportInputStream = new ReplLDIFInputStream(this);
       importConfig =
         new LDIFImportConfig(ieContext.ldifImportInputStream);
@@ -2596,7 +2335,7 @@ public class ReplicationDomain extends DirectoryThread
       // ExistingFileBehavior.OVERWRITE);
 
       // Process import
-      this.backend.importLDIF(this.backendConfigEntry, baseDNs, importConfig);
+      this.backend.importLDIF(importConfig);
 
       stateSavingDisabled = false;
 
@@ -2616,7 +2355,7 @@ public class ReplicationDomain extends DirectoryThread
       importConfig.close();
 
       // Re-enable backend
-      closeBackendImport(this.backend, this.backendConfigEntry);
+      closeBackendImport(this.backend);
 
       // Update the task that initiated the import
       if ((ieContext != null ) && (ieContext.initializeTask != null))
@@ -2635,11 +2374,9 @@ public class ReplicationDomain extends DirectoryThread
   /**
    * Make post import operations.
    * @param backend The backend implied in the import.
-   * @param backendConfigEntry The config entry of the backend.
    * @exception DirectoryException Thrown when an error occurs.
    */
-  protected void closeBackendImport(Backend backend,
-      ConfigEntry backendConfigEntry)
+  protected void closeBackendImport(Backend backend)
   throws DirectoryException
   {
     String lockFile = LockFileManager.getBackendLockFileName(backend);
@@ -2657,7 +2394,7 @@ public class ReplicationDomain extends DirectoryThread
     }
 
     // FIXME setBackendEnabled should be part taskUtils ?
-    TaskUtils.setBackendEnabled(backendConfigEntry, true);
+    TaskUtils.enableBackend(backend.getBackendID());
   }
 
   /**

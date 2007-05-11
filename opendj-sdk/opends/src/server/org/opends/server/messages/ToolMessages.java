@@ -1827,7 +1827,7 @@ public class ToolMessages
   /**
    * The message ID for the message that will be used if the backend selected
    * for an LDIF import does not support that operation.  This takes a single
-   * argument, which is the requested base DN.
+   * argument, which is the requested backend ID.
    */
   public static final int MSGID_LDIFIMPORT_CANNOT_IMPORT =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 214;

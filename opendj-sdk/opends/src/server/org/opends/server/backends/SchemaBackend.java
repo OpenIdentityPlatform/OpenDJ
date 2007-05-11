@@ -69,7 +69,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.BackendConfigManager;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
@@ -112,6 +111,7 @@ import org.opends.server.types.SearchScope;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.Validator;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -123,8 +123,8 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.std.server.SchemaBackendCfg;
-import org.opends.server.admin.std.meta.SchemaBackendCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.Configuration;
 import static org.opends.server.messages.ConfigMessages.*;
 
 
@@ -247,29 +247,24 @@ public class SchemaBackend
 
 
   /**
-   * Initialization shared by multiple backend methods.
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      backend.
-   * @param  baseDNs      The set of base DNs that have been
-   *                      configured for this backend.
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization.
+   * {@inheritDoc}
    */
-  private void initializeCommon(ConfigEntry configEntry, DN[] baseDNs)
+  public void configureBackend(Configuration config)
        throws ConfigException
   {
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
-    if (configEntry == null)
+    if (config == null)
     {
       int    msgID   = MSGID_SCHEMA_CONFIG_ENTRY_NULL;
       String message = getMessage(msgID);
       throw new ConfigException(msgID, message);
     }
 
-    SchemaBackendCfg cfg = getSchemaBackendCfg(configEntry);
+    Validator.ensureTrue(config instanceof SchemaBackendCfg);
+    SchemaBackendCfg cfg = (SchemaBackendCfg)config;
+    ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
+
     configEntryDN = configEntry.getDN();
 
     // Get all of the attribute types that we will use for schema elements.
@@ -321,6 +316,9 @@ public class SchemaBackend
 
 
     configEntryDN = configEntry.getDN();
+
+    DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
+    cfg.getBackendBaseDN().toArray(baseDNs);
     this.baseDNs = baseDNs;
 
     creatorsName  = new AttributeValue(creatorsNameType, baseDNs[0].toString());
@@ -375,11 +373,9 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
-  public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
+  public void initializeBackend()
          throws ConfigException, InitializationException
   {
-    initializeCommon(configEntry, baseDNs);
-
     // Register each of the suffixes with the Directory Server.  Also, register
     // the first one as the schema base.
     DirectoryServer.setSchemaDN(baseDNs[0]);
@@ -4150,20 +4146,9 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
-  public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFExportConfig exportConfig)
+  public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    try
-    {
-      initializeCommon(configEntry, baseDNs);
-    }
-    catch (ConfigException e)
-    {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(), e.getMessageID());
-    }
-
     // Create the LDIF writer.
     LDIFWriter ldifWriter;
     try
@@ -4239,8 +4224,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
-  public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFImportConfig importConfig)
+  public void importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
@@ -4301,7 +4285,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
-  public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
+  public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
     // Get the properties to use for the backup.  We don't care whether or not
@@ -4697,8 +4681,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
-  public void restoreBackup(ConfigEntry configEntry,
-                            RestoreConfig restoreConfig)
+  public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
     // First, make sure that the requested backup exists.
@@ -5458,10 +5441,5 @@ public class SchemaBackend
 
 
 
-  private static SchemaBackendCfg getSchemaBackendCfg(ConfigEntry configEntry)
-      throws ConfigException {
-    return BackendConfigManager.getConfiguration(
-         SchemaBackendCfgDefn.getInstance(), configEntry);
-  }
 }
 

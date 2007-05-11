@@ -34,7 +34,6 @@ import java.util.List;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
@@ -65,7 +64,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
-
+import org.opends.server.admin.std.server.BackendCfg;
 
 
 /**
@@ -312,8 +311,8 @@ public class ExportLDIF
     {
       try
       {
-        directoryServer.bootstrapClient();
-        directoryServer.initializeJMX();
+        DirectoryServer.bootstrapClient();
+        DirectoryServer.initializeJMX();
       }
       catch (Exception e)
       {
@@ -600,13 +599,12 @@ public class ExportLDIF
     // and also finding backends with subordinate base DNs that should be
     // excluded from the export.
     Backend       backend                = null;
-    ConfigEntry   configEntry            = null;
     List<DN>      baseDNList             = null;
     List<DN>      defaultIncludeBranches = null;
     ArrayList<DN> excludeBranches        = null;
 
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
+    ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
     ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
@@ -622,7 +620,6 @@ public class ExportLDIF
       if (backend == null)
       {
         backend                = b;
-        configEntry            = entryList.get(i);
         baseDNList             = dnList.get(i);
         defaultIncludeBranches = dnList.get(i);
       }
@@ -658,7 +655,7 @@ public class ExportLDIF
       excludeBranches = new ArrayList<DN>();
       for (String s : excludeBranchStrings.getValues())
       {
-        DN excludeBranch = null;
+        DN excludeBranch;
         try
         {
           excludeBranch = DN.decode(s);
@@ -694,7 +691,7 @@ public class ExportLDIF
       includeBranches = new ArrayList<DN>();
       for (String s : includeBranchStrings.getValues())
       {
-        DN includeBranch = null;
+        DN includeBranch;
         try
         {
           includeBranch = DN.decode(s);
@@ -811,7 +808,7 @@ public class ExportLDIF
     // Launch the export.
     try
     {
-      backend.exportLDIF(configEntry, baseDNs, exportConfig);
+      backend.exportLDIF(exportConfig);
     }
     catch (DirectoryException de)
     {

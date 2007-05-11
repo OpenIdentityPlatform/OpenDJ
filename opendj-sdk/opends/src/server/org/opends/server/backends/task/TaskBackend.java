@@ -43,7 +43,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.BackendConfigManager;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.BackupConfig;
@@ -68,8 +67,8 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.Validator;
 import org.opends.server.admin.std.server.TaskBackendCfg;
-import org.opends.server.admin.std.meta.TaskBackendCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.Configuration;
 
 
 /**
@@ -136,13 +135,19 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
-  public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
-         throws ConfigException, InitializationException
+  public void configureBackend(Configuration config) throws ConfigException
   {
-    Validator.ensureNotNull(configEntry);
-    TaskBackendCfg cfg = getTaskBackendCfg(configEntry);
+    Validator.ensureNotNull(config);
+    Validator.ensureTrue(config instanceof TaskBackendCfg);
 
-    configEntryDN = cfg.dn();
+    TaskBackendCfg cfg = (TaskBackendCfg)config;
+
+    DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
+    cfg.getBackendBaseDN().toArray(baseDNs);
+
+    ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
+
+    configEntryDN = configEntry.getDN();
 
 
     // Make sure that the provided set of base DNs contains exactly one value.
@@ -183,7 +188,7 @@ public class TaskBackend
         String message = getMessage(msgID,
                                     String.valueOf(recurringTaskBaseString),
                                     getExceptionMessage(e));
-        throw new InitializationException(msgID, message, e);
+        throw new ConfigException(msgID, message, e);
       }
 
       String scheduledTaskBaseString = SCHEDULED_TASK_BASE_RDN + "," +
@@ -204,7 +209,7 @@ public class TaskBackend
         String message = getMessage(msgID,
                                     String.valueOf(scheduledTaskBaseString),
                                     getExceptionMessage(e));
-        throw new InitializationException(msgID, message, e);
+        throw new ConfigException(msgID, message, e);
       }
     }
 
@@ -217,20 +222,26 @@ public class TaskBackend
     // Get the path to the task data backing file.
     taskBackingFile = cfg.getTaskBackingFile();
 
+    // Define an empty sets for the supported controls and features.
+    supportedControls = new HashSet<String>(0);
+    supportedFeatures = new HashSet<String>(0);
 
+    currentConfig = cfg;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void initializeBackend()
+         throws ConfigException, InitializationException
+  {
     // Create the scheduler and initialize it from the backing file.
     taskScheduler = new TaskScheduler(this);
     taskScheduler.start();
 
 
-    // Define an empty sets for the supported controls and features.
-    supportedControls = new HashSet<String>(0);
-    supportedFeatures = new HashSet<String>(0);
-
-
     // Register with the Directory Server as a configurable component.
-    currentConfig = cfg;
-    cfg.addTaskChangeListener(this);
+    currentConfig.addTaskChangeListener(this);
 
 
     // Register the task base as a private suffix.
@@ -930,8 +941,7 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
-  public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFExportConfig exportConfig)
+  public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
     // FIXME -- Implement support for exporting to LDIF.
@@ -957,8 +967,7 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
-  public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFImportConfig importConfig)
+  public void importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
@@ -1016,7 +1025,7 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
-  public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
+  public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
     // NYI -- Create the backup.
@@ -1062,8 +1071,7 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
-  public void restoreBackup(ConfigEntry configEntry,
-                            RestoreConfig restoreConfig)
+  public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
     // NYI -- Restore the backup.
@@ -1350,10 +1358,5 @@ public class TaskBackend
 
 
 
-  private static TaskBackendCfg getTaskBackendCfg(ConfigEntry configEntry)
-      throws ConfigException {
-    return BackendConfigManager.getConfiguration(
-         TaskBackendCfgDefn.getInstance(), configEntry);
-  }
 }
 

@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Enumeration;
 import java.util.Map;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
 import java.util.logging.Handler;
@@ -50,7 +49,6 @@ import java.net.Socket;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -74,13 +72,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OperatingSystem;
-import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.ResultCode;
-import org.opends.server.util.ChangeRecordEntry;
-import org.opends.server.util.AddChangeRecordEntry;
-import org.opends.server.util.DeleteChangeRecordEntry;
-import org.opends.server.util.ModifyChangeRecordEntry;
-import org.opends.server.util.ModifyDNChangeRecordEntry;
 
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
@@ -395,7 +387,7 @@ public final class TestCaseUtils {
    * @throws SocketException in case of underlying exception.
    */
   private static ServerSocket bindPort(int port)
-          throws IOException, SocketException
+          throws IOException
   {
     ServerSocket serverLdapSocket;
     serverLdapSocket = new ServerSocket();
@@ -411,7 +403,7 @@ public final class TestCaseUtils {
    * @throws IOException in case of underlying exception.
    * @throws SocketException in case of underlying exception.
    */
-  public static ServerSocket bindFreePort() throws IOException, SocketException
+  public static ServerSocket bindFreePort() throws IOException
   {
     ServerSocket serverLdapSocket;
     serverLdapSocket = new ServerSocket();
@@ -459,7 +451,8 @@ public final class TestCaseUtils {
     {
       memoryBackend = new MemoryBackend();
       memoryBackend.setBackendID("test");
-      memoryBackend.initializeBackend(null, new DN[] { baseDN });
+      memoryBackend.setBaseDNs(new DN[] { baseDN });
+      memoryBackend.initializeBackend();
       DirectoryServer.registerBackend(memoryBackend);
     }
 
@@ -490,10 +483,8 @@ public final class TestCaseUtils {
        throws Exception
   {
     BackendImpl backend = (BackendImpl)DirectoryServer.getBackend(beID);
-    DN[] baseDNs = backend.getBaseDNs();
-    ConfigEntry configEntry = TaskUtils.getConfigEntry(backend);
 
-    TaskUtils.setBackendEnabled(configEntry, false);
+    TaskUtils.disableBackend(beID);
 
     try
     {
@@ -507,7 +498,7 @@ public final class TestCaseUtils {
 
       try
       {
-        backend.clearBackend(configEntry, baseDNs);
+        backend.clearBackend();
       }
       finally
       {
@@ -516,7 +507,7 @@ public final class TestCaseUtils {
     }
     finally
     {
-      TaskUtils.setBackendEnabled(configEntry, true);
+      TaskUtils.enableBackend(beID);
     }
 
     if (createBaseEntry)
@@ -705,7 +696,7 @@ public final class TestCaseUtils {
     LDIFReader reader = new LDIFReader(ldifImportConfig);
 
     List<Entry> entries = new ArrayList<Entry>();
-    Entry entry = null;
+    Entry entry;
     while ((entry = reader.readEntry()) != null) {
       entries.add(entry);
     }
@@ -760,8 +751,8 @@ public final class TestCaseUtils {
    */
   public static String makeLdif(String... lines) {
     StringBuilder buffer = new StringBuilder();
-    for (int i = 0; i < lines.length; i++) {
-      buffer.append(lines[i]).append(EOL);
+    for (String line : lines) {
+      buffer.append(line).append(EOL);
     }
     // Append an extra line so we can append LDIF Strings.
     buffer.append(EOL);
@@ -1084,7 +1075,7 @@ public final class TestCaseUtils {
   }
 
   /**
-   * @return clear everything written to System.out since the last time
+   * clear everything written to System.out since the last time
    * clearSystemOutContents was called.
    */
   public synchronized static void clearSystemOutContents() {
@@ -1092,7 +1083,7 @@ public final class TestCaseUtils {
   }
 
   /**
-   * @return clear everything written to System.err since the last time
+   * clear everything written to System.err since the last time
    * clearSystemErrContents was called.
    */
   public synchronized static void clearSystemErrContents() {
@@ -1157,8 +1148,8 @@ public final class TestCaseUtils {
    */
   private static byte[] readFileBytes(File file)
           throws IOException {
-    FileInputStream fis = null;
-    byte[] bytes = null;
+    FileInputStream fis;
+    byte[] bytes;
     fis = new FileInputStream(file);
     bytes = readInputStreamBytes(fis, true);
     return bytes;
@@ -1175,7 +1166,7 @@ public final class TestCaseUtils {
       ByteArrayOutputStream bout = new ByteArrayOutputStream(1024);
       try {
         byte[] buf = new byte[1024];
-        int bytesRead = 0;
+        int bytesRead;
         while ((bytesRead = is.read(buf)) != -1) {
           bout.write(buf, 0, bytesRead);
         } // end of while ((read(buf) != -1)

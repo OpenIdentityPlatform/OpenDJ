@@ -43,6 +43,9 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.server.ServerManagementContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,12 +69,13 @@ public class BackendToolUtils
    * @return 0 if everything went fine. 1 if an error occurred.
    *
    */
+  @SuppressWarnings("unchecked")
   public static int getBackends(ArrayList<Backend> backendList,
-                                  ArrayList<ConfigEntry> entryList,
-                                  ArrayList<List<DN>> dnList)
+                                ArrayList<BackendCfg> entryList,
+                                ArrayList<List<DN>> dnList)
   {
     // Get the base entry for all backend configuration.
-    DN backendBaseDN = null;
+    DN backendBaseDN;
     try
     {
       backendBaseDN = DN.decode(DN_BACKEND_BASE);
@@ -94,7 +98,7 @@ public class BackendToolUtils
       return 1;
     }
 
-    ConfigEntry baseEntry = null;
+    ConfigEntry baseEntry;
     try
     {
       baseEntry = DirectoryServer.getConfigEntry(backendBaseDN);
@@ -120,11 +124,12 @@ public class BackendToolUtils
 
     // Iterate through the immediate children, attempting to parse them as
     // backends.
+    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
     for (ConfigEntry configEntry : baseEntry.getChildren().values())
     {
       // Get the backend ID attribute from the entry.  If there isn't one, then
       // skip the entry.
-      String backendID = null;
+      String backendID;
       try
       {
         int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID;
@@ -164,7 +169,7 @@ public class BackendToolUtils
 
       // Get the backend class name attribute from the entry.  If there isn't
       // one, then just skip the entry.
-      String backendClassName = null;
+      String backendClassName;
       try
       {
         int msgID = MSGID_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS;
@@ -201,7 +206,7 @@ public class BackendToolUtils
         return 1;
       }
 
-      Class backendClass = null;
+      Class backendClass;
       try
       {
         backendClass = Class.forName(backendClassName);
@@ -217,11 +222,14 @@ public class BackendToolUtils
         return 1;
       }
 
-      Backend backend = null;
+      Backend backend;
+      BackendCfg cfg;
       try
       {
         backend = (Backend) backendClass.newInstance();
         backend.setBackendID(backendID);
+        cfg = root.getBackend(backendID);
+        backend.configureBackend(cfg);
       }
       catch (Exception e)
       {
@@ -271,7 +279,7 @@ public class BackendToolUtils
 
 
       backendList.add(backend);
-      entryList.add(configEntry);
+      entryList.add(cfg);
       dnList.add(baseDNs);
     }
     return 0;

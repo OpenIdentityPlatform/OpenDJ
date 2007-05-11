@@ -179,8 +179,7 @@ public class TestEntryContainer extends JebTestCase {
     JEBackendCfg cfg = AdminTestCaseUtils.getConfiguration(
          JEBackendCfgDefn.getInstance(), configEntry);
     Config backendConfig = new Config();
-    backendConfig.initializeConfig(cfg,
-                                   cfg.getBackendBaseDN().toArray(new DN[0]));
+    backendConfig.initializeConfig(cfg);
     RootContainer rootContainer = new RootContainer(backendConfig, null);
     rootContainer.open(new File(homeDirName),
                        new FilePermission(true, true, true),

@@ -32,14 +32,12 @@ import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
@@ -311,7 +309,6 @@ public class ExportTask extends Task
 
     // Get the backend into which the LDIF should be imported.
     Backend       backend;
-    ConfigEntry   configEntry;
     ArrayList<DN> defaultIncludeBranches;
 
     backend = DirectoryServer.getBackend(backendID);
@@ -333,9 +330,6 @@ public class ExportTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    // Get the config entry for this backend.
-    configEntry = TaskUtils.getConfigEntry(backend);
-
     defaultIncludeBranches = new ArrayList<DN>(backend.getBaseDNs().length);
     for (DN dn : backend.getBaseDNs())
     {
@@ -347,7 +341,7 @@ public class ExportTask extends Task
     {
       for (String s : excludeBranchStrings)
       {
-        DN excludeBranch = null;
+        DN excludeBranch;
         try
         {
           excludeBranch = DN.decode(s);
@@ -383,7 +377,7 @@ public class ExportTask extends Task
       includeBranches = new ArrayList<DN>();
       for (String s : includeBranchStrings)
       {
-        DN includeBranch = null;
+        DN includeBranch;
         try
         {
           includeBranch = DN.decode(s);
@@ -493,7 +487,7 @@ public class ExportTask extends Task
         try
         {
           DirectoryServer.notifyExportBeginning(backend, exportConfig);
-          backend.exportLDIF(configEntry, baseDNs, exportConfig);
+          backend.exportLDIF(exportConfig);
           DirectoryServer.notifyExportEnded(backend, exportConfig, true);
         }
         catch (DirectoryException de)
