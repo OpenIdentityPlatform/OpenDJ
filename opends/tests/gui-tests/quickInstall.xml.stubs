@@ -36,7 +36,7 @@
   <component class="org.opends.quicksetup.ui.ProgressPanel" id="ProgressPanel Instance" index="1" parent="CurrentStepPanel Instance" window="OpenDS QuickSetup" />
   <component class="javax.swing.JButton" id="Quit" index="1" parent="JPanel Instance 2" text="Quit" window="OpenDS QuickSetup" />
   <component class="org.opends.quicksetup.installer.ui.ServerSettingsPanel" id="ServerSettingsPanel Instance" index="3" parent="CurrentStepPanel Instance" window="OpenDS QuickSetup" />
-  <launch args="[]" class="org.opends.quicksetup.installer.InstallLauncher" classpath=".:${instance.path}/classes:${instance.path}/lib/activation.jar:${instance.path}/lib/aspectjrt.jar:${instance.path}/lib/je.jar:${instance.path}/lib/mail.jar:${instance.path}/lib/OpenDS.jar:${instance.path}/lib/quicksetup.jar:${instance.path}/lib/statuspanel.jar" method="main" />
+  <launch args="[]" class="org.opends.quicksetup.installer.InstallLauncher" classpath=".${path.separator}${instance.path}${file.separator}classes${path.separator}${instance.path}${file.separator}lib${file.separator}activation.jar${path.separator}${instance.path}${file.separator}lib${file.separator}aspectjrt.jar${path.separator}${instance.path}${file.separator}lib${file.separator}je.jar${path.separator}${instance.path}${file.separator}lib${file.separator}mail.jar${path.separator}${instance.path}${file.separator}lib${file.separator}OpenDS.jar${path.separator}${instance.path}${file.separator}lib${file.separator}quicksetup.jar${path.separator}${instance.path}${file.separator}lib${file.separator}statuspanel.jar" method="main" />
   <sequence>
     <action args="Next &gt;" class="javax.swing.AbstractButton" method="actionClick" />
     <action args="Password:,pwd" method="actionKeyString" />

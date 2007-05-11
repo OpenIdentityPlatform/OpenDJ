@@ -35,8 +35,8 @@
   <property name="product.name" 
             value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}"/>
   <property name="pkg.path" 
-            value="${project.home}/build/package/${product.name}.zip"/>
-  <property name="instance.path" value="${basedir}/${product.name}"/>
+            value="${project.home}${file.separator}build${file.separator}package${file.separator}${product.name}.zip"/>
+  <property name="instance.path" value="${basedir}${file.separator}${product.name}"/>
 
   <!-- Abbot properties -->
   <property name="abbot.version" value="1.0.0.rc5"/>
@@ -131,7 +131,7 @@
     </condition>
   </target>
 
-  <target name="set-proxy" depends="check-proxy" if="proxy.enabled" >
+  <target name="set-proxy" depends="check-proxy" if="proxy.enabled">
     <echo>Proxy detected. Configuring.</echo>
     <setproxy 
       proxyhost="${proxy.host}" 
