@@ -50,6 +50,9 @@ import org.opends.statuspanel.ui.DatabasesTableModel;
 import org.opends.statuspanel.ui.ListenersTableModel;
 
 import static org.opends.server.tools.ToolConstants.*;
+import org.opends.server.util.PasswordReader;
+import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.messages.MessageHandler.*;
 
 /**
  * The class used to provide some CLI interface to display status.
@@ -167,7 +170,7 @@ class StatusCli
         }
         else
         {
-          if (args[i+1].indexOf("-") == 0)
+          if (args[i+1].indexOf("-") == 0 && args[i+1].length() > 1)
           {
             errors.add(getMsg("cli-status-root-user-pwd-not-provided", true));
           }
@@ -213,6 +216,20 @@ class StatusCli
     }
     else
     {
+      if(directoryManagerPwd != null && directoryManagerPwd.equals("-"))
+      {
+        // read the password from stdin.
+        try
+        {
+          System.out.print(getMsg("cli-status-ldapauth-password-prompt",
+                                  new String[] {directoryManagerDn}, false));
+          char[] pwChars = PasswordReader.readPassword();
+          directoryManagerPwd = new String(pwChars);
+        } catch(Exception ex)
+        {
+          errors.add(ex.getMessage());
+        }
+      }
       if (directoryManagerPwdFile != null)
       {
         directoryManagerPwd = readPwdFromFile(directoryManagerPwdFile);
