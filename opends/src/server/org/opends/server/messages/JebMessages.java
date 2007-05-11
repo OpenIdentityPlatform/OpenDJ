@@ -289,8 +289,8 @@ public class JebMessages
   /**
    * The message ID of an informational message indicating that a JE backend
    * instance has started, and providing the current number of entries
-   * stored in the backend.  This message takes one argument which is the
-   * current number of entries stored in the backend.
+   * stored in the backend.  This message takes two arguments which are the
+   * backend ID and the current number of entries stored in the backend.
    */
   public static final int MSGID_JEB_BACKEND_STARTED =
        CATEGORY_MASK_JEB | SEVERITY_MASK_NOTICE | 42;
@@ -1239,7 +1239,8 @@ public class JebMessages
     registerMessage(MSGID_JEB_IO_ERROR,
                     "I/O error during backend operation: %s");
     registerMessage(MSGID_JEB_BACKEND_STARTED,
-                    "A database backend containing %d entries has started");
+                    "The database backend %s containing %d entries has " +
+                    "started");
     registerMessage(MSGID_JEB_IMPORT_PARENT_NOT_FOUND,
                     "The parent entry '%s' does not exist");
     registerMessage(MSGID_JEB_IMPORT_ENTRY_EXISTS,

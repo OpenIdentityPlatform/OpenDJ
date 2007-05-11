@@ -493,7 +493,7 @@ public class RootContainer
       entryContainers.remove(baseDN);
     }
 
-    env.close();
+    if (env != null) env.close();
   }
 
   /**

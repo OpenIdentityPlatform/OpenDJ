@@ -113,7 +113,7 @@ import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.admin.Configuration;
 
 
 /**
@@ -1095,24 +1095,18 @@ public class ConfigFileHandler
   }
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public void configureBackend(Configuration cfg) throws ConfigException
+  {
+    // No action is required.
+  }
 
   /**
-   * Initializes this backend based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this backend.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
-  public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
+  public void initializeBackend()
          throws ConfigException, InitializationException
   {
     // No action is required, since all initialization was performed in the
@@ -2005,7 +1999,7 @@ public class ConfigFileHandler
            new LDIFExportConfig(tempConfig, ExistingFileBehavior.OVERWRITE);
 
       // FIXME -- Add all the appropriate configuration options.
-      exportLDIF(configRootEntry, baseDNs, exportConfig);
+      writeLDIF(exportConfig);
     }
     catch (Exception e)
     {
@@ -2245,24 +2239,20 @@ public class ConfigFileHandler
 
 
   /**
-   * Exports the contents of this backend to LDIF.  This method should only be
-   * called if <CODE>supportsLDIFExport</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  exportConfig  The configuration to use when performing the export.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              export.
+   * {@inheritDoc}
    */
-  public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFExportConfig exportConfig)
+  public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
     // TODO We would need export-ldif to initialize this backend.
+    writeLDIF(exportConfig);
+  }
 
+
+
+  private void writeLDIF(LDIFExportConfig exportConfig)
+         throws DirectoryException
+  {
     LDIFWriter writer;
     try
     {
@@ -2366,20 +2356,9 @@ public class ConfigFileHandler
 
 
   /**
-   * Imports information from an LDIF file into this backend.  This method
-   * should only be called if <CODE>supportsLDIFImport</CODE> returns
-   * <CODE>true</CODE>.  Note that the server will not explicitly initialize
-   * this backend before calling this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  importConfig  The configuration to use when performing the import.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              import.
+   * {@inheritDoc}
    */
-  public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFImportConfig importConfig)
+  public void importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     int msgID     =  MSGID_CONFIG_FILE_UNWILLING_TO_IMPORT;
@@ -2437,19 +2416,9 @@ public class ConfigFileHandler
 
 
   /**
-   * Creates a backup of the contents of this backend in a form that may be
-   * restored at a later date if necessary.  This method should only be called
-   * if <CODE>supportsBackup</CODE> returns <CODE>true</CODE>.  Note that the
-   * server will not explicitly initialize this backend before calling this
-   * method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  backupConfig  The configuration to use when performing the backup.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              backup.
+   * {@inheritDoc}
    */
-  public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
+  public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
     // Get the properties to use for the backup.  We don't care whether or not
@@ -2881,20 +2850,9 @@ public class ConfigFileHandler
 
 
   /**
-   * Restores a backup of the contents of this backend.  This method should only
-   * be called if <CODE>supportsRestore</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry    The configuration entry for this backend.
-   * @param  restoreConfig  The configuration to use when performing the
-   *                        restore.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              restore.
+   * {@inheritDoc}
    */
-  public void restoreBackup(ConfigEntry configEntry,
-                            RestoreConfig restoreConfig)
+  public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
     // First, make sure that the requested backup exists.

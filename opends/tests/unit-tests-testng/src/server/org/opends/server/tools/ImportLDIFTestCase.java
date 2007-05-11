@@ -26,35 +26,21 @@
  */
 package org.opends.server.tools;
 
-import static org.opends.server.config.ConfigConstants.DN_BACKEND_BASE;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.util.Base64;
-import org.opends.server.api.Backend;
-import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.LockFileManager;
 import static org.testng.Assert.*;
 import java.io.*;
 import java.util.*;
 
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
-import org.opends.server.tools.ToolsTestCase;
 import org.opends.server.tasks.TaskUtils;
-import org.opends.server.tools.ImportLDIF;
-import org.opends.server.types.ResultCode;
 import org.opends.server.types.Entry;
 import org.opends.server.types.DN;
 import org.opends.server.types.Attribute;
-import static org.testng.Assert.*;
 
 
 
@@ -63,9 +49,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
   private File tempDir;
   private String ldifFilePath;
   String configFilePath ;
-  private BackendImpl backend;
   private String homeDirName;
-  private ConfigEntry backendConfigEntry;
   private String beID;
 
   /**
@@ -78,10 +62,8 @@ public class ImportLDIFTestCase extends ToolsTestCase {
   {
     TestCaseUtils.startServer();
     beID = "userRoot";
-	  configFilePath = DirectoryServer.getInstance().getConfigFile();
-    backend = (BackendImpl)DirectoryServer.getBackend(beID);
-    backendConfigEntry = TaskUtils.getConfigEntry(backend);
-    TaskUtils.setBackendEnabled(backendConfigEntry, false);
+	  configFilePath = DirectoryServer.getConfigFile();
+    TaskUtils.disableBackend(beID);
 
     String entry =
            "dn: dc=example,dc=com\n" +
@@ -194,7 +176,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getInstance().getConfigFile(),
+      "-f", DirectoryServer.getConfigFile(),
       "-l",ldifFilePath,
       "-n", beID,
       "-R", rejectFilePath
@@ -231,7 +213,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
 
     String[] args =
     {
-      "-f", DirectoryServer.getInstance().getConfigFile(),
+      "-f", DirectoryServer.getConfigFile(),
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -263,7 +245,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getInstance().getConfigFile(),
+      "-f", DirectoryServer.getConfigFile(),
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -289,7 +271,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getInstance().getConfigFile(),
+      "-f", DirectoryServer.getConfigFile(),
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -320,7 +302,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getInstance().getConfigFile(),
+      "-f", DirectoryServer.getConfigFile(),
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -351,7 +333,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getInstance().getConfigFile(),
+      "-f", DirectoryServer.getConfigFile(),
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -390,7 +372,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
     {
-      "-f", DirectoryServer.getInstance().getConfigFile(),
+      "-f", DirectoryServer.getConfigFile(),
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -446,21 +428,21 @@ public class ImportLDIFTestCase extends ToolsTestCase {
   {
     if(attrs != null && attrs.length > 0)
     {
-      TaskUtils.setBackendEnabled(backendConfigEntry, true);
+      TaskUtils.enableBackend(beID);
       Entry  entry = DirectoryServer.getEntry(DN.decode(
         " uid=user.0,dc=example,dc=com"));
-      TaskUtils.setBackendEnabled(backendConfigEntry,false);
+      TaskUtils.disableBackend(beID);
       assertNotNull(entry);
       List<Attribute> list = entry.getAttributes();
-      for(int i=0;i<attrs.length;i++)
+      for(Attribute a : attrs)
       {
         if(assertType)
         {
-          assertTrue(list.contains(attrs[i]));
+          assertTrue(list.contains(a));
         }
         else
         {
-          assertFalse(list.contains(attrs[i]));
+          assertFalse(list.contains(a));
         }
       }
     }
@@ -477,7 +459,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
   public void cleanUp() throws Exception
   {
     //reinstate the backend.
-    TaskUtils.setBackendEnabled(backendConfigEntry, true);
+    TaskUtils.enableBackend(beID);
     TestCaseUtils.deleteDirectory(tempDir);
   }
 }

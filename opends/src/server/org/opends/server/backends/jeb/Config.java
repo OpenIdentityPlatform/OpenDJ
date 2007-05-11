@@ -201,50 +201,32 @@ public class Config
 
 
   /**
-   * Initialize this JE backend configuration from a configuration entry.
+   * Initialize this JE backend configuration from its configuration.
    *
-   * @param configEntry The backend configuration entry.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
+   * @param  cfg          The backend configuration.
    * @throws ConfigException If there is an error in the configuration entry.
    */
-  public void initializeConfig(ConfigEntry configEntry, DN[] baseDNs)
+  public void initializeConfig(JEBackendCfg cfg)
        throws ConfigException
   {
-    initializeConfig(BackendImpl.getJEBackendCfg(configEntry), configEntry,
-                     baseDNs);
+    initializeConfig(cfg, DirectoryServer.getConfigEntry(cfg.dn()));
   }
 
 
   /**
-   * Initialize this JE backend configuration from a configuration entry.
-   *
-   * @param  cfg          The backend configuration entry.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
-   * @throws ConfigException If there is an error in the configuration entry.
-   */
-  public void initializeConfig(JEBackendCfg cfg, DN[] baseDNs)
-       throws ConfigException
-  {
-    initializeConfig(cfg, DirectoryServer.getConfigEntry(cfg.dn()), baseDNs);
-  }
-
-
-  /**
-   * Initialize this JE backend configuration from a configuration object
+   * Initialize this JE backend configuration from its configuration object
    * and its configuration entry.
    *
    * @param  cfg          The backend configuration object.
    * @param  configEntry  The backend configuration entry.
-   * @param  baseDNs      The set of base DNs that have been configured for this
-   *                      backend.
    * @throws ConfigException If there is an error in the configuration entry.
    */
-  private void initializeConfig(JEBackendCfg cfg, ConfigEntry configEntry,
-                                DN[] baseDNs)
+  private void initializeConfig(JEBackendCfg cfg, ConfigEntry configEntry)
        throws ConfigException
   {
+    DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
+    cfg.getBackendBaseDN().toArray(baseDNs);
+
     // Set the base DNs.
     this.baseDNs = baseDNs;
 

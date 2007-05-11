@@ -45,7 +45,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigEntry;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.util.StaticUtils.*;
@@ -184,10 +183,6 @@ public class RebuildTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    // Get the config entry for this backend.
-    ConfigEntry configEntry = TaskUtils.getConfigEntry(backend);
-    DN[] baseDNs = backend.getBaseDNs();
-
     // Acquire a shared lock for the backend if we are rebuilding attribute
     // indexes only. If we are rebuilding one or more system indexes, we have
     // to aquire exclusive lock.
@@ -198,7 +193,7 @@ public class RebuildTask extends Task
       // Disable the backend.
       try
       {
-        TaskUtils.setBackendEnabled(configEntry, false);
+        TaskUtils.disableBackend(backend.getBackendID());
       }
       catch (DirectoryException e)
       {
@@ -265,7 +260,7 @@ public class RebuildTask extends Task
     try
     {
       BackendImpl jebBackend = (BackendImpl)backend;
-      jebBackend.rebuildBackend(rebuildConfig, configEntry, baseDNs);
+      jebBackend.rebuildBackend(rebuildConfig);
     }
     catch (Exception e)
     {
@@ -311,7 +306,7 @@ public class RebuildTask extends Task
       // Enable the backend.
       try
       {
-        TaskUtils.setBackendEnabled(configEntry, true);
+        TaskUtils.enableBackend(backend.getBackendID());
       }
       catch (DirectoryException e)
       {

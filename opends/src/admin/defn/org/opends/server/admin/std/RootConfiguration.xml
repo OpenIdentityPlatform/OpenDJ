@@ -163,7 +163,7 @@
     <adm:one-to-one />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>
-        cn=config
+        cn=Root DSE,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>

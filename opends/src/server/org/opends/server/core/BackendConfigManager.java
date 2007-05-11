@@ -53,16 +53,9 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.admin.server.ConfigExceptionFactory;
-import org.opends.server.admin.server.ServerManagedObjectDecodingException;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.meta.BackendCfgDefn;
-import org.opends.server.admin.Configuration;
-import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.DefinitionDecodingException;
 
 
 /**
@@ -285,12 +278,9 @@ public class BackendConfigManager implements
 
 
         // Perform the necessary initialization for the backend entry.
-        DN[] baseDNs = new DN[backendCfg.getBackendBaseDN().size()];
-        baseDNs = backendCfg.getBackendBaseDN().toArray(baseDNs);
         try
         {
-          backend.initializeBackend(
-               DirectoryServer.getConfigEntry(backendCfg.dn()), baseDNs);
+          initializeBackend(backend, backendCfg);
         }
         catch (Exception e)
         {
@@ -769,8 +759,7 @@ public class BackendConfigManager implements
 
       try
       {
-        backend.initializeBackend(
-             DirectoryServer.getConfigEntry(cfg.dn()), baseDNs);
+        initializeBackend(backend, cfg);
       }
       catch (Exception e)
       {
@@ -1146,8 +1135,7 @@ public class BackendConfigManager implements
     // Perform the necessary initialization for the backend entry.
     try
     {
-      backend.initializeBackend(
-           DirectoryServer.getConfigEntry(cfg.dn()), baseDNs);
+      initializeBackend(backend, cfg);
     }
     catch (Exception e)
     {
@@ -1364,53 +1352,13 @@ public class BackendConfigManager implements
     }
   }
 
-  /**
-   * Gets the configuration corresponding to a config entry.
-   *
-   * @param <S>
-   *          The type of server configuration.
-   * @param definition
-   *          The required definition of the required managed object.
-   * @param configEntry
-   *          A configuration entry.
-   * @return Returns the server-side configuration.
-   * @throws ConfigException
-   *           If the entry could not be decoded.
-   */
-  public static <S extends Configuration> S getConfiguration(
-      AbstractManagedObjectDefinition<?, S> definition, ConfigEntry configEntry)
-      throws ConfigException {
-
-    try {
-      ServerManagedObject<? extends S> mo = ServerManagedObject
-          .decode(ManagedObjectPath.emptyPath(), definition,
-              configEntry);
-      return mo.getConfiguration();
-    } catch (DefinitionDecodingException e) {
-      throw ConfigExceptionFactory.getInstance()
-          .createDecodingExceptionAdaptor(configEntry.getDN(), e);
-    } catch (ServerManagedObjectDecodingException e) {
-      throw ConfigExceptionFactory.getInstance()
-          .createDecodingExceptionAdaptor(e);
-    }
-  }
-
-
-
-  /**
-   * Gets the backend configuration corresponding to a backend config entry.
-   *
-   * @param configEntry A backend config entry.
-   * @return Returns the backend configuration.
-   * @throws ConfigException If the config entry could not be decoded.
-   */
-  public static BackendCfg getBackendCfg(ConfigEntry configEntry)
-      throws ConfigException
+  @SuppressWarnings("unchecked")
+  private static void initializeBackend(Backend backend, BackendCfg cfg)
+       throws ConfigException, InitializationException
   {
-    return getConfiguration(BackendCfgDefn.getInstance(), configEntry);
+    backend.configureBackend(cfg);
+    backend.initializeBackend();
   }
-
-
 
 }
 

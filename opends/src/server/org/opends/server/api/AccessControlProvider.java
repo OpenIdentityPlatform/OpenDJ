@@ -40,8 +40,8 @@ import org.opends.server.types.InitializationException;
  * should specify the name of a class implementing this interface.
  *
  * @param <T>
- *          The type of connection handler configuration handled by
- *          this connection handler implementation.
+ *          The type of access control configuration handled by
+ *          this access control provider implementation.
  */
 public interface AccessControlProvider
        <T extends AccessControlHandlerCfg>

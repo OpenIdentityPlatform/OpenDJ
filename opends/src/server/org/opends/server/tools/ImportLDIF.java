@@ -36,7 +36,6 @@ import java.util.Random;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
@@ -69,7 +68,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
-
+import org.opends.server.admin.std.server.BackendCfg;
 
 
 /**
@@ -720,12 +719,11 @@ public class ImportLDIF
     // imported and finding backends with subordinate base DNs that should be
     // excluded from the import.
     Backend       backend           = null;
-    ConfigEntry   configEntry       = null;
     List<DN> defaultIncludeBranches = null;
     List<DN> excludeBranches        = new ArrayList<DN>();
 
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
+    ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
     ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
     int code = BackendToolUtils.getBackends(backendList, entryList, dnList);
     if (code != 0)
@@ -745,7 +743,6 @@ public class ImportLDIF
       if (backend == null)
       {
         backend                = b;
-        configEntry            = entryList.get(i);
         defaultIncludeBranches = dnList.get(i);
       }
       else
@@ -797,7 +794,7 @@ public class ImportLDIF
 
     for (String s : excludeBranchStrings.getValues())
     {
-      DN excludeBranch = null;
+      DN excludeBranch;
       try
       {
         excludeBranch = DN.decode(s);
@@ -836,7 +833,7 @@ public class ImportLDIF
       includeBranches = new ArrayList<DN>();
       for (String s : includeBranchStrings.getValues())
       {
-        DN includeBranch = null;
+        DN includeBranch;
         try
         {
           includeBranch = DN.decode(s);
@@ -1025,7 +1022,7 @@ public class ImportLDIF
     int retCode = 0;
     try
     {
-      backend.importLDIF(configEntry, baseDNs, importConfig);
+      backend.importLDIF(importConfig);
     }
     catch (DirectoryException de)
     {

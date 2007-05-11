@@ -32,7 +32,6 @@ import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.DATE_FORMAT_GMT_TIME;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.
      BACKUP_DIRECTORY_DESCRIPTOR_FILE;
@@ -56,6 +55,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
+import org.opends.server.admin.std.server.BackendCfg;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -358,7 +358,7 @@ public class BackupTask extends Task
   private boolean backupBackend(Backend b, File backupLocation)
   {
     // Get the config entry for this backend.
-    ConfigEntry configEntry = configEntries.get(b.getBackendID());
+    BackendCfg cfg = TaskUtils.getConfigEntry(b);
 
 
     // If the directory doesn't exist, then create it.  If it does exist, then
@@ -396,8 +396,7 @@ public class BackupTask extends Task
       }
       else
       {
-        backupDir = new BackupDirectory(backupLocation.getPath(),
-                                        configEntry.getDN());
+        backupDir = new BackupDirectory(backupLocation.getPath(), cfg.dn());
       }
     }
     else
@@ -417,7 +416,7 @@ public class BackupTask extends Task
       }
 
       backupDir = new BackupDirectory(backupLocation.getPath(),
-                                      configEntry.getDN());
+                                      cfg.dn());
     }
 
 
@@ -435,7 +434,7 @@ public class BackupTask extends Task
     try
     {
       DirectoryServer.notifyBackupBeginning(b, backupConfig);
-      b.createBackup(configEntry, backupConfig);
+      b.createBackup(backupConfig);
       DirectoryServer.notifyBackupEnded(b, backupConfig, true);
     }
     catch (DirectoryException de)

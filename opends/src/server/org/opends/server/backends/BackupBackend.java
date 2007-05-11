@@ -33,14 +33,12 @@ import java.util.*;
 
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.BackendConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
@@ -72,9 +70,10 @@ import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.Validator;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.BackupBackendCfg;
-import org.opends.server.admin.std.meta.BackupBackendCfgDefn;
+import org.opends.server.admin.Configuration;
 
 
 /**
@@ -125,25 +124,32 @@ public class BackupBackend
   }
 
 
-
   /**
    * {@inheritDoc}
    */
-  public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
-         throws ConfigException, InitializationException
+  public void configureBackend(Configuration config) throws ConfigException
   {
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
-    if (configEntry == null)
+    if (config == null)
     {
       int    msgID   = MSGID_BACKUP_CONFIG_ENTRY_NULL;
       String message = getMessage(msgID);
       throw new ConfigException(msgID, message);
     }
 
-    BackupBackendCfg cfg = getBackupBackendCfg(configEntry);
 
+    Validator.ensureTrue(config instanceof BackupBackendCfg);
 
+    currentConfig = (BackupBackendCfg)config;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void initializeBackend()
+         throws ConfigException, InitializationException
+  {
     // Create the set of base DNs that we will handle.  In this case, it's just
     // the DN of the base backup entry.
     try
@@ -167,7 +173,7 @@ public class BackupBackend
 
 
     // Determine the set of backup directories that we will use by default.
-    Set<String> values = cfg.getBackupDirectory();
+    Set<String> values = currentConfig.getBackupDirectory();
     backupDirectories = new LinkedHashSet<File>(values.size());
     for (String s : values)
     {
@@ -215,8 +221,7 @@ public class BackupBackend
 
 
     // Register this as a change listener.
-    currentConfig = cfg;
-    cfg.addBackupChangeListener(this);
+    currentConfig.addBackupChangeListener(this);
 
 
     // Register the backup base as a private suffix.
@@ -1063,20 +1068,9 @@ public class BackupBackend
 
 
   /**
-   * Exports the contents of this backend to LDIF.  This method should only be
-   * called if <CODE>supportsLDIFExport</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  exportConfig  The configuration to use when performing the export.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              export.
+   * {@inheritDoc}
    */
-  public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFExportConfig exportConfig)
+  public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
     int    msgID   = MSGID_BACKUP_EXPORT_NOT_SUPPORTED;
@@ -1103,20 +1097,9 @@ public class BackupBackend
 
 
   /**
-   * Imports information from an LDIF file into this backend.  This method
-   * should only be called if <CODE>supportsLDIFImport</CODE> returns
-   * <CODE>true</CODE>.  Note that the server will not explicitly initialize
-   * this backend before calling this method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  baseDNs       The set of base DNs configured for this backend.
-   * @param  importConfig  The configuration to use when performing the import.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the LDIF
-   *                              import.
+   * {@inheritDoc}
    */
-  public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFImportConfig importConfig)
+  public void importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
@@ -1172,20 +1155,10 @@ public class BackupBackend
 
 
   /**
-   * Creates a backup of the contents of this backend in a form that may be
-   * restored at a later date if necessary.  This method should only be called
-   * if <CODE>supportsBackup</CODE> returns <CODE>true</CODE>.  Note that the
-   * server will not explicitly initialize this backend before calling this
-   * method.
-   *
-   * @param  configEntry   The configuration entry for this backend.
-   * @param  backupConfig  The configuration to use when performing the backup.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              backup.
+   * {@inheritDoc}
    */
-  public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
-         throws DirectoryException
+  public void createBackup(BackupConfig backupConfig)
+  throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
     int    msgID   = MSGID_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED;
@@ -1236,20 +1209,9 @@ public class BackupBackend
 
 
   /**
-   * Restores a backup of the contents of this backend.  This method should only
-   * be called if <CODE>supportsRestore</CODE> returns <CODE>true</CODE>.  Note
-   * that the server will not explicitly initialize this backend before calling
-   * this method.
-   *
-   * @param  configEntry    The configuration entry for this backend.
-   * @param  restoreConfig  The configuration to use when performing the
-   *                        restore.
-   *
-   * @throws  DirectoryException  If a problem occurs while performing the
-   *                              restore.
+   * {@inheritDoc}
    */
-  public void restoreBackup(ConfigEntry configEntry,
-                            RestoreConfig restoreConfig)
+  public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
@@ -1265,8 +1227,7 @@ public class BackupBackend
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-       BackupBackendCfg configEntry,
-       List<String> unacceptableReasons)
+       BackupBackendCfg cfg, List<String> unacceptableReasons)
   {
     // We'll accept anything here.  The only configurable attribute is the
     // default set of backup directories, but that doesn't require any
@@ -1278,22 +1239,21 @@ public class BackupBackend
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(
-       BackupBackendCfg configEntry)
+  public ConfigChangeResult applyConfigurationChange(BackupBackendCfg cfg)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
 
 
-    Set<String> values = configEntry.getBackupDirectory();
+    Set<String> values = cfg.getBackupDirectory();
     backupDirectories = new LinkedHashSet<File>(values.size());
     for (String s : values)
     {
       backupDirectories.add(getFileForPath(s));
     }
 
-    currentConfig = configEntry;
+    currentConfig = cfg;
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
@@ -1314,18 +1274,5 @@ public class BackupBackend
   }
 
 
-  /**
-   * Gets the backup backend configuration corresponding to a backup
-   * backend config entry.
-   *
-   * @param configEntry A backup backend config entry.
-   * @return Returns the backup backend configuration.
-   * @throws ConfigException If the config entry could not be decoded.
-   */
-  static BackupBackendCfg getBackupBackendCfg(ConfigEntry configEntry)
-      throws ConfigException {
-    return BackendConfigManager.getConfiguration(
-         BackupBackendCfgDefn.getInstance(), configEntry);
-  }
 }
 

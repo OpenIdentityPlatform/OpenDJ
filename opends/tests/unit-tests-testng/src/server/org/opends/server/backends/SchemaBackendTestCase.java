@@ -30,29 +30,23 @@ package org.opends.server.backends;
 
 import java.io.File;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DN;
@@ -62,10 +56,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.MatchingRuleUse;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
@@ -84,7 +75,6 @@ public class SchemaBackendTestCase
 {
   // A reference to the schema backend.
   private SchemaBackend schemaBackend;
-
 
 
   /**
@@ -117,7 +107,7 @@ public class SchemaBackendTestCase
          throws Exception
   {
     SchemaBackend schemaBackend = new SchemaBackend();
-    schemaBackend.initializeBackend(null, new DN[0]);
+    schemaBackend.configureBackend(null);
   }
 
 
@@ -5346,20 +5336,13 @@ public class SchemaBackendTestCase
   public void testExportLDIF()
          throws Exception
   {
-    DN configEntryDN =
-            DN.decode("ds-cfg-backend-id=schema,cn=Backends,cn=config");
-    DN[] baseDNs = { DN.decode("cn=schema") };
-
-    ConfigEntry configEntry =
-         DirectoryServer.getConfigHandler().getConfigEntry(configEntryDN);
-
     File tempFile = File.createTempFile("schema", "testExportLDIF");
     tempFile.deleteOnExit();
     LDIFExportConfig exportConfig =
          new LDIFExportConfig(tempFile.getAbsolutePath(),
                               ExistingFileBehavior.OVERWRITE);
 
-    schemaBackend.exportLDIF(configEntry, baseDNs, exportConfig);
+    schemaBackend.exportLDIF(exportConfig);
 
     assertTrue(tempFile.exists());
     assertTrue(tempFile.length() > 0);
@@ -5376,20 +5359,13 @@ public class SchemaBackendTestCase
   public void testImportLDIF()
          throws Exception
   {
-    DN configEntryDN =
-            DN.decode("cn=schema,cn=Backends,cn=config");
-    DN[] baseDNs = { DN.decode("cn=schema") };
-
-    ConfigEntry configEntry =
-         DirectoryServer.getConfigHandler().getConfigEntry(configEntryDN);
-
     File tempFile = File.createTempFile("schema", "testImportLDIF");
     tempFile.deleteOnExit();
 
     LDIFImportConfig importConfig =
          new LDIFImportConfig(tempFile.getAbsolutePath());
 
-    schemaBackend.importLDIF(configEntry, baseDNs, importConfig);
+    schemaBackend.importLDIF(importConfig);
   }
 
 

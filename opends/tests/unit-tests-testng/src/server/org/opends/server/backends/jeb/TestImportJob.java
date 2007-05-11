@@ -27,8 +27,10 @@
 package org.opends.server.backends.jeb;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.meta.JEBackendCfgDefn;
+import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.util.Base64;
 import static org.opends.server.util.ServerConstants.OC_TOP;
@@ -36,7 +38,6 @@ import static org.opends.server.util.ServerConstants.OC_EXTENSIBLE_OBJECT;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.AfterClass;
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
@@ -47,7 +48,6 @@ import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
-import com.sleepycat.je.DatabaseEntry;
 
 public class TestImportJob extends JebTestCase
 {
@@ -248,6 +248,8 @@ public class TestImportJob extends JebTestCase
       "ds-cfg-backend-import-temp-directory:: " + Base64.encode(importDirName.getBytes()));
 
     ConfigEntry backendConfigEntry = new ConfigEntry(configEntry, null);
+    JEBackendCfg cfg = AdminTestCaseUtils.getConfiguration(
+         JEBackendCfgDefn.getInstance(), configEntry);
 
     Entry indexEntry = TestCaseUtils.makeEntry(
       "dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config\n" +
@@ -280,7 +282,7 @@ public class TestImportJob extends JebTestCase
     };
 
     backendConfig = new Config();
-    backendConfig.initializeConfig(backendConfigEntry, baseDNs);
+    backendConfig.initializeConfig(cfg);
   }
 
   @AfterClass

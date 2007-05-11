@@ -47,7 +47,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.BackendConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -71,6 +70,7 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.Validator;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
@@ -84,8 +84,8 @@ import static org.opends.server.messages.ConfigMessages.
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.admin.std.server.RootDSEBackendCfg;
-import org.opends.server.admin.std.meta.RootDSEBackendCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.Configuration;
 
 
 /**
@@ -156,13 +156,26 @@ public class RootDSEBackend
   }
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public void configureBackend(Configuration config) throws ConfigException
+  {
+    Validator.ensureNotNull(config);
+    Validator.ensureTrue(config instanceof RootDSEBackendCfg);
+    currentConfig = (RootDSEBackendCfg)config;
+    configEntryDN = config.dn();
+  }
 
   /**
    * {@inheritDoc}
    */
-  public void initializeBackend(ConfigEntry configEntry, DN[] baseDNs)
+  public void initializeBackend()
          throws ConfigException, InitializationException
   {
+    ConfigEntry configEntry =
+         DirectoryServer.getConfigEntry(configEntryDN);
+
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
     if (configEntry == null)
@@ -171,10 +184,6 @@ public class RootDSEBackend
       String message = getMessage(msgID);
       throw new ConfigException(msgID, message);
     }
-
-    configEntryDN = configEntry.getDN();
-    RootDSEBackendCfg cfg = getRootDSEBackendCfg(configEntry);
-
 
     // Get the set of user-defined attributes for the configuration entry.  Any
     // attributes that we don't recognize will be included directly in the root
@@ -215,7 +224,7 @@ public class RootDSEBackend
     // backends defined in the server.
     try
     {
-      Set<DN> subDNs = cfg.getSubordinateBaseDN();
+      Set<DN> subDNs = currentConfig.getSubordinateBaseDN();
       if (subDNs.isEmpty())
       {
         // This is fine -- we'll just use the set of user-defined suffixes.
@@ -256,7 +265,7 @@ public class RootDSEBackend
 
     // Determine whether all root DSE attributes should be treated as user
     // attributes.
-    showAllAttributes = cfg.isShowAllAttributes();
+    showAllAttributes = currentConfig.isShowAllAttributes();
 
 
     // Construct the set of "static" attributes that will always be present in
@@ -303,8 +312,7 @@ public class RootDSEBackend
 
 
     // Register as a change listener.
-    currentConfig = cfg;
-    cfg.addChangeListener(this);
+    currentConfig.addChangeListener(this);
   }
 
 
@@ -1119,8 +1127,7 @@ public class RootDSEBackend
   /**
    * {@inheritDoc}
    */
-  public void exportLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFExportConfig exportConfig)
+  public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
     // Create the LDIF writer.
@@ -1197,8 +1204,7 @@ public class RootDSEBackend
   /**
    * {@inheritDoc}
    */
-  public void importLDIF(ConfigEntry configEntry, DN[] baseDNs,
-                         LDIFImportConfig importConfig)
+  public void importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     // This backend does not support LDIF imports.
@@ -1256,7 +1262,7 @@ public class RootDSEBackend
   /**
    * {@inheritDoc}
    */
-  public void createBackup(ConfigEntry configEntry, BackupConfig backupConfig)
+  public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
@@ -1310,8 +1316,7 @@ public class RootDSEBackend
   /**
    * {@inheritDoc}
    */
-  public void restoreBackup(ConfigEntry configEntry,
-                            RestoreConfig restoreConfig)
+  public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
     // This backend does not provide a backup/restore mechanism.
@@ -1542,10 +1547,5 @@ public class RootDSEBackend
 
 
 
-  private static RootDSEBackendCfg getRootDSEBackendCfg(ConfigEntry configEntry)
-      throws ConfigException {
-    return BackendConfigManager.getConfiguration(
-         RootDSEBackendCfgDefn.getInstance(), configEntry);
-  }
 }
 

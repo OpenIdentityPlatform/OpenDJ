@@ -36,7 +36,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
@@ -65,7 +64,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
-
+import org.opends.server.admin.std.server.BackendCfg;
 
 
 /**
@@ -231,8 +230,8 @@ public class RestoreDB
     {
       try
       {
-        directoryServer.bootstrapClient();
-        directoryServer.initializeJMX();
+        DirectoryServer.bootstrapClient();
+        DirectoryServer.initializeJMX();
       }
       catch (Exception e)
       {
@@ -369,7 +368,7 @@ public class RestoreDB
 
 
     // Open the backup directory and make sure it is valid.
-    BackupDirectory backupDir = null;
+    BackupDirectory backupDir;
     try
     {
       backupDir = BackupDirectory.readBackupDirectoryDescriptor(
@@ -454,7 +453,7 @@ public class RestoreDB
 
     // If a backup ID was specified, then make sure it is valid.  If none was
     // provided, then choose the latest backup from the archive.
-    String backupID = null;
+    String backupID;
     if (backupIDString.isPresent())
     {
       backupID = backupIDString.getValue();
@@ -495,22 +494,20 @@ public class RestoreDB
     // Get information about the backends defined in the server and determine
     // which to use for the restore.
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
+    ArrayList<BackendCfg> entryList   = new ArrayList<BackendCfg>();
     ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
 
     Backend     backend     = null;
-    ConfigEntry configEntry = null;
     int         numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
     {
       Backend     b = backendList.get(i);
-      ConfigEntry e = entryList.get(i);
-      if (e.getDN().equals(configEntryDN))
+      BackendCfg e = entryList.get(i);
+      if (e.dn().equals(configEntryDN))
       {
         backend     = b;
-        configEntry = e;
         break;
       }
     }
@@ -568,7 +565,7 @@ public class RestoreDB
     // Perform the restore.
     try
     {
-      backend.restoreBackup(configEntry, restoreConfig);
+      backend.restoreBackup(restoreConfig);
     }
     catch (DirectoryException de)
     {

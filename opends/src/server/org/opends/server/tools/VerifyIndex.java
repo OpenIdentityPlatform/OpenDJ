@@ -31,7 +31,6 @@ package org.opends.server.tools;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.jeb.VerifyConfig;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
@@ -60,7 +59,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
-
+import org.opends.server.admin.std.server.BackendCfg;
 
 
 /**
@@ -362,7 +361,7 @@ public class VerifyIndex
 
 
     // Decode the base DN provided by the user.
-    DN verifyBaseDN = null;
+    DN verifyBaseDN ;
     try
     {
       verifyBaseDN = DN.decode(baseDNString.getValue());
@@ -390,11 +389,9 @@ public class VerifyIndex
     // Get information about the backends defined in the server.  Iterate
     // through them, finding the one backend to be verified.
     Backend       backend         = null;
-    ConfigEntry   configEntry     = null;
-    DN[]          baseDNArray         = null;
 
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
-    ArrayList<ConfigEntry> entryList   = new ArrayList<ConfigEntry>();
+    ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
     ArrayList<List<DN>>    dnList      = new ArrayList<List<DN>>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
@@ -402,7 +399,6 @@ public class VerifyIndex
     for (int i=0; i < numBackends; i++)
     {
       Backend     b       = backendList.get(i);
-      ConfigEntry entry   = entryList.get(i);
       List<DN>    baseDNs = dnList.get(i);
 
       for (DN baseDN : baseDNs)
@@ -412,9 +408,6 @@ public class VerifyIndex
           if (backend == null)
           {
             backend         = b;
-            configEntry     = entry;
-            baseDNArray     = new DN[baseDNs.size()];
-            baseDNs.toArray(baseDNArray);
           }
           else
           {
@@ -496,7 +489,7 @@ public class VerifyIndex
     try
     {
       BackendImpl jebBackend = (BackendImpl)backend;
-      jebBackend.verifyBackend(verifyConfig, configEntry, baseDNArray, null);
+      jebBackend.verifyBackend(verifyConfig, null);
     }
     catch (Exception e)
     {

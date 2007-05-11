@@ -79,7 +79,7 @@ public class TestBackendImpl extends JebTestCase {
 
     homeDirName = "db_index_test";
 
-    backend = (BackendImpl)DirectoryServer.getBackend("indexTestRoot");
+    backend = (BackendImpl)DirectoryServer.getBackend("indexRoot");
 
     topEntries = TestCaseUtils.makeEntries(
         "dn: dc=test,dc=com",
@@ -1160,7 +1160,7 @@ public class TestBackendImpl extends JebTestCase {
         "ds-cfg-backend-enabled: true",
         "ds-cfg-backend-writability-mode: enabled",
         "ds-cfg-backend-class: org.opends.server.backends.jeb.BackendImpl",
-        "ds-cfg-backend-id: indexTestRoot",
+        "ds-cfg-backend-id: indexRoot",
         "ds-cfg-backend-directory:: " +
             Base64.encode(homeDirName.getBytes()),
         "ds-cfg-backend-import-temp-directory: importTmp");

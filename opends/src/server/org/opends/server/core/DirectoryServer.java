@@ -48,8 +48,11 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 
 import org.opends.server.admin.ClassLoaderProvider;
+import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
+import org.opends.server.admin.std.server.RootDSEBackendCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.StartupPluginResult;
@@ -2190,11 +2193,12 @@ public class DirectoryServer
 
     // Make sure to initialize the root DSE backend separately after all other
     // backends.
-    ConfigEntry rootDSEConfigEntry;
+    RootDSEBackendCfg rootDSECfg;
     try
     {
-      DN rootDSEConfigDN = DN.decode(DN_ROOT_DSE_CONFIG);
-      rootDSEConfigEntry = configHandler.getConfigEntry(rootDSEConfigDN);
+      RootCfg root =
+           ServerManagementContext.getInstance().getRootConfiguration();
+      rootDSECfg = root.getRootDSEBackend();
     }
     catch (Exception e)
     {
@@ -2208,9 +2212,9 @@ public class DirectoryServer
       throw new InitializationException(msgID, message, e);
     }
 
-    DN[] baseDNs   = { DN.nullDN() };
     rootDSEBackend = new RootDSEBackend();
-    rootDSEBackend.initializeBackend(rootDSEConfigEntry, baseDNs);
+    rootDSEBackend.configureBackend(rootDSECfg);
+    rootDSEBackend.initializeBackend();
   }
 
 
