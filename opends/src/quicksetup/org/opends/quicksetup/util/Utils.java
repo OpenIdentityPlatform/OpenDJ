@@ -40,6 +40,8 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.net.ConnectException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.naming.CommunicationException;
 import javax.naming.Context;
@@ -50,8 +52,7 @@ import javax.naming.ldap.LdapName;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import org.opends.quicksetup.CurrentInstallStatus;
-import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.*;
 import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.server.util.SetupUtils;
@@ -63,6 +64,9 @@ import org.opends.server.util.SetupUtils;
  */
 public class Utils
 {
+  private static final Logger LOG =
+          Logger.getLogger(Utils.class.getName());
+
   private static final int DEFAULT_LDAP_CONNECT_TIMEOUT = 3000;
 
   private static final int BUFFER_SIZE = 1024;
@@ -1335,6 +1339,30 @@ public class Utils
       perm = "644";
     }
     return perm;
+  }
+
+  /**
+   * Returns a string representing the installation's current build information
+   * useful for presenting to the user.  If the build string could not be
+   * determined for any reason a localized String 'unknown' is returned.
+   * @param installation whose build information is sought
+   * @return String representing the application's build.
+   */
+  static public String getBuildString(Installation installation) {
+    String b = null;
+    try {
+      BuildInformation bi = installation.getBuildInformation();
+      if (bi != null) {
+        b = bi.toString();
+      }
+    } catch (ApplicationException e) {
+      LOG.log(Level.INFO, "error trying to determine current build string", e);
+    }
+    if (b == null) {
+      b = ResourceProvider.getInstance().
+              getMsg("upgrade-build-id-unknown");
+    }
+    return b;
   }
 
 }
