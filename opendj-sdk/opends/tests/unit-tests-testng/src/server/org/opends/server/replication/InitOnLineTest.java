@@ -153,10 +153,6 @@ public class InitOnLineTest extends ReplicationTestCase
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
 
-    // Disable schema check
-    schemaCheck = DirectoryServer.checkSchema();
-    DirectoryServer.setCheckSchema(false);
-
     baseDn = DN.decode("dc=example,dc=com");
 
     updatedEntries = newLDIFEntries();

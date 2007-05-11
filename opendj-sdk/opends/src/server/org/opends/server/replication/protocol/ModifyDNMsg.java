@@ -35,6 +35,8 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Operation;
 
 /**
@@ -265,6 +267,88 @@ public class ModifyDNMsg extends UpdateMessage
   public void setNewRDN(String newRDN)
   {
     this.newRDN = newRDN;
+  }
+
+  /**
+   * Check if this MSG will change the DN of the target entry to be
+   * the same as the dn given as a parameter.
+   * @param targetDn the DN to use when checking if this MSG will change
+   *                 the DN of the entry to a given DN.
+   * @return A boolean indicating if the modify DN MSG will change the DN of
+   *         the target entry to be the same as the dn given as a parameter.
+   */
+  public boolean newDNIsParent(DN targetDn)
+  {
+    try
+    {
+      String newStringDN = newRDN + "," + newSuperior;
+      DN newDN = DN.decode(newStringDN);
+
+      if (newDN.isAncestorOf(targetDn))
+        return true;
+      else
+        return false;
+    } catch (DirectoryException e)
+    {
+      // The DN was not a correct DN, and therefore does not a parent of the
+      // DN given as a parameter.
+      return false;
+    }
+  }
+
+  /**
+   * Check if the new dn of this ModifyDNMsg is the same as the targetDN
+   * given in parameter.
+   *
+   * @param targetDN The targetDN to use to check for equality.
+   *
+   * @return A boolean indicating if the targetDN if the same as the new DN of
+   *         the ModifyDNMsg.
+   */
+  public boolean newDNIsEqual(DN targetDN)
+  {
+    try
+    {
+      String newStringDN = newRDN + "," + newSuperior;
+      DN newDN = DN.decode(newStringDN);
+
+      if (newDN.equals(targetDN))
+        return true;
+      else
+        return false;
+    } catch (DirectoryException e)
+    {
+      // The DN was not a correct DN, and therefore does not match the
+      // DN given as a parameter.
+      return false;
+    }
+  }
+
+  /**
+   * Check if the new parent of the modifyDNMsg is the same as the targetDN
+   * given in parameter.
+   *
+   * @param targetDN the targetDN to use when checking equality.
+   *
+   * @return A boolean indicating if the new parent of the modifyDNMsg is the
+   *         same as the targetDN.
+   */
+  public boolean newParentIsEqual(DN targetDN)
+  {
+    try
+    {
+      DN newSuperiorDN = DN.decode(newSuperior);
+
+      if (newSuperiorDN.equals(targetDN))
+        return true;
+      else
+        return false;
+    } catch (DirectoryException e)
+    {
+      // The newsuperior was not a correct DN, and therefore does not match the
+      // DN given as a parameter.
+      return false;
+    }
   }
 
 }

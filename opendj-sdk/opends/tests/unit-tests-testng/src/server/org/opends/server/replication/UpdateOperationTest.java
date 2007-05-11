@@ -100,10 +100,6 @@ public class UpdateOperationTest extends ReplicationTestCase
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
 
-    // Disable schema check
-    schemaCheck = DirectoryServer.checkSchema();
-    DirectoryServer.setCheckSchema(false);
-
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
 
@@ -1004,19 +1000,6 @@ public class UpdateOperationTest extends ReplicationTestCase
     {
       broker.stop();
     }
-  }
-
-  private List<Modification> generatemods(String attrName, String attrValue)
-  {
-    AttributeType attrType =
-      DirectoryServer.getAttributeType(attrName.toLowerCase(), true);
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(new AttributeValue(attrType, attrValue));
-    Attribute attr = new Attribute(attrType, attrName, values);
-    List<Modification> mods = new ArrayList<Modification>();
-    Modification mod = new Modification(ModificationType.REPLACE, attr);
-    mods.add(mod);
-    return mods;
   }
 
   /**

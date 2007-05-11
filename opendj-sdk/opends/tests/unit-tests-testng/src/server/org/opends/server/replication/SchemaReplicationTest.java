@@ -82,7 +82,6 @@ public class SchemaReplicationTest extends ReplicationTestCase
   {
     // This test suite depends on having the schema available.
     TestCaseUtils.startServer();
-    schemaCheck = DirectoryServer.checkSchema();
 
     // find  a free port for the replicationServer
     ServerSocket socket = TestCaseUtils.bindFreePort();

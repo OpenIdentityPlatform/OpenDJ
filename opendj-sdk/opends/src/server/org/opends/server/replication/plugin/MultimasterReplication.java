@@ -82,6 +82,68 @@ public class MultimasterReplication
 
 
   /**
+   * Finds the domain for a given DN.
+   *
+   * @param dn   The DN for which the domain must be returned.
+   * @param op   An optional operation for which the check is done.
+   *             Can be null is the request has no associated operation.
+   * @return     The domain for this DN.
+   */
+  public static ReplicationDomain findDomain(DN dn, Operation op)
+  {
+    /*
+     * Don't run the special replication code on Operation that are
+     * specifically marked as don't synchronize.
+     */
+    if ((op != null) && op.dontSynchronize())
+      return null;
+
+    ReplicationDomain domain = null;
+    DN temp = dn;
+    do
+    {
+      domain = domains.get(temp);
+      temp = temp.getParentDNInSuffix();
+      if (temp == null)
+      {
+        break;
+      }
+    } while (domain == null);
+
+    return domain;
+  }
+
+  /**
+   * Creates a new domain from its configEntry, do the
+   * necessary initialization and starts it so that it is
+   * fully operational when this method returns.
+   * @param configuration The entry whith the configuration of this domain.
+   * @return The domain created.
+   * @throws ConfigException When the configuration is not valid.
+   */
+  public static ReplicationDomain createNewDomain(
+      MultimasterDomainCfg configuration)
+      throws ConfigException
+  {
+    ReplicationDomain domain;
+    domain = new ReplicationDomain(configuration);
+    domains.put(domain.getBaseDN(), domain);
+    domain.start();
+    return domain;
+  }
+
+  /**
+   * Deletes a domain.
+   * @param dn : the base DN of the domain to delete.
+   */
+  public static void deleteDomain(DN dn)
+  {
+    ReplicationDomain domain = domains.remove(dn);
+    if (domain != null)
+      domain.shutdown();
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -146,23 +208,6 @@ public class MultimasterReplication
       // already been validated in configAddisAcceptable
       return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false);
     }
-  }
-
-  /**
-   * Creates a new domain from its configEntry, do the
-   * necessary initialization and starts it so that it is
-   * fully operational when this method returns.
-   * @param configuration The entry whith the configuration of this domain.
-   * @throws ConfigException When the configuration is not valid.
-   */
-  private void createNewDomain(
-      MultimasterDomainCfg configuration)
-      throws ConfigException
-  {
-    ReplicationDomain domain;
-    domain = new ReplicationDomain(configuration);
-    domains.put(domain.getBaseDN(), domain);
-    domain.start();
   }
 
   /**
@@ -354,55 +399,6 @@ public class MultimasterReplication
   }
 
   /**
-   * Finds the domain for a given DN.
-   *
-   * @param dn   The DN for which the domain must be returned.
-   * @param op   An optional operation for which the check is done.
-   *             Can be null is the request has no associated operation.
-   * @return     The domain for this DN.
-   */
-  public static ReplicationDomain findDomain(DN dn, Operation op)
-  {
-    /*
-     * Don't run the special replication code on Operation that are
-     * specifically marked as don't synchronize.
-     */
-    if ((op != null) && op.dontSynchronize())
-      return null;
-
-    ReplicationDomain domain = null;
-    DN temp = dn;
-    do
-    {
-      domain = domains.get(temp);
-      temp = temp.getParentDNInSuffix();
-      if (temp == null)
-      {
-        break;
-      }
-    } while (domain == null);
-
-    return domain;
-  }
-
-  /**
-   * Generic code for all the postOperation entry point.
-   *
-   * @param operation The Operation for which the post-operation is called.
-   * @param dn The Dn for which the post-operation is called.
-   */
-  private void genericPostOperation(Operation operation, DN dn)
-  {
-    ReplicationDomain domain = findDomain(dn, operation);
-    if (domain == null)
-      return;
-
-    domain.synchronize(operation);
-
-    return;
-  }
-
-  /**
    * This method is called whenever the server detects a modification
    * of the schema done by directly modifying the backing files
    * of the schema backend.
@@ -535,10 +531,7 @@ public class MultimasterReplication
   public ConfigChangeResult applyConfigurationDelete(
       MultimasterDomainCfg configuration)
   {
-    DN dn = configuration.getReplicationDN();
-    ReplicationDomain domain = domains.remove(dn);
-    if (domain != null)
-      domain.shutdown();
+    deleteDomain(configuration.getReplicationDN());
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
@@ -550,6 +543,23 @@ public class MultimasterReplication
       MultimasterDomainCfg configuration, List<String> unacceptableReasons)
   {
     return true;
+  }
+
+  /**
+   * Generic code for all the postOperation entry point.
+   *
+   * @param operation The Operation for which the post-operation is called.
+   * @param dn The Dn for which the post-operation is called.
+   */
+  private void genericPostOperation(Operation operation, DN dn)
+  {
+    ReplicationDomain domain = findDomain(dn, operation);
+    if (domain == null)
+      return;
+
+    domain.synchronize(operation);
+
+    return;
   }
 }
 

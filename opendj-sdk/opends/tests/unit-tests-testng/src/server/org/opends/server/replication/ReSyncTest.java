@@ -26,9 +26,6 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_COMPLETION_TIME;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import java.io.File;
@@ -36,18 +33,12 @@ import java.net.ServerSocket;
 import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.types.AttributeType;
+
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -113,9 +104,9 @@ public class ReSyncTest extends ReplicationTestCase
 
     configureReplication();
 
-    // Give some time to the replication to setup 
+    // Give some time to the replication to setup
     Thread.sleep(1000);
-    
+
     // Create a dummy entry
     addEntry("dn: dc=dummy, dc=example,dc=com\n"
         + "objectClass: top\n" + "objectClass: domain\n");
@@ -209,7 +200,7 @@ public class ReSyncTest extends ReplicationTestCase
     String path = buildRoot + File.separator + "build" +
                   File.separator + "unit-tests" + File.separator +
                   "package"+ File.separator + "ReSynchTest";
-    
+
     task("dn: ds-task-id=" + UUID.randomUUID()
         + ",cn=Scheduled Tasks,cn=Tasks\n"
         + "objectclass: top\n"
@@ -237,73 +228,4 @@ public class ReSyncTest extends ReplicationTestCase
   }
 
 
-  /**
-   * Utility method to create, run a task and check its result.
-   */
-  private void task(String task) throws Exception
-  {
-    Entry taskEntry = TestCaseUtils.makeEntry(task);
-
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
-    // Add the task.
-    AddOperation addOperation =
-         connection.processAdd(taskEntry.getDN(),
-                               taskEntry.getObjectClasses(),
-                               taskEntry.getUserAttributes(),
-                               taskEntry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
-                 "Add of the task definition was not successful");
-
-    // Wait until the task completes.
-    AttributeType completionTimeType = DirectoryServer.getAttributeType(
-         ATTR_TASK_COMPLETION_TIME.toLowerCase());
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectclass=*)");
-    Entry resultEntry = null;
-    String completionTime = null;
-    long startMillisecs = System.currentTimeMillis();
-    do
-    {
-      InternalSearchOperation searchOperation =
-           connection.processSearch(taskEntry.getDN(),
-                                    SearchScope.BASE_OBJECT,
-                                    filter);
-      try
-      {
-        resultEntry = searchOperation.getSearchEntries().getFirst();
-      } catch (Exception e)
-      {
-        continue;
-      }
-      completionTime =
-           resultEntry.getAttributeValue(completionTimeType,
-                                         DirectoryStringSyntax.DECODER);
-
-      if (completionTime == null)
-      {
-        if (System.currentTimeMillis() - startMillisecs > 1000*30)
-        {
-          break;
-        }
-        Thread.sleep(10);
-      }
-    } while (completionTime == null);
-
-    if (completionTime == null)
-    {
-      fail("The task has not completed after 30 seconds.");
-    }
-
-    // Check that the task state is as expected.
-    AttributeType taskStateType =
-         DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
-    String stateString =
-         resultEntry.getAttributeValue(taskStateType,
-                                       DirectoryStringSyntax.DECODER);
-    TaskState taskState = TaskState.fromString(stateString);
-    assertEquals(taskState, TaskState.COMPLETED_SUCCESSFULLY,
-                 "The task completed in an unexpected state");
-  }
 }
