@@ -521,6 +521,52 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
+   * Determines whether or not this managed object definition is a
+   * sub-type of the provided managed object definition. This managed
+   * object definition is a sub-type of the provided managed object
+   * definition if they are both the same or if the provided managed
+   * object definition can be obtained by recursive invocations of the
+   * {@link #getParent()} method.
+   *
+   * @param d
+   *          The managed object definition to be checked.
+   * @return Returns <code>true</code> if this managed object
+   *         definition is a sub-type of the provided managed object
+   *         definition.
+   */
+  public final boolean isChildOf(AbstractManagedObjectDefinition<?, ?> d) {
+    AbstractManagedObjectDefinition<?, ?> i;
+    for (i = this; i != null; i = i.parent) {
+      if (i == d) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
+   * Determines whether or not this managed object definition is a
+   * super-type of the provided managed object definition. This
+   * managed object definition is a super-type of the provided managed
+   * object definition if they are both the same or if the provided
+   * managed object definition is a member of the set of children
+   * returned from {@link #getAllChildren()}.
+   *
+   * @param d
+   *          The managed object definition to be checked.
+   * @return Returns <code>true</code> if this managed object
+   *         definition is a super-type of the provided managed object
+   *         definition.
+   */
+  public final boolean isParentOf(AbstractManagedObjectDefinition<?, ?> d) {
+    return d.isChildOf(this);
+  }
+
+
+
+  /**
    * Register a property definition with the managed object definition,
    * overriding any existing property definition with the same name.
    * <p>
@@ -529,7 +575,7 @@ public abstract class AbstractManagedObjectDefinition
    * @param d
    *          The property definition to be registered.
    */
-  public final void registerPropertyDefinition(PropertyDefinition d) {
+  protected final void registerPropertyDefinition(PropertyDefinition d) {
     String name = d.getName();
 
     propertyDefinitions.put(name, d);
@@ -546,7 +592,7 @@ public abstract class AbstractManagedObjectDefinition
    * @param d
    *          The relation definition to be registered.
    */
-  public final void registerRelationDefinition(RelationDefinition d) {
+  protected final void registerRelationDefinition(RelationDefinition d) {
     String name = d.getName();
 
     relationDefinitions.put(name, d);
