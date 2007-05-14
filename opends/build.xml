@@ -530,7 +530,24 @@
       <include name="**/org/opends/server/util/CertificateManager.java"/>
       <include name="**/org/opends/server/util/DynamicConstants.java"/>
       <include name="**/org/opends/server/types/OperatingSystem.java"/>
+      <include name="**/org/opends/server/loggers/debug/TextDebugLogPublisher.java"/>
+      <include name="**/org/opends/server/loggers/debug/DebugLogger.java"/>
+      <include name="**/org/opends/server/loggers/TextErrorLogPublisher.java"/>
+      <include name="**/org/opends/server/loggers/TextWriter.java"/>
+      <include name="**/org/opends/server/loggers/ErrorLogger.java"/>
+      <include name="**/org/opends/server/loggers/TextAccessLogPublisher.java"/>
+      <include name="**/org/opends/server/loggers/AccessLogger.java"/>
+      <include name="**/org/opends/server/types/DN.java"/>
+      <include name="**/org/opends/server/api/DebugLogPublisher.java"/>
+      <include name="**/org/opends/server/api/ErrorLogPublisher.java"/>
+      <include name="**/org/opends/server/api/AccessLogPublisher.java"/>
       <compilerarg value="-Xlint:all" />
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <pathelement path="${classes.dir}"/>
+      </classpath>
     </javac>
     <javac srcdir="${quicksetup.src.dir}" destdir="${quicksetup.classes.dir}"
          debug="on" debuglevel="${build.debuglevel}" source="1.5"

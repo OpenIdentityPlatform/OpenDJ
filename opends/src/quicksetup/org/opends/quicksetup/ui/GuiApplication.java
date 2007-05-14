@@ -29,6 +29,7 @@ package org.opends.quicksetup.ui;
 
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.ServerController;
+import org.opends.quicksetup.util.InProcessServerController;
 import org.opends.quicksetup.webstart.WebStartDownloader;
 
 import javax.swing.*;
@@ -490,7 +491,7 @@ public abstract class GuiApplication extends Application {
       if (getInstallation().getStatus().isServerRunning()) {
         control.stopServer();
       }
-      control.startServerInProcess(true);
+      new InProcessServerController(getInstallation()).startServer(true);
     } catch (IOException e) {
       String msg = "Failed to determine server state: " +
       e.getLocalizedMessage();

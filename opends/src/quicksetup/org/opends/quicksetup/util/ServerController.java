@@ -206,45 +206,6 @@ public class ServerController {
   }
 
   /**
-   * Starts the directory server within this process.
-   * @param disableConnectionHandlers boolean that when true starts the
-   * the server mode that is otherwise up and running but will not accept any
-   * connections from external clients (i.e., does not create or initialize the
-   * connection handlers). This could be useful, for example, in an upgrade mode
-   * where it might be helpful to start the server but don't want it to appear
-   * externally as if the server is online without connection handlers
-   * listening.
-   *
-   * @throws org.opends.server.config.ConfigException
-   *         If there is a problem with the Directory Server
-   *         configuration that prevents a critical component
-   *         from being instantiated.
-   *
-   * @throws org.opends.server.types.InitializationException
-   *         If some other problem occurs while
-   *         attempting to initialize and start the
-   *         Directory Server.
-   */
-  public void startServerInProcess(boolean disableConnectionHandlers)
-          throws
-          org.opends.server.types.InitializationException,
-          org.opends.server.config.ConfigException {
-    System.setProperty(
-            "org.opends.server.DisableConnectionHandlers",
-            disableConnectionHandlers ? "true" : null);
-    startServerInProcess();
-  }
-
-  /**
-   * Stops a server that had been running 'in process'.
-   */
-  public void stopServerInProcess() {
-    org.opends.server.core.DirectoryServer.shutDown(
-            ServerController.class.getName(),
-            "quicksetup requests shutdown");
-  }
-
-  /**
    * This methods starts the server.
    * @return OperationOutput object containing output from the start server
    * command invocation.
@@ -317,15 +278,25 @@ public class ServerController {
         }
       }
 
-      // Collect any errors found in the output
-      List<String> errors = errReader.getErrors();
-      if (outputReader.getErrors() != null) {
-        if (errors == null) {
-          errors = new ArrayList<String>();
+      // Collect any messages found in the output
+      List<String> errors = errReader.getMessages();
+      if (errors != null) {
+        for(String error : errors) {
+          output.addErrorMessage(error);
         }
-        errors.addAll(outputReader.getErrors());
       }
-      output.setErrors(errors);
+      List<String> messages = outputReader.getMessages();
+      if (messages != null) {
+        for (String msg : messages) {
+
+          // NOTE:  this may not be the best place to drop these.
+          // However upon startup the server seems to log all messages,
+          // regardless of whether or not they signal an error condition,
+          // to its error log.
+
+          output.addErrorMessage(msg);
+        }
+      }
 
       // Check if something wrong occurred reading the starting of the server
       ApplicationException ex = errReader.getException();
@@ -426,36 +397,6 @@ public class ServerController {
   }
 
   /**
-   * Starts the OpenDS server in this process.
-   *
-   * @throws org.opends.server.config.ConfigException
-   *  If there is a problem with the Directory Server
-   *  configuration that prevents a critical component
-   *  from being instantiated.
-   *
-   * @throws org.opends.server.types.InitializationException
-   *  If some other problem occurs while
-   *  attempting to initialize and start the
-   *  Directory Server.
-   */
-  public void startServerInProcess()
-          throws
-          org.opends.server.types.InitializationException,
-          org.opends.server.config.ConfigException
-  {
-    // Bootstrap and start the Directory Server.
-    org.opends.server.core.DirectoryServer directoryServer =
-            org.opends.server.core.DirectoryServer.getInstance();
-
-    directoryServer.bootstrapServer();
-    String configClass = "org.opends.server.extensions.ConfigFileHandler";
-    String configPath = Utils.getPath(
-            installation.getCurrentConfigurationFile());
-    directoryServer.initializeConfiguration(configClass, configPath);
-    directoryServer.startServer();
-  }
-
-  /**
    * This class is used to read the standard error and standard output of the
    * Stop process.
    * <p/>
@@ -536,7 +477,7 @@ public class ServerController {
   {
     private ApplicationException ex;
 
-    private List<String> errors;
+    private List<String> messages = new ArrayList<String>();
 
     private boolean isFinished;
 
@@ -590,14 +531,7 @@ public class ServerController {
                 isFinished = true;
               }
 
-              // Collect lines that would seem to indicate all is
-              // not well with the server
-              if (line.indexOf("severity=SEVERE_ERROR") != -1) {
-                if (errors == null) {
-                  errors = new ArrayList<String>();
-                }
-                errors.add(line);
-              }
+              messages.add(line);
 
               line = reader.readLine();
             }
@@ -625,8 +559,8 @@ public class ServerController {
       return ex;
     }
 
-    public List<String> getErrors() {
-      return errors;
+    public List<String> getMessages() {
+      return messages;
     }
 
     /**

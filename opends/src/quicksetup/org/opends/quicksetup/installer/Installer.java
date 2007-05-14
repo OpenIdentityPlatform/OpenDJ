@@ -49,6 +49,7 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.util.InProcessServerController;
 import org.opends.quicksetup.*;
 import org.opends.server.util.CertificateManager;
 import org.opends.quicksetup.installer.ui.DataOptionsPanel;
@@ -1204,7 +1205,7 @@ public abstract class Installer extends GuiApplication {
       }
       if (startedServer)
       {
-        getServerController().stopServerInProcess();
+        new InProcessServerController(getInstallation()).stopServer();
       }
     }
   }
@@ -1966,7 +1967,7 @@ public abstract class Installer extends GuiApplication {
    * panel and update the UserInstallData object according to that content.
    *
    * @throws
-   *           UserInstallDataException if the data provided by the user is not
+   *           UserDataException if the data provided by the user is not
    *           valid.
    *
    */
@@ -2038,7 +2039,7 @@ public abstract class Installer extends GuiApplication {
    * panel and update the UserInstallData object according to that content.
    *
    * @throws
-   *           UserInstallDataException if the data provided by the user is not
+   *           UserDataException if the data provided by the user is not
    *           valid.
    *
    */
@@ -2099,7 +2100,7 @@ public abstract class Installer extends GuiApplication {
    * Validate the data provided by the user in the new suffix data options panel
    * and update the UserInstallData object according to that content.
    *
-   * @throws UserInstallDataException if the data provided by the user is not
+   * @throws UserDataException if the data provided by the user is not
    *           valid.
    *
    */
