@@ -805,6 +805,16 @@ public class EntryContainer
     }
     else
     {
+      // See if we could use a virtual attribute rule to process the search.
+      for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
+      {
+        if (rule.getProvider().isSearchable(rule, searchOperation))
+        {
+          rule.getProvider().processSearch(rule, searchOperation);
+          return;
+        }
+      }
+
       ClientConnection clientConnection =
           searchOperation.getClientConnection();
       if(! clientConnection.hasPrivilege(Privilege.UNINDEXED_SEARCH,
