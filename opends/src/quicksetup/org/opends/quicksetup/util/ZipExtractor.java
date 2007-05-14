@@ -73,6 +73,19 @@ public class ZipExtractor {
 
   /**
    * Creates an instance of an ZipExtractor.
+   * @param in InputStream for zip content
+   * @param zipFileName name of the input zip file
+   * @throws FileNotFoundException if the specified file does not exist
+   * @throws IllegalArgumentException if the zip file is not a zip file
+   */
+  public ZipExtractor(InputStream in, String zipFileName)
+    throws FileNotFoundException, IllegalArgumentException
+  {
+    this(in, 0, 0, 1, zipFileName, null);
+  }
+
+  /**
+   * Creates an instance of an ZipExtractor.
    * @param zipFile File the zip file to extract
    * @param minRatio int indicating the max ration
    * @param maxRatio int indicating the min ration
