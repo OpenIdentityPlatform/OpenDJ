@@ -52,19 +52,16 @@
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
+        <adm:value name="all">
+          <adm:synopsis>
+            Messages of all severity levels will be logged.
+          </adm:synopsis>
+        </adm:value>
         <adm:value name="fatal-error">
           <adm:synopsis>
             The error log severity that will be used for messages that
             provide information about fatal errors which may force the server
             to shut down or operate in a significantly degraded state.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="generic-debug">
-          <adm:synopsis>
-            The error log severity that will be used for debug messages
-            generated during general processing that may be useful enough to
-            warrant making them available without restarting the server in
-            debug mode.
           </adm:synopsis>
         </adm:value>
         <adm:value name="informational">
@@ -110,18 +107,6 @@
             processing.
           </adm:synopsis>
         </adm:value>
-        <adm:value name="shutdown-debug">
-          <adm:synopsis>
-            The error log severity that will be used for debug messages
-            generated during server shutdown.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="startup-debug">
-          <adm:synopsis>
-            The error log severity that will be used for debug messages
-            generated during server startup.
-          </adm:synopsis>
-        </adm:value>
       </adm:enumeration>
     </adm:syntax>
     <adm:profile name="ldap">
@@ -133,12 +118,15 @@
   </adm:property>
   <adm:property name="override-severity" multi-valued="true">
     <adm:synopsis>
-      Property to specify the override severity levels for the logger.
+      Property to specify the override severity levels for the logger
+      based on the category of the messages. Each override severity
+      level should include the category and the severity levels to log
+      for that category. (ie. core-server=mild_error,info,mild_warning).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          Messages will use the default severity levels.
+          All messages with the default severity levels will be logged.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>

@@ -137,11 +137,11 @@ public class LoggerMessages
     registerMessage(MSGID_LOGGER_ERROR_FLUSHING_BUFFER,
                     "Unable to flush writer buffer for logger %s: %s");
     registerMessage(MSGID_ERROR_LOGGER_INVALID_SEVERITY,
-                    "Invalid error log severity %s");
+                    "Invalid error log severity \"%s\"");
     registerMessage(MSGID_ERROR_LOGGER_INVALID_CATEGORY,
-                    "Invalid error log category %s");
+                    "Invalid error log category \"%s\"");
     registerMessage(MSGID_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY,
-                    "Invalid override of severity level %s");
+                    "Invalid override of severity level \"%s\"");
     registerMessage(MSGID_LOGGER_SET_PERMISSION_FAILED,
                     "Unable to set file permissions for the log file %s");
 

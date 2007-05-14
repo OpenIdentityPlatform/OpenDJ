@@ -44,6 +44,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import org.opends.server.util.TimeThread;
+import static org.opends.server.util.ServerConstants.*;
 
 
 /**
@@ -184,11 +185,24 @@ public class TextErrorLogPublisher
     {
       for(ErrorLogPublisherCfgDefn.DefaultSeverity defSev : defSevs)
       {
-        ErrorLogSeverity errorSeverity =
-            ErrorLogSeverity.getByName(defSev.name());
-        if(errorSeverity != null)
+        if(defSev.name().equalsIgnoreCase(LOG_SEVERITY_ALL))
         {
-          defaultSeverities.add(errorSeverity);
+          defaultSeverities.add(ErrorLogSeverity.FATAL_ERROR);
+          defaultSeverities.add(ErrorLogSeverity.INFORMATIONAL);
+          defaultSeverities.add(ErrorLogSeverity.MILD_ERROR);
+          defaultSeverities.add(ErrorLogSeverity.MILD_WARNING);
+          defaultSeverities.add(ErrorLogSeverity.NOTICE);
+          defaultSeverities.add(ErrorLogSeverity.SEVERE_ERROR);
+          defaultSeverities.add(ErrorLogSeverity.SEVERE_WARNING);
+        }
+        else
+        {
+          ErrorLogSeverity errorSeverity =
+              ErrorLogSeverity.getByName(defSev.name());
+          if(errorSeverity != null)
+          {
+            defaultSeverities.add(errorSeverity);
+          }
         }
       }
     }
@@ -222,16 +236,29 @@ public class TextErrorLogPublisher
             while (sevTokenizer.hasMoreElements())
             {
               String severityName = sevTokenizer.nextToken();
-              ErrorLogSeverity severity =
-                  ErrorLogSeverity.getByName(severityName);
-              if (severity == null)
+              if(severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
               {
-                int msgID = MSGID_ERROR_LOGGER_INVALID_SEVERITY;
-                String msg = getMessage(msgID, categoryName);
-                throw new ConfigException(msgID, msg);
-              } else
+                severities.add(ErrorLogSeverity.FATAL_ERROR);
+                severities.add(ErrorLogSeverity.INFORMATIONAL);
+                severities.add(ErrorLogSeverity.MILD_ERROR);
+                severities.add(ErrorLogSeverity.MILD_WARNING);
+                severities.add(ErrorLogSeverity.NOTICE);
+                severities.add(ErrorLogSeverity.SEVERE_ERROR);
+                severities.add(ErrorLogSeverity.SEVERE_WARNING);
+              }
+              else
               {
-                severities.add(severity);
+                ErrorLogSeverity severity =
+                    ErrorLogSeverity.getByName(severityName);
+                if (severity == null)
+                {
+                  int msgID = MSGID_ERROR_LOGGER_INVALID_SEVERITY;
+                  String msg = getMessage(msgID, severityName);
+                  throw new ConfigException(msgID, msg);
+                } else
+                {
+                  severities.add(severity);
+                }
               }
             }
             definedSeverities.put(category, severities);
@@ -337,7 +364,7 @@ public class TextErrorLogPublisher
               if (severity == null)
               {
                 int msgID = MSGID_ERROR_LOGGER_INVALID_SEVERITY;
-                String msg = getMessage(msgID, categoryName);
+                String msg = getMessage(msgID, severityName);
                 unacceptableReasons.add(msg);
                 return false;
               }
@@ -360,23 +387,36 @@ public class TextErrorLogPublisher
     boolean adminActionRequired = false;
     ArrayList<String> messages = new ArrayList<String>();
 
-    Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSev =
+    Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSevs =
         config.getDefaultSeverity();
     defaultSeverities.clear();
-    if(defSev.isEmpty())
+    if(defSevs.isEmpty())
     {
       defaultSeverities.add(ErrorLogSeverity.FATAL_ERROR);
       defaultSeverities.add(ErrorLogSeverity.SEVERE_ERROR);
       defaultSeverities.add(ErrorLogSeverity.SEVERE_WARNING);
     } else
     {
-      for(ErrorLogPublisherCfgDefn.DefaultSeverity defStr : defSev)
+      for(ErrorLogPublisherCfgDefn.DefaultSeverity defSev : defSevs)
       {
-        ErrorLogSeverity errorSeverity =
-            ErrorLogSeverity.getByName(defStr.toString());
-        if(errorSeverity != null)
+        if(defSev.name().equalsIgnoreCase(LOG_SEVERITY_ALL))
         {
-          defaultSeverities.add(errorSeverity);
+          defaultSeverities.add(ErrorLogSeverity.FATAL_ERROR);
+          defaultSeverities.add(ErrorLogSeverity.INFORMATIONAL);
+          defaultSeverities.add(ErrorLogSeverity.MILD_ERROR);
+          defaultSeverities.add(ErrorLogSeverity.MILD_WARNING);
+          defaultSeverities.add(ErrorLogSeverity.NOTICE);
+          defaultSeverities.add(ErrorLogSeverity.SEVERE_ERROR);
+          defaultSeverities.add(ErrorLogSeverity.SEVERE_WARNING);
+        }
+        else
+        {
+          ErrorLogSeverity errorSeverity =
+              ErrorLogSeverity.getByName(defSev.name());
+          if(errorSeverity != null)
+          {
+            defaultSeverities.add(errorSeverity);
+          }
         }
       }
     }
@@ -412,17 +452,30 @@ public class TextErrorLogPublisher
             while (sevTokenizer.hasMoreElements())
             {
               String severityName = sevTokenizer.nextToken();
-              ErrorLogSeverity severity =
-                  ErrorLogSeverity.getByName(severityName);
-              if (severity == null)
+              if(severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
               {
-                int msgID = MSGID_ERROR_LOGGER_INVALID_SEVERITY;
-                String msg = getMessage(msgID, categoryName);
-                resultCode = DirectoryServer.getServerErrorResultCode();
-                messages.add(msg);
-              } else
+                severities.add(ErrorLogSeverity.FATAL_ERROR);
+                severities.add(ErrorLogSeverity.INFORMATIONAL);
+                severities.add(ErrorLogSeverity.MILD_ERROR);
+                severities.add(ErrorLogSeverity.MILD_WARNING);
+                severities.add(ErrorLogSeverity.NOTICE);
+                severities.add(ErrorLogSeverity.SEVERE_ERROR);
+                severities.add(ErrorLogSeverity.SEVERE_WARNING);
+              }
+              else
               {
-                severities.add(severity);
+                ErrorLogSeverity severity =
+                    ErrorLogSeverity.getByName(severityName);
+                if (severity == null)
+                {
+                  int msgID = MSGID_ERROR_LOGGER_INVALID_SEVERITY;
+                  String msg = getMessage(msgID, severityName);
+                  resultCode = DirectoryServer.getServerErrorResultCode();
+                  messages.add(msg);
+                } else
+                {
+                  severities.add(severity);
+                }
               }
             }
             definedSeverities.put(category, severities);
