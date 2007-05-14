@@ -34,7 +34,7 @@
   <dirname file="${basedir}/.." property="project.home"/>
   
   <!-- installer wide settings - top -->
-    <property file="${project.home}//PRODUCT"/>
+    <property file="${project.home}/PRODUCT"/>
     <property name="product.name"
               value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}" />
     <!-- load user properties first if they have been set -->
@@ -282,13 +282,13 @@
   <target name="gui"
           depends="status-do"
           description="brings up the stax gui" >
-    <!--
-    <echo>${java.home}/bin/java -classpath ${staf.install.dir}/services/stax/STAXMon.jar${path.separator}${staf.lib.dir}/JSTAF.jar</echo>
-    -->
+    <condition property="gui.spawn" value="false" else="true">
+      <isset property="DEBUG"/>
+    </condition>
     <exec
       dir="${staf.install.dir}"
       executable="${java.home}/bin/java"
-      spawn="true">
+      spawn="${gui.spawn}">
       <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
       <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
       <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
