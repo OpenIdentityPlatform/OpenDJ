@@ -36,16 +36,34 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextAccessLogPublisher;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.types.DN;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.ByteString;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.AccessLogPublisher;
+import org.opends.server.util.LDIFException;
+import org.opends.server.util.LDIFReader;
+import org.opends.server.util.ModifyChangeRecordEntry;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.DirectoryServer;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.List;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Class used to manipulate an OpenDS server in the same JVM process as
  * the client class.
+ *
+ * NOTE:  this class imports classes from the server packages.  You should
+ * refer to the class using a fully qualified package name and insure that
+ * that this class does not appear in any import statements.
  */
 public class InProcessServerController {
 
@@ -187,6 +205,97 @@ public class InProcessServerController {
 
     return output;
   }
+
+  /**
+   * Applies configuration or schema customizations.
+   * NOTE: Assumes that the server is running in process.
+   *
+   * @param ldifFile LDIF file to apply
+   * @throws IOException if there is an IO Error
+   * @throws LDIFException if there is an LDIF error
+   * @throws ApplicationException if there is an application specific error
+   */
+  public void applyCustomizationLdifFile(File ldifFile)
+          throws IOException, LDIFException,
+          ApplicationException {
+    try {
+      InternalClientConnection cc =
+              InternalClientConnection.getRootConnection();
+      LDIFImportConfig importCfg =
+              new LDIFImportConfig(
+                      Utils.getPath(ldifFile));
+      LDIFReader ldifReader =
+              new LDIFReader(importCfg);
+      org.opends.server.util.ChangeRecordEntry cre;
+      while (null != (cre = ldifReader.readChangeRecord(false))) {
+        if (cre instanceof org.opends.server.util.ModifyChangeRecordEntry) {
+          ModifyChangeRecordEntry mcre =
+                  (ModifyChangeRecordEntry) cre;
+          ByteString dnByteString =
+                  ByteStringFactory.create(
+                          mcre.getDN().toString());
+          ModifyOperation op =
+                  cc.processModify(dnByteString, mcre.getModifications());
+          ResultCode rc = op.getResultCode();
+          if (rc.equals(
+                  ResultCode.
+                          OBJECTCLASS_VIOLATION)) {
+            // try again without schema checking
+            DirectoryServer.setCheckSchema(false);
+            op = cc.processModify(dnByteString, mcre.getModifications());
+            rc = op.getResultCode();
+          }
+          if (rc.equals(ResultCode.
+                  SUCCESS)) {
+            LOG.log(Level.INFO, "processed server modification " +
+                    (DirectoryServer.checkSchema() ?
+                            ":" : "(schema checking off):" +
+                            modListToString(op.getModifications())));
+            if (!DirectoryServer.checkSchema()) {
+              DirectoryServer.setCheckSchema(true);
+            }
+          } else if (rc.equals(
+                  ResultCode.
+                          ATTRIBUTE_OR_VALUE_EXISTS)) {
+            // ignore this error
+            LOG.log(Level.INFO, "ignoring attribute that already exists: " +
+                    modListToString(op.getModifications()));
+          } else {
+            // report the error to the user
+            StringBuilder error = op.getErrorMessage();
+            if (error != null) {
+              throw new ApplicationException(
+                      ApplicationException.Type.IMPORT_ERROR,
+                      "error processing custom configuration "
+                              + error.toString(),
+                      null);
+            }
+          }
+        } else {
+          throw new ApplicationException(
+                  ApplicationException.Type.IMPORT_ERROR,
+                  "unexpected change record type " + cre.getClass(),
+                  null);
+        }
+      }
+    } catch (Throwable t) {
+      throw new ApplicationException(ApplicationException.Type.BUG,
+              t.getMessage(), t);
+    }
+  }
+
+  private String modListToString(
+          List<Modification> modifications) {
+    StringBuilder modsMsg = new StringBuilder();
+    for (int i = 0; i < modifications.size(); i++) {
+      modsMsg.append(modifications.get(i).toString());
+      if (i < modifications.size() - 1) {
+        modsMsg.append(" ");
+      }
+    }
+    return modsMsg.toString();
+  }
+
 
   /**
    * Pushes messages published by the server loggers into OperationOutput.
