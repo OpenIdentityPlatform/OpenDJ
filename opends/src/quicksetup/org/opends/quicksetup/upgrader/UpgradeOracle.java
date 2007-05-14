@@ -77,7 +77,7 @@ public class UpgradeOracle {
    * an operation will succeed
    */
   public boolean isSupported() {
-    return isUpgrade();
+    return !isReversion();
   }
 
   /**
