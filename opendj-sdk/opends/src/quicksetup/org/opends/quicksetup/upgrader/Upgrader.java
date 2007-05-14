@@ -27,28 +27,54 @@
 
 package org.opends.quicksetup.upgrader;
 
-import org.opends.quicksetup.*;
-import org.opends.quicksetup.upgrader.ui.WelcomePanel;
+import org.opends.quicksetup.CliApplication;
+import static org.opends.quicksetup.Installation.*;
+import org.opends.quicksetup.WizardStep;
+import org.opends.quicksetup.ProgressStep;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.UserDataException;
+import org.opends.quicksetup.Step;
+import org.opends.quicksetup.BuildInformation;
+import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.util.ZipExtractor;
+import org.opends.quicksetup.util.ServerController;
+import org.opends.quicksetup.util.InProcessServerController;
+import org.opends.quicksetup.util.ServerHealthChecker;
+import org.opends.quicksetup.util.FileManager;
+import org.opends.quicksetup.ui.GuiApplication;
+import org.opends.quicksetup.ui.QuickSetupDialog;
+import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.ui.ProgressPanel;
+import org.opends.quicksetup.ui.QuickSetupStepPanel;
+import org.opends.quicksetup.ui.QuickSetup;
+import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.upgrader.ui.ChooseVersionPanel;
 import org.opends.quicksetup.upgrader.ui.UpgraderReviewPanel;
-import org.opends.quicksetup.util.*;
-import org.opends.quicksetup.ui.*;
+import org.opends.quicksetup.upgrader.ui.WelcomePanel;
 
+import javax.swing.*;
 import java.awt.event.WindowEvent;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.io.*;
-import java.net.URL;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.SocketAddress;
-import java.net.InetSocketAddress;
-
-import static org.opends.quicksetup.Installation.*;
-
-
-import javax.swing.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * QuickSetup application of ugrading the bits of an installation of
@@ -946,7 +972,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
         try {
           LOG.log(Level.INFO, "stopping server");
-          new InProcessServerController(getInstallation()).stopServer();
+          // This class imports classes from the server
+          new InProcessServerController(
+                  getInstallation()).stopServer();
           LOG.log(Level.INFO, "server stopped");
         } catch (Throwable t) {
           LOG.log(Level.INFO, "Error stopping server", t);
@@ -1236,16 +1264,18 @@ public class Upgrader extends GuiApplication implements CliApplication {
     try {
       File configDiff = getCustomConfigDiffFile();
       if (configDiff.exists()) {
-        applyCustomizationLdifFile(configDiff);
+        new InProcessServerController(
+                getInstallation()).applyCustomizationLdifFile(configDiff);
+
       }
     } catch (IOException e) {
-      String msg = "IO Error applying configuration customization: " +
+      String msg = "I/O Error applying configuration customization: " +
               e.getLocalizedMessage();
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
               msg, e);
-    } catch (org.opends.server.util.LDIFException e) {
-      String msg = "LDIF error applying configuration customization: " +
+    } catch (Exception e) {
+      String msg = "Error applying configuration customization: " +
               e.getLocalizedMessage();
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
@@ -1257,114 +1287,22 @@ public class Upgrader extends GuiApplication implements CliApplication {
     try {
       File schemaDiff = getCustomSchemaDiffFile();
       if (schemaDiff.exists()) {
-        applyCustomizationLdifFile(schemaDiff);
+        new InProcessServerController(
+                getInstallation()).applyCustomizationLdifFile(schemaDiff);
       }
     } catch (IOException e) {
-      String msg = "IO Error applying schema customization: " +
+      String msg = "I/O Error applying schema customization: " +
               e.getLocalizedMessage();
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
               msg, e);
-    } catch (org.opends.server.util.LDIFException e) {
-      String msg = "LDIF error applying schema customization: " +
+    } catch (Exception e) {
+      String msg = "Error applying schema customization: " +
               e.getLocalizedMessage();
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
               msg, e);
     }
-  }
-
-
-  /**
-   * Applies configuration or schema customizations.
-   * NOTE: Assumes that the server is running in process.
-   *
-   * @param ldifFile LDIF file to apply
-   * @throws IOException
-   * @throws org.opends.server.util.LDIFException
-   *
-   * @throws ApplicationException
-   */
-  private void applyCustomizationLdifFile(File ldifFile)
-          throws IOException, org.opends.server.util.LDIFException,
-          ApplicationException {
-    try {
-      org.opends.server.protocols.internal.InternalClientConnection cc =
-              org.opends.server.protocols.internal.
-                      InternalClientConnection.getRootConnection();
-      org.opends.server.types.LDIFImportConfig importCfg =
-              new org.opends.server.types.LDIFImportConfig(
-                      Utils.getPath(ldifFile));
-      org.opends.server.util.LDIFReader ldifReader =
-              new org.opends.server.util.LDIFReader(importCfg);
-      org.opends.server.util.ChangeRecordEntry cre;
-      while (null != (cre = ldifReader.readChangeRecord(false))) {
-        if (cre instanceof org.opends.server.util.ModifyChangeRecordEntry) {
-          org.opends.server.util.ModifyChangeRecordEntry mcre =
-                  (org.opends.server.util.ModifyChangeRecordEntry) cre;
-          org.opends.server.types.ByteString dnByteString =
-                  org.opends.server.types.ByteStringFactory.create(
-                          mcre.getDN().toString());
-          org.opends.server.core.ModifyOperation op =
-                  cc.processModify(dnByteString, mcre.getModifications());
-          org.opends.server.types.ResultCode rc = op.getResultCode();
-          if (rc.equals(
-                  org.opends.server.types.ResultCode.
-                          OBJECTCLASS_VIOLATION)) {
-            // try again without schema checking
-            org.opends.server.core.DirectoryServer.setCheckSchema(false);
-            op = cc.processModify(dnByteString, mcre.getModifications());
-            rc = op.getResultCode();
-          }
-          if (rc.equals(org.opends.server.types.ResultCode.
-                  SUCCESS)) {
-            LOG.log(Level.INFO, "processed server modification " +
-                    (org.opends.server.core.DirectoryServer.checkSchema() ?
-                            ":" : "(schema checking off):" +
-                            modListToString(op.getModifications())));
-            if (!org.opends.server.core.DirectoryServer.checkSchema()) {
-              org.opends.server.core.DirectoryServer.setCheckSchema(true);
-            }
-          } else if (rc.equals(
-                  org.opends.server.types.ResultCode.
-                          ATTRIBUTE_OR_VALUE_EXISTS)) {
-            // ignore this error
-            LOG.log(Level.INFO, "ignoring attribute that already exists: " +
-                    modListToString(op.getModifications()));
-          } else {
-            // report the error to the user
-            StringBuilder error = op.getErrorMessage();
-            if (error != null) {
-              throw new ApplicationException(
-                      ApplicationException.Type.IMPORT_ERROR,
-                      "error processing custom configuration "
-                              + error.toString(),
-                      null);
-            }
-          }
-        } else {
-          throw new ApplicationException(
-                  ApplicationException.Type.IMPORT_ERROR,
-                  "unexpected change record type " + cre.getClass(),
-                  null);
-        }
-      }
-    } catch (Throwable t) {
-      throw new ApplicationException(ApplicationException.Type.BUG,
-              t.getMessage(), t);
-    }
-  }
-
-  private String modListToString(
-          List<org.opends.server.types.Modification> modifications) {
-    StringBuilder modsMsg = new StringBuilder();
-    for (int i = 0; i < modifications.size(); i++) {
-      modsMsg.append(modifications.get(i).toString());
-      if (i < modifications.size() - 1) {
-        modsMsg.append(" ");
-      }
-    }
-    return modsMsg.toString();
   }
 
   private Long writeInitialHistoricalRecord(
