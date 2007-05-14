@@ -482,7 +482,6 @@ public class RebuildJob
 
         for(IndexRebuildThread thread : completedThreads)
         {
-          System.out.println(debugEnabled());
           totalProcessed += thread.getProcessedEntries();
           totalRebuilt += thread.getRebuiltEntries();
           totalDuplicated += thread.getDuplicatedEntries();

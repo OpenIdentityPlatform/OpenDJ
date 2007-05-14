@@ -1197,14 +1197,14 @@
     <echo message="      builds the server without the debug logging facility." />
     <echo message="      No debug logging messages will be included on test failures." />
     <echo message=""/>
-    <echo message="  -Dorg.opends.test.debug.target=org.opends.server.core:level=verbose,category=data_access"/>
+    <echo message="  -Dorg.opends.test.debug.target=org.opends.server.core:level=verbose,category=data"/>
     <echo message="      for example only include debug messages in the core"/>
     <echo message="      package that are related to data access and at the" />
     <echo message="      verbose level or higher. The syntax of this target" />
     <echo message="      definition is the same as the org.opends.server.debug.target.x" />
     <echo message="      property when starting OpenDS. " />
     <echo message="      Default debug target:"/>
-    <echo message="      org.opends.server:level=warning,category=caught|data|database_access|message|protocol" />
+    <echo message="      org.opends.server:level=warning,category=caught|data|database-access|message|protocol" />
     <echo message=""/>
     <echo message="  -Dtest.packages=org.opends.server.api"/>
     <echo message="      for example runs only the tests in the api package"/>
@@ -1272,7 +1272,7 @@
     <!-- This sets org.opends.test.debug.target if and only if its's not
          alreadly set. -->
     <condition property="org.opends.test.debug.target"
-               value="org.opends.server:level=warning,category=caught|data|database_access|message|protocol">
+               value="org.opends.server:level=warning,category=caught|data|database-access|message|protocol">
       <not>
         <isset property="org.opends.test.debug.target" />
       </not>

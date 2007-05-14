@@ -83,14 +83,6 @@ public enum ErrorLogCategory
 
 
   /**
-   * The error log category that will be used for messages providing
-   * exception information.
-   */
-  EXCEPTION(MSGID_ERROR_CATEGORY_EXCEPTION),
-
-
-
-  /**
    * The error log category that will be used for messages related to
    * extended operation processing.
    */
@@ -199,7 +191,6 @@ public enum ErrorLogCategory
     nameMap.put(ERROR_CATEGORY_CONNECTION_HANDLING,
                 CONNECTION_HANDLING);
     nameMap.put(ERROR_CATEGORY_CORE_SERVER, CORE_SERVER);
-    nameMap.put(ERROR_CATEGORY_EXCEPTION, EXCEPTION);
     nameMap.put(ERROR_CATEGORY_EXTENDED_OPERATION,
                 EXTENDED_OPERATION);
     nameMap.put(ERROR_CATEGORY_EXTENSIONS, EXTENSIONS);

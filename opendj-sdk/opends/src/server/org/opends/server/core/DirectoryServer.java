@@ -755,7 +755,7 @@ public class DirectoryServer
     initializeJMX();
 
 
-    logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.STARTUP_DEBUG,
+    logError(ErrorLogCategory.STARTUP, ErrorLogSeverity.INFORMATIONAL,
              MSGID_DIRECTORY_BOOTSTRAPPING, getVersionString());
     logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.INFORMATIONAL,
              MSGID_DIRECTORY_BOOTSTRAPPING, getVersionString());

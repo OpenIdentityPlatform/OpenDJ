@@ -52,16 +52,6 @@ public enum ErrorLogSeverity
 
 
   /**
-   * The error log severity that will be used for debug messages
-   * generated during general processing that may be useful enough to
-   * warrant making them available without restarting the server in
-   * debug mode.
-   */
-  GENERIC_DEBUG(MSGID_ERROR_SEVERITY_GENERIC_DEBUG),
-
-
-
-  /**
    * The error log severity that will be used for messages that
    * provide information about significant events within the server
    * that are not warnings or errors.
@@ -112,23 +102,7 @@ public enum ErrorLogSeverity
    * provide information about severe warnings triggered during
    * processing.
    */
-  SEVERE_WARNING(MSGID_ERROR_SEVERITY_SEVERE_WARNING),
-
-
-
-  /**
-   * The error log severity that will be used for debug messages
-   * generated during server shutdown.
-   */
-  SHUTDOWN_DEBUG(MSGID_ERROR_SEVERITY_SHUTDOWN_DEBUG),
-
-
-
-  /**
-   * The error log severity that will be used for debug messages
-   * generated during server startup.
-   */
-  STARTUP_DEBUG(MSGID_ERROR_SEVERITY_STARTUP_DEBUG);
+  SEVERE_WARNING(MSGID_ERROR_SEVERITY_SEVERE_WARNING);
 
 
 
@@ -147,7 +121,6 @@ public enum ErrorLogSeverity
   static
   {
     nameMap = new HashMap<String,ErrorLogSeverity>(10);
-    nameMap.put(ERROR_SEVERITY_DEBUG, GENERIC_DEBUG);
     nameMap.put(ERROR_SEVERITY_FATAL, FATAL_ERROR);
     nameMap.put(ERROR_SEVERITY_INFORMATIONAL, INFORMATIONAL);
     nameMap.put(ERROR_SEVERITY_MILD_ERROR, MILD_ERROR);
@@ -155,8 +128,6 @@ public enum ErrorLogSeverity
     nameMap.put(ERROR_SEVERITY_NOTICE, NOTICE);
     nameMap.put(ERROR_SEVERITY_SEVERE_ERROR, SEVERE_ERROR);
     nameMap.put(ERROR_SEVERITY_SEVERE_WARNING, SEVERE_WARNING);
-    nameMap.put(ERROR_SEVERITY_SHUTDOWN_DEBUG, SHUTDOWN_DEBUG);
-    nameMap.put(ERROR_SEVERITY_STARTUP_DEBUG, STARTUP_DEBUG);
   }
 
 

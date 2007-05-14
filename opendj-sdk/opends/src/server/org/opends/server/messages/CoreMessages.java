@@ -243,15 +243,6 @@ public class CoreMessages
 
   /**
    * The message ID for the string that will be used for the error log category
-   * for messages related to exceptions that have been caught.
-   */
-  public static final int MSGID_ERROR_CATEGORY_EXCEPTION =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 44;
-
-
-
-  /**
-   * The message ID for the string that will be used for the error log category
    * for messages related to extended operation processing.
    */
   public static final int MSGID_ERROR_CATEGORY_EXTENDED_OPERATION =
@@ -322,14 +313,6 @@ public class CoreMessages
 
   /**
    * The message ID for the string that will be used for the error message
-   * severity for generic debugging messages.
-   */
-  public static final int MSGID_ERROR_SEVERITY_GENERIC_DEBUG =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 55;
-
-
-  /**
-   * The message ID for the string that will be used for the error message
    * severity for informational messages.
    */
   public static final int MSGID_ERROR_SEVERITY_INFORMATIONAL =
@@ -366,24 +349,6 @@ public class CoreMessages
    */
   public static final int MSGID_ERROR_SEVERITY_SEVERE_WARNING =
        CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 60;
-
-
-  /**
-   * The message ID for the string that will be used for the error message
-   * severity for debug messages generated during server shutdown.
-   */
-  public static final int MSGID_ERROR_SEVERITY_SHUTDOWN_DEBUG =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 61;
-
-
-  /**
-   * The message ID for the string that will be used for the error message
-   * severity for debug messages generated during server startup.
-   */
-  public static final int MSGID_ERROR_SEVERITY_STARTUP_DEBUG =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 62;
-
-
 
   /**
    * The message ID for the string representation of the result code that will
@@ -6209,7 +6174,6 @@ public class CoreMessages
                     ERROR_CATEGORY_CONNECTION_HANDLING);
     registerMessage(MSGID_ERROR_CATEGORY_CORE_SERVER,
                     ERROR_CATEGORY_CORE_SERVER);
-    registerMessage(MSGID_ERROR_CATEGORY_EXCEPTION, ERROR_CATEGORY_EXCEPTION);
     registerMessage(MSGID_ERROR_CATEGORY_EXTENDED_OPERATION,
                     ERROR_CATEGORY_EXTENDED_OPERATION);
     registerMessage(MSGID_ERROR_CATEGORY_EXTENSIONS, ERROR_CATEGORY_EXTENSIONS);
@@ -6229,7 +6193,6 @@ public class CoreMessages
 
 
     registerMessage(MSGID_ERROR_SEVERITY_FATAL_ERROR, ERROR_SEVERITY_FATAL);
-    registerMessage(MSGID_ERROR_SEVERITY_GENERIC_DEBUG, ERROR_SEVERITY_DEBUG);
     registerMessage(MSGID_ERROR_SEVERITY_INFORMATIONAL,
                     ERROR_SEVERITY_INFORMATIONAL);
     registerMessage(MSGID_ERROR_SEVERITY_MILD_ERROR,
@@ -6241,10 +6204,6 @@ public class CoreMessages
                     ERROR_SEVERITY_SEVERE_ERROR);
     registerMessage(MSGID_ERROR_SEVERITY_SEVERE_WARNING,
                     ERROR_SEVERITY_SEVERE_WARNING);
-    registerMessage(MSGID_ERROR_SEVERITY_SHUTDOWN_DEBUG,
-                    ERROR_SEVERITY_SHUTDOWN_DEBUG);
-    registerMessage(MSGID_ERROR_SEVERITY_STARTUP_DEBUG,
-                    ERROR_SEVERITY_STARTUP_DEBUG);
 
 
     registerMessage(MSGID_RESULT_SUCCESS, "Success");
