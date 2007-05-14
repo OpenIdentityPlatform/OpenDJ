@@ -490,6 +490,7 @@ public abstract class GuiApplication extends Application {
       ServerController control = new ServerController(this);
       if (getInstallation().getStatus().isServerRunning()) {
         control.stopServer();
+        notifyListeners(formatter.getLineBreak());
       }
       new InProcessServerController(getInstallation()).startServer(true);
     } catch (IOException e) {
