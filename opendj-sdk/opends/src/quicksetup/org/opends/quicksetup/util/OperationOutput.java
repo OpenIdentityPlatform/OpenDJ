@@ -28,6 +28,8 @@
 package org.opends.quicksetup.util;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Contains information about an operation invoked by this class.
@@ -36,15 +38,52 @@ public class OperationOutput {
 
   private Exception exception = null;
 
-  private List<String> errors = null;
+  private List<String> errorMessages = new ArrayList<String>();
+  private List<String> debugMessages = new ArrayList<String>();
+  private List<String> accessMessages = new ArrayList<String>();
 
   /**
-   * Gets a list of string representing error messages obtained
-   * by invoking the operation.  Null if there were no errors.
-   * @return List of Strings representing errors
+   * Gets a list of strings representing error messages obtained
+   * by invoking the operation that match <code>regex</code>.
+   * @param regex String used to find particular error messages
+   * @return List of Strings representing errorMessages that contain
+   * the provided <code>regex</code> string.
    */
-  public List<String> getErrors() {
-    return errors;
+  public List<String> getErrorMessages(String regex) {
+    List<String> errorMessagesSubset = new ArrayList<String>();
+    for (String msg : errorMessages) {
+      if (msg.matches(regex)) {
+        errorMessagesSubset.add(msg);
+      }
+    }
+    return Collections.unmodifiableList(errorMessagesSubset);
+  }
+
+  /**
+   * Gets a list of strings representing error messages obtained
+   * by invoking the operation.
+   * @return List of Strings representing errorMessages
+   */
+  public List<String> getErrorMessages() {
+    return Collections.unmodifiableList(errorMessages);
+  }
+
+  /**
+   * Gets a list of strings representing error messages obtained
+   * by invoking the operation.
+   * @return List of Strings representing errorMessages
+   */
+  public List<String> getDebugMessages() {
+    return Collections.unmodifiableList(debugMessages);
+  }
+
+  /**
+   * Gets a list of strings representing error messages obtained
+   * by invoking the operation.
+   * @return List of Strings representing errorMessages
+   */
+  public List<String> getAccessMessages() {
+    return Collections.unmodifiableList(accessMessages);
   }
 
   /**
@@ -66,11 +105,44 @@ public class OperationOutput {
   }
 
   /**
-   * Sets the list of error messages that occurred during execution.
-   * Can be null to indicate no errors were encountered.
-   * @param errors List of Strings representing error messages
+   * Adds an error message.
+   * @param errorMessage an error message
    */
-  void setErrors(List<String> errors) {
-    this.errors = errors;
+  void addErrorMessage(String errorMessage) {
+    this.errorMessages.add(errorMessage);
   }
+
+  /**
+   * Adds an access message.
+   * @param accessMessage an error message
+   */
+  void addAccessMessage(String accessMessage) {
+    this.accessMessages.add(accessMessage);
+  }
+
+  /**
+   * Adds an error message.
+   * @param debugMessage an error message
+   */
+  void addDebugMessage(String debugMessage) {
+    this.debugMessages.add(debugMessage);
+  }
+
+
+  /**
+   * Sets the list of error messages that occurred during execution.
+   * @param accessMessages List of Strings representing error messages
+   */
+  void setAccessMessages(List<String> accessMessages) {
+    this.accessMessages = accessMessages;
+  }
+
+  /**
+   * Sets the list of error messages that occurred during execution.
+   * @param debugMessages List of Strings representing error messages
+   */
+  void setDebugMessages(List<String> debugMessages) {
+    this.debugMessages = debugMessages;
+  }
+
 }

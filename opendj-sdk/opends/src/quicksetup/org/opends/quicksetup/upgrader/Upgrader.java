@@ -31,11 +31,7 @@ import org.opends.quicksetup.*;
 import org.opends.quicksetup.upgrader.ui.WelcomePanel;
 import org.opends.quicksetup.upgrader.ui.ChooseVersionPanel;
 import org.opends.quicksetup.upgrader.ui.UpgraderReviewPanel;
-import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.util.FileManager;
-import org.opends.quicksetup.util.ServerController;
-import org.opends.quicksetup.util.ZipExtractor;
-import org.opends.quicksetup.util.OperationOutput;
+import org.opends.quicksetup.util.*;
 import org.opends.quicksetup.ui.*;
 
 import java.awt.event.WindowEvent;
@@ -50,6 +46,7 @@ import java.net.SocketAddress;
 import java.net.InetSocketAddress;
 
 import static org.opends.quicksetup.Installation.*;
+
 
 import javax.swing.*;
 
@@ -208,7 +205,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   static private final String SYS_PROP_NO_ABORT =
           "org.opends.upgrader.Upgrader.NoAbort";
-
 
   // Root files that will be ignored during backup
   static private final String[] ROOT_FILES_TO_IGNORE_DURING_BACKUP = {
@@ -950,7 +946,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
         try {
           LOG.log(Level.INFO, "stopping server");
-          getServerController().stopServerInProcess();
+          new InProcessServerController(getInstallation()).stopServer();
           LOG.log(Level.INFO, "server stopped");
         } catch (Throwable t) {
           LOG.log(Level.INFO, "Error stopping server", t);
@@ -1134,27 +1130,27 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   private void checkServerHealth() throws ApplicationException {
     Installation installation = getInstallation();
-    ServerController control = new ServerController(installation);
+    ServerHealthChecker healthChecker = new ServerHealthChecker(installation);
     try {
-      if (installation.getStatus().isServerRunning()) {
-        control.stopServer();
-      }
-      OperationOutput op = control.startServer();
-      List<String> errors = op.getErrors();
-      if (errors != null) {
+      healthChecker.checkServer();
+      List<String> problems = healthChecker.getProblemMessages();
+      if (problems != null && problems.size() > 0) {
         throw new ApplicationException(
                 ApplicationException.Type.APPLICATION,
-                "The server currently starts with errors which must" +
-                        "be resolved before an upgrade can occur: " +
-                        Utils.listToString(errors, " "),
+                "The server currently starts with errors which must " +
+                        "be resolved before an upgrade can occur: \n\n" +
+                        Utils.listToString(problems, "\n\n"),
                 null);
       }
-      control.stopServer();
     } catch (Exception e) {
-      throw new ApplicationException(ApplicationException.Type.APPLICATION,
-              "Server health check failed.  Please resolve the following " +
-                      "before running the upgrade " +
-                      "tool: " + e.getLocalizedMessage(), e);
+      if (e instanceof ApplicationException) {
+        throw (ApplicationException)e;
+      } else {
+        throw new ApplicationException(ApplicationException.Type.APPLICATION,
+                "Server health check failed.  Please resolve the following " +
+                        "before running the upgrade " +
+                        "tool: " + e.getLocalizedMessage(), e);
+      }
     }
   }
 
@@ -1224,13 +1220,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   private void verifyUpgrade() throws ApplicationException {
-    ServerController sc = new ServerController(getInstallation());
-    OperationOutput op = sc.startServer();
-    if (op.getErrors() != null) {
+    Installation installation = getInstallation();
+    ServerHealthChecker healthChecker = new ServerHealthChecker(installation);
+    healthChecker.checkServer();
+    List<String> errors = healthChecker.getProblemMessages();
+    if (errors != null && errors.size() > 0) {
       throw new ApplicationException(ApplicationException.Type.APPLICATION,
               "Upgraded server failed verification test by signaling " +
                       "errors during startup: " +
-                      Utils.listToString(op.getErrors(), " "), null);
+                      Utils.listToString(errors, " "), null);
     }
   }
 
