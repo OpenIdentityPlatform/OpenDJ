@@ -829,7 +829,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     cleanRealEntries();
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short) 27, 100, 8989, 1000, true);
+      openReplicationSession(baseDn, (short) 27, 100, replServerPort, 1000, true);
     try {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 27, 0);
 
@@ -1100,7 +1100,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     Thread.sleep(2000);
     ReplicationBroker broker =
-      openReplicationSession(baseDn, (short) 11, 100, 8989, 1000, true);
+      openReplicationSession(baseDn, (short) 11, 100, replServerPort, 1000, true);
     try
     {
       ChangeNumberGenerator gen = new ChangeNumberGenerator((short) 11, 0);

@@ -70,6 +70,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.util.TimeThread;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
@@ -362,13 +363,23 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected long getReplayedUpdatesCount(DN syncDN) throws Exception
   {
     String monitorFilter =
-         "(&(cn=synchronization*)(base-dn=" + syncDN + "))";
+         "(&(cn=replication*)(base-dn=" + syncDN + "))";
 
     InternalSearchOperation op;
-    op = connection.processSearch(
-         ByteStringFactory.create("cn=monitor"),
-         SearchScope.SINGLE_LEVEL,
-         LDAPFilter.decode(monitorFilter));
+    int count = 0;
+    do
+    {
+      if (count++>0)
+        TimeThread.sleep(100);
+      op = connection.processSearch(
+                                    ByteStringFactory.create("cn=monitor"),
+                                    SearchScope.SINGLE_LEVEL,
+                                    LDAPFilter.decode(monitorFilter));
+    }
+    while (op.getSearchEntries().isEmpty() && (count<100));
+    if (op.getSearchEntries().isEmpty())
+      throw new Exception("Could not read monitoring information");
+    
     SearchResultEntry entry = op.getSearchEntries().getFirst();
 
     AttributeType attrType =
@@ -414,11 +425,14 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         if (newEntry != null)
         {
           List<Attribute> tmpAttrList = newEntry.getAttribute(attrTypeStr);
-          Attribute tmpAttr = tmpAttrList.get(0);
+          if ((tmpAttrList != null) && (!tmpAttrList.isEmpty()))
+          {
+            Attribute tmpAttr = tmpAttrList.get(0);
 
-          AttributeType attrType =
-            DirectoryServer.getAttributeType(attrTypeStr, true);
-          found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
+            AttributeType attrType =
+              DirectoryServer.getAttributeType(attrTypeStr, true);
+            found = tmpAttr.hasValue(new AttributeValue(attrType, valueString));
+          }
         }
 
       }
