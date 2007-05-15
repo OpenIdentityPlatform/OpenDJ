@@ -606,6 +606,24 @@ public class Installation {
   }
 
   /**
+   * Gets the file for invoking a particular command appropriate for
+   * the current operating system.
+   * @param command namd of the command
+   * @return File representing the command
+   */
+  public File getCommandFile(String command) {
+    File commandFile;
+    if (Utils.isWindows()) {
+      commandFile = new File(getBinariesDirectory(),
+              command + ".bat");
+    } else {
+      commandFile = new File(getBinariesDirectory(),
+              command);
+    }
+    return commandFile;
+  }
+
+  /**
    * Gets the file responsible for stopping the server appropriate
    * for the current operating system.
    * @return File representing the stop command
@@ -700,7 +718,24 @@ public class Installation {
    * build information
    */
   public BuildInformation getBuildInformation() throws ApplicationException {
-    if (buildInformation == null) {
+    return getBuildInformation(true);
+  }
+
+  /**
+   * Gets information about the build that was used to produce the bits
+   * for this installation.
+   * @param useCachedVersion where true indicates that a potentially cached
+   * version of the build information is acceptable for use; false indicates
+   * the the build information will be created from scratch which is potentially
+   * time consuming
+   * @return BuildInformation object describing this installation
+   * @throws ApplicationException if there is a problem obtaining the
+   * build information
+   */
+  public BuildInformation getBuildInformation(boolean useCachedVersion)
+          throws ApplicationException
+  {
+    if (buildInformation == null || useCachedVersion == false) {
       FutureTask<BuildInformation> ft = new FutureTask<BuildInformation>(
               new Callable<BuildInformation>() {
                 public BuildInformation call() throws ApplicationException {
@@ -717,5 +752,12 @@ public class Installation {
       }
     }
     return buildInformation;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString() {
+    return Utils.getPath(rootDirectory);
   }
 }

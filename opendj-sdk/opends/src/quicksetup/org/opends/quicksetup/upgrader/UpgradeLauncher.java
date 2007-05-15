@@ -80,7 +80,8 @@ public class UpgradeLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected boolean isCli() {
-    return args.length > 0;
+    // for now only CLI is supported via command line
+    return true;
   }
 
   /**

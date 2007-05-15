@@ -40,12 +40,14 @@ import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.Step;
 import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.webstart.WebStartDownloader;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.InProcessServerController;
 import org.opends.quicksetup.util.ServerHealthChecker;
 import org.opends.quicksetup.util.FileManager;
+import org.opends.quicksetup.util.OperationOutput;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.UIFactory;
@@ -53,7 +55,6 @@ import org.opends.quicksetup.ui.ProgressPanel;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.QuickSetup;
 import org.opends.quicksetup.ui.FieldName;
-import org.opends.quicksetup.upgrader.ui.ChooseVersionPanel;
 import org.opends.quicksetup.upgrader.ui.UpgraderReviewPanel;
 import org.opends.quicksetup.upgrader.ui.WelcomePanel;
 
@@ -62,6 +63,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
@@ -88,8 +90,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
   enum UpgradeWizardStep implements WizardStep {
 
     WELCOME("welcome-step"),
-
-    CHOOSE_VERSION("step-upgrade-choose-version"),
 
     REVIEW("review-step"),
 
@@ -475,8 +475,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
     QuickSetupStepPanel pnl = null;
     if (UpgradeWizardStep.WELCOME.equals(step)) {
       pnl = new WelcomePanel(this);
-    } else if (UpgradeWizardStep.CHOOSE_VERSION.equals(step)) {
-      pnl = new ChooseVersionPanel(this);
     } else if (UpgradeWizardStep.REVIEW.equals(step)) {
       pnl = new UpgraderReviewPanel(this);
     } else if (UpgradeWizardStep.PROGRESS.equals(step)) {
@@ -491,8 +489,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
   public WizardStep getNextWizardStep(WizardStep step) {
     WizardStep next = null;
     if (UpgradeWizardStep.WELCOME.equals(step)) {
-      next = UpgradeWizardStep.CHOOSE_VERSION;
-    } else if (UpgradeWizardStep.CHOOSE_VERSION.equals(step)) {
       next = UpgradeWizardStep.REVIEW;
     } else if (UpgradeWizardStep.REVIEW.equals(step)) {
       next = UpgradeWizardStep.PROGRESS;
@@ -508,8 +504,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
     if (UpgradeWizardStep.PROGRESS.equals(step)) {
       prev = UpgradeWizardStep.REVIEW;
     } else if (UpgradeWizardStep.REVIEW.equals(step)) {
-      prev = UpgradeWizardStep.CHOOSE_VERSION;
-    } else if (UpgradeWizardStep.CHOOSE_VERSION.equals(step)) {
       prev = UpgradeWizardStep.WELCOME;
     }
     return prev;
@@ -520,7 +514,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   public boolean canQuit(WizardStep step) {
     return UpgradeWizardStep.WELCOME == step ||
-            UpgradeWizardStep.CHOOSE_VERSION == step ||
             UpgradeWizardStep.REVIEW == step;
   }
 
@@ -657,26 +650,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
         // do nothing; all fields are read-only
       }
 
-    } else if (cStep == UpgradeWizardStep.CHOOSE_VERSION) {
-      Build buildToDownload = null;
-      File buildFile = null;
-      Boolean downloadFirst =
-              (Boolean) qs.getFieldValue(FieldName.UPGRADE_DOWNLOAD);
-      if (downloadFirst) {
-        buildToDownload =
-                (Build) qs.getFieldValue(FieldName.UPGRADE_BUILD_TO_DOWNLOAD);
-      } else {
-        buildFile = (File) qs.getFieldValue(FieldName.UPGRADE_FILE);
-        if (buildFile == null) {
-          errorMsgs.add("You must specify a path to an OpenDS build file");
-        } else if (!buildFile.exists()) {
-          errorMsgs.add("File " + Utils.getPath(buildFile) +
-                  " does not exist.");
-          qs.displayFieldInvalid(FieldName.UPGRADE_FILE, true);
-        }
-      }
-      uud.setBuildToDownload(buildToDownload);
-      uud.setInstallPackage(buildFile);
     } else if (cStep == UpgradeWizardStep.REVIEW) {
       Boolean startServer =
               (Boolean) qs.getFieldValue(FieldName.SERVER_START);
@@ -734,75 +707,37 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     try {
 
+      ZipExtractor extractor = null;
       if (Utils.isWebStart()) {
         try {
-          LOG.log(Level.INFO, "waiting for Java Web Start jar download");
+          LOG.log(Level.INFO, "Waiting for Java Web Start jar download");
           waitForLoader(15); // TODO: ratio
+          LOG.log(Level.INFO, "Downloaded build file");
+          String zipName = WebStartDownloader.getZipFileName();
+          InputStream in =
+                  Upgrader.class.getClassLoader().getResourceAsStream(zipName);
+          extractor = new ZipExtractor(in, zipName);
         } catch (ApplicationException e) {
-          LOG.log(Level.SEVERE, "Error downloading WebStart jars", e);
-          throw e;
-        }
-      }
-
-      checkAbort();
-
-      File buildZip;
-      Build buildToDownload =
-              getUpgradeUserData().getInstallPackageToDownload();
-      if (buildToDownload != null) {
-        try {
-          LOG.log(Level.INFO, "build to download " + buildToDownload);
-          setCurrentProgressStep(UpgradeProgressStep.DOWNLOADING);
-          buildZip = new File(getStageDirectory(), "OpenDS.zip");
-          if (buildZip.exists()) {
-            LOG.log(Level.INFO, "build file " + buildZip.getName() +
-                    " already exists");
-            if (!buildZip.delete()) {
-              LOG.log(Level.WARNING, "removal of existing build file failed");
-              throw ApplicationException.createFileSystemException(
-                      "Could not delete existing build file " +
-                              Utils.getPath(buildZip), null);
-            }
-          }
-          LOG.log(Level.FINE, "Preparing to download " +
-                  buildToDownload.getUrl() +
-                  " to " + Utils.getPath(buildZip));
-          try {
-            getRemoteBuildManager().download(buildToDownload, buildZip);
-          } catch (IOException e) {
-            throw new ApplicationException(
-                    ApplicationException.Type.APPLICATION,
-                    "Failed to download build package .zip " +
-                            "file from " + buildToDownload.getUrl(), e);
-          }
-          LOG.log(Level.INFO, "download finished");
-          notifyListeners(formatter.getFormattedDone() +
-                  formatter.getLineBreak());
-        } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "Error downloading build file", e);
+          LOG.log(Level.SEVERE, "Error downloading Web Start jars", e);
           throw e;
         }
       } else {
-        buildZip = getUpgradeUserData().getInstallPackage();
-        LOG.log(Level.INFO, "will use local build " + buildZip);
+        File buildZip = getUpgradeUserData().getInstallPackage();
+        LOG.log(Level.INFO, "Existing local build file " + buildZip.getName());
+        extractor = new ZipExtractor(buildZip);
       }
 
       checkAbort();
 
-      if (buildZip != null) {
-        LOG.log(Level.INFO, "existing local build file " + buildZip.getName());
-        try {
-          LOG.log(Level.INFO, "extracting local build file " + buildZip);
-          setCurrentProgressStep(UpgradeProgressStep.EXTRACTING);
-          ZipExtractor extractor = new ZipExtractor(buildZip);
-          extractor.extract(getStageDirectory());
-          notifyListeners(formatter.getFormattedDone() +
-                  formatter.getLineBreak());
-          LOG.log(Level.INFO, "extraction finished");
-        } catch (ApplicationException e) {
-          LOG.log(Level.INFO, "Error extracting build file", e);
-          throw e;
-        }
+      try {
+        setCurrentProgressStep(UpgradeProgressStep.EXTRACTING);
+        extractor.extract(getStageDirectory());
+        notifyListeners(formatter.getFormattedDone() +
+                formatter.getLineBreak());
+        LOG.log(Level.INFO, "extraction finished");
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO, "Error extracting build file", e);
+        throw e;
       }
 
       checkAbort();
@@ -816,20 +751,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
         LOG.log(Level.INFO, "initialization finished");
       } catch (ApplicationException e) {
         LOG.log(Level.INFO, "Error initializing upgrader", e);
-        throw e;
-      }
-
-      checkAbort();
-
-      try {
-        LOG.log(Level.INFO, "checking server health");
-        setCurrentProgressStep(UpgradeProgressStep.CHECK_SERVER_HEALTH);
-        checkServerHealth();
-        notifyListeners(formatter.getFormattedDone() +
-                formatter.getLineBreak());
-        LOG.log(Level.INFO, "server health check finished");
-      } catch (ApplicationException e) {
-        LOG.log(Level.INFO, "Server failed initial health check", e);
         throw e;
       }
 
@@ -1019,6 +940,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
           try {
             LOG.log(Level.INFO, "starting server");
             control.startServer();
+            notifyListeners(formatter.getLineBreak());
           } catch (ApplicationException e) {
             LOG.log(Level.INFO, "error starting server");
             this.runWarning = e;
@@ -1027,6 +949,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
           try {
             LOG.log(Level.INFO, "stopping server");
             control.stopServer();
+            notifyListeners(formatter.getLineBreak());
           } catch (ApplicationException e) {
             LOG.log(Level.INFO, "error stopping server");
             this.runWarning = e;
@@ -1343,7 +1266,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private void upgradeComponents() throws ApplicationException {
     try {
       File stageDir = getStageDirectory();
-      File root = getInstallation().getRootDirectory();
+      Installation installation = getInstallation();
+      File root = installation.getRootDirectory();
       FileManager fm = new FileManager();
       for (String fileName : stageDir.list()) {
         File f = new File(stageDir, fileName);
@@ -1351,6 +1275,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 new UpgradeFileFilter(stageDir),
                 /*overwrite=*/true);
       }
+
+      // The bits should now be of the new version.  Have
+      // the installation update the build information so
+      // that it is correct.
+      LOG.log(Level.INFO, "upgraded bits to " +
+              installation.getBuildInformation(false));
+
     } catch (IOException e) {
       throw ApplicationException.createFileSystemException(
               "I/0 error upgrading components: " + e.getLocalizedMessage(), e);
@@ -1460,33 +1391,22 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   private void backupDatabases() throws ApplicationException {
-    List<String> args = new ArrayList<String>();
-    args.add("--configClass");
-    args.add("org.opends.server.extensions.ConfigFileHandler");
-    args.add("--configFile");
-    args.add(getInstallation().getCurrentConfigurationFile().getPath());
-    args.add("-a"); // backup all
-    args.add("-d"); // backup to directory
+    ServerController sc = getServerController();
     try {
-      args.add(getUpgradeBackupDirectory().getCanonicalPath());
-    } catch (IOException e) {
-      // TODO i18n
-      throw new ApplicationException(
-              ApplicationException.Type.FILE_SYSTEM_ERROR,
-              "error backup up databases", e);
-    }
-    int ret = org.opends.server.tools.BackUpDB.mainBackUpDB(
-            args.toArray(new String[0]));
-    if (ret != 0) {
-      StringBuffer sb = new StringBuffer()
-              .append("'backup utility returned error code ")
-              .append(ret)
-              .append(" when invoked with args: ")
-              .append(Utils.listToString(args, " "));
-      throw new ApplicationException(
-              ApplicationException.Type.FILE_SYSTEM_ERROR,
-              sb.toString(), null);
+      OperationOutput output = sc.backupDatabases(getUpgradeBackupDirectory());
+      int ret = output.getReturnCode();
+      if (ret != 0) {
+        StringBuffer sb = new StringBuffer()
+                .append("'backup utility returned error code " + ret);
+        throw new ApplicationException(
+                ApplicationException.Type.FILE_SYSTEM_ERROR,
+                sb.toString(), null);
 
+      }
+    } catch (Exception e) {
+      throw new ApplicationException(
+              ApplicationException.Type.TOOL_ERROR,
+              "error backup up databases", e);
     }
   }
 

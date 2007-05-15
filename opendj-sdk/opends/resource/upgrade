@@ -36,16 +36,12 @@ then
     then
       . "${INSTANCE_ROOT}/lib/set-java-home"
       JAVA_BIN="${JAVA_HOME}/bin/java"
-      JAVAWS_BIN="${JAVA_HOME}/bin/javaws"
       export JAVA_BIN
-      export JAVAWS_BIN
     else
       JAVA_BIN=`which java 2> /dev/null`
-      JAVAWS_BIN=`which javaws 2> /dev/null`
       if test ${?} -eq 0
       then
         export JAVA_BIN
-        export JAVAWS_BIN
       else
         echo "Please set JAVA_HOME to the root of a Java 5 (or later) installation."
         exit 1
@@ -53,7 +49,6 @@ then
     fi
   else
     JAVA_BIN="${JAVA_HOME}/bin/java"
-    JAVAWS_BIN="${JAVA_HOME}/bin/javaws"
     export JAVA_BIN
     export JAVA_WS
   fi
@@ -130,54 +125,38 @@ then
   rm -fr "${INSTANCE_ROOT}/tmp/upgrade"
 fi
 
-# Test for presence of command line arguments
-if test -z "$1"
+# Launch the build extractor.
+# Configure the appropriate CLASSPATH.
+# BuildExtractor uses the existing install's
+# jars
+CLASSPATH=${INSTANCE_ROOT}/classes
+for JAR in ${INSTANCE_ROOT}/lib/*.jar
+do
+  CLASSPATH=${CLASSPATH}:${JAR}
+done
+export CLASSPATH
+"${JAVA_BIN}" org.opends.quicksetup.upgrader.BuildExtractor "${@}"
+
+if [ -r "${INSTANCE_ROOT}/tmp/upgrade" ]
 then
-
-  # If no arguments launch web start version
-  JAVAWS_VM_ARGS="-Dorg.opends.quicksetup.upgrader.Root=$INSTANCE_ROOT"
-  export JAVAWS_VM_ARGS
-  if test -z "${OPENDS_UPGRADE_JNLP}"
-  then
-    OPENDS_UPGRADE_JNLP=http://builds.opends.org/install/QuickUpgrade.jnlp
-  fi
-  "${JAVAWS_BIN}" "${OPENDS_UPGRADE_JNLP}"
-
-else
-
-  # Launch the build extractor.
   # Configure the appropriate CLASSPATH.
-  # BuildExtractor uses the existing install's
-  # jars
-  CLASSPATH=${INSTANCE_ROOT}/classes
-  for JAR in ${INSTANCE_ROOT}/lib/*.jar
+  # Unlike BuildExtractor, the Upgrader uses
+  # the newly extracted build's jars.
+  CLASSPATH=${INSTANCE_ROOT}/tmp/upgrade/classes
+  for JAR in ${INSTANCE_ROOT}/tmp/upgrade/lib/*.jar
   do
-    CLASSPATH=${CLASSPATH}:${JAR}
+    CLASSPATH=${JAR}:${CLASSPATH}
   done
-  export CLASSPATH
-  "${JAVA_BIN}" org.opends.quicksetup.upgrader.BuildExtractor "${@}"
+  # Launch the upgrade process.
+  "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
 
+  # Clean up if necessary
   if [ -r "${INSTANCE_ROOT}/tmp/upgrade" ]
   then
-    # Configure the appropriate CLASSPATH.
-    # Unlike BuildExtractor, the Upgrader uses
-    # the newly extracted build's jars.
-    CLASSPATH=${INSTANCE_ROOT}/tmp/upgrade/classes
-    for JAR in ${INSTANCE_ROOT}/tmp/upgrade/lib/*.jar
-    do
-      CLASSPATH=${JAR}:${CLASSPATH}
-    done
-    # Launch the upgrade process.
-    "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
-
-    # Clean up if necessary
-    if [ -r "${INSTANCE_ROOT}/tmp/upgrade" ]
-    then
-      rm -fr "${INSTANCE_ROOT}/tmp/upgrade"
-    fi
-  else
-    # Build extractor didn't work.  Invoke the upgrader
-    # to report errors and usage.
-    "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"    
+    rm -fr "${INSTANCE_ROOT}/tmp/upgrade"
   fi
+else
+  # Build extractor didn't work.  Invoke the upgrader
+  # to report errors and usage.
+  "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
 fi

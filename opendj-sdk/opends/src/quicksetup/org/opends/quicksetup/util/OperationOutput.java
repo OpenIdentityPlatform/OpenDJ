@@ -36,8 +36,11 @@ import java.util.Collections;
  */
 public class OperationOutput {
 
+  private int returnCode = -1;
+
   private Exception exception = null;
 
+  private List<String> outputMessages = new ArrayList<String>();
   private List<String> errorMessages = new ArrayList<String>();
   private List<String> debugMessages = new ArrayList<String>();
   private List<String> accessMessages = new ArrayList<String>();
@@ -69,6 +72,15 @@ public class OperationOutput {
   }
 
   /**
+   * Gets a list of strings representing output messages obtained
+   * by invoking the operation.
+   * @return List of Strings representing errorMessages
+   */
+  public List<String> getOutputMessages() {
+    return Collections.unmodifiableList(outputMessages);
+  }
+
+  /**
    * Gets a list of strings representing error messages obtained
    * by invoking the operation.
    * @return List of Strings representing errorMessages
@@ -96,6 +108,15 @@ public class OperationOutput {
   }
 
   /**
+   * Gets the return code produced by the operation if any.
+   * @return int representing any return code returned by the
+   * operation.  -1 indicates no return code was set.
+   */
+  public int getReturnCode() {
+    return this.returnCode;
+  }
+
+  /**
    * Sets the exception that occurred during execution.  Can be null to
    * indicate no exception was encountered.
    * @param exception Exception that occurred during invocation of the operation
@@ -110,6 +131,14 @@ public class OperationOutput {
    */
   void addErrorMessage(String errorMessage) {
     this.errorMessages.add(errorMessage);
+  }
+
+  /**
+   * Adds an output message.
+   * @param outputMessage an error message
+   */
+  void addOutputMessage(String outputMessage) {
+    this.outputMessages.add(outputMessage);
   }
 
   /**
@@ -145,4 +174,11 @@ public class OperationOutput {
     this.debugMessages = debugMessages;
   }
 
+  /**
+   * Sets the return code of the operation.
+   * @param i int representing the return code
+   */
+  void setReturnCode(int i) {
+    this.returnCode = i;
+  }
 }

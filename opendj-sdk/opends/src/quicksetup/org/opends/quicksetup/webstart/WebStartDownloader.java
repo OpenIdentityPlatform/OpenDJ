@@ -52,6 +52,19 @@ import org.opends.quicksetup.util.Utils;
  */
 public class WebStartDownloader implements DownloadServiceListener,
         JnlpProperties {
+
+
+
+  /**
+   * Returns the name of the zip file name that contains all the installation.
+   * @return the name of the zip file name that contains all the installation.
+   */
+  static public String getZipFileName()
+  {
+    // Passed as a java option in the JNLP file
+    return System.getProperty(ZIP_FILE_NAME);
+  }
+
   private ApplicationException ex;
 
   private boolean isFinished;

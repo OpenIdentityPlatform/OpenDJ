@@ -28,18 +28,20 @@
 package org.opends.quicksetup.upgrader.ui;
 
 import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.BuildInformation;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.LabelFieldDescriptor;
 import org.opends.quicksetup.ui.ReviewPanel;
 import org.opends.quicksetup.ui.UIFactory;
-import org.opends.quicksetup.upgrader.Build;
-import org.opends.quicksetup.upgrader.UpgradeUserData;
 import org.opends.quicksetup.upgrader.Upgrader;
 import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Presents upgrade information to the user to confirm before starting the
@@ -209,16 +211,20 @@ public class UpgraderReviewPanel extends ReviewPanel {
    * @return String indicating the new build
    */
   private String getNewBuildString() {
-    String newVersion;
-    UpgradeUserData uud = (UpgradeUserData)getUserData();
-    Build build = uud.getInstallPackageToDownload();
-    if (build != null) {
-      newVersion = build.getDisplayName();
-    } else {
-      // TODO: figure out the build from the zip somehow
-      newVersion = getMsg("upgrade-build-id-unknown");
+    String b = null;
+    try {
+      BuildInformation bi = BuildInformation.getCurrent();
+      if (bi != null) {
+        b = bi.toString();
+      }
+    } catch (ApplicationException e) {
+      LOG.log(Level.INFO, "error trying to determine new build string", e);
     }
-    return newVersion;
+    if (b == null) {
+      b = ResourceProvider.getInstance().
+              getMsg("upgrade-build-id-unknown");
+    }
+    return b;
   }
 
   /**

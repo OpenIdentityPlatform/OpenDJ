@@ -39,7 +39,6 @@ goto callExtractor
 if "%JAVA_HOME%" == "" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
 set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-set JAVAWS_BIN=%JAVA_HOME%\bin\javaws.exe
 if "%*" == "" goto callWebStartUpgrade
 goto callExtractor
 
@@ -47,8 +46,6 @@ goto callExtractor
 if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto noSetJavaHome
 call "%INSTANCE_ROOT%\lib\set-java-home.bat"
 set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-set JAVAWS_BIN=%JAVA_HOME%\bin\javaws.exe
-if "%*" == "" goto callWebStartUpgrade
 goto callExtractor
 
 :noSetJavaHome
@@ -78,12 +75,6 @@ set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.BuildExtractor %*
 goto prepUpgrader
-
-:callWebStartUpgrade
-rem set JAVAWS_VM_ARGS=-Dorg.opends.quicksetup.upgrader.Root="%INSTANCE_ROOT%"
-if "%OPENDS_UPGRADE_JNLP%" == "" set OPENDS_UPGRADE_JNLP=http://build.opends.org/install/QuickUpgrade.jnlp
-"%JAVAWS_BIN%" "%OPENDS_UPGRADE_JNLP%"
-goto end
 
 :prepUpgrader
 if EXIST %INSTANCE_ROOT%\tmp\upgrade goto setClassPathToStageDir
