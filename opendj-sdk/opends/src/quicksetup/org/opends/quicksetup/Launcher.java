@@ -109,12 +109,12 @@ public abstract class Launcher {
     }
     return printVersion;
   }
-  
+
   /**
    * Indicates whether the launcher will launch a command line versus
    * a graphical application based on the contents of the arguments
    * passed into the constructor.
-   * 
+   *
    * @return boolean where true indicates that a CLI application
    *         should be launched
    */
