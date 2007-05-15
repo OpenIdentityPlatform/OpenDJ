@@ -87,7 +87,7 @@ public interface TextWriter
      */
     public void shutdown()
     {
-      writer.close();
+      // Should never close the system out stream.
     }
 
     /**
@@ -128,7 +128,7 @@ public interface TextWriter
      */
     public void shutdown()
     {
-      writer.close();
+      // Should never close the system error stream.
     }
 
     /**
