@@ -102,15 +102,9 @@ fi
 
 # Determine what the name should be for the OpenDS zip file name, but without
 # the ".zip" extension.
-SHORT_NAME=`grep SHORT_NAME ${ROOT_DIR}/PRODUCT | cut -d = -f 2`
-MAJOR_VERSION=`grep MAJOR_VERSION ${ROOT_DIR}/PRODUCT | cut -d = -f 2`
-MINOR_VERSION=`grep MINOR_VERSION ${ROOT_DIR}/PRODUCT | cut -d = -f 2`
-VERSION_QUALIFIER=`grep VERSION_QUALIFIER ${ROOT_DIR}/PRODUCT | cut -d = -f 2`
-ZIP_FILENAME_BASE="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}"
-if test ! -z "${VERSION_QUALIFIER}"
-then
-  ZIP_FILENAME_BASE="${ZIP_FILENAME_BASE}${VERSION_QUALIFIER}"
-fi
+ZIP_FILEPATH=`ls ${ROOT_DIR}/build/package/OpenDS*.zip`
+ZIP_FILENAME=`basename ${ZIP_FILEPATH}`
+ZIP_FILENAME_BASE=`echo ${ZIP_FILENAME} | sed -e 's/\.zip//'`
 
 
 # Create the directory structure into which we will place the archive.
