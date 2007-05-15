@@ -67,7 +67,7 @@ public class UpgradeOracle {
    *         false indicates that this would be an upgrade.
    */
   public boolean isReversion() {
-    return currentBuildInfo.compareTo(newBuildInfo) < 0;
+    return currentBuildInfo.compareTo(newBuildInfo) > 0;
   }
 
   /**
