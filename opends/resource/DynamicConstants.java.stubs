@@ -59,6 +59,11 @@ public class DynamicConstants
   public static final int POINT_VERSION = ${POINT_VERSION};
 
   /**
+   * The official build number for the Directory Server.
+   */
+  public static final int BUILD_NUMBER = ${BUILD_NUMBER};
+
+  /**
    * The version qualifier string for the Directory Server.
    */
   public static final String VERSION_QUALIFIER = "${VERSION_QUALIFIER}";
@@ -123,21 +128,24 @@ public class DynamicConstants
   public static final boolean WEAVE_ENABLED = ${WEAVE_ENABLED};
 
   /**
+   * A string representation of the version number.
+   */
+  public static final String VERSION_NUMBER_STRING =
+       "${VERSION_NUMBER_STRING}";
+
+  /**
    * A compact version string for this product, suitable for use in path
    * names and similar cases.
    */
   public static final String COMPACT_VERSION_STRING =
-       SHORT_NAME + "-" + MAJOR_VERSION + "." + MINOR_VERSION +
-       (((VERSION_QUALIFIER != null) && (VERSION_QUALIFIER.length() > 0))
-        ? VERSION_QUALIFIER
-        : "");
+       SHORT_NAME + "-" + VERSION_NUMBER_STRING;
 
   /**
    * A full version string for this product.
    */
   public static final String FULL_VERSION_STRING =
-       PRODUCT_NAME + " " + MAJOR_VERSION + "." + MINOR_VERSION +
-       (((VERSION_QUALIFIER != null) && (VERSION_QUALIFIER.length() > 0))
-        ? VERSION_QUALIFIER
-        : "." + POINT_VERSION);
+       PRODUCT_NAME + " " + VERSION_NUMBER_STRING +
+       (((FIX_IDS != null) && (FIX_IDS.length() > 0))
+        ? "+" + FIX_IDS
+        : "");
 }
