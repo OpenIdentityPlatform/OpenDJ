@@ -76,9 +76,36 @@ public class InProcessServerController {
    * Creates a new instance that will operate on <code>application</code>'s
    * installation.
    * @param installation representing the server instance to control
+   * @throws IllegalStateException if the the version of the OpenDS code
+   * running in this JVM is not the same version as the code whose bits
+   * are stored in <code>installation</code>.
    */
-  public InProcessServerController(Installation installation) {
-    this.installation = installation;
+  public InProcessServerController(Installation installation)
+          throws IllegalStateException
+  {
+
+    // Attempting to use DirectoryServer with a configuration file
+    // for a different version of the server can cause problems for
+    // the server at startup.
+    BuildInformation installBi = null;
+    BuildInformation currentBi = null;
+    try {
+      installBi = installation.getBuildInformation();
+      currentBi = BuildInformation.getCurrent();
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to verify the build version of " +
+              "the " + installation + " matches the currently executing " +
+              "version.");
+    }
+
+    if (!currentBi.equals(installBi)) {
+      throw new IllegalStateException("The build version of the " +
+              "installation " + installation + " is " + installBi +
+              " and does not match the currently executing version " +
+              currentBi);
+    }
+
+    this.installation=installation;
   }
 
   /**

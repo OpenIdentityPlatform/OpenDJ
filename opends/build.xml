@@ -761,13 +761,14 @@
       <fileset file="${resource.dir}/README" />
     </copy>
 
-    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup,uninstall"
+    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup,uninstall,upgrade"
          eol="lf" />
-    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.bat,uninstall.bat"
+    <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.bat,uninstall.bat,upgrade.bat"
          eol="crlf" />
 
     <chmod file="${pdir}/setup" perm="755" />
     <chmod file="${pdir}/uninstall" perm="755" />
+    <chmod file="${pdir}/upgrade" perm="755" />
     <chmod perm="755">
       <fileset dir="${pdir}/bin">
       </fileset>
@@ -784,7 +785,7 @@
        description="Package the Directory Server for distribution.">
     <zip destfile="${package.dir}/OpenDS-${VERSION_NUMBER_STRING}.zip">
       <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/**/*"
-           excludes="OpenDS-${VERSION_NUMBER_STRING}/bin/*,OpenDS-${VERSION_NUMBER_STRING}/lib/_client-script.sh,OpenDS-${VERSION_NUMBER_STRING}/lib/_server-script.sh,OpenDS-${VERSION_NUMBER_STRING}/setup,OpenDS-${VERSION_NUMBER_STRING}/uninstall"
+           excludes="OpenDS-${VERSION_NUMBER_STRING}/bin/*,OpenDS-${VERSION_NUMBER_STRING}/lib/_client-script.sh,OpenDS-${VERSION_NUMBER_STRING}/lib/_server-script.sh,OpenDS-${VERSION_NUMBER_STRING}/setup,OpenDS-${VERSION_NUMBER_STRING}/uninstall,OpenDS-${VERSION_NUMBER_STRING}/upgrade"
            filemode="644" dirmode="755" />
       <zipfileset dir="${package.dir}"
            includes="OpenDS-${VERSION_NUMBER_STRING}/lib/_client-script.sh,OpenDS-${VERSION_NUMBER_STRING}/lib/_server-script.sh"
@@ -794,7 +795,7 @@
            filemode="755" dirmode="755" />
       <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
            filemode="644" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/setup,OpenDS-${VERSION_NUMBER_STRING}/uninstall"
+      <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/setup,OpenDS-${VERSION_NUMBER_STRING}/uninstall,OpenDS-${VERSION_NUMBER_STRING}/upgrade"
            filemode="755" dirmode="755" />
     </zip>
   </target>

@@ -29,6 +29,7 @@ package org.opends.quicksetup;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.server.util.DynamicConstants;
 
 import java.util.HashMap;
 import java.util.List;
@@ -45,12 +46,25 @@ import java.io.IOException;
  */
 public class BuildInformation implements Comparable {
 
+  // These string values must be synchronized with Directory
+  // Server's main method.  These string values are considered
+  // stable by the server team and not candidates for
+  // internationalization.
   static private final String NAME = "Name";
   static private final String BUILD_ID = "Build ID";
   static private final String MAJOR_VERSION = "Major Version";
   static private final String MINOR_VERSION = "Minor Version";
   static private final String POINT_VERSION = "Point Version";
   static private final String REVISION_NUMBER = "Revision Number";
+  static private final String FIX_IDS = "Fix IDs";
+  static private final String DEBUG_BUILD = "Debug Build";
+  static private final String BUILD_OS = "Build OS";
+  static private final String BUILD_USER = "Build User";
+  static private final String BUILD_JAVA_VERSION = "Build Java Version";
+  static private final String BUILD_JAVA_VENDOR = "Build Java Vendor";
+  static private final String BUILD_JVM_VERSION = "Build JVM Version";
+  static private final String BUILD_JVM_VENDOR = "Build JVM Vendor";
+
 
   /**
    * Reads build information for a particular installation by reading the
@@ -94,13 +108,55 @@ public class BuildInformation implements Comparable {
         }
       }
     }
-    // Make sure we got values for import properties
+
+    // Make sure we got values for important properties that are used
+    // in compareTo, equals, and hashCode
     checkNotNull(bi.values,
             NAME,
             MAJOR_VERSION,
             MINOR_VERSION,
             POINT_VERSION,
             REVISION_NUMBER);
+
+    return bi;
+  }
+
+  /**
+   * Creates an instance from constants present in the current build.
+   * @return BuildInformation created from current constant values
+   * @throws ApplicationException if all or some important information could
+   * not be determined
+   */
+  public static BuildInformation getCurrent() throws ApplicationException {
+    BuildInformation bi = new BuildInformation();
+    bi.values.put(NAME, DynamicConstants.FULL_VERSION_STRING);
+    bi.values.put(BUILD_ID, DynamicConstants.BUILD_ID);
+    bi.values.put(MAJOR_VERSION,
+            String.valueOf(DynamicConstants.MAJOR_VERSION));
+    bi.values.put(MINOR_VERSION,
+            String.valueOf(DynamicConstants.MINOR_VERSION));
+    bi.values.put(POINT_VERSION,
+            String.valueOf(DynamicConstants.POINT_VERSION));
+    bi.values.put(REVISION_NUMBER,
+            String.valueOf(DynamicConstants.REVISION_NUMBER));
+    bi.values.put(FIX_IDS, DynamicConstants.FIX_IDS);
+    bi.values.put(DEBUG_BUILD, String.valueOf(DynamicConstants.DEBUG_BUILD));
+    bi.values.put(BUILD_OS, DynamicConstants.BUILD_OS);
+    bi.values.put(BUILD_USER, DynamicConstants.BUILD_USER);
+    bi.values.put(BUILD_JAVA_VERSION, DynamicConstants.BUILD_JAVA_VERSION);
+    bi.values.put(BUILD_JAVA_VENDOR, DynamicConstants.BUILD_JAVA_VENDOR);
+    bi.values.put(BUILD_JVM_VERSION, DynamicConstants.BUILD_JVM_VERSION);
+    bi.values.put(BUILD_JVM_VENDOR, DynamicConstants.BUILD_JVM_VENDOR);
+
+    // Make sure we got values for important properties that are used
+    // in compareTo, equals, and hashCode
+    checkNotNull(bi.values,
+            NAME,
+            MAJOR_VERSION,
+            MINOR_VERSION,
+            POINT_VERSION,
+            REVISION_NUMBER);
+
     return bi;
   }
 
@@ -201,6 +257,27 @@ public class BuildInformation implements Comparable {
       return -1;
     }
     return 1;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    return compareTo(o) == 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public int hashCode() {
+    int hc = 11;
+    hc = 31 * hc + getMajorVersion().hashCode();
+    hc = 31 * hc + getMinorVersion().hashCode();
+    hc = 31 * hc + getPointVersion().hashCode();
+    hc = 31 * hc + getRevisionNumber().hashCode();
+    return hc;
   }
 
   static private void checkNotNull(Map values, String... props)

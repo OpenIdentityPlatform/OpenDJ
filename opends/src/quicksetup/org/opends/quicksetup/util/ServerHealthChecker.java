@@ -72,9 +72,9 @@ public class ServerHealthChecker {
    * @throws ApplicationException if things go wrong
    */
   public void checkServer() throws ApplicationException {
-    InProcessServerController control =
-            new InProcessServerController(installation);
+    InProcessServerController control = null;
     try {
+      control = new InProcessServerController(installation);
       if (installation.getStatus().isServerRunning()) {
         new ServerController(installation).stopServer();
       }
@@ -90,7 +90,9 @@ public class ServerHealthChecker {
                         "tool: " + e.getLocalizedMessage(), e);
       }
     } finally {
-      control.stopServer();
+      if (control != null) {
+        control.stopServer();
+      }
     }
   }
 

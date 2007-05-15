@@ -83,8 +83,7 @@ public class UpgraderCliHelper extends CliApplicationHelper {
       } else {
         // TODO i18N
         throw new UserDataException(null,
-                "Option -f is required for the command line version of the " +
-                        "upgrade tool.");
+                "Option -f is required.");
       }
 
     } catch (ArgumentException e) {
