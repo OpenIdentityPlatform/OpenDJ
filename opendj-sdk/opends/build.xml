@@ -145,7 +145,7 @@
 
 
   <!-- The build target that should be used before committing code. -->
-  <target name="precommit" depends="checkstyle,clean,copyrightdates,eolstyle,dsml,javadoc,testwithcoverage"
+  <target name="precommit" depends="checkstyle,clean,checkprecommit,dsml,testwithcoverage"
        description="Perform all processing needed before committing code.">
   </target>
 
@@ -171,7 +171,7 @@
 
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="checkstyle,clean,copyrightdates,eolstyle,dsml,javadoc,testallwithcoverage"
+       depends="checkstyle,clean,checkprecommit,dsml,javadoc,testallwithcoverage"
        description="Build using all defined targets.">
   </target>
 
@@ -298,15 +298,34 @@
     <getsvnrevision property="REVISION_NUMBER" />
 
 
+    <!-- Construct the version number string -->
+    <taskdef name="getversionnumber"
+             classname="org.opends.build.tools.CreateVersionString">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <getversionnumber property="VERSION_NUMBER_STRING" />
+
+
     <!-- Generate the DynamicConstants.java file.
       Be warned that the .stubs file references the following properties
       PRODUCT_NAME, SHORT_NAME, MAJOR_VERSION, MINOR_VERSION, POINT_VERSION,
       VERSION_QUALIFIER, FIX_IDS, timestamp, user.name, java.version,
       java.vendor, java.vm.version, JVM_VENDOR, DEBUG_BUILD, REVISION_NUMBER,
-      WEAVE_ENABLED
+      WEAVE_ENABLED, VERSION_NUMBER_STRING
       If you change the name of any of those properties in this build.xml
       you'll need to reflect the same change in the .stubs file
     -->
+    <condition property="BUILD_NUMBER" value="-1">
+      <not>
+        <isset property="BUILD_NUMBER" />
+      </not>
+    </condition>
+
     <copy file="${dynconstants.stubfile}"
           tofile="${dynconstants.file}"
           overwrite="true"                 >
@@ -319,11 +338,12 @@
 
 
 
-  <!-- Check modified files to see if any copyright updates are needed. -->
-  <target name="copyrightdates" depends="buildtools"
-       description="Ensure updated files have the correct copyright year" >
-    <taskdef name="checkcopyrightdates"
-             classname="org.opends.build.tools.CheckCopyrightDates">
+  <!-- Check modified files to see if any svn:eol-style or copyright updates
+       are needed. -->
+  <target name="checkprecommit" depends="buildtools"
+       description="Ensure updated files eol-style and copyright info">
+    <taskdef name="checkprecommit"
+             classname="org.opends.build.tools.CheckPrecommit">
       <classpath>
         <fileset dir="${build.dir}/build-tools">
           <include name="*.jar" />
@@ -334,59 +354,8 @@
       </classpath>
     </taskdef>
 
-    <checkcopyrightdates>
-      <fileset dir="${basedir}" includes="**/*.java" excludes="build/**/*,src/admin/generated/**/*" />
-      <fileset dir="${basedir}" includes="**/*.xml" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.xsd" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.xsl" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.html" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.sh" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.bat" excludes="build/**/* " />
-      <fileset dir="${basedir}" includes="**/*.ldif" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.txt" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.c" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.h" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.mc" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/Makefile" excludes="build/**/*" />
-      <fileset dir="${scripts.dir}" includes="**/*" />
-    </checkcopyrightdates>
+    <checkprecommit />
   </target>
-
-
-
-  <!-- Check added files to see if any svn:eol-style updates are needed. -->
-  <target name="eolstyle" depends="buildtools"
-       description="Ensure added files have the correct svn:eol-style" >
-    <taskdef name="checkeolstyle"
-             classname="org.opends.build.tools.CheckEOLStyle">
-      <classpath>
-        <fileset dir="${build.dir}/build-tools">
-          <include name="*.jar" />
-        </fileset>
-        <fileset dir="${svnkit.dir}">
-          <include name="*.jar" />
-        </fileset>
-      </classpath>
-    </taskdef>
-
-    <checkeolstyle>
-      <fileset dir="${basedir}" includes="**/*.java" excludes="build/**/*,src/admin/generated/**/*" />
-      <fileset dir="${basedir}" includes="**/*.xml" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.xsd" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.xsl" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.html" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.sh" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.bat" excludes="build/**/* " />
-      <fileset dir="${basedir}" includes="**/*.ldif" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.txt" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.c" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.h" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/*.mc" excludes="build/**/*" />
-      <fileset dir="${basedir}" includes="**/Makefile" excludes="build/**/*" />
-      <fileset dir="${scripts.dir}" includes="**/*" />
-    </checkeolstyle>
-  </target>
-
 
 
 
@@ -592,10 +561,8 @@
     </condition>
 
     <!-- Set properties needed to find the packaged files -->
-    <property name="pkgversion"
-         value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}" />
     <property name="pdir"
-         location="${package.dir}/OpenDS-${pkgversion}" />
+         location="${package.dir}/OpenDS-${VERSION_NUMBER_STRING}" />
 
     <!-- Clean up a minimal set of files/directories for the rebuild. -->
     <delete dir="${classes.dir}" />
@@ -708,10 +675,8 @@
   <!-- Populate the Directory Server package, but don't zip it up. -->
   <target name="prepackage" depends="cleancompile"
        description="Prepare the Directory Server package structure.">
-    <property name="pkgversion"
-         value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}" />
     <property name="pdir"
-         location="${package.dir}/OpenDS-${pkgversion}" />
+         location="${package.dir}/OpenDS-${VERSION_NUMBER_STRING}" />
 
     <mkdir dir="${pdir}"                 />
     <mkdir dir="${pdir}/bak"             />
@@ -817,19 +782,19 @@
   <!-- Package the Directory Server for distribution. -->
   <target name="package" depends="prepackage"
        description="Package the Directory Server for distribution.">
-    <zip destfile="${package.dir}/OpenDS-${pkgversion}.zip">
-      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/**/*"
-           excludes="OpenDS-${pkgversion}/bin/*,OpenDS-${pkgversion}/lib/_client-script.sh,OpenDS-${pkgversion}/lib/_server-script.sh,OpenDS-${pkgversion}/setup,OpenDS-${pkgversion}/uninstall"
+    <zip destfile="${package.dir}/OpenDS-${VERSION_NUMBER_STRING}.zip">
+      <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/**/*"
+           excludes="OpenDS-${VERSION_NUMBER_STRING}/bin/*,OpenDS-${VERSION_NUMBER_STRING}/lib/_client-script.sh,OpenDS-${VERSION_NUMBER_STRING}/lib/_server-script.sh,OpenDS-${VERSION_NUMBER_STRING}/setup,OpenDS-${VERSION_NUMBER_STRING}/uninstall"
            filemode="644" dirmode="755" />
       <zipfileset dir="${package.dir}"
-           includes="OpenDS-${pkgversion}/lib/_client-script.sh,OpenDS-${pkgversion}/lib/_server-script.sh"
+           includes="OpenDS-${VERSION_NUMBER_STRING}/lib/_client-script.sh,OpenDS-${VERSION_NUMBER_STRING}/lib/_server-script.sh"
            filemode="755" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/bin/*"
-           excludes="OpenDS-${pkgversion}/bin/README_WINDOWS.txt"
+      <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/bin/*"
+           excludes="OpenDS-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
            filemode="755" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/bin/README_WINDOWS.txt"
+      <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
            filemode="644" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="OpenDS-${pkgversion}/setup,OpenDS-${pkgversion}/uninstall"
+      <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/setup,OpenDS-${VERSION_NUMBER_STRING}/uninstall"
            filemode="755" dirmode="755" />
     </zip>
   </target>
@@ -884,7 +849,7 @@
       </classpath>
     </javac>
 
-    <war destfile="${classes.dir}/OpenDS-${pkgversion}-DSML.war"
+    <war destfile="${classes.dir}/OpenDS-${VERSION_NUMBER_STRING}-DSML.war"
          webxml="${dsml.dir}/webapp/web.xml">
       <fileset file="${dsml.dir}/webapp/server.properties" />
 

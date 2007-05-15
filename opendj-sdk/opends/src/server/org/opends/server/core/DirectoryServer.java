@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -8311,22 +8312,7 @@ public class DirectoryServer
    */
   public static String getVersionString()
   {
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(PRODUCT_NAME);
-    buffer.append(" ");
-    buffer.append(MAJOR_VERSION);
-    buffer.append(".");
-    buffer.append(MINOR_VERSION);
-    if ((VERSION_QUALIFIER == null) || (VERSION_QUALIFIER.length() == 0))
-    {
-      buffer.append(".");
-      buffer.append(POINT_VERSION);
-    }
-    else
-    {
-      buffer.append(VERSION_QUALIFIER);
-    }
-    return buffer.toString();
+    return FULL_VERSION_STRING;
   }
 
   /**
@@ -8803,6 +8789,13 @@ public class DirectoryServer
       System.out.println("Minor Version:       " + MINOR_VERSION);
       System.out.println("Point Version:       " + POINT_VERSION);
       System.out.println("Version Qualifier:   " + VERSION_QUALIFIER);
+
+      if (BUILD_NUMBER > 0)
+      {
+        System.out.println("Build Number:        " +
+                           new DecimalFormat("000").format(BUILD_NUMBER));
+      }
+
       System.out.println("Revision Number:     " + REVISION_NUMBER);
       System.out.println("Fix IDs:             " + FIX_IDS);
       System.out.println("Debug Build:         " + DEBUG_BUILD);

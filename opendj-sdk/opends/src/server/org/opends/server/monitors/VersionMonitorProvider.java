@@ -55,6 +55,88 @@ import org.opends.server.types.DebugLogLevel;
 public class VersionMonitorProvider
        extends MonitorProvider
 {
+  /**
+   * The name of the attribute used to provide the product name.
+   */
+  public static final String ATTR_PRODUCT_NAME = "productName";
+
+
+
+  /**
+   * The name of the attribute used to provide the short name.
+   */
+  public static final String ATTR_SHORT_NAME = "shortName";
+
+
+
+  /**
+   * The name of the attribute used to provide the major version number.
+   */
+  public static final String ATTR_MAJOR_VERSION = "majorVersion";
+
+
+
+  /**
+   * The name of the attribute used to provide the minor version number.
+   */
+  public static final String ATTR_MINOR_VERSION = "minorVersion";
+
+
+
+  /**
+   * The name of the attribute used to provide the point version number.
+   */
+  public static final String ATTR_POINT_VERSION = "pointVersion";
+
+
+
+  /**
+   * The name of the attribute used to provide the version qualifier string.
+   */
+  public static final String ATTR_VERSION_QUALIFIER = "versionQualifier";
+
+
+
+  /**
+   * The name of the attribute used to provide the weekly build number.
+   */
+  public static final String ATTR_BUILD_NUMBER = "buildNumber";
+
+
+
+  /**
+   * The name of the attribute used to provide the list of bugfix IDs.
+   */
+  public static final String ATTR_FIX_IDS = "fixIDs";
+
+
+
+  /**
+   * The name of the attribute used to provide the Subversion revision number.
+   */
+  public static final String ATTR_REVISION_NUMBER = "revisionNumber";
+
+
+
+  /**
+   * The name of the attribute used to provide the build ID (aka the build
+   * timestamp).
+   */
+  public static final String ATTR_BUILD_ID = "buildID";
+
+
+
+  /**
+   * The name of the attribute used to provide the compact version string.
+   */
+  public static final String ATTR_COMPACT_VERSION = "compactVersion";
+
+
+
+  /**
+   * The name of the attribute used to provide the full version string.
+   */
+  public static final String ATTR_FULL_VERSION = "fullVersion";
 
 
 
@@ -147,23 +229,44 @@ public class VersionMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>(8);
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>(12);
 
-    attrs.add(createAttribute("productName", DynamicConstants.PRODUCT_NAME));
-    attrs.add(createAttribute("buildID", DynamicConstants.BUILD_ID));
-    attrs.add(createAttribute("majorVersion",
+    attrs.add(createAttribute(ATTR_PRODUCT_NAME,
+                              DynamicConstants.PRODUCT_NAME));
+    attrs.add(createAttribute(ATTR_SHORT_NAME, DynamicConstants.SHORT_NAME));
+    attrs.add(createAttribute(ATTR_MAJOR_VERSION,
                               String.valueOf(DynamicConstants.MAJOR_VERSION)));
-    attrs.add(createAttribute("minorVersion",
+    attrs.add(createAttribute(ATTR_MINOR_VERSION,
                               String.valueOf(DynamicConstants.MINOR_VERSION)));
-    attrs.add(createAttribute("pointVersion",
+    attrs.add(createAttribute(ATTR_POINT_VERSION,
                               String.valueOf(DynamicConstants.POINT_VERSION)));
-    attrs.add(createAttribute("versionQualifier",
-                              DynamicConstants.VERSION_QUALIFIER));
-    attrs.add(createAttribute("revisionNumber",
+
+    String versionQualifier = DynamicConstants.VERSION_QUALIFIER;
+    if ((versionQualifier != null) && (versionQualifier.length() > 0))
+    {
+      attrs.add(createAttribute(ATTR_VERSION_QUALIFIER, versionQualifier));
+    }
+
+    int buildNumber = DynamicConstants.BUILD_NUMBER;
+    if (buildNumber > 0)
+    {
+      attrs.add(createAttribute(ATTR_BUILD_NUMBER,
+                                String.valueOf(buildNumber)));
+    }
+
+    String fixIDs = DynamicConstants.FIX_IDS;
+    if ((fixIDs != null) && (fixIDs.length() > 0))
+    {
+      attrs.add(createAttribute(ATTR_FIX_IDS, fixIDs));
+    }
+
+    attrs.add(createAttribute(ATTR_REVISION_NUMBER,
                    String.valueOf(DynamicConstants.REVISION_NUMBER)));
-    attrs.add(createAttribute("debugBuild",
-                              String.valueOf(DynamicConstants.DEBUG_BUILD)));
-    attrs.add(createAttribute("fixIDs", DynamicConstants.FIX_IDS));
+    attrs.add(createAttribute(ATTR_BUILD_ID, DynamicConstants.BUILD_ID));
+    attrs.add(createAttribute(ATTR_COMPACT_VERSION,
+                              DynamicConstants.COMPACT_VERSION_STRING));
+    attrs.add(createAttribute(ATTR_FULL_VERSION,
+                              DynamicConstants.FULL_VERSION_STRING));
 
     return attrs;
   }

@@ -11,16 +11,12 @@ MAJOR_VERSION=0
 MINOR_VERSION=9
 
 # The point version number for the Directory Server.  It must be an integer.
-# The point version will generally not be displayed to the end user but may be
-# used to determine ordering among builds with the same major and minor
-# versions but different qualifiers.
 POINT_VERSION=0
 
 # The version qualifier string for the Directory Server.  It should be blank
-# for the first official release with a new major and minor version number
-# but may include additional text like "BETA1" or "SP2" for updates that do not
-# warrant incrementing the major or minor version.  However, the point version
-# should be incremented every time a new qualifier is used.
+# for the first official release with a new major, minor, and point version
+# number but may include additional text like "BETA1" or "HOTFIX2" for updates
+# that do not warrant incrementing the version number.
 VERSION_QUALIFIER=
 
 # A comma-delimited list of bug IDs for fixes included in this build.  This
@@ -28,3 +24,4 @@ VERSION_QUALIFIER=
 # specific problem or set of problems identified in the corresponding official
 # release.
 FIX_IDS=
+
