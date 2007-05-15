@@ -27,6 +27,14 @@
 
 package org.opends.quicksetup;
 
+import static org.opends.server.util.DynamicConstants.BUILD_ID;
+import static org.opends.server.util.DynamicConstants.FIX_IDS;
+import static org.opends.server.util.DynamicConstants.MAJOR_VERSION;
+import static org.opends.server.util.DynamicConstants.MINOR_VERSION;
+import static org.opends.server.util.DynamicConstants.POINT_VERSION;
+import static org.opends.server.util.DynamicConstants.PRODUCT_NAME;
+import static org.opends.server.util.DynamicConstants.VERSION_QUALIFIER;
+
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.i18n.ResourceProvider;
 
@@ -82,11 +90,33 @@ public abstract class Launcher {
   }
 
   /**
+   * Indicates whether or not the launcher should print a version
+   * statement based on the content of the arguments passed into
+   * the constructor.
+   * @return boolean where true indicates version should be printed
+   */
+  protected boolean shouldPrintVersion() {
+    boolean printVersion = false;
+    if ((args != null) && (args.length > 0))
+    {
+      for (String arg : args)
+      {
+        if (arg.equalsIgnoreCase("-V") || arg.equalsIgnoreCase("--version"))
+        {
+          printVersion = true;
+        }
+      }
+    }
+    return printVersion;
+  }
+  
+  /**
    * Indicates whether the launcher will launch a command line versus
    * a graphical application based on the contents of the arguments
    * passed into the constructor.
-   * @return boolean where true indicates that a CLI application should
-   * be launched
+   * 
+   * @return boolean where true indicates that a CLI application
+   *         should be launched
    */
   protected boolean isCli() {
     boolean isCli = false;
@@ -243,8 +273,43 @@ public abstract class Launcher {
   }
 
   /**
-   * Prints a usage statement to terminal and exits
+   * Prints the version statement to terminal and exits
    * with an error code.
+   */
+  private void printVersion()
+  {
+    String EOL = System.getProperty("line.separator");
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(PRODUCT_NAME);
+    buffer.append(" ");
+    buffer.append(MAJOR_VERSION);
+    buffer.append(".");
+    buffer.append(MINOR_VERSION);
+    if ((VERSION_QUALIFIER == null) || (VERSION_QUALIFIER.length() == 0))
+    {
+      buffer.append(".");
+      buffer.append(POINT_VERSION);
+    }
+    else
+    {
+      buffer.append(VERSION_QUALIFIER);
+    }
+    buffer.append(EOL);
+    buffer.append("Build " + BUILD_ID);
+    buffer.append(EOL);
+
+    if ((FIX_IDS != null) && (FIX_IDS.length() > 0))
+    {
+      buffer.append("Fix IDs:  " + FIX_IDS);
+      buffer.append(EOL);
+    }
+    System.out.print(buffer);
+    return;
+  }
+
+  /**
+   * Prints a usage statement to terminal and exits with an error
+   * code.
    */
   protected abstract void printUsage();
 
@@ -276,7 +341,11 @@ public abstract class Launcher {
    * The main method which is called by the uninstall command lines.
    */
   public void launch() {
-    if (shouldPrintUsage()) {
+    if (shouldPrintVersion())
+    {
+      printVersion();
+    }
+    else if (shouldPrintUsage()) {
       printUsage();
     } else if (isCli()) {
       int exitCode = launchCli(args, createCliApplication());
