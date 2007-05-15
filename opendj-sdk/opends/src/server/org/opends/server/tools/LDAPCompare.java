@@ -511,9 +511,11 @@ public class LDAPCompare
                     null, null, MSGID_DESCRIPTION_CONTROLS);
       argParser.addArgument(controlStr);
 
-      version = new IntegerArgument("version", 'V', "version",
-                              false, false, true, "{version}", 3, null,
-                              MSGID_DESCRIPTION_VERSION);
+      version = new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
+                                    OPTION_LONG_PROTOCOL_VERSION,
+                                    false, false, true,
+                                    OPTION_VALUE_PROTOCOL_VERSION,
+                                    3, null, MSGID_DESCRIPTION_VERSION);
       argParser.addArgument(version);
 
       encodingStr = new StringArgument("encoding", 'i', "encoding",
@@ -565,8 +567,9 @@ public class LDAPCompare
       return 1;
     }
 
-    // If we should just display usage information, then print it and exit.
-    if (argParser.usageDisplayed())
+    // If we should just display usage or version information,
+    // then print it and exit.
+    if (argParser.usageOrVersionDisplayed())
     {
       return 0;
     }

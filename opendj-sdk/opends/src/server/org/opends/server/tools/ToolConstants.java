@@ -480,5 +480,34 @@ public class ToolConstants
    */
    public static final String OPTION_LONG_EFFECTIVERIGHTSATTR =
           "getEffectiveRightsAttribute";
+
+   /**
+    * The value for the short option protocol version attributes.
+    */
+    public static final char OPTION_SHORT_PROTOCOL_VERSION = 'V';
+
+   /**
+    * The value for the long option protocol version
+    * attribute.
+    */
+    public static final String OPTION_LONG_PROTOCOL_VERSION  =
+           "ldapVersion";
+
+    /**
+     * The placeholder value of protocol version that will be
+     * displayed in usage information.
+     */
+    public static final String OPTION_VALUE_PROTOCOL_VERSION = "{version}";
+
+    /**
+     * The value for the long option version.
+     */
+     public static final char OPTION_SHORT_PRODUCT_VERSION = 'V';
+
+    /**
+     * The value for the long option version.
+     */
+     public static final String OPTION_LONG_PRODUCT_VERSION  = "version";
+
 }
 

@@ -35,10 +35,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Properties;
 
+import org.opends.server.core.DirectoryServer;
+
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -714,6 +717,18 @@ public class SubCommandArgumentParser
               return;
             }
             else
+            if (argName.equals(OPTION_LONG_PRODUCT_VERSION))
+            {
+              // "--version" will always be interpreted as requesting usage
+              // information.
+              try
+              {
+                DirectoryServer.printVersion(usageOutputStream);
+              } catch (Exception e) {}
+
+              return;
+            }
+            else
             {
               // There is no such global argument.
               int msgID = MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_LONG_ID;
@@ -733,6 +748,18 @@ public class SubCommandArgumentParser
                 try
                 {
                   getUsage(usageOutputStream);
+                } catch (Exception e) {}
+
+                return;
+              }
+              else
+              if (argName.equals(OPTION_LONG_PRODUCT_VERSION))
+              {
+                // "--version" will always be interpreted as requesting usage
+                // information.
+                try
+                {
+                  DirectoryServer.printVersion(usageOutputStream);
                 } catch (Exception e) {}
 
                 return;
@@ -853,6 +880,17 @@ public class SubCommandArgumentParser
               return;
             }
             else
+            if (argCharacter == OPTION_SHORT_PRODUCT_VERSION)
+            {
+              // "-V" will always be interpreted as requesting
+              // version information.
+              try
+                {
+                getUsage(usageOutputStream);
+              } catch (Exception e) {}
+              return;
+            }
+            else
             {
               // There is no such argument registered.
               int msgID = MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID;
@@ -873,6 +911,17 @@ public class SubCommandArgumentParser
                   getUsage(usageOutputStream);
                 } catch (Exception e) {}
 
+                return;
+              }
+              else
+              if (argCharacter == OPTION_SHORT_PRODUCT_VERSION)
+              {
+                // "-V" will always be interpreted as requesting
+                // version information.
+                try
+                {
+                  getUsage(usageOutputStream);
+                } catch (Exception e) {}
                 return;
               }
               else

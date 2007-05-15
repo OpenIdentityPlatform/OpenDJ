@@ -403,9 +403,9 @@ public class StopDS
     }
 
 
-    // If we should just display usage information, then exit because it will
-    // have already been done.
-    if (argParser.usageDisplayed())
+    // If we should just display usage or version information,
+    // then exit because it will have already been done.
+    if (argParser.usageOrVersionDisplayed())
     {
       return LDAPResultCode.SUCCESS;
     }

@@ -29,6 +29,8 @@ package org.opends.server.core;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.util.Collections;
@@ -8327,6 +8329,33 @@ public class DirectoryServer
     return buffer.toString();
   }
 
+  /**
+   * Prints out the version string for the Directory Server.
+   *
+   *
+   * @param  outputStream  The output stream to which the version information
+   *                       should be written.
+   *
+   * @throws  IOException  If a problem occurs while attempting to write the
+   *                       version information to the provided output stream.
+   */
+  public static void printVersion(OutputStream outputStream)
+  throws IOException
+  {
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(getVersionString());
+    buffer.append(EOL);
+    buffer.append("Build " + BUILD_ID);
+    buffer.append(EOL);
+
+    if ((FIX_IDS != null) && (FIX_IDS.length() > 0))
+    {
+      buffer.append("Fix IDs:  " + FIX_IDS);
+      buffer.append(EOL);
+    }
+    outputStream.write(getBytes(buffer.toString()));
+    return;
+  }
 
 
   /**
@@ -8613,7 +8642,6 @@ public class DirectoryServer
     BooleanArgument fullVersion       = null;
     BooleanArgument noDetach          = null;
     BooleanArgument systemInfo        = null;
-    BooleanArgument version           = null;
     StringArgument  configClass       = null;
     StringArgument  configFile        = null;
 
@@ -8656,11 +8684,6 @@ public class DirectoryServer
                               MSGID_DSCORE_DESCRIPTION_WINDOWS_NET_START);
       windowsNetStart.setHidden(true);
       argParser.addArgument(windowsNetStart);
-
-
-      version = new BooleanArgument("version", 'V', "version",
-                                    MSGID_DSCORE_DESCRIPTION_VERSION);
-      argParser.addArgument(version);
 
 
       fullVersion = new BooleanArgument("fullversion", 'F', "fullVersion",
@@ -8738,13 +8761,13 @@ public class DirectoryServer
       //   that is something other than NOTHING_TO_DO, SERVER_ALREADY_STARTED,
       //   START_AS_DETACH, START_AS_NON_DETACH, START_AS_WINDOWS_SERVICE to
       //   indicate that a problem occurred.
-      if (argParser.usageDisplayed())
+      if (argParser.usageOrVersionDisplayed())
       {
         // We're just trying to display usage, and that's already been done so
         // exit with a code of zero.
         System.exit(NOTHING_TO_DO);
       }
-      else if (fullVersion.isPresent() || version.isPresent() ||
+      else if (fullVersion.isPresent() ||
                systemInfo.isPresent() || dumpMessages.isPresent())
       {
         // We're not really trying to start, so rebuild the argument list
@@ -8768,7 +8791,7 @@ public class DirectoryServer
         System.exit(checkStartability(argParser));
       }
     }
-    else if (argParser.usageDisplayed())
+    else if (argParser.usageOrVersionDisplayed())
     {
       System.exit(0);
     }
@@ -8789,18 +8812,6 @@ public class DirectoryServer
       System.out.println("Build Java Vendor:   " + BUILD_JAVA_VENDOR);
       System.out.println("Build JVM Version:   " + BUILD_JVM_VERSION);
       System.out.println("Build JVM Vendor:    " + BUILD_JVM_VENDOR);
-
-      return;
-    }
-    else if (version.isPresent())
-    {
-      System.out.println(getVersionString());
-      System.out.println("Build " + BUILD_ID);
-
-      if ((FIX_IDS != null) && (FIX_IDS.length() > 0))
-      {
-        System.out.println("Fix IDs:  " + FIX_IDS);
-      }
 
       return;
     }

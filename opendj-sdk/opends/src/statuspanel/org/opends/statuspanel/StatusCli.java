@@ -30,6 +30,7 @@ package org.opends.statuspanel;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -128,6 +129,7 @@ class StatusCli
     ArrayList<String> errors = new ArrayList<String>();
 
     boolean printUsage = false;
+    boolean printVersion = false;
 
     String directoryManagerPwd = null;
     String directoryManagerPwdFile = null;
@@ -140,6 +142,12 @@ class StatusCli
           args[i].equalsIgnoreCase("-?"))
       {
         printUsage = true;
+      }
+      else
+      if (args[i].equalsIgnoreCase("-" + OPTION_SHORT_PRODUCT_VERSION) ||
+          args[i].equalsIgnoreCase("--" + OPTION_LONG_PRODUCT_VERSION))
+      {
+        printVersion = true;
       }
       else if (args[i].equalsIgnoreCase("-D") ||
           args[i].equalsIgnoreCase("--bindDN"))
@@ -244,6 +252,17 @@ class StatusCli
     if (printUsage)
     {
       printUsage(System.out);
+    }
+    else if(printVersion)
+    {
+      try
+      {
+        DirectoryServer.printVersion(System.out);
+      }
+      catch (IOException e)
+      {
+        // TODO Auto-generated catch block
+      }
     }
     else if (errors.size() > 0)
     {

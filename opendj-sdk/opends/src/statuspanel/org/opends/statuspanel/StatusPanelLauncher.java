@@ -28,13 +28,16 @@ package org.opends.statuspanel;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.statuspanel.i18n.ResourceProvider;
+import static org.opends.server.tools.ToolConstants.*;
 
 /**
  * This class is called by the control panel command lines to launch the
@@ -66,6 +69,7 @@ public class StatusPanelLauncher
       t.printStackTrace();
     }
     boolean printUsage = false;
+    boolean printVersion = false;
     if ((args != null) && (args.length > 4))
     {
       printUsage = true;
@@ -78,7 +82,27 @@ public class StatusPanelLauncher
       {
         printUsage = true;
       }
+      else
+      if (args[i].equalsIgnoreCase("-" + OPTION_SHORT_PRODUCT_VERSION) ||
+          args[i].equalsIgnoreCase("--" + OPTION_LONG_PRODUCT_VERSION))
+      {
+        printVersion = true;
+      }
     }
+    // We first check if we have to pribt the version
+    if(printVersion)
+    {
+      try
+      {
+        DirectoryServer.printVersion(System.out);
+      }
+      catch (IOException e)
+      {
+        // TODO Auto-generated catch block
+      }
+      System.exit(1);
+    }
+    else
     if (printUsage)
     {
       printUsage(System.out);

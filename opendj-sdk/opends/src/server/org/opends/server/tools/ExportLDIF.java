@@ -297,8 +297,9 @@ public class ExportLDIF
     }
 
 
-    // If we should just display usage information, then print it and exit.
-    if (argParser.usageDisplayed())
+    // If we should just display usage or version information,
+    // then print it and exit.
+    if (argParser.usageOrVersionDisplayed())
     {
       return 0;
     }

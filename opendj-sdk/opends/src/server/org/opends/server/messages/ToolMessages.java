@@ -7093,6 +7093,13 @@ public class ToolMessages
  public static final int MSGID_EFFECTIVERIGHTS_INVALID_AUTHZID =
       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 890;
 
+ /**
+  * The message ID for the message that will be used as the description of the
+  * version argument.  This does not take any arguments.
+  */
+ public static final int MSGID_DESCRIPTION_PRODUCT_VERSION =
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 891;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -9332,6 +9339,9 @@ public class ToolMessages
                     "The authorization ID \"%s\" contained in the " +
                      "geteffectiverights control is invalid because it does" +
                      " not start with \"dn:\" to indicate a user DN");
+
+   registerMessage(MSGID_DESCRIPTION_PRODUCT_VERSION,
+                   "Display Directory Server version information");
   }
 }
 

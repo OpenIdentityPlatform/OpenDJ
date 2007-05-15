@@ -256,8 +256,9 @@ public class ConfigureWindowsService
       }
     }
 
-    // If we should just display usage information, then it is already done
-    if ((returnValue == 0) && !argParser.usageDisplayed())
+    // If we should just display usage or version information,
+    // then it is already done
+    if ((returnValue == 0) && !argParser.usageOrVersionDisplayed())
     {
       /* Check that the user only asked for one argument */
       int nArgs = 0;
@@ -295,7 +296,7 @@ public class ConfigureWindowsService
       }
     }
 
-    if ((returnValue == 0) && !argParser.usageDisplayed())
+    if ((returnValue == 0) && !argParser.usageOrVersionDisplayed())
     {
       if (enableService.isPresent())
       {
