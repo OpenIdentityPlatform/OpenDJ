@@ -23,27 +23,8 @@
 #      Portions Copyright 2007 Sun Microsystems, Inc.
 #
 
-dn: ou=Groups, o=ACI Tests, dc=example,dc=com
-ou: Groups
-objectclass: top
-objectclass: organizationalunit
-
-dn: cn=Marketing,ou=Groups, o=ACI Tests, dc=example,dc=com
-cn: Marketing
-objectclass: top
-objectclass: groupOfNames
-member: uid=cuser, ou=People, o=ACI Tests, dc=example,dc=com
-member: uid=duser, ou=People, o=ACI Tests, dc=example,dc=com
-member: uid=euser, ou=People, o=ACI Tests, dc=example,dc=com
-member: uid=zyuser, ou=People, o=ACI Tests, dc=example,dc=com
-owner: uid=euser, ou=People, o=ACI Tests, dc=example,dc=com
-
-dn: cn=Sales,ou=Groups, o=ACI Tests, dc=example,dc=com
-cn: Sales
-objectclass: top
-objectclass: groupOfNames
-member: uid=fuser, ou=People, o=ACI Tests, dc=example,dc=com
-member: uid=guser, ou=People, o=ACI Tests, dc=example,dc=com
-member: uid=huser, ou=People, o=ACI Tests, dc=example,dc=com
-owner: uid=huser, ou=People, o=ACI Tests, dc=example,dc=com
+dn: ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetattr="*")(version 3.0; acl "add_groupdn_selfwrite"; allow (search,read) groupdn="ldap:///cn=Marketing,ou=Groups, o=ACI Tests, dc=example,dc=com";)
 
