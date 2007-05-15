@@ -36,11 +36,14 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Properties;
 
+import org.opends.server.core.DirectoryServer;
+
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.messages.ToolMessages.*;
 
 
 /**
@@ -69,8 +72,8 @@ public class ArgumentParser
   // manner.
   private boolean longArgumentsCaseSensitive;
 
-  // Indicates whether the usage information has been displayed.
-  private boolean usageDisplayed;
+  // Indicates whether the usage or version information has been displayed.
+  private boolean usageOrVersionDisplayed;
 
   // The set of arguments defined for this parser, referenced by short ID.
   private HashMap<Character,Argument> shortIDMap;
@@ -136,7 +139,7 @@ public class ArgumentParser
     shortIDMap              = new HashMap<Character,Argument>();
     longIDMap               = new HashMap<String,Argument>();
     allowsTrailingArguments = false;
-    usageDisplayed          = false;
+    usageOrVersionDisplayed = false;
     trailingArgsDisplayName = null;
     maxTrailingArguments    = 0;
     minTrailingArguments    = 0;
@@ -198,7 +201,7 @@ public class ArgumentParser
     shortIDMap        = new HashMap<Character,Argument>();
     longIDMap         = new HashMap<String,Argument>();
     trailingArguments = new ArrayList<String>();
-    usageDisplayed    = false;
+    usageOrVersionDisplayed = false;
     rawArguments      = null;
     usageArgument     = null;
     usageOutputStream = System.out;
@@ -663,6 +666,19 @@ public class ArgumentParser
             return;
           }
           else
+          if (argName.equals(OPTION_LONG_PRODUCT_VERSION))
+          {
+            // "--version" will always be interpreted as requesting version
+            // information.
+            usageOrVersionDisplayed = true;
+            try
+            {
+              DirectoryServer.printVersion(usageOutputStream);
+            } catch (Exception e) {}
+
+            return;
+          }
+          else
           {
             // There is no such argument registered.
             int    msgID   = MSGID_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID;
@@ -772,6 +788,21 @@ public class ArgumentParser
               getUsage(usageOutputStream);
             } catch (Exception e) {}
 
+            return;
+          }
+          else
+          if ( (argCharacter == OPTION_SHORT_PRODUCT_VERSION)
+               &&
+               ( ! shortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION)))
+          {
+            // "-V" will always be interpreted as requesting
+            // version information except if it's already defined (e.g in
+            // lpda tools).
+            usageOrVersionDisplayed = true ;
+            try
+            {
+              DirectoryServer.printVersion(usageOutputStream);
+            } catch (Exception e) {}
             return;
           }
           else
@@ -970,7 +1001,7 @@ public class ArgumentParser
    */
   public void getUsage(StringBuilder buffer)
   {
-    usageDisplayed = true;
+    usageOrVersionDisplayed = true;
     if ((toolDescription != null) && (toolDescription.length() > 0))
     {
       buffer.append(wrapText(toolDescription, 79));
@@ -1006,6 +1037,17 @@ public class ArgumentParser
     buffer.append(EOL);
 
     buffer.append("             where {options} include:");
+    buffer.append(EOL);
+
+    // --version is a builtin option
+    if (! shortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
+    {
+      buffer.append("-" + OPTION_SHORT_PRODUCT_VERSION + ", ");
+    }
+    buffer.append("--" + OPTION_LONG_PRODUCT_VERSION);
+    buffer.append(EOL);
+    buffer.append("    ");
+    buffer.append( getMessage(MSGID_DESCRIPTION_PRODUCT_VERSION));
     buffer.append(EOL);
 
     for (Argument a : argumentList)
@@ -1191,16 +1233,17 @@ public class ArgumentParser
 
 
   /**
-   * Indicates whether the usage information has been displayed to the end user
-   * either by an explicit argument like "-H" or "--help", or by a built-in
-   * argument like "-?".
+   * Indicates whether the version or the usage information has been
+   * displayed to the end user either by an explicit argument like
+   * "-H" or "--help", or by a built-in argument like "-?".
    *
-   * @return  {@code true} if the usage information has been displayed, or
-   *          {@code false} if not.
+   * @return {@code true} if the usage information has been displayed,
+   *         or {@code false} if not.
    */
-  public boolean usageDisplayed()
+  public boolean usageOrVersionDisplayed()
   {
-    return usageDisplayed;
+    return usageOrVersionDisplayed;
   }
+
 }
 

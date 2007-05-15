@@ -386,9 +386,9 @@ public class LDAPPasswordModify
     }
 
 
-    // If the usage argument was provided, then we don't need to do anything
-    // else.
-    if (argParser.usageDisplayed())
+    // If the usage or version argument was provided,
+    // then we don't need to do anything else.
+    if (argParser.usageOrVersionDisplayed())
     {
       return 0;
     }

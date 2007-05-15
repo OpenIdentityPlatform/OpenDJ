@@ -267,9 +267,9 @@ public class EncodePassword
     }
 
 
-    // If we should just display usage information, then we've already done it
-    // so just return without doing anything else.
-    if (argParser.usageDisplayed())
+    // If we should just display usage or version information,
+    // then we've already done it so just return without doing anything else.
+    if (argParser.usageOrVersionDisplayed())
     {
       return 0;
     }

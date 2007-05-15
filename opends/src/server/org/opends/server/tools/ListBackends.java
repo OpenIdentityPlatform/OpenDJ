@@ -221,9 +221,9 @@ public class ListBackends
     }
 
 
-    // If we should just display usage information, then it's already been done
-    // so just return.
-    if (argParser.usageDisplayed())
+    // If we should just display usage or version information,
+    // then it's already been done so just return.
+    if (argParser.usageOrVersionDisplayed())
     {
       return 0;
     }

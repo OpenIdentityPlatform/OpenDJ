@@ -159,8 +159,9 @@ public class ProfileViewer
     }
 
 
-    // If we should just display usage information, then print it and exit.
-    if (argParser.usageDisplayed())
+    // If we should just display usage or versionn information,
+    // then print it and exit.
+    if (argParser.usageOrVersionDisplayed())
     {
       System.exit(0);
     }

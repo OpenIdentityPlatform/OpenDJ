@@ -327,9 +327,9 @@ public class InstallDS
     }
 
 
-    // If either the showUsage or testOnly arguments were provided, then we're
-    // done.
-    if (argParser.usageDisplayed() || testOnly.isPresent())
+    // If either the showUsage or testOnly or version arguments were provided,
+    // then we're done.
+    if (argParser.usageOrVersionDisplayed() || testOnly.isPresent())
     {
       return 0;
     }
