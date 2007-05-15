@@ -285,6 +285,42 @@ facsimiletelephonenumber: +1 408 555 9751
 roomnumber: 4612
 userpassword: ACIRules
 
+dn: uid=zuser, ou=People, o=ACI Tests, dc=example,dc=com
+cn: Zaci User
+sn: User
+givenname: Zaci
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Development
+ou: People
+l: Austin
+uid: zuser
+mail: zuser@example.com
+telephonenumber: +1 408 555 4798
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 4612
+userpassword: ACIRules
+
+dn: uid=zyuser, ou=People, o=ACI Tests, dc=example,dc=com
+cn: Zaci Yuser
+sn: Yuser
+givenname: Zaci
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Development
+ou: People
+l: Austin
+uid: zyuser
+mail: zyuser@example.com
+telephonenumber: +1 408 555 4798
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 4612
+userpassword: ACIRules
+
 dn: uid=amanager, ou=People, o=ACI Tests, dc=example,dc=com
 cn: Ana Manager
 sn: manager
@@ -302,6 +338,25 @@ telephonenumber: +1 408 555 4798
 facsimiletelephonenumber: +1 408 555 9751
 roomnumber: 4612
 userpassword: ACIRules
+
+dn: uid=aproxy, ou=People, o=ACI Tests, dc=example,dc=com
+cn: Ana Proxy
+sn: proxy
+givenname: Ana
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Development
+ou: People
+l: Grenoble
+uid: aproxy
+mail: aproxy@example.com
+telephonenumber: +1 408 555 4798
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 4612
+userpassword: ProxyRules
+ds-privilege-name: proxied-auth
 
 dn: ou=aci branch, o=ACI Tests, dc=example,dc=com
 objectclass: top

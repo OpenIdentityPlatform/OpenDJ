@@ -290,6 +290,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="dsProxyDN" type="optional">
+        <function-arg-description>
+          Directory Server Proxy DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
       <function-arg-def name="dsScope" type="optional">
         <function-arg-description>
           The scope of the search operation
@@ -343,6 +349,9 @@
       <call function="'_ldapCommonArgs'"/>
       
       <script>      
+        if dsProxyDN:
+          STAFCmdParamsList.append('-Y "%s"' % dsProxyDN)          
+          
         if dsScope:          
           STAFCmdParamsList.append('-s %s' % dsScope)
           
