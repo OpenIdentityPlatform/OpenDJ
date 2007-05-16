@@ -148,4 +148,10 @@ public class DynamicConstants
        (((FIX_IDS != null) && (FIX_IDS.length() > 0))
         ? "+" + FIX_IDS
         : "");
+
+  /**
+   * A printable version string for this product.
+   */
+  public static final String PRINTABLE_VERSION_STRING =
+       FULL_VERSION_STRING + "\nBuild " + BUILD_ID +"\n";
 }

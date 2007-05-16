@@ -8328,18 +8328,7 @@ public class DirectoryServer
   public static void printVersion(OutputStream outputStream)
   throws IOException
   {
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(getVersionString());
-    buffer.append(EOL);
-    buffer.append("Build " + BUILD_ID);
-    buffer.append(EOL);
-
-    if ((FIX_IDS != null) && (FIX_IDS.length() > 0))
-    {
-      buffer.append("Fix IDs:  " + FIX_IDS);
-      buffer.append(EOL);
-    }
-    outputStream.write(getBytes(buffer.toString()));
+    outputStream.write(getBytes(PRINTABLE_VERSION_STRING));
     return;
   }
 
