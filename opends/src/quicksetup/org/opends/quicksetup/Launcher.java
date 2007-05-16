@@ -27,13 +27,7 @@
 
 package org.opends.quicksetup;
 
-import static org.opends.server.util.DynamicConstants.BUILD_ID;
-import static org.opends.server.util.DynamicConstants.FIX_IDS;
-import static org.opends.server.util.DynamicConstants.MAJOR_VERSION;
-import static org.opends.server.util.DynamicConstants.MINOR_VERSION;
-import static org.opends.server.util.DynamicConstants.POINT_VERSION;
-import static org.opends.server.util.DynamicConstants.PRODUCT_NAME;
-import static org.opends.server.util.DynamicConstants.VERSION_QUALIFIER;
+import static org.opends.server.util.DynamicConstants.PRINTABLE_VERSION_STRING;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.i18n.ResourceProvider;
@@ -278,32 +272,7 @@ public abstract class Launcher {
    */
   private void printVersion()
   {
-    String EOL = System.getProperty("line.separator");
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(PRODUCT_NAME);
-    buffer.append(" ");
-    buffer.append(MAJOR_VERSION);
-    buffer.append(".");
-    buffer.append(MINOR_VERSION);
-    if ((VERSION_QUALIFIER == null) || (VERSION_QUALIFIER.length() == 0))
-    {
-      buffer.append(".");
-      buffer.append(POINT_VERSION);
-    }
-    else
-    {
-      buffer.append(VERSION_QUALIFIER);
-    }
-    buffer.append(EOL);
-    buffer.append("Build " + BUILD_ID);
-    buffer.append(EOL);
-
-    if ((FIX_IDS != null) && (FIX_IDS.length() > 0))
-    {
-      buffer.append("Fix IDs:  " + FIX_IDS);
-      buffer.append(EOL);
-    }
-    System.out.print(buffer);
+    System.out.print(PRINTABLE_VERSION_STRING);
     return;
   }
 
