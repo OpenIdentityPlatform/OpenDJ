@@ -153,5 +153,6 @@ public class DynamicConstants
    * A printable version string for this product.
    */
   public static final String PRINTABLE_VERSION_STRING =
-       FULL_VERSION_STRING + "\nBuild " + BUILD_ID +"\n";
+       FULL_VERSION_STRING + System.getProperty("line.separator") +
+       "Build " + BUILD_ID + System.getProperty("line.separator");
 }
