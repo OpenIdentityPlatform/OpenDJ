@@ -256,9 +256,9 @@ public class ReplicationServer
          */
         for (String serverURL : replicationServers)
         {
-          String token[] = serverURL.split(":");
-          String hostname = token[0];
-          String port = token[1];
+          int separator = serverURL.lastIndexOf(':');
+          String port = serverURL.substring(separator + 1);
+          String hostname = serverURL.substring(0, separator);
 
           try
           {
@@ -305,9 +305,9 @@ public class ReplicationServer
    */
   private void connect(String serverURL, DN baseDn)
   {
-    String token[] = serverURL.split(":");
-    String hostname = token[0];
-    String port = token[1];
+    int separator = serverURL.lastIndexOf(':');
+    String port = serverURL.substring(separator + 1);
+    String hostname = serverURL.substring(0, separator);
 
     try
     {

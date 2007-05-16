@@ -203,9 +203,9 @@ public class ReplicationBroker implements InternalSearchListener
     {
       for (String server : servers)
       {
-        String token[] = server.split(":");
-        String hostname = token[0];
-        String port = token[1];
+        int separator = server.lastIndexOf(':');
+        String port = server.substring(separator + 1);
+        String hostname = server.substring(0, separator);
 
         try
         {

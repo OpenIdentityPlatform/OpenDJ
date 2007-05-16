@@ -241,8 +241,9 @@ public class ServerHandler extends MonitorProvider
         ReplServerStartMessage receivedMsg = (ReplServerStartMessage) msg;
         serverId = receivedMsg.getServerId();
         serverURL = receivedMsg.getServerURL();
-        String[] splittedURL = serverURL.split(":");
-        serverAddressURL = session.getRemoteAddress() + ":" + splittedURL[1];
+        int separator = serverURL.lastIndexOf(':');
+        serverAddressURL =
+          session.getRemoteAddress() + ":" + serverURL.substring(separator + 1);
         serverIsLDAPserver = false;
         this.baseDn = receivedMsg.getBaseDn();
         if (baseDn == null)
