@@ -1060,8 +1060,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
           this.currentProgressStep = UpgradeProgressStep.FINISHED;
           notifyListeners(null);
         } else {
-          notifyListeners(null);
-          this.currentProgressStep = UpgradeProgressStep.FINISHED;
+          setCurrentProgressStep(UpgradeProgressStep.FINISHED);
         }
       }
     }
