@@ -320,10 +320,6 @@ public class BackupManager
     try
     {
       archiveFilename = BACKUP_BASE_FILENAME + backendID + "-" + backupID;
-      if (!encrypt)
-      {
-        archiveFilename = archiveFilename + ".zip";
-      }
       archiveFile = new File(backupDir.getPath(), archiveFilename);
       if (archiveFile.exists())
       {
