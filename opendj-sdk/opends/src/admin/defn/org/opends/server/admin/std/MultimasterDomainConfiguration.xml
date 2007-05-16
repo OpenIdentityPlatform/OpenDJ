@@ -58,7 +58,14 @@
       <adm:none />
     </adm:requires-admin-action>
     <adm:syntax>
-      <adm:string></adm:string>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.+:[0-9]+</adm:regex>
+          <adm:synopsis>
+            A hostname, followed by a ":" followed by a port number.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
