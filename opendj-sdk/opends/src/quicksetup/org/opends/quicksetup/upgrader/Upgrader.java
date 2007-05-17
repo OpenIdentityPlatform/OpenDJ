@@ -712,8 +712,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     try {
 
-      ZipExtractor extractor = null;
       if (Utils.isWebStart()) {
+        ZipExtractor extractor = null;
         try {
           LOG.log(Level.INFO, "Waiting for Java Web Start jar download");
           waitForLoader(15); // TODO: ratio
@@ -722,29 +722,27 @@ public class Upgrader extends GuiApplication implements CliApplication {
           InputStream in =
                   Upgrader.class.getClassLoader().getResourceAsStream(zipName);
           extractor = new ZipExtractor(in, zipName);
+
         } catch (ApplicationException e) {
           LOG.log(Level.SEVERE, "Error downloading Web Start jars", e);
           throw e;
         }
-      } else {
-        File buildZip = getUpgradeUserData().getInstallPackage();
-        LOG.log(Level.INFO, "Existing local build file " + buildZip.getName());
-        extractor = new ZipExtractor(buildZip);
-      }
 
-      checkAbort();
+        checkAbort();
 
-      try {
-        setCurrentProgressStep(UpgradeProgressStep.EXTRACTING);
-        extractor.extract(getStageDirectory());
-        notifyListeners(formatter.getFormattedDone() +
-                formatter.getLineBreak());
-        LOG.log(Level.INFO, "extraction finished");
-      } catch (ApplicationException e) {
-        notifyListeners(formatter.getFormattedError() +
-                formatter.getLineBreak());
-        LOG.log(Level.INFO, "Error extracting build file", e);
-        throw e;
+        try {
+          setCurrentProgressStep(UpgradeProgressStep.EXTRACTING);
+          extractor.extract(getStageDirectory());
+          notifyListeners(formatter.getFormattedDone() +
+                  formatter.getLineBreak());
+          LOG.log(Level.INFO, "extraction finished");
+        } catch (ApplicationException e) {
+          notifyListeners(formatter.getFormattedError() +
+                  formatter.getLineBreak());
+          LOG.log(Level.INFO, "Error extracting build file", e);
+          throw e;
+        }
+
       }
 
       checkAbort();
@@ -1193,8 +1191,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
         // Restart the server after putting the files
         // back like we found them.
-        getServerController().stopServer(true);
-        getServerController().startServer(true);
+        ServerController sc = new ServerController(getInstallation());
+        sc.stopServer(true);
+        sc.startServer(true);
 
       } catch (IOException e) {
         LOG.log(Level.INFO, "Error getting backup directory", e);

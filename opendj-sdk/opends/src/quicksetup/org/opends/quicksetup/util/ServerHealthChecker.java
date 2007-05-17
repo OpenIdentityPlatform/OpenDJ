@@ -78,16 +78,14 @@ public class ServerHealthChecker {
       if (installation.getStatus().isServerRunning()) {
         new ServerController(installation).stopServer(true);
       }
-      OperationOutput op = control.startServer(true);
+      OperationOutput op = control.startServer(false);
       errors = op.getErrorMessages(UNHEALTHY_SERVER_LOG_REGEX);
     } catch (Exception e) {
       if (e instanceof ApplicationException) {
         throw (ApplicationException)e;
       } else {
         throw new ApplicationException(ApplicationException.Type.APPLICATION,
-                "Server health check failed.  Please resolve the following " +
-                        "before running the upgrade " +
-                        "tool: " + e.getLocalizedMessage(), e);
+                "Server health check failed: " + e.getLocalizedMessage(), e);
       }
     } finally {
       if (control != null) {
