@@ -277,19 +277,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private Long historicalOperationId;
 
   /**
-   * SVN rev number of the current build.
+   * Information on the current build.
    */
-  private Integer currentVersion = null;
+  private BuildInformation currentVersion = null;
+
+  /**
+   * Information on the staged build.
+   */
+  private BuildInformation stagedVersion = null;
 
   /**
    * New OpenDS bits.
    */
   private Installation stagedInstallation = null;
-
-  /**
-   * SVN rev number of the build in the stage directory.
-   */
-  private Integer stagedVersion = null;
 
   private RemoteBuildManager remoteBuildManager = null;
 
@@ -1033,8 +1033,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
         LOG.log(Level.INFO, "recording upgrade history");
         setCurrentProgressStep(UpgradeProgressStep.RECORDING_HISTORY);
         writeHistoricalRecord(historicalOperationId,
-                getCurrentVersion(),
-                getStagedVersion(),
+                getCurrentBuildInformation(),
+                getStagedBuildInformation(),
                 status,
                 note);
         notifyListeners(formatter.getFormattedDone() +
@@ -1262,8 +1262,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   private Long writeInitialHistoricalRecord(
-          Integer fromVersion,
-          Integer toVersion)
+          BuildInformation fromVersion,
+          BuildInformation toVersion)
           throws ApplicationException {
     Long id;
     try {
@@ -1281,8 +1281,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private void writeHistoricalRecord(
           Long id,
-          Integer from,
-          Integer to,
+          BuildInformation from,
+          BuildInformation to,
           HistoricalRecord.Status status,
           String note)
           throws ApplicationException {
@@ -1457,8 +1457,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private void initialize() throws ApplicationException {
     try {
-      Integer fromVersion = getCurrentVersion();
-      Integer toVersion = getStagedVersion();
+      BuildInformation fromVersion = getCurrentBuildInformation();
+      BuildInformation toVersion = getStagedBuildInformation();
       this.historicalOperationId =
               writeInitialHistoricalRecord(fromVersion, toVersion);
 
@@ -1649,10 +1649,10 @@ public class Upgrader extends GuiApplication implements CliApplication {
     return new File(getUpgradeBackupDirectory(), "schema.custom.diff");
   }
 
-  private Integer getCurrentVersion() {
+  private BuildInformation getCurrentBuildInformation() {
     if (this.currentVersion == null) {
       try {
-        currentVersion = getInstallation().getSvnRev();
+        currentVersion = getInstallation().getBuildInformation();
       } catch (ApplicationException e) {
         LOG.log(Level.INFO, "error trying to determine current version", e);
       }
@@ -1660,10 +1660,10 @@ public class Upgrader extends GuiApplication implements CliApplication {
     return currentVersion;
   }
 
-  private Integer getStagedVersion() {
+  private BuildInformation getStagedBuildInformation() {
     if (stagedVersion == null) {
       try {
-        stagedVersion = getStagedInstallation().getSvnRev();
+        stagedVersion = getStagedInstallation().getBuildInformation();
       } catch (Exception e) {
         LOG.log(Level.INFO, "error", e);
       }

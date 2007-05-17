@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.quicksetup.BuildInformation;
+
 import java.util.StringTokenizer;
 import java.util.EnumSet;
 import java.util.Set;
@@ -110,8 +112,8 @@ public class HistoricalRecord {
   static public HistoricalRecord fromString(String s)
           throws IllegalArgumentException {
     Long operationid = null;
-    Integer fromInt = null;
-    Integer toInt = null;
+    BuildInformation from = null;
+    BuildInformation to = null;
     Status outcome = null;
     Date date = null;
     String note = null;
@@ -129,11 +131,11 @@ public class HistoricalRecord {
 
       token = st.nextToken();
       String fromString = token.substring(FROM.length());
-      fromInt = new Integer(fromString);
+      from = BuildInformation.fromBuildString(fromString);
 
       token = st.nextToken();
       String toString = token.substring(TO.length());
-      toInt = new Integer(toString);
+      to = BuildInformation.fromBuildString(fromString);
 
       token = st.nextToken();
       String outcomeString = token.substring(STATUS.length());
@@ -151,15 +153,15 @@ public class HistoricalRecord {
       LOG.log(Level.INFO, "error creating historical log record", e);
       creationError = e;
     }
-    return new HistoricalRecord(operationid, date, fromInt,
-            toInt, outcome, note, creationError);
+    return new HistoricalRecord(operationid, date, from,
+            to, outcome, note, creationError);
   }
 
   private Long operationId;
 
-  private Integer from;
+  private BuildInformation from;
 
-  private Integer to;
+  private BuildInformation to;
 
   private Status status;
 
@@ -178,8 +180,9 @@ public class HistoricalRecord {
    * @param status of the upgrade
    * @param note containing details of status; can be null
    */
-  public HistoricalRecord(Integer from,
-                          Integer to, Status status, String note) {
+  public HistoricalRecord(BuildInformation from,
+                          BuildInformation to,
+                          Status status, String note) {
     this.from = from;
     this.to = to;
     this.status = status;
@@ -196,8 +199,10 @@ public class HistoricalRecord {
    * @param status of the upgrade
    * @param note containing details of status; can be null
    */
-  public HistoricalRecord(Long operationId, Integer from,
-                          Integer to, Status status, String note) {
+  public HistoricalRecord(Long operationId,
+                          BuildInformation from,
+                          BuildInformation to,
+                          Status status, String note) {
     this.from = from;
     this.to = to;
     this.status = status;
@@ -216,8 +221,8 @@ public class HistoricalRecord {
    * @param creationError Exception that occurred while this record was
    * being created
    */
-  private HistoricalRecord(Long operationId, Date date, Integer from,
-                          Integer to, Status status, String note,
+  private HistoricalRecord(Long operationId, Date date, BuildInformation from,
+                          BuildInformation to, Status status, String note,
                           Exception creationError) {
     this.operationId = operationId;
     this.from = from;
@@ -248,7 +253,7 @@ public class HistoricalRecord {
    * Gets the Integer representing the SVN rev ID of the current installation.
    * @return Integer version ID
    */
-  public Integer getFromVersion() {
+  public BuildInformation getFromVersion() {
     return this.from;
   }
 
@@ -257,7 +262,7 @@ public class HistoricalRecord {
    * upgraded to.
    * @return Integer version ID
    */
-  public Integer getToVersion() {
+  public BuildInformation getToVersion() {
     return this.to;
   }
 
@@ -273,10 +278,10 @@ public class HistoricalRecord {
     .append(new SimpleDateFormat(DATE_FORMAT).format(date))
     .append(SEPARATOR)
     .append(FROM)
-    .append(from)
+    .append(from.getBuildString())
     .append(SEPARATOR)
     .append(TO)
-    .append(to)
+    .append(to.getBuildString())
     .append(SEPARATOR)
     .append(STATUS)
     .append(status);

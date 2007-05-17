@@ -28,6 +28,7 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.BuildInformation;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public class HistoricalLog {
    * @return Long operation ID that can be used in writing future logs
    * @throws IOException if there is a problem appending the log to the file
    */
-  public Long append(Integer from, Integer to,
+  public Long append(BuildInformation from, BuildInformation to,
                      HistoricalRecord.Status status, String note)
           throws IOException
   {
@@ -105,7 +106,7 @@ public class HistoricalLog {
    * @param note optional string with additional information
    * @throws IOException if there is a problem appending the log to the file
    */
-  public void append(Long id, Integer from, Integer to,
+  public void append(Long id, BuildInformation from, BuildInformation to,
                      HistoricalRecord.Status status, String note)
           throws IOException
   {
