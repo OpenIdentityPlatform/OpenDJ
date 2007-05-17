@@ -137,7 +137,7 @@ public class InProcessServerController {
             (disableConnectionHandlers ? "disabled" : "enabled"));
     System.setProperty(
             "org.opends.server.DisableConnectionHandlers",
-            disableConnectionHandlers ? "true" : null);
+            disableConnectionHandlers ? "true" : "false");
     return startServer();
   }
 
@@ -179,6 +179,19 @@ public class InProcessServerController {
 
     try {
 
+      org.opends.server.core.DirectoryServer directoryServer =
+              org.opends.server.core.DirectoryServer.getInstance();
+
+      // Bootstrap and start the Directory Server.
+      LOG.log(Level.FINER, "Bootstrapping directory server");
+      directoryServer.bootstrapServer();
+
+      LOG.log(Level.FINER, "Initializing configuration");
+      String configClass = "org.opends.server.extensions.ConfigFileHandler";
+      String configPath = Utils.getPath(
+              installation.getCurrentConfigurationFile());
+      directoryServer.initializeConfiguration(configClass, configPath);
+
       try {
 
         DebugLogPublisher startupDebugPublisher =
@@ -206,6 +219,7 @@ public class InProcessServerController {
                         });
         ErrorLogger.addErrorLogPublisher(DN.NULL_DN,
                 startupErrorPublisher);
+
         AccessLogPublisher startupAccessPublisher =
                 TextAccessLogPublisher.getStartupTextAccessPublisher(
                         new ServerControllerTextWriter(output) {
@@ -223,19 +237,6 @@ public class InProcessServerController {
         LOG.log(Level.INFO, "Error installing test log publishers: " +
                 e.toString());
       }
-
-      org.opends.server.core.DirectoryServer directoryServer =
-              org.opends.server.core.DirectoryServer.getInstance();
-
-      // Bootstrap and start the Directory Server.
-      LOG.log(Level.FINER, "Bootstrapping directory server");
-      directoryServer.bootstrapServer();
-
-      LOG.log(Level.FINER, "Initializing configuration");
-      String configClass = "org.opends.server.extensions.ConfigFileHandler";
-      String configPath = Utils.getPath(
-              installation.getCurrentConfigurationFile());
-      directoryServer.initializeConfiguration(configClass, configPath);
 
       LOG.log(Level.FINER, "Invoking start server");
       directoryServer.startServer();
