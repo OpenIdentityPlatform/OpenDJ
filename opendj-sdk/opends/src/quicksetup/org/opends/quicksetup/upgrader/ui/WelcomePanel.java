@@ -33,11 +33,11 @@ import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.upgrader.Upgrader;
+import org.opends.server.util.DynamicConstants;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.util.ArrayList;
 
 /**
  * This panel is used to show a welcome message.  If this is the WebStart,
@@ -94,18 +94,10 @@ public class WelcomePanel extends QuickSetupStepPanel {
      * We can use org.opends.server.util.DynamicConstants without problems as it
      * has been added to quicksetup.jar during build time.
      */
-    java.util.List<String> args = new ArrayList<String>();
-    String msgKey;
-    if (Utils.isWebStart()) {
-      msgKey = "upgrade-welcome-panel-webstart-instructions";
-      String cmd = Utils.isWindows() ? Installation.WINDOWS_UPGRADE_FILE_NAME :
-              Installation.UNIX_UPGRADE_FILE_NAME;
-      args.add(UIFactory.applyFontToHtml(cmd,
-              UIFactory.INSTRUCTIONS_MONOSPACE_FONT));
-    } else {
-      msgKey = "upgrade-welcome-panel-offline-instructions";
-    }
-    return getMsg(msgKey, args.toArray(new String[0]));
+    return getMsg("upgrade-welcome-panel-webstart-instructions",
+            new String[] {
+                    DynamicConstants.COMPACT_VERSION_STRING,
+                    DynamicConstants.BUILD_ID});
   }
 
   /**

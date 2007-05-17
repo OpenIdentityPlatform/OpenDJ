@@ -230,17 +230,22 @@ public class Installation {
       failureReason = "does not exist";
     } else {
       String[] children = rootDirectory.list();
-      Set<String> childrenSet = new HashSet<String>(Arrays.asList(children));
-      String[] dirsToCheck = new String[] {
-              CONFIG_PATH_RELATIVE,
-              DATABASES_PATH_RELATIVE,
-              LIBRARIES_PATH_RELATIVE,
-              // perhaps we should check more
-      };
-      for (String dir : dirsToCheck) {
-        if (!childrenSet.contains(dir)) {
-          failureReason = "does not contain directory '" + dir + "'";
+      if (children != null) {
+        Set<String> childrenSet = new HashSet<String>(Arrays.asList(children));
+        String[] dirsToCheck = new String[] {
+                CONFIG_PATH_RELATIVE,
+                DATABASES_PATH_RELATIVE,
+                LIBRARIES_PATH_RELATIVE,
+                // perhaps we should check more
+        };
+        for (String dir : dirsToCheck) {
+          if (!childrenSet.contains(dir)) {
+            failureReason = "does not contain directory '" + dir + "'";
+          }
         }
+      } else {
+        failureReason = "is empty or you lack permissions " +
+                "to access this directory";
       }
     }
     if (failureReason != null) {
