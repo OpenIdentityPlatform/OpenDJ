@@ -33,7 +33,7 @@
   <!-- Product properties -->
   <property file="${project.home}/PRODUCT"/>
   <property name="product.name" 
-            value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}"/>
+            value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}"/>
   <property name="pkg.path" 
             value="${project.home}${file.separator}build${file.separator}package${file.separator}${product.name}.zip"/>
   <property name="instance.path" value="${basedir}${file.separator}${product.name}"/>
