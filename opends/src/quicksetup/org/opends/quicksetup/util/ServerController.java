@@ -59,7 +59,7 @@ public class ServerController {
    * @param application to use for notifications
    */
   public ServerController(Application application) {
-    wqthis(application, application.getInstallation());
+    this(application, application.getInstallation());
   }
 
   /**
