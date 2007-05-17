@@ -484,7 +484,6 @@ public class ProfileViewer
     }
 
     String largestCountString = String.valueOf(subFrames[0].getTotalCount());
-    int    largestCountLength = largestCountString.length();
 
     for (ProfileStackFrame subFrame : subFrames)
     {
@@ -569,12 +568,6 @@ public class ProfileViewer
       // There is a tree node selected, so we should convert it to a stack
       // frame and display information about it.
       ProfileStackFrame frame = (ProfileStackFrame) selectedObject;
-      if (frame == null)
-      {
-        frameInfoPane.setText("");
-        return;
-      }
-
 
       StringBuilder html = new StringBuilder();
       html.append("<HTML><BODY><PRE>");

@@ -111,6 +111,14 @@ public class FIFOEntryCache
 
 
 
+  /**
+   * The reference to the Java runtime used to determine the amount of memory
+   * currently in use.
+   */
+  private static final Runtime runtime = Runtime.getRuntime();
+
+
+
   // The DN of the configuration entry for this entry cache.
   private DN configEntryDN;
 
@@ -144,10 +152,6 @@ public class FIFOEntryCache
 
   // The maximum number of entries that may be held in the cache.
   private long maxEntries;
-
-  // The reference to the Java runtime to use to determine the amount of memory
-  // currently in use.
-  private Runtime runtime;
 
 
 

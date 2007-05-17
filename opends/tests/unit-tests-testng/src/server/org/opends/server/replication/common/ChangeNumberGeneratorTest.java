@@ -37,21 +37,21 @@ import org.testng.annotations.Test;
 public class ChangeNumberGeneratorTest extends ReplicationTestCase
 {
   /**
-   * Test the adjust method of ChangeNumberGenerator 
+   * Test the adjust method of ChangeNumberGenerator
    */
   @Test(dataProvider = "changeNumberData")
   public void adjustTest()
   {
     ChangeNumberGenerator generator =
       new ChangeNumberGenerator((short)5, TimeThread.getTime());
-    
-    ChangeNumber cn = generator.NewChangeNumber();
-    
+
+    ChangeNumber cn = generator.newChangeNumber();
+
     ChangeNumber cn1 =
       new ChangeNumber(cn.getTime() + 5000, cn.getSeqnum(), (short) 6);
     generator.adjust(cn1);
-    
-    ChangeNumber cn2 = generator.NewChangeNumber(); 
+
+    ChangeNumber cn2 = generator.newChangeNumber();
 
     assertTrue((cn2.compareTo(cn1)>0),
         "ChangeNumberGenerator generated an earlier ChangeNumber "

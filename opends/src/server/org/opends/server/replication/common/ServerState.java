@@ -221,17 +221,19 @@ public class ServerState implements Iterable<Short>
   @Override
   public String toString()
   {
+    StringBuilder buffer = new StringBuilder();
+
     synchronized (this)
     {
-      String str = null;
       for (Short key  : list.keySet())
       {
         ChangeNumber change = list.get(key);
-        str += " " + change.toString();
+        buffer.append(" ");
+        buffer.append(change);
       }
-
-      return str;
     }
+
+    return buffer.toString();
   }
 
   /**

@@ -53,7 +53,7 @@ public class ChangeNumberTest extends ReplicationTestCase
        {TimeThread.getTime(), (short) 123, (short) 45}
     };
   }
- 
+
   /**
    * Test ChangeNumber constructor
    */
@@ -71,7 +71,7 @@ public class ChangeNumberTest extends ReplicationTestCase
   }
 
   /**
-   * Test toString and constructor from String 
+   * Test toString and constructor from String
    */
  @Test(dataProvider = "changeNumberData")
  public void ChangeNumberEncodeDecode(long time, int seq, short id)
@@ -80,11 +80,11 @@ public class ChangeNumberTest extends ReplicationTestCase
    // Create 2 ChangeNumber with the same data and check equality
    ChangeNumber cn = new ChangeNumber(time,seq,id);
    ChangeNumber cn2 = new ChangeNumber(cn.toString());
-   
+
    assertEquals(cn, cn2,
        "The encoding/decoding of ChangeNumber is not reversible");
  }
-  
+
   /**
    * Create ChangeNumber
    */
@@ -256,51 +256,51 @@ public class ChangeNumberTest extends ReplicationTestCase
       new ChangeNumberGenerator((short) 0, TimeThread.getTime());
 
     // Generate 2 changeNumbers and check that they are differents
-    CN1 = cng.NewChangeNumber();
-    CN2 = cng.NewChangeNumber();
+    CN1 = cng.newChangeNumber();
+    CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0);
 
     // Generate a changeNumber separates by 10 milliseconds
     // and check that they are differents
     Thread.sleep(10);
-    CN2 = cng.NewChangeNumber();
+    CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0);
 
     // Generate a changeNumber separates by 300 milliseconds
     // and check that they are differents
     Thread.sleep(300);
-    CN2 = cng.NewChangeNumber();
+    CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0);
 
     // Adjust with the oldest CN
     cng.adjust(CN1) ;
-    CN2 = cng.NewChangeNumber();
+    CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
 
     // Adjust with the newest generated
     cng.adjust(CN2) ;
     CN1 = CN2;
-    CN2 = cng.NewChangeNumber();
+    CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
 
     //  Adjust with the newest generated (time + 300)
     CN1 = new ChangeNumber(CN2.getTime() +300 ,CN2.getSeqnum(),
         CN2.getServerId()) ;
     cng.adjust(CN1) ;
-    CN2 = cng.NewChangeNumber();
+    CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
 
     //  Adjust with the newest generated (seqmun + 10)
     CN1 = new ChangeNumber(CN2.getTime() ,CN2.getSeqnum() +10,
         CN2.getServerId()) ;
     cng.adjust(CN1) ;
-    CN2 = cng.NewChangeNumber();
+    CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
 
     //  Adjust with the newest generated (seqmun = 0XFFFF)
     CN1 = new ChangeNumber(CN2.getTime() ,0XFFFF +10,CN2.getServerId()) ;
     cng.adjust(CN1) ;
-    CN2 = cng.NewChangeNumber();
+    CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
   }
 }

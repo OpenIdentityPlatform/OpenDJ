@@ -75,7 +75,7 @@ public class OpendsJmxPrincipal implements Principal
   @Override
   public String toString()
   {
-    return authID.toString();
+    return authID;
   }
 
   /**
