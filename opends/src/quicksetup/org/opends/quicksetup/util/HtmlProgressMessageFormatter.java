@@ -42,6 +42,7 @@ import org.opends.quicksetup.ui.UIFactory;
 public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
 {
   private String doneHtml;
+  private String errorHtml;
 
   /**
    * The line break in HTML.
@@ -207,6 +208,20 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
           UIFactory.PROGRESS_DONE_FONT);
     }
     return doneHtml;
+  }
+
+  /**
+   * Returns the HTML representation of the 'Error' text string.
+   * @return the HTML representation of the 'Error' text string.
+   */
+  public String getFormattedError() {
+    if (errorHtml == null)
+    {
+      String html = getHtml(getMsg("progress-error"));
+      errorHtml = UIFactory.applyFontToHtml(html,
+          UIFactory.PROGRESS_ERROR_FONT);
+    }
+    return errorHtml;
   }
 
   /**

@@ -38,6 +38,7 @@ public class PlainTextProgressMessageFormatter
 implements ProgressMessageFormatter
 {
   private String doneText;
+  private String errorText;
 
   /**
    * The line break in plain text.
@@ -167,6 +168,19 @@ implements ProgressMessageFormatter
   }
 
   /**
+   * Returns the plain text representation of the 'Error' text string.
+   * @return the plain text representation of the 'Error' text string.
+   */
+  public String getFormattedError()
+  {
+    if (errorText == null)
+    {
+      errorText = getMsg("progress-error");
+    }
+    return errorText;
+  }
+
+  /**
    * Returns the plain text representation of the argument text to which we add
    * points.  For instance if we pass as argument 'Configuring Server' the
    * return value will be 'Configuring Server .....'.
@@ -263,7 +277,7 @@ implements ProgressMessageFormatter
    * have something of type:
    * key=value
    *
-   * @see ResourceProvider.getMsg(String key)
+   * @see ResourceProvider#getMsg(String key)
    * @param key the key in the properties file.
    * @return the value associated to the key in the properties file.
    * properties file.

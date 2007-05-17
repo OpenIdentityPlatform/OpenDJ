@@ -487,10 +487,9 @@ public abstract class GuiApplication extends Application {
   protected void startServerWithoutConnectionHandlers()
   throws ApplicationException {
     try {
-      ServerController control = new ServerController(this);
+      ServerController control = new ServerController(getInstallation());
       if (getInstallation().getStatus().isServerRunning()) {
-        control.stopServer();
-        notifyListeners(formatter.getLineBreak());
+        control.stopServer(true);
       }
       new InProcessServerController(getInstallation()).startServer(true);
     } catch (IOException e) {

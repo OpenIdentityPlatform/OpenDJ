@@ -60,7 +60,7 @@ public class ServerController {
    * @param application to use for notifications
    */
   public ServerController(Application application) {
-    this(application, application.getInstallation());
+    wqthis(application, application.getInstallation());
   }
 
   /**
@@ -92,128 +92,166 @@ public class ServerController {
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
   public void stopServer() throws ApplicationException {
-    if (application != null) {
-      application.notifyListeners(
-              application.getFormattedProgress(
-                      application.getMsg("progress-stopping")) +
-                      application.getLineBreak());
-    }
-    LOG.log(Level.INFO, "stopping server");
+    stopServer(false);
+  }
 
-    ArrayList<String> argList = new ArrayList<String>();
-    argList.add(Utils.getPath(installation.getServerStopCommandFile()));
-    String[] args = new String[argList.size()];
-    argList.toArray(args);
-    ProcessBuilder pb = new ProcessBuilder(args);
-    Map<String, String> env = pb.environment();
-    env.put("JAVA_HOME", System.getProperty("java.home"));
-    /* Remove JAVA_BIN to be sure that we use the JVM running the uninstaller
-     * JVM to stop the server.
-     */
-    env.remove("JAVA_BIN");
+  /**
+   * This methods stops the server.
+   *
+   * @param suppressOutput boolean indicating that ouput to standard output
+   *                       streams from the server should be suppressed.
+   * @throws org.opends.quicksetup.ApplicationException
+   *          if something goes wrong.
+   */
+  public void stopServer(boolean suppressOutput) throws ApplicationException {
+
+    if (suppressOutput && !StandardOutputSuppressor.isSuppressed()) {
+      StandardOutputSuppressor.suppress();
+    }
 
     try {
-      Process process = pb.start();
+      if (application != null) {
+        application.notifyListeners(
+                application.getFormattedProgress(
+                        application.getMsg("progress-stopping")) +
+                        application.getLineBreak());
+      }
+      LOG.log(Level.INFO, "stopping server");
 
-      BufferedReader err =
-              new BufferedReader(
-                      new InputStreamReader(process.getErrorStream()));
-      BufferedReader out =
-              new BufferedReader(
-                      new InputStreamReader(process.getInputStream()));
+      ArrayList<String> argList = new ArrayList<String>();
+      argList.add(Utils.getPath(installation.getServerStopCommandFile()));
+      String[] args = new String[argList.size()];
+      argList.toArray(args);
+      ProcessBuilder pb = new ProcessBuilder(args);
+      Map<String, String> env = pb.environment();
+      env.put("JAVA_HOME", System.getProperty("java.home"));
+      /* Remove JAVA_BIN to be sure that we use the JVM running the uninstaller
+      * JVM to stop the server.
+      */
+      env.remove("JAVA_BIN");
 
-      /* Create these objects to resend the stop process output to the details
-       * area.
-       */
-      new StopReader(err, true);
-      new StopReader(out, false);
+      try {
+        Process process = pb.start();
 
-      int returnValue = process.waitFor();
+        BufferedReader err =
+                new BufferedReader(
+                        new InputStreamReader(process.getErrorStream()));
+        BufferedReader out =
+                new BufferedReader(
+                        new InputStreamReader(process.getInputStream()));
 
-      int clientSideError =
-              org.opends.server.protocols.ldap.
-                      LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
-      if ((returnValue == clientSideError) || (returnValue == 0)) {
-        if (Utils.isWindows()) {
-          /*
-           * Sometimes the server keeps some locks on the files.
-           * TODO: remove this code once stop-ds returns properly when server
-           * is stopped.
-           */
-          int nTries = 10;
-          boolean stopped = false;
+        /* Create these objects to resend the stop process output to the details
+        * area.
+        */
+        new StopReader(err, true);
+        new StopReader(out, false);
 
-          for (int i = 0; i < nTries && !stopped; i++) {
-            stopped = !CurrentInstallStatus.isServerRunning(
-                    installation.getLocksDirectory());
-            if (!stopped) {
-              if (application != null) {
-                String msg =
-                        application.getFormattedLog(
-                                application.getMsg(
-                                        "progress-server-waiting-to-stop")) +
-                                application.getLineBreak();
-                application.notifyListeners(msg);
-              }
-              LOG.log(Level.FINE, "waiting for server to stop");
-              try {
-                Thread.sleep(5000);
-              }
-              catch (Exception ex) {
+        int returnValue = process.waitFor();
 
+        int clientSideError =
+                org.opends.server.protocols.ldap.
+                        LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
+        if ((returnValue == clientSideError) || (returnValue == 0)) {
+          if (Utils.isWindows()) {
+            /*
+            * Sometimes the server keeps some locks on the files.
+            * TODO: remove this code once stop-ds returns properly when server
+            * is stopped.
+            */
+            int nTries = 10;
+            boolean stopped = false;
+
+            for (int i = 0; i < nTries && !stopped; i++) {
+              stopped = !CurrentInstallStatus.isServerRunning(
+                      installation.getLocksDirectory());
+              if (!stopped) {
+                if (application != null) {
+                  String msg =
+                          application.getFormattedLog(
+                                  application.getMsg(
+                                          "progress-server-waiting-to-stop")) +
+                                  application.getLineBreak();
+                  application.notifyListeners(msg);
+                }
+                LOG.log(Level.FINE, "waiting for server to stop");
+                try {
+                  Thread.sleep(5000);
+                }
+                catch (Exception ex) {
+
+                }
               }
             }
-          }
-          if (!stopped) {
-            returnValue = -1;
+            if (!stopped) {
+              returnValue = -1;
+            }
           }
         }
-      }
 
-      if (returnValue == clientSideError) {
-        if (application != null) {
-          String msg = application.getLineBreak() +
-                  application.getFormattedLog(
-                          application.getMsg(
-                                  "progress-server-already-stopped")) +
-                  application.getLineBreak();
-          application.notifyListeners(msg);
+        if (returnValue == clientSideError) {
+          if (application != null) {
+            String msg = application.getLineBreak() +
+                    application.getFormattedLog(
+                            application.getMsg(
+                                    "progress-server-already-stopped")) +
+                    application.getLineBreak();
+            application.notifyListeners(msg);
+          }
+          LOG.log(Level.INFO, "server already stopped");
+
+        } else if (returnValue != 0) {
+          /*
+          * The return code is not the one expected, assume the server could
+          * not be stopped.
+          */
+          throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
+                  ResourceProvider.getInstance().getMsg(
+                          "error-stopping-server-code",
+                          String.valueOf(returnValue)),
+                  null);
+        } else {
+          if (application != null) {
+            String msg = application.getFormattedLog(
+                    application.getMsg("progress-server-stopped"));
+            application.notifyListeners(msg);
+          }
+          LOG.log(Level.INFO, "server stopped");
         }
-        LOG.log(Level.INFO, "server already stopped");
 
-      } else if (returnValue != 0) {
-        /*
-         * The return code is not the one expected, assume the server could
-         * not be stopped.
-         */
+      } catch (Exception e) {
         throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
-                ResourceProvider.getInstance().getMsg(
-                        "error-stopping-server-code",
-                        String.valueOf(returnValue)),
-                null);
-      } else {
-        if (application != null) {
-          String msg = application.getFormattedLog(
-                  application.getMsg("progress-server-stopped"));
-          application.notifyListeners(msg);
-        }
-        LOG.log(Level.INFO, "server stopped");
+                getThrowableMsg("error-stopping-server", e), e);
       }
-
-    } catch (Exception e) {
-      throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
-              getThrowableMsg("error-stopping-server", e), e);
+    } finally {
+      if (suppressOutput && StandardOutputSuppressor.isSuppressed()) {
+        StandardOutputSuppressor.unsuppress();
+      }
     }
   }
 
   /**
    * This methods starts the server.
+   *
    * @return OperationOutput object containing output from the start server
    * command invocation.
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
   public OperationOutput startServer() throws ApplicationException {
-    return startServer(true);
+    return startServer(true, false);
+  }
+
+  /**
+   * This methods starts the server.
+   * @param suppressOutput boolean indicating that ouput to standard output
+   * streams from the server should be suppressed.
+   * @return OperationOutput object containing output from the start server
+   * command invocation.
+   * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
+   */
+  public OperationOutput startServer(boolean suppressOutput)
+          throws ApplicationException
+  {
+    return startServer(true, suppressOutput);
   }
 
   /**
@@ -222,12 +260,20 @@ public class ServerController {
    * connect to the server after starting to verify that it is listening.
    * @return OperationOutput object containing output from the start server
    * command invocation.
+   * @return boolean indicating that ouput to standard output streams
+   * from the server should be suppressed.
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
-  private OperationOutput startServer(boolean verify)
+  private OperationOutput startServer(boolean verify, boolean suppressOuput)
           throws ApplicationException
   {
     OperationOutput output = new OperationOutput();
+
+    if (suppressOuput && !StandardOutputSuppressor.isSuppressed()) {
+      StandardOutputSuppressor.suppress();
+    }
+
+    try {
     if (application != null) {
       application.notifyListeners(
               application.getFormattedProgress(
@@ -394,6 +440,11 @@ public class ServerController {
               getThrowableMsg("error-starting-server", ioe),
               ioe);
     }
+  } finally {
+      if (suppressOuput && StandardOutputSuppressor.isSuppressed()) {
+        StandardOutputSuppressor.unsuppress();
+      }
+  }
     return output;
   }
 
