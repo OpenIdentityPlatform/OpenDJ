@@ -34,6 +34,8 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.i18n.ResourceProvider;
 
+import java.lang.reflect.Type;
+
 /**
  * Controller for managing the execution of a CliApplication.
  */
@@ -143,23 +145,28 @@ public class QuickSetupCli {
         ApplicationException ue = cliApp.getException();
         if (ue != null)
         {
-          switch (ue.getType())
-          {
-          case FILE_SYSTEM_ERROR:
-            returnValue = ERROR_ACCESSING_FILE_SYSTEM;
-            break;
+          ApplicationException.Type type = ue.getType();
+          if (type != null) {
+            switch (type)
+            {
+            case FILE_SYSTEM_ERROR:
+              returnValue = ERROR_ACCESSING_FILE_SYSTEM;
+              break;
 
-          case STOP_ERROR:
-            returnValue = ERROR_STOPPING_SERVER;
-            break;
+            case STOP_ERROR:
+              returnValue = ERROR_STOPPING_SERVER;
+              break;
 
-          case BUG:
-            returnValue = BUG;
-            break;
+            case BUG:
+              returnValue = BUG;
+              break;
 
-          default:
+            default:
+              returnValue = UNKNOWN;
+              break;
+            }
+          } else {
             returnValue = UNKNOWN;
-            break;
           }
         }
         else
