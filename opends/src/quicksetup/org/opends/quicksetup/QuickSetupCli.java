@@ -34,8 +34,6 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.i18n.ResourceProvider;
 
-import java.lang.reflect.Type;
-
 /**
  * Controller for managing the execution of a CliApplication.
  */
