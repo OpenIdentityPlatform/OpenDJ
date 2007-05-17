@@ -101,6 +101,12 @@ implements AciTargetMatchContext, AciEvalContext {
      * The entry being evaluated (resource entry).
      */
     private Entry resourceEntry;
+
+    /*
+     * Saves the resource entry. Used in geteffectiverights evaluation to
+     * restore the current resource entry state after a read right was
+     * evaluated.
+     */
     private Entry saveResourceEntry;
 
     /*
@@ -225,6 +231,11 @@ implements AciTargetMatchContext, AciEvalContext {
      */
     private String summaryString=null;
 
+   /*
+    * Flag used to determine if ACI all attributes target matched.
+    */
+    private int evalAllAttributes=0;
+
   /**
      * This constructor is used by all currently supported LDAP operations.
      *
@@ -265,6 +276,9 @@ implements AciTargetMatchContext, AciEvalContext {
           this.specificAttrs=getEffectiveRightsControl.getAttributes();
           fullEntry=(Entry)operation.getAttachment(ALL_ATTRS_RESOURCE_ENTRY);
         }
+        String allAttrs=(String)operation.getAttachment(ALL_ATTRS_MATCHED);
+        if(allAttrs != null)
+          evalAllAttributes = ACI_ATTR_STAR_MATCHED;
       }
       //Reference the current authorization entry, so it can be put back
       //if an access proxy check was performed.
@@ -790,5 +804,34 @@ implements AciTargetMatchContext, AciEvalContext {
               hasRights(ACI_SELF))
         return "selfwrite";
       return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public  void setACIEvalAttributesRule(int v) {
+    if(operation instanceof SearchOperation && (rights == ACI_READ)) {
+      if(v == ACI_FOUND_ATTR_RULE) {
+        evalAllAttributes |= ACI_FOUND_ATTR_RULE;
+        evalAllAttributes &= ~ACI_ATTR_STAR_MATCHED;
+      } else
+        evalAllAttributes |= Aci.ACI_ATTR_STAR_MATCHED;
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean hasACIEvalAttributes() {
+    return (evalAllAttributes == 0) ||
+           (evalAllAttributes & ACI_FOUND_ATTR_RULE) == ACI_FOUND_ATTR_RULE;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void clearACIEvalAttributesRule(int v) {
+    evalAllAttributes &= ~v;
   }
 }

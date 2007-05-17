@@ -178,7 +178,6 @@ public class UserAttr implements KeywordBindRule {
      */
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
         EnumEvalResult matched;
-        boolean undefined=false;
 
         switch(userAttrType) {
         case ROLEDN:
@@ -194,9 +193,7 @@ public class UserAttr implements KeywordBindRule {
         default:
             matched=evalVAL(evalCtx);
         }
-        if(matched == EnumEvalResult.ERR)
-            undefined=true;
-        return matched.getRet(type, undefined);
+        return matched;
     }
 
     /** Evaluate a VALUE userattr type. Look in client entry for an

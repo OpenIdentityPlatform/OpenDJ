@@ -411,9 +411,23 @@ public class AciTargets {
             AttributeType a=targetMatchCtx.getCurrentAttributeType();
             int rights=targetMatchCtx.getRights();
             boolean isFirstAttr=targetMatchCtx.isFirstAttribute();
-            if((a != null) && (targets.getTargetAttr() != null))
-                ret=TargetAttr.isApplicable(a, targets.getTargetAttr());
-            else if((a != null) || (targets.getTargetAttr() != null)) {
+            if((a != null) && (targets.getTargetAttr() != null))  {
+             ret=TargetAttr.isApplicable(a,targets.getTargetAttr());
+             targetMatchCtx.clearACIEvalAttributesRule(ACI_ATTR_STAR_MATCHED);
+             /*
+               If a explicitly defined targetattr's match rule has not
+               been seen (~ACI_FOUND_ATTR_RULE) and the current attribute type
+               is applicable because of a targetattr all attributes rule match,
+               set a flag to indicate this situation (ACI_ATTR_STAR_MATCHED).
+               Else the attributes is applicable because it is operational or
+               not a targetattr's all attribute match.
+              */
+             if(ret && targets.getTargetAttr().isAllAttributes() &&
+                !targetMatchCtx.hasACIEvalAttributes())
+               targetMatchCtx.setACIEvalAttributesRule(ACI_ATTR_STAR_MATCHED);
+              else
+                targetMatchCtx.setACIEvalAttributesRule(ACI_FOUND_ATTR_RULE);
+            } else if((a != null) || (targets.getTargetAttr() != null)) {
                 if((aci.hasRights(skipRights)) &&
                                                 (skipRightsHasRights(rights)))
                     ret=true;
