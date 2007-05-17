@@ -1272,7 +1272,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       id = log.append(fromVersion, toVersion,
               HistoricalRecord.Status.STARTED, null);
     } catch (IOException e) {
-      String msg = "IO Error logging operation: " + e.getLocalizedMessage();
+      String msg = "I/O Error logging operation: " + e.getLocalizedMessage();
       throw ApplicationException.createFileSystemException(
               msg, e);
     }
@@ -1519,7 +1519,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 "Directory '" + getStageDirectory() +
                         "' does not contain a staged installation of OpenDS" +
                         " as was expected.  Verify that the new installation" +
-                        " package (.zip) is an OpenDS installation file", null);
+                        " package (.zip) is an OpenDS installation file and" +
+                        " that you have write access permission for this " +
+                        " directory.", null);
       }
     }
     return stagedInstallation;
