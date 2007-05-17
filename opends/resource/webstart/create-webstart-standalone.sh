@@ -152,14 +152,14 @@ echo "Creating Setup JNLP file ${INSTALL_JNLP_FILENAME} ..."
 cd ..
 cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
 <?xml version="1.0" encoding="utf-8"?>
-<!-- JNLP File for OpenDS Quick Setup Application -->
+<!-- JNLP File for OpenDS QuickSetup Application -->
 <jnlp spec="1.5+"
   codebase="${INSTALLER_URI}" href="${INSTALL_JNLP_FILENAME}">
   <information>
-    <title>OpenDS Quick Setup Application</title>
+    <title>OpenDS QuickSetup Application</title>
     <vendor>http://www.opends.org/</vendor>
     <homepage href="http://www.opends.org"/>
-    <description>OpenDS Quick Setup Application</description>
+    <description>OpenDS QuickSetup Application</description>
     <description kind="short">OpenDS Web Start Installer</description>
     <icon href="images/opendshref.png" height="128" width="128"/>
     <icon kind="splash" href="images/opendssplash.png" height="114" width="479"/>
@@ -194,14 +194,14 @@ ENDOFINSTALLJNLP
 echo "Creating Upgrade JNLP file ${UPGRADE_JNLP_FILENAME} ..."
 cat > "${UPGRADE_JNLP_FILENAME}" <<ENDOFUPGRADEJNLP
 <?xml version="1.0" encoding="utf-8"?>
-<!-- JNLP File for OpenDS Quick Upgrade Application -->
+<!-- JNLP File for OpenDS QuickUpgrade Application -->
 <jnlp spec="1.5+"
   codebase="${INSTALLER_URI}" href="${UPGRADE_JNLP_FILENAME}">
   <information>
-    <title>OpenDS Quick Upgrade Application</title>
+    <title>OpenDS QuickUpgrade Application</title>
     <vendor>http://www.opends.org/</vendor>
     <homepage href="http://www.opends.org"/>
-    <description>OpenDS Quick Upgrade Application</description>
+    <description>OpenDS QuickUpgrade Application</description>
     <description kind="short">OpenDS Web Start Upgrader</description>
     <icon href="images/opendshref.png" height="128" width="128"/>
     <icon kind="splash" href="images/opendssplash.png" height="114" width="479"/>
