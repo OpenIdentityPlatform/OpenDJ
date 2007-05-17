@@ -250,6 +250,27 @@ public class Aci  {
     public static final int TARGATTRFILTERS_DELETE = 0x2000;
 
     /**
+     * ACI_ATTR_STAR_MATCHED is the flag set when the evaluation reason of a
+     * AciHandler.maysend ACI_READ access evaluation was the result of an
+     * ACI targetattr all attributes expression (targetattr="*") target match.
+     * For this flag to be set, there must be only one ACI matching.
+     *
+     * This flag and ACI_FOUND_ATTR_RULE are used in the
+     * AciHandler.filterEntry.accessAllowedAttrs method to skip access
+     * evaluation if the flag is ACI_ATTR_STAR_MATCHED (all attributes match)
+     * and the attribute type is not operational.
+     */
+    public static final int ACI_ATTR_STAR_MATCHED = 0x0008;
+
+    /**
+     * ACI_FOUND_ATTR_RULE is the flag set when the evaluation reason of a
+     * AciHandler.maysend ACI_READ access evaluation was the result of an
+     * ACI targetattr specific attribute expression
+     * (targetattr="some attribute type") target match.
+     */
+    public static final int ACI_FOUND_ATTR_RULE = 0x0010;
+
+    /**
      * ACI_NULL is used to set the container rights to all zeros. Used
      * by LDAP modify.
      */

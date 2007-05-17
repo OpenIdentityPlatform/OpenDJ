@@ -165,6 +165,39 @@ public interface AciTargetMatchContext {
      * @return  True if a match context is evaluating geteffectiverights.
      */
     boolean isGetEffectiveRightsEval();
+
+  /**
+   * This method toggles a mask that indicates that access checking of
+   * individual non-operational attributes may or may not be skipped depending
+   * on if there is a single ACI containing a targetattr all attributes  rule
+   * (targetattr="*").
+   *
+   * The only case where individual non-operational attribute access checking
+   * can be skipped, is when a single ACI matched using a targetattr
+   * all attributes rule.
+   *
+   * @param v  The flag to set the mask to.
+   */
+  void setACIEvalAttributesRule(int v);
+
+  /**
+   * Return true if the evaluating ACI either contained an explicitly defined
+   * attribute type in a targeattr target rule or both a targetattr all
+   * attributes rule matched and a explictly defined targetattr target rule
+   * matched.
+   *
+   * @return  True if the above condition was seen.
+   */
+    boolean hasACIEvalAttributes();
+
+
+  /**
+   * Used to clear the mask used to detect if access checking needs to be
+   * performed on individual non-operational attributes types.
+   *
+   * @param v  The flag to clear (always ACI_ATTR_STAR_MATCHED)
+   */
+    public void clearACIEvalAttributesRule(int v);
 }
 
 

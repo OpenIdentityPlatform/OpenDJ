@@ -85,6 +85,13 @@ public class AciHandler extends AccessControlHandler
     public static String ALL_ATTRS_RESOURCE_ENTRY = "allAttrsResourceEntry";
 
     /**
+     * String used to indicate that the evaluating ACI had a all attributes
+     * targetattr match (targetattr="*").
+     */
+     public static String ALL_ATTRS_MATCHED = "allAttrsMatched";
+
+
+    /**
      * This constructor instantiates the ACI handler class that performs the
      * main processing for the dseecompat ACI package. It does the following
      * initializations:
@@ -556,16 +563,16 @@ public class AciHandler extends AccessControlHandler
         return ret;
     }
 
-  /**
-   * Check if the specified attribute type is a DN by checking if its syntax
-   * OID is equal to the DN syntax OID.
-   * @param attribute The attribute type to check.
-   * @return True if the attribute type syntax OID is equal to a DN syntax OID.
-   */
-  private boolean isAttributeDN(AttributeType attribute) {
-    return (attribute.getSyntaxOID().equals(SYNTAX_DN_OID));
-  }
-
+    /**
+     * Check if the specified attribute type is a DN by checking if its syntax
+     * OID is equal to the DN syntax OID.
+     * @param attribute The attribute type to check.
+     * @return True if the attribute type syntax OID is equal to a DN syntax
+     *         OID.
+     */
+    private boolean isAttributeDN(AttributeType attribute) {
+      return (attribute.getSyntaxOID().equals(SYNTAX_DN_OID));
+    }
 
     /**
      * Performs an access check against all of the attributes of an entry.
@@ -579,15 +586,17 @@ public class AciHandler extends AccessControlHandler
      */
     private SearchResultEntry
     accessAllowedAttrs(AciLDAPOperationContainer container) {
-        Entry e=container.getResourceEntry();
-        List<AttributeType> typeList=getAllAttrs(e);
-        for(AttributeType attrType : typeList) {
-            container.setCurrentAttributeType(attrType);
-            if(!accessAllowed(container)) {
-                e.removeAttribute(attrType);
-            }
+      Entry e=container.getResourceEntry();
+      List<AttributeType> typeList=getAllAttrs(e);
+      for(AttributeType attrType : typeList) {
+        if(!container.hasACIEvalAttributes() && !attrType.isOperational())
+          continue;
+        container.setCurrentAttributeType(attrType);
+        if(!accessAllowed(container)) {
+          e.removeAttribute(attrType);
         }
-        return container.getSearchResultEntry();
+      }
+      return container.getSearchResultEntry();
     }
 
     /**
@@ -600,6 +609,8 @@ public class AciHandler extends AccessControlHandler
      */
     private List<AttributeType> getAllAttrs(Entry e) {
         Map<AttributeType,List<Attribute>> attrMap = e.getUserAttributes();
+        Map<AttributeType,List<Attribute>> opAttrMap =
+                                                   e.getOperationalAttributes();
         List<AttributeType> typeList=new LinkedList<AttributeType>();
         Attribute attr=e.getObjectClassAttribute();
         /*
@@ -611,6 +622,7 @@ public class AciHandler extends AccessControlHandler
            typeList.add(ocType);
         }
         typeList.addAll(attrMap.keySet());
+        typeList.addAll(opAttrMap.keySet());
         return typeList;
     }
 
@@ -877,6 +889,8 @@ public class AciHandler extends AccessControlHandler
           if (ret) {
               operationContainer.setRights(ACI_READ);
               ret=accessAllowedEntry(operationContainer);
+              if(ret && !operationContainer.hasACIEvalAttributes())
+                operation.setAttachment(ALL_ATTRS_MATCHED, ALL_ATTRS_MATCHED);
           }
       }
       if(ret && operation.getAttachment(OID_GET_EFFECTIVE_RIGHTS) != null)
