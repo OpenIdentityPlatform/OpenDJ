@@ -1240,7 +1240,7 @@ public class SubCommandArgumentParser
       if (a.needsValue())
       {
         String valuePlaceholder = a.getValuePlaceholder();
-        if (a == null)
+        if (valuePlaceholder == null)
         {
           value = " {value}";
         }

@@ -79,9 +79,9 @@ public class DbHandlerTest extends ReplicationTestCase
       new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv);
 
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);
-    ChangeNumber changeNumber1 = gen.NewChangeNumber();
-    ChangeNumber changeNumber2 = gen.NewChangeNumber();
-    ChangeNumber changeNumber3 = gen.NewChangeNumber();
+    ChangeNumber changeNumber1 = gen.newChangeNumber();
+    ChangeNumber changeNumber2 = gen.newChangeNumber();
+    ChangeNumber changeNumber3 = gen.newChangeNumber();
 
     DeleteMsg update1 = new DeleteMsg("o=test", changeNumber1, "uid");
     DeleteMsg update2 = new DeleteMsg("o=test", changeNumber2, "uid");

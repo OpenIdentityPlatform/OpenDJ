@@ -136,7 +136,7 @@ public class LDIFImportConfig
   // The set of attribute types that should be included in the import.
   private Set<AttributeType> includeAttributes;
 
-//Indicates whether all the user attributes should be included.
+  // Indicates whether all the user attributes should be included.
   private boolean includeAllUserAttrs;
 
   //Indicates whether all the operational attributes should be
@@ -149,10 +149,6 @@ public class LDIFImportConfig
   //Indicates whether all the operational attributes should be
   // excluded.
   private boolean excludeAllOpAttrs;
-
-  // The MakeLDIF template file that should be used to generate
-  // entries (instead of having them read from a file).
-  private TemplateFile templateFile;
 
 
 

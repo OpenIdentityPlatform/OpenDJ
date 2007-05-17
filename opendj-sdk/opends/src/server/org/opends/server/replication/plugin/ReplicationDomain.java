@@ -2390,7 +2390,7 @@ public class ReplicationDomain extends DirectoryThread
           String.valueOf(failureReason));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
           message, msgID);
-      new DirectoryException(ResultCode.OTHER, message, msgID);
+      throw new DirectoryException(ResultCode.OTHER, message, msgID);
     }
 
     // FIXME setBackendEnabled should be part taskUtils ?

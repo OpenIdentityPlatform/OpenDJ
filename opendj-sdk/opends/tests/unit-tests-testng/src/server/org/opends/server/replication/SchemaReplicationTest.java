@@ -226,7 +226,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)2, 0);
 
-    ModifyMsg modMsg = new ModifyMsg(gen.NewChangeNumber(),
+    ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(),
                                      baseDn, rcvdMods, "cn=schema");
     broker.publish(modMsg);
 

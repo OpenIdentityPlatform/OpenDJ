@@ -101,7 +101,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     socket.close();
 
     ReplServerFakeConfiguration conf =
-      new ReplServerFakeConfiguration(replicationServerPort, null, 0, 1, 0, 0, null); 
+      new ReplServerFakeConfiguration(replicationServerPort, null, 0, 1, 0, 0, null);
     replicationServer = new ReplicationServer(conf);
   }
 
@@ -144,13 +144,13 @@ public class ReplicationServerTest extends ReplicationTestCase
        */
       firstChangeNumberServer2 = new ChangeNumber(time+ 1, 1, (short) 2);
       secondChangeNumberServer2 = new ChangeNumber(time + 3, 2, (short) 2);
-      
+
       /*
-       * Create a ChangeNumber between firstChangeNumberServer1 and  
+       * Create a ChangeNumber between firstChangeNumberServer1 and
        * secondChangeNumberServer1 that will not be used to create a
        * change sent to the replicationServer but that will be used
-       * in the Server State when opening a connection to the 
-       * ReplicationServer to make sure that the ReplicationServer is 
+       * in the Server State when opening a connection to the
+       * ReplicationServer to make sure that the ReplicationServer is
        * able to accept such clients.
        */
       unknownChangeNumberServer1 = new ChangeNumber(time+1, 1, (short) 1);
@@ -314,7 +314,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     newClientWithChanges(state, secondChangeNumberServer1);
   }
-  
+
   /**
    * Test with a client that has already seen a Change that the
    * ReplicationServer has not seen.
@@ -454,7 +454,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       for (int i = 0; i< TOTAL_MSG; i++)
       {
         DeleteMsg msg =
-          new DeleteMsg("o=test,dc=example,dc=com", gen.NewChangeNumber(),
+          new DeleteMsg("o=test,dc=example,dc=com", gen.newChangeNumber(),
           "uid");
         server.publish(msg);
       }
@@ -601,7 +601,7 @@ public class ReplicationServerTest extends ReplicationTestCase
           "localhost:" + ((i == 0) ? changelogPorts[1] : changelogPorts[0]));
         ReplServerFakeConfiguration conf =
           new ReplServerFakeConfiguration(changelogPorts[i], "changelogDb"+i, 0,
-                                         changelogIds[i], 0, 100, servers); 
+                                         changelogIds[i], 0, 100, servers);
         replicationServer = new ReplicationServer(conf);
       }
 
@@ -669,12 +669,12 @@ public class ReplicationServerTest extends ReplicationTestCase
         if (itest > 0)
         {
           socket.close();
-          
+
           SortedSet<String> servers = new TreeSet<String>();
           servers.add("localhost:"+changelogPorts[0]);
           ReplServerFakeConfiguration conf =
             new ReplServerFakeConfiguration(changelogPorts[1], null, 0,
-                                           changelogIds[1], 0, 0, null); 
+                                           changelogIds[1], 0, 0, null);
           changelogs[1] = new ReplicationServer(conf);
 
           // Connect broker 2 to changelog2
@@ -829,7 +829,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         count--;
 
         DeleteMsg msg =
-          new DeleteMsg("o=test,dc=example,dc=com", gen.NewChangeNumber(),
+          new DeleteMsg("o=test,dc=example,dc=com", gen.newChangeNumber(),
               "uid");
         broker.publish(msg);
       }

@@ -105,8 +105,8 @@ public class PersistentStateTest extends ReplicationTestCase
     ChangeNumberGenerator gen1 = new ChangeNumberGenerator((short) 1, state);
     ChangeNumberGenerator gen2 = new ChangeNumberGenerator((short) 2, state);
 
-    ChangeNumber cn1 = gen1.NewChangeNumber();
-    ChangeNumber cn2 = gen2.NewChangeNumber();
+    ChangeNumber cn1 = gen1.newChangeNumber();
+    ChangeNumber cn2 = gen2.newChangeNumber();
 
     state.update(cn1);
     state.update(cn2);

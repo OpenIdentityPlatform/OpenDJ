@@ -415,7 +415,7 @@ public final class AddressMask
      */
     public String toString()
     {
-        return new String(ruleString);
+        return ruleString;
     }
 
     /**

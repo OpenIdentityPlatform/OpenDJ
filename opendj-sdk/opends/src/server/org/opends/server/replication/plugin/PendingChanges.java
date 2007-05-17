@@ -178,7 +178,7 @@ public class PendingChanges
   {
     ChangeNumber changeNumber;
 
-    changeNumber = changeNumberGenerator.NewChangeNumber();
+    changeNumber = changeNumberGenerator.newChangeNumber();
     PendingChange change = new PendingChange(changeNumber, operation, null);
     pendingChanges.put(changeNumber, change);
     return changeNumber;

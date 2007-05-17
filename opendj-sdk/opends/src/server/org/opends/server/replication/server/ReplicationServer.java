@@ -147,6 +147,7 @@ public class ReplicationServer
 
     initialize(replicationServerId, replicationPort);
     configuration.addChangeListener(this);
+    configDn = configuration.dn();
   }
 
   /**

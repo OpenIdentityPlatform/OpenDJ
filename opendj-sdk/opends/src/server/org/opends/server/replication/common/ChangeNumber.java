@@ -130,7 +130,7 @@ public class ChangeNumber implements java.io.Serializable,
   @Override
   public int hashCode()
   {
-    return this.seqnum + this.serverId + (new Long(this.timeStamp)).hashCode();
+    return this.seqnum + this.serverId + Long.valueOf(timeStamp).hashCode();
   }
 
   /**

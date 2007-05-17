@@ -205,6 +205,7 @@ public class SubschemaSubentryVirtualAttributeProvider
 
     int    msgID   = MSGID_SUBSCHEMASUBENTRY_VATTR_NOT_SEARCHABLE;
     String message = getMessage(msgID, rule.getAttributeType().getNameOrOID());
+    searchOperation.appendErrorMessage(message);
   }
 }
 

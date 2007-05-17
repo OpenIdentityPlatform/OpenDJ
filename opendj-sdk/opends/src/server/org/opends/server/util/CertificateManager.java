@@ -446,10 +446,10 @@ public class CertificateManager
       KEYTOOL_COMMAND,
       "-genkey",
       "-alias", alias,
-      "-dname", subjectDN.toString(),
+      "-dname", subjectDN,
       "-keyalg", "rsa",
       "-keystore", keyStorePath,
-      "-storetype", keyStoreType,
+      "-storetype", keyStoreType
     };
     runKeyTool(commandElements, keyStorePIN, keyStorePIN, true);
 
@@ -538,7 +538,7 @@ public class CertificateManager
       KEYTOOL_COMMAND,
       "-genkey",
       "-alias", alias,
-      "-dname", subjectDN.toString(),
+      "-dname", subjectDN,
       "-keyalg", "rsa",
       "-keystore", keyStorePath,
       "-storetype", keyStoreType

@@ -158,14 +158,14 @@ public class DependencyTest extends ReplicationTestCase
                            new LinkedList<AttributeValue>());
         addDn = "dc=dependency" + sequence + "," + addDn;
         AddMsg addMsg =
-          new AddMsg(gen.NewChangeNumber(), addDn, stringUID(sequence+1),
+          new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1),
                      stringUID(sequence),
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
         broker.publish(addMsg);
 
         ModifyMsg modifyMsg =
-          new ModifyMsg(gen.NewChangeNumber(), DN.decode(addDn),
+          new ModifyMsg(gen.newChangeNumber(), DN.decode(addDn),
                         generatemods("description", "test"),
                         stringUID(sequence+1));
         broker.publish(modifyMsg);
@@ -220,7 +220,7 @@ public class DependencyTest extends ReplicationTestCase
       while (sequence-->1)
       {
         DeleteMsg delMsg = new DeleteMsg(deleteDN.toString(),
-                                         gen.NewChangeNumber(),
+                                         gen.newChangeNumber(),
                                          stringUID(sequence + 1));
         broker.publish(delMsg);
         deleteDN = deleteDN.getParent();
@@ -348,14 +348,14 @@ public class DependencyTest extends ReplicationTestCase
                            new LinkedList<AttributeValue>());
         addDn = "dc=dependency" + sequence + "," + addDn;
         AddMsg addMsg =
-          new AddMsg(gen.NewChangeNumber(), addDn, stringUID(sequence+1),
+          new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1),
                      stringUID(sequence == 1 ? sequence : sequence +1000),
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
         broker.publish(addMsg);
 
         // delete the entry
-        DeleteMsg delMsg = new DeleteMsg(addDn, gen.NewChangeNumber(),
+        DeleteMsg delMsg = new DeleteMsg(addDn, gen.newChangeNumber(),
                                          stringUID(sequence+1));
         broker.publish(delMsg);
 
@@ -364,7 +364,7 @@ public class DependencyTest extends ReplicationTestCase
         entry.addAttribute(new Attribute("entryuuid", stringUID(sequence+1001)),
                            new LinkedList<AttributeValue>());
         addMsg =
-          new AddMsg(gen.NewChangeNumber(), addDn, stringUID(sequence+1001),
+          new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1001),
                      stringUID(sequence == 1 ? sequence : sequence +1000),
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
@@ -400,7 +400,7 @@ public class DependencyTest extends ReplicationTestCase
       while (sequence-->1)
       {
         DeleteMsg delMsg = new DeleteMsg(deleteDN.toString(),
-                                         gen.NewChangeNumber(),
+                                         gen.newChangeNumber(),
                                          stringUID(sequence + 1001));
         broker.publish(delMsg);
         deleteDN = deleteDN.getParent();
@@ -485,7 +485,7 @@ public class DependencyTest extends ReplicationTestCase
                            new LinkedList<AttributeValue>());
         addDn = "dc=dependency" + sequence + "," + BASEDN_STRING;
         AddMsg addMsg =
-          new AddMsg(gen.NewChangeNumber(), addDn, stringUID(sequence+1),
+          new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1),
                      stringUID(1),
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
@@ -493,7 +493,7 @@ public class DependencyTest extends ReplicationTestCase
 
         // rename the entry
         ModifyDNMsg moddnMsg =
-          new ModifyDNMsg(addDn, gen.NewChangeNumber(), stringUID(sequence+1),
+          new ModifyDNMsg(addDn, gen.newChangeNumber(), stringUID(sequence+1),
                           stringUID(1), true, null, "dc=new_dep" + sequence);
         broker.publish(moddnMsg);
       }
@@ -521,7 +521,7 @@ public class DependencyTest extends ReplicationTestCase
       {
         addDn = "dc=new_dep" + sequence + "," + BASEDN_STRING;
         DeleteMsg delMsg = new DeleteMsg(addDn.toString(),
-                                         gen.NewChangeNumber(),
+                                         gen.newChangeNumber(),
                                          stringUID(sequence + 1001));
         broker.publish(delMsg);
       }
