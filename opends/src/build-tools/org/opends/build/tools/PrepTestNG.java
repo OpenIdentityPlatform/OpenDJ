@@ -208,7 +208,12 @@ public class PrepTestNG extends Task
                 methodLine = mhd.split(",");
                 if(methodLine.length > 0)
                 {
-                  methodNameStartIdx = methodLine[0].lastIndexOf(".");
+                  // Allow class.method or class#method
+                  methodNameStartIdx = methodLine[0].lastIndexOf("#");
+                  if (methodNameStartIdx == -1)
+                  {
+                    methodNameStartIdx = methodLine[0].lastIndexOf(".");
+                  }
                   methodClass = methodLine[0].substring(0,
                                   methodNameStartIdx);
                   methodName = methodLine[0].substring(methodNameStartIdx + 1,
