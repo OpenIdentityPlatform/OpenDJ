@@ -146,9 +146,14 @@ public class InProcessServerController {
    */
   public void stopServer() {
     LOG.log(Level.INFO, "Shutting down in process server");
-    org.opends.server.core.DirectoryServer.shutDown(
-            ServerController.class.getName(),
-            "quicksetup requests shutdown");
+    StandardOutputSuppressor.suppress();
+    try {
+      org.opends.server.core.DirectoryServer.shutDown(
+              ServerController.class.getName(),
+              "quicksetup requests shutdown");
+    } finally {
+      StandardOutputSuppressor.unsuppress();
+    }
   }
 
   /**
@@ -167,68 +172,77 @@ public class InProcessServerController {
   public OperationOutput startServer()
           throws
           org.opends.server.types.InitializationException,
-          org.opends.server.config.ConfigException
-  {
+          org.opends.server.config.ConfigException {
     OperationOutput output = new OperationOutput();
 
-    // Bootstrap and start the Directory Server.
-    LOG.log(Level.FINER, "Bootstrapping directory server");
-    org.opends.server.core.DirectoryServer directoryServer =
-            org.opends.server.core.DirectoryServer.getInstance();
-
-    directoryServer.bootstrapServer();
-    String configClass = "org.opends.server.extensions.ConfigFileHandler";
-    String configPath = Utils.getPath(
-            installation.getCurrentConfigurationFile());
-    directoryServer.initializeConfiguration(configClass, configPath);
+    StandardOutputSuppressor.suppress();
 
     try {
 
-      DebugLogPublisher startupDebugPublisher =
-              TextDebugLogPublisher.getStartupTextDebugPublisher(
-                      new ServerControllerTextWriter(output) {
-                        void storeRecord(String record, OperationOutput output)
-                        {
-                          output.addDebugMessage(record);
-                        }
-                      });
-      DebugLogger.removeAllDebugLogPublishers();
-      DebugLogger.addDebugLogPublisher(DN.NULL_DN,
-              startupDebugPublisher);
+      try {
 
-      ErrorLogPublisher startupErrorPublisher =
-              TextErrorLogPublisher.getStartupTextErrorPublisher(
-                      new ServerControllerTextWriter(output) {
-                        void storeRecord(String record, OperationOutput output)
-                        {
-                          output.addErrorMessage(record);
-                        }
-                      });
+        DebugLogPublisher startupDebugPublisher =
+                TextDebugLogPublisher.getStartupTextDebugPublisher(
+                        new ServerControllerTextWriter(output) {
+                          void storeRecord(String record,
+                                           OperationOutput output) {
+                            LOG.log(Level.INFO, "server start (debug log): " +
+                                    record);
+                            output.addDebugMessage(record);
+                          }
+                        });
+        DebugLogger.addDebugLogPublisher(DN.NULL_DN,
+                startupDebugPublisher);
 
-      ErrorLogger.removeAllErrorLogPublishers();
-      ErrorLogger.addErrorLogPublisher(DN.NULL_DN,
-              startupErrorPublisher);
+        ErrorLogPublisher startupErrorPublisher =
+                TextErrorLogPublisher.getStartupTextErrorPublisher(
+                        new ServerControllerTextWriter(output) {
+                          void storeRecord(String record,
+                                           OperationOutput output) {
+                            LOG.log(Level.INFO, "server start (error log): " +
+                                    record);
+                            output.addErrorMessage(record);
+                          }
+                        });
+        ErrorLogger.addErrorLogPublisher(DN.NULL_DN,
+                startupErrorPublisher);
+        AccessLogPublisher startupAccessPublisher =
+                TextAccessLogPublisher.getStartupTextAccessPublisher(
+                        new ServerControllerTextWriter(output) {
+                          void storeRecord(String record,
+                                           OperationOutput output) {
+                            LOG.log(Level.INFO, "server start (access log): " +
+                                    record);
+                            output.addAccessMessage(record);
+                          }
+                        });
+        AccessLogger.addAccessLogPublisher(DN.NULL_DN,
+                startupAccessPublisher);
 
-      AccessLogPublisher startupAccessPublisher =
-              TextAccessLogPublisher.getStartupTextAccessPublisher(
-                      new ServerControllerTextWriter(output) {
-                        void storeRecord(String record, OperationOutput output)
-                        {
-                          output.addAccessMessage(record);
-                        }
-                      });
+      } catch (Exception e) {
+        LOG.log(Level.INFO, "Error installing test log publishers: " +
+                e.toString());
+      }
 
-      AccessLogger.removeAllAccessLogPublishers();
-      AccessLogger.addAccessLogPublisher(DN.NULL_DN,
-              startupAccessPublisher);
+      org.opends.server.core.DirectoryServer directoryServer =
+              org.opends.server.core.DirectoryServer.getInstance();
 
-    } catch (Exception e) {
-      LOG.log(Level.INFO, "Error installing test log publishers: " +
-              e.toString());
+      // Bootstrap and start the Directory Server.
+      LOG.log(Level.FINER, "Bootstrapping directory server");
+      directoryServer.bootstrapServer();
+
+      LOG.log(Level.FINER, "Initializing configuration");
+      String configClass = "org.opends.server.extensions.ConfigFileHandler";
+      String configPath = Utils.getPath(
+              installation.getCurrentConfigurationFile());
+      directoryServer.initializeConfiguration(configClass, configPath);
+
+      LOG.log(Level.FINER, "Invoking start server");
+      directoryServer.startServer();
+
+    } finally {
+      StandardOutputSuppressor.unsuppress();
     }
-
-    LOG.log(Level.FINER, "Invoking start server");
-    directoryServer.startServer();
 
     return output;
   }

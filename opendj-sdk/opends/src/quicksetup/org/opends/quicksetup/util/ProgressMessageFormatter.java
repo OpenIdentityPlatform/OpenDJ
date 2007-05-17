@@ -112,6 +112,12 @@ public interface ProgressMessageFormatter
   public String getFormattedDone();
 
   /**
+   * Returns the formatted representation of the 'Error' text string.
+   * @return the formatted representation of the 'Error' text string.
+   */
+  public String getFormattedError();
+
+  /**
    * Returns the formatted representation of the argument text to which we add
    * points.  For instance if we pass as argument 'Configuring Server' the
    * return value will be 'Configuring Server .....'.

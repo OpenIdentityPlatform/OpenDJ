@@ -152,11 +152,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     VERIFYING("summary-upgrade-verifying", 80),
 
-    RECORDING_HISTORY("summary-upgrade-history", 85),
+    STARTING_SERVER("summary-starting", 90),
 
-    CLEANUP("summary-upgrade-cleanup", 90),
+    STOPPING_SERVER("summary-stopping", 90),
 
-    ABORT("summary-upgrade-abort", 95),
+    RECORDING_HISTORY("summary-upgrade-history", 97),
+
+    CLEANUP("summary-upgrade-cleanup", 99),
+
+    ABORT("summary-upgrade-abort", 99),
 
     FINISHED_WITH_ERRORS("summary-upgrade-finished-with-errors", 100),
 
@@ -736,6 +740,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "extraction finished");
       } catch (ApplicationException e) {
+        notifyListeners(formatter.getFormattedError() +
+                formatter.getLineBreak());
         LOG.log(Level.INFO, "Error extracting build file", e);
         throw e;
       }
@@ -750,6 +756,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "initialization finished");
       } catch (ApplicationException e) {
+        notifyListeners(formatter.getFormattedError() +
+                formatter.getLineBreak());
         LOG.log(Level.INFO, "Error initializing upgrader", e);
         throw e;
       }
@@ -766,6 +774,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "check for schema customizations finished");
       } catch (ApplicationException e) {
+        notifyListeners(formatter.getFormattedError() +
+                formatter.getLineBreak());
         LOG.log(Level.INFO, "Error calculating schema customizations", e);
         throw e;
       }
@@ -782,6 +792,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "check for config customizations finished");
       } catch (ApplicationException e) {
+        notifyListeners(formatter.getFormattedError() +
+                formatter.getLineBreak());
         LOG.log(Level.INFO,
                 "Error calculating config customizations", e);
         throw e;
@@ -797,6 +809,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "database backup finished");
       } catch (ApplicationException e) {
+        notifyListeners(formatter.getFormattedError() +
+                formatter.getLineBreak());
         LOG.log(Level.INFO, "Error backing up databases", e);
         throw e;
       }
@@ -811,6 +825,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "filesystem backup finished");
       } catch (ApplicationException e) {
+        notifyListeners(formatter.getFormattedError() +
+                formatter.getLineBreak());
         LOG.log(Level.INFO, "Error backing up files", e);
         throw e;
       }
@@ -826,6 +842,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "componnet upgrade finished");
       } catch (ApplicationException e) {
+        notifyListeners(formatter.getFormattedError() +
+                formatter.getLineBreak());
         LOG.log(Level.INFO,
                 "Error upgrading components", e);
         throw e;
@@ -865,6 +883,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                     formatter.getLineBreak());
             LOG.log(Level.INFO, "custom schema application finished");
           } catch (ApplicationException e) {
+            notifyListeners(formatter.getFormattedError() +
+                    formatter.getLineBreak());
             LOG.log(Level.INFO,
                     "Error applying schema customizations", e);
             throw e;
@@ -883,6 +903,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                     formatter.getLineBreak());
             LOG.log(Level.INFO, "custom config application finished");
           } catch (ApplicationException e) {
+            notifyListeners(formatter.getFormattedError() +
+                    formatter.getLineBreak());
             LOG.log(Level.INFO,
                     "Error applying configuration customizations", e);
             throw e;
@@ -924,6 +946,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "upgrade verification complete");
       } catch (ApplicationException e) {
+        notifyListeners(formatter.getFormattedError() +
+                formatter.getLineBreak());
         LOG.log(Level.INFO, "Error verifying upgrade", e);
         throw e;
       }
@@ -933,24 +957,32 @@ public class Upgrader extends GuiApplication implements CliApplication {
       // verified at this point to in the unlikely event of an error,
       // we call this a warning instead of an error.
       try {
-        ServerController control = getServerController();
+        ServerController control = new ServerController(getInstallation());
         boolean serverRunning = getInstallation().getStatus().isServerRunning();
         boolean userRequestsStart = getUserData().getStartServer();
         if (userRequestsStart && !serverRunning) {
           try {
             LOG.log(Level.INFO, "starting server");
-            control.startServer();
-            notifyListeners(formatter.getLineBreak());
+            setCurrentProgressStep(UpgradeProgressStep.STARTING_SERVER);
+            control.startServer(true);
+            notifyListeners(formatter.getFormattedDone() +
+                    formatter.getLineBreak());
           } catch (ApplicationException e) {
+            notifyListeners(formatter.getFormattedError() +
+                    formatter.getLineBreak());
             LOG.log(Level.INFO, "error starting server");
             this.runWarning = e;
           }
         } else if (!userRequestsStart && serverRunning) {
           try {
             LOG.log(Level.INFO, "stopping server");
-            control.stopServer();
-            notifyListeners(formatter.getLineBreak());
+            setCurrentProgressStep(UpgradeProgressStep.STOPPING_SERVER);
+            control.stopServer(true);
+            notifyListeners(formatter.getFormattedDone() +
+                    formatter.getLineBreak());
           } catch (ApplicationException e) {
+            notifyListeners(formatter.getFormattedError() +
+                    formatter.getLineBreak());
             LOG.log(Level.INFO, "error stopping server");
             this.runWarning = e;
           }
@@ -1013,6 +1045,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 Utils.getPath(getInstallation().getHistoryLogFile()) +
                 " for upgrade history" + formatter.getLineBreak());
       } catch (ApplicationException e) {
+        notifyListeners(formatter.getFormattedError() +
+                formatter.getLineBreak());
         System.err.print("Error cleaning up after upgrade: " +
                 e.getLocalizedMessage());
       }
@@ -1158,8 +1192,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
         // Restart the server after putting the files
         // back like we found them.
-        getServerController().stopServer();
-        getServerController().startServer();
+        getServerController().stopServer(true);
+        getServerController().startServer(true);
 
       } catch (IOException e) {
         LOG.log(Level.INFO, "Error getting backup directory", e);
