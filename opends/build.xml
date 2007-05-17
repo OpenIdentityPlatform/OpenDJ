@@ -560,6 +560,18 @@
       </not>
     </condition>
 
+    <!-- Construct the version number string -->
+    <taskdef name="getversionnumber"
+             classname="org.opends.build.tools.CreateVersionString">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <getversionnumber property="VERSION_NUMBER_STRING" />
+
     <!-- Set properties needed to find the packaged files -->
     <property name="pdir"
          location="${package.dir}/OpenDS-${VERSION_NUMBER_STRING}" />
