@@ -274,7 +274,7 @@ public class SetupUtils
        */
       try
       {
-        new Socket(hostname, port);
+        new Socket().connect(socketAddress, 1000);
         canUseAsPort = false;
 
       } catch (IOException ioe)

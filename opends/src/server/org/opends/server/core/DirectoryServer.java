@@ -7163,18 +7163,6 @@ public class DirectoryServer
           errorMessages.add(message);
 
         }
-        else if (!SetupUtils.canUseAsPort(
-            listener.getHost(), listener.getPort()))
-        {
-          // Cannot use the specified HostPort: log a message and throw an
-          // InitializationException.
-          int msgID = MSGID_HOST_PORT_CANNOT_BE_USED;
-          String message = getMessage(msgID, listener.toString(),
-              c.getConnectionHandlerName());
-          logError(ErrorLogCategory.CONNECTION_HANDLING,
-              ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-          errorMessages.add(message);
-        }
         else
         {
           usedListeners.add(listener);
