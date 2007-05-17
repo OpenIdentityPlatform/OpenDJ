@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.io.InputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -56,6 +58,7 @@ public class BuildInformation implements Comparable {
   static private final String MINOR_VERSION = "Minor Version";
   static private final String POINT_VERSION = "Point Version";
   static private final String REVISION_NUMBER = "Revision Number";
+  static private final String VERSION_QUALIFIER = "Version Qualifier";
   static private final String FIX_IDS = "Fix IDs";
   static private final String DEBUG_BUILD = "Debug Build";
   static private final String BUILD_OS = "Build OS";
@@ -122,6 +125,39 @@ public class BuildInformation implements Comparable {
   }
 
   /**
+   * Creates an instance from a string representing a build number
+   * of the for MAJOR.MINOR.POINT.REVISION where MAJOR, MINOR, POINT,
+   * and REVISION are integers.
+   * @param bn String representation of a build number
+   * @return a BuildInformation object populated with the information
+   * provided in <code>bn</code>
+   * @throws IllegalArgumentException if <code>bn</code> is not a build
+   * number
+   */
+  static public BuildInformation fromBuildString(String bn) throws
+    IllegalArgumentException
+  {
+    // -------------------------------------------------------
+    // NOTE:  if you change this be sure to change getBuildString()
+    // -------------------------------------------------------
+    Pattern p = Pattern.compile("((\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+))");
+    Matcher m = p.matcher(bn);
+    if (!m.matches()) {
+      throw new IllegalArgumentException("'" + bn + "' is not a build string");
+    }
+    BuildInformation bi = new BuildInformation();
+    try {
+      bi.values.put(MAJOR_VERSION, m.group(2));
+      bi.values.put(MINOR_VERSION, m.group(3));
+      bi.values.put(POINT_VERSION, m.group(4));
+      bi.values.put(REVISION_NUMBER, m.group(5));
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error parsing build number " + bn);
+    }
+    return bi;
+  }
+
+  /**
    * Creates an instance from constants present in the current build.
    * @return BuildInformation created from current constant values
    * @throws ApplicationException if all or some important information could
@@ -137,6 +173,8 @@ public class BuildInformation implements Comparable {
             String.valueOf(DynamicConstants.MINOR_VERSION));
     bi.values.put(POINT_VERSION,
             String.valueOf(DynamicConstants.POINT_VERSION));
+    bi.values.put(VERSION_QUALIFIER,
+            String.valueOf(DynamicConstants.VERSION_QUALIFIER));
     bi.values.put(REVISION_NUMBER,
             String.valueOf(DynamicConstants.REVISION_NUMBER));
     bi.values.put(FIX_IDS, DynamicConstants.FIX_IDS);
@@ -208,12 +246,42 @@ public class BuildInformation implements Comparable {
   }
 
   /**
+   * Gets the version qualifier.
+   *
+   * @return String reprenting the version qualifier
+   */
+  public String getVersionQualifier() {
+    return values.get(VERSION_QUALIFIER);
+  }
+
+  /**
    * Gets the SVN revision number.
    *
    * @return Integer representing the SVN revision number
    */
   public Integer getRevisionNumber() {
     return new Integer(values.get(REVISION_NUMBER));
+  }
+
+  /**
+   * Returns a build string representation of this object.  A build
+   * number is a string formatted MAJOR.MINOR.POINT.REVISION where
+   * MAJOR, MINOR, POINT and REVISION are integers.
+   * @return String representation of a build number
+   */
+  public String getBuildString() {
+    // -------------------------------------------------------
+    // NOTE:  if you change this be sure to change fromBuildString()
+    // -------------------------------------------------------
+    StringBuilder sb = new StringBuilder();
+    sb.append(getMajorVersion());
+    sb.append(".");
+    sb.append(getMinorVersion());
+    sb.append(".");
+    sb.append(getPointVersion());
+    sb.append(".");
+    sb.append(getRevisionNumber());
+    return sb.toString();
   }
 
   /**
