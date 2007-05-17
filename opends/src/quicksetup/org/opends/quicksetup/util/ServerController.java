@@ -40,7 +40,6 @@ import java.util.logging.Logger;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.io.File;
 
 /**
  * Class used to manipulate an OpenDS server.
@@ -449,47 +448,6 @@ public class ServerController {
   }
 
   /**
-   * Backs up all the databases to a specified directory.
-   * @param backupDir File representing the directory where the backups will
-   * be stored
-   * @return OperationOutput containing information about the operation
-   * @throws IOException if the process could not be started
-   * @throws InterruptedException if the process was prematurely interrupted
-   */
-  public OperationOutput backupDatabases(File backupDir)
-          throws IOException, InterruptedException {
-    final OperationOutput output = new OperationOutput();
-    List<String> args = new ArrayList<String>();
-    args.add(Utils.getPath(installation.getCommandFile("backup")));
-    args.add("-a"); // backup all
-    args.add("-d"); // backup to directory
-    args.add(Utils.getPath(backupDir));
-    ProcessBuilder pb = new ProcessBuilder(args);
-    Process p = pb.start();
-
-    BufferedReader out =
-            new BufferedReader(new InputStreamReader(p.getErrorStream()));
-    new OutputReader(out) {
-      public void processLine(String line) {
-        output.addErrorMessage(line);
-        LOG.log(Level.INFO, "backup operation: " + line);
-      }
-    };
-
-    BufferedReader err =
-            new BufferedReader(new InputStreamReader(p.getInputStream()));
-    new OutputReader(err) {
-      public void processLine(String line) {
-        output.addOutputMessage(line);
-        LOG.log(Level.INFO, "backup operation: " + line);
-      }
-    };
-
-    output.setReturnCode(p.waitFor());
-    return output;
-  }
-
-  /**
    * This class is used to read the standard error and standard output of the
    * Stop process.
    * <p/>
@@ -541,39 +499,6 @@ public class ServerController {
               application.notifyListeners(errorMsg);
             }
             LOG.log(Level.INFO, "error reading server messages",t);
-          }
-        }
-      });
-      t.start();
-    }
-  }
-
-  /**
-   * This class is used to read an input stream and process ouput.
-   */
-  abstract private class OutputReader {
-
-    /**
-     * Called whenever new input is read from the reader.
-     * @param line String representing new input
-     */
-    public abstract void processLine(String line);
-
-    /**
-     * The protected constructor.
-     *
-     * @param reader  the BufferedReader of the stop process.
-     */
-    public OutputReader(final BufferedReader reader) {
-      Thread t = new Thread(new Runnable() {
-        public void run() {
-          try {
-            String line;
-            while (null != (line = reader.readLine())) {
-              processLine(line);
-            }
-          } catch (Throwable t) {
-            LOG.log(Level.INFO, "error reading output", t);
           }
         }
       });

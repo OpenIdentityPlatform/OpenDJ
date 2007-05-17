@@ -48,6 +48,7 @@ import org.opends.quicksetup.util.InProcessServerController;
 import org.opends.quicksetup.util.ServerHealthChecker;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.OperationOutput;
+import org.opends.quicksetup.util.ExternalTools;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.UIFactory;
@@ -1221,7 +1222,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       File configDiff = getCustomConfigDiffFile();
       if (configDiff.exists()) {
         new InProcessServerController(
-                getInstallation()).applyCustomizationLdifFile(configDiff);
+                getInstallation()).modify(configDiff);
 
       }
     } catch (IOException e) {
@@ -1244,7 +1245,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       File schemaDiff = getCustomSchemaDiffFile();
       if (schemaDiff.exists()) {
         new InProcessServerController(
-                getInstallation()).applyCustomizationLdifFile(schemaDiff);
+                getInstallation()).modify(schemaDiff);
       }
     } catch (IOException e) {
       String msg = "I/O Error applying schema customization: " +
@@ -1351,35 +1352,20 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private void ldifDiff(File source, File target, File output)
           throws ApplicationException {
-    List<String> args = new ArrayList<String>();
-
-    args.add("-s"); // source LDIF
-    args.add(Utils.getPath(source));
-
-    args.add("-t"); // target LDIF
-    args.add(Utils.getPath(target));
-
-    args.add("-o"); // output LDIF
-    args.add(Utils.getPath(output));
-
-    args.add("-O"); // overwrite
-    args.add("-S"); // single-value changes
-
-    // TODO i18n
-    LOG.log(Level.INFO, "Diff'ing " +
-            Utils.getPath(source) + " with " +
-            Utils.getPath(target));
-
-    int ret = org.opends.server.tools.LDIFDiff.mainDiff(
-            args.toArray(new String[]{}), false);
-    if (ret != 0) {
-      StringBuffer sb = new StringBuffer()
-              .append("'ldif-diff' tool returned error code ")
-              .append(ret)
-              .append(" when invoked with args: ")
-              .append(Utils.listToString(args, " "));
-      throw ApplicationException.createFileSystemException(sb.toString(),
-              null);
+    ExternalTools et = new ExternalTools(getInstallation());
+    try {
+      OperationOutput oo = et.ldifDiff(source, target, output);
+      int ret = oo.getReturnCode();
+      if (ret != 0) {
+        throw new ApplicationException(
+                ApplicationException.Type.TOOL_ERROR,
+                "ldif-diff tool returned error code " + ret,
+                null);
+      }
+    } catch (Exception e) {
+      throw new ApplicationException(
+              ApplicationException.Type.TOOL_ERROR,
+              "Error performing determining customizations", e);
     }
   }
 
@@ -1424,22 +1410,21 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   private void backupDatabases() throws ApplicationException {
-    ServerController sc = getServerController();
     try {
-      OperationOutput output = sc.backupDatabases(getUpgradeBackupDirectory());
+      ExternalTools et = new ExternalTools(getInstallation());
+      OperationOutput output = et.backup(getUpgradeBackupDirectory());
       int ret = output.getReturnCode();
       if (ret != 0) {
-        StringBuffer sb = new StringBuffer()
-                .append("'backup utility returned error code " + ret);
         throw new ApplicationException(
-                ApplicationException.Type.FILE_SYSTEM_ERROR,
-                sb.toString(), null);
+                ApplicationException.Type.TOOL_ERROR,
+                "backup tool returned error code " + ret,
+                null);
 
       }
     } catch (Exception e) {
       throw new ApplicationException(
               ApplicationException.Type.TOOL_ERROR,
-              "error backup up databases", e);
+              "Error backing up databases", e);
     }
   }
 

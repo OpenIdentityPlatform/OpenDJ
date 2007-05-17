@@ -202,6 +202,16 @@ public class Installation {
   public static final String HISTORY_LOG_FILE_NAME = "log";
 
   /**
+   * Generic name for the backup tool.
+   */
+  public static final String BACKUP = "backup";
+
+  /**
+   * Generic name for the ldif-diff tool.
+   */
+  public static final String LDIF_DIFF = "ldif-diff";
+
+  /**
    * Performs validation on the specified file to make sure that it is
    * an actual OpenDS installation.
    * @param rootDirectory File directory candidate
