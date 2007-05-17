@@ -256,7 +256,7 @@ public class InProcessServerController {
    * @throws LDIFException if there is an LDIF error
    * @throws ApplicationException if there is an application specific error
    */
-  public void applyCustomizationLdifFile(File ldifFile)
+  public void modify(File ldifFile)
           throws IOException, LDIFException,
           ApplicationException {
     try {
