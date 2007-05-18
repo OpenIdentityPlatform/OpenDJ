@@ -38,6 +38,8 @@
         <sequence>
     
           <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='aci'			  			  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
     
@@ -54,7 +56,13 @@
                 #@TestSuiteGroup            ACI Teardown Tests
                 #@TestScript                aci_teardown.xml
           -->
-    
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_setup'" />
+
+												    
            <!--- Test Case : Remove Entries for ACI Tests -->
            <!---
                 Place test-specific test information here.
@@ -110,8 +118,14 @@
                 
               </sequence>
             </testcase>
-    
-            <call function="'testSuite_Postamble'"/>
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_cleanup'" />
+
+												    
+          <call function="'testSuite_Postamble'"/>
             
         </sequence>
      

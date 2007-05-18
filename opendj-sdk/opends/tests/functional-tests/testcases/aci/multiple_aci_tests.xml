@@ -38,6 +38,8 @@
         <sequence>
   
           <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='aci'			  			  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
@@ -50,6 +52,13 @@
                 #@TestSuiteGroup            Multiple ACi Tests
                 #@TestScript                multiple_aci_tests.xml
           -->
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_setup'" />
+			
+												
           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -4412,7 +4421,12 @@
             </sequence>
           </testcase>
   
-          
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_cleanup'" />         
+
+									          
           <call function="'testSuite_Postamble'"/>
             
         </sequence>
