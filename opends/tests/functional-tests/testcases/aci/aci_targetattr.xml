@@ -38,6 +38,8 @@
         <sequence>
   
           <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='aci'			  			  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
           
@@ -50,7 +52,12 @@
               #@TestSuiteGroup            Basic ACI Targetattr Tests allow(read)
               #@TestScript                aci_targetattr.xml
           -->
-  
+
+			
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_setup'" />
+						  
           <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -1563,8 +1570,13 @@
             </sequence>
             
           </testcase>
-          
-         <call function="'testSuite_Postamble'"/>          
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_cleanup'" />
+									          
+          <call function="'testSuite_Postamble'"/>          
 
         </sequence>
       
