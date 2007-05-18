@@ -176,7 +176,7 @@ public class ProgressPanel extends QuickSetupStepPanel
     String summaryText = UIFactory.applyFontToHtml(descriptor
         .getProgressBarMsg(), UIFactory.PROGRESS_FONT);
 
-    if (status.isLast() && !status.isError()) {
+    if (status.isLast()) {
       progressBar.setVisible(false);
       if (!status.isError()) {
         summaryText = "<form>"+summaryText+"</form>";
