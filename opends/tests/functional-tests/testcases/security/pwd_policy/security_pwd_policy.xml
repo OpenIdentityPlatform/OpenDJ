@@ -38,32 +38,20 @@
         <sequence>
   
           <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='security'								  							  			  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
       
           <call function="'testSuite_Preamble'"/>
-              
-          <!--- Start DS -->
-          <message>
-             'Start DS to run on port %s' % DIRECTORY_INSTANCE_PORT
-          </message>
-  
-          <!--- Start DS -->
-          <call function="'StartDsWithScript'">
-           { 'location'  : STAF_REMOTE_HOSTNAME }
-          </call>
-  
-          <call function="'checkRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
-  
-          <!--- Check that DS started -->
-          <call function="'isAlive'">
-            { 'noOfLoops'        : 5 ,
-              'noOfMilliSeconds' : 2000 }
-          </call>
-  
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
+          <call function="'security_setup'"/>
+
+												              
+
           <import machine="'%s' % STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_policy/security_setup_pwd_policy.xml' % (TESTS_DIR)"/>
           <call function="'setup_pwd_policy'" />
@@ -116,23 +104,12 @@
             file="'%s/testcases/security/pwd_policy/security_teardown_pwd_policy.xml' % (TESTS_DIR)"/>
           <call function="'teardown_pwd_policy'" />
   
-          <!--- Stop DS -->
-          <message>
-             'Stop DS running on port %s' % DIRECTORY_INSTANCE_PORT
-          </message>
 
-          <call function="'StopDsWithScript'">
-              { 'location'  : STAF_REMOTE_HOSTNAME,
-                'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
-          </call>
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'security_cleanup'"/>
 
-          <call function="'checkRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
+									
     
           <call function="'testSuite_Postamble'"/>
     

@@ -38,7 +38,9 @@
         <sequence>
   
           <script>
-            CurrentTestPath['suite']='basic'
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='synchronization'								  							  			  
+            CurrentTestPath['suite']=STAXCurrentBlock
           </script>
             
           <call function="'testSuite_Preamble'"/>
@@ -52,7 +54,7 @@
           #@TestScript          synchronization_basic.xml
           #@TestHTMLLink        http://opends.dev.java.net/
           -->
-     		              
+						     		              
 
 		  <block name="'Block Create DS Topology'">
 		  <!-- Create the topology necessary to the test suite -->
@@ -173,10 +175,12 @@
 			<sequence>
 				
               <message>
-                 '(NOT IMPLEMENTED YET) Remove DS topology created for the Synchronization Basic Test Suite'
+                 'Remove DS topology created for the Synchronization Basic Test Suite'
               </message>				  
 
-			  <call function="'removeTopology'"/>  
+			  <call function="'removeTopology'">
+			    { 'multipleInstanceTopology' : True }
+			  </call>  
 				
 			  <call function="'checkRC'">
                   { 'returncode' : RC ,

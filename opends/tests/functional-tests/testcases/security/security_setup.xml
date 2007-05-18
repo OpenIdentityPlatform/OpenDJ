@@ -27,17 +27,17 @@
  ! -->
 <stax>
 
-  <defaultcall function="schema_setup"/>
+  <defaultcall function="security_setup"/>
 
-  <function name="schema_setup">
+  <function name="security_setup">
 
     <sequence>
 
       <block name="'setup'">
       
         <sequence>
-						  
-				  
+
+
 		  <block name="'Block Create DS Topology'">
 		  <!-- Create the topology necessary to the test group/suite -->
 		    <sequence>
@@ -88,32 +88,6 @@
           <!--- End Block DS Process Active -->
           </block>			  			
 						
-
-          <block name="'Block DS Load Data'">
-		  <!-- Load the data needed by the test suite -->			
-	        <sequence>
-
-              <message>
-                 'Add entries that are required for the Schema Tests'
-              </message>
-    
-              <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/schema_start.ldif' % STAGED_DATA_DIR }
-              </call>
-    
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-
-																							
-			</sequence>
-          <!-- End Block DS Load Data -->			  										  				  
-          </block>
 			        
         </sequence>        
       </block>

@@ -51,6 +51,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
+      <function-arg-def name="dsJmxPort" type="optional">
+        <function-arg-description>
+          Directory server JMX port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>		
       <function-arg-def name="dsBaseDN" type="optional">
         <function-arg-description>
           Base DN (only single base DN supported).
@@ -91,12 +97,16 @@
         STAFCmdParams=''
 
         if dsPath:
-          dsBinPath='%s/%s' % (dsPath,fileFolder) 
-          STAFCmd='%s/configure-ds%s' % (dsBinPath,fileExt)
+          STAFCmd='%s/setup%s' % (dsPath,fileExt)
+          STAFCmdParamsList.append('--cli')
+          STAFCmdParamsList.append('-s')	  
                   
         if dsPort:
           STAFCmdParamsList.append('-p %s' % dsPort)
         
+        if dsJmxPort:
+          STAFCmdParamsList.append('-x %s' % dsJmxPort)
+        		  
         if dsBaseDN:
           STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
 
@@ -107,7 +117,7 @@
           STAFCmdParamsList.append('-w "%s"' % dsBindPwd)
         
         if dsBindPwdFile:
-          STAFCmdParamsList.append('-W "%s"' % dsBindPwdFile)
+          STAFCmdParamsList.append('-j "%s"' % dsBindPwdFile)
         
         if dsHelp:
           STAFCmdParamsList.append('-H')
@@ -123,9 +133,9 @@
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
+        <workdir>'%s' % dsPath</workdir>
         <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+          ['PATH=/bin:/usr/bin:%s' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>
         <console use="'same'"/>
         <stderr mode="'stdout'"/>
