@@ -5082,6 +5082,50 @@
               </sequence>
             </testcase>
 
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Bind Type Tests
+                #@TestName                  syntax - roledn
+                #@TestIssue                 1577
+                #@TestPurpose               Test behavior with roledn
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry in the targeted branch dn as a group member.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 21.
+            -->
+            <testcase name="'ACI: Bind Types: roledn'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_syntax_aci6.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Bind Types: roledn, adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
         <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
