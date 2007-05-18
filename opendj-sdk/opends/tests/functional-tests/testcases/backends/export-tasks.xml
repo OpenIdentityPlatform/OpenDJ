@@ -39,36 +39,13 @@
         <sequence>
   
           <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='backends'						  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
           
           <call function="'testSuite_Preamble'"/>
-    
-             <!--- Start DS -->
-             <sequence>
-               <message>
-                  'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-               </message>
-      
-                <call function="'StartDsWithScript'">
-                 { 'location'  : STAF_REMOTE_HOSTNAME }
-                </call>
-     
-               <call function="'checkRC'">
-                   { 'returncode' : RC ,
-                     'result'     : STAXResult }
-               </call>
-     
-             </sequence>
-           
-             <sequence>
-             
-                <!--- Check that DS started -->
-                <call function="'isAlive'">
-                  { 'noOfLoops'        : 5 ,
-                    'noOfMilliSeconds' : 2000 }
-                </call>
-            
+
           <!--- Test Suite information
             #@TestSuiteName       Backend Export Tasks Tests
             #@TestSuitePurpose    Verify that the basic export task functionality is working in the Directory Server.
@@ -77,7 +54,16 @@
             #@TestGroup           Backend
             #@TestScript          export.xml
             #@TestHTMLLink        http://opends.dev.java.net/
-          -->
+          -->			
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
+          <call function="'backend_setup'"> { 'loadBackend' : True } </call>
+
+												    
+             <sequence>
+            
+
     
           <!--- Test Case information
             #@TestMarker          Backend Export Tasks Tests
@@ -398,7 +384,13 @@
             #@TestResult
           -->
              </sequence>
-             
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'backend_cleanup'"/>
+
+												             
           <call function="'testSuite_Postamble'"/>
       
         </sequence>

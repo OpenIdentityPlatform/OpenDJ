@@ -39,6 +39,8 @@
         <sequence>
   
           <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='backends'						  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
                       
@@ -53,7 +55,13 @@
           #@TestScript          import.xml
           #@TestHTMLLink        http://opends.dev.java.net/
           -->
-     
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
+          <call function="'backend_setup'"> { 'startDS' : False } </call>
+				
+						     
           <!--- Test Case information
           #@TestMarker          Backend Import Tests
           #@TestName            Backend: Import: LDIF Default
@@ -1190,7 +1198,14 @@
           -->
     
           <!-- Need to know what the error codes are -->
-    
+
+			
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'backend_cleanup'"> { 'stopDS' : False } </call>			  	
+			
+						    
           <call function="'testSuite_Postamble'"/>
   
         </sequence>

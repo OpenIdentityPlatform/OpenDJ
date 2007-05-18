@@ -27,9 +27,23 @@
  ! -->
 <stax>
 
-  <defaultcall function="core_setup"/>
+  <defaultcall function="backend_setup"/>
 
-  <function name="core_setup">
+  <function name="backend_setup">
+    <function-map-args>
+      <function-arg-def name="startDS" type="optional" default="True">
+        <function-arg-description>
+          Optional start the Directory Server
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>  
+	  <function-arg-def name="loadBackend" type="optional" default="False">
+	    <function-arg-description>
+		  Specifies whether the backend should be loaded with some data.
+		</function-arg-description>
+		<function-arg-property name="type" value="boolean"/>
+	  </function-arg-def>					  
+	</function-map-args>
 
     <sequence>
 
@@ -47,7 +61,7 @@
               </message>
 				  
 			  <call function="'createTopology'">
-			    { 'initialiseInstance' : True }
+			    { 'initialiseInstance' : False }
 			  </call>
 				    				
 			  <call function="'checkRC'">
@@ -60,6 +74,31 @@
           </block>				  				  
 
 
+
+          <if expr="loadBackend == True">
+		  <block name="'Block DS Load Data'">
+		  <!-- Load the data needed by the test suite -->
+		    <sequence>		
+					  
+              <message>
+                'Backend: Backend Setup for Export, Backup, and Restore Tests'
+              </message>
+              <call function="'importLdif'">
+                { 'ldifFile'    : '%s/backends/backend_start.ldif' % STAGED_DATA_DIR }
+              </call>
+    
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>	
+
+            </sequence>      
+          <!--- End Block DS Load Data -->								  	   
+		  </block> 
+		  </if>
+			
+									
+		  <if expr="startDS == True">
 		  <block name="'Block DS Process Active'">	  	
           <!--- Start DS -->
 		    <sequence>
@@ -87,51 +126,9 @@
             </sequence>
           <!--- End Block DS Process Active -->
           </block>			  			
+		  </if>
 						
-
-          <block name="'Block DS Load Data'">
-		  <!-- Load the data needed by the test suite -->			
-	        <sequence>
-				
-              <message>
-                 'Add entries that are required for the Core Tests'
-              </message>
-    
-              <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/core_start.ldif' % STAGED_DATA_DIR }
-              </call>
-    
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-			
-
-						
-              <message>
-                 'Add 1000 extra entries that are required for some of the Core Tests'
-              </message>
-    
-              <call function="'addEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/core_test_1K.ldif' % STAGED_DATA_DIR }
-              </call>
-    
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-			
-			</sequence>
-          <!-- End Block DS Load Data -->			  										  				  
-          </block>
+				  				  
 			        
         </sequence>        
       </block>

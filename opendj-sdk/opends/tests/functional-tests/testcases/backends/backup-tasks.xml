@@ -39,33 +39,19 @@
         <sequence>
   
           <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='backends'						  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
           
           <call function="'testSuite_Preamble'"/>
-    
-            <!--- Start DS -->
-            <sequence>
-              <message>
-                 'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-              </message>
-      
-              <call function="'StartDsWithScript'">
-               { 'location'  : STAF_REMOTE_HOSTNAME }
-              </call>
-     
-              <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-     
-            </sequence>
-                    
-                <!--- Check that DS started -->
-                <call function="'isAlive'">
-                  { 'noOfLoops'        : 5 ,
-                    'noOfMilliSeconds' : 2000 }
-                </call>
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
+          <call function="'backend_setup'"> { 'loadBackend' : True } </call>
+
+															
                   
                   <testcase name="'Backend: Backup Tasks 1'">
                   
@@ -96,7 +82,13 @@
           
                 </testcase>
             
-    
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'backend_cleanup'"/>
+
+												    
           <call function="'testSuite_Postamble'"/>
       
         </sequence>
