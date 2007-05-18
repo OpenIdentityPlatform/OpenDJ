@@ -76,11 +76,12 @@ class SynchronizedSuffix:
 	    
 # Define Server class
 class Server:
-  def __init__(self, hostname, dir, port, sslPort, rootDn, rootPwd, baseDn):
+  def __init__(self, hostname, dir, port, sslPort, jmxPort, rootDn, rootPwd, baseDn):
     self.hostname = hostname
     self.dir = dir
     self.port = port
     self.sslPort = sslPort
+    self.jmxPort = jmxPort    
     self.rootDn = rootDn
     self.rootPwd = rootPwd
     self.baseDn = baseDn
@@ -108,6 +109,9 @@ class Server:
   def getSslPort(self):
     return self.sslPort
 
+  def getJmxPort(self):
+    return self.jmxPort
+    
   def getRootDn(self):
     return self.rootDn
 
@@ -142,8 +146,10 @@ def write_synchronization_conf_ldif_file(path, server):
   ldifLines.append('dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config')
   ldifLines.append('objectClass: top')
   ldifLines.append('objectClass: ds-cfg-synchronization-provider')
+  ldifLines.append('objectClass: ds-cfg-multimaster-synchronization-provider')  
+  ldifLines.append('cn: Multimaster Synchronization')  
   ldifLines.append('ds-cfg-synchronization-provider-enabled: true')
-  ldifLines.append('ds-cfg-synchronization-provider-class: org.opends.server.synchronization.plugin.MultimasterSynchronization')
+  ldifLines.append('ds-cfg-synchronization-provider-class: org.opends.server.replication.plugin.MultimasterReplication')
 
 
   # if server is a changelog server, write its corresponding configuration
@@ -154,17 +160,24 @@ def write_synchronization_conf_ldif_file(path, server):
     list = changelogServer.getChangelogServerList()
     
     ldifLines.append('')
-    ldifLines.append('dn: cn=Changelog Server, cn=Multimaster Synchronization, cn=Synchronization Providers, cn=config')
+    ldifLines.append('dn: cn=Replication Server,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config')
     ldifLines.append('objectClass: top')
-    ldifLines.append('objectClass: ds-cfg-synchronization-changelog-server-config')
-    ldifLines.append('cn: Changelog Server')
-    ldifLines.append('ds-cfg-changelog-port: %s' % port)
+    ldifLines.append('objectClass: ds-cfg-replication-server-config')
+    ldifLines.append('cn: Replication Server')
+    ldifLines.append('ds-cfg-replication-server-port: %s' % port)
     
     for chglgServer in list:
-      ldifLines.append('ds-cfg-changelog-server: %s' % chglgServer)
+      ldifLines.append('ds-cfg-replication-server: %s' % chglgServer)
 	  
-    ldifLines.append('ds-cfg-changelog-server-id: %s' % id)
+    ldifLines.append('ds-cfg-replication-server-id: %s' % id)
 
+
+  # write the domains synchronization configuration entry
+  ldifLines.append('')
+  ldifLines.append('dn: cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config')
+  ldifLines.append('objectClass: top')
+  ldifLines.append('objectClass: ds-cfg-branch')
+  ldifLines.append('cn: domains')
   
   # write the configuration for the synchronized suffixes, if any
   synchronizedSuffixList = server.getSynchronizedSuffixList()
@@ -176,14 +189,14 @@ def write_synchronization_conf_ldif_file(path, server):
     name = 'SUFFIX-%s' % i
     
     ldifLines.append('')
-    ldifLines.append('dn: cn=%s, cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config' % name)
+    ldifLines.append('dn: cn=%s,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config' % name)
     ldifLines.append('objectClass: top')
-    ldifLines.append('objectClass: ds-cfg-synchronization-provider-config')
+    ldifLines.append('objectClass: ds-cfg-replication-domain-config')
     ldifLines.append('cn: %s' % name)
-    ldifLines.append('ds-cfg-synchronization-dn: %s' % dn)
+    ldifLines.append('ds-cfg-replication-dn: %s' % dn)
 	
     for chglgServer in list:
-      ldifLines.append('ds-cfg-changelog-server: %s' % chglgServer)
+      ldifLines.append('ds-cfg-replication-server: %s' % chglgServer)
 
     ldifLines.append('ds-cfg-directory-server-id: %s' % id)
     ldifLines.append('ds-cfg-receive-status: true')	
