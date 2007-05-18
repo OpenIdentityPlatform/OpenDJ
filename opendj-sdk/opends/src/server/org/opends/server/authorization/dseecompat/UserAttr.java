@@ -157,14 +157,11 @@ public class UserAttr implements KeywordBindRule {
                     return new UserAttr (userAttrType, type, parentInheritance);
                 }
                 case ROLEDN: {
-                    //Even though parent inheritance is invalid for the ROLEDN
-                    //keyword, we are going to up a simple parent inheritance
-                    //class so that most of the evaluate methods in this class
-                    //can be re-used. The true boolean means to skip parsing,
-                    //except for a quick validation parse.
-                    ParentInheritance parentInheritance =
-                            new ParentInheritance(vals[0], true);
-                     return new UserAttr(userAttrType, type, parentInheritance);
+                  //The roledn keyword is not supported. Throw an exception with
+                  //a message if it is seen in the expression.
+                  int msgID=MSGID_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED;
+                  String message = getMessage(msgID, expression);
+                  throw new AciException(msgID, message);
                 }
          }
          return new UserAttr(vals[0], vals[1], userAttrType, type);
@@ -383,7 +380,8 @@ public class UserAttr implements KeywordBindRule {
     /**
      * This method evaluates the user attribute type and calls the correct
      * evalaution method. The three user attribute types that can be selected
-     * are ROLEDN, USERDN or GROUPDN.
+     * are USERDN or GROUPDN.
+     *
      * @param e The entry to use in the evaluation.
      * @param evalCtx The evaluation context to use in the evaluation.
      * @param attributeType The attribute type to use in the evaluation.
@@ -398,9 +396,6 @@ public class UserAttr implements KeywordBindRule {
                                        attributeType);
                 break;
             }
-            case ROLEDN:
-                result=RoleDN.evaluate(e, evalCtx, attributeType);
-                break;
             case GROUPDN: {
                 result=GroupDN.evaluate(e, evalCtx, attributeType);
                 break;

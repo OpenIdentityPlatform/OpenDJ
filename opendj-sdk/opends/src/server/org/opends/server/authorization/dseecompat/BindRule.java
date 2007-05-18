@@ -486,7 +486,7 @@ public class BindRule {
                                           EnumBindRuleKeyword keyword,
                                           EnumBindRuleType op)
             throws AciException  {
-        KeywordBindRule rule;
+        KeywordBindRule rule=null;
         switch (keyword) {
             case USERDN:
             {
@@ -495,8 +495,11 @@ public class BindRule {
             }
             case ROLEDN:
             {
-                rule = RoleDN.decode(expr, op);
-                break;
+                //The roledn keyword is not supported. Throw an exception with
+                //a message if it is seen in the ACI.
+                int msgID=MSGID_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED;
+                String message = getMessage(msgID, expr);
+                throw new AciException(msgID, message);
             }
             case GROUPDN:
             {

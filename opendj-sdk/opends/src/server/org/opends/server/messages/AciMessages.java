@@ -747,7 +747,7 @@ public class AciMessages {
   public static final int MSGID_ACI_TARGETATTR_INVALID_OP_USER_ATTR =
        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 74;
 
-      /**
+  /**
    * The message ID for the message that will be used if a targetattr
    * keyword expression performs both an inequality operation using
    * operational attribute types. This takes one argument, which is the
@@ -755,6 +755,14 @@ public class AciMessages {
    */
   public static final int MSGID_ACI_TARGATTR_INVALID_OP_ATTR_INEQUALITY =
        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 75;
+
+  /**
+   * The message ID for the message that will be used if a roledn
+   * keyword expression is parsed. The roledn keyword is not supported.
+   * This takes one argument, which is the roledn expression string.
+   */
+  public static final int MSGID_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED =
+       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 76;
 
     /**
      * Associates a set of generic messages with the message IDs defined in
@@ -1189,5 +1197,11 @@ public class AciMessages {
               "targetattr expression value \"%s\" is invalid because" +
               " the expression performs an inequality operation using " +
               "operational attribute types");
+
+      registerMessage(MSGID_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED,
+              "The provided Access Control Instruction (ACI) expression " +
+              "value \"%s\" is invalid because it contains" +
+              " the roledn keyword, which is not supported,  replace it with " +
+              "the groupdn keyword");
     }
 }
