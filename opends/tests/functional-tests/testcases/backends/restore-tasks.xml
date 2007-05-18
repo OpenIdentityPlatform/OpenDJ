@@ -39,6 +39,8 @@
         <sequence>
   
           <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='backends'						  
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
           
@@ -53,7 +55,13 @@
             #@TestScript          restore-tasks.xml
             #@TestHTMLLink        http://opends.dev.java.net/
           -->
-    
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
+          <call function="'backend_setup'"> { 'loadBackend' : True } </call>	  
+
+												    
           <!--- Test Case information
             #@TestMarker          Backend Restore Tasks Tests
             #@TestName            Restore Tasks: Restore Tasks 1
@@ -97,6 +105,12 @@
       
             </testcase>
 
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'backend_cleanup'"/>
+
+												
           <call function="'testSuite_Postamble'"/>
       
         </sequence>
