@@ -225,9 +225,6 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_USERDN_TOP_LEVEL_CN_ADMINS = "userdn=\"ldap:///dc=example,dc=com??one?(cn=*admin*)\"";  // TODO: this might be invalid?
   private static final String BIND_RULE_GROUPDN_GROUP_1 =
                                     "groupdn=\"ldap:///" + OU_GROUP_1_DN + "\"";
-   private static final String BIND_RULE_ROLEDN_GROUP_1 =
-                                     "roledn=\"ldap:///" + OU_GROUP_1_DN + "\"";
-
   private static final String BIND_RULE_IP_LOCALHOST = "ip=\"127.0.0.1\"";
   private static final String BIND_RULE_IP_LOCALHOST_WITH_MASK = "ip=\"127.0.0.1+255.255.255.254\"";
   private static final String BIND_RULE_IP_LOCALHOST_SUBNET = "ip=\"127.0.0.*\"";
@@ -263,10 +260,6 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_GROUPDN_1 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com\"";
   private static final String BIND_RULE_GROUPDN_2 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com\"";
   private static final String BIND_RULE_GROUPDN_3 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com || ldap:///cn=SomeThirdGroup,dc=example,dc=com\"";
-  private static final String BIND_RULE_ROLEDN_1 = "roledn=\"ldap:///cn=SomeGroup,dc=example,dc=com\"";
-  private static final String BIND_RULE_ROLEDN_2 =  "roledn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com\"";
-  private static final String BIND_RULE_ROLEDN_3 =  "roledn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com || ldap:///cn=SomeThirdGroup,dc=example,dc=com\"";
-
   private static final String BIND_RULE_USERDN_FILTER = "userdn=\"ldap:///dc=example,dc=com??one?(|(ou=eng)(ou=acct))\"";
 
   //bind rule user attr ACIs
@@ -275,8 +268,6 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String BIND_RULE_USERATTR_URL = "userattr=\"cn#LDAPURL\"";
   private static final String BIND_RULE_USERATTR_GROUPDN = "userattr=\"manager#GROUPDN\"";
   private static final String BIND_RULE_USERATTR_GROUPDN_1 = "userattr=\"ldap:///dc=example,dc=com?owner#GROUPDN\"";
-  private static final String BIND_RULE_USERATTR_ROLEDN = "userattr=\"manager#ROLEDN\"";
-  private static final String BIND_RULE_USERATTR_ROLEDN_1 = "userattr=\"ldap:///dc=example,dc=com?owner#ROLEDN\"";
   private static final String BIND_RULE_USERATTR_USERDN_INHERITANCE = "userattr=\"parent[0,1,2].cn#USERDN\"";
   private static final String BIND_RULE_USERATTR_GROUPDN_INHERITANCE = "userattr=\"parent[0,1,2].cn#GROUPDN\"";
   private static final String BIND_RULE_USERATTR_VALUE = "userattr=\"manager#a manager\"";
@@ -374,10 +365,6 @@ public class AciTests extends DirectoryServerTestCase {
   private static final String ALLOW_SEARCH_TO_GROUP1_GROUPDN =
           buildAciValue("name", "allow search to group1 groupdn", "targetattr",
                         "*", "allow(search, read)", BIND_RULE_GROUPDN_GROUP_1);
-
-  private static final String ALLOW_SEARCH_TO_GROUP1_ROLEDN =
-          buildAciValue("name", "allow search to group1 roledn", "targetattr",
-                        "*", "allow(search, read)", BIND_RULE_ROLEDN_GROUP_1);
 
   private static final String ALLOW_SEARCH_TO_ADMIN =
           buildAciValue("name", "allow search to admin", "targetattr", "*", "allow(search, read)", BIND_RULE_USERDN_ADMIN);
@@ -668,16 +655,11 @@ public class AciTests extends DirectoryServerTestCase {
     buildAciValue("name", "read group dn 1", "targetattr", "*", "allow (read)", BIND_RULE_GROUPDN_1),
     buildAciValue("name", "read group dn 2", "targetattr", "*", "allow (read)", BIND_RULE_GROUPDN_2),
     buildAciValue("name", "read group dn 3", "targetattr", "*", "allow (read)", BIND_RULE_GROUPDN_3),
-    buildAciValue("name", "read group dn 1", "targetattr", "*", "allow (read)", BIND_RULE_ROLEDN_1),
-    buildAciValue("name", "read group dn 2", "targetattr", "*", "allow (read)", BIND_RULE_ROLEDN_2),
-    buildAciValue("name", "read group dn 3", "targetattr", "*", "allow (read)", BIND_RULE_ROLEDN_3),
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_USERDN),
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_USERDN_1),
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_URL),
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_GROUPDN),
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_GROUPDN_1),
-    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_ROLEDN),
-    buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_ROLEDN_1),
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_USERDN_INHERITANCE),
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_GROUPDN_INHERITANCE),
     buildAciValue("name", "userattr", "targetattr", "*", "allow (read)", BIND_RULE_USERATTR_VALUE),
@@ -747,6 +729,8 @@ public class AciTests extends DirectoryServerTestCase {
          buildAciValue("targetattr", "*", "allows (read, write, add, delete, search, compare, selfwrite, all)", BIND_RULE_USERDN_SELF),
          buildAciValue("name", "bad groupdn url", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all)", "groupdn=\"ldap:///bogus\""),
          buildAciValue("name", "bad groupdn url2", "targetattr", "*", "allow (read, write, add, delete, search, compare, selfwrite, all)", "groupdn=\"ldap1:///bogus\""),
+         //Roledn keyword is not supported anymore.
+         buildAciValue("name", "unsupported roledn", "targetattr", "*", "allow (all)", "roledn=\"ldap:///cn=foo, dc=bar\""),
 // </PASSES>
   };
 
@@ -1136,11 +1120,7 @@ private static final String GLOBAL_DEFAULT_ACIS =
  private static final String ACI_PROXY_MOVED_ENTRY =
                    makeAddAciLdif(SALES_USER_1, ALLOW_PROXY_TO_MOVED_ENTRY);
 
-//ACI used in testing the groupdn/roledn bind rule keywords.
-
- private static final
- String GROUP1_ROLEDN_MODS =  makeAddAciLdif(OU_LEAF_DN,
-                                         ALLOW_SEARCH_TO_GROUP1_ROLEDN);
+//ACI used in testing the groupdn bind rule keywords.
 
    private static final
  String GROUP1_GROUPDN_MODS =  makeAddAciLdif(OU_LEAF_DN,
@@ -1908,8 +1888,8 @@ private static final String GLOBAL_DEFAULT_ACIS =
 
 
   /**
-  * Test group and role bind rule ACI keywords. Both groupdn and roledn keywords
-  * funnel through the same code so the results should be the same.
+  * Test group  bind rule ACI keywords.
+   *
   * @throws Throwable
  */
     @Test()
@@ -1927,16 +1907,10 @@ private static final String GLOBAL_DEFAULT_ACIS =
                                      null, null, null);
         try {
             addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
-            modEntries(GROUP1_ROLEDN_MODS, DIR_MGR_DN, DIR_MGR_PW);
+            modEntries(GROUP1_GROUPDN_MODS, DIR_MGR_DN, DIR_MGR_PW);
             String userResults = ldapSearch(userParam.getLdapSearchArgs());
             Assert.assertFalse(userResults.equals(""));
             String adminResults = ldapSearch(adminParam.getLdapSearchArgs());
-            Assert.assertTrue(adminResults.equals(""));
-            deleteAttrFromEntry(OU_LEAF_DN, "aci", true);
-            modEntries(GROUP1_GROUPDN_MODS, DIR_MGR_DN, DIR_MGR_PW);
-            userResults = ldapSearch(userParam.getLdapSearchArgs());
-            Assert.assertFalse(userResults.equals(""));
-            adminResults = ldapSearch(adminParam.getLdapSearchArgs());
             Assert.assertTrue(adminResults.equals(""));
         } catch(Throwable e) {
                 throw e;
