@@ -60,7 +60,7 @@
                   'entryToBeAdded'   : '%s/synchronization_add_root_suffix.ldif' % clientDataDir }
               </call>
     
-              <call function="'checktestRC'">
+              <call function="'checkRC'">
                   { 'returncode' : RC,
                     'result'     : STAXResult }
               </call>
@@ -115,7 +115,7 @@
                   'entryToBeAdded'   : '%s/synchronization_add_single.ldif' % clientDataDir }
               </call>
     
-              <call function="'checktestRC'">
+              <call function="'checkRC'">
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
               </call>				
@@ -131,7 +131,7 @@
                   'entryToBeModified'   : '%s/synchronization_mod.ldif' % clientDataDir }
               </call>
     
-              <call function="'checktestRC'">
+              <call function="'checkRC'">
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
               </call>
@@ -185,7 +185,7 @@
                   'dsBaseDN'   : entryDn }
               </call>
     
-              <call function="'checktestRC'">
+              <call function="'checkRC'">
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
               </call>
@@ -211,8 +211,6 @@
             </sequence>
           </testcase>
 			
-          
-          <call function="'testSuite_Postamble'"/>
 
     
     </sequence>

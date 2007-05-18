@@ -78,7 +78,7 @@
 
             <!--- Self-Sign Server Cert -->
             <message>
-               'Security: JKS: Preamble Step 2. Self-Signing Server Certicate'
+               'Security: JKS: Preamble Step 2. Self-Signing Server Certificate'
             </message>
 
             <call function="'selfSignServerJKSCert'">

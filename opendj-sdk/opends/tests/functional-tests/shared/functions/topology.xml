@@ -31,16 +31,24 @@
     <function-prolog>
 		This function creates the topology required by the Test Group/Suite.
 	</function-prolog>   	  
-	<function-map-args>
+	<function-map-args>		  
 	  <function-arg-def name="topologyDescFile" type="optional" default="None">
 	    <function-arg-description>
 		  Topology Description file
 		</function-arg-description>
 		<function-arg-property name="type" value="filePath"/>			
-	  </function-arg-def>	
+	  </function-arg-def>
+	  <function-arg-def name="initialiseInstance" type="optional" default="False">
+	    <function-arg-description>
+		  Specifies whether the instance should be initialised with some default data.
+		</function-arg-description>
+		<function-arg-property name="type" value="boolean"/>
+	  </function-arg-def>			
 	</function-map-args>
 	  
 	<sequence>
+
+      <call function="'prepareInstanceCreation'"></call>		
 
 	  <if expr="topologyDescFile == None">	
 		  <!-- SINGLE instance deployment: read parameters from config.py (done by default) -->
@@ -50,6 +58,17 @@
 			</message>
 			  
 		    <call function="'createInstance'"></call>
+			  
+	        <if expr="RC == 0 and initialiseInstance == True">
+	          <sequence>
+			
+                <!-- Load the server with default data -->
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                  file="'%s/testcases/quickstart/quickstart.xml' % (TESTS_DIR)" />			
+                <call function="'main_quickstart'"/>		  
+			
+		      </sequence>
+	        </if>			  
 			  
 		  </sequence>
 	  		  
@@ -78,6 +97,7 @@
 				    'dsDir' : server.getDir(),
 					'dsPort' : server.getPort(),
 					'dsSslPort' : server.getSslPort(),
+					'dsJmxPort' : server.getJmxPort(),
 					'dsBindDN' : server.getRootDn(),
 					'dsBindPwd' : server.getRootPwd(),
 					'dsBaseDN' : server.getBaseDn() }
@@ -111,7 +131,85 @@
 	</sequence>  
 	    
   </function>
+
 	
+	
+	
+  <function name="prepareInstanceCreation">
+    <function-prolog>
+		This function prepares locally the necessary 
+		files  to create an instance: data zip file and OpenDS zip file.
+	</function-prolog>	  
+	 
+    <sequence>
+
+      <!-- ON LOCAL HOST: get data ready to copy to remote host -->
+          <!-- Locally delete any existing files from staging area -->
+          <message>'Delete the temporary staging area'</message>
+          <call function="'deleteFolder'">
+            { 'location'   :  STAXServiceMachine,
+              'foldername' : '%s' % TMP_DATA_DIR }
+          </call>				
+		
+          <!-- Locally delete any existing files from the zip archive -->
+          <message>'Delete existing zip archive.'</message>
+          <call function="'deleteFile'">
+              { 'location' : STAXServiceMachine,
+                'filename' : '%s/ldifdata.zip' % TMPDIR }
+          </call>
+		
+				
+          <!-- Locally copy static data files to temporary staging area -->
+          <!-- LDIF (.ldif) files -->
+          <message>'Copy ldif data files'</message>
+          <call function="'CopyFolderByExtension'">
+              { 'location'   : STAXServiceMachine,
+                'srcfolder'  : TESTS_DIR,
+                'destfolder' : TMP_DATA_DIR,
+                'extension'  : 'ldif' }
+          </call>
+    
+          <!-- PWD (.pwd) files -->
+          <call function="'CopyFolderByExtension'">
+              { 'location'   : STAXServiceMachine,
+                'srcfolder'  : TESTS_DIR,
+                'destfolder' : TMP_DATA_DIR,
+                'extension'  : 'pwd' }
+          </call>
+    
+          <!-- Archive (.gz) files -->
+          <message>'Copy gz data files'</message>
+          <call function="'CopyFolderByExtension'">
+              { 'location'   : STAXServiceMachine,
+                'srcfolder'  : TESTS_DIR,
+                'destfolder' : TMP_DATA_DIR,
+                'extension'  : 'gz' }
+          </call>
+    
+          <!-- Dynamically create ldif files for staging -->
+          <!-- Modify SSL port to a user-defined value -->
+          <script>
+            write_ldaps_ldif_file('%s/shared/data' % (TMP_DATA_DIR), '%s' % (DIRECTORY_INSTANCE_SSL_PORT));
+          </script>
+        
+          <!--  Zip up contents of tests directory -->
+          <message>
+              'Zip up data directory.'
+          </message>
+          <call function="'zipUpFile'">
+            { 'location'   : STAXServiceMachine,
+              'zipfile'    : '%s/ldifdata.zip' % TMPDIR , 
+              'folder'     : TMP_DATA_DIR ,
+              'relativeto' : TMPDIR }
+          </call>		
+												
+		
+	</sequence>
+  </function>	
+	
+	
+	
+		
 
   <function name="createInstance">
     <function-prolog>
@@ -145,6 +243,12 @@
 		</function-arg-description>
         <function-arg-property name="type" value="Port number"/>
 	  </function-arg-def>
+	  <function-arg-def name="dsJmxPort" type="optional" default="None">
+	    <function-arg-description>
+		  Directory Server JMX port number			
+		</function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+	  </function-arg-def>		
 	  <function-arg-def name="dsBindDN" type="optional" default="DIRECTORY_INSTANCE_DN">
 	    <function-arg-description>
 		  Directory Manager DN			
@@ -171,7 +275,9 @@
 	  <message>
 	    'Create instance in host %s at directory %s' % (dsHost,dsDir)
 	  </message>
+		
 
+      <!-- ON REMOTE HOST: copy files, unzip, configure instance -->
       <!--- Delete folder if it exists on remote host-->
       <message>
         'Delete folder %s/%s on host %s' % (dsDir,OPENDSNAME,dsHost)
@@ -237,7 +343,8 @@
       <call function="'ConfigureDsWithScript'">
         { 'location' : dsHost, 
 		  'dsPath' : '%s/%s' % (dsDir, OPENDSNAME),
-		  'dsPort'   : dsPort ,
+		  'dsPort'   : dsPort,
+          'dsJmxPort' : dsJmxPort,		  
 		  'dsBindDN' : dsBindDN,
 		  'dsBindPwd' : dsBindPwd,
           'dsBaseDN' : dsBaseDN }
@@ -258,7 +365,8 @@
 		  </message>
 		</else>  
 	  </if>      
-				
+					
+			
 	</sequence> 
 	  
   </function>
@@ -311,52 +419,56 @@
 		
 	  <script>
         remoteFilePath = '%s/%s' % (dataDir, filename)
-        configPath = '%s/%s/config/config.ldif' % (syncserver.getDir(),OPENDSNAME)
+        syncserverPath = '%s/%s' % (syncserver.getDir(),OPENDSNAME)
 	  </script>
-
-	  <stafcmd>
-	    <location> syncserver.getHostname() </location>
-		<service> 'FS' </service>
-		<request> 'GET ENTRY %s SIZE' % configPath </request>		  
-	  </stafcmd>
-
-	  <script>
-        if RC == STAFRC.Ok:
-          configFileSize = STAFResult['lowerSize']
-        
-        cmd = '/bin/dd'
-        
-        cmdParamsList = []
-        cmdParamsList.append('if=%s' % remoteFilePath)
-        cmdParamsList.append('of=%s' % configPath)
-        cmdParamsList.append('conv=notrunc bs=1 seek=%s' % configFileSize)		  
-        cmdParams = ' '.join(cmdParamsList)
-	  </script>
-
-      <message>
-	    'Append %s to %s' % (remoteFilePath,configPath)
-	  </message>
-	  <message>
-		 '%s %s' % (cmd,cmdParams)
-	  </message>
-								  
-	  <process name="'Append Synchronization Entries to config.ldif'">
-	    <location> syncserver.getHostname() </location>
-		<command> '%s' % cmd </command>
-		<parms>'%s' % cmdParams </parms>
-		<workdir> '/bin' </workdir>
-		<envs>
-		  ['PATH=/bin:/usr/bin', 'JAVA_HOME=%s' % (JAVA_HOME)]
-		</envs>
-		<stderr mode="'stdout'"/>
-		<returnstdout/>
-	  </process>				  		
 		
+		
+      <!--- Start DS -->				         
+      <call function="'StartDsWithScript'">
+        { 'location'  : syncserver.getHostname(),
+           'dsPath' : syncserverPath }
+      </call>
+      
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
+      </call>		
+
+      <message>
+	    'Add synchronization configuration entries in %s' % remoteFilePath
+	  </message>
+						
+	  <call function="'addEntry'">
+        { 'location' : syncserver.getHostname(),
+          'dsPath' : syncserverPath,
+          'dsInstanceHost'    : syncserver.getHostname(),
+          'dsInstancePort'   : syncserver.getPort(),
+          'dsInstanceDn'    : syncserver.getRootDn(),
+          'dsInstancePswd'  : syncserver.getRootPwd(),
+          'entryToBeAdded'   : remoteFilePath }
       </call>
-        
+    
+      <call function="'checkRC'">
+        { 'returncode' : RC,
+          'result'     : STAXResult }
+      </call>			
+
+
+      <!--- Stop DS -->					      
+      <call function="'StopDsWithScript'">
+        { 'location'  : syncserver.getHostname(),
+          'dsHost' : syncserver.getHostname(),
+          'dsPath' : syncserverPath,
+          'dsPort'    : syncserver.getPort(),
+          'dsBindDN'  : syncserver.getRootDn(),
+          'dsBindPwd' : syncserver.getRootPwd() }
+      </call>
+      
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>							
+
 		
 	</sequence>	
 	  
@@ -397,6 +509,7 @@
         dir = None
         port = None
         sslport = None
+        jmxport = None		  
         rootDn = None
         rootPwd = None
         baseDn = None
@@ -418,6 +531,8 @@
             port = line[line.find('Port') + 5:].strip()
           elif line.find('Sslport') != -1:
             sslport = line[line.find('Sslport') + 8:].strip()
+          elif line.find('Jmxport') != -1:
+            jmxport = line[line.find('Jmxport') + 8:].strip()		  
           elif line.find('RootDn') != -1:
             rootDn = line[line.find('RootDn') + 7:].strip()
           elif line.find('RootPwd') != -1:
@@ -431,7 +546,7 @@
           elif line.find('ChangelogServer') != -1:
             changelogList.append( line[line.find('ChangelogServer') + 16:].strip() )
           elif (line.isspace()) or (len(line) == 0):
-            server = Server(hostname, dir, port, sslport, rootDn, rootPwd, baseDn)
+            server = Server(hostname, dir, port, sslport, jmxport, rootDn, rootPwd, baseDn)
             
             if changelogport != None:
               changelogServer = ChangelogServer(changelogport, serverId)
@@ -455,6 +570,7 @@
             dir = None
             port = None
             sslport = None
+            jmxport = None		  
             rootDn = None
             rootPwd = None
             baseDn = None
@@ -464,7 +580,7 @@
             serverId += 1
         
         if hostname != None:
-          server = Server(hostname, dir, port, sslport, rootDn, rootPwd, baseDn)
+          server = Server(hostname, dir, port, sslport, jmxport, rootDn, rootPwd, baseDn)
             
           if changelogport != None:
             changelogServer = ChangelogServer(changelogport, serverId)
@@ -492,71 +608,124 @@
 	  	  
   </function>	
 	
-
-  <function name="removeTopology">
+	
+	
+  <function name="removeInstance">
     <function-prolog>
-		This function removes the topology created for the Test Group/Suite.
-	</function-prolog>   	  
-
+		This function removes an instance on a given host.
+	</function-prolog>
+	
+	<function-map-args>
+	  <function-arg-def name="dsHost" type="optional" default="DIRECTORY_INSTANCE_HOST">
+	    <function-arg-description>
+		  Hostname where the instance is to be created			
+		</function-arg-description>	
+        <function-arg-property name="type" value="hostname"/>
+	  </function-arg-def>
+	  <function-arg-def name="dsDir" type="optional" default="DIRECTORY_INSTANCE_DIR">
+	    <function-arg-description>
+		  Directory where OpenDS will be installed			
+		</function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+	</function-map-args>
+	  	  
 	  
-	<sequence>
+    <sequence>
+		
+	  <message>
+	    'Removing instance %s/%s on host %s' % (dsDir,OPENDSNAME,dsHost)
+	  </message>
+		
 
-      <message>
-	    'Number of server instances deployed: %s' % len(_topologyServerList)
-	  </message>			  
-			  
-	  <iterate var="server" in="_topologyServerList">
-	    <sequence>
-
-		  <message>
-		    'Cleaning up %s/%s instance on host %s' % (server.getDir(),OPENDSNAME,server.getHostname())
-		  </message>
-						
+      <!-- ON REMOTE HOST: remove files and folders -->
           <!--- Delete staging data file on remote host-->
           <message>
-            'Delete stagingn data file %s/ldifdata.zip' % server.getDir()
+            'Delete staging data file %s/ldifdata.zip' % dsDir
           </message>
           <call function="'deleteFile'">
-            { 'location' : server.getHostname(),
-              'filename' : '%s/ldifdata.zip' % server.getDir() }
+            { 'location' : dsHost,
+              'filename' : '%s/ldifdata.zip' % dsDir }
           </call>
     
           <!--- Delete staging data folder on remote host -->
           <message>
-            'Delete staging data folder %s/functional-tests' % server.getDir()
+            'Delete staging data folder %s/functional-tests' % dsDir
           </message>
           <call function="'deleteFolder'">
-            { 'location'   : server.getHostname(),
-              'foldername' : '%s/functional-tests' % server.getDir() }
+            { 'location'   : dsHost,
+              'foldername' : '%s/functional-tests' % dsDir }
           </call>
 			
-			
-          <!--- Delete OPENDS folder on remote host-->
-          <message>
-            'Delete OPENDS folder %s/%s' % (server.getDir(),OPENDSNAME)
-          </message>
-          <call function="'deleteFolder'">
-            { 'location' : server.getHostname(), 
-    		  'foldername' : '%s/%s' % (server.getDir(),OPENDSNAME) }
-          </call>			
-			
+
+								
           <!--- Delete OPENDS zip file on remote host-->
           <message>
             'Delete OPENDS zip file %s' % DSTFILE
           </message>
           <call function="'deleteFile'">
-            { 'location' : server.getHostname(), 
+            { 'location' : dsHost, 
     		  'filename' : '%s' % DSTFILE }
           </call>						
-			    	
+		
+		
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+
+      <if expr="returncode == 0">
+	    <message>
+	      'Instance removed.'
+	    </message>
+		<else>
 		  <message>
-		    'Instance cleaned up.'
-		  </message>			
-			
-		</sequence>				
-	  </iterate>
-			  
+			  'Failed to remove instance.'
+		  </message>
+		</else>  
+	  </if>      
 				
+	</sequence> 
+	  
+  </function>
+
+
+	
+	
+  <function name="removeTopology">
+    <function-prolog>
+		This function removes the topology created for the Test Group/Suite.
+	</function-prolog>   	  
+	<function-map-args>
+	  <function-arg-def name="multipleInstanceTopology" type="optional" default="False">
+	    <function-arg-description>
+		  Tells whether it is a single (i.e. parameters read from config.py) or
+		  a multiple-instance topology (i.e. parameters read from topology desc file).
+		</function-arg-description>
+		<function-arg-property name="type" value="boolean"/>			
+	  </function-arg-def>	
+	</function-map-args>
+	  
+	<sequence>
+		
+	  <if expr="multipleInstanceTopology == False">	
+		  <!-- SINGLE instance deployment: parameters read from config.py (done by default) -->
+			  
+		  <call function="'removeInstance'"></call>
+	  		  
+	  <else>
+		<!-- MULTIPLE instance deployment: parameters read from topologyDescFile -->
+	    <iterate var="server" in="_topologyServerList">
+						
+          <call function="'removeInstance'">
+		    { 'dsHost' : server.getHostname(),
+			  'dsDir' : server.getDir() }	  
+		  </call>
+			
+ 	    </iterate>
+	  </else>
+	  </if>
+		  
 	</sequence>  
 	    
   </function>

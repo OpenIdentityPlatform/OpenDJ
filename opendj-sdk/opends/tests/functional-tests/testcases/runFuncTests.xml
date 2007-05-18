@@ -32,90 +32,16 @@
   <function name="main">
 
     <sequence>
-
-      <!--- Import all the shared xml libraries -->
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/utils.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/stafcmd.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/staxcmd.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/dsadm.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/ldap.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/security.xml' % (TESTS_FUNCTIONS_DIR)" />
 		
-	  <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/topology.xml' % (TESTS_FUNCTIONS_DIR)" />
-        
+      <!--- Load the environment for the test suite execution -->
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/signals.xml' % (TESTS_FUNCTIONS_DIR)" />
+        file="'%s/environment.xml' % (TESTS_FUNCTIONS_DIR)" />
+      <call function="'loadEnvironment'" />  
 
-      <!-- Load in any standard python libraries -->
-      <script>
-        import re
-        import posixpath
-        import sys
-      </script>
-
-      <!-- Load in any standard python functions -->
-      <script>
-        from time import localtime,strftime
-      </script> 
-
-      <!-- Resolve any OS related variables -->           
-      <call function="'setOSvariables'">
-        { 'hostname' : STAF_REMOTE_HOSTNAME }
-      </call>
-
-      <!-- XXXX this needs some cleanup XXXX -->
-      <script>
-        STAXLogMessage = 1 
-        LogDir='%s' % TMPDIR
-        SRCFILE = '%s/%s' % (ZIPPATH,ZIPNAME) 
-        DSTFILE = '%s/%s' % (TMPDIR,ZIPNAME)
-        OPENDS_BINPATH ='%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) 
-        OSName= STAXResult
-        winPattern=re.compile('win', re.IGNORECASE)
-        isWindows=winPattern.search(OSName)
-        if isWindows:
-          fileExt='.bat'
-          fileFolder='bat'
-        else:
-          fileExt=''
-          fileFolder='bin'
-      </script>
-      
-      <!-- Load in the local shared python objects from libraries -->
-      <script>
-        sys.path.append("%s/python" % TESTS_SHARED_DIR )
-        from common import *
-      </script>     
-
-      <!-- Set the signal handlers -->          
-      <call function="'signals'"/>
-      
-      <!-- Initialize any global variables -->
-      <script>
-        CurrentTestPath={}
-      </script>
-
+		
+		
       <!--- The Functional Tests -->		
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/setup/setup.xml' % (TESTS_DIR)" />
-      <call function="'main_setup'" />
 		
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/quickstart/quickstart.xml' % (TESTS_DIR)" />
-      <call function="'main_quickstart'" />
-
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/security/security.xml' % (TESTS_DIR)" />
       <call function="'main_security'" />
@@ -135,19 +61,13 @@
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/schema/schema.xml' % (TESTS_DIR)" />
       <call function="'main_schema'" />
-		
-      <if expr="not isWindows">
-	  <sequence>		
+
 	  <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/synchronization/synchronization.xml' % (TESTS_DIR)" />
       <call function="'main_synchronization'" />		
-	  </sequence>	  	  
-      </if>			
 
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/cleanup/cleanup.xml' % (TESTS_DIR)" />
-      <call function="'main_cleanup'" />
-		
+			
+
     </sequence>
   </function>
 </stax>
