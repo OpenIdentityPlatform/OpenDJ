@@ -36,7 +36,7 @@
   <!-- installer wide settings - top -->
     <property file="${project.home}/PRODUCT"/>
     <property name="product.name"
-              value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}" />
+              value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}" />
     <!-- load user properties first if they have been set -->
     <property file="user.properties"/>
     <!-- this is the file where the default values are defined                -->
