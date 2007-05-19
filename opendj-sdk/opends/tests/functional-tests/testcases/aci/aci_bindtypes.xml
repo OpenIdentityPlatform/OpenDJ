@@ -3557,7 +3557,7 @@
                 <call function="'SearchObject'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'     : 'uid=euser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
                     'dsBaseDN'         : 'uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
@@ -3573,7 +3573,7 @@
                       'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
                 </call>
                 
-                <if expr="returnCode != '1'">
+                <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
     
@@ -3582,20 +3582,6 @@
                       'testString'         : 'cn:' }
                 </call>
                 
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
- <!-- Issue 1587 has been reopened. Uncomment this part when Issue 1587 is fixed.   
-    
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'l:' }
-                </call>
-                
-                <if expr="returnCode != '0'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: userattr not equals one attr, user searching entry without matching attribute'
                 </message>
@@ -3603,7 +3589,7 @@
                 <call function="'SearchObject'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstanceDn'     : 'uid=euser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
                     'dsBaseDN'         : 'uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
@@ -3619,28 +3605,10 @@
                       'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
-                </call>
-                
-                <if expr="returnCode != 'l'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'l:' }
-                </call>
-                
                 <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
--->    
+        
                 <message>
                    'ACI: Bind Types: userattr not equals one attr, admin deleting aci'
                 </message>
