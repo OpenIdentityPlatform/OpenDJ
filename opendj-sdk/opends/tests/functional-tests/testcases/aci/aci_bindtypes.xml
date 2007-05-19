@@ -3356,21 +3356,22 @@
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Bind Type Tests
                 #@TestName                  userattr not equals one attribute
-                #@TestIssue                 455
+                #@TestIssue                 1587
                 #@TestPurpose               Test behavior with userattr not equals one attribute
                 #@TestPreamble              Admin adds an aci to the dn of one existing branch.
                 #@TestStep                  Client searches entry in the targeted branch dn for all attributes.
                 #@TestStep                  Client searches entry in the targeted branch dn for selected attributes including matching attribute.
                 #@TestStep                  Client searches entry in the targeted branch dn for selected attributes not including matching attribute.
                 #@TestStep                  Client searches entry in a non-targeted branch dn for all attributes.
-                #@TestStep                  Client searches entry in the targeted branch dn for entry with no matching attribute.
+                #@TestStep                  Client searches entry in the targeted branch dn for entry with no matching attribute including matching attribute.
+                #@TestStep                  Client searches entry in the targeted branch dn for entry with no matching attributenot including matching attribute.
                 #@TestStep                  Remove aci.
                 #@TestStep                  Client searches entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entries is returned only for steps 1, 2, and 3.
-                                            Attribute values returned only for steps 1 and 2.
+                                            and entries is returned only for steps 1, 2, 3, 5 and 6.
+                                            Attribute values returned only for steps 1, 2 and 6.
             -->
             <testcase name="'ACI: Bind Types: userattr not equals one attr'">
               <sequence>
@@ -3422,7 +3423,6 @@
                 <if expr="returnCode != '1'">
                     <tcstatus result="'fail'"/>
                 </if>
-<!--    The rest of the test case should be uncommented when Issue 1587 is resolved.
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
@@ -3519,7 +3519,7 @@
                       'testString'         : 'cn:' }
                 </call>
                 
-                <if expr="returnCode != '0'">
+                <if expr="returnCode != '1'">
                     <tcstatus result="'fail'"/>
                 </if>
     
@@ -3549,8 +3549,8 @@
                 <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
-    
-                <message>
+ 
+               <message>
                    'ACI: Bind Types: userattr not equals one attr, user searching entry with matching attribute'
                 </message>
     
@@ -3571,6 +3571,70 @@
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
                       'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'cn:' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+ <!-- Issue 1587 has been reopened. Uncomment this part when Issue 1587 is fixed.   
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'l:' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Bind Types: userattr not equals one attr, user searching entry without matching attribute'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=kvaughan,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'cn:' }
+                </call>
+                
+                <if expr="returnCode != 'l'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'l:' }
                 </call>
                 
                 <if expr="returnCode != '0'">
