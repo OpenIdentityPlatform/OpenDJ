@@ -28,6 +28,7 @@ package org.opends.server.util.args;
 
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -67,30 +68,95 @@ public class SubCommand
   // The argument parser with which this subcommand is associated.
   private SubCommandArgumentParser parser;
 
+  // Indicates whether this parser will allow additional unnamed
+  // arguments at the end of the list.
+  private boolean allowsTrailingArguments;
+
+  // The maximum number of unnamed trailing arguments that may be
+  // provided.
+  private int maxTrailingArguments;
+
+  // The minimum number of unnamed trailing arguments that may be
+  // provided.
+  private int minTrailingArguments;
+
+  // The display name that will be used for the trailing arguments in
+  // the usage information.
+  private String trailingArgsDisplayName;
+
+  /**
+   * Creates a new subcommand with the provided information. The
+   * subcommand will be automatically registered with the associated
+   * parser.
+   *
+   * @param parser
+   *          The argument parser with which this subcommand is
+   *          associated.
+   * @param name
+   *          The name of this subcommand.
+   * @param descriptionID
+   *          The unique ID for the description of this subcommand.
+   * @param descriptionArgs
+   *          The arguments to use to generate the description string
+   *          for this subcommand.
+   * @throws ArgumentException
+   *           If the associated argument parser already has a
+   *           subcommand with the same name.
+   */
+  public SubCommand(SubCommandArgumentParser parser, String name,
+      int descriptionID, Object... descriptionArgs) throws ArgumentException
+  {
+    this(parser, name, false, 0, 0, null, descriptionID, descriptionArgs);
+  }
+
 
 
   /**
-   * Creates a new subcommand with the provided information.  The subcommand
-   * will be automatically registered with the associated parser.
+   * Creates a new subcommand with the provided information. The
+   * subcommand will be automatically registered with the associated
+   * parser.
    *
-   * @param  parser           The argument parser with which this subcommand is
-   *                          associated.
-   * @param  name             The name of this subcommand.
-   * @param  descriptionID    The unique ID for the description of this
-   *                          subcommand.
-   * @param  descriptionArgs  The arguments to use to generate the description
-   *                          string for this subcommand.
-   *
-   * @throws  ArgumentException  If the associated argument parser already has a
-   *                             subcommand with the same name.
+   * @param parser
+   *          The argument parser with which this subcommand is
+   *          associated.
+   * @param name
+   *          The name of this subcommand.
+   * @param allowsTrailingArguments
+   *          Indicates whether this parser allows unnamed trailing
+   *          arguments to be provided.
+   * @param minTrailingArguments
+   *          The minimum number of unnamed trailing arguments that
+   *          must be provided. A value less than or equal to zero
+   *          indicates that no minimum will be enforced.
+   * @param maxTrailingArguments
+   *          The maximum number of unnamed trailing arguments that
+   *          may be provided. A value less than or equal to zero
+   *          indicates that no maximum will be enforced.
+   * @param trailingArgsDisplayName
+   *          The display name that should be used as a placeholder
+   *          for unnamed trailing arguments in the generated usage
+   *          information.
+   * @param descriptionID
+   *          The unique ID for the description of this subcommand.
+   * @param descriptionArgs
+   *          The arguments to use to generate the description string
+   *          for this subcommand.
+   * @throws ArgumentException
+   *           If the associated argument parser already has a
+   *           subcommand with the same name.
    */
   public SubCommand(SubCommandArgumentParser parser, String name,
-                    int descriptionID, Object... descriptionArgs)
-         throws ArgumentException
+      boolean allowsTrailingArguments, int minTrailingArguments,
+      int maxTrailingArguments, String trailingArgsDisplayName,
+      int descriptionID, Object... descriptionArgs) throws ArgumentException
   {
-    this.parser        = parser;
-    this.name          = name;
+    this.parser = parser;
+    this.name = name;
     this.descriptionID = descriptionID;
+    this.allowsTrailingArguments = allowsTrailingArguments;
+    this.minTrailingArguments = minTrailingArguments;
+    this.maxTrailingArguments = maxTrailingArguments;
+    this.trailingArgsDisplayName = trailingArgsDisplayName;
 
     String nameToCheck = name;
     if (parser.longArgumentsCaseSensitive())
@@ -117,7 +183,7 @@ public class SubCommand
   /**
    * Retrieves the name of this subcommand.
    *
-   * @return  The name of this subcommand.
+   * @return The name of this subcommand.
    */
   public String getName()
   {
@@ -308,6 +374,81 @@ public class SubCommand
     {
       longIDMap.put(longID, argument);
     }
+  }
+
+
+
+  /**
+   * Indicates whether this sub-command will allow unnamed trailing
+   * arguments. These will be arguments at the end of the list that
+   * are not preceded by either a long or short identifier and will
+   * need to be manually parsed by the application using this parser.
+   * Note that once an unnamed trailing argument has been identified,
+   * all remaining arguments will be classified as such.
+   *
+   * @return <CODE>true</CODE> if this sub-command allows unnamed
+   *         trailing arguments, or <CODE>false</CODE> if it does
+   *         not.
+   */
+  public boolean allowsTrailingArguments()
+  {
+    return allowsTrailingArguments;
+  }
+
+
+
+  /**
+   * Retrieves the minimum number of unnamed trailing arguments that
+   * must be provided.
+   *
+   * @return The minimum number of unnamed trailing arguments that
+   *         must be provided, or a value less than or equal to zero
+   *         if no minimum will be enforced.
+   */
+  public int getMinTrailingArguments()
+  {
+    return minTrailingArguments;
+  }
+
+
+
+  /**
+   * Retrieves the maximum number of unnamed trailing arguments that
+   * may be provided.
+   *
+   * @return The maximum number of unnamed trailing arguments that may
+   *         be provided, or a value less than or equal to zero if no
+   *         maximum will be enforced.
+   */
+  public int getMaxTrailingArguments()
+  {
+    return maxTrailingArguments;
+  }
+
+
+
+  /**
+   * Retrieves the trailing arguments display name.
+   *
+   * @return Returns the trailing arguments display name.
+   */
+  public String getTrailingArgumentsDisplayName()
+  {
+    return trailingArgsDisplayName;
+  }
+
+
+
+  /**
+   * Retrieves the set of unnamed trailing arguments that were provided on the
+   * command line.
+   *
+   * @return  The set of unnamed trailing arguments that were provided on the
+   *          command line.
+   */
+  public ArrayList<String> getTrailingArguments()
+  {
+    return parser.getTrailingArguments();
   }
 }
 
