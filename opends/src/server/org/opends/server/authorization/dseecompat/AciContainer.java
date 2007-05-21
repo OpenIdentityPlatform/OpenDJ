@@ -260,10 +260,15 @@ implements AciTargetMatchContext, AciEvalContext {
       if(origAuthorizationEntry != null)
          this.proxiedAuthorization=true;
       this.authorizationEntry=operation.getAuthorizationEntry();
-      //Only need to process the geteffectiverights control once, -- for a
-      //SearchOperation with read right. It is saved in the operation
-      //attachment after that.
+      //The ACI_READ right at constructor time can only be the result of the
+      //AciHandler.filterEntry method. This method processes the
+      //geteffectiverights control, so it needs to check for it.  There are
+      //two other checks done, because the resource entry passed to that method
+      //is filtered (it may not contain enough attribute information
+      //to evaluate correctly). See the the comments below.
       if(operation instanceof SearchOperation && (rights == ACI_READ)) {
+        //Checks if a geteffectiverights control was sent and
+        //sets up the structures needed.
         GetEffectiveRights getEffectiveRightsControl =
               (GetEffectiveRights)
                       operation.getAttachment(OID_GET_EFFECTIVE_RIGHTS);
@@ -274,12 +279,18 @@ implements AciTargetMatchContext, AciEvalContext {
           else
             this.authzid=getEffectiveRightsControl.getAuthzDN();
           this.specificAttrs=getEffectiveRightsControl.getAttributes();
-          fullEntry=(Entry)operation.getAttachment(ALL_ATTRS_RESOURCE_ENTRY);
         }
+        //If the ACI evaluated because of an Targetattr="*", then the
+        //AciHandler.maySend method signaled this via adding this attachment
+        //string.
         String allAttrs=(String)operation.getAttachment(ALL_ATTRS_MATCHED);
         if(allAttrs != null)
           evalAllAttributes = ACI_ATTR_STAR_MATCHED;
-      }
+        //The AciHandler.maySend method also adds the full attribute version of
+        //the resource entry in this attachment.
+        fullEntry=(Entry)operation.getAttachment(ALL_ATTRS_RESOURCE_ENTRY);
+      } else
+        fullEntry=this.resourceEntry;
       //Reference the current authorization entry, so it can be put back
       //if an access proxy check was performed.
       this.saveAuthorizationEntry=this.authorizationEntry;
@@ -823,15 +834,29 @@ implements AciTargetMatchContext, AciEvalContext {
    * {@inheritDoc}
    */
   public boolean hasACIEvalAttributes() {
-    return (evalAllAttributes == 0) ||
-           (evalAllAttributes & ACI_FOUND_ATTR_RULE) == ACI_FOUND_ATTR_RULE;
+    return (evalAllAttributes & ACI_FOUND_ATTR_RULE) == ACI_FOUND_ATTR_RULE;
   }
 
+
+  /**
+   * Return true if the evaluating ACI either contained a targetattr all
+   * attributes rule matched only.
+   *
+   * @return  True if the above condition was seen.
+   **/
+  public boolean hasACIAllAttributes() {
+    return (evalAllAttributes & ACI_ATTR_STAR_MATCHED) == ACI_ATTR_STAR_MATCHED;
+  }
 
   /**
    * {@inheritDoc}
    */
   public void clearACIEvalAttributesRule(int v) {
-    evalAllAttributes &= ~v;
+    if(v == 0)
+      evalAllAttributes=0;
+    else
+      evalAllAttributes &= ~v;
   }
+
+
 }

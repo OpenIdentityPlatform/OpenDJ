@@ -304,4 +304,20 @@ public interface AciEvalContext
    * @return   The name of the ACI that last matched a targattrfilters rule.
    */
     public String getTargAttrFiltersAciName();
+
+  /**
+   * The full entry with all of the attributes was saved
+   * in the operation's attachment mechanism when the container was created
+   * during the SearchOperation read evaluation. Some operations need the full
+   * entry and not the filtered entry to perform their evaluations, because they
+   * might depend attribute types and values filtered out.
+   *
+   * This method is used to replace the current resource entry with that saved
+   * entry and back.
+   *
+   * @param val Specifies if the saved entry should be used or not. True if it
+   * should be used, false if the original resource entry should be used.
+   *
+   */
+    public void useFullResourceEntry(boolean val);
 }

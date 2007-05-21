@@ -38,6 +38,7 @@ import java.util.HashMap;
 public class TargetAttrTestCase extends AciTestCase {
 
   private static String attrList="sn uid l";
+  private static String attrList1="sn uid";
   private static String opAttrList="sn uid aci";
   private static final String user1="uid=user.1,ou=People,o=test";
   private static final String user3="uid=user.3,ou=People,o=test";
@@ -59,13 +60,13 @@ public class TargetAttrTestCase extends AciTestCase {
   String nonOpAttrAci = "(targetattr=\"*\")" +
           "(version 3.0;acl \"read/search non-operational attr\";" +
           "allow (search, read) " +
-          "userdn=\"ldap:///uid=user.3,ou=People,o=test\";)";
+          "userattr=\"l#Austin\";)";
 
   private static final
   String opAttrAci = "(targetattr=\"aci\")" +
           "(version 3.0;acl \"read/search operational attr\";" +
           "allow (search, read) " +
-          "userdn=\"ldap:///uid=user.3,ou=People,o=test\";)";
+          "userattr=\"l#Austin\";)";
 
   @BeforeClass
   public void setupClass() throws Exception {
@@ -91,17 +92,24 @@ public class TargetAttrTestCase extends AciTestCase {
     checkAttributeVal(attrMap, "l", "Austin");
     checkAttributeVal(attrMap, "sn", "1");
     checkAttributeVal(attrMap, "uid", "user.1");
-    deleteAttrFromEntry(user1, "aci");
-    String aciLdif1=makeAddAciLdif("aci", user1, userAttrAci1);
-    modEntries(aciLdif1, DIR_MGR_DN, PWD);
     String userResults1 =
             LDAPSearchParams(user3, PWD, null, null, null,
-                    user1, filter, attrList);
+                    user1, filter, attrList1);
     Assert.assertFalse(userResults1.equals(""));
     HashMap<String, String> attrMap1=getAttrMap(userResults1);
-    checkAttributeVal(attrMap1, "l", "Austin");
     checkAttributeVal(attrMap1, "sn", "1");
     checkAttributeVal(attrMap1, "uid", "user.1");
+    deleteAttrFromEntry(user1, "aci");
+    String aciLdif2=makeAddAciLdif("aci", user1, userAttrAci1);
+    modEntries(aciLdif2, DIR_MGR_DN, PWD);
+    String userResults2 =
+            LDAPSearchParams(user3, PWD, null, null, null,
+                    user1, filter, attrList);
+    Assert.assertFalse(userResults2.equals(""));
+    HashMap<String, String> attrMap2=getAttrMap(userResults2);
+    checkAttributeVal(attrMap2, "l", "Austin");
+    checkAttributeVal(attrMap2, "sn", "1");
+    checkAttributeVal(attrMap2, "uid", "user.1");
     deleteAttrFromEntry(user1, "aci");
   }
 
