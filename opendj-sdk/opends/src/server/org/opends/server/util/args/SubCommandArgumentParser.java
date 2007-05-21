@@ -31,9 +31,12 @@ package org.opends.server.util.args;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Properties;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.opends.server.core.DirectoryServer;
 
@@ -61,6 +64,9 @@ public class SubCommandArgumentParser
   // The argument that will be used to trigger the display of usage information.
   private Argument usageArgument;
 
+  // The set of unnamed trailing arguments that were provided for this parser.
+  private ArrayList<String> trailingArguments;
+
   // Indicates whether subcommand and long argument names should be treated in a
   // case-sensitive manner.
   private boolean longArgumentsCaseSensitive;
@@ -82,7 +88,7 @@ public class SubCommandArgumentParser
 
   // The set of subcommands defined for this parser, referenced by subcommand
   // name.
-  private HashMap<String,SubCommand> subCommands;
+  private SortedMap<String,SubCommand> subCommands;
 
   // The total set of global arguments defined for this parser.
   private LinkedList<Argument> globalArgumentList;
@@ -128,11 +134,12 @@ public class SubCommandArgumentParser
     this.toolDescription            = toolDescription;
     this.longArgumentsCaseSensitive = longArgumentsCaseSensitive;
 
+    trailingArguments  = new ArrayList<String>();
     globalArgumentList = new LinkedList<Argument>();
     globalArgumentMap  = new HashMap<String,Argument>();
     globalShortIDMap   = new HashMap<Character,Argument>();
     globalLongIDMap    = new HashMap<String,Argument>();
-    subCommands        = new HashMap<String,SubCommand>();
+    subCommands        = new TreeMap<String,SubCommand>();
     usageDisplayed     = false;
     rawArguments       = null;
     subCommand         = null;
@@ -331,7 +338,7 @@ public class SubCommandArgumentParser
    * @return  The set of subcommands defined for this argument parser,
    *          referenced by subcommand name.
    */
-  public HashMap<String,SubCommand> getSubCommands()
+  public SortedMap<String,SubCommand> getSubCommands()
   {
     return subCommands;
   }
@@ -649,19 +656,35 @@ public class SubCommandArgumentParser
          throws ArgumentException
   {
     this.rawArguments = rawArguments;
+    this.subCommand = null;
+    this.trailingArguments = new ArrayList<String>();
+    this.usageDisplayed = false;
+
+    boolean inTrailingArgs = false;
 
     int numArguments = rawArguments.length;
     for (int i=0; i < numArguments; i++)
     {
       String arg = rawArguments[i];
 
+      if (inTrailingArgs)
+      {
+        trailingArguments.add(arg);
+        if ((subCommand.getMaxTrailingArguments() > 0) &&
+            (trailingArguments.size() > subCommand.getMaxTrailingArguments()))
+        {
+          int    msgID   = MSGID_ARGPARSER_TOO_MANY_TRAILING_ARGS;
+          String message = getMessage(msgID, subCommand
+              .getMaxTrailingArguments());
+          throw new ArgumentException(msgID, message);
+        }
+
+        continue;
+      }
+
       if (arg.equals("--"))
       {
-        // This is not legal because we don't allow unnamed trailing arguments
-        // in this parser.
-        int    msgID   = MSGID_SUBCMDPARSER_LONG_ARG_WITHOUT_NAME;
-        String message = getMessage(msgID, arg);
-        throw new ArgumentException(msgID, message);
+        inTrailingArgs = true;
       }
       else if (arg.startsWith("--"))
       {
@@ -1056,11 +1079,26 @@ public class SubCommandArgumentParser
           }
         }
       }
+      else if (subCommand != null)
+      {
+        // It's not a short or long identifier and the sub-command has
+        // already been specified, so it must be the first trailing argument.
+        if (subCommand.allowsTrailingArguments())
+        {
+          trailingArguments.add(arg);
+          inTrailingArgs = true;
+        }
+        else
+        {
+          // Trailing arguments are not allowed for this sub-command.
+          int    msgID   = MSGID_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT;
+          String message = getMessage(msgID, arg);
+          throw new ArgumentException(msgID, message);
+        }
+      }
       else
       {
-        // It's not a short or long identifier, so check to see if it is a
-        // subcommand name.  If not, then it's invalid.  If so, then make sure
-        // that it was the only subcommand provided.
+        // It must be the sub-command.
         String nameToCheck = arg;
         if (! longArgumentsCaseSensitive)
         {
@@ -1074,19 +1112,29 @@ public class SubCommandArgumentParser
           String message = getMessage(msgID, arg);
           throw new ArgumentException(msgID, message);
         }
-        else if (subCommand == null)
-        {
-          subCommand = sc;
-        }
         else
         {
-          int    msgID   = MSGID_SUBCMDPARSER_MULTIPLE_SUBCOMMANDS;
-          String message = getMessage(msgID, arg, subCommand.getName());
-          throw new ArgumentException(msgID, message);
+          subCommand = sc;
         }
       }
     }
 
+    // If we have a sub-command and it allows trailing arguments and
+    // there is a minimum number, then make sure at least that many
+    // were provided.
+    if (subCommand != null)
+    {
+      int minTrailingArguments = subCommand.getMinTrailingArguments();
+      if (subCommand.allowsTrailingArguments() && (minTrailingArguments > 0))
+      {
+        if (trailingArguments.size() < minTrailingArguments)
+        {
+          int msgID = MSGID_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS;
+          String message = getMessage(msgID, minTrailingArguments);
+          throw new ArgumentException(msgID, message);
+        }
+      }
+    }
 
     // Iterate through all the global arguments and make sure that they have
     // values or a suitable default is available.
@@ -1321,6 +1369,10 @@ public class SubCommandArgumentParser
     buffer.append(" ");
     buffer.append(subCommand.getName());
     buffer.append(" {options}");
+    if (subCommand.allowsTrailingArguments()) {
+      buffer.append(' ');
+      buffer.append(subCommand.getTrailingArgumentsDisplayName());
+    }
     buffer.append(EOL);
     buffer.append(subCommand.getDescription());
     buffer.append(EOL);
@@ -1474,6 +1526,20 @@ public class SubCommandArgumentParser
     }
 
     outputStream.write(getBytes(buffer.toString()));
+  }
+
+
+
+  /**
+   * Retrieves the set of unnamed trailing arguments that were provided on the
+   * command line.
+   *
+   * @return  The set of unnamed trailing arguments that were provided on the
+   *          command line.
+   */
+  public ArrayList<String> getTrailingArguments()
+  {
+    return trailingArguments;
   }
 
 
