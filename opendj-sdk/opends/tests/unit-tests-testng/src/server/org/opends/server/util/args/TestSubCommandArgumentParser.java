@@ -28,7 +28,8 @@ package org.opends.server.util.args;
 
 
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -124,8 +125,11 @@ public final class TestSubCommandArgumentParser extends ArgsTestCase {
     // Check that the trailing arguments were retrieved correctly and
     // in the right order.
     if (args.length > 1) {
-      Assert.assertEquals(parser.getTrailingArguments(), Arrays.asList(Arrays
-          .copyOfRange(args, 1, args.length)));
+      List<String> scargs = new ArrayList<String>();
+      for (int i = 1; i < args.length; i++) {
+        scargs.add(args[i]);
+      }
+      Assert.assertEquals(parser.getTrailingArguments(), scargs);
     } else {
       Assert.assertTrue(parser.getTrailingArguments().isEmpty());
     }
