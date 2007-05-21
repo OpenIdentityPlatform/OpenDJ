@@ -50,7 +50,26 @@
             file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)"/>
           <call function="'core_setup'"/>
 
-												    
+	  <!--- Set the server wide size limit 10000 to allow time limit tests to run properly-->
+            <sequence>
+              <message>
+                 'Set the server wide size limit 10000 to allow time limit tests to run properly'
+              </message>
+    
+              <call function="'addEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit2.ldif' % STAGED_DATA_DIR }
+              </call>
+    
+              <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+              </call>
+            </sequence>
+											    
           <!--- Test Case : Search Time Limit: Time Limit Exceeded -->
           <testcase name="'Core: Search Time Limit: Time Limit Exceeded'">
             <sequence>
