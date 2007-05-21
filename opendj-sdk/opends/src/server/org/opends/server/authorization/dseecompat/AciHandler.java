@@ -589,7 +589,7 @@ public class AciHandler extends AccessControlHandler
       Entry e=container.getResourceEntry();
       List<AttributeType> typeList=getAllAttrs(e);
       for(AttributeType attrType : typeList) {
-        if(!container.hasACIEvalAttributes() && !attrType.isOperational())
+        if(container.hasACIAllAttributes() && !attrType.isOperational())
           continue;
         container.setCurrentAttributeType(attrType);
         if(!accessAllowed(container)) {
@@ -887,14 +887,19 @@ public class AciHandler extends AccessControlHandler
       if(!(ret=skipAccessCheck(operation))) {
           ret=testFilter(operationContainer, operation.getFilter());
           if (ret) {
+              operationContainer.clearACIEvalAttributesRule(ACI_NULL);
               operationContainer.setRights(ACI_READ);
               ret=accessAllowedEntry(operationContainer);
-              if(ret && !operationContainer.hasACIEvalAttributes())
+            if(ret) {
+              if(!operationContainer.hasACIEvalAttributes())
                 operation.setAttachment(ALL_ATTRS_MATCHED, ALL_ATTRS_MATCHED);
+            }
           }
       }
-      if(ret && operation.getAttachment(OID_GET_EFFECTIVE_RIGHTS) != null)
-         operation.setAttachment(ALL_ATTRS_RESOURCE_ENTRY, entry );
+      //Save a copy of the full resource entry for possible
+      //userattr bind rule or geteffectiveright's evaluations in the filterEnty
+      //method.
+      operation.setAttachment(ALL_ATTRS_RESOURCE_ENTRY, entry );
       return ret;
   }
 

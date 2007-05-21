@@ -176,7 +176,7 @@ public interface AciTargetMatchContext {
    * can be skipped, is when a single ACI matched using a targetattr
    * all attributes rule.
    *
-   * @param v  The flag to set the mask to.
+   * @param v  The mask to this value.
    */
   void setACIEvalAttributesRule(int v);
 
@@ -193,9 +193,11 @@ public interface AciTargetMatchContext {
 
   /**
    * Used to clear the mask used to detect if access checking needs to be
-   * performed on individual non-operational attributes types.
+   * performed on individual non-operational attributes types. The specified
+   * value is cleared from the mask or if the value equals 0 the mask is
+   * completely cleared.
    *
-   * @param v  The flag to clear (always ACI_ATTR_STAR_MATCHED)
+   * @param v  The flag to clear or 0 to set the mask to 0.
    */
     public void clearACIEvalAttributesRule(int v);
 }

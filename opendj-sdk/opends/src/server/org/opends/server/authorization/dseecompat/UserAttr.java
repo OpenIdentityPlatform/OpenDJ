@@ -175,7 +175,11 @@ public class UserAttr implements KeywordBindRule {
      */
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
         EnumEvalResult matched;
-
+       //The working resource entry might be filtered and not have an
+       //attribute type that is needed to perform these evaluations. The
+       //evalCtx has a copy of the non-filtered entry, switch to it for these
+       //evaluations.
+       evalCtx.useFullResourceEntry(true);
         switch(userAttrType) {
         case ROLEDN:
         case GROUPDN:
@@ -190,6 +194,8 @@ public class UserAttr implements KeywordBindRule {
         default:
             matched=evalVAL(evalCtx);
         }
+        //Switch back to the working resource entry.
+        evalCtx.useFullResourceEntry(false);
         return matched;
     }
 
