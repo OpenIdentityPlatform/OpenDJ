@@ -2560,16 +2560,12 @@
                     'attributes'      : 'cn sn uid'}
                 </call>
     
-                <script> 
-                 returnString = STAXResult[0][1]
-                </script> 
-    
-                <call function="'checktestStringNotPresent'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
                 </call>
                 
-                <call function="'testCase_Postamble'"/>
+                 <call function="'testCase_Postamble'"/>
     
               </sequence>
             </testcase>
@@ -2711,6 +2707,444 @@
                       'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
                 </call>
                 
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Target Tests
+                #@TestName                  userdn equals self - modify operational attributes
+                #@TestIssue                 1479
+                #@TestPurpose               Test userdn equals self - modify operational attributes
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client modifies attribute in an entry.
+                #@TestStep                  Client modifies one operational attribute in an entry.
+                #@TestStep                  Client modifies another operational attribute in an entry.
+                #@TestStep                  Client modifies entry to reset the original attrobute value.
+                #@TestStep                  Remove aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for steps 1 and 4, and 53 for steps 2 and 3.
+            -->
+          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+          <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Target: userdn equals self - modify operational attributes'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci31.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_target/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Target: userdn equals self - modify operational attributes, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_target/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Target: userdn equals self - modify operational attributes, modify 1 '
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'      : 'sprain' ,
+                    'entryToBeModified'   : '%s/aci/aci_target/mod_entry31.ldif' % (STAGED_DATA_DIR) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Target: userdn equals self - modify operational attributes, modify 2'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'      : 'sprain' ,
+                    'entryToBeModified'   : '%s/aci/aci_target/mod_entry31a.ldif' % (STAGED_DATA_DIR) }
+                </call>
+    
+                <if expr="RC != 53">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Target: userdn equals self - modify operational attributes, modify 3'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'      : 'sprain' ,
+                    'entryToBeModified'   : '%s/aci/aci_target/mod_entry31b.ldif' % (STAGED_DATA_DIR) }
+                </call>
+    
+                <if expr="RC != 53">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+               <message>
+                   'ACI: Target: userdn equals self - modify operational attributes, modify 4'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'      : 'sprain' ,
+                    'entryToBeModified'   : '%s/aci/aci_target/mod_entry31c.ldif' % (STAGED_DATA_DIR) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Target: userdn equals self - modify operational attributes, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Target Tests
+                #@TestName                  Search for operational attributes 
+                #@TestIssue                 1479
+                #@TestPurpose               Test search for operational attributes
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Admin modifies entry to generate a modifiersName and modifyTimestamp
+                #@TestStep                  Client searches entry with no attributes stated.
+                #@TestStep                  Client searches entry with two operational attributes stated.
+                #@TestStep                  Client searches entry for all operational attributes.
+                #@TestStep                  Admin modifies entry to reset the original attrobute value.
+                #@TestStep                  Remove aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap operations,
+                                            and entries are returned for steps 2, 3, and 4.
+                                            No operational attributes are returned in step 2 and
+                                            only the appropriate operational attributes for steps 3 and 4.
+            -->
+          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+          <!-- cross reference to DS6 docs -->
+            <testcase name="'ACI: Target: search for operational attributes'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci32.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_target/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Target: search for operational attributes, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_target/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Target: search for operational attributes, admin modifying entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_target/mod_entry32.ldif' % (STAGED_DATA_DIR) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Target: search for operational attributes, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'creatorsName:' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'createTimestamp:' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryDN:' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'modifiersName:' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'modifyTimestamp' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'subschemaSubentry:' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Target: search for operational attributes, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'creatorsName modifiersName' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'creatorsName:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'modifiersName:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Target: search for operational attributes, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : '+' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'creatorsName:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'createTimestamp:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryDN:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'modifiersName:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'modifyTimestamp' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'subschemaSubentry:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Target: search for operational attributes, admin modifying entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_target/mod_entry32c.ldif' % (STAGED_DATA_DIR) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Target: search for operational attributes, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_target/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
