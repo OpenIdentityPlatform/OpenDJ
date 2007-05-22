@@ -698,9 +698,12 @@ public class AciHandler extends AccessControlHandler
      * @param container  The container used in the access evaluation.
      * @param filter The filter to check access on.
      * @return  True if all attribute types in the filter have access.
+     * @throws DirectoryException If there is a problem matching the entry
+     *                            using the provided filter.
      */
     private boolean
-    testFilter(AciLDAPOperationContainer container, SearchFilter filter) {
+    testFilter(AciLDAPOperationContainer container, SearchFilter filter)
+    throws DirectoryException {
         boolean ret=true;
         switch (filter.getFilterType()) {
             case AND:
@@ -710,9 +713,14 @@ public class AciHandler extends AccessControlHandler
                         return false ;
                 break;
             }
-            case NOT:  {
+            case NOT: {
+                ret=false;
                 SearchFilter f = filter.getNotComponent();
-                ret=!testFilter(container, f);
+                if(f.matchesEntry(container.getResourceEntry()))
+                  ret=true;
+                if(ret)
+                  ret=testFilter(container, f);
+                ret=!ret;
                 break;
             }
             default: {
@@ -885,7 +893,11 @@ public class AciHandler extends AccessControlHandler
                       (ACI_SEARCH), entry);
       boolean ret;
       if(!(ret=skipAccessCheck(operation))) {
-          ret=testFilter(operationContainer, operation.getFilter());
+          try {
+            ret=testFilter(operationContainer, operation.getFilter());
+          } catch (DirectoryException ex)  {
+            ret=false;
+          }
           if (ret) {
               operationContainer.clearACIEvalAttributesRule(ACI_NULL);
               operationContainer.setRights(ACI_READ);
