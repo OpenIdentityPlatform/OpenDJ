@@ -31,13 +31,17 @@ import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.types.FilePermission;
+import org.opends.server.admin.std.server.SizeLimitLogRotationPolicyCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.util.TimeThread;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import org.opends.server.admin.std.server.SizeLimitLogRotationPolicyCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.util.TimeThread;
+import static org.opends.server.messages.LoggerMessages.*;
+import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 
 import java.io.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -183,28 +187,32 @@ public class MultifileTextWriter
     }
 
 
-    // Try to apply file permissions. Causing problems with installer. Fix
-    // after 0.8.
-    /*
+    // Try to apply file permissions.
     if(FilePermission.canSetPermissions())
     {
       try
       {
         if(!FilePermission.setPermissions(file, filePermissions))
         {
-          throw new Exception();
+          int msgID = MSGID_LOGGER_UNABLE_SET_PERMISSIONS;
+          String message = getMessage(msgID, filePermissions.toString(),
+                                      file.toString());
+          logError(ErrorLogCategory.CONFIGURATION,
+                   ErrorLogSeverity.MILD_WARNING,
+                   message, msgID);
         }
       }
       catch(Exception e)
       {
         // Log an warning that the permissions were not set.
         int msgID = MSGID_LOGGER_SET_PERMISSION_FAILED;
-        String message = getMessage(msgID, file.toString());
+        String message = getMessage(msgID, file.toString(),
+                                    stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.CONFIGURATION,
                  ErrorLogSeverity.SEVERE_WARNING,
                  message, msgID);
       }
-    }*/
+    }
   }
 
 

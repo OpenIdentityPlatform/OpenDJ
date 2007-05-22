@@ -117,7 +117,17 @@ public class LoggerMessages
    * file as the argument.
    */
   public static final int MSGID_LOGGER_SET_PERMISSION_FAILED =
-        CATEGORY_MASK_LOG | SEVERITY_MASK_MILD_WARNING | 8;
+        CATEGORY_MASK_LOG | SEVERITY_MASK_SEVERE_WARNING | 8;
+
+
+
+  /**
+   * The message ID for the message that will be used if the current platform
+   * does not support setting the file permissions on the log files. This takes
+   * the name of the file as the argument.
+   */
+  public static final int MSGID_LOGGER_UNABLE_SET_PERMISSIONS =
+        CATEGORY_MASK_LOG | SEVERITY_MASK_MILD_WARNING | 9;
 
 
 
@@ -128,14 +138,16 @@ public class LoggerMessages
   public static void registerMessages()
   {
     registerMessage(MSGID_LOGGER_ERROR_WRITING_RECORD,
-                    "Unable to write log record for logger  " +
-                    "%s: %s. Any further writing errors will be ignored");
+                    "Error occured while writing log record for logger " +
+                    "%s: %s. Any further write errors will be ignored");
     registerMessage(MSGID_LOGGER_ERROR_OPENING_FILE,
-                    "Unable to open log file %s for logger %s: %s");
+                    "Error occured while opening log file %s for logger %s: " +
+                    "%s");
     registerMessage(MSGID_LOGGER_ERROR_CLOSING_FILE,
-                    "Unable to close log file for logger %s: %s");
+                    "Error occured while closing log file for logger %s: %s");
     registerMessage(MSGID_LOGGER_ERROR_FLUSHING_BUFFER,
-                    "Unable to flush writer buffer for logger %s: %s");
+                    "Error occured while flushing writer buffer for " +
+                    "logger %s: %s");
     registerMessage(MSGID_ERROR_LOGGER_INVALID_SEVERITY,
                     "Invalid error log severity \"%s\"");
     registerMessage(MSGID_ERROR_LOGGER_INVALID_CATEGORY,
@@ -143,7 +155,11 @@ public class LoggerMessages
     registerMessage(MSGID_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY,
                     "Invalid override of severity level \"%s\"");
     registerMessage(MSGID_LOGGER_SET_PERMISSION_FAILED,
-                    "Unable to set file permissions for the log file %s");
+                    "Error occured while setting file permissions for the " +
+                    "log file %s: %s");
+    registerMessage(MSGID_LOGGER_UNABLE_SET_PERMISSIONS,
+                    "This platform does not support setting file " +
+                    "permissions %s to the log file %s");
 
   }
 }
