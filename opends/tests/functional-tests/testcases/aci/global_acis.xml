@@ -672,6 +672,133 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Search - Anonymous
+                #@TestIssue                 1621
+                #@TestPurpose               Anonymous search against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client searches entry as anonymous.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and entry for step 1.
+                                            The attributes, uid, sn and dn, should be returned for specified dn.
+            -->
+            <testcase name="'ACI: Global: Anon Search'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: AnonSearch, user searching entry'
+                </message>
+    
+                <call function="'AnonSearchObject'">
+                    { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                        'dsBaseDN'          : 'ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                        'dsFilter'          : 'objectclass=*'  ,
+                        'extraParams'       : '-T'  ,
+                        'dsFilter'          : '(uid=scarter)'}
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'sn' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Search - Anonymous with not equals filter
+                #@TestIssue                 1621
+                #@TestPurpose               Anonymous search with not equals filter against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client searches entry as anonymous with not equals filter
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and entries for step 1.
+                                            The attributes, uid, sn and dn, should be returned for all other entries but the 
+                                            for the specified dn.
+            -->
+            <testcase name="'ACI: Global: Anon Search, not equals filter'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: AnonSearch, not equals filter, user searching entry'
+                </message>
+    
+                <call function="'AnonSearchObject'">
+                    { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                        'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                        'dsBaseDN'          : 'ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                        'dsFilter'          : 'objectclass=*'  ,
+                        'extraParams'       : '-T'  ,
+                        'dsFilter'          : '(!(uid=scarter))'}
+                </call>
+
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+<!-- Uncomment when Issue 1621 is fixed.   
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'sn' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+-->    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
                 #@TestName                  Global ACI Compare
                 #@TestIssue                 1402
                 #@TestPurpose               Compare against default global acis
