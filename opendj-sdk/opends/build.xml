@@ -154,7 +154,7 @@
 
   <!-- The build target that should be used for nightly builds. -->
   <target name="nightly"
-       depends="checkstyle,dsml,javadoc,coverage,testall"
+       depends="checkstyle,dsml,srczip,javadoc,coverage,testallwithcoverage"
        description="Perform all processing needed for nightly builds.">
   </target>
 
@@ -171,7 +171,7 @@
 
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="checkstyle,clean,checkprecommit,dsml,javadoc,testallwithcoverage"
+       depends="checkstyle,clean,checkprecommit,dsml,srczip,javadoc,testallwithcoverage"
        description="Build using all defined targets.">
   </target>
 
@@ -1528,6 +1528,26 @@
       <schema namespace="http://www.opends.org/admin" file="${admin.rules.dir}/admin.xsd"/>
       <schema namespace="http://www.opends.org/admin-ldap" file="${admin.rules.dir}/admin-ldap.xsd"/>
     </schemavalidate>
+  </target>
+
+
+
+
+  <!-- Generate a src.zip file containing all the server source. -->
+  <target name="srczip" depends="compileadmin"
+       description="Generate a src.zip file with all the server source.">
+    <zip destfile="${build.dir}/src.zip">
+      <zipfileset dir="${src.dir}" excludes="**/.svn" filemode="644"
+           dirmode="755" />
+      <zipfileset dir="${admin.src.dir}" excludes="**/.svn" filemode="644"
+           dirmode="755" />
+      <zipfileset dir="${ads.src.dir}" excludes="**/.svn" filemode="644"
+           dirmode="755" />
+      <zipfileset dir="${quicksetup.src.dir}" excludes="**/.svn" filemode="644"
+           dirmode="755" />
+      <zipfileset dir="${statuspanel.src.dir}" excludes="**/.svn" filemode="644"
+           dirmode="755" />
+    </zip>
   </target>
 
 
