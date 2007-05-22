@@ -128,19 +128,17 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Global Tests
-                #@TestName                  Global ACI Search
-                #@TestIssue                 1479
-                #@TestPurpose               Search operational attribute against default global acis
+                #@TestName                  Global ACI Search - One operational attribute for one entry
+                #@TestIssue                 1622
+                #@TestPurpose               Search one operational attribute for one entry against default global acis
                 #@TestPreamble              none
-                #@TestStep                  Client searches operational attribute of an entry.
+                #@TestStep                  Client searches one operational attribute of an entry.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             and entry for step 1.
                                             The attributes, creatorsname and dn, should be returned.
             -->
-            <!-- The following will be uncommented when Issue 1479 is fixed. -->
-            <!--
-            <testcase name="'ACI: Global: Search Operational Attribute'">
+            <testcase name="'ACI: Global: Search Operational Attribute of an entry'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
@@ -180,28 +178,41 @@
     
               </sequence>
             </testcase>
-            -->
             
             <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Global Tests
-                #@TestName                  Global ACI Search
-                #@TestIssue                 1479
-                #@TestPurpose               Search all operational attributes against default global acis
-                #@TestPreamble              none
+                #@TestName                  Global ACI Search - All operational attributes for one entry
+                #@TestIssue                 1622
+                #@TestPurpose               Search all operational attributes for one entry against default global acis
+                #@TestPreamble              Admin modify entry so there are modifyTimestamp and modifiersName attributes
                 #@TestStep                  Client searches all operational attributes of an entry.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             and entry for step 1.
-                                            The attribute, dn, should be returned.
+                                            Six attributes and the dn should be returned.
             -->
-            <!-- The following will be uncommented when Issue 1479 is fixed. -->
-            <!--
-            <testcase name="'ACI: Global: Search All Operational Attributes'">
+            <testcase name="'ACI: Global: Search All Operational Attributes of an entry'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
                           
+                <message>
+                   'ACI: Global: Search, admin modifying entry'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/global_acis/mod_modifier_entry1.ldif' % (STAGED_DATA_DIR) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
                 <message>
                    'ACI: Global: Search, user searching all operational attributes of an entry'
                 </message>
@@ -222,10 +233,55 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'creatorsName' }
+                      'testString'         : 'creatorsName:' }
                 </call>
                 
-                <if expr="returnCode != '0'">
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'createTimestamp:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryDN:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'modifiersName:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'modifyTimestamp' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'subschemaSubentry:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
                     <tcstatus result="'fail'"/>
                 </if>
     
@@ -238,7 +294,379 @@
     
               </sequence>
             </testcase>
+            
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Search - One operational attribute for cn=schema
+                #@TestIssue                 1622
+                #@TestPurpose               Search one operational attribute for cn=schema against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client searches one operational attribute of cn=schema.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and entry for step 1.
+                                            The attributes, matchingrules and dn, should be returned.
             -->
+            <testcase name="'ACI: Global: Search Operational Attribute, cn=schema'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Search, user searching operational attribute of cn=schema'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'cn=schema' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'matchingRules' ,
+                    'extraParams'      : '-T -s base' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'matchingRules:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: cn=schema' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+            
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Search - All operational attributes for cn=schema
+                #@TestIssue                 1622
+                #@TestPurpose               Search all operational attributes for cn=schema against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client searches all operational attributes of cn=schema.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and entry for step 1.
+                                            Six attributes and the dn should be returned.
+            -->
+            <testcase name="'ACI: Global: Search All Operational Attributes, cn=schema'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Search, user searching operational attribute of cn=schema'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'cn=schema' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : '+' ,
+                    'extraParams'      : '-T -s base' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeTypes:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dITStructureRules:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'ldapSyntaxes:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'matchingRules:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'nameForms:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'objectClasses:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: cn=schema' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+            
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Search - One operational attribute for root dse
+                #@TestIssue                 1622
+                #@TestPurpose               Search one operational attribute for root dse against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client searches one operational attribute of root dse.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and entry for step 1.
+                                            The attributes, vendorname and dn, should be returned.
+            -->
+            <testcase name="'ACI: Global: Search Operational Attribute, root dse'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Search, user searching operational attribute of root dse'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : ' ' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'vendorName' ,
+                    'extraParams'      : '-T -s base' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'vendorName:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: ' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+            
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Search - All operational attributes for root dse
+                #@TestIssue                 1622
+                #@TestPurpose               Search all operational attributes for root dse against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client searches all operational attributes of root dse.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            and entry for step 1.
+                                            Eight attributes and the dn should be returned.
+            -->
+            <testcase name="'ACI: Global: Search All Operational Attribute, root dse'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Search, user searching operational attribute of root dse'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : ' ' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : '+' ,
+                    'extraParams'      : '-T -s base' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'namingContexts:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'supportedAuthPasswordSchemes:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'supportedControl:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'supportedExtension:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'supportedFeatures:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'supportedSASLMechanisms:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'vendorName:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'vendorVersion:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: ' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+            
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Global Tests
+                #@TestName                  Global ACI Search - All operational attributes for cn=config
+                #@TestIssue                 1622
+                #@TestPurpose               Search all operational attributes for cn=config against default global acis
+                #@TestPreamble              none
+                #@TestStep                  Client searches all operational attributes for cn=config.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50.
+            -->
+            <testcase name="'ACI: Global: Search Operational Attribute, cn=config'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Global: Search, user searching operational attribute of an entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'cn=config' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : '+'}
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult ,
+                      'expected'   : 50 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
             
             <!---
                 Place test-specific test information here.
