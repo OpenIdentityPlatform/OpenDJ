@@ -358,6 +358,24 @@ roomnumber: 4612
 userpassword: ProxyRules
 ds-privilege-name: proxied-auth
 
+dn: uid=bproxy, ou=People, o=ACI Tests, dc=example,dc=com
+cn: Bana Proxy
+sn: proxy
+givenname: Bana
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Development
+ou: People
+l: Grenoble
+uid: bproxy
+mail: bproxy@example.com
+telephonenumber: +1 408 555 4798
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 4612
+userpassword: ProxyRules
+
 dn: ou=aci branch, o=ACI Tests, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit

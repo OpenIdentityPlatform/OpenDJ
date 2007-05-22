@@ -1,0 +1,2657 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying * information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="aci_proxy_auth"/>
+
+  <function name="aci_proxy_auth">
+  
+    <sequence>
+
+      <block name="'aci-proxy-auth'">
+      
+        <sequence>
+  
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='aci'			  			  
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+              Place suite-specific test information here.
+              #@TestSuiteName             ACI Proxy Authorization Tests
+              #@TestSuitePurpose          Test the basic ACI Proxy Authorization Support. 
+              #@TestSuiteGroup            Basic ACI Proxy Authorization Tests 
+              #@TestScript                aci_proxy_auth.xml
+          -->
+          
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_setup'" />
+
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Preamble
+              #@TestIssue                 1489
+              #@TestPurpose               Test default aci settings
+              #@TestPreamble              none
+              #@TestStep                  Client searches entry for an attribute in a branch dn.
+              #@TestStep                  Client searches entry for an attribute in another branch dn.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          and no entries are returned 
+                                          for all operations.
+          -->
+          <testcase name="'ACI: Proxy Auth: Preamble'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+                <message>
+                   'ACI: Proxy Auth: Preamble - Removing Search Global ACI'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_rm_global_search.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+              <message>
+                 'ACI: Proxy Auth: Preamble - existing branch, user searching entry that will be targeted in future tests'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'cn=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: Preamble - existing branch, user searching entry that will be non-targeted in future tests'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'cn=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Proxy rights with one proxied user
+              #@TestIssue                 1489
+              #@TestPurpose               Test ACI with proxy rights with one user, one proxied user
+              #@TestPreamble              none
+              #@TestStep                  Client searches entry in targeted branch as user.
+              #@TestStep                  Client searches entry in targeted branch as second user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user.
+              #@TestStep                  Admin adds an aci giving proxied user permission to access as user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through user.
+              #@TestStep                  Client searches entry that does not have the targeted dn for the targetattr.
+              #@TestStep                  Remove all acis.
+              #@TestStep                  Client searches entry in the previously targeted branch.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          No entries are returned for any steps.
+          -->
+          <testcase name="'ACI: Proxy Auth: one proxied user'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                 'ACI: Proxy Auth: one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one proxied user, second user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <script>
+                  curr_aci_ldif_file = 'add_proxy_aci.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one proxied user, preamble adding proxy aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one proxied user, proxy user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one proxied user, admin deleting both acis'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Proxy rights with one user, one proxied user
+              #@TestIssue                 1489
+              #@TestPurpose               Test ACI with proxy rights with one user, one proxied user
+              #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
+              #@TestStep                  Client searches entry in targeted branch as user.
+              #@TestStep                  Client searches entry in targeted branch as second user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user.
+              #@TestStep                  Admin adds an aci giving proxied user permission to access as user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through second user.
+              #@TestStep                  Remove all acis.
+              #@TestStep                  Client searches entry in the previously targeted branch.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for steps 1 and 5 
+                                          and only with the specified attribute.
+          -->
+          <testcase name="'ACI: Proxy Auth: one user, one proxied user'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_user_aci_all.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user, one proxied user, preamble adding user aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <script>
+                  curr_aci_ldif_file = 'add_proxy_aci.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user, one proxied user, adding proxy aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one proxied user, proxied second user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one proxied user, admin deleting both acis'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Proxy rights with one user for adds, one proxied user
+              #@TestIssue                 1489
+              #@TestPurpose               Test ACI with proxy rights with one user for adds, one proxied user
+              #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
+              #@TestStep                  Client searches entry in targeted branch as user.
+              #@TestStep                  Client searches entry in targeted branch as second user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user.
+              #@TestStep                  Admin adds an aci giving proxied user permission to access as user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through second user.
+              #@TestStep                  Remove all acis.
+              #@TestStep                  Client searches entry in the previously targeted branch.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          No entries returned for any step.
+          -->
+          <testcase name="'ACI: Proxy Auth: one user for adds, one proxied user'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_user_aci_add.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user for adds, one proxied user, preamble adding user aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for adds, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for adds, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for adds, one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <script>
+                  curr_aci_ldif_file = 'add_proxy_aci.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user for adds, one proxied user, preamble adding proxy aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for adds, one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for adds, one proxied user, proxied second user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for adds, one proxied user, admin deleting both acis'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for adds, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Proxy rights with one user for searches, one proxied user
+              #@TestIssue                 1489
+              #@TestPurpose               Test ACI with proxy rights with one user for searches, one proxied user
+              #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
+              #@TestStep                  Client searches entry in targeted branch as user.
+              #@TestStep                  Client searches entry in targeted branch as second user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user.
+              #@TestStep                  Admin adds an aci giving proxied user permission to access as user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through second user.
+              #@TestStep                  Remove all acis.
+              #@TestStep                  Client searches entry in the previously targeted branch.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for steps 1 and 5 
+                                          and only with the specified attribute.
+          -->
+          <testcase name="'ACI: Proxy Auth: one user for searches, one proxied user'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_user_aci_search.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user for searches, one proxied user, preamble adding user aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches, one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <script>
+                  curr_aci_ldif_file = 'add_proxy_aci.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user for searches, one proxied user, preamble adding proxy aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches, one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches, one proxied user, proxied second user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches, one proxied user, admin deleting both acis'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Proxy rights with one user for searches reads separate level, one proxied user
+              #@TestIssue                 1489
+              #@TestPurpose               Test ACI with proxy rights with one user for searches reads separate level, one proxied user
+              #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
+              #@TestStep                  Client searches entry in targeted branch as user.
+              #@TestStep                  Client searches entry in targeted branch as second user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user.
+              #@TestStep                  Admin adds an aci giving proxied user permission to access as user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through second user.
+              #@TestStep                  Remove all acis.
+              #@TestStep                  Remove another level of acis.
+              #@TestStep                  Client searches entry in the previously targeted branch.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for steps 1 and 5 
+                                          and only with the specified attribute.
+          -->
+          <testcase name="'ACI: Proxy Auth: one user for searches reads separate level, one proxied user'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_user_aci_search_sep.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, preamble adding user aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <script>
+                  curr_aci_ldif_file = 'add_proxy_aci.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, preamble adding proxy aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, proxied second user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, admin deleting both acis'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, admin deleting both acis'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci2.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user for searches reads separate level, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Proxy rights with many users with wildcard, one proxied user
+              #@TestIssue                 1489
+              #@TestPurpose               Test ACI with proxy rights with many users with wildcard, one proxied user
+              #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
+              #@TestStep                  Client searches entry in targeted branch as user.
+              #@TestStep                  Client searches entry in targeted branch as second user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user.
+              #@TestStep                  Admin adds an aci giving proxied user permission to access as user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through second user.
+              #@TestStep                  Remove all acis.
+              #@TestStep                  Remove another level of acis.
+              #@TestStep                  Client searches entry in the previously targeted branch.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for steps 1, 2, 5 and 6 
+                                          and only with the specified attribute.
+          -->
+          <testcase name="'ACI: Proxy Auth: many users with wildcard, one proxied user'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_user_aci_all_wildcard.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: many users with wildcard, one proxied user, preamble adding user aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: many users with wildcard, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: many users with wildcard, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+             <message>
+                 'ACI: Proxy Auth: many users with wildcard, one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <script>
+                  curr_aci_ldif_file = 'add_proxy_aci.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: many users with wildcard, one proxied user, preamble adding proxy aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: many users with wildcard, one proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: many users with wildcard, one proxied user, proxied second user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: many users with wildcard, one proxied user, admin deleting both acis'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: many users with wildcard, one proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Proxy rights with one user, many proxied users with wildcard
+              #@TestIssue                 1489
+              #@TestPurpose               Test ACI with proxy rights with one user, many proxied users with wildcard
+              #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
+              #@TestStep                  Client searches entry in targeted branch as user.
+              #@TestStep                  Client searches entry in targeted branch as second user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user.
+              #@TestStep                  Admin adds an aci giving proxied user permission to access as user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through second user.
+              #@TestStep                  Remove all acis.
+              #@TestStep                  Remove another level of acis.
+              #@TestStep                  Client searches entry in the previously targeted branch.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations. 
+                                          Entry is returned only for steps 1, 2, 5 and 6 
+                                          and only with the specified attribute.
+          -->
+          <testcase name="'ACI: Proxy Auth: many users one user, many proxied users with wildcard'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_user_aci_all.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user, many proxied users with wildcard, preamble adding user aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, many proxied users with wildcard, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, many proxied users with wildcard, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, many proxied users with wildcard, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <script>
+                  curr_aci_ldif_file = 'add_proxy_aci_wildcard.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user, many proxied users with wildcard, preamble adding proxy aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, many proxied users with wildcard, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, many proxied users with wildcard, proxied second user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, many proxied users with wildcard, admin deleting both acis'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, many proxied users with wildcard, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Proxy rights with one user, one bad proxied user
+              #@TestIssue                 1489
+              #@TestPurpose               Test ACI with proxy rights with one user, one bad proxied user
+              #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
+              #@TestStep                  Client searches entry in targeted branch as user.
+              #@TestStep                  Client searches entry in targeted branch as second user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through user.
+              #@TestStep                  Admin adds an aci giving proxied user permission to access as user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through user.
+              #@TestStep                  Client searches entry in targeted branch as proxied user through second user.
+              #@TestStep                  Remove all acis.
+              #@TestStep                  Client searches entry in the previously targeted branch.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations, except step 4 where 123 is expected.
+                                          Entry is returned only for step 1  
+                                          and only with the specified attribute.
+          -->
+          <testcase name="'ACI: Proxy Auth: one user, one bad proxied user'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_user_aci_all.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user, one bad proxied user, preamble adding user aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one bad proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one bad proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one bad proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=bproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one bad proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=bproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'SEARCH operation failed' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+
+              <script>
+                  curr_aci_ldif_file = 'add_proxy_aci.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: one user, one bad proxied user, adding proxy aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one bad proxied user, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=bproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'SEARCH operation failed' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+
+              <message>
+                 'ACI: Proxy Auth: one user, one bad proxied user, proxied second user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=bproxy,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsProxyDN'        : 'dn:uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'SEARCH operation failed' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+
+              <message>
+                 'ACI: Proxy Auth: one user, one bad proxied user, admin deleting both acis'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: one user, one bad proxied user, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Proxy rights with Directory Manager as proxy
+              #@TestIssue                 1489
+              #@TestPurpose               Test ACI with proxy rights with Directory Manager as proxy
+              #@TestPreamble              Admin adds an aci giving user search and read access to one branch.
+              #@TestStep                  Client searches entry in targeted branch as user.
+              #@TestStep                  Client searches entry in targeted branch as second user.
+              #@TestStep                  Client searches entry in targeted branch as cn=Directory Manager proxied user.
+              #@TestStep                  Admin adds ds-privilege-name to cn=Directory Manager
+              #@TestStep                  Client searches entry in targeted branch as cn=Directory Manager proxied user.
+              #@TestStep                  Client searches entry in targeted branch as cn=Directory Manager proxied user through second user.
+              #@TestStep                  Remove all acis.
+              #@TestStep                  Client searches entry in the previously targeted branch.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          for all ldap operations except step 3 where 123 is expected. 
+                                          Entry is returned only for steps 1, 5 and 6
+                                          and only with the specified attribute.
+          -->
+          <testcase name="'ACI: Proxy Auth: Directory Manager as proxy'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_user_aci_all.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: Directory Manager as proxy, preamble adding user aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: Directory Manager as proxy, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: Directory Manager as proxy, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: Directory Manager as proxy, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsProxyDN'        : 'dn:uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'SEARCH operation failed' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+
+              <message>
+                 'ACI: Proxy Auth: Directory Manager as proxy, adding proxied-auth'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/add_proxy_auth_dm.ldif' % (STAGED_DATA_DIR) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+<!--   Uncomment or delete when Issue 1610 is remedied.
+              <script>
+                  curr_aci_ldif_file = 'add_proxy_aci_dm.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_proxy_auth/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Proxy Auth: Directory Manager as proxy, adding proxy aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+-->  
+              <message>
+                 'ACI: Proxy Auth: Directory Manager as proxy, proxied user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsProxyDN'        : 'dn:uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: Directory Manager as proxy, proxied second user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsProxyDN'        : 'dn:uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'  }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'cn:' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: Directory Manager as proxy, admin deleting both acis'
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_proxy_auth/del_aci.ldif' % STAGED_DATA_DIR }
+              </call>
+  
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: Directory Manager as proxy, user searching targeted entry'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Proxy Authorization Tests
+              #@TestName                  Postamble
+              #@TestIssue                 1489
+              #@TestPurpose               Test default aci settings
+              #@TestPreamble              none
+              #@TestStep                  Client searches entry for an attribute in a branch dn.
+              #@TestStep                  Client searches entry for an attribute in another branch dn.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 0
+                                          and no entries are returned 
+                                          for all operations.
+          -->
+          <testcase name="'ACI: Proxy Auth: Postamble'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'ACI: Proxy Auth: Postamble - existing branch, user searching entry that will be targeted in future tests'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'cn=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Proxy Auth: Postamble - existing branch, user searching entry that will be non-targeted in future tests'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules' ,
+                  'dsBaseDN'         : 'uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'cn=*'  ,
+                  'attributes'       : 'cn sn uid telephonenumber'}
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=tmorris,ou=People,ou=non-aci branch,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+                <message>
+                   'ACI: Proxy Auth: Postamble - Resetting Search Global ACI'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_reset_global_search.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_cleanup'" />
+          
+         <call function="'testSuite_Postamble'"/>          
+
+        </sequence>
+      
+      </block>
+
+    </sequence>
+
+  </function>
+
+</stax>
