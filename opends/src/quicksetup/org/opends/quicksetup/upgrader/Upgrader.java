@@ -145,6 +145,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     UPGRADING_COMPONENTS("summary-upgrade-upgrading-components", 60),
 
+    PREPARING_CUSTOMIZATIONS("summary-upgrade-preparing-customizations", 65),
+
     APPLYING_SCHEMA_CUSTOMIZATIONS(
             "summary-upgrade-applying-schema-customization", 70),
 
@@ -861,9 +863,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
       if (schemaCustomizationPresent || configCustimizationPresent) {
         try {
           LOG.log(Level.INFO, "starting server");
+          setCurrentProgressStep(
+                  UpgradeProgressStep.PREPARING_CUSTOMIZATIONS);
           startServerWithoutConnectionHandlers();
+          notifyListeners(formatter.getFormattedDone() +
+                  formatter.getLineBreak());
           LOG.log(Level.INFO, "start server finished");
         } catch (ApplicationException e) {
+          notifyListeners(formatter.getFormattedError() +
+                  formatter.getLineBreak());
           LOG.log(Level.INFO,
                   "Error starting server in process in order to apply custom" +
                           "schema and/or configuration", e);
@@ -963,6 +971,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
           try {
             LOG.log(Level.INFO, "starting server");
             setCurrentProgressStep(UpgradeProgressStep.STARTING_SERVER);
+            int port = getInstallation().getCurrentConfiguration().getPort();
+            if (port != -1 && !Utils.canUseAsPort(port)) {
+              throw new ApplicationException(
+                      ApplicationException.Type.APPLICATION,
+                      "The server can not be started as another application " +
+                              "is using port " + port + ".  Check that you " +
+                              "have access to this port before restarting " +
+                              "the server.", null);
+            }
             control.startServer(true);
             notifyListeners(formatter.getFormattedDone() +
                     formatter.getLineBreak());
@@ -1457,6 +1474,10 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private void initialize() throws ApplicationException {
     try {
+      if (getInstallation().getStatus().isServerRunning()) {
+        new ServerController(getInstallation()).stopServer(true);
+      }
+
       BuildInformation fromVersion = getCurrentBuildInformation();
       BuildInformation toVersion = getStagedBuildInformation();
       this.historicalOperationId =

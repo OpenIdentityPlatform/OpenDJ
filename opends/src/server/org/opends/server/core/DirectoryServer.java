@@ -8143,13 +8143,8 @@ public class DirectoryServer
   {
     try
     {
-      String configClass = directoryServer.configClass;
-      String configFile  = directoryServer.configFile;
-
       shutDown(className, reason);
-      getNewInstance();
-      directoryServer.bootstrapServer();
-      directoryServer.initializeConfiguration(configClass, configFile);
+      reinitialize();
       directoryServer.startServer();
     }
     catch (Exception e)
@@ -8163,7 +8158,22 @@ public class DirectoryServer
     }
   }
 
-
+  /**
+   * Reinitializes the server following a shutdown, preparing it for
+   * a call to <code>startServer</code>.
+   *
+   * @throws  InitializationException  If a problem occurs while trying to
+   *                                   initialize the config handler or
+   *                                   bootstrap that server.
+   */
+  public static void reinitialize() throws InitializationException
+  {
+    String configClass = directoryServer.configClass;
+    String configFile  = directoryServer.configFile;
+    getNewInstance();
+    directoryServer.bootstrapServer();
+    directoryServer.initializeConfiguration(configClass, configFile);
+  }
 
   /**
    * Retrieves the maximum number of concurrent client connections that may be
