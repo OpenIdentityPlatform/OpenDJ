@@ -97,84 +97,138 @@
     </xsl:variable>
     <xsl:choose>
       <xsl:when test="adm:one-to-one">
+        <xsl:call-template name="add-java-comment2">
+          <xsl:with-param name="indent" select="2" />
+          <xsl:with-param name="content"
+            select="concat(
+                       'Gets the ', $ufn,'.&#xa;',
+                       '&#xa;',
+                       '@return Returns the ', $ufn,'.&#xa;',
+                       '@throws DefinitionDecodingException&#xa;',
+                       '          If the ', $ufn, ' was found but its type could not be determined.&#xa;',
+                       '@throws ManagedObjectDecodingException&#xa;',
+                       '          If the ', $ufn, ' was found but one or more of its properties could not be decoded.&#xa;',
+                       '@throws ManagedObjectNotFoundException&#xa;',
+                       '          If the ', $ufn, ' could not be found on the server.&#xa;',
+                       '@throws ConcurrentModificationException&#xa;',
+                       '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
+                       '@throws AuthorizationException&#xa;',
+                       '          If the server refuses to retrieve the ', $ufn, ' because the client does not have the correct privileges.&#xa;',
+                       '@throws CommunicationException&#xa;',
+                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+        </xsl:call-template>
         <xsl:value-of
-          select="concat('  /**&#xa;',
-                       '   * Gets the ', $ufn,'.&#xa;',
-                       '   *&#xa;',
-                       '   * @return Returns the ', $ufn,'.&#xa;',
-                       '   * @throws OperationsException&#xa;',
-                       '   *           If the ', $ufn,' could not be read due to some&#xa;',
-                       '   *           underlying communication problem.&#xa;',
-                       '   */&#xa;')" />
-        <xsl:value-of
-          select="concat('  ', $java-class-name, 'CfgClient get',
-                       $java-relation-name, '() throws OperationsException;&#xa;')" />
+          select="concat('  ', $java-class-name, 'CfgClient get', $java-relation-name, '()&#xa;',
+                       '      throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
+                       '      ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
+                       '      AuthorizationException, CommunicationException;&#xa;')" />
       </xsl:when>
       <xsl:when test="adm:one-to-zero-or-one">
-        <xsl:value-of
-          select="concat('  /**&#xa;',
-                       '   * Determines whether or not the ', $ufn,' exists.&#xa;',
-                       '   *&#xa;',
-                       '   * @return Returns &lt;true&gt; if the ', $ufn,' exists.&#xa;',
-                       '   * @throws OperationsException&#xa;',
-                       '   *           If the determination could not be made&#xa;',
-                       '   *           due to some underlying communication problem.&#xa;',
-                       '   */&#xa;')" />
+        <xsl:call-template name="add-java-comment2">
+          <xsl:with-param name="indent" select="2" />
+          <xsl:with-param name="content"
+            select="concat('Determines whether or not the ', $ufn,' exists.&#xa;',
+                       '&#xa;',
+                       '@return Returns &lt;true&gt; if the ', $ufn,' exists.&#xa;',
+                       '@throws ConcurrentModificationException&#xa;',
+                       '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
+                       '@throws AuthorizationException&#xa;',
+                       '          If the server refuses to make the determination because the client does not have the correct privileges.&#xa;',
+                       '@throws CommunicationException&#xa;',
+                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+        </xsl:call-template>
         <xsl:value-of
           select="concat('  boolean has',
-                       $java-relation-name, '() throws OperationsException;&#xa;')" />
+                       $java-relation-name, '() throws ConcurrentModificationException,&#xa;',
+                       '      AuthorizationException, CommunicationException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
+        <xsl:call-template name="add-java-comment2">
+          <xsl:with-param name="indent" select="2" />
+          <xsl:with-param name="content"
+            select="concat(
+                       'Gets the ', $ufn,' if it is present.&#xa;',
+                       '&#xa;',
+                       '@return Returns the ', $ufn, ' if it is present.&#xa;',
+                       '@throws DefinitionDecodingException&#xa;',
+                       '          If the ', $ufn, ' was found but its type could not be determined.&#xa;',
+                       '@throws ManagedObjectDecodingException&#xa;',
+                       '          If the ', $ufn, ' was found but one or more of its properties could not be decoded.&#xa;',
+                       '@throws ManagedObjectNotFoundException&#xa;',
+                       '          If the ', $ufn, ' is not present.&#xa;',
+                       '@throws ConcurrentModificationException&#xa;',
+                       '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
+                       '@throws AuthorizationException&#xa;',
+                       '          If the server refuses to retrieve the ', $ufn, ' because the client does not have the correct privileges.&#xa;',
+                       '@throws CommunicationException&#xa;',
+                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+        </xsl:call-template>
         <xsl:value-of
-          select="concat('  /**&#xa;',
-                       '   * Gets the ', $ufn,' if it is present.&#xa;',
-                       '   *&#xa;',
-                       '   * @return Returns the ', $ufn,' if it is present.&#xa;',
-                       '   * @throws OperationsException&#xa;',
-                       '   *           If the ', $ufn,' does not exist or could not be read&#xa;',
-                       '   *           due to some underlying communication problem.&#xa;',
-                       '   */&#xa;')" />
-        <xsl:value-of
-          select="concat('  ', $java-class-name, 'CfgClient get',
-                       $java-relation-name, '() throws OperationsException;&#xa;')" />
+          select="concat('  ', $java-class-name, 'CfgClient get', $java-relation-name, '()&#xa;',
+                       '      throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
+                       '      ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
+                       '      AuthorizationException, CommunicationException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
-        <xsl:value-of
-          select="concat('  /**&#xa;',
-                       '   * Creates the ', $ufn,' if it does not exist yet.&#xa;',
-                       '   *&#xa;',
-                       '   * @param &lt;C&gt;&#xa;',
-                       '   *          The type of the ', $ufn,' being added.&#xa;',
-                       '   * @param d&#xa;',
-                       '   *          The definition of the ', $ufn,' to be created.&#xa;',
-                       '   * @param p&#xa;',
-                       '   *          A property provider which can be used to initialize&#xa;',
-                       '   *          the property values of the new ', $ufn,'.&#xa;',
-                       '   * @return Returns the ', $ufn,' instance representing the&#xa;',
-                       '   *         ', $ufn,' that was created.&#xa;',
-                       '   * @throws OperationsException&#xa;',
-                       '   *           If the ', $ufn,' already exists or could not be created&#xa;',
-                       '   *           due to some underlying communication problem.&#xa;',
-                       '   */&#xa;')" />
+        <xsl:call-template name="add-java-comment2">
+          <xsl:with-param name="indent" select="2" />
+          <xsl:with-param name="content"
+            select="concat(
+                       'Creates the ', $ufn,' if it does not exist yet.&#xa;',
+                       '&#xa;',
+                       '@param &lt;C&gt;&#xa;',
+                       '         The type of the ', $ufn,' being added.&#xa;',
+                       '@param d&#xa;',
+                       '         The definition of the ', $ufn,' to be created.&#xa;',
+                       '@param p&#xa;',
+                       '         A property provider which can be used to initialize the property values of the new ', $ufn,'.&#xa;',
+                       '@return Returns the ', $ufn,' instance representing the ', $ufn,' that was created.&#xa;',
+                       '@throws ManagedObjectDecodingException&#xa;',
+                       '          If the ', $ufn,' could not be created because one or more of its properties are invalid.&#xa;',
+                       '@throws ManagedObjectAlreadyExistsException&#xa;',
+                       '          If the ', $ufn,' cannot be created because it already exists on the server.&#xa;',
+                       '@throws ConcurrentModificationException&#xa;',
+                       '          If this ', $ufn,' has been removed from the server by another client.&#xa;',
+                       '@throws OperationRejectedException&#xa;',
+                       '          If the server refuses to create the ', $ufn,' due to some server-side constraint which cannot be satisfied.&#xa;',
+                       '@throws AuthorizationException&#xa;',
+                       '          If the server refuses to create the ', $ufn,' because the client does not have the correct privileges.&#xa;',
+                       '@throws CommunicationException&#xa;',
+                       '          If the client cannot contact the server due to an underlying communication problem.&#xa;')" />
+        </xsl:call-template>
         <xsl:value-of
           select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                           '      ManagedObjectDefinition&lt;C, ?&gt; d, PropertyProvider p) throws OperationsException;&#xa;')" />
+                           '      ManagedObjectDefinition&lt;C, ?&gt; d, PropertyProvider p)&#xa;',
+                           '      throws ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,&#xa;',
+                           '      ConcurrentModificationException, OperationRejectedException,&#xa;',
+                           '      AuthorizationException, CommunicationException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
+        <xsl:call-template name="add-java-comment2">
+          <xsl:with-param name="indent" select="2" />
+          <xsl:with-param name="content"
+            select="concat(
+                       'Removes the ', $ufn,' if it exists.&#xa;',
+                       '&#xa;',
+                       '@throws ManagedObjectNotFoundException&#xa;',
+                       '          If the ', $ufn, ' does not exist.&#xa;',
+                       '@throws OperationRejectedException&#xa;',
+                       '          If the server refuses to remove the ', $ufn, ' due to some server-side constraint which cannot be satisfied (for example, if it is referenced by another managed object).&#xa;',
+                       '@throws ConcurrentModificationException&#xa;',
+                       '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
+                       '@throws AuthorizationException&#xa;',
+                       '          If the server refuses to remove the ', $ufn, ' because the client does not have the correct privileges.&#xa;',
+                       '@throws CommunicationException&#xa;',
+                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+        </xsl:call-template>
         <xsl:value-of
-          select="concat('  /**&#xa;',
-                       '   * Removes the ', $ufn,' if it exists.&#xa;',
-                       '   *&#xa;',
-                       '   * @throws OperationsException&#xa;',
-                       '   *           If the ', $ufn,' does not exist or could not be removed&#xa;',
-                       '   *           due to some underlying communication problem.&#xa;',
-                       '   */&#xa;')" />
-        <xsl:value-of
-          select="concat('  void remove',
-                       $java-relation-name, '() throws OperationsException;&#xa;')" />
+          select="concat('  void remove', $java-relation-name, '()&#xa;',
+                         '      throws ManagedObjectNotFoundException, OperationRejectedException,&#xa;',
+                         '      ConcurrentModificationException, AuthorizationException,&#xa;',
+                         '      CommunicationException;&#xa;')" />
       </xsl:when>
       <xsl:when test="adm:one-to-many">
         <xsl:variable name="plural-name"
@@ -189,77 +243,117 @@
             <xsl:with-param name="value" select="$plural-name" />
           </xsl:call-template>
         </xsl:variable>
-        <xsl:value-of
-          select="concat('  /**&#xa;',
-                       '   * Lists the ', $ufpn,'.&#xa;',
-                       '   *&#xa;',
-                       '   * @return Returns an array containing the names of the&#xa;',
-                       '   *         ', $ufpn,'.&#xa;',
-                       '   * @throws OperationsException&#xa;',
-                       '   *           If the ', $ufpn,' could not be listed due to some&#xa;',
-                       '   *           underlying communication problem.&#xa;',
-                       '   */&#xa;')" />
+        <xsl:call-template name="add-java-comment2">
+          <xsl:with-param name="indent" select="2" />
+          <xsl:with-param name="content"
+            select="concat('Lists the ', $ufpn,'.&#xa;',
+                       '&#xa;',
+                       '@return Returns an array containing the names of the ', $ufpn,'.&#xa;',
+                       '@throws ConcurrentModificationException&#xa;',
+                       '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
+                       '@throws AuthorizationException&#xa;',
+                       '          If the server refuses to list the ', $ufpn, ' because the client does not have the correct privileges.&#xa;',
+                       '@throws CommunicationException&#xa;',
+                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+        </xsl:call-template>
         <xsl:value-of
           select="concat('  String[] list',
-                       $java-relation-plural-name, '() throws OperationsException;&#xa;')" />
+                       $java-relation-plural-name, '() throws ConcurrentModificationException,&#xa;',
+                       '      AuthorizationException, CommunicationException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
+        <xsl:call-template name="add-java-comment2">
+          <xsl:with-param name="indent" select="2" />
+          <xsl:with-param name="content"
+            select="concat(
+                       'Gets the named ', $ufn, '.&#xa;',
+                       '&#xa;',
+                       '@param name&#xa;',
+                       '          The name of the ', $ufn,' to retrieve.&#xa;',
+                       '@return Returns the named ', $ufn, '.&#xa;',
+                       '@throws DefinitionDecodingException&#xa;',
+                       '          If the named ', $ufn, ' was found but its type could not be determined.&#xa;',
+                       '@throws ManagedObjectDecodingException&#xa;',
+                       '          If the named ', $ufn, ' was found but one or more of its properties could not be decoded.&#xa;',
+                       '@throws ManagedObjectNotFoundException&#xa;',
+                       '          If the named ', $ufn, ' was not found on the server.&#xa;',
+                       '@throws ConcurrentModificationException&#xa;',
+                       '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
+                       '@throws AuthorizationException&#xa;',
+                       '          If the server refuses to retrieve the named ', $ufn, ' because the client does not have the correct privileges.&#xa;',
+                       '@throws CommunicationException&#xa;',
+                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+        </xsl:call-template>
         <xsl:value-of
-          select="concat('  /**&#xa;',
-                       '   * Gets the named ', $ufn,'.&#xa;',
-                       '   *&#xa;',
-                       '   * @param name&#xa;',
-                       '   *          The name of the ', $ufn,' to retrieve.&#xa;',
-                       '   * @return Returns the named ', $ufn,'.&#xa;',
-                       '   * @throws OperationsException&#xa;',
-                       '   *           If the ', $ufn,' does not exist or could not be read&#xa;',
-                       '   *           due to some underlying communication problem.&#xa;',
-                       '   */&#xa;')" />
-        <xsl:value-of
-          select="concat('  ', $java-class-name, 'CfgClient get',
-                       $java-relation-name, '(String name) throws OperationsException;&#xa;')" />
+          select="concat('  ', $java-class-name, 'CfgClient get', $java-relation-name, '(String name)&#xa;',
+                       '      throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
+                       '      ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
+                       '      AuthorizationException, CommunicationException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
-        <xsl:value-of
-          select="concat('  /**&#xa;',
-                       '   * Creates a new ', $ufn,'.&#xa;',
-                       '   *&#xa;',
-                       '   * @param &lt;C&gt;&#xa;',
-                       '   *          The type of the ', $ufn,' being added.&#xa;',
-                       '   * @param d&#xa;',
-                       '   *          The definition of the ', $ufn,' to be created.&#xa;',
-                       '   * @param name&#xa;',
-                       '   *          The name of the new ', $ufn,'.&#xa;',
-                       '   * @param p&#xa;',
-                       '   *          A property provider which can be used to initialize&#xa;',
-                       '   *          the property values of the new ', $ufn,'.&#xa;',
-                       '   * @return Returns a new ', $ufn,' instance representing the&#xa;',
-                       '   *         ', $ufn,' that was created.&#xa;',
-                       '   * @throws OperationsException&#xa;',
-                       '   *           If the ', $ufn,' already exists or could not be created&#xa;',
-                       '   *           due to some underlying communication problem.&#xa;',
-                       '   */&#xa;')" />
+        <xsl:call-template name="add-java-comment2">
+          <xsl:with-param name="indent" select="2" />
+          <xsl:with-param name="content"
+            select="concat(
+                       'Creates a new ', $ufn,'.&#xa;',
+                       '&#xa;',
+                       '@param &lt;C&gt;&#xa;',
+                       '         The type of the ', $ufn,' being added.&#xa;',
+                       '@param d&#xa;',
+                       '         The definition of the ', $ufn,' to be created.&#xa;',
+                       '@param name&#xa;',
+                       '         The name of the new ', $ufn,'.&#xa;',
+                       '@param p&#xa;',
+                       '         A property provider which can be used to initialize the property values of the new ', $ufn,'.&#xa;',
+                       '@return Returns a new ', $ufn,' instance representing the ', $ufn,' that was created.&#xa;',
+                       '@throws ManagedObjectDecodingException&#xa;',
+                       '          If the ', $ufn,' could not be created because one or more of its properties are invalid.&#xa;',
+                       '@throws ManagedObjectAlreadyExistsException&#xa;',
+                       '          If the ', $ufn,' cannot be created because it already exists on the server.&#xa;',
+                       '@throws ConcurrentModificationException&#xa;',
+                       '          If this ', $ufn,' has been removed from the server by another client.&#xa;',
+                       '@throws OperationRejectedException&#xa;',
+                       '          If the server refuses to create the ', $ufn,' due to some server-side constraint which cannot be satisfied.&#xa;',
+                       '@throws AuthorizationException&#xa;',
+                       '          If the server refuses to create the ', $ufn,' because the client does not have the correct privileges.&#xa;',
+                       '@throws CommunicationException&#xa;',
+                       '          If the client cannot contact the server due to an underlying communication problem.&#xa;')" />
+        </xsl:call-template>
         <xsl:value-of
           select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                           '      ManagedObjectDefinition&lt;C, ?&gt; d, String name, PropertyProvider p) throws OperationsException;&#xa;')" />
+                           '      ManagedObjectDefinition&lt;C, ?&gt; d, String name, PropertyProvider p)&#xa;',
+                           '      throws ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,&#xa;',
+                           '      ConcurrentModificationException, OperationRejectedException,&#xa;',
+                           '      AuthorizationException, CommunicationException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
+        <xsl:call-template name="add-java-comment2">
+          <xsl:with-param name="indent" select="2" />
+          <xsl:with-param name="content"
+            select="concat(
+                       'Removes the named ', $ufn,'.&#xa;',
+                       '&#xa;',
+                       '@param name&#xa;',
+                       '         The name of the ', $ufn,' to remove.&#xa;',
+                       '@throws ManagedObjectNotFoundException&#xa;',
+                       '          If the ', $ufn, ' does not exist.&#xa;',
+                       '@throws OperationRejectedException&#xa;',
+                       '          If the server refuses to remove the ', $ufn, ' due to some server-side constraint which cannot be satisfied (for example, if it is referenced by another managed object).&#xa;',
+                       '@throws ConcurrentModificationException&#xa;',
+                       '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
+                       '@throws AuthorizationException&#xa;',
+                       '          If the server refuses to remove the ', $ufn, ' because the client does not have the correct privileges.&#xa;',
+                       '@throws CommunicationException&#xa;',
+                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+        </xsl:call-template>
         <xsl:value-of
-          select="concat('  /**&#xa;',
-                       '   * Removes the named ', $ufn,'.&#xa;',
-                       '   *&#xa;',
-                       '   * @param name&#xa;',
-                       '   *          The name of the ', $ufn,' to remove.&#xa;',
-                       '   * @throws OperationsException&#xa;',
-                       '   *           If the ', $ufn,' does not exist or could not be removed&#xa;',
-                       '   *           due to some underlying communication problem.&#xa;',
-                       '   */&#xa;')" />
-        <xsl:value-of
-          select="concat('  void remove',
-                       $java-relation-name, '(String name) throws OperationsException;&#xa;')" />
+          select="concat('  void remove', $java-relation-name, '(String name)&#xa;',
+                         '      throws ManagedObjectNotFoundException, OperationRejectedException,&#xa;',
+                         '      ConcurrentModificationException, AuthorizationException,&#xa;',
+                         '      CommunicationException;&#xa;')" />
       </xsl:when>
       <xsl:otherwise>
         <xsl:message terminate="yes">
@@ -294,11 +388,34 @@
           </import>
         </xsl:if>
         <xsl:if test="$this-local-relations">
-          <import>org.opends.server.admin.OperationsException</import>
+          <import>
+            org.opends.server.admin.DefinitionDecodingException
+          </import>
+          <import>
+            org.opends.server.admin.ManagedObjectNotFoundException
+          </import>
+          <import>
+            org.opends.server.admin.client.ManagedObjectDecodingException
+          </import>
+          <import>
+            org.opends.server.admin.client.ConcurrentModificationException
+          </import>
+          <import>
+            org.opends.server.admin.client.AuthorizationException
+          </import>
+          <import>
+            org.opends.server.admin.client.CommunicationException
+          </import>
         </xsl:if>
         <xsl:if
           test="$this-local-relations/adm:one-to-zero-or-one|$this-local-relations/adm:one-to-many">
           <import>org.opends.server.admin.PropertyProvider</import>
+          <import>
+            org.opends.server.admin.ManagedObjectAlreadyExistsException
+          </import>
+          <import>
+            org.opends.server.admin.client.OperationRejectedException
+          </import>
         </xsl:if>
         <xsl:choose>
           <xsl:when test="$this/@extends">

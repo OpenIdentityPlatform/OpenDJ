@@ -30,8 +30,8 @@ package org.opends.server.admin;
 
 
 /**
- * A managed object could not be created because there is an existing managed
- * object with the same name.
+ * A managed object could not be created because there is an existing
+ * managed object with the same name.
  */
 public final class ManagedObjectAlreadyExistsException extends
     OperationsException {
@@ -45,31 +45,12 @@ public final class ManagedObjectAlreadyExistsException extends
   private static final String MSG = "A managed object could not be created"
       + " because there is an existing managed object with the same name";
 
-  // The name of the managed object that could not be created.
-  private final String name;
-
 
 
   /**
-   * Create a managed object already exists exception with the duplicate name.
-   *
-   * @param name
-   *          The name of the managed object that could not be created.
+   * Create a managed object already exists exception.
    */
-  public ManagedObjectAlreadyExistsException(String name) {
+  public ManagedObjectAlreadyExistsException() {
     super(MSG);
-
-    this.name = name;
-  }
-
-
-
-  /**
-   * Get the name of the managed object that could not be created.
-   *
-   * @return Returns the name of the managed object that could not be created.
-   */
-  public String getName() {
-    return name;
   }
 }

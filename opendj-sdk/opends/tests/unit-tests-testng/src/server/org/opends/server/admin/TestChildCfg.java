@@ -24,41 +24,31 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
-package org.opends.server.admin.server;
+package org.opends.server.admin;
 
 
 
-import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.ManagedObjectDefinition;
 
 
 
 /**
- * A sample configuration definition class for testing.
+ * A sample server-side configuration interface for testing.
  */
-public final class TestChildCfgDefn extends
-    AbstractManagedObjectDefinition<TestChildCfgClient, TestChildCfg> {
+public interface TestChildCfg extends Configuration {
 
-  // The singleton configuration definition instance.
-  private static final TestChildCfgDefn INSTANCE = new TestChildCfgDefn();
+  /**
+   * {@inheritDoc}
+   */
+  ManagedObjectDefinition<? extends TestChildCfgClient, ? extends TestChildCfg> definition();
 
 
 
   /**
-   * Get the definition singleton.
+   * Get the "heartbeat-interval" property.
    *
-   * @return Returns the definition singleton.
+   * @return Returns the value of the "heartbeat-interval" property.
    */
-  public static TestChildCfgDefn getInstance() {
-    return INSTANCE;
-  }
-
-
-
-  /**
-   * Private constructor.
-   */
-  private TestChildCfgDefn() {
-    super("test-child", null);
-  }
-
+  long getHeartbeatInterval();
 }

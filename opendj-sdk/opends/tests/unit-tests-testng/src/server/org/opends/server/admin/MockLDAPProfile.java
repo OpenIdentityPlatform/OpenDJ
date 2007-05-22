@@ -24,10 +24,12 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
-package org.opends.server.admin.server;
+package org.opends.server.admin;
 
 
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
@@ -68,17 +70,6 @@ public final class MockLDAPProfile extends LDAPProfile {
    * {@inheritDoc}
    */
   @Override
-  public String getFilter(AbstractManagedObjectDefinition<?, ?> d) {
-    // Not implemented yet.
-    throw new UnsupportedOperationException();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public String getInstantiableRelationChildRDNType(
       InstantiableRelationDefinition<?, ?> r) {
     return "cn";
@@ -92,8 +83,7 @@ public final class MockLDAPProfile extends LDAPProfile {
   @Override
   public List<String> getInstantiableRelationObjectClasses(
       InstantiableRelationDefinition<?, ?> r) {
-    // Not implemented yet.
-    throw new UnsupportedOperationException();
+    return Arrays.asList(new String[] { "top", "ds-cfg-branch" });
   }
 
 
@@ -103,8 +93,7 @@ public final class MockLDAPProfile extends LDAPProfile {
    */
   @Override
   public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
-    // Not implemented yet.
-    throw new UnsupportedOperationException();
+    return "ds-cfg-" + d.getName();
   }
 
 
@@ -113,10 +102,16 @@ public final class MockLDAPProfile extends LDAPProfile {
    * {@inheritDoc}
    */
   @Override
-  public List<String> getObjectClasses(
-      AbstractManagedObjectDefinition<?, ?> d) {
-    // Not implemented yet.
-    throw new UnsupportedOperationException();
+  public List<String> getObjectClasses(AbstractManagedObjectDefinition<?, ?> d) {
+    LinkedList<String> objectClasses = new LinkedList<String>();
+    for (AbstractManagedObjectDefinition<?, ?> i = d; i != null; i = i
+        .getParent()) {
+      objectClasses.addFirst(getObjectClass(i));
+    }
+
+    // Make sure that we have top.
+    objectClasses.addFirst("top");
+    return objectClasses;
   }
 
 

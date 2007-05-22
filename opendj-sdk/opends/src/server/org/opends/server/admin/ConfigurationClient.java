@@ -27,6 +27,11 @@
 
 package org.opends.server.admin;
 
+import org.opends.server.admin.client.AuthorizationException;
+import org.opends.server.admin.client.CommunicationException;
+import org.opends.server.admin.client.ConcurrentModificationException;
+import org.opends.server.admin.client.OperationRejectedException;
+
 
 
 /**
@@ -59,11 +64,21 @@ public interface ConfigurationClient {
   /**
    * Commit any changes made to this configuration client.
    *
-   * @throws OperationsException
-   *           If the changes to this configuration client could not
-   *           be committed due to some underlying communication
-   *           problem.
+   * @throws ConcurrentModificationException
+   *           If this configuration has been removed from the server
+   *           by another client.
+   * @throws OperationRejectedException
+   *           If the server refuses to apply the changes due to some
+   *           server-side constraint which cannot be satisfied.
+   * @throws AuthorizationException
+   *           If the server refuses to apply the changes because the
+   *           client does not have the correct privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
    */
-  void commit() throws OperationsException;
+  void commit() throws ConcurrentModificationException,
+      OperationRejectedException, AuthorizationException,
+      CommunicationException;
 
 }

@@ -317,7 +317,7 @@ public class DurationPropertyDefinitionTest {
     builder.setAllowUnlimited(true);
     DurationPropertyDefinition spd = buildTestDefinition(builder);
 
-    PropertyDefinitionVisitor<Boolean, Void> v = new AbstractPropertyDefinitionVisitor<Boolean, Void>() {
+    PropertyDefinitionVisitor<Boolean, Void> v = new PropertyDefinitionVisitor<Boolean, Void>() {
 
       public Boolean visitDuration(DurationPropertyDefinition d,
           Void o) {

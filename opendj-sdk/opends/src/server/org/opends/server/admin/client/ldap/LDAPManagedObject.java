@@ -31,22 +31,23 @@ package org.opends.server.admin.client.ldap;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
+import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.NoPermissionException;
+import javax.naming.OperationNotSupportedException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
@@ -57,8 +58,9 @@ import org.opends.server.admin.DefinitionResolver;
 import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.InheritedDefaultValueProvider;
 import org.opends.server.admin.InstantiableRelationDefinition;
-import org.opends.server.admin.LDAPProfile;
+import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
+import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.OptionalRelationDefinition;
@@ -73,8 +75,12 @@ import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.admin.StringPropertyProvider;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
+import org.opends.server.admin.client.AuthorizationException;
+import org.opends.server.admin.client.CommunicationException;
+import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.client.Property;
 import org.opends.server.admin.client.PropertySet;
 import org.opends.server.admin.std.client.RootCfgClient;
@@ -89,8 +95,8 @@ import org.opends.server.admin.std.meta.RootCfgDefn;
  *          The type of client configuration represented by the client
  *          managed object.
  */
-final class LDAPManagedObject<C extends ConfigurationClient>
-    implements ManagedObject<C> {
+final class LDAPManagedObject<C extends ConfigurationClient> implements
+    ManagedObject<C> {
 
   /**
    * Internal inherited default value provider implementation.
@@ -98,25 +104,25 @@ final class LDAPManagedObject<C extends ConfigurationClient>
   private static class MyInheritedDefaultValueProvider implements
       InheritedDefaultValueProvider {
 
+    // The LDAP management context.
+    private final LDAPManagementContext context;
+
     // The base path.
     private final ManagedObjectPath path;
-
-    // The LDAP connection context.
-    private final DirContext dirContext;
 
 
 
     /**
      * Create a new inherited default value provider.
      *
-     * @param dirContext
-     *          The LDAP connection context.
+     * @param context
+     *          The LDAP management context.
      * @param path
      *          The base path.
      */
-    public MyInheritedDefaultValueProvider(DirContext dirContext,
+    public MyInheritedDefaultValueProvider(LDAPManagementContext context,
         ManagedObjectPath path) {
-      this.dirContext = dirContext;
+      this.context = context;
       this.path = path;
     }
 
@@ -125,18 +131,22 @@ final class LDAPManagedObject<C extends ConfigurationClient>
     /**
      * {@inheritDoc}
      */
-    public Collection<?> getDefaultPropertyValues(
-        ManagedObjectPath path, String propertyName)
-        throws OperationsException, PropertyNotFoundException {
+    public Collection<?> getDefaultPropertyValues(ManagedObjectPath path,
+        String propertyName) throws OperationsException,
+        PropertyNotFoundException {
       ManagedObjectPath<?, ?> tmp = path;
-      ManagedObject<?> mo = readEntry(dirContext, tmp, tmp
-          .getManagedObjectDefinition());
-      ManagedObjectDefinition<?, ?> mod = mo
-          .getManagedObjectDefinition();
+      ManagedObject<?> mo;
+      try {
+        mo = readEntry(context, tmp, tmp.getManagedObjectDefinition());
+      } catch (AuthorizationException e) {
+        throw new OperationsException(e);
+      } catch (CommunicationException e) {
+        throw new OperationsException(e);
+      }
+      ManagedObjectDefinition<?, ?> mod = mo.getManagedObjectDefinition();
 
       try {
-        PropertyDefinition<?> dpd = mod
-            .getPropertyDefinition(propertyName);
+        PropertyDefinition<?> dpd = mod.getPropertyDefinition(propertyName);
         return mo.getPropertyValues(dpd);
       } catch (IllegalArgumentException e) {
         throw new PropertyNotFoundException(propertyName);
@@ -159,19 +169,18 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    * Construct a root LDAP managed object associated with the provided
    * LDAP context.
    *
-   * @param dirContext
-   *          The LDAP directory context.
+   * @param context
+   *          The LDAP management context.
    * @return Returns a root LDAP managed object associated with the
    *         provided LDAP context.
    */
   static ManagedObject<RootCfgClient> getRootManagedObject(
-      DirContext dirContext) {
+      LDAPManagementContext context) {
     List<PropertyException> exceptions = new LinkedList<PropertyException>();
     InheritedDefaultValueProvider i = new MyInheritedDefaultValueProvider(
-        dirContext, ManagedObjectPath.emptyPath());
-    PropertySet properties = PropertySet.create(RootCfgDefn
-        .getInstance(), PropertyProvider.DEFAULT_PROVIDER, i,
-        exceptions);
+        context, ManagedObjectPath.emptyPath());
+    PropertySet properties = PropertySet.create(RootCfgDefn.getInstance(),
+        PropertyProvider.DEFAULT_PROVIDER, i, exceptions);
 
     // Should never get any exceptions.
     if (!exceptions.isEmpty()) {
@@ -179,37 +188,18 @@ final class LDAPManagedObject<C extends ConfigurationClient>
           "Got exceptions when creating root managed object");
     }
 
-    return new LDAPManagedObject<RootCfgClient>(dirContext,
-        RootCfgDefn.getInstance(), ManagedObjectPath.emptyPath(),
-        properties);
+    return new LDAPManagedObject<RootCfgClient>(context, RootCfgDefn
+        .getInstance(), ManagedObjectPath.emptyPath(), properties);
   }
 
 
 
   // Create a new child LDAP managed object.
   private static <M extends ConfigurationClient>
-    ManagedObject<M> createLDAPManagedObject(
-      DirContext dirContext, ManagedObjectDefinition<M, ?> d,
+      ManagedObject<M> createLDAPManagedObject(
+      LDAPManagementContext context, ManagedObjectDefinition<M, ?> d,
       ManagedObjectPath p, PropertySet properties) {
-    return new LDAPManagedObject<M>(dirContext, d, p, properties);
-  }
-
-
-
-  // Get an array containing the list of LDAP attributes names
-  // associated with a
-  // managed object definition.
-  private static String[] getAttributeNames(
-      ManagedObjectDefinition<?, ?> d) {
-    ArrayList<String> attrIds = new ArrayList<String>();
-
-    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-      String attrId = LDAPProfile.getInstance().getAttributeName(d,
-          pd);
-      attrIds.add(attrId);
-    }
-
-    return attrIds.toArray(new String[attrIds.size()]);
+    return new LDAPManagedObject<M>(context, d, p, properties);
   }
 
 
@@ -218,86 +208,85 @@ final class LDAPManagedObject<C extends ConfigurationClient>
   // entry.
   private static <M extends ConfigurationClient>
       ManagedObjectDefinition<? extends M, ?> getEntryDefinition(
-      DirContext dirContext, AbstractManagedObjectDefinition<M, ?> d,
-      LdapName dn) throws OperationsException {
-    try {
-      String[] attrIds = new String[] { "objectclass" };
-      Attributes attributes = dirContext.getAttributes(dn, attrIds);
-      Attribute oc = attributes.get("objectclass");
+      final LDAPManagementContext context,
+      AbstractManagedObjectDefinition<M, ?> d, LdapName dn)
+      throws NamingException, DefinitionDecodingException {
+    Attributes attributes = context.getLDAPConnection().readEntry(dn,
+        Collections.singleton("objectclass"));
+    Attribute oc = attributes.get("objectclass");
 
-      if (oc == null) {
-        // No object classes.
-        throw new DefinitionDecodingException(
-            Reason.NO_TYPE_INFORMATION);
-      }
-
-      final Set<String> objectClasses = new HashSet<String>();
-      NamingEnumeration<?> values = oc.getAll();
-      while (values.hasMore()) {
-        Object value = values.next();
-        if (value != null) {
-          objectClasses.add(value.toString().toLowerCase().trim());
-        }
-      }
-
-      if (objectClasses.isEmpty()) {
-        // No object classes.
-        throw new DefinitionDecodingException(
-            Reason.NO_TYPE_INFORMATION);
-      }
-
-      // Resolve the appropriate sub-type based on the object classes.
-      DefinitionResolver resolver = new DefinitionResolver() {
-
-        public boolean matches(AbstractManagedObjectDefinition<?, ?> d) {
-          String objectClass = LDAPProfile.getInstance()
-              .getObjectClass(d);
-          return objectClasses.contains(objectClass);
-        }
-
-      };
-
-      return d.resolveManagedObjectDefinition(resolver);
-    } catch (NamingException e) {
-      OperationsExceptionFactory oef = new OperationsExceptionFactory();
-      throw oef.createException(e);
+    if (oc == null) {
+      // No object classes.
+      throw new DefinitionDecodingException(Reason.NO_TYPE_INFORMATION);
     }
+
+    final Set<String> objectClasses = new HashSet<String>();
+    NamingEnumeration<?> values = oc.getAll();
+    while (values.hasMore()) {
+      Object value = values.next();
+      if (value != null) {
+        objectClasses.add(value.toString().toLowerCase().trim());
+      }
+    }
+
+    if (objectClasses.isEmpty()) {
+      // No object classes.
+      throw new DefinitionDecodingException(Reason.NO_TYPE_INFORMATION);
+    }
+
+    // Resolve the appropriate sub-type based on the object classes.
+    DefinitionResolver resolver = new DefinitionResolver() {
+
+      public boolean matches(AbstractManagedObjectDefinition<?, ?> d) {
+        String objectClass = context.getLDAPProfile().getObjectClass(d);
+        return objectClasses.contains(objectClass);
+      }
+
+    };
+
+    return d.resolveManagedObjectDefinition(resolver);
   }
 
 
 
   // Read the entry identified by the path and which is a sub-type of
-  // the
-  // specified definition.
+  // the specified definition.
   private static <M extends ConfigurationClient>
       ManagedObject<? extends M> readEntry(
-      DirContext dirContext, ManagedObjectPath p,
+      final LDAPManagementContext context, ManagedObjectPath p,
       AbstractManagedObjectDefinition<M, ?> d)
-      throws OperationsException {
-    LdapName dn = LDAPNameBuilder.create(p);
-    final ManagedObjectDefinition<? extends M, ?> mod = getEntryDefinition(
-        dirContext, d, dn);
-    String[] attrIds = getAttributeNames(mod);
+      throws DefinitionDecodingException, ManagedObjectDecodingException,
+      ManagedObjectNotFoundException, AuthorizationException,
+      CommunicationException {
+    LdapName dn = LDAPNameBuilder.create(p, context.getLDAPProfile());
 
+    final ManagedObjectDefinition<? extends M, ?> mod;
     final Attributes attributes;
     try {
-      attributes = dirContext.getAttributes(dn, attrIds);
+      mod = getEntryDefinition(context, d, dn);
+      ArrayList<String> attrIds = new ArrayList<String>();
+      for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
+        String attrId = context.getLDAPProfile().getAttributeName(mod, pd);
+        attrIds.add(attrId);
+      }
+      attributes = context.getLDAPConnection().readEntry(dn, attrIds);
+    } catch (NameNotFoundException e) {
+      throw new ManagedObjectNotFoundException();
+    } catch (NoPermissionException e) {
+      throw new AuthorizationException(e);
     } catch (NamingException e) {
-      OperationsExceptionFactory factory = new OperationsExceptionFactory();
-      throw factory.createException(e);
+      throw new CommunicationException(e);
     }
 
     // Create a provider which uses LDAP string representations.
 
     // TODO: the exception handling is a bit of a hack here.
-    final List<OperationsException> oelist =
-      new LinkedList<OperationsException>();
+    final List<NamingException> nelist = new LinkedList<NamingException>();
     StringPropertyProvider provider = new StringPropertyProvider() {
 
-      public Collection<String> getPropertyValues(
-          PropertyDefinition<?> d) throws IllegalArgumentException {
-        String attrID = LDAPProfile.getInstance().getAttributeName(
-            mod, d);
+      public Collection<String> getPropertyValues(PropertyDefinition<?> d)
+          throws IllegalArgumentException {
+        String attrID = context.getLDAPProfile().getAttributeName(mod, d);
         Attribute attribute = attributes.get(attrID);
         List<String> values = new LinkedList<String>();
 
@@ -311,8 +300,7 @@ final class LDAPManagedObject<C extends ConfigurationClient>
               }
             }
           } catch (NamingException e) {
-            OperationsExceptionFactory oef = new OperationsExceptionFactory();
-            oelist.add(oef.createException(e));
+            nelist.add(e);
           }
         }
 
@@ -321,23 +309,29 @@ final class LDAPManagedObject<C extends ConfigurationClient>
 
     };
 
-    // There can only be at most one operations exception.
-    if (!oelist.isEmpty()) {
-      throw oelist.get(0);
+    // There can only be at most one exception.
+    if (!nelist.isEmpty()) {
+      try {
+        throw nelist.get(0);
+      } catch (NameNotFoundException e) {
+        throw new ManagedObjectNotFoundException();
+      } catch (NoPermissionException e) {
+        throw new AuthorizationException(e);
+      } catch (NamingException e) {
+        throw new CommunicationException(e);
+      }
     }
 
     // Now decode the properties using the provider.
     List<PropertyException> exceptions = new LinkedList<PropertyException>();
     InheritedDefaultValueProvider i = new MyInheritedDefaultValueProvider(
-        dirContext, p);
-    PropertySet properties = PropertySet.create(mod, provider, i,
-        exceptions);
-    ManagedObject<? extends M> mo = createLDAPManagedObject(
-        dirContext, mod, p, properties);
+        context, p);
+    PropertySet properties = PropertySet.create(mod, provider, i, exceptions);
+    ManagedObject<? extends M> mo = createLDAPManagedObject(context, mod, p,
+        properties);
 
     // If there were no decoding problems then return the object,
-    // otherwise
-    // throw an operations exception.
+    // otherwise throw an operations exception.
     if (exceptions.isEmpty()) {
       return mo;
     } else {
@@ -345,18 +339,15 @@ final class LDAPManagedObject<C extends ConfigurationClient>
     }
   }
 
-  // The JNDI context used for the ldap connection.
-  private final DirContext dirContext;
-
-  // The path associated with this managed object.
-  private final ManagedObjectPath<?, ?> path;
-
-  // LDAP profile associated with this connection.
-  private final LDAPProfile profile;
-
   // The managed object definition associated with this managed
   // object.
   private final ManagedObjectDefinition<C, ?> definition;
+
+  // The LDAP management context used for the ldap connection.
+  private final LDAPManagementContext context;
+
+  // The path associated with this managed object.
+  private final ManagedObjectPath<?, ?> path;
 
   // The managed object's properties.
   private final PropertySet properties;
@@ -364,13 +355,12 @@ final class LDAPManagedObject<C extends ConfigurationClient>
 
 
   // Create an new LDAP managed object with the provided JNDI context.
-  private LDAPManagedObject(DirContext dirContext,
+  private LDAPManagedObject(LDAPManagementContext context,
       ManagedObjectDefinition<C, ?> d, ManagedObjectPath path,
       PropertySet properties) {
     this.definition = d;
-    this.dirContext = dirContext;
+    this.context = context;
     this.path = path;
-    this.profile = LDAPProfile.getInstance();
     this.properties = properties;
   }
 
@@ -379,19 +369,37 @@ final class LDAPManagedObject<C extends ConfigurationClient>
   /**
    * {@inheritDoc}
    */
-  public void commit() throws OperationsException {
+  public void commit() throws ConcurrentModificationException,
+      OperationRejectedException, AuthorizationException,
+      CommunicationException {
+    // Build the list of modified attributes.
     ManagedObjectDefinition<C, ?> d = getManagedObjectDefinition();
-    LDAPChangeBuilder builder = new LDAPChangeBuilder(dirContext,
-        path, d);
+    Attributes mods = new BasicAttributes();
     for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-      // FIXME: should throw an error when there are missing mandatory
-      // properties.
       Property<?> p = properties.getProperty(pd);
       if (p.isModified()) {
-        builder.addChange(p);
+        String attrID = context.getLDAPProfile().getAttributeName(d, pd);
+        Attribute attribute = new BasicAttribute(attrID);
+        encodeProperty(attribute, pd, properties);
+        mods.put(attribute);
       }
     }
-    builder.commit();
+
+    // Perform the LDAP modification if something has changed.
+    if (mods.size() > 0) {
+      try {
+        LdapName dn = LDAPNameBuilder.create(path, context.getLDAPProfile());
+        context.getLDAPConnection().modifyEntry(dn, mods);
+      } catch (NoPermissionException e) {
+        throw new AuthorizationException(e);
+      } catch (OperationNotSupportedException e) {
+        // Unwilling to perform.
+        throw new OperationRejectedException(e);
+      } catch (NamingException e) {
+        // Just treat it as a communication problem.
+        throw new CommunicationException(e);
+      }
+    }
   }
 
 
@@ -401,9 +409,11 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    */
   public <M extends ConfigurationClient, N extends M>
       ManagedObject<N> createChild(
-      InstantiableRelationDefinition<M, ?> r,
-      ManagedObjectDefinition<N, ?> d, String name, PropertyProvider p)
-      throws IllegalArgumentException, OperationsException {
+      InstantiableRelationDefinition<M, ?> r, ManagedObjectDefinition<N, ?> d,
+      String name, PropertyProvider p) throws IllegalArgumentException,
+      ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,
+      ConcurrentModificationException, OperationRejectedException,
+      AuthorizationException, CommunicationException {
     validateRelationDefinition(r);
 
     ManagedObjectPath childPath = path.child(r, name);
@@ -411,43 +421,46 @@ final class LDAPManagedObject<C extends ConfigurationClient>
     // First make sure all the properties are valid.
     List<PropertyException> exceptions = new LinkedList<PropertyException>();
     InheritedDefaultValueProvider i = new MyInheritedDefaultValueProvider(
-        dirContext, childPath);
+        context, childPath);
     PropertySet properties = PropertySet.create(d, p, i, exceptions);
     if (!exceptions.isEmpty()) {
-      ManagedObject<N> mo = new LDAPManagedObject<N>(dirContext, d,
-          childPath, properties);
+      ManagedObject<N> mo = new LDAPManagedObject<N>(context, d, childPath,
+          properties);
       throw new ManagedObjectDecodingException(mo, exceptions);
     }
 
-    try {
-      // TODO: this implementation does not handle relations which
-      // comprise of more than one RDN arc (this will probably never
-      // be required anyway).
-      LdapName dn = LDAPNameBuilder.create(path, r);
+    ensureThisManagedObjectExists();
 
-      if (!entryExists(dn)) {
-        // Need to create the child managed object's parent entry i.e.
-        // the entry representing the relation itself.
-        Attributes attributes = new BasicAttributes();
+    // TODO: this implementation does not handle relations which
+    // comprise of more than one RDN arc (this will probably never
+    // be required anyway).
+    LdapName dn = LDAPNameBuilder.create(path, r, context.getLDAPProfile());
+    if (!entryExists(dn)) {
+      // Need to create the child managed object's parent entry i.e.
+      // the entry representing the relation itself.
+      Attributes attributes = new BasicAttributes();
 
-        // Create the branch's object class attribute.
-        Attribute oc = new BasicAttribute("objectClass");
-        for (String objectClass : profile
-            .getInstantiableRelationObjectClasses(r)) {
-          oc.add(objectClass);
-        }
-        attributes.put(oc);
-
-        // Create the branch's naming attribute.
-        Rdn rdn = dn.getRdn(dn.size() - 1);
-        attributes.put(rdn.getType(), rdn.getValue().toString());
-
-        // Create the entry.
-        dirContext.createSubcontext(dn, attributes);
+      // Create the branch's object class attribute.
+      Attribute oc = new BasicAttribute("objectClass");
+      for (String objectClass : context.getLDAPProfile()
+          .getInstantiableRelationObjectClasses(r)) {
+        oc.add(objectClass);
       }
-    } catch (NamingException e) {
-      OperationsExceptionFactory oef = new OperationsExceptionFactory();
-      throw oef.createException(e);
+      attributes.put(oc);
+
+      // Create the branch's naming attribute.
+      Rdn rdn = dn.getRdn(dn.size() - 1);
+      attributes.put(rdn.getType(), rdn.getValue().toString());
+
+      // Create the entry.
+      try {
+        context.getLDAPConnection().createEntry(dn, attributes);
+      } catch (OperationNotSupportedException e) {
+        // Unwilling to perform.
+        throw new OperationRejectedException(e);
+      } catch (NamingException e) {
+        adaptNamingException(e);
+      }
     }
 
     return createManagedObject(childPath, d, properties);
@@ -460,9 +473,11 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    */
   public <M extends ConfigurationClient, N extends M>
       ManagedObject<N> createChild(
-      OptionalRelationDefinition<M, ?> r,
-      ManagedObjectDefinition<N, ?> d, PropertyProvider p)
-      throws IllegalArgumentException, OperationsException {
+      OptionalRelationDefinition<M, ?> r, ManagedObjectDefinition<N, ?> d,
+      PropertyProvider p) throws IllegalArgumentException,
+      ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,
+      ConcurrentModificationException, OperationRejectedException,
+      AuthorizationException, CommunicationException {
     validateRelationDefinition(r);
 
     ManagedObjectPath childPath = path.child(r);
@@ -470,13 +485,15 @@ final class LDAPManagedObject<C extends ConfigurationClient>
     // First make sure all the properties are valid.
     List<PropertyException> exceptions = new LinkedList<PropertyException>();
     InheritedDefaultValueProvider i = new MyInheritedDefaultValueProvider(
-        dirContext, childPath);
+        context, childPath);
     PropertySet properties = PropertySet.create(d, p, i, exceptions);
     if (!exceptions.isEmpty()) {
-      ManagedObject<N> mo = new LDAPManagedObject<N>(dirContext, d,
-          childPath, properties);
+      ManagedObject<N> mo = new LDAPManagedObject<N>(context, d, childPath,
+          properties);
       throw new ManagedObjectDecodingException(mo, exceptions);
     }
+
+    ensureThisManagedObjectExists();
 
     return createManagedObject(childPath, d, properties);
   }
@@ -488,10 +505,13 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    */
   public <M extends ConfigurationClient> ManagedObject<? extends M> getChild(
       InstantiableRelationDefinition<M, ?> d, String name)
-      throws IllegalArgumentException, OperationsException {
+      throws IllegalArgumentException, DefinitionDecodingException,
+      ManagedObjectDecodingException, ManagedObjectNotFoundException,
+      ConcurrentModificationException, AuthorizationException,
+      CommunicationException {
     validateRelationDefinition(d);
-    return readEntry(dirContext, path.child(d, name), d
-        .getChildDefinition());
+    ensureThisManagedObjectExists();
+    return readEntry(context, path.child(d, name), d.getChildDefinition());
   }
 
 
@@ -500,11 +520,13 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    * {@inheritDoc}
    */
   public <M extends ConfigurationClient> ManagedObject<? extends M> getChild(
-      OptionalRelationDefinition<M, ?> d)
-      throws IllegalArgumentException, OperationsException {
+      OptionalRelationDefinition<M, ?> d) throws IllegalArgumentException,
+      DefinitionDecodingException, ManagedObjectDecodingException,
+      ManagedObjectNotFoundException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException {
     validateRelationDefinition(d);
-    return readEntry(dirContext, path.child(d), d
-        .getChildDefinition());
+    ensureThisManagedObjectExists();
+    return readEntry(context, path.child(d), d.getChildDefinition());
   }
 
 
@@ -513,11 +535,13 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    * {@inheritDoc}
    */
   public <M extends ConfigurationClient> ManagedObject<? extends M> getChild(
-      SingletonRelationDefinition<M, ?> d)
-      throws IllegalArgumentException, OperationsException {
+      SingletonRelationDefinition<M, ?> d) throws IllegalArgumentException,
+      DefinitionDecodingException, ManagedObjectDecodingException,
+      ManagedObjectNotFoundException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException {
     validateRelationDefinition(d);
-    return readEntry(dirContext, path.child(d), d
-        .getChildDefinition());
+    ensureThisManagedObjectExists();
+    return readEntry(context, path.child(d), d.getChildDefinition());
   }
 
 
@@ -573,17 +597,14 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    * {@inheritDoc}
    */
   public boolean hasChild(OptionalRelationDefinition<?, ?> d)
-      throws IllegalArgumentException, OperationsException {
+      throws IllegalArgumentException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException {
     validateRelationDefinition(d);
+    ensureThisManagedObjectExists();
 
     ManagedObjectPath p = path.child(d);
-    LdapName dn = LDAPNameBuilder.create(p);
-    try {
-      return entryExists(dn);
-    } catch (NamingException e) {
-      OperationsExceptionFactory oef = new OperationsExceptionFactory();
-      throw oef.createException(e);
-    }
+    LdapName dn = LDAPNameBuilder.create(p, context.getLDAPProfile());
+    return entryExists(dn);
   }
 
 
@@ -592,35 +613,25 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    * {@inheritDoc}
    */
   public String[] listChildren(InstantiableRelationDefinition<?, ?> d)
-      throws IllegalArgumentException, OperationsException {
+      throws IllegalArgumentException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException {
     validateRelationDefinition(d);
+    ensureThisManagedObjectExists();
 
-    LdapName dn = LDAPNameBuilder.create(path, d);
-
-    String filter = profile.getFilter(d.getChildDefinition());
-    SearchControls controls = new SearchControls();
-    controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-
+    List<String> children = new ArrayList<String>();
+    LdapName dn = LDAPNameBuilder.create(path, d, context.getLDAPProfile());
     try {
-      NamingEnumeration<SearchResult> results;
-      results = dirContext.search(dn, filter, controls);
-
-      String rtype = profile.getInstantiableRelationChildRDNType(d);
-      List<String> names = new ArrayList<String>();
-      while (results.hasMore()) {
-        SearchResult sr = results.next();
-        Attributes attributes = sr.getAttributes();
-        Attribute cn = attributes.get(rtype);
-        if (cn != null && cn.get() != null) {
-          names.add(cn.get().toString());
-        }
+      for (LdapName child : context.getLDAPConnection().listEntries(dn)) {
+        children.add(child.getRdn(child.size() - 1).getValue().toString());
       }
-
-      return names.toArray(new String[names.size()]);
+    } catch (NameNotFoundException e) {
+      // Ignore this - it means that the base entry does not exist
+      // (which it might not if this managed object has just been
+      // created.
     } catch (NamingException e) {
-      OperationsExceptionFactory oef = new OperationsExceptionFactory();
-      throw oef.createException(e);
+      adaptNamingException(e);
     }
+    return children.toArray(new String[children.size()]);
   }
 
 
@@ -630,9 +641,11 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    */
   public <M extends ConfigurationClient> void removeChild(
       InstantiableRelationDefinition<M, ?> d, String name)
-      throws IllegalArgumentException, OperationsException {
+      throws IllegalArgumentException, ManagedObjectNotFoundException,
+      OperationRejectedException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException {
     validateRelationDefinition(d);
-
+    ensureThisManagedObjectExists();
     ManagedObjectPath p = path.child(d, name);
     removeManagedObject(p);
   }
@@ -643,10 +656,12 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    * {@inheritDoc}
    */
   public <M extends ConfigurationClient> void removeChild(
-      OptionalRelationDefinition<M, ?> d)
-      throws IllegalArgumentException, OperationsException {
+      OptionalRelationDefinition<M, ?> d) throws IllegalArgumentException,
+      ManagedObjectNotFoundException, OperationRejectedException,
+      ConcurrentModificationException, AuthorizationException,
+      CommunicationException {
     validateRelationDefinition(d);
-
+    ensureThisManagedObjectExists();
     ManagedObjectPath p = path.child(d);
     removeManagedObject(p);
   }
@@ -657,9 +672,8 @@ final class LDAPManagedObject<C extends ConfigurationClient>
    * {@inheritDoc}
    */
   public <T> void setPropertyValue(PropertyDefinition<T> d, T value)
-      throws IllegalPropertyValueException,
-      PropertyIsReadOnlyException, PropertyIsMandatoryException,
-      IllegalArgumentException {
+      throws IllegalPropertyValueException, PropertyIsReadOnlyException,
+      PropertyIsMandatoryException, IllegalArgumentException {
     properties.setPropertyValue(d, value);
   }
 
@@ -677,17 +691,39 @@ final class LDAPManagedObject<C extends ConfigurationClient>
 
 
 
+  // Adapts a naming exception to an appropriate admin client
+  // exception.
+  private void adaptNamingException(NamingException ne)
+      throws CommunicationException, AuthorizationException {
+    try {
+      throw ne;
+    } catch (javax.naming.CommunicationException e) {
+      throw new CommunicationException(e);
+    } catch (javax.naming.ServiceUnavailableException e) {
+      throw new CommunicationException(e);
+    } catch (javax.naming.NoPermissionException e) {
+      throw new AuthorizationException(e);
+    } catch (NamingException e) {
+      // Just treat it as a communication problem.
+      throw new CommunicationException(e);
+    }
+  }
+
+
+
   // Creates a new managed object. The parent LDAP entry is assumed to
   // already exist.
   private <N extends ConfigurationClient> ManagedObject<N> createManagedObject(
       ManagedObjectPath path, ManagedObjectDefinition<N, ?> d,
-      PropertySet properties) throws OperationsException {
-    LdapName dn = LDAPNameBuilder.create(path);
-    Attributes attributes = new BasicAttributes();
+      PropertySet properties) throws ManagedObjectAlreadyExistsException,
+      OperationRejectedException, AuthorizationException,
+      CommunicationException {
+    LdapName dn = LDAPNameBuilder.create(path, context.getLDAPProfile());
+    Attributes attributes = new BasicAttributes(true);
 
     // Create the child's object class attribute.
-    Attribute oc = new BasicAttribute("objectClass");
-    for (String objectClass : profile.getObjectClasses(d)) {
+    Attribute oc = new BasicAttribute("objectclass");
+    for (String objectClass : context.getLDAPProfile().getObjectClasses(d)) {
       oc.add(objectClass);
     }
     attributes.put(oc);
@@ -698,7 +734,7 @@ final class LDAPManagedObject<C extends ConfigurationClient>
 
     // Create the remaining attributes.
     for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-      String attrID = profile.getAttributeName(d, pd);
+      String attrID = context.getLDAPProfile().getAttributeName(d, pd);
       Attribute attribute = new BasicAttribute(attrID);
       encodeProperty(attribute, pd, properties);
       if (attribute.size() != 0) {
@@ -708,37 +744,17 @@ final class LDAPManagedObject<C extends ConfigurationClient>
 
     try {
       // Create the entry.
-      dirContext.createSubcontext(dn, attributes);
+      context.getLDAPConnection().createEntry(dn, attributes);
+    } catch (NameAlreadyBoundException e) {
+      throw new ManagedObjectAlreadyExistsException();
+    } catch (OperationNotSupportedException e) {
+      // Unwilling to perform.
+      throw new OperationRejectedException(e);
     } catch (NamingException e) {
-      OperationsExceptionFactory oef = new OperationsExceptionFactory();
-      throw oef.createException(e);
+      adaptNamingException(e);
     }
 
-    return new LDAPManagedObject<N>(dirContext, d, path, properties);
-  }
-
-
-
-  // Recursively delete a subtree of entries.
-  private void destroySubtree(LdapName dn) throws NamingException {
-    // List the child entries.
-    String filter = "(objectClass=*)";
-    SearchControls controls = new SearchControls();
-    controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-
-    NamingEnumeration<SearchResult> results;
-    results = dirContext.search(dn, filter, controls);
-
-    // Recursively delete child entries.
-    while (results.hasMore()) {
-      SearchResult sr = results.next();
-      LdapName child = new LdapName(dn.getRdns());
-      child.add(new Rdn(sr.getName()));
-      destroySubtree(child);
-    }
-
-    // Delete the specified entry.
-    dirContext.destroySubcontext(dn);
+    return new LDAPManagedObject<N>(context, d, path, properties);
   }
 
 
@@ -746,32 +762,35 @@ final class LDAPManagedObject<C extends ConfigurationClient>
   // Encode a property into LDAP string values.
   private <T> void encodeProperty(Attribute attribute,
       PropertyDefinition<T> pd, PropertySet properties) {
-    for (T value : properties.getPropertyValues(pd)) {
+    Property<T> p = properties.getProperty(pd);
+    for (T value : p.getPendingValues()) {
       attribute.add(pd.encodeValue(value));
     }
   }
 
 
 
-  // Determine whether the named entry exists or not.
-  private boolean entryExists(LdapName dn) throws NamingException {
-    String filter = "(objectClass=*)";
-    SearchControls controls = new SearchControls();
-    controls.setSearchScope(SearchControls.OBJECT_SCOPE);
-
-    try {
-      NamingEnumeration<SearchResult> results = dirContext.search(dn,
-          filter, controls);
-      if (results.hasMore()) {
-        // TODO: should really verify that the relation entry has
-        // the correct object classes, etc. It definitely has the
-        // correct name, which is ok.
-        return true;
-      }
-    } catch (NameNotFoundException e) {
-      // Fall through - parent not found.
+  // Makes sure that the entry corresponding to this managed object
+  // exists.
+  private void ensureThisManagedObjectExists()
+      throws ConcurrentModificationException, CommunicationException,
+      AuthorizationException {
+    LdapName dn = LDAPNameBuilder.create(path, context.getLDAPProfile());
+    if (!entryExists(dn)) {
+      throw new ConcurrentModificationException();
     }
+  }
 
+
+
+  // Determine whether the named entry exists or not.
+  private boolean entryExists(LdapName dn) throws CommunicationException,
+      AuthorizationException {
+    try {
+      return context.getLDAPConnection().entryExists(dn);
+    } catch (NamingException e) {
+      adaptNamingException(e);
+    }
     return false;
   }
 
@@ -779,16 +798,19 @@ final class LDAPManagedObject<C extends ConfigurationClient>
 
   // Remove the named managed object.
   private void removeManagedObject(ManagedObjectPath p)
-      throws OperationsException {
-    try {
-      LdapName dn = LDAPNameBuilder.create(p);
-      if (entryExists(dn)) {
-        // Delete the entry and any subordinate entries.
-        destroySubtree(dn);
+      throws CommunicationException, AuthorizationException,
+      OperationRejectedException {
+    LdapName dn = LDAPNameBuilder.create(p, context.getLDAPProfile());
+    if (entryExists(dn)) {
+      // Delete the entry and any subordinate entries.
+      try {
+        context.getLDAPConnection().deleteSubtree(dn);
+      } catch (OperationNotSupportedException e) {
+        // Unwilling to perform.
+        throw new OperationRejectedException(e);
+      } catch (NamingException e) {
+        adaptNamingException(e);
       }
-    } catch (NamingException e) {
-      OperationsExceptionFactory oef = new OperationsExceptionFactory();
-      throw oef.createException(e);
     }
   }
 
@@ -801,8 +823,8 @@ final class LDAPManagedObject<C extends ConfigurationClient>
     ManagedObjectDefinition d = getManagedObjectDefinition();
     RelationDefinition tmp = d.getRelationDefinition(rd.getName());
     if (tmp != rd) {
-      throw new IllegalArgumentException("The relation "
-          + rd.getName() + " is not associated with a " + d.getName());
+      throw new IllegalArgumentException("The relation " + rd.getName()
+          + " is not associated with a " + d.getName());
     }
   }
 }

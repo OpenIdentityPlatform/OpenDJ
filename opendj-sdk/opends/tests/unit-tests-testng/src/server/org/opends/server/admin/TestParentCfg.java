@@ -24,23 +24,38 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
-package org.opends.server.admin.server;
+package org.opends.server.admin;
 
 
 
-import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.ManagedObjectDefinition;
 
 
 
 /**
- * A sample client-side configuration interface for testing.
+ * A sample server-side configuration interface for testing.
  */
-public interface TestParentCfgClient extends ConfigurationClient {
+public interface TestParentCfg extends Configuration {
 
   /**
    * {@inheritDoc}
    */
   ManagedObjectDefinition<? extends TestParentCfgClient, ? extends TestParentCfg> definition();
 
+
+
+  /**
+   * Get the "maximum-length" property.
+   *
+   * @return Returns the value of the "maximum-length" property.
+   */
+  int getMaximumLength();
+
+
+
+  /**
+   * Get the "minimum-length" property.
+   *
+   * @return Returns the value of the "minimum-length" property.
+   */
+  int getMinimumLength();
 }

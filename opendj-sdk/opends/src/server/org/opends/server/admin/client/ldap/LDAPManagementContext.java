@@ -29,16 +29,11 @@ package org.opends.server.admin.client.ldap;
 
 
 
-import java.util.Hashtable;
-
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.naming.directory.DirContext;
-import javax.naming.ldap.InitialLdapContext;
-
+import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.util.Validator;
 
 
 
@@ -47,47 +42,56 @@ import org.opends.server.admin.std.client.RootCfgClient;
  */
 public final class LDAPManagementContext extends ManagementContext {
 
-  // The JNDI context used for the ldap connection.
-  private final DirContext dirContext;
-
-
-
   /**
-   * Create a new LDAP management context using simple authentication.
-   * <p>
-   * TODO: we will want to support more secure forms of
-   * authentication.
+   * Create a new LDAP management context using the provided LDAP
+   * connection.
    *
-   * @param host
-   *          The host.
-   * @param port
-   *          The port.
-   * @param name
-   *          The LDAP bind DN.
-   * @param password
-   *          The LDAP bind password.
+   * @param connection
+   *          The LDAP connectin.
    * @return Returns the new management context.
-   * @throws NamingException
-   *           If the LDAP connection could not be established.
    */
-  public static ManagementContext createLDAPContext(String host,
-      int port, String name, String password) throws NamingException {
-    Hashtable<String, Object> env = new Hashtable<String, Object>();
-    env.put(Context.INITIAL_CONTEXT_FACTORY,
-        "com.sun.jndi.ldap.LdapCtxFactory");
-    env.put(Context.PROVIDER_URL, "ldap://" + host + ":" + port);
-    env.put(Context.SECURITY_PRINCIPAL, name);
-    env.put(Context.SECURITY_CREDENTIALS, password);
-
-    DirContext ctx = new InitialLdapContext(env, null);
-    return new LDAPManagementContext(ctx);
+  public static ManagementContext createFromContext(LDAPConnection connection) {
+    Validator.ensureNotNull(connection);
+    return new LDAPManagementContext(connection, LDAPProfile.getInstance());
   }
 
 
 
+  /**
+   * Create a new LDAP management context using the provided LDAP
+   * connection and LDAP profile.
+   * <p>
+   * This constructor is primarily intended for testing purposes so
+   * that unit tests can provide mock LDAP connections and LDAP
+   * profiles.
+   *
+   * @param connection
+   *          The LDAP connection.
+   * @param profile
+   *          The LDAP profile which should be used to construct LDAP
+   *          requests and decode LDAP responses.
+   * @return Returns the new management context.
+   */
+  public static ManagementContext createFromContext(LDAPConnection connection,
+      LDAPProfile profile) {
+    Validator.ensureNotNull(connection, profile);
+    return new LDAPManagementContext(connection, profile);
+  }
+
+  // The LDAP connection.
+  private final LDAPConnection connection;
+
+  // The LDAP profile which should be used to construct LDAP requests
+  // and decode LDAP responses.
+  private final LDAPProfile profile;
+
+
+
   // Private constructor.
-  private LDAPManagementContext(DirContext dirContext) {
-    this.dirContext = dirContext;
+  private LDAPManagementContext(LDAPConnection connection,
+      LDAPProfile profile) {
+    this.connection = connection;
+    this.profile = profile;
   }
 
 
@@ -96,6 +100,31 @@ public final class LDAPManagementContext extends ManagementContext {
    * {@inheritDoc}
    */
   public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
-    return LDAPManagedObject.getRootManagedObject(dirContext);
+    return LDAPManagedObject.getRootManagedObject(this);
+  }
+
+
+
+  /**
+   * Gets the LDAP connection used for interacting with the server.
+   *
+   * @return Returns the LDAP connection used for interacting with the
+   *         server.
+   */
+  LDAPConnection getLDAPConnection() {
+    return connection;
+  }
+
+
+
+  /**
+   * Gets the LDAP profile which should be used to construct LDAP
+   * requests and decode LDAP responses.
+   *
+   * @return Returns the LDAP profile which should be used to
+   *         construct LDAP requests and decode LDAP responses.
+   */
+  LDAPProfile getLDAPProfile() {
+    return profile;
   }
 }

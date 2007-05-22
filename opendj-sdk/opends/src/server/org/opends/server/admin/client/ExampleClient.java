@@ -30,13 +30,15 @@ package org.opends.server.admin.client;
 
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.util.ServerConstants.PROPERTY_SERVER_ROOT;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.File;
 
-import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
+import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
+import org.opends.server.admin.client.ldap.LDAPConnection;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.ConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.GlobalCfgClient;
@@ -128,8 +130,9 @@ public final class ExampleClient {
    * Perform the client operations.
    */
   private void run() throws Exception {
-    ManagementContext ctx = LDAPManagementContext.createLDAPContext(
-        "localhost", 1389, "cn=directory manager", "password");
+    LDAPConnection connection = JNDIDirContextAdaptor.simpleBind("localhost",
+        1389, "cn=directory manager", "password");
+    ManagementContext ctx = LDAPManagementContext.createFromContext(connection);
 
     RootCfgClient root = ctx.getRootConfiguration();
 

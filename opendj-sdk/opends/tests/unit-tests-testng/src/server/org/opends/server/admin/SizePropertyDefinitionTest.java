@@ -285,7 +285,7 @@ public class SizePropertyDefinitionTest {
     SizePropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(true);
     SizePropertyDefinition spd = buildTestDefinition(builder);
-    PropertyDefinitionVisitor<Boolean, Void> v = new AbstractPropertyDefinitionVisitor<Boolean, Void>() {
+    PropertyDefinitionVisitor<Boolean, Void> v = new PropertyDefinitionVisitor<Boolean, Void>() {
 
       public Boolean visitSize(SizePropertyDefinition d,
           Void o) {
