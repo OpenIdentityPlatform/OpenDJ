@@ -29,7 +29,7 @@ __version__ = "$Revision$"
 # $Source$
 
 # public symbols
-__all__ = [ "format_testcase" ]
+__all__ = [ "format_testcase", "directory_server_information" ]
 
 class format_testcase:
   "Format the Test name objects"
@@ -46,3 +46,27 @@ class format_testcase:
     self.name=string.strip()
     self.name=self.name.replace(' ','-')
     return '%s' % self.name
+
+class directory_server_information:
+  "Container for Information about Directory Servers"
+  def __init__(self):
+    self.line=''
+    self.key=''
+    self.value=''
+    self.VersionList=[]
+    self.SystemList=[]
+    self.ServerDict={}
+    self.SystemDict={}
+
+  def getServerVersion(self,string):
+    return string.replace("OpenDS Directory Server ","")
+
+  def getServerBuildId(self,string):
+    return string.replace("Build ","")
+
+  def getServerValueFromString(self,string):
+    return string[string.find(':') +1:len(string)].strip()
+
+  def getServerValueFromKey(self,string,result):
+    return result[string]
+

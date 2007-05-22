@@ -26,7 +26,7 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
-
+  
   <!-- This function configures DS using the configure-ds script -->
   <function name="ConfigureDsWithScript">
     <function-prolog>
@@ -189,7 +189,13 @@
           Help option
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
-      </function-arg-def>          
+      </function-arg-def>
+      <function-arg-def name="dsBuildInfo" type="optional">
+        <function-arg-description>
+          Directory server build information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>                
     </function-map-args>
     
     <sequence>
@@ -214,6 +220,9 @@
         
         if dsHelp:
           STAFCmdParamsList.append('-H')
+          
+        if dsBuildInfo:
+          STAFCmdParamsList.append('-F')
  
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
@@ -234,12 +243,19 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
+
+      <script>
+        startRC=RC
+        startResult=STAXResult
+      </script>
       
       <call function="'checkRC'">
-          { 'returncode' : RC ,
-            'result'     : STAXResult }
+          { 'returncode' : startRC ,
+            'result'     : startResult }
       </call>
-      
+     
+      <return>startResult[0]</return>
+          
     </sequence>
     
   </function>

@@ -36,6 +36,9 @@
 		
       <!--- Import all the shared xml libraries -->
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/baselib.xml' % (TESTS_FUNCTIONS_DIR)" />
+              
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/utils.xml' % (TESTS_FUNCTIONS_DIR)" />
 
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
@@ -139,6 +142,7 @@
       <!-- Initialize any global variables -->
       <script>
         CurrentTestPath={}
+        DSInfoServersDict={}
         True = 1
         False = 0		  		  
       </script>
@@ -147,8 +151,45 @@
 	</sequence> 	  
   </function>
 
+  <function name="GetDirectoryServerInformation">
+    <function-prolog>
+      This function gets information about the Directory Server  
+    </function-prolog>
+    
+    <sequence>
+    
+      <!-- Install DS into temporary folder -->
+      <message>
+        'Extract temporary DS zip archive to %s.' % (TMPDIR)
+      </message>
+      <call function="'unZipFile'">
+        { 'location' : STAF_LOCAL_HOSTNAME, 
+          'zipfile'  : '%s/%s' % (ZIPPATH,ZIPNAME), 
+          'unzipdir' : '%s' % TMPDIR }
+      </call>
+                
+      <!-- Get Directory Server Variables -->
+      <call function="'GetDirectoryServerVars'">
+        { 'location'  : STAF_LOCAL_HOSTNAME,
+          'dsPath'    : '%s/%s' % (TMPDIR,OPENDSNAME)  }
+      </call>
 
-
+      <!-- Set Directory Server Variables -->
+      <call function="'SetVar'">
+        { 'location'  : STAF_LOCAL_HOSTNAME,
+          'type'      : 'shared',
+          'variable'  : 'ServerInfo=%s' % DSInfoServersDict }
+      </call>
+      
+      <!-- Uninstall DS from temporary folder -->
+      <message>'Remove temporary DS zip archive'</message>
+      <call function="'deleteFolder'">
+        { 'location'   : STAF_LOCAL_HOSTNAME ,
+          'foldername' : '%s/%s' % (TMPDIR,OPENDSNAME) }
+      </call> 
+      
+    </sequence>
+  </function>
 	
 	
   <function name="loadEnvironment">
@@ -173,7 +214,8 @@
       <call function="'prepareInstanceCreation'"></call>						  		
 -->					
 		
-						
+      <call function="'GetDirectoryServerInformation'"/>
+      						
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
