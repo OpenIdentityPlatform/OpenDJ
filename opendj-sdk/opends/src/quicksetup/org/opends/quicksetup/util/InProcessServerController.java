@@ -41,6 +41,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.InitializationException;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.AccessLogPublisher;
@@ -50,6 +51,7 @@ import org.opends.server.util.ModifyChangeRecordEntry;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.config.ConfigException;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -69,6 +71,87 @@ public class InProcessServerController {
 
   static private final Logger LOG =
           Logger.getLogger(InProcessServerController.class.getName());
+
+  /**
+   * Indicates that the server has already been started once and that a
+   * restart should happen instead.
+   */
+  static private boolean serverHasBeenStarted = false;
+
+  /**
+   * Pushes messages published by the server loggers into OperationOutput.
+   */
+  static private abstract class ServerControllerTextWriter
+          implements TextWriter
+  {
+
+    private int bytesWritten = 0;
+    private OperationOutput output = null;
+
+    abstract void storeRecord(String record, OperationOutput output);
+
+    ServerControllerTextWriter() {
+      // do nothing
+    }
+
+    ServerControllerTextWriter(OperationOutput output) {
+      setOutput(output);
+    }
+
+    public void setOutput(OperationOutput ouput) {
+      this.output = ouput;
+    }
+
+    public void writeRecord(String record) {
+      if (record != null) {
+        bytesWritten += bytesWritten;
+        if (output != null) {
+          storeRecord(record, output);
+        }
+      }
+    }
+
+    public void flush() {
+      // do nothing;
+    }
+
+    public void shutdown() {
+      // do nothing;
+    }
+
+    public long getBytesWritten() {
+      return bytesWritten;
+    }
+  }
+
+  static private ServerControllerTextWriter debugWriter =
+          new ServerControllerTextWriter() {
+    void storeRecord(String record,
+                     OperationOutput output) {
+      LOG.log(Level.INFO, "server start (debug log): " +
+              record);
+      output.addDebugMessage(record);
+    }};
+
+  static private ServerControllerTextWriter errorWriter =
+          new ServerControllerTextWriter() {
+    void storeRecord(String record,
+                     OperationOutput output) {
+      LOG.log(Level.INFO, "server start (error log): " +
+              record);
+      output.addErrorMessage(record);
+    }
+  };
+
+  static private ServerControllerTextWriter accessWriter =
+          new ServerControllerTextWriter() {
+    void storeRecord(String record,
+                     OperationOutput output) {
+      LOG.log(Level.INFO, "server start (access log): " +
+              record);
+      output.addAccessMessage(record);
+    }
+  };
 
   private Installation installation;
 
@@ -148,9 +231,22 @@ public class InProcessServerController {
     LOG.log(Level.INFO, "Shutting down in process server");
     StandardOutputSuppressor.suppress();
     try {
-      org.opends.server.core.DirectoryServer.shutDown(
-              ServerController.class.getName(),
+      DirectoryServer.shutDown(getClass().getName(),
               "quicksetup requests shutdown");
+
+      // Note:  this should not be necessary in the future when a
+      // the shutdown method will not return until everything is
+      // cleaned up.
+
+      // Connection handlers are stopped and started asynchonously.
+      // Give the connection handlers time to let go of any resources
+      // before continuing.
+      try {
+        Thread.sleep(3000);
+      } catch (InterruptedException e) {
+        // do nothing;
+      }
+
     } finally {
       StandardOutputSuppressor.unsuppress();
     }
@@ -169,82 +265,70 @@ public class InProcessServerController {
    *  attempting to initialize and start the
    *  Directory Server.
    */
-  public OperationOutput startServer()
+  public synchronized OperationOutput startServer()
           throws
-          org.opends.server.types.InitializationException,
-          org.opends.server.config.ConfigException {
+          InitializationException,
+          ConfigException {
     OperationOutput output = new OperationOutput();
+    setOutputForWriters(output);
+
+    // Properties systemProperties = System.getProperties();
+    // systemProperties.list(System.out);
 
     StandardOutputSuppressor.suppress();
-
     try {
 
-      org.opends.server.core.DirectoryServer directoryServer =
-              org.opends.server.core.DirectoryServer.getInstance();
+      // The server's startServer method should not be called directly
+      // more than once since it leave the server corrupted.  Restart
+      // is the correct choice in this case.
+      if (!serverHasBeenStarted) {
+        DirectoryServer directoryServer = DirectoryServer.getInstance();
 
-      // Bootstrap and start the Directory Server.
-      LOG.log(Level.FINER, "Bootstrapping directory server");
-      directoryServer.bootstrapServer();
+        // Bootstrap and start the Directory Server.
+        LOG.log(Level.FINER, "Bootstrapping directory server");
+        directoryServer.bootstrapServer();
 
-      LOG.log(Level.FINER, "Initializing configuration");
-      String configClass = "org.opends.server.extensions.ConfigFileHandler";
-      String configPath = Utils.getPath(
-              installation.getCurrentConfigurationFile());
-      directoryServer.initializeConfiguration(configClass, configPath);
+        LOG.log(Level.FINER, "Initializing configuration");
+        String configClass = "org.opends.server.extensions.ConfigFileHandler";
+        String configPath = Utils.getPath(
+                installation.getCurrentConfigurationFile());
 
-      try {
+        directoryServer.initializeConfiguration(configClass, configPath);
 
-        DebugLogPublisher startupDebugPublisher =
-                TextDebugLogPublisher.getStartupTextDebugPublisher(
-                        new ServerControllerTextWriter(output) {
-                          void storeRecord(String record,
-                                           OperationOutput output) {
-                            LOG.log(Level.INFO, "server start (debug log): " +
-                                    record);
-                            output.addDebugMessage(record);
-                          }
-                        });
-        DebugLogger.addDebugLogPublisher(DN.NULL_DN,
-                startupDebugPublisher);
-
-        ErrorLogPublisher startupErrorPublisher =
-                TextErrorLogPublisher.getStartupTextErrorPublisher(
-                        new ServerControllerTextWriter(output) {
-                          void storeRecord(String record,
-                                           OperationOutput output) {
-                            LOG.log(Level.INFO, "server start (error log): " +
-                                    record);
-                            output.addErrorMessage(record);
-                          }
-                        });
-        ErrorLogger.addErrorLogPublisher(DN.NULL_DN,
-                startupErrorPublisher);
-
-        AccessLogPublisher startupAccessPublisher =
-                TextAccessLogPublisher.getStartupTextAccessPublisher(
-                        new ServerControllerTextWriter(output) {
-                          void storeRecord(String record,
-                                           OperationOutput output) {
-                            LOG.log(Level.INFO, "server start (access log): " +
-                                    record);
-                            output.addAccessMessage(record);
-                          }
-                        });
-        AccessLogger.addAccessLogPublisher(DN.NULL_DN,
-                startupAccessPublisher);
-
-      } catch (Exception e) {
-        LOG.log(Level.INFO, "Error installing test log publishers: " +
-                e.toString());
+      } else {
+        LOG.log(Level.FINER, "Reinitializing the server");
+        DirectoryServer.reinitialize();
       }
 
-      LOG.log(Level.FINER, "Invoking start server");
+      // Must be done following bootstrap
+      registerListenersForOuput();
+
+      LOG.log(Level.FINER, "Invoking server start");
+
+      // It is important to get a new instance after calling reinitalize()
+      DirectoryServer directoryServer = DirectoryServer.getInstance();
+
       directoryServer.startServer();
+      serverHasBeenStarted = true;
+
+      // Note:  this should not be necessary in the future.  This
+      // seems necessary currenty for the case in which shutdown
+      // is called immediately afterward as is done by the upgrader.
+
+      // Connection handlers are stopped and started asynchonously.
+      // Give the connection handlers time to initialize before
+      // continuing.
+
+      try {
+        Thread.sleep(3000);
+      } catch (InterruptedException e) {
+        // do nothing;
+      }
 
     } finally {
       StandardOutputSuppressor.unsuppress();
+      setOutputForWriters(null);
     }
-
     return output;
   }
 
@@ -338,39 +422,43 @@ public class InProcessServerController {
     return modsMsg.toString();
   }
 
+  static private void setOutputForWriters(OperationOutput output) {
+    debugWriter.setOutput(output);
+    errorWriter.setOutput(output);
+    accessWriter.setOutput(output);
+  }
 
-  /**
-   * Pushes messages published by the server loggers into OperationOutput.
-   */
-  private abstract class ServerControllerTextWriter implements TextWriter {
+  static private void registerListenersForOuput() {
+    try {
+      DebugLogPublisher startupDebugPublisher =
+              TextDebugLogPublisher.getStartupTextDebugPublisher(debugWriter);
+      DebugLogger.addDebugLogPublisher(
+              DN.decode("cn=QuickSetup,cn=Loggers,cn=config"),
+              startupDebugPublisher);
 
-    private int bytesWritten = 0;
-    private OperationOutput output = null;
+      ErrorLogPublisher startupErrorPublisher =
+              TextErrorLogPublisher.getStartupTextErrorPublisher(errorWriter);
+      ErrorLogger.addErrorLogPublisher(
+              DN.decode("cn=QuickSetup,cn=Loggers,cn=config"),
+              startupErrorPublisher);
 
-    abstract void storeRecord(String record, OperationOutput output);
+      AccessLogPublisher startupAccessPublisher =
+              TextAccessLogPublisher.getStartupTextAccessPublisher(
+                      accessWriter);
+      AccessLogger.addAccessLogPublisher(
+              DN.decode("cn=QuickSetup,cn=Loggers,cn=config"),
+              startupAccessPublisher);
 
-    ServerControllerTextWriter(OperationOutput output) {
-      this.output = output;
+    } catch (Exception e) {
+      LOG.log(Level.INFO, "Error installing test log publishers: " +
+              e.toString());
     }
+  }
 
-    public void writeRecord(String record) {
-      if (record != null) {
-        bytesWritten += bytesWritten;
-        storeRecord(record, output);
-      }
-    }
-
-    public void flush() {
-      // do nothing;
-    }
-
-    public void shutdown() {
-      // do nothing;
-    }
-
-    public long getBytesWritten() {
-      return bytesWritten;
-    }
+  static private void unregisterListenersForOutput() {
+    DebugLogger.removeDebugLogPublisher(DN.NULL_DN);
+    ErrorLogger.removeErrorLogPublisher(DN.NULL_DN);
+    AccessLogger.removeAccessLogPublisher(DN.NULL_DN);
   }
 
 }
