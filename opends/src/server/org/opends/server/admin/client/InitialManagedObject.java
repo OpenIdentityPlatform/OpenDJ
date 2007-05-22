@@ -92,9 +92,9 @@ public final class InitialManagedObject<C extends ConfigurationClient>
     /**
      * {@inheritDoc}
      */
-    public Collection<?> getDefaultPropertyValues(
-        ManagedObjectPath path, String propertyName)
-        throws OperationsException, PropertyNotFoundException {
+    public Collection<?> getDefaultPropertyValues(ManagedObjectPath path,
+        String propertyName) throws OperationsException,
+        PropertyNotFoundException {
       throw new PropertyNotFoundException(propertyName);
     }
 
@@ -142,7 +142,7 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    * This implementation throws an
    * {@link UnsupportedOperationException}.
    */
-  public void commit() throws OperationsException {
+  public void commit() throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
 
@@ -156,9 +156,8 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    */
   public <M extends ConfigurationClient, N extends M>
       ManagedObject<N> createChild(
-      InstantiableRelationDefinition<M, ?> r,
-      ManagedObjectDefinition<N, ?> d, String name, PropertyProvider p)
-      throws IllegalArgumentException, OperationsException {
+      InstantiableRelationDefinition<M, ?> r, ManagedObjectDefinition<N, ?> d,
+      String name, PropertyProvider p) throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
 
@@ -172,9 +171,8 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    */
   public <M extends ConfigurationClient, N extends M>
       ManagedObject<N> createChild(
-      OptionalRelationDefinition<M, ?> r,
-      ManagedObjectDefinition<N, ?> d, PropertyProvider p)
-      throws IllegalArgumentException, OperationsException {
+      OptionalRelationDefinition<M, ?> r, ManagedObjectDefinition<N, ?> d,
+      PropertyProvider p) throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
 
@@ -188,7 +186,7 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    */
   public <M extends ConfigurationClient> ManagedObject<? extends M> getChild(
       InstantiableRelationDefinition<M, ?> d, String name)
-      throws IllegalArgumentException, OperationsException {
+      throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
 
@@ -201,8 +199,7 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    * {@link UnsupportedOperationException}.
    */
   public <M extends ConfigurationClient> ManagedObject<? extends M> getChild(
-      OptionalRelationDefinition<M, ?> d)
-      throws IllegalArgumentException, OperationsException {
+      OptionalRelationDefinition<M, ?> d) throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
 
@@ -216,7 +213,7 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    */
   public <M extends ConfigurationClient> ManagedObject<? extends M> getChild(
       SingletonRelationDefinition<M, ?> d)
-      throws IllegalArgumentException, OperationsException {
+      throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
 
@@ -279,7 +276,7 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    * {@link UnsupportedOperationException}.
    */
   public boolean hasChild(OptionalRelationDefinition<?, ?> d)
-      throws IllegalArgumentException, OperationsException {
+      throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
 
@@ -292,7 +289,7 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    * {@link UnsupportedOperationException}.
    */
   public String[] listChildren(InstantiableRelationDefinition<?, ?> d)
-      throws IllegalArgumentException, OperationsException {
+      throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
 
@@ -306,7 +303,7 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    */
   public <M extends ConfigurationClient> void removeChild(
       InstantiableRelationDefinition<M, ?> d, String name)
-      throws IllegalArgumentException, OperationsException {
+      throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }
 
@@ -319,8 +316,7 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    * {@link UnsupportedOperationException}.
    */
   public <M extends ConfigurationClient> void removeChild(
-      OptionalRelationDefinition<M, ?> d)
-      throws IllegalArgumentException, OperationsException {
+      OptionalRelationDefinition<M, ?> d) throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
 
   }
@@ -331,9 +327,8 @@ public final class InitialManagedObject<C extends ConfigurationClient>
    * {@inheritDoc}
    */
   public <T> void setPropertyValue(PropertyDefinition<T> d, T value)
-      throws IllegalPropertyValueException,
-      PropertyIsReadOnlyException, PropertyIsMandatoryException,
-      IllegalArgumentException {
+      throws IllegalPropertyValueException, PropertyIsReadOnlyException,
+      PropertyIsMandatoryException, IllegalArgumentException {
     properties.setPropertyValue(d, value);
   }
 

@@ -32,12 +32,14 @@ package org.opends.server.admin.client;
 import java.util.Collection;
 import java.util.SortedSet;
 
+import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.InstantiableRelationDefinition;
+import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ConfigurationClient;
+import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyIsMandatoryException;
@@ -89,117 +91,6 @@ public interface ManagedObject<C extends ConfigurationClient> extends
     PropertyProvider {
 
   /**
-   * Get the effective value of the specified property.
-   * <p>
-   * See the class description for more information about how the
-   * effective property value is derived.
-   *
-   * @param <T>
-   *          The type of the property to be retrieved.
-   * @param d
-   *          The property to be retrieved.
-   * @return Returns the property's effective value, or
-   *         <code>null</code> if there is no effective value
-   *         defined.
-   * @throws IllegalArgumentException
-   *           If the property definition is not associated with this
-   *           managed object's definition.
-   */
-  public <T> T getPropertyValue(PropertyDefinition<T> d)
-      throws IllegalArgumentException;
-
-
-
-  /**
-   * Get the effective values of the specified property.
-   * <p>
-   * See the class description for more information about how the
-   * effective property values are derived.
-   *
-   * @param <T>
-   *          The type of the property to be retrieved.
-   * @param d
-   *          The property to be retrieved.
-   * @return Returns the property's effective values, or an empty set
-   *         if there are no effective values defined.
-   * @throws IllegalArgumentException
-   *           If the property definition is not associated with this
-   *           managed object's definition.
-   */
-  public <T> SortedSet<T> getPropertyValues(PropertyDefinition<T> d)
-      throws IllegalArgumentException;
-
-
-
-  /**
-   * Set a new pending value for the specified property.
-   * <p>
-   * See the class description for more information regarding pending
-   * values.
-   *
-   * @param <T>
-   *          The type of the property to be modified.
-   * @param d
-   *          The property to be modified.
-   * @param value
-   *          The new pending value for the property, or
-   *          <code>null</code> if the property should be reset to
-   *          its default behavior.
-   * @throws IllegalPropertyValueException
-   *           If the new pending value is deemed to be invalid
-   *           according to the property definition.
-   * @throws PropertyIsReadOnlyException
-   *           If an attempt was made to modify a read-only property.
-   * @throws PropertyIsMandatoryException
-   *           If an attempt was made to remove a mandatory property.
-   * @throws IllegalArgumentException
-   *           If the specified property definition is not associated
-   *           with this managed object.
-   */
-  public <T> void setPropertyValue(PropertyDefinition<T> d, T value)
-      throws IllegalPropertyValueException,
-      PropertyIsReadOnlyException, PropertyIsMandatoryException,
-      IllegalArgumentException;
-
-
-
-  /**
-   * Set a new pending values for the specified property.
-   * <p>
-   * See the class description for more information regarding pending
-   * values.
-   *
-   * @param <T>
-   *          The type of the property to be modified.
-   * @param d
-   *          The property to be modified.
-   * @param values
-   *          A non-<code>null</code> set of new pending values for
-   *          the property (an empty set indicates that the property
-   *          should be reset to its default behavior). The set will
-   *          not be referenced by this managed object.
-   * @throws IllegalPropertyValueException
-   *           If a new pending value is deemed to be invalid
-   *           according to the property definition.
-   * @throws PropertyIsSingleValuedException
-   *           If an attempt was made to add multiple pending values
-   *           to a single-valued property.
-   * @throws PropertyIsReadOnlyException
-   *           If an attempt was made to modify a read-only property.
-   * @throws PropertyIsMandatoryException
-   *           If an attempt was made to remove a mandatory property.
-   * @throws IllegalArgumentException
-   *           If the specified property definition is not associated
-   *           with this managed object.
-   */
-  public <T> void setPropertyValues(PropertyDefinition<T> d,
-      Collection<T> values) throws IllegalPropertyValueException,
-      PropertyIsSingleValuedException, PropertyIsReadOnlyException,
-      PropertyIsMandatoryException, IllegalArgumentException;
-
-
-
-  /**
    * Commit any changes made to this managed object. Pending property
    * values will be committed to the managed object. If successful,
    * the pending values will become active values.
@@ -207,11 +98,22 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    * See the class description for more information regarding pending
    * and active values.
    *
-   * @throws OperationsException
-   *           If the changes to this managed object could not be
-   *           committed due to some underlying communication problem.
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws OperationRejectedException
+   *           If the server refuses to apply the changes due to some
+   *           server-side constraint which cannot be satisfied.
+   * @throws AuthorizationException
+   *           If the server refuses to apply the changes because the
+   *           client does not have the correct privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
    */
-  void commit() throws OperationsException;
+  void commit() throws ConcurrentModificationException,
+      OperationRejectedException, AuthorizationException,
+      CommunicationException;
 
 
 
@@ -242,14 +144,33 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws OperationsException
-   *           If the managed object could not be created due to some
+   * @throws ManagedObjectDecodingException
+   *           If the managed object could not be create because one
+   *           or more of its properties are invalid.
+   * @throws ManagedObjectAlreadyExistsException
+   *           If the managed object cannot be created because it
+   *           already exists on the server.
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws OperationRejectedException
+   *           If the server refuses to create the managed object due
+   *           to some server-side constraint which cannot be
+   *           satisfied.
+   * @throws AuthorizationException
+   *           If the server refuses to create the managed object
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
   <M extends ConfigurationClient, N extends M> ManagedObject<N> createChild(
-      InstantiableRelationDefinition<M, ?> r,
-      ManagedObjectDefinition<N, ?> d, String name, PropertyProvider p)
-      throws IllegalArgumentException, OperationsException;
+      InstantiableRelationDefinition<M, ?> r, ManagedObjectDefinition<N, ?> d,
+      String name, PropertyProvider p) throws IllegalArgumentException,
+      ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,
+      ConcurrentModificationException, OperationRejectedException,
+      AuthorizationException, CommunicationException;
 
 
 
@@ -278,14 +199,33 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws OperationsException
-   *           If the managed object could not be created due to some
+   * @throws ManagedObjectDecodingException
+   *           If the managed object could not be created because one
+   *           or more of its properties are invalid.
+   * @throws ManagedObjectAlreadyExistsException
+   *           If the managed object cannot be created because it
+   *           already exists on the server.
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws OperationRejectedException
+   *           If the server refuses to create the managed object due
+   *           to some server-side constraint which cannot be
+   *           satisfied.
+   * @throws AuthorizationException
+   *           If the server refuses to create the managed object
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
   <M extends ConfigurationClient, N extends M> ManagedObject<N> createChild(
-      OptionalRelationDefinition<M, ?> r,
-      ManagedObjectDefinition<N, ?> d, PropertyProvider p)
-      throws IllegalArgumentException, OperationsException;
+      OptionalRelationDefinition<M, ?> r, ManagedObjectDefinition<N, ?> d,
+      PropertyProvider p) throws IllegalArgumentException,
+      ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,
+      ConcurrentModificationException, OperationRejectedException,
+      AuthorizationException, CommunicationException;
 
 
 
@@ -303,13 +243,32 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws OperationsException
-   *           If the managed object could not be read due to some
+   * @throws DefinitionDecodingException
+   *           If the managed object was found but its type could not
+   *           be determined.
+   * @throws ManagedObjectDecodingException
+   *           If the managed object was found but one or more of its
+   *           properties could not be decoded.
+   * @throws ManagedObjectNotFoundException
+   *           If the requested managed object could not be found on
+   *           the server.
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to retrieve the managed object
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
   <M extends ConfigurationClient> ManagedObject<? extends M> getChild(
       InstantiableRelationDefinition<M, ?> d, String name)
-      throws IllegalArgumentException, OperationsException;
+      throws IllegalArgumentException, DefinitionDecodingException,
+      ManagedObjectDecodingException, ManagedObjectNotFoundException,
+      ConcurrentModificationException, AuthorizationException,
+      CommunicationException;
 
 
 
@@ -325,13 +284,31 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws OperationsException
-   *           If the managed object could not be read due to some
+   * @throws DefinitionDecodingException
+   *           If the managed object was found but its type could not
+   *           be determined.
+   * @throws ManagedObjectDecodingException
+   *           If the managed object was found but one or more of its
+   *           properties could not be decoded.
+   * @throws ManagedObjectNotFoundException
+   *           If the requested managed object could not be found on
+   *           the server.
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to retrieve the managed object
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
   <M extends ConfigurationClient> ManagedObject<? extends M> getChild(
-      OptionalRelationDefinition<M, ?> d)
-      throws IllegalArgumentException, OperationsException;
+      OptionalRelationDefinition<M, ?> d) throws IllegalArgumentException,
+      DefinitionDecodingException, ManagedObjectDecodingException,
+      ManagedObjectNotFoundException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException;
 
 
 
@@ -347,13 +324,31 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws OperationsException
-   *           If the managed object could not be read due to some
+   * @throws DefinitionDecodingException
+   *           If the managed object was found but its type could not
+   *           be determined.
+   * @throws ManagedObjectDecodingException
+   *           If the managed object was found but one or more of its
+   *           properties could not be decoded.
+   * @throws ManagedObjectNotFoundException
+   *           If the requested managed object could not be found on
+   *           the server.
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to retrieve the managed object
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
   <M extends ConfigurationClient> ManagedObject<? extends M> getChild(
-      SingletonRelationDefinition<M, ?> d)
-      throws IllegalArgumentException, OperationsException;
+      SingletonRelationDefinition<M, ?> d) throws IllegalArgumentException,
+      DefinitionDecodingException, ManagedObjectDecodingException,
+      ManagedObjectNotFoundException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException;
 
 
 
@@ -389,6 +384,49 @@ public interface ManagedObject<C extends ConfigurationClient> extends
 
 
   /**
+   * Get the effective value of the specified property.
+   * <p>
+   * See the class description for more information about how the
+   * effective property value is derived.
+   *
+   * @param <T>
+   *          The type of the property to be retrieved.
+   * @param d
+   *          The property to be retrieved.
+   * @return Returns the property's effective value, or
+   *         <code>null</code> if there is no effective value
+   *         defined.
+   * @throws IllegalArgumentException
+   *           If the property definition is not associated with this
+   *           managed object's definition.
+   */
+  <T> T getPropertyValue(PropertyDefinition<T> d)
+      throws IllegalArgumentException;
+
+
+
+  /**
+   * Get the effective values of the specified property.
+   * <p>
+   * See the class description for more information about how the
+   * effective property values are derived.
+   *
+   * @param <T>
+   *          The type of the property to be retrieved.
+   * @param d
+   *          The property to be retrieved.
+   * @return Returns the property's effective values, or an empty set
+   *         if there are no effective values defined.
+   * @throws IllegalArgumentException
+   *           If the property definition is not associated with this
+   *           managed object's definition.
+   */
+  <T> SortedSet<T> getPropertyValues(PropertyDefinition<T> d)
+      throws IllegalArgumentException;
+
+
+
+  /**
    * Determines whether or not the optional managed object associated
    * with the specified optional relations exists.
    *
@@ -399,13 +437,19 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws OperationsException
-   *           If the existance of the optional managed object could
-   *           not be determined due to some underlying communication
-   *           problem.
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to make the determination because
+   *           the client does not have the correct privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
+   *           underlying communication problem.
    */
   boolean hasChild(OptionalRelationDefinition<?, ?> d)
-      throws IllegalArgumentException, OperationsException;
+      throws IllegalArgumentException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException;
 
 
 
@@ -419,12 +463,20 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws OperationsException
-   *           If the managed objects could not be listed due to some
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to list the managed objects
+   *           because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
   String[] listChildren(InstantiableRelationDefinition<?, ?> d)
-      throws IllegalArgumentException, OperationsException;
+      throws IllegalArgumentException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException;
 
 
 
@@ -441,13 +493,30 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws OperationsException
-   *           If the managed object could not be removed due to some
+   * @throws ManagedObjectNotFoundException
+   *           If the managed object could not be removed because it
+   *           could not found on the server.
+   * @throws OperationRejectedException
+   *           If the server refuses to remove the managed object due
+   *           to some server-side constraint which cannot be
+   *           satisfied (for example, if it is referenced by another
+   *           managed object).
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to make the list the managed
+   *           objects because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
   <M extends ConfigurationClient> void removeChild(
       InstantiableRelationDefinition<M, ?> d, String name)
-      throws IllegalArgumentException, OperationsException;
+      throws IllegalArgumentException, ManagedObjectNotFoundException,
+      OperationRejectedException, ConcurrentModificationException,
+      AuthorizationException, CommunicationException;
 
 
 
@@ -462,12 +531,96 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws OperationsException
-   *           If the managed object could not be removed due to some
+   * @throws ManagedObjectNotFoundException
+   *           If the managed object could not be removed because it
+   *           could not found on the server.
+   * @throws OperationRejectedException
+   *           If the server refuses to remove the managed object due
+   *           to some server-side constraint which cannot be
+   *           satisfied (for example, if it is referenced by another
+   *           managed object).
+   * @throws ConcurrentModificationException
+   *           If this managed object has been removed from the server
+   *           by another client.
+   * @throws AuthorizationException
+   *           If the server refuses to make the list the managed
+   *           objects because the client does not have the correct
+   *           privileges.
+   * @throws CommunicationException
+   *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
   <M extends ConfigurationClient> void removeChild(
-      OptionalRelationDefinition<M, ?> d)
-      throws IllegalArgumentException, OperationsException;
+      OptionalRelationDefinition<M, ?> d) throws IllegalArgumentException,
+      ManagedObjectNotFoundException, OperationRejectedException,
+      ConcurrentModificationException, AuthorizationException,
+      CommunicationException;
+
+
+
+  /**
+   * Set a new pending value for the specified property.
+   * <p>
+   * See the class description for more information regarding pending
+   * values.
+   *
+   * @param <T>
+   *          The type of the property to be modified.
+   * @param d
+   *          The property to be modified.
+   * @param value
+   *          The new pending value for the property, or
+   *          <code>null</code> if the property should be reset to
+   *          its default behavior.
+   * @throws IllegalPropertyValueException
+   *           If the new pending value is deemed to be invalid
+   *           according to the property definition.
+   * @throws PropertyIsReadOnlyException
+   *           If an attempt was made to modify a read-only property.
+   * @throws PropertyIsMandatoryException
+   *           If an attempt was made to remove a mandatory property.
+   * @throws IllegalArgumentException
+   *           If the specified property definition is not associated
+   *           with this managed object.
+   */
+  <T> void setPropertyValue(PropertyDefinition<T> d, T value)
+      throws IllegalPropertyValueException, PropertyIsReadOnlyException,
+      PropertyIsMandatoryException, IllegalArgumentException;
+
+
+
+  /**
+   * Set a new pending values for the specified property.
+   * <p>
+   * See the class description for more information regarding pending
+   * values.
+   *
+   * @param <T>
+   *          The type of the property to be modified.
+   * @param d
+   *          The property to be modified.
+   * @param values
+   *          A non-<code>null</code> set of new pending values for
+   *          the property (an empty set indicates that the property
+   *          should be reset to its default behavior). The set will
+   *          not be referenced by this managed object.
+   * @throws IllegalPropertyValueException
+   *           If a new pending value is deemed to be invalid
+   *           according to the property definition.
+   * @throws PropertyIsSingleValuedException
+   *           If an attempt was made to add multiple pending values
+   *           to a single-valued property.
+   * @throws PropertyIsReadOnlyException
+   *           If an attempt was made to modify a read-only property.
+   * @throws PropertyIsMandatoryException
+   *           If an attempt was made to remove a mandatory property.
+   * @throws IllegalArgumentException
+   *           If the specified property definition is not associated
+   *           with this managed object.
+   */
+  <T> void setPropertyValues(PropertyDefinition<T> d, Collection<T> values)
+      throws IllegalPropertyValueException, PropertyIsSingleValuedException,
+      PropertyIsReadOnlyException, PropertyIsMandatoryException,
+      IllegalArgumentException;
 
 }

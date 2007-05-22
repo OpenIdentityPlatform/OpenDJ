@@ -271,7 +271,7 @@ public class IntegerPropertyDefinitionTest {
     IntegerPropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(true);
     IntegerPropertyDefinition spd = buildTestDefinition(builder);
-    PropertyDefinitionVisitor<Boolean, Void> v = new AbstractPropertyDefinitionVisitor<Boolean, Void>() {
+    PropertyDefinitionVisitor<Boolean, Void> v = new PropertyDefinitionVisitor<Boolean, Void>() {
 
       public Boolean visitInteger(IntegerPropertyDefinition d,
           Void o) {

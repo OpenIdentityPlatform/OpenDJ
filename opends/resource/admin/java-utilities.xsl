@@ -143,6 +143,145 @@
     </xsl:call-template>
   </xsl:template>
   <!--
+    Add a Java comment at the specified indentation.
+    
+    This template handles embedded newline characters
+    and will also indent individual lines according to
+    the number of leading spaces they contain.
+    
+    @param indent
+    The indentation column for the comment.
+    
+    @param content
+    The content to be output in the comment.
+  -->
+  <xsl:template name="add-java-comment2">
+    <xsl:param name="indent" select="/.." />
+    <xsl:param name="content" select="/.." />
+    <!--  Compute the indentation string. -->
+    <xsl:variable name="indent-text">
+      <xsl:call-template name="add-indent">
+        <xsl:with-param name="indent" select="$indent + 1" />
+      </xsl:call-template>
+      <xsl:value-of select="'*'" />
+    </xsl:variable>
+    <!--  Output the comment header. -->
+    <xsl:call-template name="add-indent">
+      <xsl:with-param name="indent" select="$indent" />
+    </xsl:call-template>
+    <xsl:value-of select="'/**&#xa;'" />
+    <!--  Output the comment contents. -->
+    <xsl:call-template name="add-java-comment-line">
+      <xsl:with-param name="indent-text" select="$indent-text" />
+      <xsl:with-param name="content" select="$content" />
+    </xsl:call-template>
+    <!--  Output the header trailer. -->
+    <xsl:value-of select="concat($indent-text, '/&#xa;')" />
+  </xsl:template>
+  <!-- Creates a padding string of the required length. -->
+  <xsl:template name="add-indent">
+    <xsl:param name="indent" select="/.." />
+    <xsl:if test="$indent > 0">
+      <xsl:value-of select="' '" />
+      <xsl:call-template name="add-indent">
+        <xsl:with-param name="indent" select="$indent - 1" />
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
+  <xsl:template name="add-java-comment-line">
+    <xsl:param name="indent-text" select="/.." />
+    <xsl:param name="content" select="/.." />
+    <!--  Get the next line. -->
+    <xsl:variable name="head"
+      select="substring-before($content, '&#xa;')" />
+    <xsl:variable name="tail"
+      select="substring-after($content, '&#xa;')" />
+    <!--
+      Case #1 - content is empty
+      Case #2 - no newline
+      Case #3 - contains a new line
+      Case #3.1 - begins with newline
+      Case #3.2 - ends with newline
+    -->
+    <xsl:choose>
+      <xsl:when test="string-length($content) = 0">
+        <!-- Do nothing. -->
+      </xsl:when>
+      <xsl:when test="not(contains($content, '&#xa;'))">
+        <!-- Single line of text. -->
+        <xsl:call-template name="java-format-line">
+          <xsl:with-param name="indent-text" select="$indent-text" />
+          <xsl:with-param name="line" select="$content" />
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <!-- Output the first line and repeat for remaining lines. -->
+        <xsl:call-template name="java-format-line">
+          <xsl:with-param name="indent-text" select="$indent-text" />
+          <xsl:with-param name="line" select="$head" />
+        </xsl:call-template>
+        <xsl:call-template name="add-java-comment-line">
+          <xsl:with-param name="indent-text" select="$indent-text" />
+          <xsl:with-param name="content" select="$tail" />
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  <!-- Formats a line of comment text. -->
+  <xsl:template name="java-format-line">
+    <xsl:param name="indent-text" select="/.." />
+    <xsl:param name="line" select="/.." />
+    <!--  First count the number of leading spaces to determine the indent. -->
+    <xsl:variable name="leading-spaces">
+      <xsl:call-template name="java-format-line-help">
+        <xsl:with-param name="line" select="$line" />
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:variable name="content"
+      select="substring($line, $leading-spaces + 1)" />
+    <xsl:variable name="padding1">
+      <xsl:value-of select="$indent-text" />
+      <xsl:call-template name="add-indent">
+        <xsl:with-param name="indent" select="$leading-spaces" />
+      </xsl:call-template>
+    </xsl:variable>
+    <!-- We need to use indent2 for certain javadoc keywords. -->
+    <xsl:variable name="padding2">
+      <xsl:choose>
+        <xsl:when test="starts-with($content, '@return')">
+          <xsl:value-of select="concat($padding1, '        ')" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$padding1" />
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <!-- Now output the line, wrapping as necessary. -->
+    <xsl:call-template name="format-text">
+      <xsl:with-param name="indent-text" select="$padding1" />
+      <xsl:with-param name="indent-text2" select="$padding2" />
+      <xsl:with-param name="wrap-column" select="'70'" />
+      <xsl:with-param name="content" select="$content" />
+    </xsl:call-template>
+  </xsl:template>
+  <!--  Determines the number of leading spaces in the provided string. -->
+  <xsl:template name="java-format-line-help">
+    <xsl:param name="line" select="/.." />
+    <xsl:param name="count" select="0" />
+    <xsl:choose>
+      <xsl:when test="starts-with($line, ' ')">
+        <xsl:call-template name="java-format-line-help">
+          <xsl:with-param name="line"
+            select="substring-after($line, ' ')" />
+          <xsl:with-param name="count" select="$count + 1" />
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$count" />
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  <!--
     Utility template for removing duplicate values from a node-set.
     
     This template is based on the version published on the XSLT site.
@@ -168,13 +307,16 @@
           <xsl:when test="$distinct[. = $value]">
             <xsl:call-template name="_set-distinct">
               <xsl:with-param name="distinct" select="$distinct" />
-              <xsl:with-param name="nodes" select="$nodes[position() > 1]" />
+              <xsl:with-param name="nodes"
+                select="$nodes[position() > 1]" />
             </xsl:call-template>
           </xsl:when>
           <xsl:otherwise>
             <xsl:call-template name="_set-distinct">
-              <xsl:with-param name="distinct" select="$distinct | $nodes[1]" />
-              <xsl:with-param name="nodes" select="$nodes[position() > 1]" />
+              <xsl:with-param name="distinct"
+                select="$distinct | $nodes[1]" />
+              <xsl:with-param name="nodes"
+                select="$nodes[position() > 1]" />
             </xsl:call-template>
           </xsl:otherwise>
         </xsl:choose>

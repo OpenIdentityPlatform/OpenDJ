@@ -54,15 +54,19 @@ import org.opends.server.admin.SingletonRelationDefinition;
 final class LDAPNameBuilder implements ManagedObjectPathSerializer {
 
   /**
-   * Creates a new LDAP name representing the specified managed object path.
+   * Creates a new LDAP name representing the specified managed object
+   * path.
    *
    * @param path
    *          The managed object path.
-   * @return Returns a new LDAP name representing the specified managed object
-   *         path.
+   * @param profile
+   *          The LDAP profile which should be used to construct LDAP
+   *          names.
+   * @return Returns a new LDAP name representing the specified
+   *         managed object path.
    */
-  public static LdapName create(ManagedObjectPath path) {
-    LDAPNameBuilder builder = new LDAPNameBuilder();
+  public static LdapName create(ManagedObjectPath path, LDAPProfile profile) {
+    LDAPNameBuilder builder = new LDAPNameBuilder(profile);
     path.serialize(builder);
     return builder.getInstance();
   }
@@ -70,19 +74,22 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
 
 
   /**
-   * Creates a new LDAP name representing the specified managed object path and
-   * instantiable relation.
+   * Creates a new LDAP name representing the specified managed object
+   * path and instantiable relation.
    *
    * @param path
    *          The managed object path.
    * @param relation
    *          The child instantiable relation.
-   * @return Returns a new LDAP name representing the specified managed object
-   *         path and instantiable relation.
+   * @param profile
+   *          The LDAP profile which should be used to construct LDAP
+   *          names.
+   * @return Returns a new LDAP name representing the specified
+   *         managed object path and instantiable relation.
    */
   public static LdapName create(ManagedObjectPath path,
-      InstantiableRelationDefinition<?, ?> relation) {
-    LDAPNameBuilder builder = new LDAPNameBuilder();
+      InstantiableRelationDefinition<?, ?> relation, LDAPProfile profile) {
+    LDAPNameBuilder builder = new LDAPNameBuilder(profile);
     path.serialize(builder);
     builder.appendManagedObjectPathElement(relation);
     return builder.getInstance();
@@ -98,10 +105,14 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
 
   /**
    * Create a new JNDI LDAP name builder.
+   *
+   * @param profile
+   *          The LDAP profile which should be used to construct LDAP
+   *          names.
    */
-  public LDAPNameBuilder() {
+  public LDAPNameBuilder(LDAPProfile profile) {
     this.rdns = new LinkedList<Rdn>();
-    this.profile = LDAPProfile.getInstance();
+    this.profile = profile;
   }
 
 

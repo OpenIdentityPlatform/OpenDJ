@@ -24,23 +24,43 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
-package org.opends.server.admin.server;
+package org.opends.server.admin;
 
 
 
-import org.opends.server.admin.Configuration;
+import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.ManagedObjectDefinition;
 
 
 
 /**
- * A sample server-side configuration interface for testing.
+ * A sample client-side configuration interface for testing.
  */
-public interface TestChildCfg extends Configuration {
+public interface TestChildCfgClient extends ConfigurationClient {
 
   /**
    * {@inheritDoc}
    */
   ManagedObjectDefinition<? extends TestChildCfgClient, ? extends TestChildCfg> definition();
 
+
+
+  /**
+   * Get the "heartbeat-interval" property.
+   *
+   * @return Returns the value of the "heartbeat-interval" property.
+   */
+  long getHeartbeatInterval();
+
+
+
+  /**
+   * Set the "heartbeat-interval" property.
+   *
+   * @param value
+   *          The value of the "heartbeat-interval" property.
+   * @throws IllegalPropertyValueException
+   *           If the new value is invalid.
+   */
+  void setHeartbeatInterval(Long value) throws IllegalPropertyValueException;
 }

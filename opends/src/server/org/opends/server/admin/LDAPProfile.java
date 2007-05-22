@@ -123,19 +123,6 @@ public abstract class LDAPProfile {
     /**
      * {@inheritDoc}
      */
-    public String getFilter(AbstractManagedObjectDefinition<?, ?> d) {
-      StringBuilder builder = new StringBuilder();
-      builder.append("(ObjectClass=");
-      builder.append(getObjectClass(d));
-      builder.append(')');
-      return builder.toString();
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
     public String getObjectClass(
         AbstractManagedObjectDefinition<?, ?> d) {
       return resource.getString(d, "objectclass");
@@ -221,19 +208,6 @@ public abstract class LDAPProfile {
    */
   public abstract String getRelationRDNSequence(
       RelationDefinition<?, ?> r);
-
-
-
-  /**
-   * Get an LDAP filter string which can be used to search for entries
-   * matching the specified definition.
-   *
-   * @param d
-   *          The managed object definition.
-   * @return Returns the LDAP filter.
-   */
-  public abstract String getFilter(
-      AbstractManagedObjectDefinition<?, ?> d);
 
 
 

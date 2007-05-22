@@ -24,49 +24,64 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
-
 package org.opends.server.admin.client.ldap;
 
 
 
-import javax.naming.NameNotFoundException;
+import javax.naming.InvalidNameException;
 import javax.naming.NamingException;
+import javax.naming.ldap.LdapName;
 
-import org.opends.server.admin.ManagedObjectNotFoundException;
-import org.opends.server.admin.OperationsException;
+import org.testng.Assert;
 
 
 
 /**
- * A factory for creating <code>OperationsExceptions</code> from
- * <code>NamingExceptions</code>.
+ * A mock LDAP connection which is used to verify that a delete
+ * subtree takes place.
  */
-final class OperationsExceptionFactory {
+public final class DeleteSubtreeMockLDAPConnection extends MockLDAPConnection {
+
+  // Detect multiple calls.
+  private boolean alreadyDeleted = false;
+
+  // The expected DN.
+  private final LdapName expectedDN;
+
+
 
   /**
-   * Creates a new operations exception factory.
+   * Create a new mock ldap connection for detecting subtree deletes.
+   *
+   * @param dn
+   *          The expected subtree DN.
    */
-  public OperationsExceptionFactory() {
-    // No implementation required.
+  public DeleteSubtreeMockLDAPConnection(String dn) {
+    try {
+      this.expectedDN = new LdapName(dn);
+    } catch (InvalidNameException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 
 
   /**
-   * Creates a new operations exception whose exact type depends upon the
-   * provided naming exception.
-   *
-   * @param e
-   *          The naming exception.
-   * @return Returns a new operations exception whose exact type depends upon
-   *         the provided naming exception.
+   * Asserts that the subtree was deleted.
    */
-  public OperationsException createException(NamingException e) {
-    if (e instanceof NameNotFoundException) {
-      return new ManagedObjectNotFoundException(e);
-    } else {
-      // FIXME: resolve other naming exceptions.
-      return new OperationsException(e);
-    }
+  public void assertSubtreeIsDeleted() {
+    Assert.assertTrue(alreadyDeleted);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void deleteSubtree(LdapName dn) throws NamingException {
+    Assert.assertFalse(alreadyDeleted);
+    Assert.assertEquals(dn, expectedDN);
+    alreadyDeleted = true;
   }
 }

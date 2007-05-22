@@ -37,6 +37,12 @@ package org.opends.server.admin;
  * passed to a property definition's accept method, the corresponding
  * visit method most applicable to that property definition is
  * invoked.
+ * <p>
+ * Each <code>visitXXX</code> method is provided with a default
+ * implementation which calls
+ * {@link #visitUnknown(PropertyDefinition, Object)}. Sub-classes can
+ * override any or all of the methods to provide their own
+ * type-specific behavior.
  *
  * @param <R>
  *          The return type of this visitor's methods. Use
@@ -47,7 +53,16 @@ package org.opends.server.admin;
  *          methods. Use {@link java.lang.Void} for visitors that do
  *          not need an additional parameter.
  */
-public interface PropertyDefinitionVisitor<R, P> {
+public abstract class PropertyDefinitionVisitor<R, P> {
+
+  /**
+   * Default constructor.
+   */
+  protected PropertyDefinitionVisitor() {
+    // No implementation required.
+  }
+
+
 
   /**
    * Visit an attribute type property definition.
@@ -58,7 +73,9 @@ public interface PropertyDefinitionVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitAttributeType(AttributeTypePropertyDefinition d, P p);
+  public R visitAttributeType(AttributeTypePropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
 
 
 
@@ -71,7 +88,9 @@ public interface PropertyDefinitionVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitBoolean(BooleanPropertyDefinition d, P p);
+  public R visitBoolean(BooleanPropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
 
 
 
@@ -84,7 +103,9 @@ public interface PropertyDefinitionVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitClass(ClassPropertyDefinition d, P p);
+  public R visitClass(ClassPropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
 
 
 
@@ -97,7 +118,9 @@ public interface PropertyDefinitionVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitDN(DNPropertyDefinition d, P p);
+  public R visitDN(DNPropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
 
 
 
@@ -110,7 +133,27 @@ public interface PropertyDefinitionVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitDuration(DurationPropertyDefinition d, P p);
+  public R visitDuration(DurationPropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
+
+
+
+  /**
+   * Visit an enumeration property definition.
+   *
+   * @param <E>
+   *          The enumeration that should be used for values of the
+   *          property definition.
+   * @param d
+   *          The enumeration property definition to visit.
+   * @param p
+   *          A visitor specified parameter.
+   * @return Returns a visitor specified result.
+   */
+  public <E extends Enum<E>> R visitEnum(EnumPropertyDefinition<E> d, P p) {
+    return visitUnknown(d, p);
+  }
 
 
 
@@ -123,7 +166,9 @@ public interface PropertyDefinitionVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitInteger(IntegerPropertyDefinition d, P p);
+  public R visitInteger(IntegerPropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
 
 
 
@@ -136,7 +181,9 @@ public interface PropertyDefinitionVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitIPAddress(IPAddressPropertyDefinition d, P p);
+  public R visitIPAddress(IPAddressPropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
 
 
 
@@ -149,7 +196,9 @@ public interface PropertyDefinitionVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitIPAddressMask(IPAddressMaskPropertyDefinition d, P p);
+  public R visitIPAddressMask(IPAddressMaskPropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
 
 
 
@@ -162,7 +211,9 @@ public interface PropertyDefinitionVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitSize(SizePropertyDefinition d, P p);
+  public R visitSize(SizePropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
 
 
 
@@ -175,7 +226,9 @@ public interface PropertyDefinitionVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitString(StringPropertyDefinition d, P p);
+  public R visitString(StringPropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
 
 
 
@@ -183,6 +236,10 @@ public interface PropertyDefinitionVisitor<R, P> {
    * Visit an unknown type of property definition. Implementations of
    * this method can provide default behavior for unknown property
    * definition types.
+   * <p>
+   * The default implementation of this method throws an
+   * {@link UnknownPropertyDefinitionException}. Sub-classes can
+   * override this method with their own default behavior.
    *
    * @param d
    *          The property definition to visit.
@@ -193,20 +250,9 @@ public interface PropertyDefinitionVisitor<R, P> {
    *           Visitor implementations may optionally throw this
    *           exception.
    */
-  R visitUnknown(PropertyDefinition d, P p)
-      throws UnknownPropertyDefinitionException;
-
-
-
-  /**
-   * Visit an enumeration property definition.
-   *
-   * @param d
-   *          The enumeration property definition to visit.
-   * @param p
-   *          A visitor specified parameter.
-   * @return Returns a visitor specified result.
-   */
-  R visitEnum(EnumPropertyDefinition<?> d, P p);
+  public R visitUnknown(PropertyDefinition d, P p)
+      throws UnknownPropertyDefinitionException {
+    throw new UnknownPropertyDefinitionException(d, p);
+  }
 
 }
