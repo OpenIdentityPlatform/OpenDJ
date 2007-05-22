@@ -63,17 +63,14 @@
                 #@TestMarker                ACI Target Tests
                 #@TestName                  Preamble
                 #@TestIssue                 87
-                #@TestPurpose               Blah blah Test default aci settings
+                #@TestPurpose               Prepare for effective rights tests
                 #@TestPreamble              none
-                #@TestStep                  Client searches entry with a branch dn.
-                #@TestStep                  Client searches entry with another branch dn.
+                #@TestStep                  Admin removes global search ACI
+                #@TestStep                  Admin adds ACI to access effective rights
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
-                                            and no entries are returned 
                                             for all operations.
             -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
             <testcase name="'ACI: Effective Rights: Preamble'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -121,26 +118,23 @@
               </sequence>
             </testcase>
     
-          
-          <!---
+           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - read 
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with read permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            no entries are returned for any step.
+            -->
             <testcase name="'ACI: Effective Rights: Basic - read'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -187,13 +181,31 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+<!--  Uncomment when Issue 1620 is fixed    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;uid: search:0,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                </call>
+                
+                <if expr="returnCode != '1'">
                     <tcstatus result="'fail'"/>
                 </if>
     
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;roomnumber: search:0,read:1,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+-->    
                 <message>
                    'ACI: Effective Rights: Basic - read, user searching non-targeted entry'
                 </message>
@@ -272,19 +284,19 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - search 
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with search permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
+                                            no entries are returned for any step.
+            -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
             <testcase name="'ACI: Effective Rights: Basic - search'">
@@ -333,10 +345,28 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
                 </call>
                 
-                <if expr="returnCode != '0'">
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;uid: search:1,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                </call>
+                
+                <if expr="returnCode != '1'">
                     <tcstatus result="'fail'"/>
                 </if>
     
@@ -414,25 +444,25 @@
             </testcase>
     
   
-          <!---
+           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - search-read 
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with search-read permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read,
+                                            and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
+            -->
             <testcase name="'ACI: Effective Rights: Basic - search-read'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -581,21 +611,21 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - search-read in separate ACIs
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with search-read permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read,
+                                            and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
+            -->
             <testcase name="'ACI: Effective Rights: Basic - search-read, separate ACIs'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -744,21 +774,21 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - compare
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with compare permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read,
+                                            and the attributeLevel permissions are 1 for search, read and compare for uid and roomnumber. 
+            -->
             <testcase name="'ACI: Effective Rights: Basic - compare'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -907,21 +937,21 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - add
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with add permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read,
+                                            and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
+            -->
             <testcase name="'ACI: Effective Rights: Basic - add'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -1075,21 +1105,21 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - delete
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with delete permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read and delete,
+                                            and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
+            -->
             <testcase name="'ACI: Effective Rights: Basic - delete'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -1231,7 +1261,7 @@
     
                 <call function="'checktestStringNotPresent'">
                     { 'returnString'       : returnString ,
-                      'testString'     : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1243,21 +1273,21 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - write
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with write permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read and write,
+                                            and the attributeLevel permissions are 1 for search, read, write, selfwrite_add and selfwrite_delete for uid and roomnumber. 
+            -->
             <testcase name="'ACI: Effective Rights: Basic - write'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -1411,21 +1441,21 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - proxy
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with proxy permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read and proxy,
+                                            and the attributeLevel permissions are 1 for search, read, and proxy for uid and roomnumber. 
+            -->
             <testcase name="'ACI: Effective Rights: Basic - proxy'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -1579,21 +1609,21 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - selfwrite
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with selfwrite permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read and write,
+                                            and the attributeLevel permissions are 1 for search, read, selfwrite_add and selfwrite_delete for uid and roomnumber. 
+            -->
             <testcase name="'ACI: Effective Rights: Basic - selfwrite'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -1651,7 +1681,7 @@
                 <if expr="returnCode != '1'">
                     <tcstatus result="'fail'"/>
                 </if>
-    
+<!--  Uncomment when Issue 1620 is fixed        
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
                       'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:0,selfwrite_add:1,selfwrite_delete:1,proxy:0' }
@@ -1669,7 +1699,7 @@
                 <if expr="returnCode != '1'">
                     <tcstatus result="'fail'"/>
                 </if>
-    
+-->    
                 <message>
                    'ACI: Effective Rights: Basic - selfwrite, user searching non-targeted entry'
                 </message>
@@ -1747,19 +1777,21 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - all
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with all permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for all options but proxy,
+                                            and the attributeLevel permissions are 1 for all options but proxy for uid and roomnumber. 
+            -->
           <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
           <!-- cross reference to DS6 docs -->
             <testcase name="'ACI: Effective Rights: Basic - all'">
@@ -1915,21 +1947,21 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - export
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with export permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read,
+                                            and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
+            -->
             <testcase name="'ACI: Effective Rights: Basic - export'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -2078,21 +2110,21 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - import
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with import permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read,
+                                            and the attributeLevel permissions are 1 for search and read for uid and roomnumber. 
+            -->
             <testcase name="'ACI: Effective Rights: Basic - import'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -2241,21 +2273,22 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - targetattr with search,read
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with targetattr with search,read permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read,
+                                            the attributeLevel permissions are 1 for search and read for roomnumber, 
+                                            and all attribute permissions are 0 for uid.
+            -->
             <testcase name="'ACI: Effective Rights: targetattr with search,read'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -2400,25 +2433,26 @@
               </sequence>
             </testcase>
     
-          <!---
+            <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
-                #@TestName                  Target equals dn 
+                #@TestName                  Effective Rights - targetattr with search,read
                 #@TestIssue                 87
-                #@TestPurpose               Blah Blah Test with the target set equal to a dn
-                #@TestPreamble              Admin adds an aci with the target equal to the dn of one existing branch.
-                #@TestStep                  Client searches entry with the targeted branch dn.
-                #@TestStep                  Client searches entry that is not with the targeted branch dn.
+                #@TestPurpose               Test effective rights with targetattr with search,read permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
                 #@TestStep                  Remove aci.
-                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
-          -->
-          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
-          <!-- cross reference to DS6 docs -->
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read,
+                                            the attributeLevel permissions are 1 for search and read for uid, 
+                                            and all attribute permissions are 0 for roomnumber.
+            -->
             <testcase name="'ACI: Effective Rights: targetattr with not equal and search,read'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -2558,6 +2592,62 @@
                       'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
                 </call>
                 
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Target Tests
+                #@TestName                  Postamble
+                #@TestIssue                 87
+                #@TestPurpose               Reset effective rights tests
+                #@TestPreamble              none
+                #@TestStep                  Admin deletes ACI to access effective rights
+                #@TestStep                  Admin puts back global search ACI
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all operations.
+            -->
+            <testcase name="'ACI: Effective Rights: Postamble'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+
+                <message>
+                   'ACI: Effective Rights: Postamble - Admin deleting get effective rights ACI'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_effective_rights/del_effrights_aci.ldif' % (STAGED_DATA_DIR)  }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Effective Rights: Preamble - putting back Search Global ACI'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_reset_global_search.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+    
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
