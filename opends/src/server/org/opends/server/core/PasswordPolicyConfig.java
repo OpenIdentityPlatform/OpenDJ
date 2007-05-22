@@ -36,8 +36,8 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -52,6 +52,11 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 public class PasswordPolicyConfig
         implements ConfigurationChangeListener<PasswordPolicyCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The password policy object corresponding to the configuration entry. The
@@ -93,7 +98,7 @@ public class PasswordPolicyConfig
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ce);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       unacceptableReasons.add(ce.getMessage());
@@ -103,7 +108,7 @@ public class PasswordPolicyConfig
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ie);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       unacceptableReasons.add(ie.getMessage());
@@ -136,7 +141,7 @@ public class PasswordPolicyConfig
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ce);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
       ArrayList<String> messages = new ArrayList<String>();
       messages.add(ce.getMessage());
@@ -148,7 +153,7 @@ public class PasswordPolicyConfig
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ie);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
       ArrayList<String> messages = new ArrayList<String>();
       messages.add(ie.getMessage());

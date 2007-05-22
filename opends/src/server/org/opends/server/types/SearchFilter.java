@@ -42,12 +42,8 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugVerbose;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -63,6 +59,11 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class SearchFilter
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The attribute type for this filter.
   private final AttributeType attributeType;
 
@@ -601,7 +602,7 @@ public class SearchFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       throw de;
@@ -610,7 +611,7 @@ public class SearchFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SEARCH_FILTER_UNCAUGHT_EXCEPTION;
@@ -2301,7 +2302,8 @@ public class SearchFilter
           // always return true.
           if (debugEnabled())
           {
-            debugInfo("Returning TRUE for LDAP TRUE filter (&)");
+            TRACER.debugInfo("Returning TRUE for LDAP TRUE " +
+                "filter (&)");
           }
           return ConditionResult.TRUE;
         }
@@ -2333,7 +2335,7 @@ public class SearchFilter
               case FALSE:
                 if (debugEnabled())
                 {
-                  debugVerbose(
+                  TRACER.debugVerbose(
                       "Returning FALSE for AND component %s in " +
                       "filter %s for entry %s",
                                f, completeFilter, entry.getDN());
@@ -2342,7 +2344,7 @@ public class SearchFilter
               case UNDEFINED:
                 if (debugEnabled())
                 {
-                  debugInfo(
+                  TRACER.debugInfo(
                  "Undefined result for AND component %s in filter " +
                  "%s for entry %s", f, completeFilter, entry.getDN());
                 }
@@ -2364,7 +2366,7 @@ public class SearchFilter
           // matched.
           if (debugEnabled())
           {
-            debugVerbose(
+            TRACER.debugVerbose(
                 "Returning TRUE for AND component %s in filter %s " +
                 "for entry %s", this, completeFilter, entry.getDN());
           }
@@ -2393,7 +2395,8 @@ public class SearchFilter
           // always return false.
           if (debugEnabled())
           {
-            debugInfo("Returning FALSE for LDAP FALSE filter (|)");
+            TRACER.debugInfo("Returning FALSE for LDAP FALSE " +
+                "filter (|)");
           }
           return ConditionResult.FALSE;
         }
@@ -2422,7 +2425,7 @@ public class SearchFilter
               case TRUE:
                 if (debugEnabled())
                 {
-                  debugVerbose(
+                  TRACER.debugVerbose(
                     "Returning TRUE for OR component %s in filter " +
                     "%s for entry %s",
                     f, completeFilter, entry.getDN());
@@ -2433,7 +2436,7 @@ public class SearchFilter
               case UNDEFINED:
                 if (debugEnabled())
                 {
-                  debugInfo(
+                  TRACER.debugInfo(
                   "Undefined result for OR component %s in filter " +
                   "%s for entry %s",
                   f, completeFilter, entry.getDN());
@@ -2456,7 +2459,7 @@ public class SearchFilter
 
           if (debugEnabled())
           {
-            debugVerbose(
+            TRACER.debugVerbose(
                 "Returning %s for OR component %s in filter %s for " +
                 "entry %s", result, this, completeFilter,
                             entry.getDN());
@@ -2501,7 +2504,7 @@ public class SearchFilter
             case TRUE:
               if (debugEnabled())
               {
-                debugVerbose(
+                TRACER.debugVerbose(
                    "Returning FALSE for NOT component %s in filter " +
                    "%s for entry %s",
                    notComponent, completeFilter, entry.getDN());
@@ -2510,7 +2513,7 @@ public class SearchFilter
             case FALSE:
               if (debugEnabled())
               {
-                debugVerbose(
+                TRACER.debugVerbose(
                     "Returning TRUE for NOT component %s in filter " +
                     "%s for entry %s",
                     notComponent, completeFilter, entry.getDN());
@@ -2519,7 +2522,7 @@ public class SearchFilter
             case UNDEFINED:
               if (debugEnabled())
               {
-                debugInfo(
+                TRACER.debugInfo(
                   "Undefined result for NOT component %s in filter " +
                   "%s for entry %s",
                   notComponent, completeFilter, entry.getDN());
@@ -2570,7 +2573,7 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugVerbose(
+            TRACER.debugVerbose(
                 "Returning FALSE for equality component %s in " +
                 "filter %s because entry %s didn't have attribute " +
                 "type %s",
@@ -2588,7 +2591,7 @@ public class SearchFilter
           {
             if (debugEnabled())
             {
-              debugVerbose(
+              TRACER.debugVerbose(
                   "Returning TRUE for equality component %s in " +
                   "filter %s for entry %s",
                            this, completeFilter, entry.getDN());
@@ -2599,7 +2602,7 @@ public class SearchFilter
 
         if (debugEnabled())
         {
-          debugVerbose(
+          TRACER.debugVerbose(
               "Returning FALSE for equality component %s in filter " +
               "%s because entry %s didn't have attribute type " +
               "%s with value %s",
@@ -2644,7 +2647,7 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugVerbose(
+            TRACER.debugVerbose(
                 "Returning FALSE for substring component %s in " +
                 "filter %s because entry %s didn't have attribute " +
                 "type %s",
@@ -2666,7 +2669,7 @@ public class SearchFilter
             case TRUE:
               if (debugEnabled())
               {
-                debugVerbose(
+                TRACER.debugVerbose(
                     "Returning TRUE for substring component %s in " +
                     "filter %s for entry %s",
                              this, completeFilter, entry.getDN());
@@ -2677,7 +2680,7 @@ public class SearchFilter
             case UNDEFINED:
               if (debugEnabled())
               {
-                debugVerbose(
+                TRACER.debugVerbose(
                     "Undefined result encountered for substring " +
                     "component %s in filter %s for entry %s",
                              this, completeFilter, entry.getDN());
@@ -2690,7 +2693,7 @@ public class SearchFilter
 
         if (debugEnabled())
         {
-          debugVerbose(
+          TRACER.debugVerbose(
               "Returning %s for substring component %s in filter " +
               "%s for entry %s",
               result, this, completeFilter, entry.getDN());
@@ -2729,9 +2732,9 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugVerbose("Returning FALSE for greater-or-equal " +
-                "component %s in filter %s because entry %s didn't " +
-                "have attribute type %s",
+            TRACER.debugVerbose("Returning FALSE for " +
+                "greater-or-equal component %s in filter %s " +
+                "because entry %s didn't have attribute type %s",
                          this, completeFilter, entry.getDN(),
                          attributeType.getNameOrOID());
           }
@@ -2748,7 +2751,7 @@ public class SearchFilter
             case TRUE:
               if (debugEnabled())
               {
-                debugVerbose(
+                TRACER.debugVerbose(
                     "Returning TRUE for greater-or-equal component " +
                     "%s in filter %s for entry %s",
                              this, completeFilter, entry.getDN());
@@ -2759,7 +2762,7 @@ public class SearchFilter
             case UNDEFINED:
               if (debugEnabled())
               {
-                debugVerbose(
+                TRACER.debugVerbose(
                     "Undefined result encountered for " +
                     "greater-or-equal component %s in filter %s " +
                     "for entry %s", this, completeFilter,
@@ -2773,7 +2776,7 @@ public class SearchFilter
 
         if (debugEnabled())
         {
-          debugVerbose(
+          TRACER.debugVerbose(
               "Returning %s for greater-or-equal component %s in " +
               "filter %s for entry %s",
                        result, this, completeFilter, entry.getDN());
@@ -2813,7 +2816,7 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugVerbose(
+            TRACER.debugVerbose(
                 "Returning FALSE for less-or-equal component %s in " +
                 "filter %s because entry %s didn't have attribute " +
                 "type %s", this, completeFilter, entry.getDN(),
@@ -2832,7 +2835,7 @@ public class SearchFilter
             case TRUE:
               if (debugEnabled())
               {
-                debugVerbose(
+                TRACER.debugVerbose(
                     "Returning TRUE for less-or-equal component %s " +
                     "in filter %s for entry %s",
                              this, completeFilter, entry.getDN());
@@ -2843,7 +2846,7 @@ public class SearchFilter
             case UNDEFINED:
               if (debugEnabled())
               {
-                debugVerbose(
+                TRACER.debugVerbose(
                     "Undefined result encountered for " +
                         "less-or-equal component %s in filter %s " +
                         "for entry %s",
@@ -2857,7 +2860,7 @@ public class SearchFilter
 
         if (debugEnabled())
         {
-          debugVerbose(
+          TRACER.debugVerbose(
               "Returning %s for less-or-equal component %s in " +
               "filter %s for entry %s",
                        result, this, completeFilter, entry.getDN());
@@ -2885,7 +2888,7 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugVerbose(
+            TRACER.debugVerbose(
                 "Returning TRUE for presence component %s in " +
                 "filter %s for entry %s",
                 this, completeFilter, entry.getDN());
@@ -2896,7 +2899,7 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugVerbose(
+            TRACER.debugVerbose(
                 "Returning FALSE for presence component %s in " +
                 "filter %s for entry %s",
                 this, completeFilter, entry.getDN());
@@ -2937,7 +2940,7 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugVerbose(
+            TRACER.debugVerbose(
                 "Returning FALSE for approximate component %s in " +
                 "filter %s because entry %s didn't have attribute " +
                 "type %s", this, completeFilter, entry.getDN(),
@@ -2956,7 +2959,7 @@ public class SearchFilter
             case TRUE:
               if (debugEnabled())
               {
-                debugVerbose(
+                TRACER.debugVerbose(
                    "Returning TRUE for approximate component %s in " +
                    "filter %s for entry %s",
                    this, completeFilter, entry.getDN());
@@ -2967,7 +2970,7 @@ public class SearchFilter
             case UNDEFINED:
               if (debugEnabled())
               {
-                debugVerbose(
+                TRACER.debugVerbose(
                     "Undefined result encountered for approximate " +
                     "component %s in filter %s for entry %s",
                              this, completeFilter, entry.getDN());
@@ -2980,7 +2983,7 @@ public class SearchFilter
 
         if (debugEnabled())
         {
-          debugVerbose(
+          TRACER.debugVerbose(
               "Returning %s for approximate component %s in filter " +
               "%s for entry %s",
               result, this, completeFilter, entry.getDN());
@@ -3055,7 +3058,7 @@ public class SearchFilter
       {
         if (debugEnabled())
         {
-          debugInfo(
+          TRACER.debugInfo(
               "Unknown matching rule %s defined in extensibleMatch " +
               "component of filter %s -- returning undefined.",
                     matchingRuleID, this);
@@ -3082,7 +3085,7 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugInfo(
+            TRACER.debugInfo(
              "Attribute type %s does not have an equality matching " +
              "rule -- returning undefined.",
              attributeType.getNameOrOID());
@@ -3106,7 +3109,7 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugInfo(
+            TRACER.debugInfo(
                 "Attribute type %s is not allowed for use with " +
                 "matching rule %s because of matching rule use " +
                 "definition %s", attributeType.getNameOrOID(),
@@ -3129,7 +3132,7 @@ public class SearchFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We can't normalize the assertion value, so the result must be
@@ -3182,7 +3185,7 @@ public class SearchFilter
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
               // We couldn't normalize one of the values.  If we don't
@@ -3232,7 +3235,7 @@ public class SearchFilter
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
               // We couldn't normalize one of the values.  If we don't
@@ -3275,7 +3278,7 @@ public class SearchFilter
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // We couldn't normalize one of the values.  If we don't
@@ -3325,7 +3328,7 @@ public class SearchFilter
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
               // We couldn't normalize one of the values.  If we don't
@@ -3389,7 +3392,7 @@ public class SearchFilter
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             // We couldn't normalize one of the values.  If we don't

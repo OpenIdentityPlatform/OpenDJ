@@ -47,8 +47,8 @@ import javax.mail.internet.MimeMultipart;
 
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
@@ -61,7 +61,10 @@ import static org.opends.server.messages.UtilityMessages.*;
  */
 public class EMailMessage
 {
-
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
 
   // The addresses of the recipients to whom this message should be sent.
@@ -357,7 +360,7 @@ public class EMailMessage
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, me);
+          TRACER.debugCaught(DebugLogLevel.ERROR, me);
         }
 
         int msgID = MSGID_EMAILMSG_INVALID_SENDER_ADDRESS;
@@ -383,7 +386,7 @@ public class EMailMessage
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, me);
+            TRACER.debugCaught(DebugLogLevel.ERROR, me);
           }
 
           int msgID = MSGID_EMAILMSG_INVALID_RECIPIENT_ADDRESS;
@@ -429,7 +432,7 @@ public class EMailMessage
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, sfe);
+          TRACER.debugCaught(DebugLogLevel.ERROR, sfe);
         }
 
         // We'll ignore this and hope that another server is available.  If not,

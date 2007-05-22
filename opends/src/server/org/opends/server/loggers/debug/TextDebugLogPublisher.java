@@ -91,9 +91,6 @@ public class TextDebugLogPublisher
     TextDebugLogPublisher startupPublisher = new TextDebugLogPublisher();
     startupPublisher.writer = writer;
 
-    startupPublisher.addTraceSettings(null,
-                                      new TraceSettings(DebugLogLevel.ERROR));
-
     Set<Map.Entry<Object, Object>> propertyEntries =
         System.getProperties().entrySet();
     for(Map.Entry<Object, Object> entry : propertyEntries)
@@ -349,7 +346,7 @@ public class TextDebugLogPublisher
 
     addTraceSettings(null, defaultSettings);
 
-    DebugLogger.addTracerSettings(this);
+    DebugLogger.updateTracerSettings();
 
     File logFile = getFileForPath(config.getLogFile());
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -495,7 +492,7 @@ public class TextDebugLogPublisher
 
     addTraceSettings(config.getDebugScope(), new TraceSettings(config));
 
-    DebugLogger.addTracerSettings(this);
+    DebugLogger.updateTracerSettings();
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
@@ -512,7 +509,7 @@ public class TextDebugLogPublisher
 
     removeTraceSettings(config.getDebugScope());
 
-    DebugLogger.addTracerSettings(this);
+    DebugLogger.updateTracerSettings();
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
@@ -524,41 +521,49 @@ public class TextDebugLogPublisher
                                TraceSettings settings,
                                String signature,
                                String sourceLocation,
-                               Object[] args)
+                               Object[] args,
+                               StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.CONSTRUCTOR;
+
     String msg = "";
-    if(!settings.noArgs)
+    if(args != null)
     {
       msg = buildDefaultEntryMessage(args);
     }
-    publish(category, level, signature, sourceLocation, msg, null);
+
+    String stack = null;
+    if(stackTrace != null)
+    {
+      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
+                                                        settings.stackDepth);
+    }
+    publish(category, level, signature, sourceLocation, msg, stack);
   }
 
   /**
    * {@inheritDoc}
    */
-  public void traceNonStaticMethodEntry(LogLevel level,
-                                        TraceSettings settings,
-                                        String signature,
-                                        String sourceLocation,
-                                        Object obj,
-                                        Object[] args)
+  public void traceMethodEntry(LogLevel level,
+                               TraceSettings settings,
+                               String signature,
+                               String sourceLocation,
+                               Object obj,
+                               Object[] args,
+                               StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.ENTER;
     String msg = "";
-    if(!settings.noArgs)
+    if(args != null)
     {
       msg = buildDefaultEntryMessage(args);
     }
-    String stack = null;
-    int stackDepth = settings.stackDepth;
 
-    // Inject a stack trace if requested
-    if (stackDepth > 0) {
-      stack = DebugStackTraceFormatter.formatStackTrace(
-                                    DebugStackTraceFormatter.SMART_FRAME_FILTER,
-                                    stackDepth);
+    String stack = null;
+    if(stackTrace != null)
+    {
+      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
+                                                        settings.stackDepth);
     }
     publish(category, level, signature, sourceLocation, msg, stack);
   }
@@ -570,23 +575,21 @@ public class TextDebugLogPublisher
                                      TraceSettings settings,
                                      String signature,
                                      String sourceLocation,
-                                     Object[] args)
+                                     Object[] args,
+                                     StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.ENTER;
     String msg = "";
-    if(!settings.noArgs)
+    if(args != null)
     {
       msg = buildDefaultEntryMessage(args);
     }
-    String stack = null;
-    int stackDepth = settings.stackDepth;
 
-    // Inject a stack trace if requested
-    if (stackDepth > 0) {
-      stack=
-          DebugStackTraceFormatter.formatStackTrace(
-                                    DebugStackTraceFormatter.SMART_FRAME_FILTER,
-                                    stackDepth);
+    String stack = null;
+    if(stackTrace != null)
+    {
+      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
+                                                        settings.stackDepth);
     }
     publish(category, level, signature, sourceLocation, msg, stack);
   }
@@ -598,16 +601,24 @@ public class TextDebugLogPublisher
                           TraceSettings settings,
                           String signature,
                           String sourceLocation,
-                          Object ret)
+                          Object ret,
+                          StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.EXIT;
     String msg = "";
-    if(!settings.noRetVal)
+    if(ret != null)
     {
       msg = DebugMessageFormatter.format("returned={%s}",
                                          new Object[] {ret});
     }
-    publish(category, level, signature, sourceLocation, msg, null);
+
+    String stack = null;
+    if(stackTrace != null)
+    {
+      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
+                                                        settings.stackDepth);
+    }
+    publish(category, level, signature, sourceLocation, msg, stack);
   }
 
   /**
@@ -617,21 +628,20 @@ public class TextDebugLogPublisher
                           TraceSettings settings,
                           String signature,
                           String sourceLocation,
-                          Throwable ex)
+                          Throwable ex,
+                          StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.THROWN;
-    String stack = null;
-    int stackDepth = settings.stackDepth;
 
     String msg = DebugMessageFormatter.format("thrown={%s}",
                                               new Object[] {ex});
 
-    // Inject a stack trace if requested
-    if (stackDepth > 0) {
-      stack=
-          DebugStackTraceFormatter.formatStackTrace(ex,
-                                    DebugStackTraceFormatter.SMART_FRAME_FILTER,
-                                    stackDepth, settings.includeCause);
+    String stack = null;
+    if(stackTrace != null)
+    {
+      stack = DebugStackTraceFormatter.formatStackTrace(ex,
+                                                        settings.stackDepth,
+                                                        settings.includeCause);
     }
     publish(category, level, signature, sourceLocation, msg, stack);
   }
@@ -643,10 +653,18 @@ public class TextDebugLogPublisher
                            TraceSettings settings,
                            String signature,
                            String sourceLocation,
-                           String msg)
+                           String msg,
+                           StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.MESSAGE;
-    publish(category, level, signature, sourceLocation, msg, null);
+
+    String stack = null;
+    if(stackTrace != null)
+    {
+      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
+                                                        settings.stackDepth);
+    }
+    publish(category, level, signature, sourceLocation, msg, stack);
   }
 
   /**
@@ -655,13 +673,22 @@ public class TextDebugLogPublisher
   public void traceCaught(LogLevel level,
                           TraceSettings settings,
                           String signature,
-                          String sourceLocation, Throwable ex)
+                          String sourceLocation,
+                          Throwable ex,
+                          StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.CAUGHT;
     String msg = DebugMessageFormatter.format("caught={%s}",
                                               new Object[] {ex});
 
-    publish(category, level, signature, sourceLocation, msg, null);
+    String stack = null;
+    if(stackTrace != null)
+    {
+      stack = DebugStackTraceFormatter.formatStackTrace(ex,
+                                                        settings.stackDepth,
+                                                        settings.includeCause);
+    }
+    publish(category, level, signature, sourceLocation, msg, stack);
   }
 
   /**
@@ -673,7 +700,8 @@ public class TextDebugLogPublisher
                             String sourceLocation,
                             OperationStatus status,
                             Database database, Transaction txn,
-                            DatabaseEntry key, DatabaseEntry data)
+                            DatabaseEntry key, DatabaseEntry data,
+                            StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.DATABASE_ACCESS;
 
@@ -729,8 +757,14 @@ public class TextDebugLogPublisher
 
     }
 
-    publish(category, level, signature, sourceLocation, builder.toString(),
-            null);
+    String stack = null;
+    if(stackTrace != null)
+    {
+      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
+                                                        settings.stackDepth);
+    }
+    publish(category, level, signature, sourceLocation,
+            builder.toString(), stack);
   }
 
   /**
@@ -740,7 +774,8 @@ public class TextDebugLogPublisher
                         TraceSettings settings,
                         String signature,
                         String sourceLocation,
-                        byte[] data)
+                        byte[] data,
+                        StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.DATA;
     if(data != null)
@@ -753,8 +788,14 @@ public class TextDebugLogPublisher
       builder.append(ServerConstants.EOL);
       StaticUtils.byteArrayToHexPlusAscii(builder, data, 4);
 
-      publish(category, level, signature, sourceLocation, builder.toString(),
-              null);
+    String stack = null;
+    if(stackTrace != null)
+    {
+      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
+                                                        settings.stackDepth);
+    }
+    publish(category, level, signature, sourceLocation,
+            builder.toString(), stack);
     }
   }
 
@@ -765,17 +806,23 @@ public class TextDebugLogPublisher
                                    TraceSettings settings,
                                    String signature,
                                    String sourceLocation,
-                                   ProtocolElement element)
+                                   ProtocolElement element,
+                                   StackTraceElement[] stackTrace)
   {
     LogCategory category = DebugLogCategory.PROTOCOL;
-    if(element != null)
+
+    StringBuilder builder = new StringBuilder();
+    builder.append(ServerConstants.EOL);
+    element.toString(builder, 4);
+
+    String stack = null;
+    if(stackTrace != null)
     {
-      StringBuilder builder = new StringBuilder();
-      builder.append(ServerConstants.EOL);
-      element.toString(builder, 4);
-      publish(category, level, signature, sourceLocation, builder.toString(),
-              null);
+      stack = DebugStackTraceFormatter.formatStackTrace(stackTrace,
+                                                        settings.stackDepth);
     }
+    publish(category, level, signature, sourceLocation,
+            builder.toString(), stack);
   }
 
   /**

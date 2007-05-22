@@ -36,8 +36,9 @@ import static org.opends.server.util.StaticUtils.isDigit;
 import static org.opends.server.util.StaticUtils.isHexDigit;
 import static org.opends.server.util.StaticUtils.hexStringToByteArray;
 import org.opends.server.util.Validator;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +67,11 @@ import java.util.List;
  */
 public class PatternDN
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * If the pattern did not include any Multiple-Whole-RDN wildcards, then
    * this is the sequence of RDN patterns in the DN pattern.  Otherwise it
@@ -1208,7 +1214,7 @@ public class PatternDN
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;
@@ -1458,7 +1464,7 @@ public class PatternDN
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ATTR_SYNTAX_DN_ATTR_VALUE_DECODE_FAILURE;

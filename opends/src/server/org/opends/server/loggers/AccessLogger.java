@@ -45,8 +45,8 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.config.ConfigException;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.
     MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER;
 import static org.opends.server.messages.ConfigMessages.
@@ -64,6 +64,11 @@ public class AccessLogger implements
     ConfigurationDeleteListener<AccessLogPublisherCfg>,
     ConfigurationChangeListener<AccessLogPublisherCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The set of access loggers that have been registered with the server.  It
    // will initially be empty.
    static ConcurrentHashMap<DN, AccessLogPublisher> accessPublishers =
@@ -197,7 +202,7 @@ public class AccessLogger implements
        {
          if (debugEnabled())
          {
-           debugCaught(DebugLogLevel.ERROR, e);
+           TRACER.debugCaught(DebugLogLevel.ERROR, e);
          }
          messages.add(e.getMessage());
          resultCode = DirectoryServer.getServerErrorResultCode();
@@ -206,7 +211,7 @@ public class AccessLogger implements
        {
          if (debugEnabled())
          {
-           debugCaught(DebugLogLevel.ERROR, e);
+           TRACER.debugCaught(DebugLogLevel.ERROR, e);
          }
          int msgID = MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER;
          messages.add(getMessage(msgID, String.valueOf(config.dn().toString()),

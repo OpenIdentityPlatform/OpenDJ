@@ -26,8 +26,8 @@
  */
 package org.opends.server.protocols.jmx;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -50,6 +50,11 @@ import javax.net.ssl.SSLSocketFactory;
 public class DirectoryRMIServerSocketFactory implements
     RMIServerSocketFactory
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    *  The SSL socket factory associated with the connector.
    */
@@ -120,7 +125,7 @@ public class DirectoryRMIServerSocketFactory implements
         Socket socket = super.accept();
         if (debugEnabled())
         {
-          debugVerbose("host/port: %s/%d",
+          TRACER.debugVerbose("host/port: %s/%d",
                        socket.getInetAddress().getHostName(), socket.getPort());
         }
         SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(

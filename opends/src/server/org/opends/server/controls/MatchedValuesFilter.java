@@ -49,8 +49,8 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawFilter;
 import org.opends.server.util.Validator;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
@@ -69,6 +69,11 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class MatchedValuesFilter
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -782,7 +787,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_AVA;
@@ -884,7 +889,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_SUBSTRINGS;
@@ -907,7 +912,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_PRESENT_TYPE;
@@ -1004,7 +1009,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MVFILTER_CANNOT_DECODE_EXTENSIBLE_MATCH;
@@ -1250,7 +1255,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1328,7 +1333,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           normalizedSubAny = null;
@@ -1391,7 +1396,7 @@ public class MatchedValuesFilter
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1625,7 +1630,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1654,7 +1659,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1681,7 +1686,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1708,7 +1713,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1743,7 +1748,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1783,7 +1788,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;
@@ -1806,7 +1811,7 @@ public class MatchedValuesFilter
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             return false;

@@ -73,10 +73,10 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ConfigMessages.
@@ -104,6 +104,11 @@ public class RootDSEBackend
        extends Backend
        implements ConfigurationChangeListener<RootDSEBackendCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The set of standard "static" attributes that we will always include in the
   // root DSE entry and won't change while the server is running.
   private ArrayList<Attribute> staticDSEAttributes;
@@ -254,7 +259,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
@@ -1048,7 +1053,7 @@ public class RootDSEBackend
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           throw de;
@@ -1057,7 +1062,7 @@ public class RootDSEBackend
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_ROOTDSE_UNEXPECTED_SEARCH_FAILURE;
@@ -1140,7 +1145,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER;
@@ -1160,7 +1165,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_ROOTDSE_UNABLE_TO_EXPORT_DSE;
@@ -1178,7 +1183,7 @@ public class RootDSEBackend
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -1364,7 +1369,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
@@ -1428,7 +1433,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ROOTDSE_SUBORDINATE_BASE_EXCEPTION;
@@ -1480,7 +1485,7 @@ public class RootDSEBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;

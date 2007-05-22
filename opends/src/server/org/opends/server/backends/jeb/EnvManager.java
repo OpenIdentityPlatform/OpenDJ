@@ -26,8 +26,8 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.MSGID_JEB_CREATE_FAIL;
@@ -43,6 +43,11 @@ import java.io.FilenameFilter;
  */
 public class EnvManager
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * A filename filter to match all kinds of JE files.
@@ -97,7 +102,7 @@ public class EnvManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         String message = getMessage(MSGID_JEB_CREATE_FAIL, e.getMessage());
         throw new JebException(MSGID_JEB_CREATE_FAIL, message, e);
@@ -134,7 +139,7 @@ public class EnvManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_REMOVE_FAIL, e.getMessage());
       throw new JebException(MSGID_JEB_REMOVE_FAIL, message, e);

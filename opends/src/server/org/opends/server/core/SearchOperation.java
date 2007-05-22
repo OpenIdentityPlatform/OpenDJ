@@ -81,6 +81,7 @@ import org.opends.server.util.TimeThread;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -98,6 +99,11 @@ public class SearchOperation
                   PostOperationSearchOperation, PostResponseSearchOperation,
                   SearchEntrySearchOperation, SearchReferenceSearchOperation
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // Indicates whether a search result done response has been sent to the
   // client.
   private AtomicBoolean responseSent;
@@ -850,7 +856,7 @@ public class SearchOperation
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -1143,7 +1149,7 @@ public class SearchOperation
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResponseData(de);
@@ -1249,7 +1255,7 @@ public class SearchOperation
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResponseData(de);
@@ -1583,7 +1589,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -1605,7 +1611,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -1645,7 +1651,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, le);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1669,7 +1675,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1704,7 +1710,7 @@ searchProcessing:
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, de);
+                TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
               setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -1743,7 +1749,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, le);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1763,7 +1769,7 @@ searchProcessing:
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, de);
+                TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
               setResultCode(de.getResultCode());
@@ -1821,7 +1827,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, le);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1841,7 +1847,7 @@ searchProcessing:
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, de);
+                TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
               setResultCode(de.getResultCode());
@@ -1889,7 +1895,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, le);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1930,7 +1936,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, le);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1967,7 +1973,7 @@ searchProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, le);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, le);
                 }
 
                 setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -2105,7 +2111,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -2125,7 +2131,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, coe);
+          TRACER.debugCaught(DebugLogLevel.ERROR, coe);
         }
 
         CancelResult cancelResult = coe.getCancelResult();
@@ -2152,7 +2158,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         setResultCode(DirectoryServer.getServerErrorResultCode());
@@ -2302,7 +2308,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 

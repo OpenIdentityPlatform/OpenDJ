@@ -45,6 +45,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 
 
@@ -59,6 +60,11 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public abstract class VirtualAttributeProvider
        <T extends VirtualAttributeCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * Initializes this virtual attribute based on the information in
    * the provided configuration entry.
@@ -271,7 +277,7 @@ public abstract class VirtualAttributeProvider
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // The substring couldn't be normalized.  We have to return
@@ -301,7 +307,7 @@ public abstract class VirtualAttributeProvider
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // The substring couldn't be normalized.  We have to return
@@ -328,7 +334,7 @@ public abstract class VirtualAttributeProvider
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // The substring couldn't be normalized.  We have to return
@@ -356,7 +362,7 @@ public abstract class VirtualAttributeProvider
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // The value couldn't be normalized.  If we can't find a
@@ -407,7 +413,7 @@ public abstract class VirtualAttributeProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We couldn't normalize the provided value.  We should return
@@ -432,7 +438,7 @@ public abstract class VirtualAttributeProvider
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // We couldn't normalize one of the attribute values.  If we
@@ -484,7 +490,7 @@ public abstract class VirtualAttributeProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We couldn't normalize the provided value.  We should return
@@ -509,7 +515,7 @@ public abstract class VirtualAttributeProvider
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // We couldn't normalize one of the attribute values.  If we
@@ -561,7 +567,7 @@ public abstract class VirtualAttributeProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We couldn't normalize the provided value.  We should return
@@ -584,7 +590,7 @@ public abstract class VirtualAttributeProvider
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // We couldn't normalize one of the attribute values.  If we

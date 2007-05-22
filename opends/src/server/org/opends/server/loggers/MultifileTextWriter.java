@@ -36,9 +36,8 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.util.TimeThread;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.LoggerMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -61,6 +60,11 @@ public class MultifileTextWriter
     implements ServerShutdownListener, TextWriter,
     ConfigurationChangeListener<SizeLimitLogRotationPolicyCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   private static final String UTF8_ENCODING= "UTF-8";
 
   private CopyOnWriteArrayList<RotationPolicy> rotationPolicies =
@@ -264,6 +268,8 @@ public class MultifileTextWriter
         sizePolicy.currentConfig.removeSizeLimitChangeListener(this);
       }
     }
+
+    this.rotationPolicies.clear();
   }
 
   /**
@@ -406,7 +412,7 @@ public class MultifileTextWriter
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -430,7 +436,7 @@ public class MultifileTextWriter
           }
           if (debugEnabled())
           {
-            debugVerbose("%d files deleted by rentention policy",
+            TRACER.debugVerbose("%d files deleted by rentention policy",
                          numFilesDeleted);
           }
         }
@@ -570,6 +576,10 @@ public class MultifileTextWriter
     }
     catch(Exception e)
     {
+      if(debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
       errorHandler.handleCloseError(e);
     }
 
@@ -584,12 +594,22 @@ public class MultifileTextWriter
     }
     catch (Exception e)
     {
+      if(debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
       errorHandler.handleOpenError(currentFile, e);
     }
 
     //RotationActionThread rotThread =
     //  new RotationActionThread(newFile, actions, configEntry);
     //rotThread.start();
+
+    if(debugEnabled())
+    {
+      TRACER.debugInfo("Log file %s rotated and renamed to %s",
+                       currentFile, newFile);
+    }
 
     totalFilesRotated++;
     lastRotationTime = TimeThread.getTime();

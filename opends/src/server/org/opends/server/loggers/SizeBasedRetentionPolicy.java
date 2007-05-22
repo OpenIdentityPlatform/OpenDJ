@@ -28,8 +28,8 @@ package org.opends.server.loggers;
 
 import org.opends.server.admin.std.server.SizeLimitLogRetentionPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 
@@ -46,6 +46,11 @@ public class SizeBasedRetentionPolicy implements
     RetentionPolicy<SizeLimitLogRetentionPolicyCfg>,
     ConfigurationChangeListener<SizeLimitLogRetentionPolicyCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   private long size = 0;
 
@@ -103,7 +108,7 @@ public class SizeBasedRetentionPolicy implements
 
     if(debugEnabled())
     {
-      debugInfo("Total size of files: %d, Max: %d", totalLength, size);
+      TRACER.debugInfo("Total size of files: %d, Max: %d", totalLength, size);
     }
 
     if (totalLength <= size)
@@ -122,7 +127,7 @@ public class SizeBasedRetentionPolicy implements
       freedSpace += files[j].length();
       if(debugEnabled())
       {
-        debugInfo("Deleting log file:", files[j]);
+        TRACER.debugInfo("Deleting log file:", files[j]);
       }
       files[j].delete();
       if (freedSpace >= freeSpaceNeeded)

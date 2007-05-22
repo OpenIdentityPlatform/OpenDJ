@@ -33,6 +33,8 @@ import static org.opends.server.messages.ConfigMessages.
     MSGID_CONFIG_BACKEND_INSANE_MODE;
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import org.opends.server.config.ConfigConstants;
@@ -53,8 +55,6 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.File;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.*;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -65,6 +65,11 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 public class Config
      implements ConfigurationChangeListener<JEBackendCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The name of the object class which configures
@@ -281,7 +286,7 @@ public class Config
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 

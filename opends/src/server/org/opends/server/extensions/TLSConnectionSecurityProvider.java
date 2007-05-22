@@ -52,8 +52,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.SSLClientAuthPolicy;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -71,6 +71,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class TLSConnectionSecurityProvider
        extends ConnectionSecurityProvider
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
   /**
@@ -208,7 +213,7 @@ public class TLSConnectionSecurityProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_TLS_SECURITY_PROVIDER_CANNOT_INITIALIZE;
@@ -454,7 +459,7 @@ public class TLSConnectionSecurityProvider
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -641,7 +646,7 @@ handshakeLoop:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ioe);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
         }
 
         // An error occurred while trying to communicate with the client.
@@ -653,7 +658,7 @@ handshakeLoop:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // An unexpected error occurred while trying to process the data read.
@@ -941,7 +946,7 @@ handshakeStatusLoop:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ioe);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
       // An error occurred while trying to communicate with the client.
@@ -953,7 +958,7 @@ handshakeStatusLoop:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An unexpected error occurred while trying to process the data read.
@@ -1075,7 +1080,7 @@ handshakeStatusLoop:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return null;

@@ -29,16 +29,12 @@ package org.opends.server.loggers.debug;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.nio.ByteBuffer;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
-import org.opends.server.api.ProtocolElement;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.loggers.*;
 import org.opends.server.types.*;
-import org.opends.server.util.DynamicConstants;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -51,8 +47,6 @@ import org.opends.server.core.DirectoryServer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
-import com.sleepycat.je.*;
 
 /**
  * A logger for debug and trace logging. DebugLogger provides a debugging
@@ -81,13 +75,13 @@ public class DebugLogger implements
   static final LogLevel DEFAULT_THROWN_LEVEL =
       DebugLogLevel.ERROR;
 
-  // The set of all DebugTracer aspect instances.
-  static CopyOnWriteArraySet<DebugTracer> classTracers =
-      new CopyOnWriteArraySet<DebugTracer>();
+  // The set of all DebugTracer instances.
+  private static ConcurrentHashMap<String, DebugTracer> classTracers =
+      new ConcurrentHashMap<String, DebugTracer>();
 
   // The set of debug loggers that have been registered with the server.  It
   // will initially be empty.
-  static ConcurrentHashMap<DN,
+  private static ConcurrentHashMap<DN,
       DebugLogPublisher> debugPublishers =
       new ConcurrentHashMap<DN,
           DebugLogPublisher>();
@@ -110,10 +104,9 @@ public class DebugLogger implements
   {
     debugPublishers.put(dn, publisher);
 
-    // Update all existing aspect instances
-    addTracerSettings(publisher);
+    updateTracerSettings();
 
-    enabled = DynamicConstants.WEAVE_ENABLED;
+    enabled = true;
   }
 
   /**
@@ -129,8 +122,9 @@ public class DebugLogger implements
     if(removed != null)
     {
       removed.close();
-      removeTracerSettings(removed);
     }
+
+    updateTracerSettings();
 
     if(debugPublishers.isEmpty())
     {
@@ -148,10 +142,11 @@ public class DebugLogger implements
     for(DebugLogPublisher publisher : debugPublishers.values())
     {
       publisher.close();
-      removeTracerSettings(publisher);
     }
 
     debugPublishers.clear();
+
+    updateTracerSettings();
 
     enabled = false;
   }
@@ -227,19 +222,11 @@ public class DebugLogger implements
       }
       catch(ConfigException e)
       {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
         messages.add(e.getMessage());
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          debugCaught(DebugLogLevel.ERROR, e);
-        }
         int msgID = MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER;
         messages.add(getMessage(msgID, String.valueOf(config.dn().toString()),
                                 stackTraceToSingleLineString(e)));
@@ -406,55 +393,19 @@ public class DebugLogger implements
   }
 
   /**
-   * Adds the settings for the provided publisher in all existing tracers.
-   * If existing settings exist for the given publisher, it will be updated
-   * with the new settings.
-   *
-   * @param publisher The debug log publisher with the new settings.
+   * Update all debug tracers with the settings in the registered
+   * publishers.
    */
-  @SuppressWarnings("unchecked")
-  public static void addTracerSettings(DebugLogPublisher publisher)
+  static void updateTracerSettings()
   {
-    // Make sure this publisher is still registered with us. If not, don't
-    // use its settings.
-    if(debugPublishers.contains(publisher))
-    {
-      for(DebugTracer tracer : classTracers)
-      {
-        tracer.classSettings.put(publisher,
-                                 publisher.getClassSettings(tracer.className));
+    DebugLogPublisher[] publishers =
+        debugPublishers.values().toArray(new DebugLogPublisher[0]);
 
-        // For some reason, the compiler doesn't see that
-        // debugLogPublihser.getMethodSettings returns a parameterized Map.
-        // This problem goes away if a parameterized verson of
-        // DebugLogPublisher is used. However, we can't not use reflection to
-        // instantiate a generic
-        // DebugLogPublisher<? extends DebugLogPublisherCfg> type. The only
-        // thing we can do is to just suppress the compiler warnings.
-        Map<String, TraceSettings> methodSettings =
-            publisher.getMethodSettings(tracer.className);
-        if(methodSettings != null)
-        {
-          tracer.methodSettings.put(publisher, methodSettings);
-        }
-      }
+    for(DebugTracer tracer : classTracers.values())
+    {
+      tracer.updateSettings(publishers);
     }
   }
-
-  /**
-   * Removes the settings for the provided publisher in all existing tracers.
-   *
-   * @param publisher The debug log publisher to remove.
-   */
-  public static void removeTracerSettings(DebugLogPublisher publisher)
-  {
-    for(DebugTracer tracer : classTracers)
-    {
-      tracer.classSettings.remove(publisher);
-      tracer.methodSettings.remove(publisher);
-    }
-  }
-
 
   /**
    * Indicates if debug logging is enabled.
@@ -477,177 +428,32 @@ public class DebugLogger implements
   }
 
   /**
-   * Stub method for logging an arbitrary event in a method at the INFO level.
-   * Implementation provided by AspectJ.
+   * Creates a new Debug Tracer for the caller class and registers it
+   * with the Debug Logger.
    *
-   * @param msg the message to be logged.
+   * @return The tracer created for the caller class.
    */
-  public static void debugVerbose(String msg) {}
+  public static DebugTracer getTracer()
+  {
+    DebugTracer tracer =
+        new DebugTracer(debugPublishers.values().
+            toArray(new DebugLogPublisher[0]));
+    classTracers.put(tracer.getTracedClassName(), tracer);
 
+    return tracer;
+  }
 
   /**
-   * Stub method for logging an arbitrary event in a method at the INFO level.
-   * Implementation provided by AspectJ.
+   * Returns the registered Debug Tracer for a traced class.
    *
-   * @param msg the message to be logged.
+   * @param className The name of the class tracer to retrieve.
+   * @return The tracer for the provided class or null if there are
+   *         no tracers registered.
    */
-  public static void debugInfo(String msg) {}
-
-
-  /**
-   * Stub method for logging an arbitrary event in a method at the WARNING
-   * level. Implementation provided by AspectJ.
-   *
-   * @param msg the message to be logged.
-   */
-  public static void debugWarning(String msg) {}
-
-
-  /**
-   * Stub method for logging an arbitrary event in a method at the ERROR
-   * level. Implementation provided by AspectJ.
-   *
-   * @param msg the message to be logged.
-   */
-  public static void debugError(String msg) {}
-
-
-  /**
-   * Stub method for logging an arbitrary event in a method at the INFO
-   * level. Implementation provided by AspectJ.
-   *
-   * @param msg     The message to be formatted and logged.
-   * @param msgArgs The set of arguments to use to replace tokens in the
-   *                format string before it is returned.
-   */
-  public static void debugVerbose(String msg, Object... msgArgs) {}
-
-
-  /**
-   * Stub method for logging an arbitrary event in a method at the INFO
-   * level. Implementation provided by AspectJ.
-   *
-   * @param msg     The message to be formatted and logged.
-   * @param msgArgs The set of arguments to use to replace tokens in the
-   *                format string before it is returned.
-   */
-  public static void debugInfo(String msg, Object... msgArgs) {}
-
-
-  /**
-   * Stub method for logging an arbitrary event in a method at the WARNING
-   * level. Implementation provided by AspectJ.
-   *
-   * @param msg     The message to be formatted and logged.
-   * @param msgArgs The set of arguments to use to replace tokens in the
-   *                format string before it is returned.
-   */
-  public static void debugWarning(String msg, Object... msgArgs)
-  {}
-
-
-  /**
-   * Stub method for logging an arbitrary event in a method at the ERROR
-   * level. Implementation provided by AspectJ.
-   *
-   * @param msg     The message to be formatted and logged.
-   * @param msgArgs The set of arguments to use to replace tokens in the
-   *                format string before it is returned.
-   */
-  public static void debugError(String msg, Object... msgArgs)
-  {}
-
-
-  /**
-   * Stub method for logging an arbitrary event in a method.
-   * Implementation provided by AspectJ.
-   *
-   * @param level The level of the message being logged.
-   * @param msg   The message to be logged.
-   */
-  public static void debugMessage(LogLevel level, String msg)
-  {}
-
-
-  /**
-   * Stub method for logging an arbitrary event in a method.
-   * Implementation provided by AspectJ.
-   *
-   * @param level   The level of the message being logged.
-   * @param msg     The message to be formatted and logged.
-   * @param msgArgs The set of arguments to use to replace tokens in the
-   *                format string before it is returned.
-   */
-  public static void debugMessage(LogLevel level, String msg,
-                                  Object... msgArgs) {}
-
-
-  /**
-   * Stub method for logging a caught exception in a method.
-   * Implementation provided by AspectJ.
-   *
-   * @param level The level of the message being logged.
-   * @param t     The exception caught.
-   */
-  public static void debugCaught(LogLevel level, Throwable t)
-  {}
-
-  /**
-   * Stub method for logging a thrown exception in a method.
-   * Implementation provided by AspectJ.
-   *
-   * @param level The level of the message being logged.
-   * @param t     The exception being thrown.
-   */
-  public static void debugThrown(LogLevel level, Throwable t)
-  {}
-
-
-  /**
-   * Stub method for logging an JE database access in a method.
-   * Implementation provided by AspectJ.
-   *
-   * @param level The level of the message being logged.
-   * @param status The JE return status code of the operation.
-   * @param database The JE database handle operated on.
-   * @param txn The JE transaction handle used in the operation.
-   * @param key The database key operated on.
-   * @param data The database value read or written.
-   */
-  public static void debugJEAccess(LogLevel level,
-                                   OperationStatus status,
-                                   Database database,
-                                   Transaction txn,
-                                   DatabaseEntry key, DatabaseEntry data) {}
-
-  /**
-   * Stub method for logging raw data in a method.
-   * Implementation provided by AspectJ.
-   *
-   * @param level The level of the message being logged.
-   * @param bytes The data to dump.
-   */
-  public static void debugData(LogLevel level, byte[] bytes) {}
-
-  /**
-   * Stub method for logging raw data in a method.
-   * Implementation provided by AspectJ.
-   *
-   * @param level The level of the message being logged.
-   * @param buffer The data to dump.
-   */
-  public static void debugData(LogLevel level, ByteBuffer buffer) {}
-
-  /**
-   * Stub method for logging a protocol element in a method.
-   * Implementation provided by AspectJ.
-   *
-   * @param level The level of the message being logged.
-   * @param element The protocol element to dump.
-   */
-  public static void debugProtocolElement(LogLevel level,
-                                          ProtocolElement element) {}
-
+  public static DebugTracer getTracer(String className)
+  {
+    return classTracers.get(className);
+  }
 
   /**
    * Classes and methods annotated with @NoDebugTracing will not be weaved with

@@ -38,8 +38,8 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -74,6 +74,11 @@ import java.util.LinkedList;
  *
  **/
 public class GetEffectiveRights extends Control {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   //The DN representing the authzId. May be null.
   private DN authzDN=null;
@@ -200,7 +205,7 @@ public class GetEffectiveRights extends Control {
       }
     } catch (ASN1Exception e) {
          if (debugEnabled()) {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
          }
 
          int msgID = MSGID_GETEFFECTIVERIGHTS_DECODE_ERROR;
@@ -208,7 +213,7 @@ public class GetEffectiveRights extends Control {
          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
     } catch (DirectoryException de) {
         if (debugEnabled()) {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         int msgID  = MSGID_CANNOT_DECODE_GETEFFECTIVERIGHTS_AUTHZID_DN;

@@ -61,10 +61,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.opends.server.util.ServerConstants.ATTR_REFERRAL_URL;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.JebMessages.
      MSGID_JEB_REFERRAL_RESULT_MESSAGE;
@@ -80,6 +78,11 @@ import static org.opends.server.messages.MessageHandler.getMessage;
  */
 public class DN2URI
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The standard attribute type that is used to specify the set of referral
@@ -160,7 +163,7 @@ public class DN2URI
 
       if(debugEnabled())
       {
-        debugInfo("JE DN2URI database %s opened with %d records.",
+        TRACER.debugInfo("JE DN2URI database %s opened with %d records.",
                   database.getDatabaseName(), database.count());
       }
     }
@@ -425,7 +428,7 @@ public class DN2URI
     {
       if(debugEnabled())
       {
-        debugVerbose("%d existing records will be deleted from the " +
+        TRACER.debugVerbose("%d existing records will be deleted from the " +
             "database", getRecordCount());
       }
       DatabaseEntry data = new DatabaseEntry();
@@ -443,14 +446,14 @@ public class DN2URI
       }
       if(debugEnabled())
       {
-        debugVerbose("%d records deleted", deletedCount);
+        TRACER.debugVerbose("%d records deleted", deletedCount);
       }
     }
     catch(DatabaseException de)
     {
       if(debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       throw de;
@@ -557,7 +560,7 @@ public class DN2URI
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         // Return the non-LDAP URI as is.
       }
@@ -630,14 +633,14 @@ public class DN2URI
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     catch (UnsupportedEncodingException e)
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -763,7 +766,7 @@ public class DN2URI
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
               // Return the non-LDAP URI as is.
             }
@@ -788,14 +791,14 @@ public class DN2URI
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     catch (UnsupportedEncodingException e)
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 

@@ -51,6 +51,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -67,6 +68,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class LDAPFilter
        extends RawFilter
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The set of subAny elements for substring filters.
   private ArrayList<ByteString> subAnyElements;
 
@@ -312,7 +318,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, le);
+        TRACER.debugCaught(DebugLogLevel.ERROR, le);
       }
 
       throw le;
@@ -321,7 +327,7 @@ public class LDAPFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_UNCAUGHT_EXCEPTION;

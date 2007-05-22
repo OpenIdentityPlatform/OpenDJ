@@ -42,6 +42,7 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawAttribute;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -59,6 +60,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class LDAPAttribute
        extends RawAttribute
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The set of values for this attribute.
   private ArrayList<ASN1OctetString> values;
 

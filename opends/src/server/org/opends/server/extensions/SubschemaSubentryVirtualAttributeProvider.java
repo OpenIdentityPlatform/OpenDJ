@@ -45,6 +45,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -58,6 +59,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class SubschemaSubentryVirtualAttributeProvider
        extends VirtualAttributeProvider<VirtualAttributeCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * Creates a new instance of this subschemaSubentry virtual attribute
    * provider.

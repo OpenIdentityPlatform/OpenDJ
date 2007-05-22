@@ -50,8 +50,8 @@ import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.JEBackendCfg;
@@ -66,6 +66,11 @@ public class BackendImpl
      extends Backend
      implements ConfigurationChangeListener<JEBackendCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The configuration of this JE backend.
@@ -174,7 +179,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -244,7 +249,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_OPEN_ENV_FAIL,
                                   e.getMessage());
@@ -259,7 +264,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, databaseException);
+        TRACER.debugCaught(DebugLogLevel.ERROR, databaseException);
       }
       String message = getMessage(MSGID_JEB_OPEN_DATABASE_FAIL,
                                   databaseException.getMessage());
@@ -283,7 +288,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, databaseException);
+        TRACER.debugCaught(DebugLogLevel.ERROR, databaseException);
       }
       String message = getMessage(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
                                   databaseException.getMessage());
@@ -301,7 +306,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
@@ -350,7 +355,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -378,7 +383,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_JEB_DATABASE_EXCEPTION;
       String message = getMessage(msgID, e.getMessage());
@@ -541,7 +546,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -576,7 +581,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
@@ -587,7 +592,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
@@ -633,7 +638,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
@@ -644,7 +649,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
@@ -687,7 +692,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
@@ -698,7 +703,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
@@ -743,7 +748,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                     e.getMessage());
@@ -754,7 +759,7 @@ public class BackendImpl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      e.getMessage(),
@@ -814,7 +819,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -824,7 +829,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -861,7 +866,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -904,7 +909,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ioe);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
       int msgID = MSGID_JEB_IO_ERROR;
       String message = getMessage(msgID, ioe.getMessage());
@@ -915,7 +920,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, je);
+        TRACER.debugCaught(DebugLogLevel.ERROR, je);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    je.getMessage(),
@@ -925,7 +930,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                   de.getMessage());
@@ -936,7 +941,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -957,7 +962,7 @@ public class BackendImpl
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -981,7 +986,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ioe);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
       int msgID = MSGID_JEB_IO_ERROR;
       String message = getMessage(msgID, ioe.getMessage());
@@ -992,7 +997,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, je);
+        TRACER.debugCaught(DebugLogLevel.ERROR, je);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    je.getMessage(),
@@ -1002,7 +1007,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                   de.getMessage());
@@ -1050,7 +1055,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                   e.getMessage());
@@ -1061,7 +1066,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -1082,7 +1087,7 @@ public class BackendImpl
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1136,7 +1141,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
                                   e.getMessage());
@@ -1147,7 +1152,7 @@ public class BackendImpl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    e.getMessage(),
@@ -1168,7 +1173,7 @@ public class BackendImpl
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1281,7 +1286,7 @@ public class BackendImpl
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             resultCode = DirectoryServer.getServerErrorResultCode();

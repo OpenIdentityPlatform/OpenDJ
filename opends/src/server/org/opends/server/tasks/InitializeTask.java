@@ -28,8 +28,8 @@ package org.opends.server.tasks;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 
@@ -61,6 +61,11 @@ import org.opends.server.types.ResultCode;
  */
 public class InitializeTask extends Task
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   boolean isCompressed            = false;
   boolean isEncrypted             = false;
   boolean skipSchemaValidation    = false;
@@ -128,7 +133,7 @@ public class InitializeTask extends Task
   {
     if (debugEnabled())
     {
-      debugInfo("InitializeTask is starting domain: %s source:%d",
+      TRACER.debugInfo("InitializeTask is starting domain: %s source:%d",
                 domain.getBaseDN(), source);
     }
     initState = getTaskState(); // RUNNING
@@ -162,7 +167,7 @@ public class InitializeTask extends Task
 
     if (debugEnabled())
     {
-      debugInfo("InitializeTask is ending with state:%d", initState);
+      TRACER.debugInfo("InitializeTask is ending with state:%d", initState);
     }
     return initState;
   }
@@ -190,7 +195,7 @@ public class InitializeTask extends Task
         logError(ErrorLogCategory.TASK,
             ErrorLogSeverity.SEVERE_ERROR,
             "setState: "+newState, 1);
-        debugInfo("InitializeTask/setState: ", newState);
+        TRACER.debugInfo("InitializeTask/setState: ", newState);
       }
       initState = newState;
       synchronized (initState)

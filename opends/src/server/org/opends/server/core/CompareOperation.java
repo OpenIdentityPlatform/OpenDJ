@@ -68,8 +68,8 @@ import org.opends.server.types.operation.PreParseCompareOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -88,6 +88,11 @@ public class CompareOperation
        implements PreParseCompareOperation, PreOperationCompareOperation,
                   PostOperationCompareOperation, PostResponseCompareOperation
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The attribute type for this compare operation.
   private AttributeType attributeType;
 
@@ -607,7 +612,7 @@ compareProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -693,7 +698,7 @@ compareProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, e);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
                 }
                 break;
               }
@@ -708,7 +713,7 @@ compareProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -744,7 +749,7 @@ compareProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -773,7 +778,7 @@ compareProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -813,7 +818,7 @@ compareProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -833,7 +838,7 @@ compareProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -891,7 +896,7 @@ compareProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -911,7 +916,7 @@ compareProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1175,7 +1180,7 @@ compareProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 

@@ -62,6 +62,7 @@ import org.opends.server.types.Schema;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.TaskMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -76,6 +77,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class AddSchemaFileTask
        extends Task
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The list of files to be added to the server schema.
   TreeSet<String> filesToAdd;
 
@@ -146,7 +152,7 @@ public class AddSchemaFileTask
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_CHECKING_FOR_FILE;
@@ -175,7 +181,7 @@ public class AddSchemaFileTask
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ce);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ce);
         }
 
         int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
@@ -188,7 +194,7 @@ public class AddSchemaFileTask
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
@@ -271,7 +277,7 @@ public class AddSchemaFileTask
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, ce);
+            TRACER.debugCaught(DebugLogLevel.ERROR, ce);
           }
 
           int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
@@ -285,7 +291,7 @@ public class AddSchemaFileTask
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, ie);
+            TRACER.debugCaught(DebugLogLevel.ERROR, ie);
           }
 
           int    msgID   = MSGID_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE;
@@ -310,7 +316,7 @@ public class AddSchemaFileTask
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int msgID = MSGID_TASK_ADDSCHEMAFILE_CANNOT_NOTIFY_SYNC_PROVIDER;

@@ -41,8 +41,8 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.LDAPException;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -71,6 +71,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class AccountUsableResponseControl
        extends Control
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -566,7 +571,7 @@ public class AccountUsableResponseControl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ae);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ae);
       }
 
       int msgID = MSGID_ACCTUSABLERES_DECODE_ERROR;
@@ -577,7 +582,7 @@ public class AccountUsableResponseControl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ACCTUSABLERES_DECODE_ERROR;

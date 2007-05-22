@@ -44,8 +44,8 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
@@ -58,6 +58,11 @@ import static org.opends.server.util.Validator.*;
  */
 public final class LDIFWriter
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // FIXME -- Add support for generating a hash when writing the data.
   // FIXME -- Add support for signing the hash that is generated.
 
@@ -657,7 +662,7 @@ public boolean writeEntries(Collection <Entry> entries)
         // This should never happen.
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         buffer.append(new String(valueBytes));
       }

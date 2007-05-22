@@ -28,9 +28,8 @@
 package org.opends.server.replication.protocol;
 
 import org.opends.server.api.DirectoryThread;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import java.io.IOException;
 
@@ -41,6 +40,11 @@ import java.io.IOException;
  */
 public class HeartbeatThread extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * For test purposes only to simulate loss of heartbeats.
@@ -90,7 +94,7 @@ public class HeartbeatThread extends DirectoryThread
     {
       if (debugEnabled())
       {
-        debugInfo("Heartbeat thread is starting, interval is %d",
+        TRACER.debugInfo("Heartbeat thread is starting, interval is %d",
                   heartbeatInterval);
       }
       HeartbeatMessage heartbeatMessage = new HeartbeatMessage();
@@ -100,8 +104,8 @@ public class HeartbeatThread extends DirectoryThread
         long now = System.currentTimeMillis();
         if (debugEnabled())
         {
-          debugVerbose("Heartbeat thread awoke at %d, last message was sent " +
-              "at %d", now, session.getLastPublishTime());
+          TRACER.debugVerbose("Heartbeat thread awoke at %d, last message " +
+              "was sent at %d", now, session.getLastPublishTime());
         }
 
         if (now > session.getLastPublishTime() + heartbeatInterval)
@@ -110,7 +114,7 @@ public class HeartbeatThread extends DirectoryThread
           {
             if (debugEnabled())
             {
-              debugVerbose("Heartbeat sent at %d", now);
+              TRACER.debugVerbose("Heartbeat sent at %d", now);
             }
             session.publish(heartbeatMessage);
           }
@@ -127,7 +131,7 @@ public class HeartbeatThread extends DirectoryThread
 
           if (debugEnabled())
           {
-            debugVerbose("Heartbeat thread sleeping for %d", sleepTime);
+            TRACER.debugVerbose("Heartbeat thread sleeping for %d", sleepTime);
           }
           Thread.sleep(sleepTime);
         }
@@ -141,7 +145,7 @@ public class HeartbeatThread extends DirectoryThread
     {
       if (debugEnabled())
       {
-        debugInfo("Heartbeat thread could not send a heartbeat.");
+        TRACER.debugInfo("Heartbeat thread could not send a heartbeat.");
       }
       // This will be caught in another thread.
     }
@@ -149,7 +153,7 @@ public class HeartbeatThread extends DirectoryThread
     {
       if (debugEnabled())
       {
-        debugInfo("Heartbeat thread is exiting.");
+        TRACER.debugInfo("Heartbeat thread is exiting.");
       }
     }
   }

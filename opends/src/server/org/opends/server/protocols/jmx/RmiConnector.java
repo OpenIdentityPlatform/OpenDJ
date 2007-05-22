@@ -47,11 +47,8 @@ import org.opends.server.config.JMXMBean;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.NullKeyManagerProvider;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
-import static org.opends.server.loggers.debug.DebugLogger.debugWarning;
-import static org.opends.server.loggers.debug.DebugLogger.debugError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
 import org.opends.server.util.SelectableCertificateKeyManager;
@@ -73,6 +70,11 @@ import org.opends.server.util.SelectableCertificateKeyManager;
  */
 public class RmiConnector
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The MBean server used to handle JMX interaction.
@@ -190,7 +192,7 @@ public class RmiConnector
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       throw new RuntimeException("Error while starting the RMI module : "
@@ -199,7 +201,7 @@ public class RmiConnector
 
     if (debugEnabled())
     {
-      debugVerbose("RMI module started");
+      TRACER.debugVerbose("RMI module started");
     }
   }
 
@@ -219,7 +221,8 @@ public class RmiConnector
     // create our local RMI registry if it does not exist already
     if (debugEnabled())
     {
-      debugVerbose("start or reach an RMI registry on port %d", registryPort);
+      TRACER.debugVerbose("start or reach an RMI registry on port %d",
+                          registryPort);
     }
     try
     {
@@ -237,7 +240,7 @@ public class RmiConnector
       // is the registry already created ?
       if (debugEnabled())
       {
-        debugWarning("cannot create the RMI registry -> already done ?");
+        TRACER.debugWarning("cannot create the RMI registry -> already done ?");
       }
       try
       {
@@ -256,11 +259,11 @@ public class RmiConnector
         {
           //
           // no 'valid' registry found on the specified port
-          debugError("exception thrown while pinging the RMI registry");
+          TRACER.debugError("exception thrown while pinging the RMI registry");
 
           //
           // throw the original exception
-          debugCaught(DebugLogLevel.ERROR, re);
+          TRACER.debugCaught(DebugLogLevel.ERROR, re);
         }
         throw re;
       }
@@ -270,7 +273,7 @@ public class RmiConnector
       // it was not created by this call
       if (debugEnabled())
       {
-        debugWarning("RMI was registry already started");
+        TRACER.debugWarning("RMI was registry already started");
       }
     }
   }
@@ -304,7 +307,7 @@ public class RmiConnector
       {
         if (debugEnabled())
         {
-          debugVerbose("SSL connection");
+          TRACER.debugVerbose("SSL connection");
         }
 
         // ---------------------
@@ -363,7 +366,7 @@ public class RmiConnector
       {
         if (debugEnabled())
         {
-          debugVerbose("UNSECURE CONNECTION");
+          TRACER.debugVerbose("UNSECURE CONNECTION");
         }
       }
 
@@ -371,7 +374,7 @@ public class RmiConnector
       // specify the rmi JMX authenticator to be used
       if (debugEnabled())
       {
-        debugVerbose("Add RmiAuthenticator into JMX map");
+        TRACER.debugVerbose("Add RmiAuthenticator into JMX map");
       }
       rmiAuthenticator = new RmiAuthenticator(jmxConnectionHandler);
 
@@ -389,7 +392,7 @@ public class RmiConnector
       // Create and start the connector
       if (debugEnabled())
       {
-        debugVerbose("Create and start the JMX RMI connector");
+        TRACER.debugVerbose("Create and start the JMX RMI connector");
       }
       OpendsRMIJRMPServerImpl opendsRmiConnectorServer =
           new OpendsRMIJRMPServerImpl(
@@ -407,7 +410,7 @@ public class RmiConnector
 
       if (debugEnabled())
       {
-        debugVerbose("JMX RMI connector Started");
+        TRACER.debugVerbose("JMX RMI connector Started");
       }
 
     }
@@ -415,7 +418,7 @@ public class RmiConnector
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw e;
     }
@@ -487,7 +490,7 @@ public class RmiConnector
       // TODO Log an error message
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -504,7 +507,7 @@ public class RmiConnector
         // TODO Log an error message
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
       registry = null;

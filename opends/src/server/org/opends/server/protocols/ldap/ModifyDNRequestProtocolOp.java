@@ -38,6 +38,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -53,6 +54,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class ModifyDNRequestProtocolOp
        extends ProtocolOp
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The current entry DN for this modify DN request.
   private ASN1OctetString entryDN;
 
@@ -276,7 +282,7 @@ public class ModifyDNRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_SEQUENCE;
@@ -303,7 +309,7 @@ public class ModifyDNRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_DN;
@@ -321,7 +327,7 @@ public class ModifyDNRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_RDN;
@@ -339,7 +345,7 @@ public class ModifyDNRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_DELETE_OLD_RDN;
@@ -359,7 +365,7 @@ public class ModifyDNRequestProtocolOp
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_LDAP_MODIFY_DN_REQUEST_DECODE_NEW_SUPERIOR;

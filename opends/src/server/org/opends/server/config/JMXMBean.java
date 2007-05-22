@@ -67,9 +67,9 @@ import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -96,6 +96,11 @@ import org.opends.server.types.ModificationType;
 public class JMXMBean
        implements DynamicMBean, DirectoryServerMBean
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The fully-qualified name of this class.
    */
@@ -174,7 +179,7 @@ public class JMXMBean
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
           int msgID = MSGID_CONFIG_JMX_CANNOT_REGISTER_MBEAN;
@@ -220,7 +225,7 @@ public class JMXMBean
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, e);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, e);
                   }
                 }
 
@@ -230,7 +235,7 @@ public class JMXMBean
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
                 e.printStackTrace();
 
@@ -619,7 +624,7 @@ public class JMXMBean
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_ATTRIBUTE;
@@ -657,7 +662,7 @@ public class JMXMBean
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
@@ -700,7 +705,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
@@ -723,7 +728,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       logError(
           ErrorLogCategory.CONFIGURATION,
@@ -781,7 +786,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_CONFIG_ENTRY;
@@ -894,7 +899,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -980,7 +985,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(
@@ -1042,7 +1047,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -1091,7 +1096,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, me);
+              TRACER.debugCaught(DebugLogLevel.ERROR, me);
             }
 
             throw me;
@@ -1100,7 +1105,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             throw new MBeanException(e);

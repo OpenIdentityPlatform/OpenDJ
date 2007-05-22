@@ -47,10 +47,10 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -70,6 +70,11 @@ public final class ProfilerPlugin
        extends DirectoryServerPlugin<ProfilerPluginCfg>
        implements ConfigurationChangeListener<ProfilerPluginCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The value to use for the profiler action when no action is necessary.
    */
@@ -201,7 +206,7 @@ public final class ProfilerPlugin
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA;
@@ -338,7 +343,7 @@ public final class ProfilerPlugin
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
               msgID = MSGID_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA;

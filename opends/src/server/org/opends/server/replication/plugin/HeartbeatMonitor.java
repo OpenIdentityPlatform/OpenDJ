@@ -27,8 +27,8 @@
 
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import java.io.IOException;
 
@@ -41,6 +41,11 @@ import org.opends.server.replication.protocol.ProtocolSession;
  */
 public class HeartbeatMonitor extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
   /**
@@ -94,7 +99,7 @@ public class HeartbeatMonitor extends DirectoryThread
   {
     if (debugEnabled())
     {
-      debugInfo("Heartbeat monitor is starting, expected interval is %d",
+      TRACER.debugInfo("Heartbeat monitor is starting, expected interval is %d",
                 heartbeatInterval);
     }
     try
@@ -105,14 +110,14 @@ public class HeartbeatMonitor extends DirectoryThread
         long lastReceiveTime = session.getLastReceiveTime();
         if (now > lastReceiveTime + 2 * heartbeatInterval)
         {
-          debugInfo("Heartbeat monitor is closing the broker session " +
+          TRACER.debugInfo("Heartbeat monitor is closing the broker session " +
           "because it could not detect a heartbeat.");
 
           // Heartbeat is well overdue so the server is assumed to be dead.
           if (debugEnabled())
           {
-            debugInfo("Heartbeat monitor is closing the broker session " +
-                "because it could not detect a heartbeat.");
+            TRACER.debugInfo("Heartbeat monitor is closing the broker " +
+                "session because it could not detect a heartbeat.");
           }
           session.close();
           break;
@@ -135,7 +140,7 @@ public class HeartbeatMonitor extends DirectoryThread
     {
       if (debugEnabled())
       {
-        debugInfo("Heartbeat monitor is exiting.");
+        TRACER.debugInfo("Heartbeat monitor is exiting.");
       }
     }
   }

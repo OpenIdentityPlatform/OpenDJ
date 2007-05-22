@@ -26,10 +26,8 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
 import com.sleepycat.je.Cursor;
@@ -58,6 +56,11 @@ import java.util.*;
  */
 public class Index
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
   /**
@@ -162,7 +165,7 @@ public class Index
 
       if(debugEnabled())
       {
-        debugInfo("JE Index database %s opened with %d records.",
+        TRACER.debugInfo("JE Index database %s opened with %d records.",
                   database.getDatabaseName(), database.count());
       }
     }
@@ -343,7 +346,7 @@ public class Index
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       return new EntryIDSet();
     }
@@ -490,7 +493,7 @@ public class Index
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       return new EntryIDSet();
     }
@@ -547,7 +550,7 @@ public class Index
     {
       if(debugEnabled())
       {
-        debugVerbose("%d existing records will be deleted from the " +
+        TRACER.debugVerbose("%d existing records will be deleted from the " +
             "database", getRecordCount());
       }
       DatabaseEntry data = new DatabaseEntry();
@@ -565,14 +568,14 @@ public class Index
       }
       if(debugEnabled())
       {
-        debugVerbose("%d records deleted", deletedCount);
+        TRACER.debugVerbose("%d records deleted", deletedCount);
       }
     }
     catch(DatabaseException de)
     {
       if(debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       throw de;

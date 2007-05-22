@@ -26,8 +26,6 @@
  */
 package org.opends.server.loggers.debug;
 
-import org.aspectj.lang.annotation.*;
-import org.aspectj.lang.JoinPoint;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.ProtocolElement;
 import org.opends.server.types.DebugLogCategory;
@@ -35,288 +33,71 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.LogCategory;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
-import java.util.Set;
 import java.nio.ByteBuffer;
 
 import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.Database;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.DatabaseEntry;
-
-import static
-    org.opends.server.loggers.debug.DebugLogger.DEFAULT_CONSTRUCTOR_LEVEL;
-import static
-    org.opends.server.loggers.debug.DebugLogger.DEFAULT_ENTRY_EXIT_LEVEL;
-import static
-    org.opends.server.loggers.debug.DebugLogger.DEFAULT_THROWN_LEVEL;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugPublishers;
-import static
-    org.opends.server.loggers.debug.DebugLogger.classTracers;
+import com.sleepycat.je.Database;
 
 /**
- * An aspect for source-code tracing at the method level.
+ * Class for source-code tracing at the method level.
  *
- * One DebugLogger aspect instance exists for each Java class using tracing.
+ * One DebugTracer instance exists for each Java class using tracing.
  * Tracer must be registered with the DebugLogger.
  *
  * Logging is always done at a level basis, with debug log messages
  * exceeding the trace threshold being traced, others being discarded.
  */
-@Aspect("pertypewithin(!@DebugLogger.NoDebugTracing org.opends.server..*+ && " +
-    "!org.opends.server.loggers.*+ && " +
-    "!org.opends.server.loggers.debug..*+ &&" +
-    "!org.opends.server.types.DebugLogLevel+ && " +
-    "!org.opends.server.types.DebugLogCategory+ && " +
-    "!org.opends.server.api.DebugLogPublisher+ &&" +
-    "!org.opends.server.util.TimeThread+)")
+
 public class DebugTracer
 {
-    /**
-   * Pointcut for matching static context events.
-   */
-  @Pointcut("!this(Object)")
-  private void staticContext()
-  {
-  }
-
-  /**
-   * Pointcut for matching non static context events.
-   * @param obj The object being operated on.
-   */
-  @Pointcut("this(obj)")
-  private void nonStaticContext(Object obj)
-  {
-  }
-
-  /**
-   * Pointcut for matching all toString() methods.
-   */
-  @Pointcut("execution(* *..toString(..))")
-  private void toStringMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching all getMessage() methods.
-   */
-  @Pointcut("execution(String org.opends.server." +
-      "messages.MessageHandler.getMessage(..))")
-  private void getMessageMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching all getDebugProperties() methods.
-   * TODO: Make this less general. Find out if pointcut matches
-   * subclass methods.
-   */
-  @Pointcut("execution(* *..getDebugProperties(..))")
-  private void getDebugPropertiesMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching debugMessage() methods.
-   */
-  @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugMessage(..))")
-  private void logMessageMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching debugVerbose() methods.
-   */
-  @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugVerbose(..))")
-  private void logVerboseMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching debugInfo() methods.
-   */
-  @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugInfo(..))")
-  private void logInfoMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching debugWarning() methods.
-   */
-  @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugWarning(..))")
-  private void logWarningMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching debugError() methods.
-   */
-  @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugError(..))")
-  private void logErrorMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching debugThrown() methods.
-   */
-  @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugThrown(..))")
-  private void logThrownMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching debugCaught() methods.
-   */
-  @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugCaught(..))")
-  private void logCaughtMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching debugJEAccess() methods.
-   */
-  @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugJEAccess(..))")
-  private void logJEAccessMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching debugData() methods.
-   */
-  @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugData(..))")
-  private void logDataMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching debugProtocolElement() methods.
-   */
-  @Pointcut("call(public static void org.opends.server." +
-      "loggers.debug.DebugLogger.debugProtocolElement(..))")
-  private void logProtocolElementMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching all debug logging methods.
-   */
-  @Pointcut("logMessageMethod() || logVerboseMethod() || logInfoMethod() || " +
-      "logWarningMethod() || logErrorMethod() || logCaughtMethod() || " +
-      "logJEAccessMethod() || logDataMethod() || logProtocolElementMethod()")
-  private void logMethods()
-  {
-  }
-
-  /**
-   * Pointcut to exclude all pointcuts which should not be adviced by the
-   * debug logger.
-   */
-  @Pointcut("toStringMethod() || getMessageMethod() || " +
-      "getDebugPropertiesMethod() || logMethods()")
-  private void excluded()
-  {
-  }
-
-  /**
-   * Pointcut for matching the execution of all public methods.
-   */
-  @Pointcut("execution(!@(DebugLogger.NoDebugTracing || " +
-      "DebugLogger.NoEntryDebugTracing) public * *(..)) && " +
-      "!excluded()")
-  void tracedEntryMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching the execution of all public methods.
-   */
-  @Pointcut("execution(!@(DebugLogger.NoDebugTracing || " +
-      "DebugLogger.NoExitDebugTracing) public * *(..)) && " +
-      "!excluded()")
-  void tracedExitMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching the execution of all public methods.
-   */
-  @Pointcut("execution(@DebugLogger.TraceThrown public * *(..)) && " +
-      "!excluded()")
-  void tracedThrownMethod()
-  {
-  }
-
-  /**
-   * Pointcut for matching the execution of all constructors.
-   */
-  @Pointcut("execution(!@(DebugLogger.NoDebugTracing || " +
-      "DebugLogger.NoEntryDebugTracing) public new(..)) && !excluded()")
-  void tracedEntryConstructor()
-  {
-  }
-
-  /**
-   * Pointcut for matching the execution of all constructors.
-   */
-  @Pointcut("execution(!@(DebugLogger.NoDebugTracing || " +
-      "DebugLogger.NoExitDebugTracing) public new(..)) && !excluded()")
-  void tracedExitConstructor()
-  {
-  }
-
-  /**
-   * Pointcut for matching only if there are publishers.
-   *
-   * @return if debug logging is enabled.
-   */
-  @Pointcut("if()")
-  public static boolean shouldTrace()
-  {
-    return DebugLogger.enabled;
-  }
-
   // The class this aspect traces.
-  String className;
-
-  //The current class level trace settings.
-  ConcurrentHashMap<DebugLogPublisher, TraceSettings> classSettings =
-      new ConcurrentHashMap<DebugLogPublisher, TraceSettings>();
-
-  //The current method level trace settings.
-  ConcurrentHashMap<DebugLogPublisher, Map<String, TraceSettings>>
-      methodSettings = new ConcurrentHashMap<DebugLogPublisher,
-                           Map<String, TraceSettings>>();
-
+  private String className;
 
   /**
-   * AspectJ Implementation.
+   * A class that represents a settings cache entry.
+   */
+  private class PublisherSettings
+  {
+    DebugLogPublisher debugPublisher;
+    TraceSettings classSettings;
+    Map<String, TraceSettings> methodSettings;
+  }
+
+  PublisherSettings[] publisherSettings;
+
+  /**
+   * Construct a new DebugTracer object with cached settings obtained from
+   * the provided array of publishers.
    *
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
+   * @param publishers The array of publishers to obtain the settings from.
    */
   @SuppressWarnings("unchecked")
-  @Before("staticinitialization(*)")
-  public void initializeTracer(JoinPoint.StaticPart thisJoinPointStaticPart)
+  DebugTracer(DebugLogPublisher[] publishers)
   {
-    classTracers.add(this);
-    className = thisJoinPointStaticPart.getSignature().getDeclaringTypeName();
+    // Trim off the debug logging and non OpenDS frames.
+    StackTraceElement callerFrame =
+        getCallerFrame(Thread.currentThread().getStackTrace());
+
+    // TODO: What if this is null or 0 length?
+    if(callerFrame != null)
+    {
+      // The caller should be the first item on the stack.
+      className = callerFrame.getClassName();
+    }
+
+    publisherSettings = new PublisherSettings[publishers.length];
 
     // Get the settings from all publishers.
-    for(DebugLogPublisher logPublisher :
-        debugPublishers.values())
+    for(int i = 0; i < publishers.length; i++)
     {
-      TraceSettings cSettings = logPublisher.getClassSettings(className);
-      classSettings.put(logPublisher, cSettings);
+      DebugLogPublisher publisher = publishers[i];
+      PublisherSettings settings = new PublisherSettings();
+
+      settings.debugPublisher = publisher;
+      settings.classSettings = publisher.getClassSettings(className);
 
       // For some reason, the compiler doesn't see that
       // debugLogPublihser.getMethodSettings returns a parameterized Map.
@@ -324,541 +105,729 @@ public class DebugTracer
       // is used. However, we can't not use reflection to instantiate a generic
       // DebugLogPublisher<? extends DebugLogPublisherCfg> type. The only thing
       // we can do is to just supress the compiler warnings.
-      Map<String, TraceSettings> mSettings =
-          logPublisher.getMethodSettings(className);
-      if(mSettings != null)
-      {
-        methodSettings.put(logPublisher, mSettings);
-      }
+      settings.methodSettings = publisher.getMethodSettings(className);
+
+      publisherSettings[i] = settings;
     }
   }
 
   /**
-   * AspectJ Implementation.
+   * Log an constructor execution event.
    *
-   * @param thisJoinPoint the JoinPoint reflection object.
+   * @param level The level of the message being logged.
+   * @param args The arguments passed to the constructor.
    */
-  @Before("shouldTrace() && tracedEntryConstructor()")
-  public void traceConstructor(JoinPoint thisJoinPoint)
+  public void debugConstructor(LogLevel level, Object... args)
   {
-    String signature = thisJoinPoint.getSignature().getName();
-    String sl = thisJoinPoint.getSourceLocation().toString();
-    Object[] args = thisJoinPoint.getArgs();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
+    if(DebugLogger.debugEnabled())
     {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DEFAULT_CONSTRUCTOR_LEVEL.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.CONSTRUCTOR).intValue())
+      StackTraceElement[] stackTrace = null;
+      StackTraceElement[] filteredStackTrace = null;
+      StackTraceElement callerFrame = null;
+      for (PublisherSettings settings : publisherSettings)
       {
-        logPublisher.traceConstructor(DebugLogger.DEFAULT_CONSTRUCTOR_LEVEL,
-                                   settings, signature, sl, args);
+        TraceSettings activeSettings = settings.classSettings;
+        Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+        if (shouldLog(level, DebugLogCategory.CONSTRUCTOR,
+                      activeSettings) || methodSettings != null)
+        {
+          if(stackTrace == null)
+          {
+            stackTrace = Thread.currentThread().getStackTrace();
+          }
+          if (callerFrame == null)
+          {
+            callerFrame = getCallerFrame(stackTrace);
+          }
+
+          String signature = callerFrame.getMethodName();
+
+          // Specific method settings still could exist. Try getting
+          // the settings for this method.
+          if(methodSettings != null)
+          {
+            TraceSettings mSettings = methodSettings.get(signature);
+
+            if (mSettings == null)
+            {
+              // Try looking for an undecorated method name
+              int idx = signature.indexOf('(');
+              if (idx != -1)
+              {
+                mSettings =
+                    methodSettings.get(signature.substring(0, idx));
+              }
+            }
+
+            // If this method does have a specific setting and it is not
+            // suppose to be logged, continue.
+            if (mSettings != null)
+            {
+              if(!shouldLog(level, DebugLogCategory.CONSTRUCTOR,
+                            mSettings))
+              {
+                continue;
+              }
+              else
+              {
+                activeSettings = mSettings;
+              }
+            }
+          }
+
+          String sl = callerFrame.getFileName() + " @ " +
+              callerFrame.getLineNumber();
+
+          if (activeSettings.noArgs)
+          {
+            args = null;
+          }
+
+          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          {
+            filteredStackTrace =
+                DebugStackTraceFormatter.SMART_FRAME_FILTER.
+                    getFilteredStackTrace(stackTrace);
+          }
+
+          settings.debugPublisher.traceConstructor(level,
+                                                   activeSettings, signature,
+                                                   sl, args,
+                                                   filteredStackTrace);
+        }
       }
     }
   }
 
   /**
-   * AspectJ Implementation.
+   * Log an non static method entry event.
    *
-   * @param thisJoinPoint the JoinPoint reflection object.
-   * @param obj the object this method operations on.
+   * @param level The level of the message being logged.
+   * @param obj The object type instance the method is a member of.
+   * @param args The arguments passed to the method.
    */
-  @Before("shouldTrace() && tracedEntryMethod() && nonStaticContext(obj)")
-  public void traceNonStaticMethodEntry(JoinPoint thisJoinPoint, Object obj)
+  public void debugMethodEntry(LogLevel level, Object obj, Object... args)
   {
-    String signature = thisJoinPoint.getSignature().getName();
-    String sl = thisJoinPoint.getSourceLocation().toString();
-    Object[] args = thisJoinPoint.getArgs();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
+    if(DebugLogger.debugEnabled())
     {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DEFAULT_ENTRY_EXIT_LEVEL.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.ENTER).intValue())
+      StackTraceElement[] stackTrace = null;
+      StackTraceElement[] filteredStackTrace = null;
+      StackTraceElement callerFrame = null;
+      for (PublisherSettings settings : publisherSettings)
       {
-        logPublisher.traceNonStaticMethodEntry(DEFAULT_ENTRY_EXIT_LEVEL,
-                                               settings, signature, sl, obj,
-                                               args);
+        TraceSettings activeSettings = settings.classSettings;
+        Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+        if (shouldLog(level, DebugLogCategory.ENTER,
+                      activeSettings) || methodSettings != null)
+        {
+          if(stackTrace == null)
+          {
+            stackTrace = Thread.currentThread().getStackTrace();
+          }
+          if (callerFrame == null)
+          {
+            callerFrame = getCallerFrame(stackTrace);
+          }
+
+          String signature = callerFrame.getMethodName();
+
+          // Specific method settings still could exist. Try getting
+          // the settings for this method.
+          if(methodSettings != null)
+          {
+            TraceSettings mSettings = methodSettings.get(signature);
+
+            if (mSettings == null)
+            {
+              // Try looking for an undecorated method name
+              int idx = signature.indexOf('(');
+              if (idx != -1)
+              {
+                mSettings =
+                    methodSettings.get(signature.substring(0, idx));
+              }
+            }
+
+            // If this method does have a specific setting and it is not
+            // suppose to be logged, continue.
+            if (mSettings != null)
+            {
+              if(!shouldLog(level, DebugLogCategory.ENTER,
+                            mSettings))
+              {
+                continue;
+              }
+              else
+              {
+                activeSettings = mSettings;
+              }
+            }
+          }
+
+          String sl = callerFrame.getFileName() + " @ " +
+              callerFrame.getLineNumber();
+
+          if (activeSettings.noArgs)
+          {
+            args = null;
+          }
+
+          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          {
+            filteredStackTrace =
+                DebugStackTraceFormatter.SMART_FRAME_FILTER.
+                    getFilteredStackTrace(stackTrace);
+          }
+
+          settings.debugPublisher.traceMethodEntry(level,
+                                                   activeSettings, signature,
+                                                   sl, obj, args,
+                                                   filteredStackTrace);
+        }
       }
     }
   }
 
   /**
-   * AspectJ Implementation.
+   * Log an static method entry event.
    *
-   * @param thisJoinPoint the JoinPoint reflection object.
+   * @param level The level of the message being logged.
+   * @param args The arguments passed to the method.
    */
-  @Before("shouldTrace() && tracedEntryMethod() && staticContext()")
-  public void traceStaticMethodEntry(JoinPoint thisJoinPoint)
+  public void debugStaticMethodEntry(LogLevel level, Object... args)
   {
-    String signature = thisJoinPoint.getSignature().getName();
-    String sl = thisJoinPoint.getSourceLocation().toString();
-    Object[] args = thisJoinPoint.getArgs();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
+    if(DebugLogger.debugEnabled())
     {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DEFAULT_ENTRY_EXIT_LEVEL.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.ENTER).intValue())
+      StackTraceElement[] stackTrace = null;
+      StackTraceElement[] filteredStackTrace = null;
+      StackTraceElement callerFrame = null;
+      for (PublisherSettings settings : publisherSettings)
       {
-        logPublisher.traceStaticMethodEntry(DEFAULT_ENTRY_EXIT_LEVEL, settings,
-                                         signature, sl, args);
+        TraceSettings activeSettings = settings.classSettings;
+        Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+        if (shouldLog(level, DebugLogCategory.ENTER,
+                      activeSettings) || methodSettings != null)
+        {
+          if(stackTrace == null)
+          {
+            stackTrace = Thread.currentThread().getStackTrace();
+          }
+          if (callerFrame == null)
+          {
+            callerFrame = getCallerFrame(stackTrace);
+          }
+
+          String signature = callerFrame.getMethodName();
+
+          // Specific method settings still could exist. Try getting
+          // the settings for this method.
+          if(methodSettings != null)
+          {
+            TraceSettings mSettings = methodSettings.get(signature);
+
+            if (mSettings == null)
+            {
+              // Try looking for an undecorated method name
+              int idx = signature.indexOf('(');
+              if (idx != -1)
+              {
+                mSettings =
+                    methodSettings.get(signature.substring(0, idx));
+              }
+            }
+
+            // If this method does have a specific setting and it is not
+            // suppose to be logged, continue.
+            if (mSettings != null)
+            {
+              if(!shouldLog(level, DebugLogCategory.ENTER,
+                            mSettings))
+              {
+                continue;
+              }
+              else
+              {
+                activeSettings = mSettings;
+              }
+            }
+          }
+
+          String sl = callerFrame.getFileName() + " @ " +
+              callerFrame.getLineNumber();
+
+          if (activeSettings.noArgs)
+          {
+            args = null;
+          }
+
+          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          {
+            filteredStackTrace =
+                DebugStackTraceFormatter.SMART_FRAME_FILTER.
+                    getFilteredStackTrace(stackTrace);
+          }
+
+          settings.debugPublisher.traceStaticMethodEntry(level,
+                                                         activeSettings,
+                                                         signature, sl, args,
+                                                         filteredStackTrace);
+        }
       }
     }
   }
 
   /**
-   * AspectJ Implementation.
+   * Log a return from a method call event.
    *
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
-   * @param ret the return value of the method.
+   * @param level The level of the message being logged.
+   * @param ret The value being returned from the method.
    */
-  @AfterReturning(pointcut = "shouldTrace() && " +
-      "(tracedExitMethod() || tracedExitConstructor())",
-                  returning = "ret")
-  public void traceReturn(JoinPoint.StaticPart thisJoinPointStaticPart,
-                          Object ret)
+  public void debugReturn(LogLevel level, Object ret)
   {
-    String signature = thisJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
+    if(DebugLogger.debugEnabled())
     {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DEFAULT_ENTRY_EXIT_LEVEL.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.EXIT).intValue())
+      StackTraceElement[] stackTrace = null;
+      StackTraceElement[] filteredStackTrace = null;
+      StackTraceElement callerFrame = null;
+      for (PublisherSettings settings : publisherSettings)
       {
-        logPublisher.traceReturn(DEFAULT_ENTRY_EXIT_LEVEL, settings, signature,
-                                 sl, ret);
+        TraceSettings activeSettings = settings.classSettings;
+        Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+        if (shouldLog(level, DebugLogCategory.ENTER,
+                      activeSettings) || methodSettings != null)
+        {
+          if(stackTrace == null)
+          {
+            stackTrace = Thread.currentThread().getStackTrace();
+          }
+          if (callerFrame == null)
+          {
+            callerFrame = getCallerFrame(stackTrace);
+          }
+
+          String signature = callerFrame.getMethodName();
+
+          // Specific method settings still could exist. Try getting
+          // the settings for this method.
+          if(methodSettings != null)
+          {
+            TraceSettings mSettings = methodSettings.get(signature);
+
+            if (mSettings == null)
+            {
+              // Try looking for an undecorated method name
+              int idx = signature.indexOf('(');
+              if (idx != -1)
+              {
+                mSettings =
+                    methodSettings.get(signature.substring(0, idx));
+              }
+            }
+
+            // If this method does have a specific setting and it is not
+            // suppose to be logged, continue.
+            if (mSettings != null)
+            {
+              if(!shouldLog(level, DebugLogCategory.ENTER,
+                            mSettings))
+              {
+                continue;
+              }
+              else
+              {
+                activeSettings = mSettings;
+              }
+            }
+          }
+
+          String sl = callerFrame.getFileName() + " @ " +
+              callerFrame.getLineNumber();
+
+          if (activeSettings.noRetVal)
+          {
+            ret = null;
+          }
+
+          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          {
+            filteredStackTrace =
+                DebugStackTraceFormatter.SMART_FRAME_FILTER.
+                    getFilteredStackTrace(stackTrace);
+          }
+
+          settings.debugPublisher.traceReturn(level,
+                                              activeSettings, signature,
+                                              sl, ret,
+                                              filteredStackTrace);
+        }
       }
     }
   }
 
   /**
-   * AspectJ Implementation.
+   * Log an exception thrown from a method.
    *
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
-   * @param ex the exception thrown.
+   * @param level The level of the message being logged.
+   * @param ex The exception being thrown.
    */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @AfterThrowing(pointcut = "shouldTrace() && tracedThrownMethod()",
-                 throwing = "ex")
-  public void traceThrown(JoinPoint.StaticPart thisJoinPointStaticPart,
-                          Throwable ex)
+  public void debugThrown(LogLevel level, Throwable ex)
   {
-    String signature = thisJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
+    if(DebugLogger.debugEnabled())
     {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DEFAULT_THROWN_LEVEL.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.THROWN).intValue())
+      StackTraceElement[] stackTrace = null;
+      StackTraceElement[] filteredStackTrace = null;
+      StackTraceElement callerFrame = null;
+      for (PublisherSettings settings : publisherSettings)
       {
-        logPublisher.traceThrown(DEFAULT_THROWN_LEVEL, settings, signature, sl,
-                              ex);
+        TraceSettings activeSettings = settings.classSettings;
+        Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+        if (shouldLog(level, DebugLogCategory.THROWN,
+                      activeSettings) || methodSettings != null)
+        {
+          if(stackTrace == null)
+          {
+            stackTrace = Thread.currentThread().getStackTrace();
+          }
+          if (callerFrame == null)
+          {
+            callerFrame = getCallerFrame(stackTrace);
+          }
+
+          String signature = callerFrame.getMethodName();
+
+          // Specific method settings still could exist. Try getting
+          // the settings for this method.
+          if(methodSettings != null)
+          {
+            TraceSettings mSettings = methodSettings.get(signature);
+
+            if (mSettings == null)
+            {
+              // Try looking for an undecorated method name
+              int idx = signature.indexOf('(');
+              if (idx != -1)
+              {
+                mSettings =
+                    methodSettings.get(signature.substring(0, idx));
+              }
+            }
+
+            // If this method does have a specific setting and it is not
+            // suppose to be logged, continue.
+            if (mSettings != null)
+            {
+              if(!shouldLog(level, DebugLogCategory.THROWN,
+                            mSettings))
+              {
+                continue;
+              }
+              else
+              {
+                activeSettings = mSettings;
+              }
+            }
+          }
+
+          String sl = callerFrame.getFileName() + " @ " +
+              callerFrame.getLineNumber();
+
+          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          {
+            filteredStackTrace =
+                DebugStackTraceFormatter.SMART_FRAME_FILTER.
+                    getFilteredStackTrace(ex.getStackTrace());
+          }
+
+          settings.debugPublisher.traceThrown(level, activeSettings, signature,
+                                              sl, ex, filteredStackTrace);
+        }
       }
     }
   }
 
   /**
-   * AspectJ Implementation.
+   * Log an arbitrary event at the verbose level.
+   * Same as debugMessage(DebugLogLevel.ERROR, msg)
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
+   * @param msg message to format and log.
+   */
+  public void debugVerbose(String msg)
+  {
+    debugMessage(DebugLogLevel.VERBOSE, msg, new Object[]{});
+  }
+
+  /**
+   * Log an arbitrary event at the verbose level.
+   * Same as debugMessage(DebugLogLevel.ERROR, msg, msgArgs...)
+   *
+   * @param msg message to format and log.
+   * @param msgArgs arguments to place into the format string.
+   */
+  public void debugVerbose(String msg, Object... msgArgs)
+  {
+    debugMessage(DebugLogLevel.VERBOSE, msg, msgArgs);
+  }
+
+  /**
+   * Log an arbitrary event at the info level.
+   * Same as debugMessage(DebugLogLevel.ERROR, msg)
+   *
+   * @param msg message to format and log.
+   */
+  public void debugInfo(String msg)
+  {
+    debugMessage(DebugLogLevel.INFO, msg, new Object[]{});
+  }
+
+  /**
+   * Log an arbitrary event at the info level.
+   * Same as debugMessage(DebugLogLevel.ERROR, msg, msgArgs...)
+   *
+   * @param msg message to format and log.
+   * @param msgArgs arguments to place into the format string.
+   */
+  public void debugInfo(String msg, Object... msgArgs)
+  {
+    debugMessage(DebugLogLevel.INFO, msg, msgArgs);
+  }
+
+  /**
+   * Log an arbitrary event at the warning level.
+   * Same as debugMessage(DebugLogLevel.ERROR, msg)
+   *
+   * @param msg message to format and log.
+   */
+  public void debugWarning(String msg)
+
+  {
+    debugMessage(DebugLogLevel.WARNING, msg, new Object[]{});
+  }
+
+  /**
+   * Log an arbitrary event at the warning level.
+   * Same as debugMessage(DebugLogLevel.ERROR, msg, msgArgs...)
+   *
+   * @param msg message to format and log.
+   * @param msgArgs arguments to place into the format string.
+   */
+  public void debugWarning(String msg, Object... msgArgs)
+  {
+    debugMessage(DebugLogLevel.WARNING, msg, msgArgs);
+  }
+
+  /**
+   * Log an arbitrary event at the error level.
+   * Same as debugMessage(DebugLogLevel.ERROR, msg)
+   *
+   * @param msg message to format and log.
+   */
+  public void debugError(String msg)
+
+  {
+    debugMessage(DebugLogLevel.ERROR, msg, new Object[]{});
+  }
+
+  /**
+   * Log an arbitrary event at the error level.
+   * Same as debugMessage(DebugLogLevel.ERROR, msg, msgArgs...)
+   *
+   * @param msg message to format and log.
+   * @param msgArgs arguments to place into the format string.
+   */
+  public void debugError(String msg, Object... msgArgs)
+  {
+    debugMessage(DebugLogLevel.ERROR, msg, msgArgs);
+  }
+
+  /**
+   * Log an arbitrary event.
+   *
    * @param level the level of the log message.
-   * @param ex the exception thrown.
-   */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logThrownMethod() && args(level, ex)")
-  public void traceThrown(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                          JoinPoint.StaticPart
-                              thisJoinPointStaticPart,
-                          LogLevel level, Throwable ex)
-  {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (level.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.THROWN).intValue())
-      {
-        logPublisher.traceThrown(level, settings, signature, sl, ex);
-      }
-    }
-  }
-
-  /**
-   * AspectJ Implementation.
-   *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param msg message to format and log.
    */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logVerboseMethod() && args(msg)")
-  public void traceVerbose(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                           JoinPoint.StaticPart
-                               thisJoinPointStaticPart,
-                           String msg)
+  public void debugMessage(LogLevel level, String msg)
   {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DebugLogLevel.VERBOSE.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.MESSAGE).intValue())
-      {
-        logPublisher.traceMessage(DebugLogLevel.VERBOSE, settings, signature,
-                                  sl, msg);
-      }
-    }
+    debugMessage(level, msg, new Object[]{});
   }
 
   /**
-   * AspectJ Implementation.
+   * Log an arbitrary event.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
-   * @param msg message to format and log.
-   * @param msgArgs arguments to place into the format string.
-   */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logVerboseMethod() && args(msg, msgArgs)")
-  public void traceVerbose(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                           JoinPoint.StaticPart
-                               thisJoinPointStaticPart,
-                           String msg, Object[] msgArgs)
-  {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    msg = DebugMessageFormatter.format(msg, msgArgs);
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DebugLogLevel.VERBOSE.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.MESSAGE).intValue())
-      {
-        logPublisher.traceMessage(DebugLogLevel.VERBOSE, settings, signature,
-                                  sl, msg);
-      }
-    }
-  }
-
-  /**
-   * AspectJ Implementation.
-   *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
-   * @param msg message to format and log.
-   */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logInfoMethod() && args(msg)")
-  public void traceInfo(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                        JoinPoint.StaticPart
-                            thisJoinPointStaticPart,
-                        String msg)
-  {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DebugLogLevel.INFO.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.MESSAGE).intValue())
-      {
-        logPublisher.traceMessage(DebugLogLevel.INFO, settings, signature, sl,
-                               msg);
-      }
-    }
-  }
-
-  /**
-   * AspectJ Implementation.
-   *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
-   * @param msg message to format and log.
-   * @param msgArgs arguments to place into the format string.
-   */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logInfoMethod() && args(msg, msgArgs)")
-  public void traceInfo(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                        JoinPoint.StaticPart
-                            thisJoinPointStaticPart,
-                        String msg, Object[] msgArgs)
-  {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    msg = DebugMessageFormatter.format(msg, msgArgs);
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DebugLogLevel.INFO.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.MESSAGE).intValue())
-      {
-        logPublisher.traceMessage(DebugLogLevel.INFO, settings, signature, sl,
-                               msg);
-      }
-    }
-  }
-
-  /**
-   * AspectJ Implementation.
-   *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
-   * @param msg message to format and log.
-   */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logWarningMethod() && args(msg)")
-  public void traceWarning(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                           JoinPoint.StaticPart
-                               thisJoinPointStaticPart,
-                           String msg)
-
-  {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DebugLogLevel.WARNING.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.MESSAGE).intValue())
-      {
-        logPublisher.traceMessage(DebugLogLevel.WARNING, settings, signature,
-                                  sl, msg);
-      }
-    }
-  }
-
-  /**
-   * AspectJ Implementation.
-   *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
-   * @param msg message to format and log.
-   * @param msgArgs arguments to place into the format string.
-   */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logWarningMethod() && args(msg, msgArgs)")
-  public void traceWarning(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                           JoinPoint.StaticPart
-                               thisJoinPointStaticPart,
-                           String msg, Object[] msgArgs)
-  {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    msg = DebugMessageFormatter.format(msg, msgArgs);
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DebugLogLevel.WARNING.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.MESSAGE).intValue())
-      {
-        logPublisher.traceMessage(DebugLogLevel.WARNING, settings, signature,
-                                  sl, msg);
-      }
-    }
-  }
-
-  /**
-   * AspectJ Implementation.
-   *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
-   * @param msg message to format and log.
-   */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logErrorMethod() && args(msg)")
-  public void traceError(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                         JoinPoint.StaticPart
-                             thisJoinPointStaticPart,
-                         String msg)
-
-  {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DebugLogLevel.ERROR.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.MESSAGE).intValue())
-      {
-        logPublisher.traceMessage(DebugLogLevel.ERROR, settings, signature, sl,
-                               msg);
-      }
-    }
-  }
-
-  /**
-   * AspectJ Implementation.
-   *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
-   * @param msg message to format and log.
-   * @param msgArgs arguments to place into the format string.
-   */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logErrorMethod() && args(msg, msgArgs)")
-  public void traceError(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                         JoinPoint.StaticPart
-                             thisJoinPointStaticPart,
-                         String msg, Object[] msgArgs)
-  {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    msg = DebugMessageFormatter.format(msg, msgArgs);
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (DebugLogLevel.ERROR.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.MESSAGE).intValue())
-      {
-        logPublisher.traceMessage(DebugLogLevel.ERROR, settings, signature, sl,
-                                  msg);
-      }
-    }
-  }
-
-  /**
-   * AspectJ Implementation.
-   *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
-   * @param level the level of the log message.
-   * @param msg message to format and log.
-   */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logMessageMethod() && args(level, msg)")
-  public void traceMessage(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                           JoinPoint.StaticPart
-                               thisJoinPointStaticPart,
-                           LogLevel level, String msg)
-  {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (level.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.MESSAGE).intValue())
-      {
-        logPublisher.traceMessage(level, settings, signature, sl, msg);
-      }
-    }
-  }
-
-  /**
-   * AspectJ Implementation.
-   *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param msg message to format and log.
    * @param msgArgs arguments to place into the format string.
    */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logMessageMethod() && args(level, msg, msgArgs)")
-  public void traceMessage(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                           JoinPoint.StaticPart
-                               thisJoinPointStaticPart,
-                           LogLevel level, String msg, Object... msgArgs)
+  public void debugMessage(LogLevel level, String msg, Object... msgArgs)
   {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    msg = DebugMessageFormatter.format(msg, msgArgs);
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
+    if(DebugLogger.debugEnabled())
     {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (level.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.MESSAGE).intValue())
+      StackTraceElement[] stackTrace = null;
+      StackTraceElement[] filteredStackTrace = null;
+      StackTraceElement callerFrame = null;
+      for (PublisherSettings settings : publisherSettings)
       {
-        logPublisher.traceMessage(level, settings, signature, sl, msg);
+        TraceSettings activeSettings = settings.classSettings;
+        Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+        if (shouldLog(level, DebugLogCategory.MESSAGE,
+                      activeSettings) || methodSettings != null)
+        {
+          if(stackTrace == null)
+          {
+            stackTrace = Thread.currentThread().getStackTrace();
+          }
+          if (callerFrame == null)
+          {
+            callerFrame = getCallerFrame(stackTrace);
+          }
+
+          String signature = callerFrame.getMethodName();
+
+          // Specific method settings still could exist. Try getting
+          // the settings for this method.
+          if(methodSettings != null)
+          {
+            TraceSettings mSettings = methodSettings.get(signature);
+
+            if (mSettings == null)
+            {
+              // Try looking for an undecorated method name
+              int idx = signature.indexOf('(');
+              if (idx != -1)
+              {
+                mSettings =
+                    methodSettings.get(signature.substring(0, idx));
+              }
+            }
+
+            // If this method does have a specific setting and it is not
+            // suppose to be logged, continue.
+            if (mSettings != null)
+            {
+              if(!shouldLog(level, DebugLogCategory.MESSAGE,
+                            mSettings))
+              {
+                continue;
+              }
+              else
+              {
+                activeSettings = mSettings;
+              }
+            }
+          }
+
+          String sl = callerFrame.getFileName() + " @ " +
+              callerFrame.getLineNumber();
+
+          if(msgArgs != null && msgArgs.length > 0)
+          {
+            msg = String.format(msg, msgArgs);
+          }
+
+          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          {
+            filteredStackTrace =
+                DebugStackTraceFormatter.SMART_FRAME_FILTER.
+                    getFilteredStackTrace(stackTrace);
+          }
+
+          settings.debugPublisher.traceMessage(level, activeSettings, signature,
+                                               sl, msg, filteredStackTrace);
+        }
       }
     }
   }
 
   /**
-   * AspectJ Implementation.
+   * Log an cought exception.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param ex the exception caught.
    */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logCaughtMethod() && args(level, ex)")
-  public void traceCaught(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                          JoinPoint.StaticPart
-                              thisJoinPointStaticPart,
-                          LogLevel level, Throwable ex)
+  public void debugCaught(LogLevel level, Throwable ex)
   {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
+    if(DebugLogger.debugEnabled())
     {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (level.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.CAUGHT).intValue())
+      StackTraceElement[] stackTrace = null;
+      StackTraceElement[] filteredStackTrace = null;
+      StackTraceElement callerFrame = null;
+      for (PublisherSettings settings : publisherSettings)
       {
-        logPublisher.traceCaught(level, settings, signature, sl, ex);
+        TraceSettings activeSettings = settings.classSettings;
+        Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+        if (shouldLog(level, DebugLogCategory.CAUGHT,
+                      activeSettings) || methodSettings != null)
+        {
+          if(stackTrace == null)
+          {
+            stackTrace = Thread.currentThread().getStackTrace();
+          }
+          if (callerFrame == null)
+          {
+            callerFrame = getCallerFrame(stackTrace);
+          }
+
+          String signature = callerFrame.getMethodName();
+
+          // Specific method settings still could exist. Try getting
+          // the settings for this method.
+          if(methodSettings != null)
+          {
+            TraceSettings mSettings = methodSettings.get(signature);
+
+            if (mSettings == null)
+            {
+              // Try looking for an undecorated method name
+              int idx = signature.indexOf('(');
+              if (idx != -1)
+              {
+                mSettings =
+                    methodSettings.get(signature.substring(0, idx));
+              }
+            }
+
+            // If this method does have a specific setting and it is not
+            // suppose to be logged, continue.
+            if (mSettings != null)
+            {
+              if(!shouldLog(level, DebugLogCategory.CAUGHT,
+                            mSettings))
+              {
+                continue;
+              }
+              else
+              {
+                activeSettings = mSettings;
+              }
+            }
+          }
+
+          String sl = callerFrame.getFileName() + " @ " +
+              callerFrame.getLineNumber();
+
+          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          {
+            filteredStackTrace =
+                DebugStackTraceFormatter.SMART_FRAME_FILTER.
+                    getFilteredStackTrace(ex.getStackTrace());
+          }
+
+          settings.debugPublisher.traceCaught(level, activeSettings, signature,
+                                              sl, ex, filteredStackTrace);
+        }
       }
     }
   }
 
   /**
-   * AspectJ Implementation.
+   * Log a JE database access event.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param status status of the JE operation.
    * @param database the database handle.
@@ -866,189 +835,345 @@ public class DebugTracer
    * @param key  the key to dump.
    * @param data the data to dump.
    */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logJEAccessMethod() && args(level, status, " +
-      "database, txn, key, data)")
-  public void traceJEAccess(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                            JoinPoint.StaticPart
-                                thisJoinPointStaticPart,
-                            LogLevel level, OperationStatus status,
+  public void debugJEAccess(LogLevel level, OperationStatus status,
                             Database database, Transaction txn,
                             DatabaseEntry key, DatabaseEntry data)
   {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
+    if(DebugLogger.debugEnabled())
     {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (level.intValue() >=
-          getEffectiveLevel(settings,
-                            DebugLogCategory.DATABASE_ACCESS).intValue())
+      StackTraceElement[] stackTrace = null;
+      StackTraceElement[] filteredStackTrace = null;
+      StackTraceElement callerFrame = null;
+      for (PublisherSettings settings : publisherSettings)
       {
-        logPublisher.traceJEAccess(level, settings, signature, sl, status,
-                                database, txn, key, data);
+        TraceSettings activeSettings = settings.classSettings;
+        Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+        if (shouldLog(level, DebugLogCategory.DATABASE_ACCESS,
+                      activeSettings) || methodSettings != null)
+        {
+          if(stackTrace == null)
+          {
+            stackTrace = Thread.currentThread().getStackTrace();
+          }
+          if (callerFrame == null)
+          {
+            callerFrame = getCallerFrame(stackTrace);
+          }
+
+          String signature = callerFrame.getMethodName();
+
+          // Specific method settings still could exist. Try getting
+          // the settings for this method.
+          if(methodSettings != null)
+          {
+            TraceSettings mSettings = methodSettings.get(signature);
+
+            if (mSettings == null)
+            {
+              // Try looking for an undecorated method name
+              int idx = signature.indexOf('(');
+              if (idx != -1)
+              {
+                mSettings =
+                    methodSettings.get(signature.substring(0, idx));
+              }
+            }
+
+            // If this method does have a specific setting and it is not
+            // suppose to be logged, continue.
+            if (mSettings != null)
+            {
+              if(!shouldLog(level, DebugLogCategory.DATABASE_ACCESS,
+                            mSettings))
+              {
+                continue;
+              }
+              else
+              {
+                activeSettings = mSettings;
+              }
+            }
+          }
+
+          String sl = callerFrame.getFileName() + " @ " +
+              callerFrame.getLineNumber();
+
+          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          {
+            filteredStackTrace =
+                DebugStackTraceFormatter.SMART_FRAME_FILTER.
+                    getFilteredStackTrace(stackTrace);
+          }
+
+          settings.debugPublisher.traceJEAccess(level, activeSettings,
+                                                signature, sl, status, database,
+                                                txn, key, data,
+                                                filteredStackTrace);
+        }
       }
     }
   }
 
   /**
-   * AspectJ Implementation.
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
+   * Log raw data in the form of a byte array.
+   *
    * @param level the level of the log message.
    * @param data the data to dump.
    */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logDataMethod() && args(level, data)")
-  public void traceData(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                        JoinPoint.StaticPart
-                            thisJoinPointStaticPart,
-                        LogLevel level, byte[] data)
+  public void debugData(LogLevel level, byte[] data)
   {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
+    if(DebugLogger.debugEnabled() && data != null)
     {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (level.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.DATA).intValue())
+      StackTraceElement[] stackTrace = null;
+      StackTraceElement[] filteredStackTrace = null;
+      StackTraceElement callerFrame = null;
+      for (PublisherSettings settings : publisherSettings)
       {
-        logPublisher.traceData(level, settings, signature, sl, data);
+        TraceSettings activeSettings = settings.classSettings;
+        Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+        if (shouldLog(level, DebugLogCategory.DATA,
+                      activeSettings) || methodSettings != null)
+        {
+          if(stackTrace == null)
+          {
+            stackTrace = Thread.currentThread().getStackTrace();
+          }
+          if (callerFrame == null)
+          {
+            callerFrame = getCallerFrame(stackTrace);
+          }
+
+          String signature = callerFrame.getMethodName();
+
+          // Specific method settings still could exist. Try getting
+          // the settings for this method.
+          if(methodSettings != null)
+          {
+            TraceSettings mSettings = methodSettings.get(signature);
+
+            if (mSettings == null)
+            {
+              // Try looking for an undecorated method name
+              int idx = signature.indexOf('(');
+              if (idx != -1)
+              {
+                mSettings =
+                    methodSettings.get(signature.substring(0, idx));
+              }
+            }
+
+            // If this method does have a specific setting and it is not
+            // suppose to be logged, continue.
+            if (mSettings != null)
+            {
+              if(!shouldLog(level, DebugLogCategory.DATA,
+                            mSettings))
+              {
+                continue;
+              }
+              else
+              {
+                activeSettings = mSettings;
+              }
+            }
+          }
+
+          String sl = callerFrame.getFileName() + " @ " +
+              callerFrame.getLineNumber();
+
+          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          {
+            filteredStackTrace =
+                DebugStackTraceFormatter.SMART_FRAME_FILTER.
+                    getFilteredStackTrace(stackTrace);
+          }
+
+          settings.debugPublisher.traceData(level, activeSettings, signature,
+                                            sl, data, filteredStackTrace);
+        }
       }
     }
   }
 
   /**
-   * AspectJ Implementation.
+   * Log a protocol element.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param element the protocol element to dump.
    */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logProtocolElementMethod() && args(level, element)")
-  public void traceProtocolElement(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                                   JoinPoint.StaticPart
-                                       thisJoinPointStaticPart,
-                                   LogLevel level, ProtocolElement element)
+  public void debugProtocolElement(LogLevel level, ProtocolElement element)
   {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
+    if(DebugLogger.debugEnabled() && element != null)
     {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (level.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.PROTOCOL).intValue())
+      StackTraceElement[] stackTrace = null;
+      StackTraceElement[] filteredStackTrace = null;
+      StackTraceElement callerFrame = null;
+      for (PublisherSettings settings : publisherSettings)
       {
-        logPublisher.traceProtocolElement(level, settings, signature, sl,
-                                          element);
+        TraceSettings activeSettings = settings.classSettings;
+        Map<String, TraceSettings> methodSettings = settings.methodSettings;
+
+        if (shouldLog(level, DebugLogCategory.PROTOCOL,
+                      activeSettings) || methodSettings != null)
+        {
+          if(stackTrace == null)
+          {
+            stackTrace = Thread.currentThread().getStackTrace();
+          }
+          if (callerFrame == null)
+          {
+            callerFrame = getCallerFrame(stackTrace);
+          }
+
+          String signature = callerFrame.getMethodName();
+
+          // Specific method settings still could exist. Try getting
+          // the settings for this method.
+          if(methodSettings != null)
+          {
+            TraceSettings mSettings = methodSettings.get(signature);
+
+            if (mSettings == null)
+            {
+              // Try looking for an undecorated method name
+              int idx = signature.indexOf('(');
+              if (idx != -1)
+              {
+                mSettings =
+                    methodSettings.get(signature.substring(0, idx));
+              }
+            }
+
+            // If this method does have a specific setting and it is not
+            // suppose to be logged, continue.
+            if (mSettings != null)
+            {
+              if(!shouldLog(level, DebugLogCategory.PROTOCOL,
+                            mSettings))
+              {
+                continue;
+              }
+              else
+              {
+                activeSettings = mSettings;
+              }
+            }
+          }
+
+          String sl = callerFrame.getFileName() + " @ " +
+              callerFrame.getLineNumber();
+
+          if (filteredStackTrace == null && activeSettings.stackDepth > 0)
+          {
+            filteredStackTrace =
+                DebugStackTraceFormatter.SMART_FRAME_FILTER.
+                    getFilteredStackTrace(stackTrace);
+          }
+
+          settings.debugPublisher.traceProtocolElement(level, activeSettings,
+                                                       signature, sl, element,
+                                                       filteredStackTrace);
+        }
       }
     }
   }
 
   /**
-   * AspectJ Implementation.
+   * Log raw data in the form of a ByteBuffer.
    *
-   * @param thisEnclosingJoinPointStaticPart the JoinPoint reflection object
-   *                                         of the code that contains the
-   *                                         debug call.
-   * @param thisJoinPointStaticPart the JoinPoint reflection object.
    * @param level the level of the log message.
    * @param buffer the data to dump.
    */
-  @SuppressAjWarnings({"adviceDidNotMatch"})
-  @Around("shouldTrace() && logDataMethod() && args(level, buffer)")
-  public void traceData(JoinPoint.EnclosingStaticPart
-      thisEnclosingJoinPointStaticPart,
-                        JoinPoint.StaticPart
-                            thisJoinPointStaticPart,
-                        LogLevel level, ByteBuffer buffer)
+  public void debugData(LogLevel level, ByteBuffer buffer)
   {
-    String signature =
-        thisEnclosingJoinPointStaticPart.getSignature().getName();
-    String sl = thisJoinPointStaticPart.getSourceLocation().toString();
-    for(DebugLogPublisher logPublisher : debugPublishers.values())
-    {
-      TraceSettings settings = getSettings(logPublisher, signature);
-      if (level.intValue() >=
-          getEffectiveLevel(settings, DebugLogCategory.DATA).intValue())
-      {
-        logPublisher.traceData(level, settings, signature, sl, buffer.array());
-      }
-    }
+    debugData(level, buffer.array());
   }
 
   /**
-   * Get the current trace settings in effect for the specified method.
+   * Gets the name of the class this tracer traces.
    *
-   * @param debugLogPublisher - the debug publisher to get the trace settings
-   *                            from.
-   * @param method - the method to get trace settings for
-   * @return the current trace settings in effect
+   * @return The name of the class this tracer traces.
    */
-  protected final TraceSettings getSettings(DebugLogPublisher debugLogPublisher,
-                                            String method)
+  public String getTracedClassName()
   {
-    TraceSettings settings = this.classSettings.get(debugLogPublisher);
+    return className;
+  }
 
-    Map<String, TraceSettings> methodSettings =
-        this.methodSettings.get(debugLogPublisher);
-    if (methodSettings != null)
+  /**
+   * Update the cached settings of the tracer with the settings from the
+   * provided publishers.
+   *
+   * @param publishers The array of publishers to obtain the settings from.
+   */
+  @SuppressWarnings("unchecked")
+  void updateSettings(DebugLogPublisher[] publishers)
+  {
+    PublisherSettings[] newSettings =
+        new PublisherSettings[publishers.length];
+
+    // Get the settings from all publishers.
+    for(int i = 0; i < publishers.length; i++)
     {
-      TraceSettings mSettings = methodSettings.get(method);
+      DebugLogPublisher publisher = publishers[i];
+      PublisherSettings settings = new PublisherSettings();
 
-      if (mSettings == null)
+      settings.debugPublisher = publisher;
+      settings.classSettings = publisher.getClassSettings(className);
+
+      // For some reason, the compiler doesn't see that
+      // debugLogPublihser.getMethodSettings returns a parameterized Map.
+      // This problem goes away if a parameterized verson of DebugLogPublisher
+      // is used. However, we can't not use reflection to instantiate a generic
+      // DebugLogPublisher<? extends DebugLogPublisherCfg> type. The only thing
+      // we can do is to just supress the compiler warnings.
+      settings.methodSettings = publisher.getMethodSettings(className);
+
+      newSettings[i] = settings;
+    }
+
+    publisherSettings = newSettings;
+  }
+
+  /**
+   * Return the caller stack frame.
+   *
+   * @param stackTrace The entrie stack trace frames.
+   * @return the caller stack frame or null if none is found on the
+   * stack trace.
+   */
+  private StackTraceElement getCallerFrame(StackTraceElement[] stackTrace)
+  {
+    if (stackTrace != null && stackTrace.length > 0)
+    {
+      // Skip leading frames debug logging classes and getStackTrace
+      // method call frame if any.
+      for (int i = 0; i < stackTrace.length; i++)
       {
-        // Try looking for an undecorated method name
-        int idx = method.indexOf('(');
-        if (idx != -1)
+        StackTraceElement aStackTrace = stackTrace[i];
+        if(i == 0 && aStackTrace.getClassName().equals("java.lang.Thread"))
         {
-          mSettings =
-              methodSettings.get(method.substring(0, idx));
+          continue;
+        }
+
+        if (!aStackTrace.getClassName().startsWith(
+            "org.opends.server.loggers.debug"))
+        {
+          return aStackTrace;
         }
       }
-
-      if (mSettings != null) settings = mSettings;
     }
 
-    return settings;
+    return null;
   }
 
-  /**
-   * Retrieve the current log level given the trace settings and log category.
-   *
-   * @param settings the trace settings to test from.
-   * @param category the log category to test.
-   * @return the effective log level.
-   */
-  protected final LogLevel getEffectiveLevel(TraceSettings settings,
-                                             LogCategory category)
+  private boolean shouldLog(LogLevel messageLevel, LogCategory messageCategory,
+                            TraceSettings activeSettings)
   {
-    if (settings == null)
-    {
-      return DebugLogLevel.DISABLED;
-    }
+    return !(activeSettings.includeCategories != null &&
+        !activeSettings.includeCategories.contains(messageCategory)) &&
+        messageLevel.intValue() >= activeSettings.level.intValue();
 
-    LogLevel level = settings.level;
-    Set<LogCategory> includedCategories = settings.includeCategories;
-
-    if(includedCategories != null &&
-        !includedCategories.contains(category))
-    {
-      level = DebugLogLevel.DISABLED;
-    }
-
-    return level;
   }
 }

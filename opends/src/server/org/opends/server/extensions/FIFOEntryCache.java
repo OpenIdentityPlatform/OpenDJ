@@ -61,8 +61,8 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -99,6 +99,11 @@ public class FIFOEntryCache
        extends EntryCache <FIFOEntryCacheCfg>
        implements ConfigurationChangeListener<FIFOEntryCacheCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -224,7 +229,7 @@ public class FIFOEntryCache
       // This should never happen.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     finally
@@ -321,7 +326,7 @@ public class FIFOEntryCache
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             // The attempt to add the lock to the list failed, so we need to
@@ -334,7 +339,7 @@ public class FIFOEntryCache
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e2);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
               }
             }
 
@@ -361,7 +366,7 @@ public class FIFOEntryCache
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             // The attempt to add the lock to the list failed, so we need to
@@ -374,7 +379,7 @@ public class FIFOEntryCache
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e2);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
               }
             }
 
@@ -441,7 +446,7 @@ public class FIFOEntryCache
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             // The attempt to add the lock to the list failed, so we need to
@@ -454,7 +459,7 @@ public class FIFOEntryCache
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e2);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
               }
             }
 
@@ -481,7 +486,7 @@ public class FIFOEntryCache
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             // The attempt to add the lock to the list failed, so we need to
@@ -494,7 +499,7 @@ public class FIFOEntryCache
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e2);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
               }
             }
 
@@ -536,7 +541,7 @@ public class FIFOEntryCache
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // This shouldn't happen, but if it does then we can't be sure whether
@@ -566,7 +571,7 @@ public class FIFOEntryCache
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // This shouldn't happen, but if it does, then just ignore it.
@@ -596,7 +601,7 @@ public class FIFOEntryCache
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return;
@@ -673,7 +678,7 @@ public class FIFOEntryCache
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return;
@@ -708,7 +713,7 @@ public class FIFOEntryCache
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // This shouldn't happen, but if it does then we can't be sure whether
@@ -738,7 +743,7 @@ public class FIFOEntryCache
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // This shouldn't happen, but if it does, then just ignore it.
@@ -769,7 +774,7 @@ public class FIFOEntryCache
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We can't rule out the possibility of a conflict, so return false.
@@ -859,7 +864,7 @@ public class FIFOEntryCache
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We can't be sure there wasn't a conflict, so return false.
@@ -914,7 +919,7 @@ public class FIFOEntryCache
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This shouldn't happen, but there's not much that we can do if it does.
@@ -951,7 +956,7 @@ public class FIFOEntryCache
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This shouldn't happen, but there's not much that we can do if it does.
@@ -1012,7 +1017,7 @@ public class FIFOEntryCache
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This shouldn't happen, but there's not much that we can do if it does.
@@ -1054,7 +1059,7 @@ public class FIFOEntryCache
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This shouldn't happen, but there's not much that we can do if it does.
@@ -1178,7 +1183,7 @@ public class FIFOEntryCache
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This shouldn't happen, but there's not much that we can do if it does.

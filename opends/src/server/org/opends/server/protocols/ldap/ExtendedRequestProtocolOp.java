@@ -37,6 +37,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -52,6 +53,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class ExtendedRequestProtocolOp
        extends ProtocolOp
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The value for this extended request.
   private ASN1OctetString value;
 
@@ -208,7 +214,7 @@ public class ExtendedRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_EXTENDED_REQUEST_DECODE_SEQUENCE;
@@ -235,7 +241,7 @@ public class ExtendedRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_EXTENDED_REQUEST_DECODE_OID;
@@ -255,7 +261,7 @@ public class ExtendedRequestProtocolOp
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_LDAP_EXTENDED_REQUEST_DECODE_VALUE;

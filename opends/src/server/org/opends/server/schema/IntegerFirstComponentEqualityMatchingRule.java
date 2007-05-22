@@ -38,8 +38,8 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -59,6 +59,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class IntegerFirstComponentEqualityMatchingRule
        extends EqualityMatchingRule
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -221,7 +226,7 @@ public class IntegerFirstComponentEqualityMatchingRule
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return false;
@@ -281,7 +286,7 @@ public class IntegerFirstComponentEqualityMatchingRule
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_EMR_INTFIRSTCOMP_NO_INITIAL_PARENTHESIS;
@@ -334,7 +339,7 @@ public class IntegerFirstComponentEqualityMatchingRule
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;

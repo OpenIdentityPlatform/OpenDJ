@@ -40,9 +40,8 @@ import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.operation.PreParseSearchOperation;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.loggers.debug.DebugLogger.debugWarning;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -59,6 +58,11 @@ import static org.opends.server.util.StaticUtils.*;
 public final class LDAPADListPlugin
        extends DirectoryServerPlugin<PluginCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * Creates a new instance of this Directory Server plugin.  Every plugin must
    * implement a default constructor (it is the only one that will be used to
@@ -144,14 +148,15 @@ public final class LDAPADListPlugin
           {
             if (debugEnabled())
             {
-              debugWarning("Cannot replace unknown objectclass %s", lowerName);
+              TRACER.debugWarning("Cannot replace unknown objectclass %s",
+                                  lowerName);
             }
           }
           else
           {
             if (debugEnabled())
             {
-              debugInfo("Replacing objectclass %s", lowerName);
+              TRACER.debugInfo("Replacing objectclass %s", lowerName);
             }
 
             for (AttributeType at : oc.getRequiredAttributeChain())

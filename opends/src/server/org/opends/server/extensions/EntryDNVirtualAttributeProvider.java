@@ -51,6 +51,7 @@ import org.opends.server.types.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -62,6 +63,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class EntryDNVirtualAttributeProvider
        extends VirtualAttributeProvider<VirtualAttributeCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * Creates a new instance of this entryDN virtual attribute provider.
    */
@@ -146,7 +152,7 @@ public class EntryDNVirtualAttributeProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return false;
@@ -347,7 +353,7 @@ public class EntryDNVirtualAttributeProvider
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -388,7 +394,7 @@ public class EntryDNVirtualAttributeProvider
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
           }
         }

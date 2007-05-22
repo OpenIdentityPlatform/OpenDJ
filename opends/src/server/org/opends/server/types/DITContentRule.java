@@ -39,6 +39,7 @@ import java.util.Set;
 import org.opends.server.schema.DITContentRuleSyntax;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -56,6 +57,11 @@ import static org.opends.server.util.Validator.*;
 public final class DITContentRule
        implements SchemaFileElement
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // Indicates whether this content rule is declared "obsolete".
   private final boolean isObsolete;
 
@@ -152,7 +158,7 @@ public final class DITContentRule
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         defStr = definition;

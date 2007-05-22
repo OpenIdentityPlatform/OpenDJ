@@ -28,8 +28,8 @@ package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
 import java.util.Comparator;
@@ -40,6 +40,11 @@ import java.util.Comparator;
  */
 public class DbPreloadComparator implements Comparator<Database>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * Calculate the relative priority of a database for preloading.
@@ -69,7 +74,7 @@ public class DbPreloadComparator implements Comparator<Database>
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       return 3;
     }

@@ -94,7 +94,7 @@ public class DebugStackTraceFormatter
         // Skip leading frames debug logging classes
         while (firstFrame < frames.length &&
             isFrameForPackage(frames[firstFrame],
-                              "org.opends.server.loggers")) {
+                              "org.opends.server.loggers.debug")) {
           firstFrame++;
         }
 
@@ -123,32 +123,26 @@ public class DebugStackTraceFormatter
    */
   public static String formatStackTrace(Throwable t)
   {
-    return formatStackTrace(t, null, COMPLETE_STACK, true);
+    return formatStackTrace(t, COMPLETE_STACK, true);
   }
 
   /**
    * Generate a String representation of the possibly filtered stack trace
    * of the given Throwable.
    * @param t - the Throwable for which to generate the stack trace.
-   * @param filter - a FrameFilter to use to exclude some stack frames from
-   * the trace.  If null, no filtering is performed.
    * @param maxDepth - the maximum number of stack frames to include in the
    * trace.
    * @param includeCause - also include the stack trace for the cause Throwable.
    * @return the stack trace.
    */
-  public static String formatStackTrace(Throwable t, FrameFilter filter,
-                                        int maxDepth, boolean includeCause)
+  public static String formatStackTrace(Throwable t, int maxDepth,
+                                        boolean includeCause)
   {
     StringBuffer buffer= new StringBuffer();
 
     while(t != null)
     {
       StackTraceElement[] frames = t.getStackTrace();
-      if(filter != null)
-      {
-        frames = filter.getFilteredStackTrace(frames);
-      }
 
       if (frames != null) {
         int frameLimit=  Math.min(maxDepth, frames.length);
@@ -188,37 +182,32 @@ public class DebugStackTraceFormatter
   /**
    * Generate a String representation of the possibly filtered stack trace
    * from the current position in executation.
-   * @param filter - a FrameFilter to use to exclude some stack frames from
-   * the trace.  If null, no filtering is performed.
+   *
+   * @param stackTrace - The stack trace elements to format.
    * @param maxDepth - the maximum number of stack frames to include in the
    * trace.
    * @return the stack trace.
    */
-  public static String formatStackTrace(FrameFilter filter, int maxDepth)
+  public static String formatStackTrace(StackTraceElement[] stackTrace,
+                                        int maxDepth)
   {
     StringBuffer buffer= new StringBuffer();
 
-    StackTraceElement[] frames = Thread.currentThread().getStackTrace();
-    if(filter != null)
-    {
-      frames = filter.getFilteredStackTrace(frames);
-    }
-
-    if (frames != null) {
-      int frameLimit=  Math.min(maxDepth, frames.length);
+    if (stackTrace != null) {
+      int frameLimit=  Math.min(maxDepth, stackTrace.length);
       if (frameLimit > 0) {
 
 
         for (int i= 0; i < frameLimit; i++) {
           buffer.append("  ");
-          buffer.append(frames[i]);
+          buffer.append(stackTrace[i]);
           buffer.append(EOL);
         }
 
-        if(frameLimit < frames.length)
+        if(frameLimit < stackTrace.length)
         {
           buffer.append("  ...(");
-          buffer.append(frames.length - frameLimit);
+          buffer.append(stackTrace.length - frameLimit);
           buffer.append(" more)");
           buffer.append(EOL);
         }

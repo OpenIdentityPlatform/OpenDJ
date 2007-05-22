@@ -26,8 +26,8 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 
@@ -50,6 +50,11 @@ import org.opends.server.types.Entry;
  */
 public class ID2Entry
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The database entryContainer.
    */
@@ -123,7 +128,7 @@ public class ID2Entry
 
       if(debugEnabled())
       {
-        debugInfo("JE ID2Entry database %s opened with %d records.",
+        TRACER.debugInfo("JE ID2Entry database %s opened with %d records.",
                   database.getDatabaseName(), database.count());
       }
     }

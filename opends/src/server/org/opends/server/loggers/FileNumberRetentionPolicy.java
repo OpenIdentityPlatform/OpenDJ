@@ -34,8 +34,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 
@@ -47,6 +47,11 @@ public class FileNumberRetentionPolicy implements
     RetentionPolicy<FileCountLogRetentionPolicyCfg>,
     ConfigurationChangeListener<FileCountLogRetentionPolicyCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   private int numFiles = 0;
 
@@ -108,7 +113,7 @@ public class FileNumberRetentionPolicy implements
     {
       if(debugEnabled())
       {
-        debugInfo("Deleting log file:", files[j]);
+        TRACER.debugInfo("Deleting log file:", files[j]);
       }
       files[j].delete();
       count++;

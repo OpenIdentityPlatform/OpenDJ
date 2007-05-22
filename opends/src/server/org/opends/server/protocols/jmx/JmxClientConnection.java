@@ -61,6 +61,7 @@ import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ProtocolMessages.*;
 
 
@@ -72,6 +73,11 @@ import static org.opends.server.messages.ProtocolMessages.*;
 public class JmxClientConnection
        extends ClientConnection implements NotificationListener
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The message ID counter to use for jmx connections.
   private AtomicInteger nextMessageID;
 
@@ -147,7 +153,7 @@ public class JmxClientConnection
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -827,7 +833,7 @@ public class JmxClientConnection
       // TODO print a message ?
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -843,7 +849,7 @@ public class JmxClientConnection
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }

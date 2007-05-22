@@ -39,6 +39,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -53,6 +54,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class LDAPMessage
        implements ProtocolElement
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The set of controls for this LDAP message.
   private ArrayList<LDAPControl> controls;
 
@@ -612,7 +618,7 @@ public class LDAPMessage
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MESSAGE_DECODE_MESSAGE_ID;
@@ -630,7 +636,7 @@ public class LDAPMessage
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MESSAGE_DECODE_PROTOCOL_OP;
@@ -650,7 +656,7 @@ public class LDAPMessage
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_LDAP_MESSAGE_DECODE_CONTROLS;

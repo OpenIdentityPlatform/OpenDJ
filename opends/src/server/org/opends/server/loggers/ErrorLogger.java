@@ -47,6 +47,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -61,6 +62,11 @@ public class ErrorLogger implements
     ConfigurationDeleteListener<ErrorLogPublisherCfg>,
     ConfigurationChangeListener<ErrorLogPublisherCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The set of error loggers that have been registered with the server. It
   // will initially be empty.
   private static ConcurrentHashMap<DN, ErrorLogPublisher> errorPublishers =
@@ -193,7 +199,7 @@ public class ErrorLogger implements
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         messages.add(e.getMessage());
         resultCode = DirectoryServer.getServerErrorResultCode();
@@ -202,7 +208,7 @@ public class ErrorLogger implements
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         int msgID = MSGID_CONFIG_LOGGER_CANNOT_CREATE_LOGGER;
         messages.add(getMessage(msgID, String.valueOf(config.dn().toString()),

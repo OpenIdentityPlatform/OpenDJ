@@ -26,9 +26,8 @@
  */
 package org.opends.server.protocols.jmx;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
 import java.io.IOException;
@@ -57,6 +56,11 @@ import javax.net.ssl.SSLSocketFactory;
 public class DirectoryRMIClientSocketFactory implements
     RMIClientSocketFactory, Serializable
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
   /**
@@ -290,7 +294,7 @@ public class DirectoryRMIClientSocketFactory implements
     {
       if (debugEnabled())
       {
-        debugVerbose("sslSocketFactory is null, get a new one");
+        TRACER.debugVerbose("sslSocketFactory is null, get a new one");
       }
 
       // socket factory not yet initialized
@@ -315,7 +319,7 @@ public class DirectoryRMIClientSocketFactory implements
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
           tms = null;
         }
@@ -345,7 +349,7 @@ public class DirectoryRMIClientSocketFactory implements
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         throw new IOException("Unable to initialize SSL context : "
             + e.getMessage());

@@ -55,8 +55,8 @@ import org.opends.server.types.IdentifiedException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
@@ -73,6 +73,11 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public final class StaticUtils
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * Private constructor to prevent instantiation.
    */
@@ -121,7 +126,7 @@ public final class StaticUtils
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -132,7 +137,7 @@ public final class StaticUtils
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e2);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
 
         return s.getBytes();
@@ -2346,7 +2351,7 @@ public final class StaticUtils
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         // If this happens, then we have no choice but to forcefully terminate
@@ -2359,7 +2364,7 @@ public final class StaticUtils
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -2397,7 +2402,7 @@ public final class StaticUtils
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -2410,7 +2415,7 @@ public final class StaticUtils
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         // If this happens, then we have no choice but to forcefully terminate
@@ -2423,7 +2428,7 @@ public final class StaticUtils
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -2755,7 +2760,7 @@ public final class StaticUtils
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
           buffer.append(new String(b, i, (length - i)).toLowerCase());
         }
@@ -3056,7 +3061,7 @@ public final class StaticUtils
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
           buffer.append(new String(b, i, (length - i)).toUpperCase());
         }

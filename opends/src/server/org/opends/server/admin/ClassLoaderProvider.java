@@ -30,6 +30,7 @@ package org.opends.server.admin;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.AdminMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -77,6 +78,11 @@ import org.opends.server.util.Validator;
  * class loader as it can change at run-time.
  */
 public final class ClassLoaderProvider {
+
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
   /**
    * Private URLClassLoader implementation. This is only required so
@@ -360,7 +366,7 @@ public final class ClassLoaderProvider {
         loader.addJarFile(extension);
       } catch (Exception e) {
         if (debugEnabled()) {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_ADMIN_CANNOT_OPEN_JAR_FILE;
@@ -437,12 +443,12 @@ public final class ClassLoaderProvider {
       addExtension(extensionsPath.listFiles(filter));
     } catch (InitializationException e) {
       if (debugEnabled()) {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       throw e;
     } catch (Exception e) {
       if (debugEnabled()) {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ADMIN_EXTENSIONS_CANNOT_LIST_FILES;
@@ -477,7 +483,7 @@ public final class ClassLoaderProvider {
       loadDefinitionClasses(is);
     } catch (IOException e) {
       if (debugEnabled()) {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ADMIN_CANNOT_READ_CORE_MANIFEST;
@@ -486,7 +492,7 @@ public final class ClassLoaderProvider {
       throw new InitializationException(msgID, message);
     } catch (Exception e) {
       if (debugEnabled()) {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ADMIN_CANNOT_LOAD_CLASS_FROM_CORE_MANIFEST;
@@ -519,7 +525,7 @@ public final class ClassLoaderProvider {
         is = jarFile.getInputStream(entry);
       } catch (Exception e) {
         if (debugEnabled()) {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_ADMIN_CANNOT_READ_EXTENSION_MANIFEST;
@@ -532,7 +538,7 @@ public final class ClassLoaderProvider {
         loadDefinitionClasses(is);
       } catch (IOException e) {
         if (debugEnabled()) {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_ADMIN_CANNOT_READ_EXTENSION_MANIFEST;
@@ -541,7 +547,7 @@ public final class ClassLoaderProvider {
         throw new InitializationException(msgID, message);
       } catch (Exception e) {
         if (debugEnabled()) {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_ADMIN_CANNOT_LOAD_CLASS_FROM_EXTENSION_MANIFEST;
@@ -595,7 +601,7 @@ public final class ClassLoaderProvider {
         continue;
       }
 
-      debugMessage(DebugLogLevel.INFO, "Loading class " + className);
+      TRACER.debugMessage(DebugLogLevel.INFO, "Loading class " + className);
 
       // Use the underlying loader.
       Class.forName(className, true, loader);
@@ -622,7 +628,7 @@ public final class ClassLoaderProvider {
       jarFile = new JarFile(jar);
     } catch (Exception e) {
       if (debugEnabled()) {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ADMIN_CANNOT_OPEN_JAR_FILE;

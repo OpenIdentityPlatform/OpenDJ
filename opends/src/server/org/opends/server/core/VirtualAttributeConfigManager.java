@@ -57,6 +57,7 @@ import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -75,6 +76,11 @@ public class VirtualAttributeConfigManager
                   ConfigurationAddListener<VirtualAttributeCfg>,
                   ConfigurationDeleteListener<VirtualAttributeCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // A mapping between the DNs of the config entries and the associated
   // virtual attribute rules.
   private ConcurrentHashMap<DN,VirtualAttributeRule> rules;
@@ -148,7 +154,7 @@ public class VirtualAttributeConfigManager
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, de);
+                TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
               int    msgID   = MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER;
@@ -235,7 +241,7 @@ public class VirtualAttributeConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         int    msgID   = MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER;
@@ -283,7 +289,7 @@ public class VirtualAttributeConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         if (resultCode == ResultCode.SUCCESS)
@@ -404,7 +410,7 @@ public class VirtualAttributeConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         int    msgID   = MSGID_CONFIG_VATTR_INVALID_SEARCH_FILTER;
@@ -464,7 +470,7 @@ public class VirtualAttributeConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         if (resultCode == ResultCode.SUCCESS)

@@ -39,6 +39,7 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawModification;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -54,6 +55,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class ModifyRequestProtocolOp
        extends ProtocolOp
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The set of modifications for this modify request.
   private ArrayList<RawModification> modifications;
 
@@ -210,7 +216,7 @@ public class ModifyRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MODIFY_REQUEST_DECODE_SEQUENCE;
@@ -237,7 +243,7 @@ public class ModifyRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MODIFY_REQUEST_DECODE_DN;
@@ -262,7 +268,7 @@ public class ModifyRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MODIFY_REQUEST_DECODE_MODS;

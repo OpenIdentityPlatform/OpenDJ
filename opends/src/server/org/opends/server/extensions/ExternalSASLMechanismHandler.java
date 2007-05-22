@@ -53,8 +53,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -76,6 +76,11 @@ public class ExternalSASLMechanismHandler
        implements ConfigurationChangeListener<
                        ExternalSASLMechanismHandlerCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The attribute type that should hold the certificates to use for the
   // validation.
   private AttributeType certificateAttributeType;
@@ -280,7 +285,7 @@ public class ExternalSASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       bindOperation.setResponseData(de);
@@ -359,7 +364,7 @@ public class ExternalSASLMechanismHandler
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -409,7 +414,7 @@ public class ExternalSASLMechanismHandler
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);

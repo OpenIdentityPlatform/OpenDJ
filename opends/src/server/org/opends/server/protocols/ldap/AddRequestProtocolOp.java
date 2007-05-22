@@ -42,6 +42,7 @@ import org.opends.server.util.Base64;
 
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -58,6 +59,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class AddRequestProtocolOp
        extends ProtocolOp
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The set of attributes for this add request.
   private List<RawAttribute> attributes;
 
@@ -213,7 +219,7 @@ public class AddRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_ADD_REQUEST_DECODE_SEQUENCE;
@@ -240,7 +246,7 @@ public class AddRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_ADD_REQUEST_DECODE_DN;
@@ -265,7 +271,7 @@ public class AddRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_ADD_REQUEST_DECODE_ATTRS;

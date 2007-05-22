@@ -31,6 +31,8 @@ import org.opends.server.admin.std.server.TimeLimitLogRotationPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -43,6 +45,11 @@ public class TimeLimitRotationPolicy implements
     RotationPolicy<TimeLimitLogRotationPolicyCfg>,
     ConfigurationChangeListener<TimeLimitLogRotationPolicyCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   private long timeInterval = 0;
 
   /**
@@ -92,7 +99,16 @@ public class TimeLimitRotationPolicy implements
   public boolean rotateFile(MultifileTextWriter writer)
   {
     long currTime = TimeThread.getTime();
-    return currTime - writer.getLastRotationTime() > timeInterval;
+    long currInterval = currTime - writer.getLastRotationTime();
+
+    if (debugEnabled())
+    {
+      TRACER.debugInfo("Last rotation occured %ds ago. " +
+          "Next rotation in %ds", currInterval / 1000,
+                                   (timeInterval - currInterval)/1000);
+    }
+
+    return currInterval > timeInterval;
   }
 
 }

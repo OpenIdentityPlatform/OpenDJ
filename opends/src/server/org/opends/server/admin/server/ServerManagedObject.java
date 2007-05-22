@@ -29,8 +29,8 @@ package org.opends.server.admin.server;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
@@ -78,7 +78,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 
 
-
 /**
  * A server-side managed object.
  *
@@ -88,6 +87,11 @@ import org.opends.server.types.DirectoryException;
  */
 public final class ServerManagedObject<S extends Configuration>
     implements PropertyProvider {
+
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
   /**
    * Internal inherited default value provider implementation.
@@ -884,7 +888,7 @@ public final class ServerManagedObject<S extends Configuration>
       // Ignore the exception since this implies deregistration.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -912,7 +916,7 @@ public final class ServerManagedObject<S extends Configuration>
       // Ignore the exception since this implies deregistration.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -950,7 +954,7 @@ public final class ServerManagedObject<S extends Configuration>
     } catch (ConfigException e) {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = AdminMessages.MSGID_ADMIN_CANNOT_GET_LISTENER_BASE;
@@ -974,7 +978,7 @@ public final class ServerManagedObject<S extends Configuration>
     } catch (ConfigException e) {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = AdminMessages.MSGID_ADMIN_CANNOT_GET_MANAGED_OBJECT;

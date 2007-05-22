@@ -30,8 +30,8 @@ package org.opends.server.protocols.ldap;
 
 import static org.opends.server.loggers.AccessLogger.logConnect;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -95,6 +95,11 @@ public final class LDAPConnectionHandler extends
     ConnectionHandler<LDAPConnectionHandlerCfg> implements
     ConfigurationChangeListener<LDAPConnectionHandlerCfg>,
     ServerShutdownListener, AlertGenerator {
+
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
   /**
    * The fully-qualified name of this class.
@@ -315,7 +320,7 @@ public final class LDAPConnectionHandler extends
     } catch (Exception e) {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -622,7 +627,7 @@ public final class LDAPConnectionHandler extends
     } catch (Exception e) {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_CONNHANDLER_OPEN_SELECTOR_FAILED;
@@ -882,7 +887,7 @@ public final class LDAPConnectionHandler extends
           } catch (Exception e) {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             logError(ErrorLogCategory.CONNECTION_HANDLING,
@@ -978,7 +983,7 @@ public final class LDAPConnectionHandler extends
                   {
                     if (debugEnabled())
                     {
-                      debugCaught(DebugLogLevel.ERROR, e);
+                      TRACER.debugCaught(DebugLogLevel.ERROR, e);
                     }
 
                     clientConnection.disconnect(
@@ -1029,7 +1034,7 @@ public final class LDAPConnectionHandler extends
                   } catch (Exception e) {
                     if (debugEnabled())
                     {
-                      debugCaught(DebugLogLevel.ERROR, e);
+                      TRACER.debugCaught(DebugLogLevel.ERROR, e);
                     }
 
                     int msgID =
@@ -1066,7 +1071,7 @@ public final class LDAPConnectionHandler extends
           } catch (Exception e) {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             logError(ErrorLogCategory.CONNECTION_HANDLING,
@@ -1107,7 +1112,7 @@ public final class LDAPConnectionHandler extends
       } catch (Exception e) {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // This is very bad because we failed outside the loop. The
@@ -1181,7 +1186,7 @@ public final class LDAPConnectionHandler extends
         } catch (Exception e) {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -1190,14 +1195,14 @@ public final class LDAPConnectionHandler extends
         } catch (Exception e) {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
     } catch (Exception e) {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }

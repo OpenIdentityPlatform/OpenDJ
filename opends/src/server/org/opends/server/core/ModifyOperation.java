@@ -98,8 +98,9 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.*;
@@ -116,6 +117,11 @@ public class ModifyOperation
        implements PreParseModifyOperation, PreOperationModifyOperation,
                   PostOperationModifyOperation, PostResponseModifyOperation
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The raw, unprocessed entry DN as included by the client request.
   private ByteString rawEntryDN;
 
@@ -748,7 +754,7 @@ modifyProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -774,7 +780,7 @@ modifyProcessing:
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, le);
+              TRACER.debugCaught(DebugLogLevel.ERROR, le);
             }
 
             setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -866,7 +872,7 @@ modifyProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -899,7 +905,7 @@ modifyProcessing:
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
               break;
             }
@@ -941,7 +947,7 @@ modifyProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -970,7 +976,7 @@ modifyProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -1003,7 +1009,7 @@ modifyProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1030,7 +1036,7 @@ modifyProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1068,7 +1074,7 @@ modifyProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1088,7 +1094,7 @@ modifyProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1146,7 +1152,7 @@ modifyProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1166,7 +1172,7 @@ modifyProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1230,7 +1236,7 @@ modifyProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -1263,7 +1269,7 @@ modifyProcessing:
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, de);
+                TRACER.debugCaught(DebugLogLevel.ERROR, de);
               }
 
               logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -1542,7 +1548,7 @@ modifyProcessing:
                     {
                       if (debugEnabled())
                       {
-                        debugCaught(DebugLogLevel.ERROR, de);
+                        TRACER.debugCaught(DebugLogLevel.ERROR, de);
                       }
 
                       setResultCode(de.getResultCode());
@@ -1625,7 +1631,7 @@ modifyProcessing:
                             {
                               if (debugEnabled())
                               {
-                                debugCaught(DebugLogLevel.ERROR, de);
+                                TRACER.debugCaught(DebugLogLevel.ERROR, de);
                               }
 
                               setResultCode(de.getResultCode());
@@ -1672,7 +1678,7 @@ modifyProcessing:
                             {
                               if (debugEnabled())
                               {
-                                debugCaught(DebugLogLevel.ERROR, de);
+                                TRACER.debugCaught(DebugLogLevel.ERROR, de);
                               }
 
                               setResultCode(de.getResultCode());
@@ -1849,7 +1855,7 @@ modifyProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, de);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, de);
                   }
 
                   setResponseData(de);
@@ -1962,7 +1968,7 @@ modifyProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, de);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, de);
                   }
 
                   setResponseData(de);
@@ -2175,7 +2181,7 @@ modifyProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, e);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
                 }
 
                 setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
@@ -2226,7 +2232,7 @@ modifyProcessing:
                   {
                     if (debugEnabled())
                     {
-                      debugCaught(DebugLogLevel.ERROR, e);
+                      TRACER.debugCaught(DebugLogLevel.ERROR, e);
                     }
 
                     setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
@@ -2428,7 +2434,7 @@ modifyProcessing:
           } catch (DirectoryException e) {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             setResponseData(e);
@@ -2587,7 +2593,7 @@ modifyProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -2771,7 +2777,7 @@ modifyProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -2785,7 +2791,7 @@ modifyProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, coe);
+            TRACER.debugCaught(DebugLogLevel.ERROR, coe);
           }
 
           CancelResult cancelResult = coe.getCancelResult();
@@ -2817,7 +2823,7 @@ modifyProcessing:
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, de);
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -2876,7 +2882,7 @@ modifyProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER;
@@ -2914,7 +2920,7 @@ modifyProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MODIFY_ERROR_NOTIFYING_PERSISTENT_SEARCH;
@@ -2956,7 +2962,7 @@ modifyProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 

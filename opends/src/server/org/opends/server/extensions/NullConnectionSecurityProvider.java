@@ -41,8 +41,8 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -56,6 +56,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class NullConnectionSecurityProvider
        extends ConnectionSecurityProvider
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -311,7 +316,7 @@ public class NullConnectionSecurityProvider
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ioe);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
         }
 
         // An error occurred while trying to read data from the client.
@@ -323,7 +328,7 @@ public class NullConnectionSecurityProvider
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // An unexpected error occurred.  Disconnect and return.
@@ -380,7 +385,7 @@ public class NullConnectionSecurityProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ioe);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
 
       // An error occurred while trying to write data to the client.  Disconnect
@@ -392,7 +397,7 @@ public class NullConnectionSecurityProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An unexpected error occurred.  Disconnect and return.

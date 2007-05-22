@@ -33,13 +33,13 @@ import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import org.opends.server.core.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -54,6 +54,11 @@ import java.util.concurrent.locks.Lock;
  */
 public class AciHandler extends AccessControlHandler
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
     /*
      * The list that holds that ACIs keyed by the DN of the entry
       * holding the ACI.
@@ -177,7 +182,7 @@ public class AciHandler extends AccessControlHandler
             }
         }  catch (Exception e) {
             if (debugEnabled())
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
             msgID = MSGID_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI;
             String message =
                     getMessage(msgID, String.valueOf(configuration.dn()),

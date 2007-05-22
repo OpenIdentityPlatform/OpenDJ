@@ -54,6 +54,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -67,6 +68,11 @@ public class MemberVirtualAttributeProvider
        extends VirtualAttributeProvider<MemberVirtualAttributeCfg>
        implements ConfigurationChangeListener<MemberVirtualAttributeCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The attribute type used to indicate which target group should be used to
   // obtain the member list.
   private AttributeType targetGroupType;
@@ -163,7 +169,7 @@ public class MemberVirtualAttributeProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -211,7 +217,7 @@ public class MemberVirtualAttributeProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -241,7 +247,7 @@ public class MemberVirtualAttributeProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 

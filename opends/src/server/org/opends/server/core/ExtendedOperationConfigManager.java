@@ -40,8 +40,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -68,6 +68,11 @@ public class ExtendedOperationConfigManager implements
      ConfigurationAddListener<ExtendedOperationHandlerCfg>,
      ConfigurationDeleteListener<ExtendedOperationHandlerCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -204,7 +209,7 @@ public class ExtendedOperationConfigManager implements
         } catch (ConfigException e) {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           messages.add(e.getMessage());
@@ -212,7 +217,7 @@ public class ExtendedOperationConfigManager implements
         } catch (Exception e) {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_CONFIG_EXTOP_INITIALIZATION_FAILED;
@@ -290,7 +295,7 @@ public class ExtendedOperationConfigManager implements
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         messages.add(e.getMessage());
@@ -300,7 +305,7 @@ public class ExtendedOperationConfigManager implements
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_EXTOP_INITIALIZATION_FAILED;
@@ -359,7 +364,7 @@ public class ExtendedOperationConfigManager implements
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_EXTOP_INVALID_CLASS;
@@ -403,7 +408,7 @@ public class ExtendedOperationConfigManager implements
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_EXTOP_INVALID_CLASS;
