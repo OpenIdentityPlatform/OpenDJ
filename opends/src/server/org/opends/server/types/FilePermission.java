@@ -643,7 +643,15 @@ public class FilePermission
         }
         else
         {
-          anyFailed = true;
+          if(!DirectoryServer.getOperatingSystem().equals(
+              OperatingSystem.WINDOWS))
+          {
+            // On Windows platforms, file readability permissions
+            // cannot be set to false. Do not consider this case
+            // a failure. http://java.sun.com/developer/
+            // technicalArticles/J2SE/Desktop/javase6/enhancements/
+            anyFailed = true;
+          }
         }
       }
       catch (Exception e)
@@ -671,7 +679,15 @@ public class FilePermission
       }
       else
       {
-        anyFailed = true;
+        if(!DirectoryServer.getOperatingSystem().equals(
+            OperatingSystem.WINDOWS) || p.isOwnerReadable())
+        {
+          // On Windows platforms, file readabilitys permissions
+          // cannot be set to false. Do not consider this case
+          // a failure. http://java.sun.com/developer/
+          // technicalArticles/J2SE/Desktop/javase6/enhancements/
+          anyFailed = true;
+        }
       }
     }
     catch (Exception e)
@@ -751,7 +767,15 @@ public class FilePermission
         }
         else
         {
-          anyFailed = true;
+          if(!DirectoryServer.getOperatingSystem().equals(
+              OperatingSystem.WINDOWS))
+          {
+            // On Windows platforms, file execute permissions
+            // cannot be set to false. Do not consider this case
+            // a failure. http://java.sun.com/developer/
+            // technicalArticles/J2SE/Desktop/javase6/enhancements/
+            anyFailed = true;
+          }
         }
       }
       catch (Exception e)
@@ -779,7 +803,15 @@ public class FilePermission
       }
       else
       {
-        anyFailed = true;
+        if(!DirectoryServer.getOperatingSystem().equals(
+            OperatingSystem.WINDOWS) || p.isOwnerExecutable())
+        {
+          // On Windows platforms, file execute permissions
+          // cannot be set to false. Do not consider this case
+          // a failure. http://java.sun.com/developer/
+          // technicalArticles/J2SE/Desktop/javase6/enhancements/
+          anyFailed = true;
+        }
       }
     }
     catch (Exception e)

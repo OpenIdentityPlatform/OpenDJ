@@ -1151,6 +1151,13 @@ public class JebMessages
       CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 145;
 
   /**
+   * The message ID of an error indicating that setting file permissions
+   * for the database directory is not supported.
+   */
+  public static final int MSGID_JEB_UNABLE_SET_PERMISSIONS =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 146;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1433,8 +1440,8 @@ public class JebMessages
                     "This search operation has checked the maximum of %d " +
                     "entries for matches");
     registerMessage(MSGID_JEB_SET_PERMISSIONS_FAILED,
-                    "Unable to set file permissions for the backend database " +
-                    "directory %s");
+                    "An error occured while setting file permissions for " +
+                    "the backend database directory %s: %s");
     registerMessage(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
                     "Unable to determine the total number of entries in the " +
                     "container: %s");
@@ -1479,5 +1486,8 @@ public class JebMessages
     registerMessage(MSGID_JEB_SEARCH_UNINDEXED_INSUFFICIENT_PRIVILEGES,
                     "You do not have sufficient privileges to perform an " +
                     "unindexed search");
+    registerMessage(MSGID_JEB_UNABLE_SET_PERMISSIONS,
+                    "This platform does not support setting file " +
+                    "permissions %s to the database directory %s");
   }
 }

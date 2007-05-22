@@ -49,18 +49,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
 import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_CACHE_SIZE_AFTER_PRELOAD;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_CLEAN_DATABASE_START;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_CLEAN_DATABASE_MARKED;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_CLEAN_DATABASE_FINISH;
-import static org.opends.server.messages.JebMessages.
-    MSGID_JEB_SET_PERMISSIONS_FAILED;
-import static org.opends.server.messages.JebMessages.
-     MSGID_JEB_CONFIG_ATTR_REQUIRES_RESTART;
+import static org.opends.server.messages.JebMessages.*;
 import org.opends.server.api.Backend;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -143,14 +132,19 @@ public class RootContainer
       {
         if(!FilePermission.setPermissions(backendDirectory, backendPermission))
         {
-          throw new Exception();
+          int msgID = MSGID_JEB_UNABLE_SET_PERMISSIONS;
+          String message = getMessage(msgID, backendPermission.toString(),
+                                      backendDirectory.toString());
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_WARNING,
+                   message, msgID);
         }
       }
       catch(Exception e)
       {
         // Log an warning that the permissions were not set.
         int msgID = MSGID_JEB_SET_PERMISSIONS_FAILED;
-        String message = getMessage(msgID, backendDirectory.getPath());
+        String message = getMessage(msgID, backendDirectory.toString(),
+                                    e.toString());
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
                  message, msgID);
       }
