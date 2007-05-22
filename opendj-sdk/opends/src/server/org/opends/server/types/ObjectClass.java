@@ -40,6 +40,7 @@ import java.util.Set;
 import org.opends.server.schema.ObjectClassSyntax;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.Validator.*;
 
@@ -64,6 +65,11 @@ public final class ObjectClass
        extends CommonSchemaElements
        implements SchemaFileElement
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The set of optional attribute types for this objectclass.
   private final Set<AttributeType> optionalAttributes;
 
@@ -169,7 +175,7 @@ public final class ObjectClass
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         defStr = definition;

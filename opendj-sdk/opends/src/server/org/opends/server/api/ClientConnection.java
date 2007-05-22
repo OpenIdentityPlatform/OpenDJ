@@ -61,6 +61,7 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -73,6 +74,11 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public abstract class ClientConnection
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The set of authentication information for this client connection.
   private AuthenticationInfo authenticationInfo;
 
@@ -185,7 +191,7 @@ public abstract class ClientConnection
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -960,7 +966,7 @@ public abstract class ClientConnection
         String message = getMessage(msgID, getConnectionID(), -1L,
                                     String.valueOf(authDN),
                                     privilege.getName(), result);
-        debugMessage(DebugLogLevel.INFO, message);
+        TRACER.debugMessage(DebugLogLevel.INFO, message);
       }
       else
       {
@@ -971,7 +977,7 @@ public abstract class ClientConnection
                                     operation.getOperationID(),
                                     String.valueOf(authDN),
                                     privilege.getName(), result);
-        debugMessage(DebugLogLevel.INFO, message);
+        TRACER.debugMessage(DebugLogLevel.INFO, message);
       }
     }
 
@@ -1042,7 +1048,7 @@ public abstract class ClientConnection
         String message = getMessage(msgID, getConnectionID(), -1L,
                                     String.valueOf(authDN),
                                     buffer.toString(), result);
-        debugMessage(DebugLogLevel.INFO, message);
+        TRACER.debugMessage(DebugLogLevel.INFO, message);
       }
       else
       {
@@ -1053,7 +1059,7 @@ public abstract class ClientConnection
                                     operation.getOperationID(),
                                     String.valueOf(authDN),
                                     buffer.toString(), result);
-        debugMessage(DebugLogLevel.INFO, message);
+        TRACER.debugMessage(DebugLogLevel.INFO, message);
       }
 
       return result;

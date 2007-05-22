@@ -51,8 +51,8 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -70,6 +70,11 @@ public class GSSAPISASLMechanismHandler
        implements ConfigurationChangeListener<
                        GSSAPISASLMechanismHandlerCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The DN of the configuration entry for this SASL mechanism handler.
   private DN configEntryDN;
 
@@ -136,7 +141,7 @@ public class GSSAPISASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_SASLGSSAPI_CANNOT_GET_SERVER_FQDN;
@@ -195,7 +200,7 @@ public class GSSAPISASLMechanismHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG;
@@ -261,7 +266,7 @@ public class GSSAPISASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         bindOperation.setAuthFailureReason(ie.getMessageID(), ie.getMessage());
@@ -298,7 +303,7 @@ public class GSSAPISASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -437,7 +442,7 @@ public class GSSAPISASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         if (resultCode == ResultCode.SUCCESS)
@@ -498,7 +503,7 @@ public class GSSAPISASLMechanismHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         resultCode = DirectoryServer.getServerErrorResultCode();

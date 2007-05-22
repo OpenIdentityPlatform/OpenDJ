@@ -31,8 +31,8 @@ package org.opends.server.protocols.asn1;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -57,6 +57,11 @@ public class ASN1OctetString
        extends ASN1Element
        implements ByteString
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -207,7 +212,7 @@ public class ASN1OctetString
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         stringValue = new String(value());
@@ -254,7 +259,7 @@ public class ASN1OctetString
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           s = new String(value, i, (length - i));

@@ -39,10 +39,8 @@ import com.sleepycat.je.Transaction;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 /**
  * This class represents the DN database, or dn2id, which has one record
@@ -51,6 +49,11 @@ import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
  */
 public class DN2ID
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The database entryContainer.
    */
@@ -117,7 +120,7 @@ public class DN2ID
 
       if(debugEnabled())
       {
-        debugInfo("JE DN2ID database %s opened with %d records.",
+        TRACER.debugInfo("JE DN2ID database %s opened with %d records.",
                   database.getDatabaseName(), database.count());
       }
     }
@@ -289,7 +292,7 @@ public class DN2ID
     {
       if(debugEnabled())
       {
-        debugVerbose("%d existing records will be deleted from the " +
+        TRACER.debugVerbose("%d existing records will be deleted from the " +
             "database", getRecordCount());
       }
       DatabaseEntry data = new DatabaseEntry();
@@ -307,14 +310,14 @@ public class DN2ID
       }
       if(debugEnabled())
       {
-        debugVerbose("%d records deleted", deletedCount);
+        TRACER.debugVerbose("%d records deleted", deletedCount);
       }
     }
     catch(DatabaseException de)
     {
       if(debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       throw de;

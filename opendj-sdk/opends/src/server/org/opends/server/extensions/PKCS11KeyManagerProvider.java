@@ -55,8 +55,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -73,6 +73,11 @@ public class PKCS11KeyManagerProvider extends
     KeyManagerProvider<PKCS11KeyManagerCfg> implements
     ConfigurableComponent
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -180,7 +185,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -189,7 +194,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
@@ -230,7 +235,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -239,7 +244,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
@@ -308,7 +313,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -317,7 +322,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE;
@@ -345,7 +350,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
@@ -441,7 +446,7 @@ pinSelection:
       } catch (IOException ioe) {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ioe);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
         }
 
         int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ;
@@ -508,7 +513,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_LOAD;
@@ -530,7 +535,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_CREATE_FACTORY;
@@ -672,7 +677,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
@@ -714,7 +719,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
@@ -786,7 +791,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE;
@@ -815,7 +820,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
@@ -912,7 +917,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
@@ -965,7 +970,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
@@ -1058,7 +1063,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_FILE;
@@ -1092,7 +1097,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;

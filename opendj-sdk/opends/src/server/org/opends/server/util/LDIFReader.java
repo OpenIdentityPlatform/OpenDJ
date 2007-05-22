@@ -28,11 +28,8 @@ package org.opends.server.util;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugProtocolElement;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.UtilityMessages.*;
@@ -80,6 +77,11 @@ import org.opends.server.types.RDN;
  */
 public final class LDIFReader
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The reader that will be used to read the data.
   private BufferedReader reader;
 
@@ -216,8 +218,8 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugInfo("Skipping entry %s because the DN is not one that should " +
-              "be included based on the include and exclude branches.",
+          TRACER.debugInfo("Skipping entry %s because the DN is not one that " +
+              "should be included based on the include and exclude branches.",
                     entryDN);
         }
         entriesRead++;
@@ -254,7 +256,7 @@ public final class LDIFReader
       // import.
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
                                operationalAttributes);
-      debugProtocolElement(DebugLogLevel.VERBOSE, entry);
+      TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, entry);
 
       try
       {
@@ -262,9 +264,9 @@ public final class LDIFReader
         {
           if (debugEnabled())
           {
-            debugInfo("Skipping entry %s because the DN is not one that " +
-                "should be included based on the include and exclude filters.",
-                      entryDN);
+            TRACER.debugInfo("Skipping entry %s because the DN is not one " +
+                "that should be included based on the include and exclude " +
+                "filters.", entryDN);
           }
           entriesIgnored++;
           continue;
@@ -274,7 +276,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT;
@@ -591,7 +593,7 @@ public final class LDIFReader
         // The value did not have a valid base64-encoding.
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_DN;
@@ -611,7 +613,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
@@ -626,7 +628,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
@@ -658,7 +660,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
@@ -673,7 +675,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIF_INVALID_DN;
@@ -768,7 +770,7 @@ public final class LDIFReader
         // The value did not have a valid base64-encoding.
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_DN;
@@ -846,8 +848,8 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugVerbose("Skipping objectclass %s for entry %s due to the " +
-              "import configuration.", value, entryDN);
+          TRACER.debugVerbose("Skipping objectclass %s for entry %s due to " +
+              "the import configuration.", value, entryDN);
         }
         return;
       }
@@ -885,8 +887,8 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugVerbose("Skipping attribute %s for entry %s due to the import " +
-              "configuration.", attrName, entryDN);
+          TRACER.debugVerbose("Skipping attribute %s for entry %s due to the " +
+              "import configuration.", attrName, entryDN);
         }
         return;
       }
@@ -1103,7 +1105,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -1250,7 +1252,7 @@ public final class LDIFReader
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
       int    msgID   = MSGID_LDIF_INVALID_DN;
       String message = getMessage(msgID, lineNumber, line.toString(),
@@ -1260,7 +1262,7 @@ public final class LDIFReader
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       int    msgID   = MSGID_LDIF_INVALID_DN;
       String message = getMessage(msgID, lineNumber, line.toString(),
@@ -1312,7 +1314,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
         int    msgID   = MSGID_LDIF_INVALID_DN;
         String message = getMessage(msgID, lineNumber, line.toString(),
@@ -1322,7 +1324,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         int    msgID   = MSGID_LDIF_INVALID_DN;
         String message = getMessage(msgID, lineNumber, line.toString(),
@@ -1598,7 +1600,7 @@ public final class LDIFReader
           // The value did not have a valid base64-encoding.
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
@@ -1629,7 +1631,7 @@ public final class LDIFReader
           // The URL was malformed or had an invalid protocol.
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_LDIF_INVALID_URL;
@@ -1663,7 +1665,7 @@ public final class LDIFReader
           // reason.
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID = MSGID_LDIF_URL_IO_ERROR;
@@ -1743,7 +1745,7 @@ public final class LDIFReader
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }

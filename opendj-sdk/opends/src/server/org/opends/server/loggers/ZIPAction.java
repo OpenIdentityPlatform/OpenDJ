@@ -33,8 +33,8 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
 /**
@@ -43,6 +43,11 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class ZIPAction implements PostRotationAction
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   private File originalFile;
   private File newFile;
@@ -122,7 +127,7 @@ public class ZIPAction implements PostRotationAction
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ioe);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
       if (inputStreamOpen)
       {
@@ -134,7 +139,7 @@ public class ZIPAction implements PostRotationAction
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, fe);
+            TRACER.debugCaught(DebugLogLevel.ERROR, fe);
           }
           // Cannot do much. Ignore.
         }
@@ -149,7 +154,7 @@ public class ZIPAction implements PostRotationAction
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, ze);
+            TRACER.debugCaught(DebugLogLevel.ERROR, ze);
           }
           // Cannot do much. Ignore.
         }

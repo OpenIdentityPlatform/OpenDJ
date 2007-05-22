@@ -47,10 +47,10 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -71,6 +71,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class SaltedMD5PasswordStorageScheme
        extends PasswordStorageScheme <PasswordStorageSchemeCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The fully-qualified name of this class.
    */
@@ -128,7 +133,7 @@ public class SaltedMD5PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_INITIALIZE_MESSAGE_DIGEST;
@@ -186,7 +191,7 @@ public class SaltedMD5PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
@@ -248,7 +253,7 @@ public class SaltedMD5PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
@@ -299,7 +304,7 @@ public class SaltedMD5PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD;
@@ -330,7 +335,7 @@ public class SaltedMD5PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return false;
@@ -399,7 +404,7 @@ public class SaltedMD5PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_PWSCHEME_CANNOT_ENCODE_PASSWORD;
@@ -445,7 +450,7 @@ public class SaltedMD5PasswordStorageScheme
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return false;

@@ -32,7 +32,6 @@ import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.Transaction;
 
 import org.opends.server.api.Backend;
-import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.messages.JebMessages;
 import org.opends.server.types.AttributeType;
@@ -55,14 +54,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.messages.JebMessages.
      MSGID_JEB_IMPORT_ENTRY_EXISTS;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.
      MSGID_JEB_IMPORT_PARENT_NOT_FOUND;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.JebMessages.*;
 
 /**
@@ -70,6 +69,10 @@ import static org.opends.server.messages.JebMessages.*;
  */
 public class ImportJob implements Thread.UncaughtExceptionHandler
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
   /**
    * The backend instance we are importing into.
@@ -207,7 +210,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
                message, msgID);
 
-      DebugLogger.debugInfo(
+      TRACER.debugInfo(
         rootContainer.getEnvironmentConfig().toString());
 
 
@@ -446,7 +449,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -538,14 +541,14 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
           }
           catch (DirectoryException e)
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
           }
         } while (true);
@@ -651,7 +654,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
           }
         }
@@ -728,7 +731,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }

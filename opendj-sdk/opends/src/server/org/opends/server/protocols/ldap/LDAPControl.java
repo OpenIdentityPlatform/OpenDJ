@@ -39,6 +39,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.asn1.ASN1Constants.*;
@@ -54,6 +55,11 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class LDAPControl
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The control wrapped by this LDAP control.
   private Control control;
 
@@ -203,7 +209,7 @@ public class LDAPControl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_CONTROL_DECODE_SEQUENCE;
@@ -230,7 +236,7 @@ public class LDAPControl
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_CONTROL_DECODE_OID;
@@ -262,7 +268,7 @@ public class LDAPControl
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e2);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e2);
             }
 
             int msgID = MSGID_LDAP_CONTROL_DECODE_CRITICALITY;
@@ -281,7 +287,7 @@ public class LDAPControl
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e2);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e2);
             }
 
             int msgID = MSGID_LDAP_CONTROL_DECODE_VALUE;
@@ -308,7 +314,7 @@ public class LDAPControl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_LDAP_CONTROL_DECODE_CRITICALITY;
@@ -325,7 +331,7 @@ public class LDAPControl
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_LDAP_CONTROL_DECODE_VALUE;

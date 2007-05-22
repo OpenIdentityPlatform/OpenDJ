@@ -26,8 +26,8 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.types.AttributeType;
@@ -48,6 +48,11 @@ import java.io.IOException;
  */
 public class ImportThread extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The import context of this thread.
@@ -259,7 +264,7 @@ public class ImportThread extends DirectoryThread
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
           continue;
         }
@@ -315,14 +320,14 @@ public class ImportThread extends DirectoryThread
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     catch (IOException e)
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }

@@ -26,8 +26,8 @@
  */
 package org.opends.server.util;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.messages.UtilityMessages;
@@ -86,6 +86,11 @@ import org.opends.server.messages.UtilityMessages;
  * </ul>
  */
 public class Validator {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /** This static final variable theoretically allows us to compile out all of
    *  these checks.  Since all of the code below is guarded with this check,
    *  the compiler should eliminate it if ENABLE_CHECKS is false.
@@ -388,7 +393,7 @@ public class Validator {
     // Log to the debug log.
     if (debugEnabled())
     {
-      debugError(messageWithStack);
+      TRACER.debugError(messageWithStack);
     }
 
     // Log to the error log.

@@ -39,8 +39,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.api.DirectoryThread;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -54,6 +54,10 @@ import static org.opends.server.util.ServerConstants.*;
 public final class TimeThread
        extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
 
 
@@ -172,7 +176,7 @@ public final class TimeThread
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }

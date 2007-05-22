@@ -44,8 +44,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -61,6 +61,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class SubjectEqualsDNCertificateMapper
        extends CertificateMapper<CertificateMapperCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * Creates a new instance of this certificate mapper.  Note that all actual
    * initialization should be done in the
@@ -129,7 +134,7 @@ public class SubjectEqualsDNCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SEDCM_PEER_CERT_NOT_X509;
@@ -151,7 +156,7 @@ public class SubjectEqualsDNCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SEDCM_CANNOT_DECODE_SUBJECT_AS_DN;
@@ -193,7 +198,7 @@ public class SubjectEqualsDNCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       int    msgID   = MSGID_SEDCM_CANNOT_GET_ENTRY;
@@ -206,7 +211,7 @@ public class SubjectEqualsDNCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SEDCM_CANNOT_GET_ENTRY;

@@ -39,10 +39,8 @@ import java.util.LinkedList;
 
 import org.opends.server.config.ConfigException;
 
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -58,6 +56,11 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class BackupDirectory
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -324,7 +327,7 @@ public class BackupDirectory
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_BACKUPDIRECTORY_CANNOT_CREATE_DIRECTORY;
@@ -398,7 +401,7 @@ public class BackupDirectory
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int msgID =
@@ -419,7 +422,7 @@ public class BackupDirectory
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID =
@@ -442,7 +445,7 @@ public class BackupDirectory
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_BACKUPDIRECTORY_CANNOT_RENAME_NEW_DESCRIPTOR;

@@ -34,6 +34,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -48,6 +49,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class DeleteRequestProtocolOp
        extends ProtocolOp
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The DN for this delete request.
   private ASN1OctetString dn;
 
@@ -148,7 +154,7 @@ public class DeleteRequestProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_DELETE_REQUEST_DECODE_DN;

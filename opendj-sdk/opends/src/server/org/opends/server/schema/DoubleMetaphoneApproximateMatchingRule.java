@@ -39,8 +39,8 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -67,6 +67,11 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class DoubleMetaphoneApproximateMatchingRule
        extends ApproximateMatchingRule
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -1225,7 +1230,7 @@ public class DoubleMetaphoneApproximateMatchingRule
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       return false;

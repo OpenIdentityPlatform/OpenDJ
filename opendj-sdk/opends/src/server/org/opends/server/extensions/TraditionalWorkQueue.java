@@ -57,8 +57,9 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -73,6 +74,11 @@ public class TraditionalWorkQueue
        extends WorkQueue
        implements ConfigurableComponent
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -187,7 +193,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_NUM_WORKER_THREADS;
@@ -236,7 +242,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_QUEUE_CAPACITY;
@@ -290,7 +296,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_CREATE_MONITOR;
@@ -326,7 +332,7 @@ public class TraditionalWorkQueue
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
@@ -347,7 +353,7 @@ public class TraditionalWorkQueue
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_WARNING,
@@ -474,7 +480,7 @@ public class TraditionalWorkQueue
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
       finally
@@ -537,7 +543,7 @@ public class TraditionalWorkQueue
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
             }
             finally
@@ -576,7 +582,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This should not happen.  The only recourse we have is to log a message
@@ -755,7 +761,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_NUM_WORKER_THREADS;
@@ -802,7 +808,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_QUEUE_CAPACITY;
@@ -881,7 +887,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_NUM_WORKER_THREADS;
@@ -929,7 +935,7 @@ public class TraditionalWorkQueue
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_WORK_QUEUE_CANNOT_DETERMINE_QUEUE_CAPACITY;
@@ -987,7 +993,7 @@ public class TraditionalWorkQueue
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
       finally
@@ -1046,7 +1052,7 @@ public class TraditionalWorkQueue
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, ie);
+                TRACER.debugCaught(DebugLogLevel.ERROR, ie);
               }
             }
           }
@@ -1065,7 +1071,7 @@ public class TraditionalWorkQueue
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
       finally

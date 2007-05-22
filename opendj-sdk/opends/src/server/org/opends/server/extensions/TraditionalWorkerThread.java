@@ -40,8 +40,9 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Operation;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -54,6 +55,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class TraditionalWorkerThread
        extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // Indicates whether the Directory Server is shutting down and this thread
   // should stop running.
   private boolean shutdownRequested;
@@ -174,11 +180,11 @@ public class TraditionalWorkerThread
       {
         if (debugEnabled())
         {
-          debugWarning(
+          TRACER.debugWarning(
             "Uncaught exception in worker thread while processing " +
                 "operation %s: %s", String.valueOf(operation), e);
 
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         try
@@ -199,11 +205,11 @@ public class TraditionalWorkerThread
         {
           if (debugEnabled())
           {
-            debugWarning(
+            TRACER.debugWarning(
               "Exception in worker thread while trying to log a " +
                   "message about an uncaught exception %s: %s", e, e2);
 
-            debugCaught(DebugLogLevel.ERROR, e2);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
 
@@ -222,7 +228,7 @@ public class TraditionalWorkerThread
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e2);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
       }
@@ -245,7 +251,7 @@ public class TraditionalWorkerThread
 
     if (debugEnabled())
     {
-      debugInfo(getName() + " exiting.");
+      TRACER.debugInfo(getName() + " exiting.");
     }
   }
 
@@ -259,7 +265,7 @@ public class TraditionalWorkerThread
   {
     if (debugEnabled())
     {
-      debugInfo(getName() + " being signaled to shut down.");
+      TRACER.debugInfo(getName() + " being signaled to shut down.");
     }
 
     // Set a flag that indicates that the thread should stop running.
@@ -278,10 +284,10 @@ public class TraditionalWorkerThread
       {
         if (debugEnabled())
         {
-          debugWarning(
+          TRACER.debugWarning(
             "Caught an exception while trying to interrupt the worker " +
                 "thread waiting for work: %s", e);
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -297,10 +303,10 @@ public class TraditionalWorkerThread
       {
         if (debugEnabled())
         {
-          debugWarning(
+          TRACER.debugWarning(
             "Caught an exception while trying to abandon the " +
                 "operation in progress for the worker thread: %s", e);
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }

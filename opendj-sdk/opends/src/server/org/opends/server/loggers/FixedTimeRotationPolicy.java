@@ -30,8 +30,8 @@ import java.util.*;
 
 import org.opends.server.util.TimeThread;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.admin.std.server.FixedTimeLogRotationPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.types.ConfigChangeResult;
@@ -45,6 +45,11 @@ public class FixedTimeRotationPolicy implements
     RotationPolicy<FixedTimeLogRotationPolicyCfg>,
     ConfigurationChangeListener<FixedTimeLogRotationPolicyCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   private static final long MS_IN_DAY = 24 * 3600 * 1000;
 
@@ -141,8 +146,8 @@ public class FixedTimeRotationPolicy implements
 
     if (debugEnabled())
     {
-      debugInfo("As of %d, the next rotation at fixed time is: %d",
-                currTime, nextRotationTime);
+      TRACER.debugInfo("The next fixed rotation time in %ds",
+                       (currTime - nextRotationTime)/1000);
     }
 
     return currTime > nextRotationTime;

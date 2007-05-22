@@ -75,10 +75,10 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
@@ -98,6 +98,11 @@ public class PluginConfigManager
                   ConfigurationDeleteListener<PluginCfg>,
                   ConfigurationChangeListener<PluginCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // Arrays for holding the plugins of each type.
   private DirectoryServerPlugin[] startupPlugins;
   private DirectoryServerPlugin[] shutdownPlugins;
@@ -451,7 +456,7 @@ public class PluginConfigManager
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -1004,7 +1009,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_STARTUP_PLUGIN_EXCEPTION;
@@ -1081,7 +1086,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION;
@@ -1118,7 +1123,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_PLUGIN_POST_CONNECT_PLUGIN_EXCEPTION;
@@ -1138,7 +1143,7 @@ public class PluginConfigManager
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e2);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
 
@@ -1165,7 +1170,7 @@ public class PluginConfigManager
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -1222,7 +1227,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID = MSGID_PLUGIN_POST_DISCONNECT_PLUGIN_EXCEPTION;
@@ -1291,7 +1296,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION;
@@ -1357,7 +1362,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_LDIF_EXPORT_PLUGIN_EXCEPTION;
@@ -1422,7 +1427,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -1504,7 +1509,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -1584,7 +1589,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -1664,7 +1669,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -1746,7 +1751,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -1828,7 +1833,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -1910,7 +1915,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -1992,7 +1997,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2074,7 +2079,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2156,7 +2161,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
@@ -2238,7 +2243,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -2318,7 +2323,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -2398,7 +2403,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -2480,7 +2485,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -2562,7 +2567,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -2644,7 +2649,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -2726,7 +2731,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -2808,7 +2813,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION;
@@ -2890,7 +2895,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -2972,7 +2977,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3052,7 +3057,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3132,7 +3137,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3214,7 +3219,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3296,7 +3301,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3378,7 +3383,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3460,7 +3465,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3542,7 +3547,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3624,7 +3629,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION;
@@ -3706,7 +3711,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -3780,7 +3785,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -3854,7 +3859,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -3928,7 +3933,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4002,7 +4007,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4076,7 +4081,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4150,7 +4155,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4224,7 +4229,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION;
@@ -4300,7 +4305,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION;
@@ -4372,7 +4377,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION;
@@ -4444,7 +4449,7 @@ public class PluginConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_PLUGIN_INTERMEDIATE_RESPONSE_PLUGIN_EXCEPTION;

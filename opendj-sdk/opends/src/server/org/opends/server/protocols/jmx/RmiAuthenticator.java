@@ -44,9 +44,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.LDAPException;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
 /**
@@ -57,6 +56,11 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class RmiAuthenticator implements JMXAuthenticator
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
     /**
      * The client authencation mode. <code>true</code> indicates that the
@@ -141,7 +145,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     {
       if (debugEnabled())
       {
-        debugVerbose("User name is Null");
+        TRACER.debugVerbose("User name is Null");
       }
       SecurityException se = new SecurityException();
       throw se;
@@ -150,7 +154,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     {
       if (debugEnabled())
       {
-        debugVerbose("User password is Null ");
+        TRACER.debugVerbose("User password is Null ");
       }
 
       SecurityException se = new SecurityException();
@@ -159,7 +163,7 @@ public class RmiAuthenticator implements JMXAuthenticator
 
     if (debugEnabled())
     {
-      debugVerbose("UserName = %s", authcID);
+      TRACER.debugVerbose("UserName = %s", authcID);
     }
 
     //
@@ -177,7 +181,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       SecurityException se = new SecurityException();
       se.initCause(e);
@@ -268,7 +272,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     {
       if (debugEnabled())
       {
-        debugVerbose("User is authenticated");
+        TRACER.debugVerbose("User is authenticated");
       }
 
       authInfo = bindOp.getAuthenticationInfo();

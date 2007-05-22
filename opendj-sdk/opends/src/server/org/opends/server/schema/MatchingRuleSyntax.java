@@ -45,10 +45,10 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -64,6 +64,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class MatchingRuleSyntax
        extends AttributeSyntax
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -416,7 +421,7 @@ public class MatchingRuleSyntax
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         invalidReason.append(de.getErrorMessage());
@@ -457,7 +462,7 @@ public class MatchingRuleSyntax
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, de);
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
             invalidReason.append(de.getErrorMessage());
@@ -480,7 +485,7 @@ public class MatchingRuleSyntax
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, de);
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
             invalidReason.append(de.getErrorMessage());
@@ -517,7 +522,7 @@ public class MatchingRuleSyntax
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 invalidReason.append(de.getErrorMessage());
@@ -550,7 +555,7 @@ public class MatchingRuleSyntax
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           invalidReason.append(de.getErrorMessage());
@@ -576,7 +581,7 @@ public class MatchingRuleSyntax
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           invalidReason.append(de.getErrorMessage());
@@ -614,7 +619,7 @@ public class MatchingRuleSyntax
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           invalidReason.append(de.getErrorMessage());

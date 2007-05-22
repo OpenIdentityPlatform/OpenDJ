@@ -52,10 +52,10 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -72,6 +72,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class MonitorConfigManager
        implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -121,7 +126,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_MONITOR_CANNOT_GET_BASE;
@@ -259,7 +264,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_CLASS_NAME;
@@ -278,7 +283,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_CLASS_NAME;
@@ -296,7 +301,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_CLASS;
@@ -331,7 +336,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_ENABLED_VALUE;
@@ -437,7 +442,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_ENABLED_VALUE;
@@ -475,7 +480,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_CLASS_NAME;
@@ -519,7 +524,7 @@ public class MonitorConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_MONITOR_INVALID_CLASS;
@@ -539,7 +544,7 @@ public class MonitorConfigManager
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_CONFIG_MONITOR_INITIALIZATION_FAILED;
@@ -626,7 +631,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_CLASS_NAME;
@@ -645,7 +650,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_CLASS_NAME;
@@ -664,7 +669,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_CLASS;
@@ -729,7 +734,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_ENABLED_VALUE;
@@ -806,7 +811,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_ENABLED_VALUE;
@@ -843,7 +848,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_CLASS_NAME;
@@ -866,7 +871,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INVALID_CLASS;
@@ -884,7 +889,7 @@ public class MonitorConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_MONITOR_INITIALIZATION_FAILED;

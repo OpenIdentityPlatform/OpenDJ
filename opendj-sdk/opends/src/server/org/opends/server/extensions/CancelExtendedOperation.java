@@ -40,8 +40,8 @@ import org.opends.server.types.CancelResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -60,6 +60,11 @@ import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 public class CancelExtendedOperation
        extends ExtendedOperationHandler<ExtendedOperationHandlerCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -150,7 +155,7 @@ public class CancelExtendedOperation
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         operation.setResultCode(ResultCode.PROTOCOL_ERROR);

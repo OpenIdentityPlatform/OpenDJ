@@ -38,6 +38,7 @@ import org.opends.server.protocols.asn1.ASN1Set;
 import org.opends.server.protocols.ldap.LDAPFilter;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -53,6 +54,11 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public abstract class RawFilter
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * Creates a new LDAP filter from the provided filter string.
    *
@@ -627,7 +633,8 @@ public abstract class RawFilter
       default:
         if (debugEnabled())
         {
-          debugError("Invalid search filter type: %s", filterType);
+          TRACER.debugError("Invalid search filter type: %s",
+                            filterType);
         }
         return null;
     }
@@ -717,8 +724,8 @@ public abstract class RawFilter
         // This should never happen.
         if (debugEnabled())
         {
-          debugError("Invalid filter type %x for a compound filter",
-                     element.getType());
+          TRACER.debugError("Invalid filter type %x for a " +
+              "compound filter", element.getType());
         }
         filterType = null;
     }
@@ -733,7 +740,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_FILTER_DECODE_COMPOUND_SET;
@@ -759,7 +766,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_FILTER_DECODE_COMPOUND_COMPONENTS;
@@ -797,7 +804,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_NOT_ELEMENT;
@@ -819,7 +826,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_NOT_COMPONENT;
@@ -870,8 +877,8 @@ public abstract class RawFilter
         // This should never happen.
         if (debugEnabled())
         {
-          debugError("Invalid filter type %x for a type-and-value " +
-                     "filter", element.getType());
+          TRACER.debugError("Invalid filter type %x for a " +
+              "type-and-value filter", element.getType());
         }
         filterType = null;
     }
@@ -886,7 +893,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_SEQUENCE;
@@ -913,7 +920,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_TYPE;
@@ -931,7 +938,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_TV_VALUE;
@@ -970,7 +977,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_SEQUENCE;
@@ -998,7 +1005,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_TYPE;
@@ -1016,7 +1023,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_ELEMENTS;
@@ -1072,7 +1079,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_SUBSTRING_VALUES;
@@ -1112,7 +1119,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_PRESENCE_TYPE;
@@ -1152,7 +1159,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_SEQUENCE;
@@ -1199,7 +1206,7 @@ public abstract class RawFilter
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_FILTER_DECODE_EXTENSIBLE_ELEMENTS;

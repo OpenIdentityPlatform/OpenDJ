@@ -32,8 +32,6 @@ import com.sleepycat.je.*;
 
 import org.opends.server.types.*;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugError;
 import static org.opends.server.messages.JebMessages.
     MSGID_JEB_MISSING_DN2ID_RECORD;
 import static org.opends.server.messages.JebMessages.
@@ -42,6 +40,8 @@ import static org.opends.server.messages.JebMessages.
     MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 
@@ -50,6 +50,11 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
  */
 public class IndexRebuildThread extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The entry container.
    */
@@ -175,7 +180,8 @@ public class IndexRebuildThread extends DirectoryThread
       //TODO: throw error
       if(debugEnabled())
       {
-        debugError("No index type specified. Rebuild process terminated.");
+        TRACER.debugError("No index type specified. Rebuild process " +
+            "terminated.");
       }
 
       return;
@@ -185,7 +191,8 @@ public class IndexRebuildThread extends DirectoryThread
       //TODO: throw error
       if(debugEnabled())
       {
-        debugError("No attribute index specified. Rebuild process terminated.");
+        TRACER.debugError("No attribute index specified. Rebuild process " +
+            "terminated.");
       }
 
       return;
@@ -196,7 +203,7 @@ public class IndexRebuildThread extends DirectoryThread
       //TODO: throw error
       if(debugEnabled())
       {
-        debugError("No index specified. Rebuild process terminated.");
+        TRACER.debugError("No index specified. Rebuild process terminated.");
       }
 
       return;
@@ -207,8 +214,9 @@ public class IndexRebuildThread extends DirectoryThread
       totalEntries = getTotalEntries();
       if(debugEnabled())
       {
-        debugInfo("Initiating rebuild of the %s indexType/database", indexName);
-        debugVerbose("%d entries will be rebuilt", totalEntries);
+        TRACER.debugInfo("Initiating rebuild of the %s indexType/database",
+                         indexName);
+        TRACER.debugVerbose("%d entries will be rebuilt", totalEntries);
       }
 
       switch(indexType)
@@ -228,7 +236,7 @@ public class IndexRebuildThread extends DirectoryThread
 
       if(debugEnabled())
       {
-        debugVerbose("Rebuilt %d entries", rebuiltEntries);
+        TRACER.debugVerbose("Rebuilt %d entries", rebuiltEntries);
       }
     }
     catch(Exception e)
@@ -241,7 +249,7 @@ public class IndexRebuildThread extends DirectoryThread
 
       if(debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -302,7 +310,7 @@ public class IndexRebuildThread extends DirectoryThread
             duplicatedEntries++;
             if(debugEnabled())
             {
-              debugInfo("Unable to insert entry with DN %s and ID %d " +
+              TRACER.debugInfo("Unable to insert entry with DN %s and ID %d " +
                   "into the DN2ID database because it already exists.",
                         entry.getDN().toString(), entryID.longValue());
             }
@@ -324,7 +332,7 @@ public class IndexRebuildThread extends DirectoryThread
 
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -391,7 +399,7 @@ public class IndexRebuildThread extends DirectoryThread
             duplicatedEntries++;
             if(debugEnabled())
             {
-              debugInfo("Unable to insert entry with DN %s and ID %d " +
+              TRACER.debugInfo("Unable to insert entry with DN %s and ID %d " +
                   "into the DN2URI database because it already exists.",
                         entry.getDN().toString(), entryID.longValue());
             }
@@ -413,7 +421,7 @@ public class IndexRebuildThread extends DirectoryThread
 
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -493,8 +501,8 @@ public class IndexRebuildThread extends DirectoryThread
                 if(debugEnabled())
                 {
                   duplicatedEntries++;
-                  debugInfo("Unable to insert entry with DN %s and ID %d " +
-                      "into the DN2Subtree database because it already " +
+                  TRACER.debugInfo("Unable to insert entry with DN %s and " +
+                      "ID %d into the DN2Subtree database because it already " +
                       "exists.",
                             entry.getDN().toString(), entryID.longValue());
                 }
@@ -526,7 +534,7 @@ public class IndexRebuildThread extends DirectoryThread
 
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -644,10 +652,9 @@ public class IndexRebuildThread extends DirectoryThread
               if(debugEnabled())
               {
                 duplicatedEntries++;
-                debugInfo("Unable to insert entry with DN %s and ID %d " +
-                    "into the DN2Subtree database because it already " +
-                    "exists.",
-                          entry.getDN().toString(), entryID.longValue());
+                TRACER.debugInfo("Unable to insert entry with DN %s and ID " +
+                    "%d into the DN2Subtree database because it already " +
+                    "exists.", entry.getDN().toString(), entryID.longValue());
               }
             }
           }
@@ -670,7 +677,7 @@ public class IndexRebuildThread extends DirectoryThread
 
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -735,7 +742,7 @@ public class IndexRebuildThread extends DirectoryThread
             if(debugEnabled())
             {
               duplicatedEntries++;
-              debugInfo("Unable to insert entry with DN %s and ID %d " +
+              TRACER.debugInfo("Unable to insert entry with DN %s and ID %d " +
                   "into the DN2Subtree database because it already " +
                   "exists.",
                         entry.getDN().toString(), entryID.longValue());
@@ -756,7 +763,7 @@ public class IndexRebuildThread extends DirectoryThread
 
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -821,7 +828,7 @@ public class IndexRebuildThread extends DirectoryThread
             if(debugEnabled())
             {
               duplicatedEntries++;
-              debugInfo("Unable to insert entry with DN %s and ID %d " +
+              TRACER.debugInfo("Unable to insert entry with DN %s and ID %d " +
                   "into the DN2Subtree database because it already " +
                   "exists.",
                         entry.getDN().toString(), entryID.longValue());
@@ -842,7 +849,7 @@ public class IndexRebuildThread extends DirectoryThread
 
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }

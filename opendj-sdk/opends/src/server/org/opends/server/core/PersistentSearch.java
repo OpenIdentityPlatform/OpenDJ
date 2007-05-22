@@ -42,6 +42,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 
 
@@ -51,6 +52,11 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public class PersistentSearch
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // Indicates whether entries returned should include the entry change
   // notification control.
   private boolean returnECs;
@@ -229,7 +235,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // FIXME -- Do we need to do anything here?
@@ -263,7 +269,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       DirectoryServer.deregisterPersistentSearch(this);
@@ -276,7 +282,7 @@ public class PersistentSearch
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e2);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
     }
@@ -344,7 +350,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // FIXME -- Do we need to do anything here?
@@ -378,7 +384,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       DirectoryServer.deregisterPersistentSearch(this);
@@ -391,7 +397,7 @@ public class PersistentSearch
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e2);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
     }
@@ -462,7 +468,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // FIXME -- Do we need to do anything here?
@@ -496,7 +502,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       DirectoryServer.deregisterPersistentSearch(this);
@@ -509,7 +515,7 @@ public class PersistentSearch
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e2);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
     }
@@ -602,7 +608,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // FIXME -- Do we need to do anything here?
@@ -637,7 +643,7 @@ public class PersistentSearch
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       DirectoryServer.deregisterPersistentSearch(this);
@@ -650,7 +656,7 @@ public class PersistentSearch
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e2);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
     }

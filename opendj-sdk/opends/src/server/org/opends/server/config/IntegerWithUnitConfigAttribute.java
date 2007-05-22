@@ -47,9 +47,9 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 
@@ -70,6 +70,11 @@ import static org.opends.server.messages.MessageHandler.*;
 public class IntegerWithUnitConfigAttribute
        extends ConfigAttribute
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -575,7 +580,7 @@ public class IntegerWithUnitConfigAttribute
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_ATTR_COULD_NOT_PARSE_INT_COMPONENT;
@@ -697,7 +702,7 @@ public class IntegerWithUnitConfigAttribute
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       rejectReason.append(getMessage(MSGID_CONFIG_ATTR_INT_COULD_NOT_PARSE,

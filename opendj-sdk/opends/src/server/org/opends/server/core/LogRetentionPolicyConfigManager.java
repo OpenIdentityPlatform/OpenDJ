@@ -41,8 +41,8 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.loggers.RetentionPolicy;
 import org.opends.server.config.ConfigException;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -63,6 +63,11 @@ public class LogRetentionPolicyConfigManager implements
     ConfigurationDeleteListener<LogRetentionPolicyCfg>,
     ConfigurationChangeListener<LogRetentionPolicyCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * Initializes all the log retention policies.
@@ -134,14 +139,14 @@ public class LogRetentionPolicyConfigManager implements
     catch (ConfigException e) {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       messages.add(e.getMessage());
       resultCode = DirectoryServer.getServerErrorResultCode();
     } catch (Exception e) {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_CONFIG_RETENTION_POLICY_CANNOT_CREATE_POLICY;
       messages.add(getMessage(msgID, String.valueOf(config.dn().toString()),

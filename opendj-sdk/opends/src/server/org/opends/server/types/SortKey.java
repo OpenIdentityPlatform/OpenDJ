@@ -35,6 +35,7 @@ import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 
 
@@ -48,6 +49,11 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public class SortKey
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The attribute type for this sort key.
   private AttributeType attributeType;
 
@@ -195,7 +201,7 @@ public class SortKey
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         return 0;
@@ -222,7 +228,7 @@ public class SortKey
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         return 0;

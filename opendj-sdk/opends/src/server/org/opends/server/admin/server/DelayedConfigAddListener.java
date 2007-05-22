@@ -27,9 +27,8 @@
 package org.opends.server.admin.server;
 
 
-
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigDeleteListener;
@@ -50,6 +49,11 @@ import org.opends.server.types.ResultCode;
  * "delayed" add or delete listener.
  */
 final class DelayedConfigAddListener implements ConfigAddListener {
+
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
   // The name of the parent entry.
   private final DN parent;
@@ -139,7 +143,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
         }
       } catch (ConfigException e) {
         if (debugEnabled()) {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // Ignore this error as it implies that this listener has

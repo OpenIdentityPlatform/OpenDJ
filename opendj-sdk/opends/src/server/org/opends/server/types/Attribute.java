@@ -41,6 +41,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.Base64;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -52,6 +53,11 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class Attribute
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The attribute type for this attribute.
   private final AttributeType attributeType;
 
@@ -524,7 +530,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // The substring couldn't be normalized.  We have to return
@@ -554,7 +560,7 @@ public class Attribute
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           // The substring couldn't be normalized.  We have to return
@@ -581,7 +587,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // The substring couldn't be normalized.  We have to return
@@ -609,7 +615,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // The value couldn't be normalized.  If we can't find a
@@ -652,7 +658,7 @@ public class Attribute
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We couldn't normalize the provided value.  We should return
@@ -677,7 +683,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // We couldn't normalize one of the attribute values.  If we
@@ -721,7 +727,7 @@ public class Attribute
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We couldn't normalize the provided value.  We should return
@@ -746,7 +752,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // We couldn't normalize one of the attribute values.  If we
@@ -790,7 +796,7 @@ public class Attribute
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // We couldn't normalize the provided value.  We should return
@@ -813,7 +819,7 @@ public class Attribute
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // We couldn't normalize one of the attribute values.  If we

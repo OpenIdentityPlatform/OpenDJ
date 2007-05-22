@@ -31,6 +31,7 @@ import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.*;
 import java.net.InetAddress;
@@ -45,6 +46,11 @@ import org.opends.server.types.ErrorLogSeverity;
  * This class implements the dns bind rule keyword.
  */
 public class DNS implements KeywordBindRule {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
     /*
      * List of patterns to match against.
@@ -159,7 +165,7 @@ public class DNS implements KeywordBindRule {
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, e);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
                 }
 
                 int msgID = MSGID_ACI_ERROR_CHECKING_CANONICAL_HOSTNAME;

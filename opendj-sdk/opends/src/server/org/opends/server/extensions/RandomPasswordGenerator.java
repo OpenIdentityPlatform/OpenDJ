@@ -54,8 +54,8 @@ import org.opends.server.types.NamedCharacterSet;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -72,6 +72,11 @@ public class RandomPasswordGenerator
        extends PasswordGenerator<RandomPasswordGeneratorCfg>
        implements ConfigurationChangeListener<RandomPasswordGeneratorCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   // The current configuration for this password validator.
   private RandomPasswordGeneratorCfg currentConfig;
@@ -152,7 +157,7 @@ public class RandomPasswordGenerator
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS;
@@ -204,7 +209,7 @@ public class RandomPasswordGenerator
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           msgID = MSGID_RANDOMPWGEN_INVALID_PWFORMAT;
@@ -232,7 +237,7 @@ public class RandomPasswordGenerator
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT;
@@ -395,7 +400,7 @@ public class RandomPasswordGenerator
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS;
@@ -436,7 +441,7 @@ public class RandomPasswordGenerator
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             msgID = MSGID_RANDOMPWGEN_INVALID_PWFORMAT;
@@ -450,7 +455,7 @@ public class RandomPasswordGenerator
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT;
@@ -532,7 +537,7 @@ public class RandomPasswordGenerator
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS;
@@ -589,7 +594,7 @@ public class RandomPasswordGenerator
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           msgID = MSGID_RANDOMPWGEN_INVALID_PWFORMAT;
@@ -606,7 +611,7 @@ public class RandomPasswordGenerator
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT;

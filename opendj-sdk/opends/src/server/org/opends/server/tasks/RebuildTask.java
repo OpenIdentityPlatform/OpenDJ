@@ -48,8 +48,8 @@ import org.opends.server.api.Backend;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.TaskMessages.
     MSGID_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -83,6 +83,11 @@ import java.util.ArrayList;
  */
 public class RebuildTask extends Task
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   String baseDN = null;
   ArrayList<String> indexes = null;
   int maxThreads = -1;
@@ -199,7 +204,7 @@ public class RebuildTask extends Task
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
@@ -266,7 +271,7 @@ public class RebuildTask extends Task
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_REBUILDINDEX_ERROR_DURING_REBUILD;
@@ -312,7 +317,7 @@ public class RebuildTask extends Task
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,

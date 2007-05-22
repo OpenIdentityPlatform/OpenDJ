@@ -55,8 +55,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -72,6 +72,11 @@ public class FileBasedTrustManagerProvider
        extends TrustManagerProvider
        implements ConfigurableComponent
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -162,7 +167,7 @@ public class FileBasedTrustManagerProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ce);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       throw ce;
@@ -171,7 +176,7 @@ public class FileBasedTrustManagerProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ie);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       throw ie;
@@ -180,7 +185,7 @@ public class FileBasedTrustManagerProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
@@ -215,7 +220,7 @@ public class FileBasedTrustManagerProvider
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, kse);
+            TRACER.debugCaught(DebugLogLevel.ERROR, kse);
           }
 
           msgID = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
@@ -230,7 +235,7 @@ public class FileBasedTrustManagerProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ie);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       throw ie;
@@ -239,7 +244,7 @@ public class FileBasedTrustManagerProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_TYPE;
@@ -297,7 +302,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -306,7 +311,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
@@ -347,7 +352,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -356,7 +361,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
@@ -425,7 +430,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -434,7 +439,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FILE;
@@ -462,7 +467,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
@@ -516,7 +521,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_LOAD;
@@ -539,7 +544,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY;
@@ -688,7 +693,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ce);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       unacceptableReasons.add(ce.getMessage());
@@ -698,7 +703,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
@@ -732,7 +737,7 @@ pinSelection:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, kse);
+            TRACER.debugCaught(DebugLogLevel.ERROR, kse);
           }
 
           msgID = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
@@ -748,7 +753,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_TYPE;
@@ -795,7 +800,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
@@ -836,7 +841,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
@@ -907,7 +912,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FILE;
@@ -935,7 +940,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
@@ -1012,7 +1017,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ce);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
 
       if (resultCode == ResultCode.SUCCESS)
@@ -1024,7 +1029,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
@@ -1062,7 +1067,7 @@ pinSelection:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, kse);
+            TRACER.debugCaught(DebugLogLevel.ERROR, kse);
           }
 
           msgID = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
@@ -1081,7 +1086,7 @@ pinSelection:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_TYPE;
@@ -1142,7 +1147,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
@@ -1195,7 +1200,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
@@ -1288,7 +1293,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FILE;
@@ -1322,7 +1327,7 @@ pinSelection:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;

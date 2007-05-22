@@ -59,10 +59,8 @@ import java.util.concurrent.locks.Lock;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugJEAccess;
-import static org.opends.server.loggers.debug.DebugLogger.debugVerbose;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -72,6 +70,11 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class EntryContainer
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The name of the entry database.
@@ -271,7 +274,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       close();
       throw e;
@@ -332,7 +335,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       close();
       throw e;
@@ -390,7 +393,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       close();
       throw e;
@@ -558,7 +561,7 @@ public class EntryContainer
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                            e.getMessage(), e.getMessageID(), e);
@@ -586,7 +589,7 @@ public class EntryContainer
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                            e.getMessage(), e.getMessageID(), e);
@@ -606,7 +609,7 @@ public class EntryContainer
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
               throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                            e.getMessage(), e.getMessageID(), e);
@@ -650,7 +653,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -890,7 +893,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -973,7 +976,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         int msgID = MSGID_JEB_INVALID_PAGED_RESULTS_COOKIE;
         String str = StaticUtils.bytesToHex(pageRequest.getCookie().value());
@@ -1114,14 +1117,14 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     catch (JebException e)
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -1183,7 +1186,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         int msgID = MSGID_JEB_INVALID_PAGED_RESULTS_COOKIE;
         String str = StaticUtils.bytesToHex(pageRequest.getCookie().value());
@@ -1247,7 +1250,7 @@ public class EntryContainer
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
               continue;
             }
@@ -1443,7 +1446,7 @@ public class EntryContainer
         }
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, deadlockException);
+          TRACER.debugCaught(DebugLogLevel.ERROR, deadlockException);
         }
       }
       catch (DatabaseException databaseException)
@@ -2216,7 +2219,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -3413,7 +3416,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     try
@@ -3424,7 +3427,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     try
@@ -3435,7 +3438,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     try
@@ -3446,7 +3449,7 @@ public class EntryContainer
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
     for (AttributeIndex index : attrIndexMap.values())
@@ -3459,7 +3462,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -3507,7 +3510,7 @@ public class EntryContainer
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -3590,7 +3593,8 @@ public class EntryContainer
         database = env.openDatabase(txn, fullName, dbConfig);
         if (debugEnabled())
         {
-          debugVerbose("open db=%s txnid=%d", database.getDatabaseName(),
+          TRACER.debugVerbose("open db=%s txnid=%d",
+                              database.getDatabaseName(),
                        txn.getId());
         }
         transactionCommit(txn);
@@ -3606,7 +3610,8 @@ public class EntryContainer
       database = env.openDatabase(null, fullName, dbConfig);
       if (debugEnabled())
       {
-        debugVerbose("open db=%s txnid=none", database.getDatabaseName());
+        TRACER.debugVerbose("open db=%s txnid=none",
+                            database.getDatabaseName());
       }
     }
 
@@ -3631,7 +3636,7 @@ public class EntryContainer
     Transaction txn = env.beginTransaction(parentTxn, txnConfig);
     if (debugEnabled())
     {
-      debugVerbose("beginTransaction", "begin txnid=" + txn.getId());
+      TRACER.debugVerbose("beginTransaction", "begin txnid=" + txn.getId());
     }
     return txn;
   }
@@ -3651,7 +3656,7 @@ public class EntryContainer
       txn.commit();
       if (debugEnabled())
       {
-        debugVerbose("commit txnid=%d", txn.getId());
+        TRACER.debugVerbose("commit txnid=%d", txn.getId());
       }
     }
   }
@@ -3671,7 +3676,7 @@ public class EntryContainer
       txn.abort();
       if (debugEnabled())
       {
-        debugVerbose("abort txnid=%d", txn.getId());
+        TRACER.debugVerbose("abort txnid=%d", txn.getId());
       }
     }
   }
@@ -3693,7 +3698,8 @@ public class EntryContainer
     OperationStatus status = database.putNoOverwrite(txn, key, data);
     if (debugEnabled())
     {
-      debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key, data);
+      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key,
+                           data);
     }
     return status;
   }
@@ -3716,7 +3722,7 @@ public class EntryContainer
     OperationStatus status = cursor.putNoOverwrite(key, data);
     if (debugEnabled())
     {
-      debugJEAccess(DebugLogLevel.VERBOSE, status,
+      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status,
                     cursor.getDatabase(), null, key, data);
     }
     return status;
@@ -3739,7 +3745,8 @@ public class EntryContainer
     OperationStatus status = database.put(txn, key, data);
     if (debugEnabled())
     {
-      debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key, data);
+      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key,
+                           data);
     }
     return status;
   }
@@ -3762,7 +3769,7 @@ public class EntryContainer
     OperationStatus status = cursor.put(key, data);
     if (debugEnabled())
     {
-      debugJEAccess(DebugLogLevel.VERBOSE, status,
+      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status,
                     cursor.getDatabase(), null, key, data);
     }
     return status;
@@ -3788,7 +3795,8 @@ public class EntryContainer
     OperationStatus status = database.get(txn, key, data, lockMode);
     if (debugEnabled())
     {
-      debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key, data);
+      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key,
+                           data);
     }
     return status;
   }
@@ -3813,7 +3821,7 @@ public class EntryContainer
     OperationStatus status = cursor.getSearchKey(key, data, lockMode);
     if (debugEnabled())
     {
-      debugJEAccess(DebugLogLevel.VERBOSE, status,
+      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status,
                     cursor.getDatabase(), null, key, data);
     }
     return status;
@@ -3835,7 +3843,8 @@ public class EntryContainer
     OperationStatus status = database.delete(txn, key);
     if (debugEnabled())
     {
-      debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key, null);
+      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key,
+                           null);
     }
     return status;
   }
@@ -3852,7 +3861,7 @@ public class EntryContainer
     long count = database.count();
     if (debugEnabled())
     {
-      debugJEAccess(DebugLogLevel.VERBOSE, OperationStatus.SUCCESS,
+      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, OperationStatus.SUCCESS,
                     database, null, null, null);
     }
     return count;

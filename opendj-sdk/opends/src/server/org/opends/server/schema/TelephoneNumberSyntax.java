@@ -51,8 +51,8 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -74,6 +74,11 @@ public class TelephoneNumberSyntax
        extends AttributeSyntax
        implements ConfigurableComponent
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -165,7 +170,7 @@ public class TelephoneNumberSyntax
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
@@ -477,7 +482,7 @@ public class TelephoneNumberSyntax
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
@@ -545,7 +550,7 @@ public class TelephoneNumberSyntax
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;

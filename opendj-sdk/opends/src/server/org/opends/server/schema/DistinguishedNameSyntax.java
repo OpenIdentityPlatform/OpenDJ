@@ -44,9 +44,9 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -62,6 +62,11 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class DistinguishedNameSyntax
        extends AttributeSyntax
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
   // The default equality matching rule for this syntax.
@@ -261,7 +266,7 @@ public class DistinguishedNameSyntax
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       invalidReason.append(de.getErrorMessage());
@@ -271,7 +276,7 @@ public class DistinguishedNameSyntax
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_ATTR_SYNTAX_DN_INVALID;

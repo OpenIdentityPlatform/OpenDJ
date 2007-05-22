@@ -32,9 +32,8 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.ConfigChangeResult;
@@ -50,6 +49,11 @@ public class FreeDiskSpaceRetentionPolicy implements
     RetentionPolicy<FreeDiskSpaceLogRetentionPolicyCfg>,
     ConfigurationChangeListener<FreeDiskSpaceLogRetentionPolicyCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   private long freeDiskSpace = 0;
 
@@ -121,14 +125,14 @@ public class FreeDiskSpaceRetentionPolicy implements
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       return 0;
     }
 
           if(debugEnabled())
       {
-        debugInfo("Current free disk space: %d, Required: %d", freeSpace,
+        TRACER.debugInfo("Current free disk space: %d, Required: %d", freeSpace,
                   freeDiskSpace);
       }
 
@@ -149,7 +153,7 @@ public class FreeDiskSpaceRetentionPolicy implements
       freedSpace += files[j].length();
       if(debugEnabled())
       {
-        debugInfo("Deleting log file:", files[j]);
+        TRACER.debugInfo("Deleting log file:", files[j]);
       }
       files[j].delete();
       if (freedSpace >= freeSpaceNeeded)

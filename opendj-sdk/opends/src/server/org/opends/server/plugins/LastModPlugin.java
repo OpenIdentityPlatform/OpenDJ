@@ -51,14 +51,12 @@ import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.PluginMessages.*;
 import static org.opends.server.util.TimeThread.*;
-
-
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 /**
  * This class implements a Directory Server plugin that will add the
@@ -69,6 +67,11 @@ import static org.opends.server.util.TimeThread.*;
 public final class LastModPlugin
        extends DirectoryServerPlugin<PluginCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The attribute type for the "createTimestamp" attribute.
   private final AttributeType createTimestampType;
 
@@ -223,7 +226,7 @@ public final class LastModPlugin
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // This should never happen.
@@ -250,7 +253,7 @@ public final class LastModPlugin
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       // This should never happen.

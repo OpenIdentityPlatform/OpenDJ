@@ -70,8 +70,8 @@ import org.opends.server.util.TimeThread;
 import org.opends.server.util.Validator;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -93,6 +93,12 @@ public class MonitorBackend
        extends Backend
        implements ConfigurationChangeListener<BackendCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+
   // The set of user-defined attributes that will be included in the base
   // monitor entry.
   private ArrayList<Attribute> userDefinedAttributes;
@@ -209,7 +215,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_MONITOR_CANNOT_DECODE_MONITOR_ROOT_DN;
@@ -243,7 +249,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
@@ -278,7 +284,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -978,7 +984,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER;
@@ -997,7 +1003,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -1008,7 +1014,7 @@ public class MonitorBackend
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e2);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
 
@@ -1032,7 +1038,7 @@ public class MonitorBackend
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         try
@@ -1043,7 +1049,7 @@ public class MonitorBackend
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e2);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
 
@@ -1066,7 +1072,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -1282,7 +1288,7 @@ public class MonitorBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;

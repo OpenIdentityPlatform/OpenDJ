@@ -54,6 +54,7 @@ import org.opends.server.util.LDIFException;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -85,6 +86,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class Entry
        implements ProtocolElement
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // Indicates whether virtual attribute processing has been performed
   // for this entry.
   private boolean virtualAttributeProcessingPerformed;
@@ -317,7 +323,7 @@ public class Entry
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         lowerName = toLowerCase(v.getStringValue());
@@ -369,7 +375,7 @@ public class Entry
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       lowerName = toLowerCase(name);
@@ -454,7 +460,7 @@ public class Entry
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         lowerName = toLowerCase(v.getStringValue());
@@ -1855,7 +1861,7 @@ public class Entry
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           ocName = toLowerCase(v.getStringValue());
@@ -2791,7 +2797,7 @@ public class Entry
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
               int    msgID   = MSGID_ENTRY_SCHEMA_COULD_NOT_CHECK_DSR;
@@ -2902,7 +2908,7 @@ public class Entry
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
               int msgID =
@@ -3303,7 +3309,7 @@ public class Entry
       // objectclass defined.
       if (debugEnabled())
       {
-        debugWarning(
+        TRACER.debugWarning(
             "No %s objectclass is defined in the server schema.",
                      OC_REFERRAL);
       }
@@ -3332,7 +3338,7 @@ public class Entry
       // attribute type defined.
       if (debugEnabled())
       {
-        debugWarning(
+        TRACER.debugWarning(
             "No %s attribute type is defined in the server schema.",
                      ATTR_REFERRAL_URL);
       }
@@ -3364,7 +3370,7 @@ public class Entry
       // attribute type defined.
       if (debugEnabled())
       {
-        debugWarning(
+        TRACER.debugWarning(
             "No %s attribute type is defined in the server schema.",
                      ATTR_REFERRAL_URL);
       }
@@ -3412,7 +3418,7 @@ public class Entry
       // objectclass defined.
       if (debugEnabled())
       {
-        debugWarning(
+        TRACER.debugWarning(
             "No %s objectclass is defined in the server schema.",
                      OC_ALIAS);
       }
@@ -3441,7 +3447,7 @@ public class Entry
       // aliasedObjectName attribute type defined.
       if (debugEnabled())
       {
-        debugWarning(
+        TRACER.debugWarning(
             "No %s attribute type is defined in the server schema.",
                      ATTR_ALIAS_DN);
       }
@@ -3477,7 +3483,7 @@ public class Entry
       // aliasedObjectName attribute type defined.
       if (debugEnabled())
       {
-        debugWarning(
+        TRACER.debugWarning(
             "No %s attribute type is defined in the server schema.",
                      ATTR_ALIAS_DN);
       }
@@ -3540,7 +3546,7 @@ public class Entry
       // ldapsubentry objectclass defined.
       if (debugEnabled())
       {
-        debugWarning(
+        TRACER.debugWarning(
             "No %s objectclass is defined in the server schema.",
                      OC_LDAP_SUBENTRY);
       }
@@ -4416,7 +4422,7 @@ public class Entry
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_ENTRY_DECODE_EXCEPTION;
@@ -4535,7 +4541,7 @@ public class Entry
       {
         if (debugEnabled())
         {
-          debugInfo(
+          TRACER.debugInfo(
               "Skipping entry %s because of the export " +
                   "configuration.", String.valueOf(dn));
         }
@@ -4546,7 +4552,7 @@ public class Entry
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_EXPORT;
@@ -4607,7 +4613,7 @@ public class Entry
     {
       if (debugEnabled())
       {
-        debugVerbose(
+        TRACER.debugVerbose(
             "Skipping objectclasses for entry %s because of " +
             "the export configuration.", String.valueOf(dn));
       }
@@ -4664,7 +4670,7 @@ public class Entry
       {
         if (debugEnabled())
         {
-          debugVerbose(
+          TRACER.debugVerbose(
               "Skipping user attribute %s for entry %s because of " +
                        "the export configuration.",
               attrType.getNameOrOID(), String.valueOf(dn));
@@ -4727,7 +4733,7 @@ public class Entry
         {
           if (debugEnabled())
           {
-            debugVerbose(
+            TRACER.debugVerbose(
                 "Skipping operational attribute %s for entry %s " +
                          "because of the export configuration.",
                          attrType.getNameOrOID(), String.valueOf(dn));
@@ -4739,7 +4745,7 @@ public class Entry
     {
       if (debugEnabled())
       {
-        debugVerbose(
+        TRACER.debugVerbose(
             "Skipping all operational attributes for entry %s " +
             "because of the export configuration.",
             String.valueOf(dn));

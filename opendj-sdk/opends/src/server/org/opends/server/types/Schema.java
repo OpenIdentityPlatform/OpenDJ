@@ -53,6 +53,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.CoreMessages.*;
@@ -80,6 +81,11 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class Schema
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -2944,7 +2950,7 @@ public class Schema
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This is definitely not ideal, but it's not the end of the

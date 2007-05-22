@@ -36,6 +36,7 @@ import java.util.StringTokenizer;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -51,6 +52,11 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LDAPURL
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The default scheme that will be used if none is provided.
    */
@@ -414,7 +420,7 @@ public class LDAPURL
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_LDAPURL_CANNOT_DECODE_PORT;
@@ -852,7 +858,7 @@ public class LDAPURL
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // This should never happen.
@@ -1393,7 +1399,7 @@ public class LDAPURL
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (rawBaseDN == null)
@@ -1431,7 +1437,7 @@ public class LDAPURL
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (rawFilter == null)
@@ -1529,7 +1535,7 @@ outerExtLoop:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (rawBaseDN != null)
@@ -1553,7 +1559,7 @@ outerExtLoop:
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (rawFilter != null)

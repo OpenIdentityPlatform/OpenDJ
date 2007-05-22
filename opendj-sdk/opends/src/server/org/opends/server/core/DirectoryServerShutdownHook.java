@@ -29,7 +29,8 @@ package org.opends.server.core;
 
 import org.opends.server.api.DirectoryThread;
 
-import org.opends.server.loggers.debug.DebugLogger;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 
@@ -44,6 +45,11 @@ import static org.opends.server.messages.MessageHandler.*;
 public class DirectoryServerShutdownHook
        extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The fully-qualified name of this class.
    */
@@ -69,7 +75,7 @@ public class DirectoryServerShutdownHook
    */
   public void run()
   {
-    DebugLogger.debugInfo(
+    TRACER.debugInfo(
         "Directory Server shutdown hook has been invoked.");
 
     DirectoryServer.shutDown(CLASS_NAME,

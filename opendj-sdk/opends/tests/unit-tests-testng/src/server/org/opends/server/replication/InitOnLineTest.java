@@ -28,8 +28,8 @@ package org.opends.server.replication;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -95,6 +95,11 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 public class InitOnLineTest extends ReplicationTestCase
 {
+  /**
+   * The tracer object for the debug logger
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   private static final int WINDOW_SIZE = 10;
   private static final int CHANGELOG_QUEUE_SIZE = 100;
 
@@ -131,7 +136,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "InitOnLineTests/" + s, 1);
     if (debugEnabled())
     {
-      debugInfo(s);
+      TRACER.debugInfo(s);
     }
   }
   protected void log(String message, Exception e)

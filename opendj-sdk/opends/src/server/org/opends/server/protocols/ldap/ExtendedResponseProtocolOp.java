@@ -41,6 +41,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -57,6 +58,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class ExtendedResponseProtocolOp
        extends ProtocolOp
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The value for this extended response.
   private ASN1OctetString value;
 
@@ -408,7 +414,7 @@ public class ExtendedResponseProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_SEQUENCE;
@@ -435,7 +441,7 @@ public class ExtendedResponseProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_RESULT_CODE;
@@ -461,7 +467,7 @@ public class ExtendedResponseProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_MATCHED_DN;
@@ -483,7 +489,7 @@ public class ExtendedResponseProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_ERROR_MESSAGE;
@@ -516,7 +522,7 @@ public class ExtendedResponseProtocolOp
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int msgID = MSGID_LDAP_EXTENDED_RESULT_DECODE_REFERRALS;
@@ -534,7 +540,7 @@ public class ExtendedResponseProtocolOp
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int msgID = MSGID_LDAP_EXTENDED_RESULT_DECODE_OID;
@@ -552,7 +558,7 @@ public class ExtendedResponseProtocolOp
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
 
             int msgID = MSGID_LDAP_EXTENDED_RESULT_DECODE_VALUE;

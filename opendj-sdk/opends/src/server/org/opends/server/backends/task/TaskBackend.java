@@ -59,8 +59,8 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -80,6 +80,11 @@ public class TaskBackend
        extends Backend
        implements ConfigurationChangeListener<TaskBackendCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The current configuration state.
   private TaskBackendCfg currentConfig;
 
@@ -180,7 +185,7 @@ public class TaskBackend
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // This should never happen.
@@ -201,7 +206,7 @@ public class TaskBackend
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         // This should never happen.
@@ -253,7 +258,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
@@ -289,7 +294,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -305,7 +310,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
 
@@ -317,7 +322,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -1130,7 +1135,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_BACKING_FILE;
@@ -1201,7 +1206,7 @@ public class TaskBackend
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_TASKBE_ERROR_GETTING_BACKING_FILE;

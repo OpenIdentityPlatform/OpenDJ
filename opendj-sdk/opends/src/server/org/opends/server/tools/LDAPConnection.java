@@ -51,6 +51,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.CoreMessages.
                    MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
@@ -67,6 +68,11 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
  */
 public class LDAPConnection
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The hostname to connect to.
   private String hostName = null;
 
@@ -177,7 +183,7 @@ public class LDAPConnection
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ex);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
         }
         throw new LDAPConnectionException(ex.getMessage(), ex);
       }
@@ -198,7 +204,7 @@ public class LDAPConnection
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ex1);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex1);
         }
         throw new LDAPConnectionException(ex1.getMessage(), ex1);
       }
@@ -248,7 +254,7 @@ public class LDAPConnection
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ex2);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex2);
       }
       throw new LDAPConnectionException(ex2.getMessage(), ex2);
     }
@@ -263,7 +269,7 @@ public class LDAPConnection
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       // It doesn't matter too much if this throws, so ignore it.
     }
@@ -404,7 +410,7 @@ public class LDAPConnection
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ce);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
       }
       throw new LDAPConnectionException(ce.getMessage(), ce.getExitCode(),
                                         null, ce);
@@ -417,7 +423,7 @@ public class LDAPConnection
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ex);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new LDAPConnectionException(ex.getMessage(), ex);
     }

@@ -117,7 +117,14 @@ public abstract class DebugLogPublisher
    */
   public Map<String,TraceSettings> getMethodSettings(String className)
   {
-    return new HashMap<String, TraceSettings>();
+    if(methodTraceSettings == null)
+    {
+      return null;
+    }
+    else
+    {
+      return methodTraceSettings.get(className);
+    }
   }
 
 
@@ -353,12 +360,16 @@ public abstract class DebugLogPublisher
    * @param  sourceLocation  The location of the method in the source.
    * @param  args            The parameters provided to the
    *                         constructor.
+   * @param  stackTrace      The stack trace at the time the
+   *                         constructor is executed or null if its
+   *                         not available.
    */
   public abstract void traceConstructor(LogLevel level,
                                         TraceSettings settings,
                                         String signature,
                                         String sourceLocation,
-                                        Object[] args);
+                                        Object[] args,
+                                      StackTraceElement[] stackTrace);
 
 
 
@@ -372,13 +383,16 @@ public abstract class DebugLogPublisher
    * @param  obj             The object instance on which the method
    *                         has been invoked.
    * @param  args            The parameters provided to the method.
+   * @param  stackTrace      The stack trace at the time the method
+   *                         is executed or null if its not available.
    */
-  public abstract void traceNonStaticMethodEntry(LogLevel level,
+  public abstract void traceMethodEntry(LogLevel level,
                                                TraceSettings settings,
                                                String signature,
                                                String sourceLocation,
                                                Object obj,
-                                               Object[] args);
+                                               Object[] args,
+                                      StackTraceElement[] stackTrace);
 
 
 
@@ -390,12 +404,15 @@ public abstract class DebugLogPublisher
    * @param  signature       The method signature.
    * @param  sourceLocation  The location of the method in the source.
    * @param  args            The parameters provided to the method.
+   * @param  stackTrace      The stack trace at the time the method
+   *                         is executed or null if its not available.
    */
   public abstract void traceStaticMethodEntry(LogLevel level,
                                               TraceSettings settings,
                                               String signature,
                                               String sourceLocation,
-                                              Object[] args);
+                                              Object[] args,
+                                      StackTraceElement[] stackTrace);
 
 
 
@@ -407,12 +424,15 @@ public abstract class DebugLogPublisher
    * @param  signature       The method signature.
    * @param  sourceLocation  The location of the method in the source.
    * @param  ret             The return value for the method.
+   * @param  stackTrace      The stack trace at the time the method
+   *                         is returned or null if its not available.
    */
   public abstract void traceReturn(LogLevel level,
                                    TraceSettings settings,
                                    String signature,
                                    String sourceLocation,
-                                   Object ret);
+                                   Object ret,
+                                   StackTraceElement[] stackTrace);
 
 
 
@@ -424,12 +444,15 @@ public abstract class DebugLogPublisher
    * @param  signature       The method signature.
    * @param  sourceLocation  The location of the method in the source.
    * @param  msg             The message to be logged.
+   * @param  stackTrace      The stack trace at the time the message
+   *                         is logged or null if its not available.
    */
   public abstract void traceMessage(LogLevel level,
                                     TraceSettings settings,
                                     String signature,
                                     String sourceLocation,
-                                    String msg);
+                                    String msg,
+                                    StackTraceElement[] stackTrace);
 
 
 
@@ -441,12 +464,15 @@ public abstract class DebugLogPublisher
    * @param  signature       The method signature.
    * @param  sourceLocation  The location of the method in the source.
    * @param  ex              The exception that was thrown.
+   * @param  stackTrace      The stack trace at the time the exception
+   *                         is thrown or null if its not available.
    */
   public abstract void traceThrown(LogLevel level,
                                    TraceSettings settings,
                                    String signature,
                                    String sourceLocation,
-                                   Throwable ex);
+                                   Throwable ex,
+                                   StackTraceElement[] stackTrace);
 
 
 
@@ -458,12 +484,15 @@ public abstract class DebugLogPublisher
    * @param  signature       The method signature.
    * @param  sourceLocation  The location of the method in the source.
    * @param  ex              The exception that was caught.
+   * @param  stackTrace      The stack trace at the time the exception
+   *                         is caught or null if its not available.
    */
   public abstract void traceCaught(LogLevel level,
                                    TraceSettings settings,
                                    String signature,
                                    String sourceLocation,
-                                   Throwable ex);
+                                   Throwable ex,
+                                   StackTraceElement[] stackTrace);
 
 
 
@@ -480,6 +509,8 @@ public abstract class DebugLogPublisher
    *                         {@code null}).
    * @param  key             The key to dump.
    * @param  data            The data to dump.
+   * @param  stackTrace      The stack trace at the time the access
+   *                         occured or null if its not available.
    */
   public abstract void traceJEAccess(LogLevel level,
                                      TraceSettings settings,
@@ -489,7 +520,8 @@ public abstract class DebugLogPublisher
                                      Database database,
                                      Transaction txn,
                                      DatabaseEntry key,
-                                     DatabaseEntry data);
+                                     DatabaseEntry data,
+                                     StackTraceElement[] stackTrace);
 
 
 
@@ -501,12 +533,15 @@ public abstract class DebugLogPublisher
    * @param  signature       The method signature.
    * @param  sourceLocation  The location of the method in the source.
    * @param  data            The data to dump.
+   * @param  stackTrace      The stack trace at the time the data
+   *                         is logged or null if its not available.
    */
   public abstract void traceData(LogLevel level,
                                  TraceSettings settings,
                                  String signature,
                                  String sourceLocation,
-                                 byte[] data);
+                                 byte[] data,
+                                 StackTraceElement[] stackTrace);
 
 
 
@@ -518,12 +553,16 @@ public abstract class DebugLogPublisher
    * @param  signature       The method signature.
    * @param  sourceLocation  The location of the method in the source.
    * @param  element         The protocol element to dump.
+   * @param  stackTrace      The stack trace at the time the protocol
+   *                         element is logged or null if its not
+   *                         available.
    */
   public abstract void traceProtocolElement(LogLevel level,
                                             TraceSettings settings,
                                             String signature,
                                             String sourceLocation,
-                                            ProtocolElement element);
+                                            ProtocolElement element,
+                                      StackTraceElement[] stackTrace);
 
 
 

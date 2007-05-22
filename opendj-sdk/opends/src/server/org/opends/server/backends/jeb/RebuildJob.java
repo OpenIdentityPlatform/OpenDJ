@@ -38,8 +38,9 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.EnvironmentStats;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.messages.JebMessages.
     MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
@@ -67,6 +68,11 @@ import static org.opends.server.messages.MessageHandler.getMessage;
  */
 public class RebuildJob
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The rebuild configuraiton.
    */
@@ -180,8 +186,8 @@ public class RebuildJob
 
           if(debugEnabled())
           {
-            debugVerbose("Rebuild thread %s stats: total %d processed %d " +
-                "rebuilt %d duplicated %d skipped %d",
+            TRACER.debugVerbose("Rebuild thread %s stats: total %d " +
+                "processed %d rebuilt %d duplicated %d skipped %d",
                          thread.getTotalEntries(), thread.getProcessedEntries(),
                          thread.getRebuiltEntries(),
                          thread.getDuplicatedEntries(),
@@ -192,7 +198,7 @@ public class RebuildJob
         {
           if(debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
       }
@@ -238,7 +244,7 @@ public class RebuildJob
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -274,7 +280,7 @@ public class RebuildJob
         //TODO: Throw error and bail out.
         if(debugEnabled())
         {
-          debugError("Conflit detected. This job config: %s, " +
+          TRACER.debugError("Conflit detected. This job config: %s, " +
               "That job config: %s.",
                      job.rebuildConfig, otherJob.rebuildConfig);
         }
@@ -427,7 +433,8 @@ public class RebuildJob
 
           if(debugEnabled())
           {
-            debugInfo("Created rebuild thread %s", rebuildThread.getName());
+            TRACER.debugInfo("Created rebuild thread %s",
+                             rebuildThread.getName());
           }
         }
 
@@ -505,7 +512,7 @@ public class RebuildJob
 
         if(debugEnabled())
         {
-          debugInfo("Detailed overall rebuild job stats: rebuilt %d, " +
+          TRACER.debugInfo("Detailed overall rebuild job stats: rebuilt %d, " +
               "duplicated %d, skipped %d",
                     totalRebuilt, totalDuplicated, totalSkipped);
         }
@@ -534,7 +541,7 @@ public class RebuildJob
       {
         if(debugEnabled())
         {
-          debugInfo("Delaying the start of thread %s because " +
+          TRACER.debugInfo("Delaying the start of thread %s because " +
               "the max number of rebuild threads has been reached.");
         }
         start = false;
@@ -560,7 +567,7 @@ public class RebuildJob
 
             if(debugEnabled())
             {
-              debugInfo("Delaying the start of thread %s because " +
+              TRACER.debugInfo("Delaying the start of thread %s because " +
                   "it depends on another index rebuilt to " +
                   "go first.", t.getName());
             }
@@ -581,7 +588,7 @@ public class RebuildJob
 
             if(debugEnabled())
             {
-              debugInfo("Delaying the start of thread %s because " +
+              TRACER.debugInfo("Delaying the start of thread %s because " +
                   "it depends on another index being rebuilt to " +
                   "finish.", t.getName());
             }
@@ -595,7 +602,7 @@ public class RebuildJob
       {
         if(debugEnabled())
         {
-          debugInfo("Starting rebuild thread %s.", t.getName());
+          TRACER.debugInfo("Starting rebuild thread %s.", t.getName());
         }
         waitingThreads.remove(t);
         activeThreads.add(t);
@@ -617,7 +624,7 @@ public class RebuildJob
 
         if(debugEnabled())
         {
-          debugInfo("Rebuild thread %s finished.", t.getName());
+          TRACER.debugInfo("Rebuild thread %s finished.", t.getName());
         }
         activeThreads.remove(t);
         completedThreads.add(t);

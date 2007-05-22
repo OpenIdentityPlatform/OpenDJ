@@ -34,6 +34,7 @@ import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 
 
@@ -45,6 +46,11 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public abstract class EqualityMatchingRule
        extends MatchingRule
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * Indicates whether the two provided normalized values are equal to
    * each other.
@@ -122,7 +128,7 @@ public abstract class EqualityMatchingRule
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -133,7 +139,7 @@ public abstract class EqualityMatchingRule
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e2);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
 
         return 0;

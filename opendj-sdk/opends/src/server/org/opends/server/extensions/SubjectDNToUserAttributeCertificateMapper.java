@@ -55,8 +55,8 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -76,6 +76,11 @@ public class SubjectDNToUserAttributeCertificateMapper
        implements ConfigurationChangeListener<
                        SubjectDNToUserAttributeCertificateMapperCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The attribute type that will be used to map the certificate's subject.
   private AttributeType subjectAttributeType;
 
@@ -169,7 +174,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_SDTUACM_PEER_CERT_NOT_X509;

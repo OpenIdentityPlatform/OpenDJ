@@ -37,6 +37,7 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.LDAPModification;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -52,6 +53,11 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public abstract class RawModification
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * Creates a new raw modification with the provided type and
    * attribute.
@@ -249,7 +255,7 @@ public abstract class RawModification
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MODIFICATION_DECODE_SEQUENCE;
@@ -301,7 +307,7 @@ public abstract class RawModification
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MODIFICATION_DECODE_MOD_TYPE;
@@ -319,7 +325,7 @@ public abstract class RawModification
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_MODIFICATION_DECODE_ATTR;

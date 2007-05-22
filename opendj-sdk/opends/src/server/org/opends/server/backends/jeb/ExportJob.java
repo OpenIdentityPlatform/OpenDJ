@@ -44,12 +44,11 @@ import org.opends.server.util.StaticUtils;
 import java.io.IOException;
 import java.util.*;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugError;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.JebMessages.*;
 
 /**
@@ -57,6 +56,11 @@ import static org.opends.server.messages.JebMessages.*;
  */
 public class ExportJob
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The requested LDIF export configuration.
@@ -202,9 +206,9 @@ public class ExportJob
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("Malformed id2entry ID %s.%n",
+            TRACER.debugError("Malformed id2entry ID %s.%n",
                             StaticUtils.bytesToHex(key.getData()));
           }
           skippedCount++;
@@ -226,9 +230,9 @@ public class ExportJob
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("Malformed id2entry record for ID %d:%n%s%n",
+            TRACER.debugError("Malformed id2entry record for ID %d:%n%s%n",
                        entryID.longValue(),
                        StaticUtils.bytesToHex(data.getData()));
           }

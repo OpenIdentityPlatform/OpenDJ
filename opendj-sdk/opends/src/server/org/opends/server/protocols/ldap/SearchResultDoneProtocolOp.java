@@ -41,6 +41,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -57,6 +58,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class SearchResultDoneProtocolOp
        extends ProtocolOp
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The matched DN for this response.
   private DN matchedDN;
 
@@ -317,7 +323,7 @@ public class SearchResultDoneProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_SEQUENCE;
@@ -344,7 +350,7 @@ public class SearchResultDoneProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_RESULT_CODE;
@@ -370,7 +376,7 @@ public class SearchResultDoneProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_MATCHED_DN;
@@ -392,7 +398,7 @@ public class SearchResultDoneProtocolOp
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_LDAP_RESULT_DECODE_ERROR_MESSAGE;
@@ -423,7 +429,7 @@ public class SearchResultDoneProtocolOp
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int msgID = MSGID_LDAP_RESULT_DECODE_REFERRALS;

@@ -83,10 +83,10 @@ import org.opends.server.types.operation.PreParseModifyDNOperation;
 
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -103,6 +103,11 @@ public class ModifyDNOperation
        implements PreParseModifyDNOperation, PreOperationModifyDNOperation,
                   PostOperationModifyDNOperation, PostResponseModifyDNOperation
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // Indicates whether to delete the old RDN value from the entry.
   private boolean deleteOldRDN;
 
@@ -814,7 +819,7 @@ modifyDNProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -835,7 +840,7 @@ modifyDNProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
         setResultCode(de.getResultCode());
@@ -862,7 +867,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -972,7 +977,7 @@ modifyDNProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         LockManager.unlock(entryDN, currentLock);
@@ -1028,7 +1033,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -1057,7 +1062,7 @@ modifyDNProcessing:
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
               break;
             }
@@ -1091,7 +1096,7 @@ modifyDNProcessing:
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, de);
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -1137,7 +1142,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1166,7 +1171,7 @@ modifyDNProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(ResultCode.PROTOCOL_ERROR);
@@ -1199,7 +1204,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1226,7 +1231,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1264,7 +1269,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1284,7 +1289,7 @@ modifyDNProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1342,7 +1347,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, le);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
                   }
 
                   setResultCode(ResultCode.valueOf(le.getResultCode()));
@@ -1362,7 +1367,7 @@ modifyDNProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 setResultCode(de.getResultCode());
@@ -1680,7 +1685,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, e);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, e);
                   }
 
                   setResultCode(ResultCode.CONSTRAINT_VIOLATION);
@@ -1724,7 +1729,7 @@ modifyDNProcessing:
                 {
                   if (debugEnabled())
                   {
-                    debugCaught(DebugLogLevel.ERROR, e);
+                    TRACER.debugCaught(DebugLogLevel.ERROR, e);
                   }
 
                   setResultCode(ResultCode.CONSTRAINT_VIOLATION);
@@ -1853,7 +1858,7 @@ modifyDNProcessing:
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, de);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
                 }
 
                 logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -1977,7 +1982,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
           setResultCode(de.getResultCode());
@@ -1991,7 +1996,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, coe);
+            TRACER.debugCaught(DebugLogLevel.ERROR, coe);
           }
 
           CancelResult cancelResult = coe.getCancelResult();
@@ -2024,7 +2029,7 @@ modifyDNProcessing:
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, de);
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
             logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -2078,7 +2083,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER;
@@ -2116,7 +2121,7 @@ modifyDNProcessing:
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_PERSISTENT_SEARCH;
@@ -2158,7 +2163,7 @@ modifyDNProcessing:
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 

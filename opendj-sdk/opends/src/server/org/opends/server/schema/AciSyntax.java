@@ -43,8 +43,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import org.opends.server.authorization.dseecompat.Aci;
@@ -57,6 +57,11 @@ import org.opends.server.authorization.dseecompat.AciException;
 public class AciSyntax
        extends AttributeSyntax
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -247,7 +252,7 @@ public class AciSyntax
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.ACCESS_CONTROL,

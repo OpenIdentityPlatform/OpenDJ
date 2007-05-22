@@ -51,6 +51,7 @@ import org.opends.server.types.SearchScope;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -65,6 +66,11 @@ import static org.opends.server.util.Validator.*;
 public class VirtualStaticGroup
        extends Group
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The DN of the entry that holds the definition for this group.
   private DN groupEntryDN;
 
@@ -158,7 +164,7 @@ public class VirtualStaticGroup
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, de);
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
             int    msgID   = MSGID_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET;

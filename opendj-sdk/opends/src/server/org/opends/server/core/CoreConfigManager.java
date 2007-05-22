@@ -54,10 +54,10 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.WritabilityMode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -73,6 +73,11 @@ import static org.opends.server.util.ServerConstants.*;
 public class CoreConfigManager
        implements ConfigurableComponent
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -166,7 +171,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -210,7 +215,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -250,7 +255,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -293,7 +298,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -353,7 +358,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -415,7 +420,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -456,7 +461,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -498,7 +503,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -538,7 +543,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -575,7 +580,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -613,7 +618,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -651,7 +656,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -710,7 +715,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -749,7 +754,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -796,7 +801,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
@@ -834,7 +839,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
          MSGID_CONFIG_CORE_REJECT_UNAUTHENTICATED_REQUESTS_INVALID,
@@ -884,7 +889,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
@@ -916,7 +921,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -949,7 +954,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -981,7 +986,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1016,7 +1021,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1055,7 +1060,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1095,7 +1100,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1128,7 +1133,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1161,7 +1166,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1193,7 +1198,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1226,7 +1231,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1260,7 +1265,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1299,7 +1304,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1331,7 +1336,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1364,7 +1369,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred.  Log a message and continue.
@@ -1416,7 +1421,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1443,7 +1448,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1470,7 +1475,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1502,7 +1507,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1535,7 +1540,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1569,7 +1574,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1596,7 +1601,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1623,7 +1628,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1663,7 +1668,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1691,7 +1696,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1719,7 +1724,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1752,7 +1757,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1778,7 +1783,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1805,7 +1810,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1853,7 +1858,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so the provided value must not be valid.
@@ -1919,7 +1924,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -1958,7 +1963,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -1999,7 +2004,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2046,7 +2051,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2104,7 +2109,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2162,7 +2167,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2207,7 +2212,7 @@ public class CoreConfigManager
       // error message and use the default.
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       if (resultCode == ResultCode.SUCCESS)
@@ -2248,7 +2253,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2288,7 +2293,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2325,7 +2330,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2362,7 +2367,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2399,7 +2404,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2453,7 +2458,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2489,7 +2494,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2526,7 +2531,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to
@@ -2573,7 +2578,7 @@ public class CoreConfigManager
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       // An error occurred, so we will not allow this configuration change to

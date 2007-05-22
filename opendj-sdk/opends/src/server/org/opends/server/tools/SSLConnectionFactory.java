@@ -45,8 +45,8 @@ import org.opends.server.util.SelectableCertificateKeyManager;
 
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
 
@@ -55,6 +55,11 @@ import org.opends.server.types.DebugLogLevel;
  */
 public class SSLConnectionFactory
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   private SSLSocketFactory sslSocketFactory = null;
 
@@ -247,7 +252,7 @@ public class SSLConnectionFactory
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_TOOLS_CANNOT_LOAD_KEYSTORE_FILE;
       throw new SSLConnectionException(getMessage(msgID, keyStoreFile), e);
@@ -265,7 +270,7 @@ public class SSLConnectionFactory
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ke);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ke);
       }
       int msgID = MSGID_TOOLS_CANNOT_INIT_KEYMANAGER;
       throw new SSLConnectionException(getMessage(msgID, keyStoreFile), ke);
@@ -339,7 +344,7 @@ public class SSLConnectionFactory
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       int msgID = MSGID_TOOLS_CANNOT_LOAD_TRUSTSTORE_FILE;
       throw new SSLConnectionException(getMessage(msgID, trustStoreFile), e);
@@ -357,7 +362,7 @@ public class SSLConnectionFactory
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ke);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ke);
       }
       int msgID = MSGID_TOOLS_CANNOT_INIT_TRUSTMANAGER;
       throw new SSLConnectionException(getMessage(msgID, trustStoreFile), ke);

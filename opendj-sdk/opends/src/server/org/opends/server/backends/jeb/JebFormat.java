@@ -38,8 +38,8 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +50,11 @@ import java.util.zip.DataFormatException;
  */
 public class JebFormat
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The format version used by this class to encode and decode a DatabaseEntry.
@@ -200,7 +205,7 @@ public class JebFormat
 
         if(debugEnabled())
         {
-          debugInfo("Compression %d/%d%n",
+          TRACER.debugInfo("Compression %d/%d%n",
                     compressedSize, uncompressedSize);
         }
 

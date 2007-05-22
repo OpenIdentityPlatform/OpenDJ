@@ -39,6 +39,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -52,6 +53,11 @@ import static org.opends.server.util.ServerConstants.*;
 public abstract class MonitorProvider
        extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // Indicates whether a request has been received to stop running.
   private boolean stopRequested;
 
@@ -126,7 +132,7 @@ public abstract class MonitorProvider
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }

@@ -26,8 +26,8 @@
  */
 package org.opends.server.controls;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -60,6 +60,11 @@ import java.util.ArrayList;
  */
 public class PagedResultsControl extends Control
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
   /**
@@ -128,7 +133,7 @@ public class PagedResultsControl extends Control
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_PAGED_RESULTS_DECODE_SEQUENCE;
@@ -152,7 +157,7 @@ public class PagedResultsControl extends Control
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_PAGED_RESULTS_DECODE_SIZE;
@@ -168,7 +173,7 @@ public class PagedResultsControl extends Control
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_LDAP_PAGED_RESULTS_DECODE_COOKIE;

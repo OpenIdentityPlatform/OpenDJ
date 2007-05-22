@@ -50,6 +50,7 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -64,6 +65,11 @@ public class DictionaryPasswordValidator
        extends PasswordValidator<DictionaryPasswordValidatorCfg>
        implements ConfigurationChangeListener<DictionaryPasswordValidatorCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The current configuration for this password validator.
   private DictionaryPasswordValidatorCfg currentConfig;
 
@@ -208,7 +214,7 @@ public class DictionaryPasswordValidator
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_DICTIONARY_VALIDATOR_CANNOT_READ_FILE;

@@ -36,9 +36,8 @@ import javax.management.MBeanParameterInfo;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.config.ConfigAttribute;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static
-    org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 
 
@@ -48,6 +47,11 @@ import static
  */
 public class InvokableMethod
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -317,7 +321,7 @@ public class InvokableMethod
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       throw new MBeanException(de, de.getErrorMessage());
@@ -326,7 +330,7 @@ public class InvokableMethod
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       throw new MBeanException(e);

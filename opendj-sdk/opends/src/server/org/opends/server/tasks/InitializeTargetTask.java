@@ -28,8 +28,8 @@ package org.opends.server.tasks;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 
@@ -60,6 +60,11 @@ import org.opends.server.types.ResultCode;
  */
 public class InitializeTargetTask extends Task
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // Config properties
   boolean append                  = false;
   boolean isCompressed            = false;
@@ -120,7 +125,7 @@ public class InitializeTargetTask extends Task
   {
     if (debugEnabled())
     {
-      debugInfo("DebugInfo" + "InitializeTarget Task/runTask ");
+      TRACER.debugInfo("DebugInfo" + "InitializeTarget Task/runTask ");
     }
     try
     {

@@ -27,8 +27,8 @@
 package org.opends.server.replication.server;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -73,6 +73,11 @@ import org.opends.server.util.TimeThread;
  */
 public class ServerHandler extends MonitorProvider
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   private short serverId;
   private ProtocolSession session;
   private final MsgQueue msgQueue = new MsgQueue();
@@ -1285,7 +1290,7 @@ public class ServerHandler extends MonitorProvider
   public void process(RoutableMessage msg)
   {
     if (debugEnabled())
-      debugInfo("SH(" + replicationServerId + ") forwards " +
+      TRACER.debugInfo("SH(" + replicationServerId + ") forwards " +
                  msg + " to " + serverId);
 
     logError(ErrorLogCategory.SYNCHRONIZATION,
@@ -1306,7 +1311,7 @@ public class ServerHandler extends MonitorProvider
   public void send(RoutableMessage msg) throws IOException
   {
     if (debugEnabled())
-      debugInfo("SH(" + replicationServerId + ") forwards " +
+      TRACER.debugInfo("SH(" + replicationServerId + ") forwards " +
                  msg + " to " + serverId);
 
     logError(ErrorLogCategory.SYNCHRONIZATION,

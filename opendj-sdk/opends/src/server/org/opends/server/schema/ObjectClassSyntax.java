@@ -52,8 +52,8 @@ import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -71,6 +71,11 @@ import static org.opends.server.util.StaticUtils.*;
 public class ObjectClassSyntax
        extends AttributeSyntax
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -226,7 +231,7 @@ public class ObjectClassSyntax
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       invalidReason.append(de.getErrorMessage());

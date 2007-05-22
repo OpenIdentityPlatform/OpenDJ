@@ -41,10 +41,10 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -56,6 +56,11 @@ import static org.opends.server.schema.SchemaConstants.*;
 public class AuthPasswordExactEqualityMatchingRule
        extends EqualityMatchingRule
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
 
@@ -179,7 +184,7 @@ public class AuthPasswordExactEqualityMatchingRule
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, de);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
 
       switch (DirectoryServer.getSyntaxEnforcementPolicy())

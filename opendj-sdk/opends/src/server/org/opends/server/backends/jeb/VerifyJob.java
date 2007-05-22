@@ -27,6 +27,8 @@
 package org.opends.server.backends.jeb;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;
@@ -56,9 +58,6 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.debugError;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
@@ -79,6 +78,11 @@ import java.util.TimerTask;
  */
 public class VerifyJob
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The verify configuration.
@@ -449,9 +453,9 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("Malformed id2entry ID %s.%n",
+            TRACER.debugError("Malformed id2entry ID %s.%n",
                        StaticUtils.bytesToHex(key.getData()));
           }
           continue;
@@ -469,9 +473,9 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("Malformed id2entry record for ID %d:%n%s%n",
+            TRACER.debugError("Malformed id2entry record for ID %d:%n%s%n",
                        entryID.longValue(),
                        StaticUtils.bytesToHex(data.getData()));
           }
@@ -485,7 +489,7 @@ public class VerifyJob
         errorCount++;
         if (debugEnabled())
         {
-          debugError("The stored entry count in id2entry (%d) does " +
+          TRACER.debugError("The stored entry count in id2entry (%d) does " +
               "not agree with the actual number of entry " +
               "records found (%d).%n", storedEntryCount, keyCount);
         }
@@ -566,9 +570,9 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("File dn2id has malformed key %s.%n",
+            TRACER.debugError("File dn2id has malformed key %s.%n",
                        StaticUtils.bytesToHex(key.getData()));
           }
           continue;
@@ -584,9 +588,9 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("File dn2id has malformed ID for DN <%s>:%n%s%n",
+            TRACER.debugError("File dn2id has malformed ID for DN <%s>:%n%s%n",
                        dn.toNormalizedString(),
                        StaticUtils.bytesToHex(data.getData()));
           }
@@ -603,7 +607,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
           continue;
         }
@@ -613,7 +617,7 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugError("File dn2id has DN <%s> referencing unknown " +
+            TRACER.debugError("File dn2id has DN <%s> referencing unknown " +
                 "ID %d%n", dn.toNormalizedString(), entryID.longValue());
           }
         }
@@ -624,7 +628,7 @@ public class VerifyJob
             errorCount++;
             if (debugEnabled())
             {
-              debugError("File dn2id has DN <%s> referencing entry " +
+              TRACER.debugError("File dn2id has DN <%s> referencing entry " +
                   "with wrong DN <%s>%n", dn.toNormalizedString(),
                                           entry.getDN().toNormalizedString());
             }
@@ -670,9 +674,9 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("File id2children has malformed ID %s%n",
+            TRACER.debugError("File id2children has malformed ID %s%n",
                        StaticUtils.bytesToHex(key.getData()));
           }
           continue;
@@ -690,9 +694,9 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("File id2children has malformed ID list " +
+            TRACER.debugError("File id2children has malformed ID list " +
                 "for ID %s:%n%s%n", entryID,
                                     StaticUtils.bytesToHex(data.getData()));
           }
@@ -712,7 +716,7 @@ public class VerifyJob
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
             errorCount++;
             continue;
@@ -723,7 +727,7 @@ public class VerifyJob
             errorCount++;
             if (debugEnabled())
             {
-              debugError("File id2children has unknown ID %d%n",
+              TRACER.debugError("File id2children has unknown ID %d%n",
                          entryID.longValue());
             }
             continue;
@@ -740,7 +744,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
               errorCount++;
               continue;
@@ -751,7 +755,7 @@ public class VerifyJob
               errorCount++;
               if (debugEnabled())
               {
-                debugError("File id2children has ID %d referencing " +
+                TRACER.debugError("File id2children has ID %d referencing " +
                     "unknown ID %d%n", entryID.longValue(), id.longValue());
               }
               continue;
@@ -764,7 +768,7 @@ public class VerifyJob
               errorCount++;
               if (debugEnabled())
               {
-                debugError("File id2children has ID %d with DN <%s> " +
+                TRACER.debugError("File id2children has ID %d with DN <%s> " +
                     "referencing ID %d with non-child DN <%s>%n",
                            entryID.longValue(), entry.getDN().toString(),
                            id.longValue(), childEntry.getDN().toString());
@@ -812,9 +816,9 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("File id2subtree has malformed ID %s%n",
+            TRACER.debugError("File id2subtree has malformed ID %s%n",
                        StaticUtils.bytesToHex(key.getData()));
           }
           continue;
@@ -831,9 +835,9 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("File id2subtree has malformed ID list " +
+            TRACER.debugError("File id2subtree has malformed ID list " +
                 "for ID %s:%n%s%n", entryID,
                                     StaticUtils.bytesToHex(data.getData()));
           }
@@ -853,7 +857,7 @@ public class VerifyJob
           {
             if (debugEnabled())
             {
-              debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
             errorCount++;
             continue;
@@ -864,7 +868,7 @@ public class VerifyJob
             errorCount++;
             if (debugEnabled())
             {
-              debugError("File id2subtree has unknown ID %d%n",
+              TRACER.debugError("File id2subtree has unknown ID %d%n",
                          entryID.longValue());
             }
             continue;
@@ -881,7 +885,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
               errorCount++;
               continue;
@@ -892,7 +896,7 @@ public class VerifyJob
               errorCount++;
               if (debugEnabled())
               {
-                debugError("File id2subtree has ID %d referencing " +
+                TRACER.debugError("File id2subtree has ID %d referencing " +
                     "unknown ID %d%n", entryID.longValue(), id.longValue());
               }
               continue;
@@ -903,7 +907,7 @@ public class VerifyJob
               errorCount++;
               if (debugEnabled())
               {
-                debugError("File id2subtree has ID %d with DN <%s> " +
+                TRACER.debugError("File id2subtree has ID %d with DN <%s> " +
                     "referencing ID %d with non-subordinate " +
                     "DN <%s>%n",
                            entryID.longValue(), entry.getDN().toString(),
@@ -1020,9 +1024,9 @@ public class VerifyJob
           errorCount++;
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("Malformed ID list: %s%n%s",
+            TRACER.debugError("Malformed ID list: %s%n%s",
                        StaticUtils.bytesToHex(data.getData()),
                        keyDump(index, key.getData()));
           }
@@ -1069,7 +1073,7 @@ public class VerifyJob
                   errorCount++;
                   if(debugEnabled())
                   {
-                    debugError("Reversed ordering of index keys " +
+                    TRACER.debugError("Reversed ordering of index keys " +
                         "(keys dumped in the order found in database)%n" +
                         "Key 1:%n%s%nKey 2:%n%s",
                                keyDump(index, thisValue.value()),
@@ -1082,9 +1086,9 @@ public class VerifyJob
                   errorCount++;
                   if(debugEnabled())
                   {
-                    debugError("Duplicate index keys%nKey 1:%n%s%nKey2:%n%s",
-                               keyDump(index, thisValue.value()),
-                               keyDump(index,previousValue.value()));
+                    TRACER.debugError("Duplicate index keys%nKey 1:%n%s%n" +
+                        "Key2:%n%s", keyDump(index, thisValue.value()),
+                                     keyDump(index,previousValue.value()));
                   }
                   continue;
                 }
@@ -1115,7 +1119,7 @@ public class VerifyJob
               errorCount++;
               if (debugEnabled())
               {
-                debugError("Malformed value%n%s", keyDump(index, value));
+                TRACER.debugError("Malformed value%n%s", keyDump(index, value));
               }
               continue;
           }
@@ -1127,7 +1131,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugError("Duplicate reference to ID %d%n%s",
+                TRACER.debugError("Duplicate reference to ID %d%n%s",
                            id.longValue(), keyDump(index, key.getData()));
               }
             }
@@ -1142,7 +1146,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
               errorCount++;
               continue;
@@ -1153,7 +1157,7 @@ public class VerifyJob
               errorCount++;
               if (debugEnabled())
               {
-                debugError("Reference to unknown ID %d%n%s",
+                TRACER.debugError("Reference to unknown ID %d%n%s",
                            id.longValue(), keyDump(index, key.getData()));
               }
               continue;
@@ -1198,7 +1202,7 @@ public class VerifyJob
                 errorCount++;
                 if (debugEnabled())
                 {
-                  debugError("Reference to entry " +
+                  TRACER.debugError("Reference to entry " +
                       "<%s> which does not match the value%n%s",
                              entry.getDN(), keyDump(index, value));
                 }
@@ -1208,7 +1212,7 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
             }
           }
@@ -1262,7 +1266,7 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugError("File dn2id is missing key %s.%n",
+          TRACER.debugError("File dn2id is missing key %s.%n",
                      dn.toNormalizedString());
         }
         errorCount++;
@@ -1271,7 +1275,7 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugError("File dn2id has ID %d instead of %d for key %s.%n",
+          TRACER.debugError("File dn2id has ID %d instead of %d for key %s.%n",
                      id.longValue(),
                      entryID.longValue(),
                      dn.toNormalizedString());
@@ -1283,9 +1287,9 @@ public class VerifyJob
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-        debugError("File dn2id has error reading key %s: %s.%n",
+        TRACER.debugError("File dn2id has error reading key %s: %s.%n",
                    dn.toNormalizedString(),
                    e.getMessage());
       }
@@ -1303,7 +1307,7 @@ public class VerifyJob
         {
           if (debugEnabled())
           {
-            debugError("File dn2id is missing key %s.%n",
+            TRACER.debugError("File dn2id is missing key %s.%n",
                        parentDN.toNormalizedString());
           }
           errorCount++;
@@ -1313,9 +1317,9 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-          debugError("File dn2id has error reading key %s: %s.%n",
+          TRACER.debugError("File dn2id has error reading key %s: %s.%n",
                      parentDN.toNormalizedString(),
                      e.getMessage());
         }
@@ -1345,7 +1349,7 @@ public class VerifyJob
         {
           if (debugEnabled())
           {
-            debugError("File dn2id is missing key %s.%n",
+            TRACER.debugError("File dn2id is missing key %s.%n",
                        parentDN.toNormalizedString());
           }
           errorCount++;
@@ -1355,9 +1359,9 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-          debugError("File dn2id has error reading key %s: %s.",
+          TRACER.debugError("File dn2id has error reading key %s: %s.",
                      parentDN.toNormalizedString(),
                      e.getMessage());
         }
@@ -1373,7 +1377,7 @@ public class VerifyJob
           {
             if (debugEnabled())
             {
-              debugError("File id2children is missing ID %d " +
+              TRACER.debugError("File id2children is missing ID %d " +
                   "for key %d.%n",
                          entryID.longValue(), parentID.longValue());
             }
@@ -1388,9 +1392,9 @@ public class VerifyJob
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("File id2children has error reading key %d: %s.",
+            TRACER.debugError("File id2children has error reading key %d: %s.",
                        parentID.longValue(), e.getMessage());
           }
           errorCount++;
@@ -1417,7 +1421,7 @@ public class VerifyJob
         {
           if (debugEnabled())
           {
-            debugError("File dn2id is missing key %s.%n",
+            TRACER.debugError("File dn2id is missing key %s.%n",
                        dn.toNormalizedString());
           }
           errorCount++;
@@ -1427,9 +1431,9 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-          debugError("File dn2id has error reading key %s: %s.%n",
+          TRACER.debugError("File dn2id has error reading key %s: %s.%n",
                      dn.toNormalizedString(),
                      e.getMessage());
         }
@@ -1445,7 +1449,7 @@ public class VerifyJob
           {
             if (debugEnabled())
             {
-              debugError("File id2subtree is missing ID %d " +
+              TRACER.debugError("File id2subtree is missing ID %d " +
                   "for key %d.%n",
                          entryID.longValue(), id.longValue());
             }
@@ -1460,9 +1464,9 @@ public class VerifyJob
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-            debugError("File id2subtree has error reading key %d: %s.%n",
+            TRACER.debugError("File id2subtree has error reading key %d: %s.%n",
                        id.longValue(), e.getMessage());
           }
           errorCount++;
@@ -1525,9 +1529,9 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-          debugError("Error normalizing values of attribute %s in " +
+          TRACER.debugError("Error normalizing values of attribute %s in " +
               "entry <%s>: %s.%n",
                      attrIndex.getAttributeType().toString(),
                      entry.getDN().toString(),
@@ -1569,7 +1573,7 @@ public class VerifyJob
         {
           if (debugEnabled())
           {
-            debugError("Missing ID %d%n%s",
+            TRACER.debugError("Missing ID %d%n%s",
                        entryID.longValue(),
                        keyDump(presenceIndex, presenceKey.getData()));
           }
@@ -1584,9 +1588,9 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-          debugError("Error reading database: %s%n%s",
+          TRACER.debugError("Error reading database: %s%n%s",
                      e.getMessage(),
                      keyDump(presenceIndex, presenceKey.getData()));
         }
@@ -1615,7 +1619,7 @@ public class VerifyJob
               {
                 if (debugEnabled())
                 {
-                  debugError("Missing ID %d%n%s",
+                  TRACER.debugError("Missing ID %d%n%s",
                              entryID.longValue(),
                              keyDump(equalityIndex, normalizedBytes));
                 }
@@ -1630,9 +1634,9 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-                debugError("Error reading database: %s%n%s",
+                TRACER.debugError("Error reading database: %s%n%s",
                            e.getMessage(),
                            keyDump(equalityIndex, normalizedBytes));
               }
@@ -1657,7 +1661,7 @@ public class VerifyJob
                 {
                   if (debugEnabled())
                   {
-                    debugError("Missing ID %d%n%s",
+                    TRACER.debugError("Missing ID %d%n%s",
                                entryID.longValue(),
                                keyDump(substringIndex, key.getData()));
                   }
@@ -1672,9 +1676,9 @@ public class VerifyJob
               {
                 if (debugEnabled())
                 {
-                  debugCaught(DebugLogLevel.ERROR, e);
+                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-                  debugError("Error reading database: %s%n%s",
+                  TRACER.debugError("Error reading database: %s%n%s",
                              e.getMessage(),
                              keyDump(substringIndex, key.getData()));
                 }
@@ -1702,7 +1706,7 @@ public class VerifyJob
               {
                 if (debugEnabled())
                 {
-                  debugError("Missing ID %d%n%s",
+                  TRACER.debugError("Missing ID %d%n%s",
                              entryID.longValue(),
                              keyDump(orderingIndex, normalizedBytes));
                 }
@@ -1717,9 +1721,9 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-                debugError("Error reading database: %s%n%s",
+                TRACER.debugError("Error reading database: %s%n%s",
                            e.getMessage(),
                            keyDump(orderingIndex, normalizedBytes));
               }
@@ -1745,7 +1749,7 @@ public class VerifyJob
               {
                 if (debugEnabled())
                 {
-                  debugError("Missing ID %d%n%s",
+                  TRACER.debugError("Missing ID %d%n%s",
                              entryID.longValue(),
                              keyDump(orderingIndex, normalizedBytes));
                 }
@@ -1760,9 +1764,9 @@ public class VerifyJob
             {
               if (debugEnabled())
               {
-                debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-                debugError("Error reading database: %s%n%s",
+                TRACER.debugError("Error reading database: %s%n%s",
                            e.getMessage(),
                            keyDump(approximateIndex, normalizedBytes));
               }
@@ -1877,7 +1881,7 @@ public class VerifyJob
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 

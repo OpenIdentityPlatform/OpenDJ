@@ -107,8 +107,9 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -124,6 +125,11 @@ public class ConfigFileHandler
        extends ConfigHandler
        implements AlertGenerator
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The fully-qualified name of this class.
    */
@@ -222,7 +228,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ie);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       throw ie;
@@ -231,7 +237,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_CANNOT_VERIFY_EXISTENCE;
@@ -291,7 +297,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_UNABLE_TO_APPLY_STARTUP_CHANGES;
@@ -316,7 +322,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_CANNOT_OPEN_FOR_READ;
@@ -335,7 +341,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, le);
+        TRACER.debugCaught(DebugLogLevel.ERROR, le);
       }
 
       try
@@ -346,7 +352,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -359,7 +365,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -370,7 +376,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e2);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
 
@@ -391,7 +397,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -417,7 +423,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, ie);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
       try
@@ -428,7 +434,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
 
@@ -438,7 +444,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -449,7 +455,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e2);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
         }
       }
 
@@ -480,7 +486,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, le);
+          TRACER.debugCaught(DebugLogLevel.ERROR, le);
         }
 
         try
@@ -491,7 +497,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -504,7 +510,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         try
@@ -515,7 +521,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e2);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
 
@@ -537,7 +543,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -557,7 +563,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -581,7 +587,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -603,7 +609,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
 
@@ -628,7 +634,7 @@ public class ConfigFileHandler
         // This should not happen.
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         try
@@ -639,7 +645,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e2);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
           }
         }
 
@@ -671,7 +677,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_CANNOT_DETERMINE_SERVER_ROOT;
@@ -703,7 +709,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
         }
 
         throw ie;
@@ -712,7 +718,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_CANNOT_DETERMINE_SERVER_ROOT;
@@ -739,7 +745,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_CANNOT_REGISTER_AS_PRIVATE_SUFFIX;
@@ -1022,7 +1028,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
   }
@@ -1327,7 +1333,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ce);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ce);
         }
 
         int    msgID   = MSGID_CONFIG_FILE_ADD_FAILED;
@@ -1475,7 +1481,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, ce);
+          TRACER.debugCaught(DebugLogLevel.ERROR, ce);
         }
 
         int    msgID   = MSGID_CONFIG_FILE_DELETE_FAILED;
@@ -1976,7 +1982,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_MANUAL_CHANGES_LOST;
@@ -2005,7 +2011,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_EXPORT_NEW_CONFIG;
@@ -2032,7 +2038,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_WRITE_CANNOT_RENAME_NEW_CONFIG;
@@ -2092,7 +2098,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_FILE_CANNOT_CREATE_ARCHIVE_DIR;
@@ -2133,7 +2139,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
@@ -2168,7 +2174,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_CANNOT_WRITE_CONFIG_ARCHIVE;
@@ -2264,7 +2270,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int msgID = MSGID_CONFIG_LDIF_WRITE_ERROR;
@@ -2281,7 +2287,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_CLOSE_ERROR;
@@ -2317,7 +2323,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_FILE_WRITE_ERROR;
@@ -2459,7 +2465,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_MAC;
@@ -2483,7 +2489,7 @@ public class ConfigFileHandler
         {
           if (debugEnabled())
           {
-            debugCaught(DebugLogLevel.ERROR, e);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
           int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_DIGEST;
@@ -2536,7 +2542,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE;
@@ -2564,7 +2570,7 @@ public class ConfigFileHandler
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_CONFIG_BACKUP_CANNOT_GET_CIPHER;
@@ -2610,7 +2616,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID   = MSGID_CONFIG_BACKUP_CANNOT_DETERMINE_CONFIG_FILE_LOCATION;
@@ -2661,7 +2667,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -2727,7 +2733,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       try
@@ -2757,7 +2763,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID   = MSGID_CONFIG_BACKUP_CANNOT_CLOSE_ZIP_STREAM;
@@ -2801,7 +2807,7 @@ public class ConfigFileHandler
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       msgID = MSGID_CONFIG_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR;

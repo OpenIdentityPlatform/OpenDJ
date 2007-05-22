@@ -45,9 +45,8 @@ import org.opends.server.types.FilePermission;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugInfo;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 import org.opends.server.api.Backend;
@@ -63,6 +62,11 @@ import org.opends.server.core.DirectoryServer;
 public class RootContainer
      implements ConfigurationChangeListener<JEBackendCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
   /**
    * The JE database environment.
@@ -156,9 +160,9 @@ public class RootContainer
 
     if (debugEnabled())
     {
-      debugInfo("JE (%s) environment opened with the following config: %n%s",
-                JEVersion.CURRENT_VERSION.toString(),
-                env.getConfig().toString());
+      TRACER.debugInfo("JE (%s) environment opened with the following " +
+          "config: %n%s", JEVersion.CURRENT_VERSION.toString(),
+                          env.getConfig().toString());
 
           // Get current size of heap in bytes
     long heapSize = Runtime.getRuntime().totalMemory();
@@ -172,9 +176,9 @@ public class RootContainer
     // after garbage collection and decrease as new objects are created.
     long heapFreeSize = Runtime.getRuntime().freeMemory();
 
-      debugInfo("Current size of heap: %d bytes", heapSize);
-      debugInfo("Max size of heap: %d bytes", heapMaxSize);
-      debugInfo("Free memory in heap: %d bytes", heapFreeSize);
+      TRACER.debugInfo("Current size of heap: %d bytes", heapSize);
+      TRACER.debugInfo("Max size of heap: %d bytes", heapMaxSize);
+      TRACER.debugInfo("Free memory in heap: %d bytes", heapFreeSize);
     }
   }
 
@@ -386,7 +390,7 @@ public class RootContainer
 
           if(debugEnabled())
           {
-            debugInfo("file=" + db.getDatabaseName() +
+            TRACER.debugInfo("file=" + db.getDatabaseName() +
                       " LNs=" + preloadStats.getNLNsLoaded());
           }
 
@@ -410,7 +414,7 @@ public class RootContainer
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -673,7 +677,7 @@ public class RootContainer
             }
             if(debugEnabled())
             {
-              debugInfo("The change to the following property will " +
+              TRACER.debugInfo("The change to the following property will " +
                         "take effect when the backend is restarted: " +
                         param.getName());
             }
@@ -687,7 +691,7 @@ public class RootContainer
 
       if (debugEnabled())
       {
-        debugInfo(env.getConfig().toString());
+        TRACER.debugInfo(env.getConfig().toString());
       }
     }
     catch (Exception e)

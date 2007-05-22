@@ -54,8 +54,8 @@ import org.opends.server.types.Operation;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugCaught;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
@@ -73,6 +73,10 @@ import static org.opends.server.util.StaticUtils.*;
 public abstract class Task
        implements Comparable<Task>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
 
 
@@ -219,7 +223,7 @@ public abstract class Task
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_TASK_CANNOT_PARSE_SCHEDULED_START_TIME;
@@ -253,7 +257,7 @@ public abstract class Task
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_TASK_CANNOT_PARSE_ACTUAL_START_TIME;
@@ -287,7 +291,7 @@ public abstract class Task
       {
         if (debugEnabled())
         {
-          debugCaught(DebugLogLevel.ERROR, e);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         int    msgID   = MSGID_TASK_CANNOT_PARSE_COMPLETION_TIME;
@@ -1055,7 +1059,7 @@ public abstract class Task
     {
       if (debugEnabled())
       {
-        debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
       setTaskState(TaskState.STOPPED_BY_ERROR);
