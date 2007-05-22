@@ -402,7 +402,6 @@
 
   </function>  
 
-
   <function name="queryLogs">
 
     <function-prolog>
@@ -448,4 +447,127 @@
 
   </function>
 
+  <function name="SetVar">
+
+    <function-prolog>
+        Sets a variable in the staf var service
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="type" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="variable"/>
+      </function-arg-def>       
+      <function-arg-def name="variable" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="variable"/>
+      </function-arg-def> 
+    </function-map-args>
+
+    <sequence>
+
+      <message>'Set %s Variable %s' % (type,variable)</message>
+            
+      <stafcmd name="'STAF Command: Set Var.'">
+        <location>'%s' % location</location>
+        <service>'var'</service>
+        <request>'SET %s VAR %s' % (type,variable)</request>
+      </stafcmd>
+      
+    </sequence>
+
+  </function>
+
+  <function name="GetVar">
+
+    <function-prolog>
+        Gets a variable in the staf var service
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="type" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="variable"/>
+      </function-arg-def>       
+      <function-arg-def name="variable" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="variable"/>
+      </function-arg-def> 
+    </function-map-args>
+
+    <sequence>
+
+      <message>'Get %s Variable %s' % (type,variable)</message>
+            
+      <stafcmd name="'STAF Command: Get Var.'">
+        <location>'%s' % location</location>
+        <service>'var'</service>
+        <request>'GET %s VAR %s' % (type,variable)</request>
+      </stafcmd>
+      
+    </sequence>
+
+  </function>
+
+  <function name="ResolveVar">
+
+    <function-prolog>
+        Resolve a variable in the staf var service
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="type" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="variable"/>
+      </function-arg-def>       
+      <function-arg-def name="string" type="required">
+        <function-arg-description>
+          Name of file to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+    </function-map-args>
+
+    <sequence>
+
+      <message>'Resolve %s Variable %s' % (type,string)</message>
+            
+      <stafcmd name="'STAF Command: Resolve Var.'">
+        <location>'%s' % location</location>
+        <service>'var'</service>
+        <request>'RESOLVE %s STRING {%s}' % (type,string)</request>
+      </stafcmd>
+
+    </sequence>
+
+  </function>
+      
 </stax>

@@ -4,6 +4,17 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:template match="/">
 
+  <!--- Test Report Header Variables -->
+  <xsl:variable name="identification"     select="qa/functional-tests/identification"/>
+  <xsl:variable name="version"  select="$identification/version"/>
+  <xsl:variable name="buildid"  select="$identification/buildid"/>
+  <xsl:variable name="revision"  select="$identification/revision"/>
+  <xsl:variable name="testcase"     select="qa/functional-tests/results/testgroup/testsuite/testcase"/>
+  <xsl:variable name="total-tests"  select="count($testcase)"/>
+  <xsl:variable name="pass-tests"   select="count($testcase[@result='pass'])"/>
+  <xsl:variable name="fail-tests"   select="count($testcase[@result='fail'])"/>
+  <xsl:variable name="inconc-tests" select="count($testcase[@result='unknown'])"/>
+
   <xsl:element name="html">
   
   <xsl:element name="head">
@@ -19,28 +30,20 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <link rel="stylesheet" href="https://opends.dev.java.net/public/css/opends.css" type="text/css" />
 
     <xsl:element name="title">
-      <xsl:value-of select="'Test Report'"/>
+      <xsl:value-of select="concat('Test Report for OpenDS ',$version)"/>
     </xsl:element>
   
-    </xsl:element>
+  </xsl:element>
   
   <table class="tertmasttable" width="100%" cellspacing="0">
     <tbody>
       <tr>
-        <td><div class="collectionheader">Test Report</div></td>
+        <td><div class="collectionheader"><xsl:value-of select="concat('Test Report for OpenDS ',$version)"/></div></td>
         <td width="10%"><a href="https://opends.dev.java.net/"><img src="https://opends.dev.java.net/public/images/opends_logo_sm.png" alt="OpenDS Logo" width="104" height="33" border="0" align="middle" /></a> </td>
       </tr>
     </tbody>
   </table>
   
-  <!--- Test Report Header Variables -->
-  <xsl:variable name="identification"     select="qa/functional-tests/identification"/>
-  <xsl:variable name="testcase"     select="qa/functional-tests/results/testgroup/testsuite/testcase"/>
-  <xsl:variable name="total-tests"  select="count($testcase)"/>
-  <xsl:variable name="pass-tests"   select="count($testcase[@result='pass'])"/>
-  <xsl:variable name="fail-tests"   select="count($testcase[@result='fail'])"/>
-  <xsl:variable name="inconc-tests" select="count($testcase[@result='unknown'])"/>
-
   <!-- Overall Test Percentage -->
   <xsl:variable name="percent-tests">
     <xsl:choose>
@@ -117,6 +120,22 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
+          <xsl:value-of select="'Build'"/>
+        </xsl:element>
+      </xsl:element>
+      <xsl:element name="td">
+        <xsl:attribute name="align">
+          <xsl:value-of select="'center'"/>
+        </xsl:attribute>
+        <xsl:element name="b">
+          <xsl:value-of select="'Revision'"/>
+        </xsl:element>
+      </xsl:element>          
+      <xsl:element name="td">
+        <xsl:attribute name="align">
+          <xsl:value-of select="'center'"/>
+        </xsl:attribute>
+        <xsl:element name="b">
           <xsl:value-of select="'Platform'"/>
         </xsl:element>
       </xsl:element>
@@ -125,7 +144,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="'Hardware'"/>
+          <xsl:value-of select="'JVM Version'"/>
         </xsl:element>
       </xsl:element>
       <xsl:element name="td">
@@ -133,9 +152,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="'Java Version'"/>
+          <xsl:value-of select="'JVM Vendor'"/>
         </xsl:element>
-      </xsl:element>
+      </xsl:element>      
       <xsl:element name="td">
         <xsl:attribute name="align">
           <xsl:value-of select="'center'"/>
@@ -175,6 +194,22 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
+          <xsl:value-of select="$identification/buildid"/>
+        </xsl:element>
+      </xsl:element>
+      <xsl:element name="td">
+        <xsl:attribute name="align">
+          <xsl:value-of select="'center'"/>
+        </xsl:attribute>
+        <xsl:element name="b">
+          <xsl:value-of select="$identification/revision"/>
+        </xsl:element>
+      </xsl:element>          
+      <xsl:element name="td">
+        <xsl:attribute name="align">
+          <xsl:value-of select="'center'"/>
+        </xsl:attribute>
+        <xsl:element name="b">
           <xsl:value-of select="$identification/platform"/>
         </xsl:element>
       </xsl:element>
@@ -183,7 +218,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="$identification/hardware"/>
+          <xsl:value-of select="$identification/jvm-version"/>
         </xsl:element>
       </xsl:element>
       <xsl:element name="td">
@@ -191,9 +226,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="$identification/jvm"/>
+          <xsl:value-of select="$identification/jvm-vendor"/>
         </xsl:element>
-      </xsl:element>
+      </xsl:element>      
       <xsl:element name="td">
         <xsl:attribute name="align">
           <xsl:value-of select="'center'"/>
@@ -359,7 +394,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     </xsl:element>
 
   </xsl:element>
-  
+      
   </xsl:element>
 
 </xsl:template>
