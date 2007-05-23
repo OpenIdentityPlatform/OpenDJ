@@ -3101,7 +3101,7 @@
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
                                             and entries is returned only for steps 1, 2, and 3.
-                                            Attribute values returned only for steps 1 and 2.
+                                            Attribute values returned only for steps 1, 2 and 3.
             -->
             <testcase name="'ACI: Bind Types: userattr equals one attr'">
               <sequence>
@@ -3249,7 +3249,7 @@
                       'testString'         : 'cn:' }
                 </call>
                 
-                <if expr="returnCode != '0'">
+                <if expr="returnCode != '1'">
                     <tcstatus result="'fail'"/>
                 </if>
     
