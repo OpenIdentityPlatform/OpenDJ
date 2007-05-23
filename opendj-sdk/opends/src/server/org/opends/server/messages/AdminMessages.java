@@ -198,6 +198,114 @@ public final class AdminMessages {
   public static final int MSGID_ADMIN_CANNOT_READ_EXTENSION_MANIFEST =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_SEVERE_ERROR | 17;
 
+  /**
+   * The message ID for the message that will be used as the description for the
+   * dsservice tool.  This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_TOOL_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 18;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * create-group subcommand part of dsservice tool.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_SUBCMD_CREATE_GROUP_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 19;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * "description" argument.  This does take one argument.
+   */
+  public static final int MSGID_DSSERVICE_ARG_DESCRIPTION_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 20;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * modify-group subcommand part of dsservice tool.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_SUBCMD_MODIFY_GROUP_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 21;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * new "description" argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_ARG_NEW_DESCRIPTION_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 22;
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * new "groupid" argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_ARG_NEW_GROUPID_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 23;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * delete-group subcommand part of dsservice tool.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_SUBCMD_DELETE_GROUP_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 24;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * list-groups subcommand part of dsservice tool.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_SUBCMD_LIST_GROUPS_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 25;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * add-to-group subcommand part of dsservice tool.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_SUBCMD_ADD_TO_GROUP_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 26;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * added "member-id" argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_ARG_ADD_MEMBERID_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 27;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * remove-from-group subcommand part of dsservice tool.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 28;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * removed "member-id" argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_ARG_REMOVE_MEMBERID_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 29;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * list-members subcommand part of dsservice tool.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_SUBCMD_LIST_MEMBERS_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 30;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * list-members subcommand part of dsservice tool.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 31;
+
   // Prevent instantiation.
   private AdminMessages() {
     // Do nothing.
@@ -288,5 +396,37 @@ public final class AdminMessages {
         "The administration manifest file %s associated with the " +
         "extension %s cannot be loaded because an unexpected error " +
         "occurred while trying to read it:  %s");
+
+    registerMessage(MSGID_DSSERVICE_TOOL_DESCRIPTION,
+        "This utility may be used to perform " +
+        "operations in the Directory Server administration framework");
+    registerMessage(MSGID_DSSERVICE_SUBCMD_CREATE_GROUP_DESCRIPTION,
+        "Create a new group of servers");
+    registerMessage(MSGID_DSSERVICE_ARG_DESCRIPTION_DESCRIPTION,
+        "The group description. If not specified, " +
+        "the description will be empty");
+    registerMessage(MSGID_DSSERVICE_SUBCMD_MODIFY_GROUP_DESCRIPTION,
+        "Modify a group's properties");
+    registerMessage(MSGID_DSSERVICE_ARG_NEW_DESCRIPTION_DESCRIPTION,
+        "If specified, the new description");
+    registerMessage(MSGID_DSSERVICE_ARG_NEW_GROUPID_DESCRIPTION,
+        "If specified, the new group's identifier");
+    registerMessage(MSGID_DSSERVICE_SUBCMD_DELETE_GROUP_DESCRIPTION,
+        "Delete an existing group of servers" );
+    registerMessage(MSGID_DSSERVICE_SUBCMD_LIST_GROUPS_DESCRIPTION,
+        "List groups that have been defined" );
+    registerMessage(MSGID_DSSERVICE_SUBCMD_ADD_TO_GROUP_DESCRIPTION,
+        "Add a member to a group" );
+    registerMessage(MSGID_DSSERVICE_ARG_ADD_MEMBERID_DESCRIPTION,
+        "The member to add" );
+    registerMessage(MSGID_DSSERVICE_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION,
+        "Remove a member from a group" );
+    registerMessage(MSGID_DSSERVICE_ARG_REMOVE_MEMBERID_DESCRIPTION,
+        "The member to remove" );
+    registerMessage(MSGID_DSSERVICE_SUBCMD_LIST_MEMBERS_DESCRIPTION,
+        "List members of the specified group" );
+    registerMessage(MSGID_DSSERVICE_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION,
+        "List groups in which the specified server is a member" );
+
   }
 }

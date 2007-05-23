@@ -1303,26 +1303,34 @@ public class SubCommandArgumentParser
       }
 
       Character shortIDChar = a.getShortIdentifier();
+      boolean isHelpArg = usageArgument.getName().equals(a.getName());
       if (shortIDChar != null)
       {
-        buffer.append("    -");
+        if (isHelpArg)
+        {
+          buffer.append("-?, ");
+        }
+        buffer.append("-");
         buffer.append(shortIDChar);
-        buffer.append(value);
 
         String longIDString = a.getLongIdentifier();
         if (longIDString != null)
         {
           buffer.append(", --");
           buffer.append(longIDString);
-          buffer.append(value);
         }
+        buffer.append(value);
       }
       else
       {
         String longIDString = a.getLongIdentifier();
         if (longIDString != null)
         {
-          buffer.append("    --");
+          if (isHelpArg)
+          {
+            buffer.append("-?, ");
+          }
+          buffer.append("--");
           buffer.append(longIDString);
           buffer.append(value);
         }
@@ -1380,16 +1388,17 @@ public class SubCommandArgumentParser
     if ( ! globalArgumentList.isEmpty())
     {
       buffer.append(EOL);
-      buffer.append("Global Options:");
+      buffer.append(getMessage(MSGID_GLOBAL_OPTIONS));
       buffer.append(EOL);
-      buffer.append("    See \"" + printName + " --help\".");
+      buffer.append("    ");
+      buffer.append(getMessage(MSGID_GLOBAL_OPTIONS_REFERENCE, printName));
       buffer.append(EOL);
     }
 
     if ( ! subCommand.getArguments().isEmpty() )
     {
       buffer.append(EOL);
-      buffer.append("SubCommand Options:");
+      buffer.append(getMessage(MSGID_SUBCMD_OPTIONS));
       buffer.append(EOL);
     }
     for (Argument a : subCommand.getArguments())
@@ -1404,20 +1413,25 @@ public class SubCommandArgumentParser
       // Write a line with the short and/or long identifiers that may be used
       // for the argument.
       Character shortID = a.getShortIdentifier();
+      String longID = a.getLongIdentifier();
       if (shortID != null)
       {
         int currentLength = buffer.length();
 
-        buffer.append("   -");
+        if (usageArgument.getName().equals(a.getName()))
+        {
+          buffer.append("-?, ");
+        }
+
+        buffer.append("-");
         buffer.append(shortID.charValue());
 
-        if (a.needsValue())
+        if (a.needsValue() && longID == null)
         {
           buffer.append(" ");
           buffer.append(a.getValuePlaceholder());
         }
 
-        String longID = a.getLongIdentifier();
         if (longID != null)
         {
           StringBuilder newBuffer = new StringBuilder();
@@ -1430,7 +1444,7 @@ public class SubCommandArgumentParser
             newBuffer.append(a.getValuePlaceholder());
           }
 
-          int lineLength = (buffer.length() - currentLength) + 2 +
+          int lineLength = (buffer.length() - currentLength) +
                            newBuffer.length();
           if (lineLength > 80)
           {
@@ -1439,7 +1453,6 @@ public class SubCommandArgumentParser
           }
           else
           {
-            buffer.append("  ");
             buffer.append(newBuffer.toString());
           }
         }
@@ -1448,10 +1461,13 @@ public class SubCommandArgumentParser
       }
       else
       {
-        String longID = a.getLongIdentifier();
         if (longID != null)
         {
-          buffer.append("   --");
+          if (usageArgument.getName().equals(a.getName()))
+          {
+            buffer.append("-?, ");
+          }
+          buffer.append("--");
           buffer.append(longID);
 
           if (a.needsValue())
@@ -1463,14 +1479,61 @@ public class SubCommandArgumentParser
           buffer.append(EOL);
         }
       }
-      indentAndWrap("   ", a.getDescription(), buffer);
 
-      if (a.isRequired())
+
+      // Write one or more lines with the description of the argument.  We will
+      // indent the description five characters and try our best to wrap at or
+      // before column 79 so it will be friendly to 80-column displays.
+      String description = a.getDescription();
+      if (description.length() <= 75)
       {
-        buffer.append("   This argument is mandatory.");
+        buffer.append("    ");
+        buffer.append(description);
+        buffer.append(EOL);
       }
-      buffer.append(EOL);
+      else
+      {
+        String s = description;
+        while (s.length() > 75)
+        {
+          int spacePos = s.lastIndexOf(' ', 75);
+          if (spacePos > 0)
+          {
+            buffer.append("    ");
+            buffer.append(s.substring(0, spacePos).trim());
+            s = s.substring(spacePos+1).trim();
+            buffer.append(EOL);
+          }
+          else
+          {
+            // There are no spaces in the first 74 columns.  See if there is one
+            // after that point.  If so, then break there.  If not, then don't
+            // break at all.
+            spacePos = s.indexOf(' ');
+            if (spacePos > 0)
+            {
+              buffer.append("    ");
+              buffer.append(s.substring(0, spacePos).trim());
+              s = s.substring(spacePos+1).trim();
+              buffer.append(EOL);
+            }
+            else
+            {
+              buffer.append("    ");
+              buffer.append(s);
+              s = "";
+              buffer.append(EOL);
+            }
+          }
+        }
 
+        if (s.length() > 0)
+        {
+          buffer.append("    ");
+          buffer.append(s);
+          buffer.append(EOL);
+        }
+      }
     }
   }
 
