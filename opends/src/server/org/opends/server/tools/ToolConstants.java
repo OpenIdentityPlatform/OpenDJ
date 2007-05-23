@@ -509,5 +509,66 @@ public class ToolConstants
      */
      public static final String OPTION_LONG_PRODUCT_VERSION  = "version";
 
+  /**
+   * The value for the short option description attributes.
+   */
+  public static final char OPTION_SHORT_DESCRIPTION = 'd';
+
+  /**
+   * The value for the long option description attribute.
+   */
+  public static final String OPTION_LONG_DESCRIPTION = "description";
+
+  /**
+   * The placeholder value of description that will be
+   * displayed in usage information.
+   */
+  public static final String OPTION_VALUE_DESCRIPTION = "{description}";
+
+  /**
+   * The value for the short option groupid attributes.
+   */
+  public static final char OPTION_SHORT_GROUPID = 'g';
+
+  /**
+   * The value for the long option groupid
+   * attribute.
+   */
+  public static final String OPTION_LONG_GROUPID= "groupId";
+
+  /**
+   * The placeholder value of groupid that will be
+   * displayed in usage information.
+   */
+  public static final String OPTION_VALUE_GROUPID = "{group-id}";
+
+  /**
+   * The value for the short option member-id attributes.
+   */
+  public static final char OPTION_SHORT_MEMBERID = 'm';
+
+  /**
+   * The value for the long member-id version
+   * attribute.
+   */
+  public static final String OPTION_LONG_MEMBERID= "memberId";
+
+  /**
+   * The placeholder value of member-id that will be
+   * displayed in usage information.
+   */
+  public static final String OPTION_VALUE_MEMBERID = "{member-id}";
+
+  /**
+   * The placeholder value of group_id that will be
+   * displayed in usage information.
+   */
+  public static final String OPERAND_GROUPID = "GROUP_ID";
+
+  /**
+   * The placeholder value of member_id that will be
+   * displayed in usage information.
+   */
+  public static final String OPERAND_MEMBERID = "MEMBER_ID";
 }
 

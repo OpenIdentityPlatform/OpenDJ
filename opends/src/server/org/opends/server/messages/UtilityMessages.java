@@ -1591,6 +1591,27 @@ public class UtilityMessages
   public static final int MSGID_VALIDATOR_PRECONDITION_NOT_MET =
        CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 148;
 
+  /**
+   * The message ID for the message that will be used as the description of the
+   * Global option.  This does not take any arguments.
+   */
+  public static final int MSGID_GLOBAL_OPTIONS =
+    CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 149;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * Global option reference.  This does take one argument.
+   */
+  public static final int MSGID_GLOBAL_OPTIONS_REFERENCE =
+    CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 150;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * Global option reference.  This does take 2 arguments.
+   */
+  public static final int MSGID_SUBCMD_OPTIONS =
+    CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 151;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -2121,6 +2142,13 @@ public class UtilityMessages
                     "A precondition of the invoked method was not met.  This " +
                     "This usually means there is a defect somewhere in the " +
                     "call stack.  Details: %s");
+
+    registerMessage(MSGID_GLOBAL_OPTIONS,
+                    "Global Options:");
+    registerMessage(MSGID_GLOBAL_OPTIONS_REFERENCE,
+                    "See \"%s --help\"");
+    registerMessage(MSGID_SUBCMD_OPTIONS,
+                    "SubCommand Options:");
   }
 }
 
