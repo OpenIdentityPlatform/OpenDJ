@@ -1152,7 +1152,7 @@ public class DebugTracer
       for (int i = 0; i < stackTrace.length; i++)
       {
         StackTraceElement aStackTrace = stackTrace[i];
-        if(i == 0 && aStackTrace.getClassName().equals("java.lang.Thread"))
+        if(aStackTrace.getClassName().startsWith("java.lang.Thread"))
         {
           continue;
         }
