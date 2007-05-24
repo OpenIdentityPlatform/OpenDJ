@@ -81,7 +81,9 @@ public class Target
             throws AciException {
         this.operator = operator;
         try {
-          if (!Pattern.matches(LDAP_URL, target)) {
+          //The NULL_LDAP_URL corresponds to the root DSE.
+          if((!target.equals(NULL_LDAP_URL)) &&
+             (!Pattern.matches(LDAP_URL, target))) {
               int msgID = MSGID_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION;
               String message = getMessage(msgID, target);
               throw new AciException(msgID, message);
