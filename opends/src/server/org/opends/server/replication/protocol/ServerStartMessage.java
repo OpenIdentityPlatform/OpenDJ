@@ -33,15 +33,15 @@ import java.net.UnknownHostException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This message is used by LDAP server when they first connect.
  * to a replication server to let them know who they are and what is their state
  * (their RUV)
  */
-public class ServerStartMessage extends ReplicationMessage implements
+public class ServerStartMessage extends StartMessage implements
     Serializable
 {
   private static final long serialVersionUID = 8649393307038290287L;
@@ -75,13 +75,17 @@ public class ServerStartMessage extends ReplicationMessage implements
    * @param windowSize   The window size used by this server.
    * @param heartbeatInterval The requested heartbeat interval.
    * @param serverState  The state of this server.
+   * @param protocolVersion The replication protocol version of the creator.
    */
   public ServerStartMessage(short serverId, DN baseDn, int maxReceiveDelay,
                             int maxReceiveQueue, int maxSendDelay,
                             int maxSendQueue, int windowSize,
                             long heartbeatInterval,
-                            ServerState serverState)
+                            ServerState serverState,
+                            short protocolVersion)
   {
+    super(protocolVersion);
+
     this.serverId = serverId;
     this.baseDn = baseDn.toString();
     this.maxReceiveDelay = maxReceiveDelay;
@@ -113,16 +117,16 @@ public class ServerStartMessage extends ReplicationMessage implements
    */
   public ServerStartMessage(byte[] in) throws DataFormatException
   {
+    super(MSG_TYPE_SERVER_START, in);
+
     /* The ServerStartMessage is encoded in the form :
-     * <operation type><baseDn><ServerId><ServerUrl><maxRecvDelay><maxRecvQueue>
+     * <header><baseDn><ServerId><ServerUrl><maxRecvDelay><maxRecvQueue>
      * <maxSendDelay><maxSendQueue><window><heartbeatInterval><ServerState>
      */
     try
     {
-      /* first byte is the type */
-      if (in[0] != MSG_TYPE_SERVER_START)
-        throw new DataFormatException("input is not a valid ServerStart msg");
-      int pos = 1;
+      /* first bytes are the header */
+      int pos = headerLength;
 
       /*
        * read the dn
@@ -306,7 +310,7 @@ public class ServerStartMessage extends ReplicationMessage implements
                      String.valueOf(heartbeatInterval).getBytes("UTF-8");
       byte[] byteServerState = serverState.getBytes();
 
-      int length = 1 + byteDn.length + 1 + byteServerId.length + 1 +
+      int length = byteDn.length + 1 + byteServerId.length + 1 +
                    byteServerUrl.length + 1 +
                    byteMaxRecvDelay.length + 1 +
                    byteMaxRecvQueue.length + 1 +
@@ -316,11 +320,9 @@ public class ServerStartMessage extends ReplicationMessage implements
                    byteHeartbeatInterval.length + 1 +
                    byteServerState.length + 1;
 
-      byte[] resultByteArray = new byte[length];
-
-      /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_SERVER_START;
-      int pos = 1;
+      /* encode the header in a byte[] large enough to also contain the mods */
+      byte resultByteArray[] = encodeHeader(MSG_TYPE_SERVER_START, length);
+      int pos = headerLength;
 
       pos = addByteArray(byteDn, resultByteArray, pos);
 

@@ -133,9 +133,10 @@ public class InitializeTargetTask extends Task
     }
     catch(DirectoryException de)
     {
+      // This log will go to the task log message
       logError(ErrorLogCategory.TASK,
           ErrorLogSeverity.SEVERE_ERROR,
-          "Initialize Task stopped by error", 1);
+          "Initialize Task stopped by error" + de.getErrorMessage(), 1);
 
       return TaskState.STOPPED_BY_ERROR;
     }

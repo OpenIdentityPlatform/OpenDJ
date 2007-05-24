@@ -38,7 +38,7 @@ import org.opends.server.types.DN;
  * Message sent by a replication server to another replication server
  * at Startup.
  */
-public class ReplServerStartMessage extends ReplicationMessage implements
+public class ReplServerStartMessage extends StartMessage implements
     Serializable
 {
   private static final long serialVersionUID = -5871385537169856856L;
@@ -58,11 +58,14 @@ public class ReplServerStartMessage extends ReplicationMessage implements
    * @param baseDn base DN for which the ReplServerStartMessage is created.
    * @param windowSize The window size.
    * @param serverState our ServerState for this baseDn.
+   * @param protocolVersion The replication protocol version of the creator.
    */
   public ReplServerStartMessage(short serverId, String serverURL, DN baseDn,
                                int windowSize,
-                               ServerState serverState)
+                               ServerState serverState,
+                               short protocolVersion)
   {
+    super(protocolVersion);
     this.serverId = serverId;
     this.serverURL = serverURL;
     if (baseDn != null)
@@ -85,13 +88,12 @@ public class ReplServerStartMessage extends ReplicationMessage implements
     /* The ReplServerStartMessage is encoded in the form :
      * <baseDn><ServerId><ServerUrl><windowsize><ServerState>
      */
+    super(MSG_TYPE_REPL_SERVER_START, in);
+
     try
     {
-      /* first byte is the type */
-      if (in[0] != MSG_TYPE_REPL_SERVER_START)
-        throw new DataFormatException(
-              "input is not a valid ReplServerStartMsg");
-      int pos = 1;
+      /* first bytes are the header */
+      int pos = headerLength;
 
       /* read the dn
        * first calculate the length then construct the string
@@ -193,15 +195,13 @@ public class ReplServerStartMessage extends ReplicationMessage implements
       byte[] byteServerState = serverState.getBytes();
       byte[] byteWindowSize = String.valueOf(windowSize).getBytes("UTF-8");
 
-      int length = 1 + byteDn.length + 1 + byteServerId.length + 1 +
-          byteServerUrl.length + 1 + byteWindowSize.length + 1 +
-          byteServerState.length + 1;
+      int length = byteDn.length + 1 + byteServerId.length + 1 +
+                   byteServerUrl.length + 1 + byteWindowSize.length + 1 +
+                   byteServerState.length + 1;
 
-      byte[] resultByteArray = new byte[length];
-
-      /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_REPL_SERVER_START;
-      int pos = 1;
+      /* encode the header in a byte[] large enough to also contain the mods */
+      byte resultByteArray[] = encodeHeader(MSG_TYPE_REPL_SERVER_START, length);
+      int pos = headerLength;
 
       /* put the baseDN and a terminating 0 */
       pos = addByteArray(byteDn, resultByteArray, pos);

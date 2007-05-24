@@ -340,18 +340,23 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       DN.decode(synchroPluginStringDN)),
       "Unable to add the Multimaster replication plugin");
 
-
-    // Add the replication server
-    DirectoryServer.getConfigHandler().addEntry(replServerEntry, null);
-    assertNotNull(DirectoryServer.getConfigEntry(replServerEntry.getDN()),
+    if (replServerEntry != null)
+    {
+      // Add the replication server
+      DirectoryServer.getConfigHandler().addEntry(replServerEntry, null);
+      assertNotNull(DirectoryServer.getConfigEntry(replServerEntry.getDN()),
        "Unable to add the replication server");
-    configEntryList.add(replServerEntry.getDN());
+      configEntryList.add(replServerEntry.getDN());
+    }
 
-    // We also have a replicated suffix (replication domain)
-    DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
-    assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
-        "Unable to add the synchronized server");
-    configEntryList.add(synchroServerEntry.getDN());
+    if (synchroServerEntry != null)
+    {
+      // We also have a replicated suffix (replication domain)
+      DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
+      assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
+          "Unable to add the synchronized server");
+      configEntryList.add(synchroServerEntry.getDN());
+    }
   }
 
   /**
