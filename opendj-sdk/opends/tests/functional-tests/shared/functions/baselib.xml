@@ -55,7 +55,7 @@
         DSInfo=directory_server_information()
       </script>
 
-      <message>'Get Information about server %s' % dsPath</message>
+      <message>'Get Information about server %s %s' % (mylocation,dsPath)</message>
 
       <!-- Obtain the variables for the system from start-ds -->          
       <call function="'StartDsWithScript'">

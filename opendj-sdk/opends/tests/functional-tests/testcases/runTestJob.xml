@@ -91,8 +91,8 @@
         ServerSystemName='unknown'
         ServerSvnRevision='unknown'
                   
-        if ServersInfoDict.has_key('%s/%s' % (TMPDIR,OPENDSNAME)):       
-          ServerInfoDict=ServersInfoDict['%s/%s' % (TMPDIR,OPENDSNAME)]
+        if ServersInfoDict.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):       
+          ServerInfoDict=ServersInfoDict['%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)]
           
           ServerInfoKey='server version'
           if ServerInfoDict.has_key(ServerInfoKey):
@@ -131,7 +131,7 @@
             ServerSvnRevision=ServerInfoDict[ServerInfoKey]  
                                                                                                 
         else:
-          ServerInfoDict='No key found (%s/%s)' % (TMPDIR,OPENDSNAME)
+          ServerInfoDict='No key found (%s/%s)' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
                     
       </script>
       
