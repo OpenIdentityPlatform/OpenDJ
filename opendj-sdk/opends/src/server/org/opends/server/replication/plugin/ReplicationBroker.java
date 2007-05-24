@@ -33,10 +33,6 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.TreeSet;
-import java.util.concurrent.Semaphore;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -44,6 +40,10 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -52,11 +52,12 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.protocol.ReplServerStartMessage;
 import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.ReplServerStartMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.ServerStartMessage;
 import org.opends.server.replication.protocol.SocketSession;
-import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.types.DN;
@@ -99,6 +100,7 @@ public class ReplicationBroker implements InternalSearchListener
   private int halfRcvWindow;
   private int maxRcvWindow;
   private int timeout = 0;
+  private short protocolVersion;
 
   /**
    * The time in milliseconds between heartbeats from the replication
@@ -155,6 +157,7 @@ public class ReplicationBroker implements InternalSearchListener
     this.maxRcvWindow = window;
     this.halfRcvWindow = window/2;
     this.heartbeatInterval = heartbeatInterval;
+    this.protocolVersion = ProtocolVersion.currentVersion();
   }
 
   /**
@@ -230,7 +233,8 @@ public class ReplicationBroker implements InternalSearchListener
            */
           ServerStartMessage msg = new ServerStartMessage(serverID, baseDn,
               maxReceiveDelay, maxReceiveQueue, maxSendDelay, maxSendQueue,
-              halfRcvWindow*2, heartbeatInterval, state);
+              halfRcvWindow*2, heartbeatInterval, state,
+              protocolVersion);
           session.publish(msg);
 
 
@@ -239,6 +243,14 @@ public class ReplicationBroker implements InternalSearchListener
            */
           session.setSoTimeout(1000);
           startMsg = (ReplServerStartMessage) session.receive();
+
+          /*
+           * We have sent our own protocol version to the replication server.
+           * The replication server will use the same one (or an older one
+           * if it is an old replication server).
+           */
+          protocolVersion = ProtocolVersion.minWithCurrent(
+              startMsg.getVersion());
           session.setSoTimeout(timeout);
 
           /*
@@ -727,4 +739,14 @@ public class ReplicationBroker implements InternalSearchListener
     // session with the replicationServer or renegociate the parameters that
     // were sent in the ServerStart message
   }
+
+  /**
+   * Get the version of the replication protocol.
+   * @return The version of the replication protocol.
+   */
+  public short getProtocolVersion()
+  {
+    return protocolVersion;
+  }
+
 }

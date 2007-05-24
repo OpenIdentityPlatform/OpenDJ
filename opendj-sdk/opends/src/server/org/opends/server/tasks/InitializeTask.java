@@ -87,6 +87,10 @@ public class InitializeTask extends Task
    */
   @Override public void initializeTask() throws DirectoryException
   {
+    if (TaskState.isDone(getTaskState()))
+    {
+      return;
+    }
 
     // FIXME -- Do we need any special authorization here?
     Entry taskEntry = getTaskEntry();
@@ -116,7 +120,6 @@ public class InitializeTask extends Task
     }
 
     domain=ReplicationDomain.retrievesReplicationDomain(domainDN);
-
 
     attrList = taskEntry.getAttribute(typeSourceScope);
     String sourceString = TaskUtils.getSingleValueString(attrList);

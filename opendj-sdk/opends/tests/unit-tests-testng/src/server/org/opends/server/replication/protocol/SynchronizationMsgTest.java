@@ -486,7 +486,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
     ServerStartMessage msg = new ServerStartMessage(serverId, baseDN,
-        window, window, window, window, window, window, state);
+        window, window, window, window, window, window, state, (short)1);
     ServerStartMessage newMsg = new ServerStartMessage(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
@@ -498,6 +498,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getHeartbeatInterval(), newMsg.getHeartbeatInterval());
     assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
         newMsg.getServerState().getMaxChangeNumber((short)1));
+    assertEquals(msg.getVersion(), newMsg.getVersion());
   }
 
   @DataProvider(name="changelogStart")
@@ -518,7 +519,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
     ReplServerStartMessage msg = new ReplServerStartMessage(serverId,
-        url, baseDN, window, state);
+        url, baseDN, window, state, (short)1);
     ReplServerStartMessage newMsg = new ReplServerStartMessage(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
@@ -526,6 +527,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getServerState().getMaxChangeNumber((short)1),
         newMsg.getServerState().getMaxChangeNumber((short)1));
+    assertEquals(msg.getVersion(), newMsg.getVersion());
   }
 
   /**
