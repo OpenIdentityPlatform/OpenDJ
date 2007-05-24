@@ -123,6 +123,11 @@ public class Aci  {
                                                  "(ldap:///[^\\|]+)";
 
     /**
+     *  String used to check for NULL ldap URL.
+     */
+     public static final String NULL_LDAP_URL = "ldap:///";
+
+    /**
      * Regular expression used to match token that joins expressions (||).
      */
     public static final String LOGICAL_OR = "\\|\\|";
