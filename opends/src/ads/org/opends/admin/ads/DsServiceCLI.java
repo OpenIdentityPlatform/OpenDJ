@@ -312,7 +312,7 @@ public class DsServiceCLI
     }
 
     // If we should just display usage information, then print it and exit.
-    if (argParser.usageDisplayed())
+    if (argParser.usageOrVersionDisplayed())
     {
       return 0;
     }

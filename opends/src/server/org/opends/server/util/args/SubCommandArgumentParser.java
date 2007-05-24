@@ -41,6 +41,7 @@ import java.util.TreeMap;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -72,7 +73,7 @@ public class SubCommandArgumentParser
   private boolean longArgumentsCaseSensitive;
 
   // Indicates whether the usage information has been displayed.
-  private boolean usageDisplayed;
+  private boolean usageOrVersionDisplayed;
 
   // The set of global arguments defined for this parser, referenced by short
   // ID.
@@ -140,7 +141,7 @@ public class SubCommandArgumentParser
     globalShortIDMap   = new HashMap<Character,Argument>();
     globalLongIDMap    = new HashMap<String,Argument>();
     subCommands        = new TreeMap<String,SubCommand>();
-    usageDisplayed     = false;
+    usageOrVersionDisplayed     = false;
     rawArguments       = null;
     subCommand         = null;
     usageArgument      = null;
@@ -658,7 +659,7 @@ public class SubCommandArgumentParser
     this.rawArguments = rawArguments;
     this.subCommand = null;
     this.trailingArguments = new ArrayList<String>();
-    this.usageDisplayed = false;
+    this.usageOrVersionDisplayed = false;
 
     boolean inTrailingArgs = false;
 
@@ -747,6 +748,7 @@ public class SubCommandArgumentParser
               try
               {
                 DirectoryServer.printVersion(usageOutputStream);
+                usageOrVersionDisplayed = true ;
               } catch (Exception e) {}
 
               return;
@@ -783,6 +785,7 @@ public class SubCommandArgumentParser
                 try
                 {
                   DirectoryServer.printVersion(usageOutputStream);
+                  usageOrVersionDisplayed = true ;
                 } catch (Exception e) {}
 
                 return;
@@ -905,13 +908,45 @@ public class SubCommandArgumentParser
             else
             if (argCharacter == OPTION_SHORT_PRODUCT_VERSION)
             {
-              // "-V" will always be interpreted as requesting
-              // version information.
-              try
+              //  "-V" will always be interpreted as requesting
+              // version information except if it's already defined.
+              boolean dashVAccepted = true;
+              if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
+              {
+                dashVAccepted = false;
+              }
+              else
+              {
+                for (SubCommand subCmd : subCommands.values())
                 {
-                getUsage(usageOutputStream);
-              } catch (Exception e) {}
-              return;
+                  if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION) != null)
+                  {
+                    dashVAccepted = false;
+                    break;
+                  }
+                }
+              }
+              if (dashVAccepted)
+              {
+                usageOrVersionDisplayed = true;
+                try
+                {
+                  DirectoryServer.printVersion(usageOutputStream);
+                }
+                catch (Exception e)
+                {
+                }
+                return;
+              }
+              else
+              {
+                // -V is defined in another suncommand, so we can
+                // accepted it as the version information argument
+                int msgID = MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID;
+                String message = getMessage(msgID,
+                    String.valueOf(argCharacter));
+                throw new ArgumentException(msgID, message);
+              }
             }
             else
             {
@@ -939,13 +974,36 @@ public class SubCommandArgumentParser
               else
               if (argCharacter == OPTION_SHORT_PRODUCT_VERSION)
               {
-                // "-V" will always be interpreted as requesting
-                // version information.
-                try
+                  // "-V" will always be interpreted as requesting
+                  // version information except if it's alreadydefined.
+                boolean dashVAccepted = true;
+                if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
                 {
-                  getUsage(usageOutputStream);
-                } catch (Exception e) {}
-                return;
+                  dashVAccepted = false;
+                }
+                else
+                {
+                  for (SubCommand subCmd : subCommands.values())
+                  {
+                    if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION)!=null)
+                    {
+                      dashVAccepted = false;
+                      break;
+                    }
+                  }
+                }
+                if (dashVAccepted)
+                {
+                  usageOrVersionDisplayed = true;
+                  try
+                  {
+                    DirectoryServer.printVersion(usageOutputStream);
+                  }
+                  catch (Exception e)
+                  {
+                  }
+                  return;
+                }
               }
               else
               {
@@ -1228,7 +1286,7 @@ public class SubCommandArgumentParser
    */
   public void getFullUsage(StringBuilder buffer)
   {
-    usageDisplayed = true;
+    usageOrVersionDisplayed = true;
     if ((toolDescription != null) && (toolDescription.length() > 0))
     {
       buffer.append(wrapText(toolDescription, 79));
@@ -1277,6 +1335,33 @@ public class SubCommandArgumentParser
     buffer.append("The accepted value for global options are:");
     buffer.append(EOL);
 
+    // --version is a builtin option
+    boolean dashVAccepted = true;
+    if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
+    {
+      dashVAccepted = false;
+    }
+    else
+    {
+      for (SubCommand subCmd : subCommands.values())
+      {
+        if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION) != null)
+        {
+          dashVAccepted = false;
+          break;
+        }
+      }
+    }
+    if (dashVAccepted)
+    {
+      buffer.append("-" + OPTION_SHORT_PRODUCT_VERSION + ", ");
+    }
+    buffer.append("--" + OPTION_LONG_PRODUCT_VERSION);
+    buffer.append(EOL);
+    buffer.append("    ");
+    buffer.append( getMessage(MSGID_DESCRIPTION_PRODUCT_VERSION));
+    buffer.append(EOL);
+    Argument helpArgument = null ;
     for (Argument a : globalArgumentList)
     {
       if (a.isHidden())
@@ -1284,65 +1369,93 @@ public class SubCommandArgumentParser
         continue;
       }
 
-      String value;
-      if (a.needsValue())
+      // Help argument should be printed at the end
+      if ((usageArgument != null) ? usageArgument.getName().equals(a.getName())
+          : false)
       {
-        String valuePlaceholder = a.getValuePlaceholder();
-        if (valuePlaceholder == null)
-        {
-          value = " {value}";
-        }
-        else
-        {
-          value = " " + valuePlaceholder;
-        }
+        helpArgument = a ;
+        continue ;
+      }
+
+      printArgumentUsage(a, buffer);
+    }
+    if (helpArgument != null)
+    {
+      printArgumentUsage(helpArgument, buffer);
+    }
+    else
+    {
+      buffer.append("-?");
+    }
+    buffer.append(EOL);
+  }
+
+
+/**
+ * Appends argument usage information to the provided buffer.
+ *
+ * @param a The argument to handle.
+ * @param buffer
+ *          The buffer to which the usage information should be
+ *          appended.
+ */
+  private void printArgumentUsage(Argument a, StringBuilder buffer)
+  {
+    String value;
+    if (a.needsValue())
+    {
+      String valuePlaceholder = a.getValuePlaceholder();
+      if (valuePlaceholder == null)
+      {
+        value = " {value}";
       }
       else
       {
-        value = "";
+        value = " " + valuePlaceholder;
       }
+    }
+    else
+    {
+      value = "";
+    }
 
-      Character shortIDChar = a.getShortIdentifier();
-      boolean isHelpArg = usageArgument.getName().equals(a.getName());
-      if (shortIDChar != null)
+    Character shortIDChar = a.getShortIdentifier();
+    boolean isHelpArg = (usageArgument != null) ? usageArgument.getName()
+        .equals(a.getName()) : false;
+    if (shortIDChar != null)
+    {
+      if (isHelpArg)
+      {
+        buffer.append("-?, ");
+      }
+      buffer.append("-");
+      buffer.append(shortIDChar);
+
+      String longIDString = a.getLongIdentifier();
+      if (longIDString != null)
+      {
+        buffer.append(", --");
+        buffer.append(longIDString);
+      }
+      buffer.append(value);
+    }
+    else
+    {
+      String longIDString = a.getLongIdentifier();
+      if (longIDString != null)
       {
         if (isHelpArg)
         {
           buffer.append("-?, ");
         }
-        buffer.append("-");
-        buffer.append(shortIDChar);
-
-        String longIDString = a.getLongIdentifier();
-        if (longIDString != null)
-        {
-          buffer.append(", --");
-          buffer.append(longIDString);
-        }
+        buffer.append("--");
+        buffer.append(longIDString);
         buffer.append(value);
       }
-      else
-      {
-        String longIDString = a.getLongIdentifier();
-        if (longIDString != null)
-        {
-          if (isHelpArg)
-          {
-            buffer.append("-?, ");
-          }
-          buffer.append("--");
-          buffer.append(longIDString);
-          buffer.append(value);
-        }
-      }
-
-      buffer.append(EOL);
-      indentAndWrap("    ", a.getDescription(), buffer);
     }
 
     buffer.append(EOL);
-
-
+    indentAndWrap("    ", a.getDescription(), buffer);
   }
 
 
@@ -1358,7 +1471,7 @@ public class SubCommandArgumentParser
    */
   public void getSubCommandUsage(StringBuilder buffer, SubCommand subCommand)
   {
-    usageDisplayed = true;
+    usageOrVersionDisplayed = true;
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
     String printName;
     if ((scriptName == null) || (scriptName.length() == 0))
@@ -1615,9 +1728,9 @@ public class SubCommandArgumentParser
    * @return  {@code true} if the usage information has been displayed, or
    *          {@code false} if not.
    */
-  public boolean usageDisplayed()
+  public boolean usageOrVersionDisplayed()
   {
-    return usageDisplayed;
+    return usageOrVersionDisplayed;
   }
 
 
