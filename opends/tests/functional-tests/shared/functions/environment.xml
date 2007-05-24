@@ -229,7 +229,7 @@
         
         <call function="'deleteFile'">
           { 'location'   : STAF_REMOTE_HOSTNAME ,
-            'foldername' : '%s.zip' % InstanceInstallDir }
+            'filename'   : '%s.zip' % InstanceInstallDir }
         </call>
                   
       </sequence>
