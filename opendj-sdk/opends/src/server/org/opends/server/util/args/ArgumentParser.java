@@ -1050,6 +1050,7 @@ public class ArgumentParser
     buffer.append( getMessage(MSGID_DESCRIPTION_PRODUCT_VERSION));
     buffer.append(EOL);
 
+    Argument helpArgument = null ;
     for (Argument a : argumentList)
     {
       // If this argument is hidden, then skip it.
@@ -1058,133 +1059,20 @@ public class ArgumentParser
         continue;
       }
 
-
-      // Write a line with the short and/or long identifiers that may be used
-      // for the argument.
-      Character shortID = a.getShortIdentifier();
-      String longID = a.getLongIdentifier();
-      if (shortID != null)
+      // Help argument should be printed at the end
+      if ((usageArgument != null) ? usageArgument.getName().equals(a.getName())
+          : false)
       {
-        int currentLength = buffer.length();
-
-        if (usageArgument.getName().equals(a.getName()))
-        {
-          buffer.append("-?, ");
-        }
-
-        buffer.append("-");
-        buffer.append(shortID.charValue());
-
-        if (a.needsValue() && longID == null)
-        {
-          buffer.append(" ");
-          buffer.append(a.getValuePlaceholder());
-        }
-
-        if (longID != null)
-        {
-          StringBuilder newBuffer = new StringBuilder();
-          newBuffer.append(", --");
-          newBuffer.append(longID);
-
-          if (a.needsValue())
-          {
-            newBuffer.append(" ");
-            newBuffer.append(a.getValuePlaceholder());
-          }
-
-          int lineLength = (buffer.length() - currentLength) +
-                           newBuffer.length();
-          if (lineLength > 80)
-          {
-            buffer.append(EOL);
-            buffer.append(newBuffer.toString());
-          }
-          else
-          {
-            buffer.append(newBuffer.toString());
-          }
-        }
-
-        buffer.append(EOL);
+        helpArgument = a ;
+        continue ;
       }
-      else
-      {
-        if (longID != null)
-        {
-          if (usageArgument.getName().equals(a.getName()))
-          {
-            buffer.append("-?, ");
-          }
-          buffer.append("--");
-          buffer.append(longID);
-
-          if (a.needsValue())
-          {
-            buffer.append(" ");
-            buffer.append(a.getValuePlaceholder());
-          }
-
-          buffer.append(EOL);
-        }
-      }
-
-
-      // Write one or more lines with the description of the argument.  We will
-      // indent the description five characters and try our best to wrap at or
-      // before column 79 so it will be friendly to 80-column displays.
-      String description = a.getDescription();
-      if (description.length() <= 75)
-      {
-        buffer.append("    ");
-        buffer.append(description);
-        buffer.append(EOL);
-      }
-      else
-      {
-        String s = description;
-        while (s.length() > 75)
-        {
-          int spacePos = s.lastIndexOf(' ', 75);
-          if (spacePos > 0)
-          {
-            buffer.append("    ");
-            buffer.append(s.substring(0, spacePos).trim());
-            s = s.substring(spacePos+1).trim();
-            buffer.append(EOL);
-          }
-          else
-          {
-            // There are no spaces in the first 74 columns.  See if there is one
-            // after that point.  If so, then break there.  If not, then don't
-            // break at all.
-            spacePos = s.indexOf(' ');
-            if (spacePos > 0)
-            {
-              buffer.append("    ");
-              buffer.append(s.substring(0, spacePos).trim());
-              s = s.substring(spacePos+1).trim();
-              buffer.append(EOL);
-            }
-            else
-            {
-              buffer.append("    ");
-              buffer.append(s);
-              s = "";
-              buffer.append(EOL);
-            }
-          }
-        }
-
-        if (s.length() > 0)
-        {
-          buffer.append("    ");
-          buffer.append(s);
-          buffer.append(EOL);
-        }
-      }
+      printArgumentUsage(a, buffer);
     }
-    if (usageArgument == null)
+    if (helpArgument != null)
+    {
+      printArgumentUsage(helpArgument, buffer);
+    }
+    else
     {
       buffer.append(EOL);
       buffer.append("-?");
@@ -1245,5 +1133,145 @@ public class ArgumentParser
     return usageOrVersionDisplayed;
   }
 
+  /**
+  * Appends argument usage information to the provided buffer.
+  *
+  * @param a The argument to handle.
+  * @param buffer
+  *          The buffer to which the usage information should be
+  *          appended.
+  */
+   private void printArgumentUsage(Argument a, StringBuilder buffer)
+  {
+    // Write a line with the short and/or long identifiers that may be
+    // used
+    // for the argument.
+    Character shortID = a.getShortIdentifier();
+    String longID = a.getLongIdentifier();
+    if (shortID != null)
+    {
+      int currentLength = buffer.length();
+
+      if (usageArgument.getName().equals(a.getName()))
+      {
+        buffer.append("-?, ");
+      }
+
+      buffer.append("-");
+      buffer.append(shortID.charValue());
+
+      if (a.needsValue() && longID == null)
+      {
+        buffer.append(" ");
+        buffer.append(a.getValuePlaceholder());
+      }
+
+      if (longID != null)
+      {
+        StringBuilder newBuffer = new StringBuilder();
+        newBuffer.append(", --");
+        newBuffer.append(longID);
+
+        if (a.needsValue())
+        {
+          newBuffer.append(" ");
+          newBuffer.append(a.getValuePlaceholder());
+        }
+
+        int lineLength = (buffer.length() - currentLength) +
+                         newBuffer.length();
+        if (lineLength > 80)
+        {
+          buffer.append(EOL);
+          buffer.append(newBuffer.toString());
+        }
+        else
+        {
+          buffer.append(newBuffer.toString());
+        }
+      }
+
+      buffer.append(EOL);
+    }
+    else
+    {
+      if (longID != null)
+      {
+        if (usageArgument.getName().equals(a.getName()))
+        {
+          buffer.append("-?, ");
+        }
+        buffer.append("--");
+        buffer.append(longID);
+
+        if (a.needsValue())
+        {
+          buffer.append(" ");
+          buffer.append(a.getValuePlaceholder());
+        }
+
+        buffer.append(EOL);
+      }
+    }
+
+
+    // Write one or more lines with the description of the argument.
+    // We will
+    // indent the description five characters and try our best to wrap
+    // at or
+    // before column 79 so it will be friendly to 80-column displays.
+    String description = a.getDescription();
+    if (description.length() <= 75)
+    {
+      buffer.append("    ");
+      buffer.append(description);
+      buffer.append(EOL);
+    }
+    else
+    {
+      String s = description;
+      while (s.length() > 75)
+      {
+        int spacePos = s.lastIndexOf(' ', 75);
+        if (spacePos > 0)
+        {
+          buffer.append("    ");
+          buffer.append(s.substring(0, spacePos).trim());
+          s = s.substring(spacePos+1).trim();
+          buffer.append(EOL);
+        }
+        else
+        {
+          // There are no spaces in the first 74 columns. See if there
+          // is one
+          // after that point. If so, then break there. If not, then
+          // don't
+          // break at all.
+          spacePos = s.indexOf(' ');
+          if (spacePos > 0)
+          {
+            buffer.append("    ");
+            buffer.append(s.substring(0, spacePos).trim());
+            s = s.substring(spacePos+1).trim();
+            buffer.append(EOL);
+          }
+          else
+          {
+            buffer.append("    ");
+            buffer.append(s);
+            s = "";
+            buffer.append(EOL);
+          }
+        }
+      }
+
+      if (s.length() > 0)
+      {
+        buffer.append("    ");
+        buffer.append(s);
+        buffer.append(EOL);
+      }
+    }
+  }
 }
 
