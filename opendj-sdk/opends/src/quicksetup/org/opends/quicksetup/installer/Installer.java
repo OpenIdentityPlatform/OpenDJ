@@ -44,8 +44,6 @@ import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
-import org.opends.admin.ads.ReplicaDescriptor;
-import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
@@ -1327,6 +1325,7 @@ public abstract class Installer extends GuiApplication {
       notifyListeners(getFormattedWithPoints(getMsg("creating-ads")));
       Map<ADSContext.ServerProperty, Object> serverProperties =
         getNewServerProperties();
+      /*
       try
       {
         ADSContext.createOfflineAdminData(serverProperties,
@@ -1338,6 +1337,7 @@ public abstract class Installer extends GuiApplication {
             ApplicationException.Type.CONFIGURATION_ERROR,
             getMsg("local-ads-exception"), ace);
       }
+      */
       notifyListeners(getFormattedDone());
     }
   }
@@ -1382,6 +1382,7 @@ public abstract class Installer extends GuiApplication {
     Map<ADSContext.ServerProperty, Object> serverProperties =
       new HashMap<ADSContext.ServerProperty, Object>();
     // TODO: this might not work
+    /*
     try
     {
       serverProperties.put(ADSContext.ServerProperty.HOSTNAME,
@@ -1409,8 +1410,9 @@ public abstract class Installer extends GuiApplication {
 
     String serverID = serverProperties.get(ADSContext.ServerProperty.HOSTNAME)+
     ":"+getUserData().getServerPort();
+    */
     /* TODO: do we want to ask this specifically to the user? */
-    serverProperties.put(ADSContext.ServerProperty.ID, serverID);
+    //serverProperties.put(ADSContext.ServerProperty.ID, serverID);
 
     serverProperties.put(ADSContext.ServerProperty.HOST_OS,
         Utils.getOSString());
@@ -2269,6 +2271,7 @@ public abstract class Installer extends GuiApplication {
 
   private Set<SuffixDescriptor> staticSuffixes()
   {
+    /*
     ServerDescriptor server1 = new ServerDescriptor();
     Map<ADSContext.ServerProperty, Object> serverProp1 =
       new HashMap<ADSContext.ServerProperty, Object>();
@@ -2356,13 +2359,14 @@ public abstract class Installer extends GuiApplication {
     replicas4.add(replica8);
 
     suffix4.setReplicas(replicas4);
-
+     */
     Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
+    /*
     suffixes.add(suffix1);
     suffixes.add(suffix2);
     suffixes.add(suffix3);
     suffixes.add(suffix4);
-
+*/
     //suffixes.clear();
 
     return suffixes;

@@ -32,7 +32,8 @@ import java.util.Set;
 
 /**
  * The object of this class represent a topology of replicas across servers
- * that have the same suffix DN.  They may or might not be replicated.
+ * that have the same suffix DN.  If there is more than one replica on the
+ * suffix, the contents of the replicas are replicated.
  */
 public class SuffixDescriptor
 {
@@ -64,7 +65,9 @@ public class SuffixDescriptor
    */
   public Set<ReplicaDescriptor> getReplicas()
   {
-    return replicas;
+    Set<ReplicaDescriptor> copy = new HashSet<ReplicaDescriptor>();
+    copy.addAll(replicas);
+    return copy;
   }
 
   /**
@@ -74,78 +77,46 @@ public class SuffixDescriptor
    */
   public void setReplicas(Set<ReplicaDescriptor> replicas)
   {
-    this.replicas = replicas;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean equals(Object v)
-  {
-    // TODO: this is buggy code
-    boolean equals = false;
-    if (this != v)
-    {
-      if (v instanceof SuffixDescriptor)
-      {
-        SuffixDescriptor desc = (SuffixDescriptor)v;
-        equals = getDN().equals(desc.getDN());
-
-        if (equals)
-        {
-          equals = getReplicas().size() == desc.getReplicas().size();
-        }
-
-        if (equals)
-        {
-          for (ReplicaDescriptor repl : getReplicas())
-          {
-            boolean serverFound = false;
-            ServerDescriptor server = repl.getServer();
-            for (ReplicaDescriptor repl1 : desc.getReplicas())
-            {
-              serverFound = serversEqual(server, repl1.getServer());
-              if (serverFound)
-              {
-                break;
-              }
-            }
-            if (!serverFound)
-            {
-              equals = false;
-              break;
-            }
-          }
-        }
-
-      }
-    }
-    else
-    {
-      equals = true;
-    }
-    return equals;
+    this.replicas.clear();
+    this.replicas.addAll(replicas);
   }
 
   /**
-   * Tells whether the two provided objects represent the same server or not.
-   * @param serv1 the first ServerDescriptor to compare.
-   * @param serv2 the second ServerDescriptor to compare.
-   * @return <CODE>true</CODE> if the two objects represent the same server
-   * and <CODE>false</CODE> otherwise.
+   * Returns the Set of Replication servers for the whole suffix topology.  The
+   * servers are provided in their String representation.
+   * @return the Set of Replication servers for the whole suffix topology.
    */
-  private boolean serversEqual(ServerDescriptor serv1, ServerDescriptor serv2)
+  public Set<String> getReplicationServers()
   {
-    return serv1.getAdsProperties().equals(serv2.getAdsProperties());
+    Set<String> replicationServers = new HashSet<String>();
+    for (ReplicaDescriptor replica : getReplicas())
+    {
+      replicationServers.addAll(replica.getReplicationServers());
+    }
+    return replicationServers;
   }
+
   /**
    * {@inheritDoc}
    */
   public int hashCode()
   {
-//  FIXME: this is buggy code
-    return getDN().hashCode();
+    return getId().hashCode();
+  }
+
+  /**
+   * Returns an Id that is unique for this suffix.
+   * @return an Id that is unique for this suffix.
+   */
+  public String getId()
+  {
+    StringBuilder buf = new StringBuilder();
+    buf.append(getDN());
+    for (ReplicaDescriptor replica : getReplicas())
+    {
+      buf.append("-"+replica.getServer().getId());
+    }
+
+    return buf.toString();
   }
 }

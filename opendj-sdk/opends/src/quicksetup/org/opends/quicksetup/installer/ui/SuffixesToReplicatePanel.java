@@ -51,7 +51,6 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
@@ -442,53 +441,7 @@ implements Comparator<SuffixDescriptor>
   //TODO: only handles server that have ADSProperties.
   private String getServerDisplay(ServerDescriptor server)
   {
-    String display;
-    String hostName = (String)server.getAdsProperties().get(
-        ADSContext.ServerProperty.HOSTNAME);
-    boolean secure = false;
-    int port = -1;
-
-    if (hostName == null)
-    {
-      hostName = getMsg("suffix-list-unknown-label");
-    }
-
-    if (!"true".equalsIgnoreCase((String)server.getAdsProperties().get(
-        ADSContext.ServerProperty.LDAP_ENABLED)))
-    {
-      if ("true".equalsIgnoreCase((String)server.getAdsProperties().get(
-          ADSContext.ServerProperty.LDAPS_ENABLED)))
-      {
-        secure = true;
-      }
-    }
-
-    try
-    {
-      if (secure)
-      {
-        port = Integer.parseInt((String)server.getAdsProperties().get(
-            ADSContext.ServerProperty.SECURE_PORT));
-      }
-      else
-      {
-        port = Integer.parseInt((String)server.getAdsProperties().get(
-            ADSContext.ServerProperty.PORT));
-      }
-    }
-    catch (Throwable t)
-    {
-    }
-
-    if (port == -1)
-    {
-      display = hostName+":"+getMsg("suffix-list-unknown-label");
-    }
-    else
-    {
-      display = hostName+":"+port;
-    }
-    return display;
+    return server.getHostPort(true);
   }
 
   private TreeSet<SuffixDescriptor> orderSuffixes(

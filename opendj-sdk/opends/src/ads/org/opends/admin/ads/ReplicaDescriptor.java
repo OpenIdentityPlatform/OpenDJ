@@ -27,6 +27,9 @@
 
 package org.opends.admin.ads;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * The object of this class represent a Replica (i.e. a suffix in a given
  * server).
@@ -36,6 +39,8 @@ public class ReplicaDescriptor
   private SuffixDescriptor suffix;
   private int entries = -1;
   private ServerDescriptor server;
+  private Set<String> replicationServers = new HashSet<String>();
+  private int replicationId = -1;
 
   /**
    * Returns the number of entries contained in the replica.
@@ -44,6 +49,16 @@ public class ReplicaDescriptor
   public int getEntries()
   {
     return entries;
+  }
+
+  /**
+   * Returns whether this replica is replicated or not.
+   * @return <CODE>true</CODE> if the replica is replicated and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isReplicated()
+  {
+    return replicationId != -1;
   }
 
   /**
@@ -96,5 +111,53 @@ public class ReplicaDescriptor
   public void setSuffix(SuffixDescriptor suffix)
   {
     this.suffix = suffix;
+  }
+
+  /**
+   * Returns a set containing the String representation of the replication
+   * servers that are defined in the replication domain for this replica.
+   * @return a set containing the String representation of the replication
+   * servers that are defined in the replication domain for this replica.
+   */
+  public Set<String> getReplicationServers()
+  {
+    HashSet<String> copy = new HashSet<String>();
+    copy.addAll(replicationServers);
+    return copy;
+  }
+
+  /**
+   * Sets the list of replication servers (in their String representation) that
+   * are defined in the replication domain for this replica.
+   * @param replicationServers the list of replication servers (in their String
+   * representation) that are defined in the replication domain for this
+   * replica.
+   */
+  public void setReplicationServers(Set<String> replicationServers)
+  {
+    this.replicationServers.clear();
+    this.replicationServers.addAll(replicationServers);
+  }
+
+  /**
+   * Returns the replication server id for the replication domain associated
+   * with this replica.
+   * @return the replication server id for the replication domain associated
+   * with this replica.
+   */
+  public int getReplicationId()
+  {
+    return replicationId;
+  }
+
+  /**
+   * Sets the replication server id for the replication domain associated
+   * with this replica.
+   * @param replicationId the replication server id for the replication domain
+   * associated with this replica.
+   */
+  public void setReplicationId(int replicationId)
+  {
+    this.replicationId = replicationId;
   }
 }
