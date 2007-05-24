@@ -64,7 +64,6 @@ import javax.naming.ldap.Rdn;
  */
 public class ADSContext
 {
-
   /**
    * Enumeration containing the different server properties that are stored in
    * the ADS.
@@ -78,19 +77,23 @@ public class ADSContext
     /**
      * The host name of the server.
      */
-    HOSTNAME("hostname"),
+    HOST_NAME("hostname"),
     /**
      * The LDAP port of the server.
      */
-    PORT("ldapport"),
+    LDAP_PORT("ldapport"),
     /**
      * The JMX port of the server.
      */
     JMX_PORT("jmxport"),
     /**
+     * The JMX secure port of the server.
+     */
+    JMXS_PORT("jmxsport"),
+    /**
      * The LDAPS port of the server.
      */
-    SECURE_PORT("ldapsport"),
+    LDAPS_PORT("ldapsport"),
     /**
      * The certificate used by the server.
      */
@@ -123,6 +126,10 @@ public class ADSContext
      * Whether JMX is enabled or not.
      */
     JMX_ENABLED("jmxEnabled"),
+    /**
+     * Whether JMX is enabled or not.
+     */
+    JMXS_ENABLED("jmxsEnabled"),
     /**
      * The location of the server.
      */
@@ -500,10 +507,10 @@ public class ADSContext
 
     // Build the filter according the properties passed in serverProperties
     int operandCount = 0;
-    if (serverProperties.containsKey(ServerProperty.HOSTNAME))
+    if (serverProperties.containsKey(ServerProperty.HOST_NAME))
     {
       filter.append("(cn=");
-      filter.append(serverProperties.get(ServerProperty.HOSTNAME));
+      filter.append(serverProperties.get(ServerProperty.HOST_NAME));
       filter.append("*");
       if (serverProperties.containsKey(ServerProperty.INSTANCE_PATH))
       {
@@ -513,12 +520,12 @@ public class ADSContext
       filter.append(")");
       operandCount++;
     }
-    if (serverProperties.containsKey(ServerProperty.PORT))
+    if (serverProperties.containsKey(ServerProperty.LDAP_PORT))
     {
       filter.append("(");
-      filter.append(ServerProperty.PORT);
+      filter.append(ServerProperty.LDAP_PORT);
       filter.append("=");
-      filter.append(serverProperties.get(ServerProperty.PORT));
+      filter.append(serverProperties.get(ServerProperty.LDAP_PORT));
       filter.append(")");
       operandCount++;
     }
@@ -738,9 +745,6 @@ public class ADSContext
 
   /**
    * Creates the Administration Data in the server.
-   * NOTE: until we use the Administration Framework this does not work.
-   * TODO: remove the installPath parameter once we are integrated in the
-   * Administration Framework.
    * The call to this method assumes that OpenDS.jar has already been loaded.
    * So this should not be called by the Java Web Start before being sure that
    * this jar is loaded.
@@ -759,18 +763,25 @@ public class ADSContext
   }
 
   /**
+   * TODO: remove this method if we can assume that the server during setup
+   * can be started to do a number of things.
    * NOTE: this can only be called locally.
    * The call to this method assumes that OpenDS.jar has already been loaded.
    * So this should not be called by the Java Web Start before being sure that
    * this jar is loaded.
-   * @param serverProperties the properties of the server to register.
+   * @param serverProperties the properties of the servers to register.
+   * @param serverGroupProperties the properties of the server groups to
+   * register.
+   * @param administratorProperties the properties of the administrators to
+   * register.
    * @param installPath the installation path of the server.
-   * @param backendName the backend where we create the administration data.
    * @throws ADSContextException if something goes wrong.
    */
   public static void createOfflineAdminData(
-      Map<ServerProperty, Object> serverProperties, String installPath,
-      String backendName)
+      Set<Map<ServerProperty, Object>> serverProperties,
+      Set<Map<ServerGroupProperty, Object>> serverGroupProperties,
+      Set<Map<AdministratorProperty, Object>> administratorProperties,
+      String installPath)
   throws ADSContextException
   {
     // Add the administration suffix
@@ -802,31 +813,29 @@ public class ADSContext
 
       lines.add("dn: "+getServerGroupContainerDN());
       lines.add("objectclass: extensibleobject");
-      lines.add("");
 
-      LdapName dn = makeDNFromServerProperties(serverProperties);
-      BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
-      lines.add("dn: "+dn.toString());
-      NamingEnumeration<String> ids = attrs.getIDs();
-      while (ids.hasMoreElements())
+      for (Map<ServerProperty, Object> props : serverProperties)
       {
-        String attrID = ids.nextElement();
-        Attribute attr = attrs.get(attrID);
-        try
-        {
-          NamingEnumeration values = attr.getAll();
-          while (values.hasMoreElements())
-          {
-            lines.add(attrID+": "+values.nextElement());
-          }
-        }
-        catch (NamingException ne)
-        {
-          // This should not happen
-          throw new ADSContextException(
-              ADSContextException.ErrorType.ERROR_UNEXPECTED, ne);
-        }
+        lines.add("");
+        LdapName dn = makeDNFromServerProperties(props);
+        BasicAttributes attrs = makeAttrsFromServerProperties(props);
+        addToLines(dn, attrs, lines);
       }
+      for (Map<ServerGroupProperty, Object> props : serverGroupProperties)
+      {
+        lines.add("");
+        LdapName dn = makeDNFromServerGroupProperties(props);
+        BasicAttributes attrs = makeAttrsFromServerGroupProperties(props);
+        addToLines(dn, attrs, lines);
+      }
+      for (Map<AdministratorProperty, Object> props : administratorProperties)
+      {
+        lines.add("");
+        LdapName dn = makeDNFromAdministratorProperties(props);
+        BasicAttributes attrs = makeAttrsFromAdministratorProperties(props);
+        addToLines(dn, attrs, lines);
+      }
+
 
       BufferedWriter writer = new BufferedWriter(new FileWriter(ldifFile));
       for (String line : lines)
@@ -848,7 +857,7 @@ public class ADSContext
           "config.ldif");
 
       argList.add("-n");
-      argList.add(backendName);
+      argList.add(getBackendName());
       argList.add("-t");
       argList.add(ldifFile.getAbsolutePath());
       argList.add("-S");
@@ -1141,7 +1150,7 @@ public class ADSContext
    * properties.
    * @throws ADSContextException if something goes wrong.
    */
-  private LdapName makeDNFromServerGroupProperties(
+  private static LdapName makeDNFromServerGroupProperties(
       Map<ServerGroupProperty, Object> serverGroupProperties)
   throws ADSContextException
   {
@@ -1179,7 +1188,7 @@ public class ADSContext
    * properties.
    * @throws ADSContextException if something goes wrong.
    */
-  private LdapName makeDNFromAdministratorProperties(
+  private static LdapName makeDNFromAdministratorProperties(
       Map<AdministratorProperty, Object> adminProperties)
   throws ADSContextException
   {
@@ -1196,7 +1205,7 @@ public class ADSContext
    * @return the attributes for the given administrator properties.
    * @throws ADSContextException if something goes wrong.
    */
-  private BasicAttributes makeAttrsFromAdministratorProperties(
+  private static BasicAttributes makeAttrsFromAdministratorProperties(
       Map<AdministratorProperty, Object> adminProperties)
   throws ADSContextException
   {
@@ -1247,7 +1256,7 @@ public class ADSContext
 
     switch(property)
     {
-    case HOSTNAME:
+    case HOST_NAME:
       result = null;
       break;
     case INSTANCE_PATH:
@@ -1273,7 +1282,7 @@ public class ADSContext
    * @return the attributes for the given server group properties.
    * @throws ADSContextException if something goes wrong.
    */
-  private BasicAttributes makeAttrsFromServerGroupProperties(
+  private static BasicAttributes makeAttrsFromServerGroupProperties(
       Map<ServerGroupProperty, Object> serverGroupProperties)
   {
     BasicAttributes result = new BasicAttributes();
@@ -1299,7 +1308,7 @@ public class ADSContext
    * @return the attribute for a given server group property.
    * @throws ADSContextException if something goes wrong.
    */
-  private Attribute makeAttrFromServerGroupProperty(
+  private static Attribute makeAttrFromServerGroupProperty(
       ServerGroupProperty property, Object value)
   {
     Attribute result;
@@ -1511,7 +1520,7 @@ public class ADSContext
     //
     // Put hostname and ipath
     //
-    result.put(ServerProperty.HOSTNAME, hostName);
+    result.put(ServerProperty.HOST_NAME, hostName);
     result.put(ServerProperty.INSTANCE_PATH, ipath);
 
     //
@@ -1588,7 +1597,7 @@ public class ADSContext
    * Returns the parent entry of the administrator entries.
    * @return the parent entry of the administrator entries.
    */
-  private static String getAdministratorContainerDN()
+  public static String getAdministratorContainerDN()
   {
     return "cn=Administrators," + getAdministrationSuffixDN();
   }
@@ -1612,7 +1621,7 @@ public class ADSContext
   private static String getHostname(
       Map<ServerProperty, Object> serverProperties) throws ADSContextException
   {
-    String result = (String)serverProperties.get(ServerProperty.HOSTNAME);
+    String result = (String)serverProperties.get(ServerProperty.HOST_NAME);
     if (result == null)
     {
       throw new ADSContextException(
@@ -1657,7 +1666,7 @@ public class ADSContext
    * @return the Administrator UID for the given properties.
    * @throws ADSContextException if the administrator UID could not be found.
    */
-  private String getAdministratorUID(
+  private static String getAdministratorUID(
       Map<AdministratorProperty, Object> adminProperties)
   throws ADSContextException {
     String result = (String)adminProperties.get(
@@ -1677,7 +1686,7 @@ public class ADSContext
    * @throws ADSContextException if the administrator password could not be
    * found.
    */
-  private String getAdministratorPassword(
+  private static String getAdministratorPassword(
       Map<AdministratorProperty, Object> adminProperties)
   throws ADSContextException {
     String result = (String)adminProperties.get(
@@ -1837,7 +1846,8 @@ public class ADSContext
   private void createAdministrationSuffix()
   throws ADSContextException
   {
-    // TODO: use new administration framework.
+    ADSContextHelper helper = new ADSContextHelper();
+    helper.createAdministrationSuffix(getDirContext(), getBackendName());
   }
 
   /**
@@ -1849,7 +1859,7 @@ public class ADSContext
   private static void createOfflineAdministrationSuffix(String installPath)
   throws ADSContextException
   {
-    // TODO: the call to this method assumes
+    // NOTE: the call to this method assumes
     // that OpenDS.jar has already been loaded.  So this should not be called by
     // the Java Web Start before being sure that this jar is loaded.
     ArrayList<String> argList = new ArrayList<String>();
@@ -1881,7 +1891,13 @@ public class ADSContext
    */
   private void removeAdministrationSuffix() throws ADSContextException
   {
-    // TODO: use new administration framework
+    ADSContextHelper helper = new ADSContextHelper();
+    helper.removeAdministrationSuffix(getDirContext(), getBackendName());
+  }
+
+  private static String getBackendName()
+  {
+    return "userRoot";
   }
 
   /**
@@ -1913,5 +1929,31 @@ public class ADSContext
     "allow (all)(userdn = \"ldap:///" +
     getAdministratorDN("*") +
     "\");)";
+  }
+
+  private static void addToLines(LdapName dn, BasicAttributes attrs,
+      LinkedList<String> lines) throws ADSContextException
+  {
+    lines.add("dn: "+dn.toString());
+    NamingEnumeration<String> ids = attrs.getIDs();
+    while (ids.hasMoreElements())
+    {
+      String attrID = ids.nextElement();
+      Attribute attr = attrs.get(attrID);
+      try
+      {
+        NamingEnumeration values = attr.getAll();
+        while (values.hasMoreElements())
+        {
+          lines.add(attrID+": "+values.nextElement());
+        }
+      }
+      catch (NamingException ne)
+      {
+        // This should not happen
+        throw new ADSContextException(
+            ADSContextException.ErrorType.ERROR_UNEXPECTED, ne);
+      }
+    }
   }
 }
