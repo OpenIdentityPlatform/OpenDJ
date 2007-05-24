@@ -169,6 +169,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     FINISHED_WITH_WARNINGS("summary-upgrade-finished-with-warnings", 100),
 
+    FINISHED_CANCELED("summary-upgrade-finished-canceled", 100),
+
     FINISHED("summary-upgrade-finished-successfully", 100);
 
     private String summaryMsgKey;
@@ -202,7 +204,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
     public boolean isLast() {
       return this == FINISHED ||
               this == FINISHED_WITH_ERRORS ||
-              this == FINISHED_WITH_WARNINGS;
+              this == FINISHED_WITH_WARNINGS ||
+              this == FINISHED_CANCELED;
     }
 
     /**
@@ -442,6 +445,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
     String txt = null;
     if (step == UpgradeProgressStep.FINISHED) {
       txt = getFinalSuccessMessage();
+    } else if (step == UpgradeProgressStep.FINISHED_CANCELED) {
+      txt = getFinalCanceledMessage();
     } else if (step == UpgradeProgressStep.FINISHED_WITH_ERRORS) {
       txt = getFinalErrorMessage();
     } else if (step == UpgradeProgressStep.FINISHED_WITH_WARNINGS) {
@@ -527,13 +532,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public boolean canClose(WizardStep step) {
-    return step == UpgradeWizardStep.PROGRESS;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public String getFinishButtonToolTipKey() {
     return "finish-button-upgrade-tooltip";
   }
@@ -548,33 +546,23 @@ public class Upgrader extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public void closeClicked(WizardStep cStep, final QuickSetup qs) {
-    if (cStep == UpgradeWizardStep.PROGRESS) {
-      if (isFinished()) {
-        qs.quit();
-      } else if (qs.displayConfirmation(getMsg("confirm-close-upgrade-msg"),
-              getMsg("confirm-close-upgrade-title"))) {
-        abort = true;
-        JButton btnClose = qs.getDialog().getButtonsPanel().
-                getButton(ButtonName.CLOSE);
-        btnClose.setEnabled(false);
-        new Thread(new Runnable() {
-          public void run() {
-            while (!isFinished()) {
-              try {
-                Thread.sleep(100);
-              } catch (InterruptedException e) {
-                // do nothing
-              }
-            }
-            qs.quit();
-          }
-        }).start();
-      }
-    } else {
-      throw new IllegalStateException(
-              "Close only can be clicked on PROGRESS step");
-    }
+  public void cancel() {
+
+    // The run() method checks that status of this variable
+    // occasionally and aborts the operation if it discovers
+    // a 'true' value.
+    abort = true;
+
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean confirmCancel(QuickSetup qs) {
+    return qs.displayConfirmation(
+            getMsg("confirm-cancel-upgrade-msg"),
+            getMsg("confirm-cancel-upgrade-title"));
   }
 
   /**
@@ -587,6 +575,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
             UpgradeProgressStep.FINISHED_WITH_ERRORS
             || getCurrentProgressStep() ==
             UpgradeProgressStep.FINISHED_WITH_WARNINGS;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isCancellable() {
+    return true;
   }
 
   /**
@@ -1076,7 +1071,16 @@ public class Upgrader extends GuiApplication implements CliApplication {
       // skipped because the process has already exited by the time
       // processing messages has finished.  Need to resolve these
       // issues.
-      if (runError != null) {
+      if (abort) {
+        LOG.log(Level.INFO, "upgrade canceled by user");
+        if (!Utils.isCli()) {
+          notifyListenersOfLog();
+          this.currentProgressStep = UpgradeProgressStep.FINISHED_CANCELED;
+          notifyListeners(null);
+        } else {
+          setCurrentProgressStep(UpgradeProgressStep.FINISHED_CANCELED);
+        }
+      } else if (runError != null) {
         LOG.log(Level.INFO, "upgrade completed with errors", runError);
         if (!Utils.isCli()) {
           notifyListenersOfLog();
@@ -1120,38 +1124,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private void checkAbort() throws ApplicationException {
     if (abort) throw new ApplicationException(
             ApplicationException.Type.APPLICATION,
-            "upgrade canceled by user", null);
-  }
-
-  /**
-   * Stops and starts the server checking for serious errors.  Also
-   * has the side effect of having the server write schema.current
-   * if it has never done so.
-   */
-  private void checkServerHealth() throws ApplicationException {
-    Installation installation = getInstallation();
-    ServerHealthChecker healthChecker = new ServerHealthChecker(installation);
-    try {
-      healthChecker.checkServer();
-      List<String> problems = healthChecker.getProblemMessages();
-      if (problems != null && problems.size() > 0) {
-        throw new ApplicationException(
-                ApplicationException.Type.APPLICATION,
-                "The server currently starts with errors which must " +
-                        "be resolved before an upgrade can occur: \n\n" +
-                        Utils.listToString(problems, "\n\n"),
-                null);
-      }
-    } catch (Exception e) {
-      if (e instanceof ApplicationException) {
-        throw (ApplicationException)e;
-      } else {
-        throw new ApplicationException(ApplicationException.Type.APPLICATION,
-                "Server health check failed.  Please resolve the following " +
-                        "before running the upgrade " +
-                        "tool: " + e.getLocalizedMessage(), e);
-      }
-    }
+            "Upgrade canceled", null);
   }
 
   /**
@@ -1612,6 +1585,17 @@ public class Upgrader extends GuiApplication implements CliApplication {
       txt = getFormattedSuccess(
               getMsg("summary-upgrade-finished-successfully",
                       args));
+    }
+    return txt;
+  }
+
+  private String getFinalCanceledMessage() {
+    String txt;
+    if (Utils.isCli()) {
+      txt = getMsg("summary-upgrade-finished-canceled-cli");
+    } else {
+      txt = getFormattedSuccess(
+              getMsg("summary-upgrade-finished-canceled"));
     }
     return txt;
   }

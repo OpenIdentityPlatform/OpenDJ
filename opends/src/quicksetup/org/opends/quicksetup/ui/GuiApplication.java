@@ -140,6 +140,19 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
+   * Called before the application cancels its operation, giving the
+   * user a chance to confirm the cancellation action.
+   * @param qs QuickSetup that can be used for confirming
+   * @return boolean where true indicates that the user answered
+   * affirmatively to the cancelation confirmation
+   */
+  public boolean confirmCancel(QuickSetup qs) {
+    return qs.displayConfirmation(
+          getMsg("confirm-cancel-prompt"),
+          getMsg("confirm-cancel-title"));
+  }
+
+  /**
    * Get the name of the button that will receive initial focus.
    * @return ButtonName of the button to receive initial focus
    */
@@ -182,6 +195,14 @@ public abstract class GuiApplication extends Application {
    * @return Step the previous step
    */
   abstract public WizardStep getPreviousWizardStep(WizardStep step);
+
+  /**
+   * Gets the currently displayed wizard step.
+   * @return WizardStep being displayed.
+   */
+  public WizardStep getCurrentWizardStep() {
+    return displayedStep;
+  }
 
   /**
    * Indicates whether or not the provided <code>step</code> is a sub step or
@@ -276,28 +297,6 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
-   * Inidicates whether or not the user is allowed to close the wizard from
-   * <code>step</code>.
-   * @param step WizardStep for which the the return value indicates whether
-   * or not the user can close the wizard
-   * @return boolean where true indicates the user can close the wizard
-   */
-  public boolean canClose(WizardStep step) {
-    return false;
-  }
-
-  /**
-   * Inidicates whether or not the user is allowed to cancel the wizard from
-   * <code>step</code>.
-   * @param step WizardStep for which the the return value indicates whether
-   * or not the user can cancel the wizard
-   * @return boolean where true indicates the user can cancel the wizard
-   */
-  public boolean canCancel(WizardStep step) {
-    return false;
-  }
-
-  /**
    * Called when the user has clicked the 'previous' button.
    * @param cStep WizardStep at which the user clicked the previous button
    * @param qs QuickSetup controller
@@ -329,15 +328,6 @@ public abstract class GuiApplication extends Application {
    * @param qs QuickSetup controller
    */
   public void closeClicked(WizardStep cStep, QuickSetup qs) {
-    qs.quit();
-  }
-
-  /**
-   * Called when the user has clicked the 'cancel' button.
-   * @param cStep WizardStep at which the user clicked the cancel button
-   * @param qs QuickSetup controller
-   */
-  public void cancelClicked(WizardStep cStep, QuickSetup qs) {
     qs.quit();
   }
 

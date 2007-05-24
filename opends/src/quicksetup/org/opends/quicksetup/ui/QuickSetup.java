@@ -172,10 +172,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       previousClicked();
       break;
 
-    case CANCEL:
-      cancelClicked();
-      break;
-
     case LAUNCH_STATUS_PANEL:
       launchStatusPanelClicked();
       break;
@@ -362,16 +358,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     application.closeClicked(cStep, this);
   }
 
-  /**
-   * Method called when user clicks 'Cancel' button of the wizard.
-   *
-   */
-  private void cancelClicked()
-  {
-    WizardStep cStep = getCurrentStep();
-    application.cancelClicked(cStep, this);
-  }
-
   private void launchStatusPanelClicked()
   {
     BackgroundTask worker = new BackgroundTask()
@@ -460,6 +446,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       public void run()
       {
         runDisplayUpdater();
+        WizardStep ws = application.getCurrentWizardStep();
+        getDialog().getButtonsPanel().updateButtons(ws);
       }
     });
     t.start();
@@ -531,7 +519,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     if (dialog == null)
     {
       dialog = new QuickSetupDialog(application,
-              installStatus);
+              installStatus, this);
       dialog.addButtonActionListener(this);
     }
     return dialog;

@@ -526,6 +526,33 @@ public abstract class Application implements ProgressNotifier, Runnable {
   abstract public boolean isFinished();
 
   /**
+   * Indicates whether or not this application is capable of cancelling
+   * the operation performed in the run method.  A cancellable operation
+   * should leave its environment in the same state as it was prior to
+   * running the operation (files deleted, changes backed out etc.).
+   *
+   * Marking an <code>Application</code> as cancellable may control UI
+   * elements like the presense of a cancel button while the operation
+   * is being performed.
+   *
+   * Applications marked as cancellable should override the
+   * <code>cancel</code> method in such a way as to undo whatever
+   * actions have taken place in the run method up to that point.
+   *
+   * @return boolean where true inidcates that the operation is cancellable
+   */
+  abstract public boolean isCancellable();
+
+  /**
+   * Signals that the application should cancel a currently running
+   * operation as soon as possible and return the environment to the
+   * state prior to running the operation.  When finished backing
+   * out changes the application should make sure that <code>isFinished</code>
+   * returns true so that the application can complete.
+   */
+  abstract public void cancel();
+
+  /**
    * This class is used to notify the ProgressUpdateListeners of events
    * that are written to the standard error.  It is used in WebStartInstaller
    * and in OfflineInstaller.  These classes just create a ErrorPrintStream and

@@ -131,20 +131,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public boolean canQuit(WizardStep step) {
-    return false;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean canClose(WizardStep step) {
-    return step == Step.PROGRESS;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean canCancel(WizardStep step) {
     return step == Step.CONFIRM_UNINSTALL;
   }
 
@@ -174,18 +160,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     } else {
       throw new IllegalStateException(
           "Close only can be clicked on PROGRESS step");
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void cancelClicked(WizardStep cStep, QuickSetup qs) {
-    if (cStep == Step.CONFIRM_UNINSTALL) {
-      qs.quit();
-    } else {
-      throw new IllegalStateException(
-          "Cancel only can be clicked on CONFIRM_UNINSTALL step");
     }
   }
 
@@ -628,6 +602,20 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             UninstallProgressStep.FINISHED_SUCCESSFULLY
     || getCurrentProgressStep() ==
             UninstallProgressStep.FINISHED_WITH_ERROR;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isCancellable() {
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void cancel() {
+    // do nothing; not cancellable
   }
 
   /**

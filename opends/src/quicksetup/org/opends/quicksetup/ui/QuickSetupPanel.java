@@ -46,6 +46,8 @@ abstract class QuickSetupPanel extends JPanel
 
   private GuiApplication application;
 
+  private QuickSetup quickSetup;
+
   /**
    * The basic constructor to be called by the subclasses.
    * @param application Application this panel represents
@@ -55,6 +57,22 @@ abstract class QuickSetupPanel extends JPanel
     super();
     this.application = application;
     setOpaque(false);
+  }
+
+  /**
+   * Sets the instance of <code>QuickSetup</code> acting as controller.
+   * @param qs QuickSetup instance
+   */
+  void setQuickSetup(QuickSetup qs) {
+    this.quickSetup = qs;
+  }
+
+  /**
+   * Gets the instance of <code>QuickSetup</code> acting as controller.
+   * @return QuickSetup instance
+   */
+  protected QuickSetup getQuickSetup() {
+    return this.quickSetup;
   }
 
   /**
