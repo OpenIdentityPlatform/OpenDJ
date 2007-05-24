@@ -225,13 +225,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
   static private final String SYS_PROP_INSTALL_ROOT =
           "org.opends.quicksetup.upgrader.Root";
 
-
   /**
    * If set to true, an error is introduced during the
    * upgrade process for testing.
    */
   static private final String SYS_PROP_CREATE_ERROR =
-          "org.opends.upgrader.Upgrader.CreateError";
+          "org.opends.quicksetup.upgrader.CreateError";
 
   /**
    * If set to true, if the upgrader encounters an error
@@ -240,7 +239,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * erroneous state.
    */
   static private final String SYS_PROP_NO_ABORT =
-          "org.opends.upgrader.Upgrader.NoAbort";
+          "org.opends.quicksetup.upgrader.NoAbort";
 
   // Root files that will be ignored during backup
   static private final String[] ROOT_FILES_TO_IGNORE_DURING_BACKUP = {
