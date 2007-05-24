@@ -155,40 +155,100 @@
     <function-prolog>
       This function gets information about the Directory Server  
     </function-prolog>
-    
-    <sequence>
-    
-      <!-- Install DS into temporary folder -->
-      <message>
-        'Extract temporary DS zip archive to %s.' % (TMPDIR)
-      </message>
-      <call function="'unZipFile'">
-        { 'location' : STAF_LOCAL_HOSTNAME, 
-          'zipfile'  : '%s/%s' % (ZIPPATH,ZIPNAME), 
-          'unzipdir' : '%s' % TMPDIR }
-      </call>
-                
-      <!-- Get Directory Server Variables -->
-      <call function="'GetDirectoryServerVars'">
-        { 'location'  : STAF_LOCAL_HOSTNAME,
-          'dsPath'    : '%s/%s' % (TMPDIR,OPENDSNAME)  }
-      </call>
 
-      <!-- Set Directory Server Variables -->
-      <call function="'SetVar'">
-        { 'location'  : STAF_LOCAL_HOSTNAME,
-          'type'      : 'shared',
-          'variable'  : 'ServerInfo=%s' % DSInfoServersDict }
-      </call>
-      
-      <!-- Uninstall DS from temporary folder -->
-      <message>'Remove temporary DS zip archive'</message>
-      <call function="'deleteFolder'">
-        { 'location'   : STAF_LOCAL_HOSTNAME ,
-          'foldername' : '%s/%s' % (TMPDIR,OPENDSNAME) }
-      </call> 
-      
-    </sequence>
+     <try>
+         
+      <sequence>
+        
+        <script>
+          InstanceInstallDir= '%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        </script>
+            
+        <!-- Copy DS zip archive to remote host-->
+        <message>
+          'Copy DS zip archive to %s %s.zip.' % (STAF_REMOTE_HOSTNAME,InstanceInstallDir)
+        </message>
+        <call function="'copyFile'">
+          { 'srcfile'    : '%s/%s' % (ZIPPATH,ZIPNAME),
+            'destfile'   : '%s.zip' % InstanceInstallDir,
+            'remotehost' : STAF_REMOTE_HOSTNAME }
+        </call>
+
+        <if expr="RC != 0">
+          <return>RC</return>
+        </if>
+                        
+        <!-- Install DS into temporary folder -->
+        <message>
+          'Extract temporary DS zip archive to %s %s.' % (STAF_REMOTE_HOSTNAME,DIRECTORY_INSTANCE_DIR)
+        </message>
+        <call function="'unZipFile'">
+          { 'location' : STAF_REMOTE_HOSTNAME, 
+            'zipfile'  : '%s.zip' % InstanceInstallDir, 
+            'unzipdir' : '%s' % DIRECTORY_INSTANCE_DIR }
+        </call>
+
+        <if expr="RC != 0">
+          <return>RC</return>
+        </if>
+                                
+        <!-- Get Directory Server Variables -->
+        <call function="'GetDirectoryServerVars'">
+          { 'location'  : STAF_REMOTE_HOSTNAME,
+            'dsPath'    : '%s' % InstanceInstallDir  }
+        </call>
+
+        <if expr="RC != 0">
+          <throw exception="'TestExceptionResultFailed'">
+            'Invalid Result %s' % RC
+          </throw>
+        </if>
+                
+        <!-- Set Directory Server Variables -->
+        <call function="'SetVar'">
+          { 'location'  : STAF_REMOTE_HOSTNAME,
+            'type'      : 'shared',
+            'variable'  : 'ServerInfo=%s' % DSInfoServersDict }
+        </call>
+
+        <if expr="RC != 0">
+          <throw exception="'TestExceptionResultFailed'">
+            'Invalid Result %s' % RC
+          </throw>
+        </if>
+                      
+        <!-- Uninstall DS from temporary folder -->
+        <message>
+          'Remove temporary DS zip archive from %s %s' % (STAF_REMOTE_HOSTNAME,InstanceInstallDir)
+        </message>
+        
+        <call function="'deleteFolder'">
+          { 'location'   : STAF_REMOTE_HOSTNAME ,
+            'foldername' : '%s' % InstanceInstallDir }
+        </call>
+        
+        <call function="'deleteFile'">
+          { 'location'   : STAF_REMOTE_HOSTNAME ,
+            'foldername' : '%s.zip' % InstanceInstallDir }
+        </call>
+                  
+      </sequence>
+
+    <catch exception="'TestExceptionResultFailed'" typevar="eType" var="eInfo">
+      <sequence>
+        <message>'caught %s with %s' % (eType,eInfo)</message>
+        <message>
+          'Remove temporary DS zip archive from %s %s' % (STAF_REMOTE_HOSTNAME,InstanceInstallDir)
+        </message>
+        <call function="'deleteFolder'">
+          { 'location'   : STAF_REMOTE_HOSTNAME ,
+            'foldername' : '%s' % InstanceInstallDir }
+        </call> 
+      </sequence>
+    </catch>
+
+    </try>
+        
   </function>
 	
 	
