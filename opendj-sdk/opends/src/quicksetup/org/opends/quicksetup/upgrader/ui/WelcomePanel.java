@@ -48,6 +48,8 @@ public class WelcomePanel extends QuickSetupStepPanel {
 
   private static final long serialVersionUID = 8695606871542491768L;
 
+  private JLabel lblServerLocation;
+
   private JTextComponent tcServerLocation;
 
   private JTextComponent tcCurrentServerBuildNumber;
@@ -77,6 +79,21 @@ public class WelcomePanel extends QuickSetupStepPanel {
       v = tcServerLocation.getText();
     }
     return v;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void displayFieldInvalid(FieldName fieldName, boolean invalid) {
+    UIFactory.TextStyle style;
+    if (invalid) {
+      style = UIFactory.TextStyle.PRIMARY_FIELD_INVALID;
+    } else {
+      style = UIFactory.TextStyle.PRIMARY_FIELD_VALID;
+    }
+    if (FieldName.SERVER_LOCATION.equals(fieldName)) {
+      UIFactory.setTextStyle(lblServerLocation, style);
+    }
   }
 
   /**
@@ -138,6 +155,8 @@ public class WelcomePanel extends QuickSetupStepPanel {
     // command line implies a build.
     if (Utils.isWebStart()) {
 
+      lblServerLocation = UIFactory.makeJLabel(serverLocationDescriptor);
+
       tcServerLocation =
               UIFactory.makeJTextComponent(serverLocationDescriptor,
                       userData.getServerLocation());
@@ -153,7 +172,7 @@ public class WelcomePanel extends QuickSetupStepPanel {
       butBrowse.addActionListener(l);
 
       JPanel pnlBrowser = Utilities.createBrowseButtonPanel(
-              UIFactory.makeJLabel(serverLocationDescriptor),
+              lblServerLocation,
               tcServerLocation,
               butBrowse);
       pnlBrowser.setOpaque(false);
