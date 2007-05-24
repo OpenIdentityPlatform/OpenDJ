@@ -638,7 +638,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
             }
 
             uud.setServerLocation(serverLocationString);
-
+            qs.displayFieldInvalid(FieldName.SERVER_LOCATION, false);
           } catch (IllegalArgumentException iae) {
             LOG.log(Level.INFO,
                     "illegal OpenDS installation directory selected", iae);
