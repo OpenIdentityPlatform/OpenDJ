@@ -33,12 +33,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.Box;
-import javax.swing.JEditorPane;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
@@ -58,6 +53,8 @@ public class ProgressPanel extends QuickSetupStepPanel
   private JEditorPane progressBarLabel;
 
   private JProgressBar progressBar;
+
+  private JButton btnCancel;
 
   private JEditorPane detailsTextArea;
 
@@ -178,6 +175,7 @@ public class ProgressPanel extends QuickSetupStepPanel
 
     if (status.isLast()) {
       progressBar.setVisible(false);
+      btnCancel.setVisible(false);
       if (!status.isError()) {
         summaryText = "<form>"+summaryText+"</form>";
       }
@@ -206,6 +204,20 @@ public class ProgressPanel extends QuickSetupStepPanel
     gbc.insets = UIFactory.getEmptyInsets();
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
+    btnCancel = UIFactory.makeJButton(
+                    getMsg("cancel-button-label"),
+                    getMsg("cancel-button-tooltip"));
+    btnCancel.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        GuiApplication app = getApplication();
+        QuickSetup qs = getQuickSetup();
+        if (app.confirmCancel(qs)) {
+          app.cancel();
+          btnCancel.setEnabled(false);
+        }
+      }
+    });
+
     progressBar = new JProgressBar();
     progressBar.setIndeterminate(true);
     // The ProgressDescriptor provides the ratio in %
@@ -221,10 +233,48 @@ public class ProgressPanel extends QuickSetupStepPanel
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     gbc.weightx = 0.0;
     panel.add(progressBar, gbc);
+
+    if (getApplication().isCancellable()) {
+      gbc.insets.left = 15;
+      gbc.fill = GridBagConstraints.NONE;
+      gbc.anchor = GridBagConstraints.LINE_START;
+      gbc.gridwidth = 1;
+      panel.add(btnCancel, gbc);
+    }
+
     gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.weightx = 1.0;
     panel.add(Box.createHorizontalGlue(), gbc);
 
+
+
     return panel;
   }
+
+//  public static void main(String[] args) {
+//    final UserData ud = new UpgradeUserData();
+//    ud.setServerLocation("XXX/XXXXX/XX/XXXXXXXXXXXX/XXXX");
+//    Upgrader app = new Upgrader();
+//    app.setUserData(ud);
+//    final ProgressPanel p = new ProgressPanel(app);
+//    p.initialize();
+//    JFrame frame = new JFrame();
+//    frame.getContentPane().add(p);
+//    frame.addComponentListener(new ComponentAdapter() {
+//      public void componentHidden(ComponentEvent componentEvent) {
+//        System.exit(0);
+//      }
+//    });
+//    frame.pack();
+//    frame.setVisible(true);
+//    new Thread(new Runnable() {
+//      public void run() {
+//        p.beginDisplay(ud);
+//      }
+//    }).start();
+//
+//  }
+
+
 }

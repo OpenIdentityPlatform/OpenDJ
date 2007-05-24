@@ -85,22 +85,26 @@ public class QuickSetupDialog
 
   private GuiApplication application;
 
+  private QuickSetup quickSetup;
+
   private boolean forceToDisplay;
 
   /**
    * Constructor of QuickSetupDialog.
    * @param app Application to run in as a wizard
    * @param installStatus of the current environment
+   * @param qs QuickSetup acting as controller
    */
   public QuickSetupDialog(GuiApplication app,
-      CurrentInstallStatus installStatus)
+      CurrentInstallStatus installStatus,
+      QuickSetup qs)
   {
     if (app == null) {
       throw new IllegalArgumentException("application cannot be null");
     }
     this.application = app;
     this.installStatus = installStatus;
-
+    this.quickSetup = qs;
     frame = new JFrame(application.getFrameTitle());
     frame.getContentPane().add(getFramePanel());
     frame.addWindowListener(new WindowAdapter() {
@@ -176,7 +180,7 @@ public class QuickSetupDialog
   {
     displayedStep = step;
     //  First call the panels to do the required updates on their layout
-    getButtonsPanel().setDisplayedStep(step);
+    getButtonsPanel().updateButtons(step);
     getStepsPanel().setDisplayedStep(step, userData);
     getCurrentStepPanel().setDisplayedStep(step, userData);
   }
@@ -393,6 +397,7 @@ public class QuickSetupDialog
     if (stepsPanel == null)
     {
       stepsPanel = new StepsPanel(application);
+      stepsPanel.setQuickSetup(quickSetup);
     }
     return stepsPanel;
   }
@@ -405,7 +410,7 @@ public class QuickSetupDialog
   {
     if (currentStepPanel == null)
     {
-      currentStepPanel = new CurrentStepPanel(application);
+      currentStepPanel = new CurrentStepPanel(application, quickSetup);
     }
     return currentStepPanel;
   }
@@ -420,6 +425,7 @@ public class QuickSetupDialog
     if (buttonsPanel == null)
     {
       buttonsPanel = new ButtonsPanel(application);
+      buttonsPanel.setQuickSetup(quickSetup);
     }
     return buttonsPanel;
   }
@@ -519,6 +525,7 @@ public class QuickSetupDialog
       installedPanel = new QuickSetupErrorPanel(
               application,
               installStatus);
+      installedPanel.setQuickSetup(quickSetup);
     }
     return installedPanel;
   }

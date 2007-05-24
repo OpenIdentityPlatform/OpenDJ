@@ -62,10 +62,12 @@ public class CurrentStepPanel extends QuickSetupPanel
   /**
    * The constructor of this class.
    * @param app Application used to create panels for populating the layout
+   * @param qs QuickSetup acting as controller
    */
-  public CurrentStepPanel(GuiApplication app)
+  public CurrentStepPanel(GuiApplication app, QuickSetup qs)
   {
     super(app);
+    setQuickSetup(qs);
     createLayout(app);
   }
 
@@ -125,6 +127,7 @@ public class CurrentStepPanel extends QuickSetupPanel
       for (WizardStep step : steps) {
         QuickSetupStepPanel panel = app.createWizardStepPanel(step);
         if (panel != null) {
+          panel.setQuickSetup(getQuickSetup());
           panel.initialize();
           hmPanels.put(step, panel);
         }

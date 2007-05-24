@@ -205,4 +205,18 @@ public class BuildExtractor extends Application implements Runnable {
   public boolean isFinished() {
     return finished;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isCancellable() {
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void cancel() {
+    // do nothing; not cancellable
+  }
 }

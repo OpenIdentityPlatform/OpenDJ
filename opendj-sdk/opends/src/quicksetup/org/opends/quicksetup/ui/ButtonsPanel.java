@@ -64,8 +64,6 @@ public class ButtonsPanel extends QuickSetupPanel
 
   private JButton finishButton;
 
-  private JButton cancelButton;
-
   /**
    * Default constructor.
    * @param application Application running in QuickSetup
@@ -103,7 +101,7 @@ public class ButtonsPanel extends QuickSetupPanel
    *
    * @param step the step in the wizard.
    */
-  public void setDisplayedStep(WizardStep step)
+  public void updateButtons(WizardStep step)
   {
     GuiApplication application = getApplication();
     previousButton.setVisible(application.canGoBack(step));
@@ -114,9 +112,15 @@ public class ButtonsPanel extends QuickSetupPanel
       finishButton.setVisible(false);
       nextButton.setVisible(application.canGoForward(step));
     }
-    quitButton.setVisible(application.canQuit(step));
-    closeButton.setVisible(application.canClose(step));
-    cancelButton.setVisible(application.canCancel(step));
+
+    // The quit button appears on all the panels leading up
+    // to the progress panel
+    quitButton.setVisible(!step.isProgressStep());
+
+    // The close button is only used on the progress panel and
+    // is only enabled once progress has finished or cancelled.
+    closeButton.setVisible(step.isProgressStep());
+    closeButton.setEnabled(application.getCurrentProgressStep().isLast());
   }
 
   /**
@@ -147,10 +151,6 @@ public class ButtonsPanel extends QuickSetupPanel
 
         case FINISH:
           b = finishButton;
-          break;
-
-        case CANCEL:
-          b = cancelButton;
           break;
 
         default:
@@ -191,9 +191,6 @@ public class ButtonsPanel extends QuickSetupPanel
     tooltip = application.getFinishButtonToolTipKey();
     finishButton = createButton(label, tooltip, ButtonName.FINISH);
 
-    cancelButton =
-      createButton("cancel-button-label", "cancel-button-uninstall-tooltip",
-          ButtonName.CANCEL);
   }
 
   /**
@@ -263,21 +260,19 @@ public class ButtonsPanel extends QuickSetupPanel
     gbc.weightx = 0.0;
     gbc.fill = GridBagConstraints.NONE;
     gbc.insets.left = 0;
-    JPanel quitCloseCancelPanel = new JPanel(new GridBagLayout());
+    JPanel quitClosePanel = new JPanel(new GridBagLayout());
     // Set as opaque to inherit the background color of ButtonsPanel
-    quitCloseCancelPanel.setOpaque(false);
-    quitCloseCancelPanel.add(
+    quitClosePanel.setOpaque(false);
+    quitClosePanel.add(
         Box.createHorizontalStrut(UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS),
         gbcAux);
-    quitCloseCancelPanel.add(quitButton, gbcAux);
-    quitCloseCancelPanel.add(closeButton, gbcAux);
-    quitCloseCancelPanel.add(cancelButton, gbcAux);
+    quitClosePanel.add(quitButton, gbcAux);
+    quitClosePanel.add(closeButton, gbcAux);
     width =
         (int) Math.max(quitButton.getPreferredSize().getWidth(), closeButton
             .getPreferredSize().getWidth());
-    width = (int) Math.max(width, cancelButton.getPreferredSize().getWidth());
-    quitCloseCancelPanel.add(Box.createHorizontalStrut(width), gbcAux);
-    add(quitCloseCancelPanel, gbc);
+    quitClosePanel.add(Box.createHorizontalStrut(width), gbcAux);
+    add(quitClosePanel, gbc);
   }
 
   /**

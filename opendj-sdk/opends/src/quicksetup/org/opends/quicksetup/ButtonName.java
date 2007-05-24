@@ -58,10 +58,6 @@ public enum ButtonName
    */
   FINISH,
   /**
-   * The Cancel button.
-   */
-  CANCEL,
-  /**
    * The Launch Status Panel button.
    */
   LAUNCH_STATUS_PANEL

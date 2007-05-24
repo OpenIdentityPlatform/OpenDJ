@@ -152,6 +152,13 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  public boolean isCancellable() {
+    return false; // TODO: have installer delete installed files upon cancel
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public UserData createUserData() {
     UserData ud = new UserData();
     ud.setServerLocation(Utils.getDefaultServerLocation());
@@ -193,20 +200,6 @@ public abstract class Installer extends GuiApplication {
    */
   public boolean canQuit(WizardStep step) {
     return step != PROGRESS;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean canClose(WizardStep step) {
-    return step == PROGRESS;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean canCancel(WizardStep step) {
-    return false;
   }
 
   /**
@@ -321,8 +314,8 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
-  public void cancelClicked(WizardStep cStep, QuickSetup qs) {
-    // do nothing;
+  public void cancel() {
+    // do nothing; not cancellable
   }
 
   /**
@@ -489,16 +482,11 @@ public abstract class Installer extends GuiApplication {
       if (step == REVIEW) {
         dlg.setFocusOnButton(ButtonName.FINISH);
         dlg.setDefaultButton(ButtonName.FINISH);
-      } else if (step == PROGRESS) {
-        dlg.setDefaultButton(ButtonName.CLOSE);
       } else if (step == WELCOME) {
         dlg.setDefaultButton(ButtonName.NEXT);
         dlg.setFocusOnButton(ButtonName.NEXT);
       } else if (step == REVIEW) {
         dlg.setDefaultButton(ButtonName.NEXT);
-      } else if (step == PROGRESS) {
-        dlg.setFocusOnButton(ButtonName.CLOSE);
-        dlg.setButtonEnabled(ButtonName.CLOSE, false);
       } else {
         dlg.setDefaultButton(ButtonName.NEXT);
       }
