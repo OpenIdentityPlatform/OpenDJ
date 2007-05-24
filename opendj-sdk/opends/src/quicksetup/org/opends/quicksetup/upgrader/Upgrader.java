@@ -1426,12 +1426,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
       stagingDir = getStageDirectory();
       FileManager fm = new FileManager();
 
-      // Doing this seems to work better than just plain
-      // old delete.  Note that on Windows there are file
-      // locking issues to we mark files for deletion after
-      // this JVM exits
+      // On Linux at least the deleteOnExit seems not to work very well
+      // for directories that contain files, even if they have been marked
+      // for deletion upon exit as well.  Note that on Windows there are
+      // file locking issues so we mark files for deletion after this JVM exits.
       if (stagingDir.exists()) {
-        fm.deleteRecursively(stagingDir, null, /*onExit=*/true);
+        fm.deleteRecursively(stagingDir, null,
+                FileManager.DeletionPolicy.DELETE_ON_EXIT_IF_UNSUCCESSFUL);
       }
 
     } catch (IOException e) {
