@@ -29,9 +29,10 @@ package org.opends.server.admin;
 
 
 /**
- * A default behavior provider which retrieves default values from a parent
- * managed object. It should be used by properties which inherit their default
- * value(s) from properties held in an other managed object.
+ * A default behavior provider which retrieves default values from a
+ * parent managed object. It should be used by properties which
+ * inherit their default value(s) from properties held in an other
+ * managed object.
  *
  * @param <T>
  *          The type of values represented by this provider.
@@ -39,8 +40,11 @@ package org.opends.server.admin;
 public final class RelativeInheritedDefaultBehaviorProvider<T> implements
     DefaultBehaviorProvider<T> {
 
-  // The relative offset (where 1 = parent, 2 = grandparent) of the managed
-  // object containing the property.
+  // The type of managed object expected at the relative offset.
+  private final AbstractManagedObjectDefinition<?, ?> d;
+
+  // The relative offset (where 1 = parent, 2 = grandparent) of the
+  // managed object containing the property.
   private final int offset;
 
   // The name of the property containing the inherited default values.
@@ -49,23 +53,33 @@ public final class RelativeInheritedDefaultBehaviorProvider<T> implements
 
 
   /**
-   * Create a relative inherited default behavior provider associated with a
-   * parent managed object.
+   * Create a relative inherited default behavior provider associated
+   * with a parent managed object.
    *
-   * @param offset
-   *          The relative location of the parent managed object (where 0 is the
-   *          managed object itself, 1 is the parent, and 2 is the
-   *          grand-parent).
+   * @param d
+   *          The type of parent managed object expected at the
+   *          relative location.
    * @param propertyName
-   *          The name of the property containing the inherited default values.
+   *          The name of the property containing the inherited
+   *          default values.
+   * @param offset
+   *          The relative location of the parent managed object
+   *          (where 0 is the managed object itself, 1 is the parent,
+   *          and 2 is the grand-parent).
    * @throws IllegalArgumentException
    *           If the offset is less than 0.
    */
-  public RelativeInheritedDefaultBehaviorProvider(int offset,
-      String propertyName) throws IllegalArgumentException {
+  @SuppressWarnings("unchecked")
+  public RelativeInheritedDefaultBehaviorProvider(
+      AbstractManagedObjectDefinition<?, ?> d, String propertyName, int offset)
+      throws IllegalArgumentException {
+    // We do not decode the property name now because the property
+    // might not have been constructed at this point (e.g. when the
+    // offset is 0).
     if (offset < 0) {
       throw new IllegalArgumentException("Negative offset");
     }
+    this.d = d;
     this.propertyName = propertyName;
     this.offset = offset;
   }
@@ -82,14 +96,27 @@ public final class RelativeInheritedDefaultBehaviorProvider<T> implements
 
 
   /**
-   * Get the absolute path of the managed object containing the property which
-   * has the default values.
+   * Get the definition of the parent managed object containing the
+   * inherited default values.
+   *
+   * @return Returns the definition of the parent managed object
+   *         containing the inherited default values.
+   */
+  public AbstractManagedObjectDefinition<?, ?> getManagedObjectDefinition() {
+    return d;
+  }
+
+
+
+  /**
+   * Get the absolute path of the managed object containing the
+   * property which has the default values.
    *
    * @param path
-   *          The path of the current managed object from which the relative
-   *          path should be determined.
-   * @return Returns the absolute path of the managed object containing the
-   *         property which has the default values.
+   *          The path of the current managed object from which the
+   *          relative path should be determined.
+   * @return Returns the absolute path of the managed object
+   *         containing the property which has the default values.
    */
   public ManagedObjectPath getManagedObjectPath(ManagedObjectPath path) {
     return path.parent(offset);
@@ -98,10 +125,11 @@ public final class RelativeInheritedDefaultBehaviorProvider<T> implements
 
 
   /**
-   * Get the name of the property containing the inherited default values.
+   * Get the name of the property containing the inherited default
+   * values.
    *
-   * @return Returns the name of the property containing the inherited default
-   *         values.
+   * @return Returns the name of the property containing the inherited
+   *         default values.
    */
   public String getPropertyName() {
     return propertyName;
@@ -112,9 +140,9 @@ public final class RelativeInheritedDefaultBehaviorProvider<T> implements
   /**
    * Get the relative location of the parent managed object.
    *
-   * @return Returns the relative location of the parent managed object (where 0
-   *         is the managed object itself, 1 is the parent, and 2 is the
-   *         grand-parent).
+   * @return Returns the relative location of the parent managed
+   *         object (where 0 is the managed object itself, 1 is the
+   *         parent, and 2 is the grand-parent).
    */
   public int getRelativeOffset() {
     return offset;

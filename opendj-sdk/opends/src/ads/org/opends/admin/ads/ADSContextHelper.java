@@ -32,7 +32,6 @@ import java.util.TreeSet;
 
 import javax.naming.ldap.InitialLdapContext;
 
-import org.opends.server.admin.client.InitialManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
@@ -121,9 +120,7 @@ public class ADSContextHelper
       if (backend == null)
       {
         BackendCfgDefn provider = BackendCfgDefn.getInstance();
-        backend = root.createBackend(provider, backendName,
-            new InitialManagedObject<BackendCfgClient>(
-                BackendCfgDefn.getInstance()));
+        backend = root.createBackend(provider, backendName, null);
       }
       SortedSet<DN> suffixes = backend.getBackendBaseDN();
       if (suffixes == null)

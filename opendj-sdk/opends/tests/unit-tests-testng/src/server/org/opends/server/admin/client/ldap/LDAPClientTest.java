@@ -41,7 +41,6 @@ import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.MockLDAPProfile;
-import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.TestChildCfgClient;
 import org.opends.server.admin.TestChildCfgDefn;
 import org.opends.server.admin.TestParentCfgClient;
@@ -77,13 +76,16 @@ public final class LDAPClientTest extends AdminTestCase {
       "ds-cfg-maximum-length: 20000", "",
       "dn:cn=test-children,cn=test parent 1,cn=test-parents",
       "objectclass: top", "objectclass: ds-cfg-branch", "cn: test-children",
+      "", "dn:cn=test-children,cn=test parent 2,cn=test-parents",
+      "objectclass: top", "objectclass: ds-cfg-branch", "cn: test-children",
       "",
       "dn: cn=test child 1,cn=test-children,cn=test parent 1,cn=test-parents",
       "objectclass: top", "objectclass: ds-cfg-test-child", "cn: test child 1",
       "",
       "dn: cn=test child 2,cn=test-children,cn=test parent 1,cn=test-parents",
       "objectclass: top", "objectclass: ds-cfg-test-child", "cn: test child 2",
-      "ds-cfg-heartbeat-interval: 12345s", "" };
+      "ds-cfg-heartbeat-interval: 12345s", "ds-cfg-minimum-length: 11111",
+      "ds-cfg-maximum-length: 22222", "" };
 
 
 
@@ -159,7 +161,6 @@ public final class LDAPClientTest extends AdminTestCase {
    */
   @Test
   public void testCreateChildManagedObject() throws Exception {
-    MockPropertyProvider p = new MockPropertyProvider();
     CreateEntryMockLDAPConnection c = new CreateEntryMockLDAPConnection(
         "cn=test child 3,cn=test-children,cn=test parent 1,cn=test-parents");
     c.importLDIF(TEST_LDIF);
@@ -167,13 +168,16 @@ public final class LDAPClientTest extends AdminTestCase {
     c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child");
 
     // LDAP encoding uses base unit.
-    p.addProperty("heartbeat-interval", "10s");
     c.addExpectedAttribute("ds-cfg-heartbeat-interval", "10000ms");
 
     ManagementContext ctx = LDAPManagementContext.createFromContext(c,
         new MockLDAPProfile());
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
-    parent.createTestChild(TestChildCfgDefn.getInstance(), "test child 3", p);
+    TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn
+        .getInstance(), "test child 3", null);
+    child.setHeartbeatInterval(10000L);
+    child.commit();
+
     c.assertEntryIsCreated();
   }
 
@@ -196,8 +200,10 @@ public final class LDAPClientTest extends AdminTestCase {
     ManagementContext ctx = LDAPManagementContext.createFromContext(c,
         new MockLDAPProfile());
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
-    parent.createTestChild(TestChildCfgDefn.getInstance(), "test child 3",
-        new MockPropertyProvider());
+    TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn
+        .getInstance(), "test child 3", null);
+    child.commit();
+
     c.assertEntryIsCreated();
   }
 
@@ -231,7 +237,8 @@ public final class LDAPClientTest extends AdminTestCase {
     ManagementContext ctx = LDAPManagementContext.createFromContext(c,
         new MockLDAPProfile());
     try {
-      createTestParent(ctx, "test parent 3", new MockPropertyProvider());
+      TestParentCfgClient parent = createTestParent(ctx, "test parent 3");
+      parent.commit();
     } catch (Exception e) {
       Assert.assertEquals(e.getClass(), expected);
     }
@@ -247,21 +254,20 @@ public final class LDAPClientTest extends AdminTestCase {
    */
   @Test
   public void testCreateTopLevelManagedObject() throws Exception {
-    MockPropertyProvider p = new MockPropertyProvider();
     CreateEntryMockLDAPConnection c = new CreateEntryMockLDAPConnection(
         "cn=test parent 3,cn=test-parents");
     c.importLDIF(TEST_LDIF);
     c.addExpectedAttribute("cn", "test parent 3");
     c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-parent");
-
-    p.addProperty("maximum-length", "54321");
     c.addExpectedAttribute("ds-cfg-maximum-length", "54321");
-    p.addProperty("minimum-length", "12345");
     c.addExpectedAttribute("ds-cfg-minimum-length", "12345");
 
     ManagementContext ctx = LDAPManagementContext.createFromContext(c,
         new MockLDAPProfile());
-    createTestParent(ctx, "test parent 3", p);
+    TestParentCfgClient parent = createTestParent(ctx, "test parent 3");
+    parent.setMaximumLength(54321);
+    parent.setMinimumLength(12345);
+    parent.commit();
     c.assertEntryIsCreated();
   }
 
@@ -283,7 +289,8 @@ public final class LDAPClientTest extends AdminTestCase {
 
     ManagementContext ctx = LDAPManagementContext.createFromContext(c,
         new MockLDAPProfile());
-    createTestParent(ctx, "test parent 3", new MockPropertyProvider());
+    TestParentCfgClient parent = createTestParent(ctx, "test parent 3");
+    parent.commit();
     c.assertEntryIsCreated();
   }
 
@@ -302,6 +309,8 @@ public final class LDAPClientTest extends AdminTestCase {
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
     TestChildCfgClient child = parent.getTestChild("test child 2");
     Assert.assertEquals(child.getHeartbeatInterval(), 12345000);
+    Assert.assertEquals(child.getMinimumLength(), 11111);
+    Assert.assertEquals(child.getMaximumLength(), 22222);
   }
 
 
@@ -318,6 +327,8 @@ public final class LDAPClientTest extends AdminTestCase {
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
     TestChildCfgClient child = parent.getTestChild("test child 1");
     Assert.assertEquals(child.getHeartbeatInterval(), 1000);
+    Assert.assertEquals(child.getMinimumLength(), 10000);
+    Assert.assertEquals(child.getMaximumLength(), 456);
   }
 
 
@@ -565,16 +576,84 @@ public final class LDAPClientTest extends AdminTestCase {
 
 
 
+  /**
+   * Tests retrieval of relative inherited default values.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testInheritedDefaultValues1() throws Exception {
+    CreateEntryMockLDAPConnection c = new CreateEntryMockLDAPConnection(
+        "cn=test child 3,cn=test-children,cn=test parent 1,cn=test-parents");
+    c.importLDIF(TEST_LDIF);
+    c.addExpectedAttribute("cn", "test child 3");
+    c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child");
+
+    ManagementContext ctx = LDAPManagementContext.createFromContext(c,
+        new MockLDAPProfile());
+    TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
+    TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn
+        .getInstance(), "test child 3", null);
+
+    // Inherits from parent (test parent 1).
+    Assert.assertEquals(child.getMinimumLength(), 10000);
+
+    // Inherits from test parent 2.
+    Assert.assertEquals(child.getMaximumLength(), 456);
+
+    // Check that the default values are not committed.
+    child.commit();
+
+    c.assertEntryIsCreated();
+  }
+
+
+
+  /**
+   * Tests retrieval of relative inherited default values.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testInheritedDefaultValues2() throws Exception {
+    CreateEntryMockLDAPConnection c = new CreateEntryMockLDAPConnection(
+        "cn=test child 3,cn=test-children,cn=test parent 2,cn=test-parents");
+    c.importLDIF(TEST_LDIF);
+    c.addExpectedAttribute("cn", "test child 3");
+    c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child");
+
+    ManagementContext ctx = LDAPManagementContext.createFromContext(c,
+        new MockLDAPProfile());
+    TestParentCfgClient parent = getTestParent(ctx, "test parent 2");
+    TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn
+        .getInstance(), "test child 3", null);
+
+    // Inherits from parent (test parent 2).
+    Assert.assertEquals(child.getMinimumLength(), 10000);
+
+    // Inherits from test parent 2.
+    Assert.assertEquals(child.getMaximumLength(), 20000);
+
+    // Check that the default values are not committed.
+    child.commit();
+
+    c.assertEntryIsCreated();
+  }
+
+
+
   // Create the named test parent managed object.
-  private void createTestParent(ManagementContext context, String name,
-      PropertyProvider p) throws ManagedObjectDecodingException,
+  private TestParentCfgClient createTestParent(ManagementContext context,
+      String name) throws ManagedObjectDecodingException,
       AuthorizationException, ManagedObjectAlreadyExistsException,
       ConcurrentModificationException, OperationRejectedException,
       CommunicationException {
     ManagedObject<RootCfgClient> root = context
         .getRootConfigurationManagedObject();
-    root.createChild(TestParentCfgDefn.RD_TEST_PARENT, TestParentCfgDefn
-        .getInstance(), name, p);
+    return root.createChild(TestParentCfgDefn.RD_TEST_PARENT,
+        TestParentCfgDefn.getInstance(), name, null).getConfiguration();
   }
 
 

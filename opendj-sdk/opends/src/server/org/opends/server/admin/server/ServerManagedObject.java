@@ -29,38 +29,49 @@ package org.opends.server.admin.server;
 
 
 
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
+import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.Configuration;
+import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.DefaultBehaviorProviderVisitor;
+import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.DefinitionResolver;
-import org.opends.server.admin.InheritedDefaultValueProvider;
+import org.opends.server.admin.IllegalPropertyValueException;
+import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyException;
+import org.opends.server.admin.PropertyIsMandatoryException;
+import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyNotFoundException;
+import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.SingletonRelationDefinition;
-import org.opends.server.admin.StringPropertyProvider;
-import org.opends.server.admin.client.PropertySet;
+import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
+import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AttributeValueDecoder;
@@ -70,12 +81,14 @@ import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.messages.AdminMessages;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
+
 
 
 /**
@@ -85,80 +98,245 @@ import org.opends.server.types.DirectoryException;
  *          The type of server configuration represented by the server
  *          managed object.
  */
-public final class ServerManagedObject<S extends Configuration>
-    implements PropertyProvider {
+public final class ServerManagedObject<S extends Configuration> implements
+    PropertyProvider {
+
+  /**
+   * A default behavior visitor used for retrieving the default values
+   * of a property.
+   *
+   * @param <T>
+   *          The type of the property.
+   */
+  private static class DefaultValueFinder<T> implements
+      DefaultBehaviorProviderVisitor<T, Collection<T>, ManagedObjectPath> {
+
+    /**
+     * Get the default values for the specified property.
+     *
+     * @param <T>
+     *          The type of the property.
+     * @param p
+     *          The managed object path of the current managed object.
+     * @param pd
+     *          The property definition.
+     * @return Returns the default values for the specified property.
+     * @throws DefaultBehaviorException
+     *           If the default values could not be retrieved or
+     *           decoded properly.
+     */
+    public static <T> Collection<T> getDefaultValues(ManagedObjectPath p,
+        PropertyDefinition<T> pd) throws DefaultBehaviorException {
+      DefaultValueFinder<T> v = new DefaultValueFinder<T>(pd);
+      Collection<T> values = pd.getDefaultBehaviorProvider().accept(v, p);
+
+      if (v.exception != null) {
+        throw v.exception;
+      }
+
+      if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
+        throw new DefaultBehaviorException(pd,
+            new PropertyIsSingleValuedException(pd));
+      }
+
+      return values;
+    }
+
+    // Any exception that occurred whilst retrieving inherited default
+    // values.
+    private DefaultBehaviorException exception = null;
+
+    // The property definition whose default values are required.
+    private final PropertyDefinition<T> pd;
+
+
+
+    // Private constructor.
+    private DefaultValueFinder(PropertyDefinition<T> pd) {
+      this.pd = pd;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Collection<T> visitAbsoluteInherited(
+        AbsoluteInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath p) {
+      try {
+        return getInheritedProperty(d.getManagedObjectPath(), d
+            .getManagedObjectDefinition(), d.getPropertyName());
+      } catch (DefaultBehaviorException e) {
+        exception = new DefaultBehaviorException(pd, e);
+      }
+      return Collections.emptySet();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d,
+        ManagedObjectPath p) {
+      return Collections.emptySet();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d,
+        ManagedObjectPath p) {
+      Collection<String> stringValues = d.getDefaultValues();
+      List<T> values = new ArrayList<T>(stringValues.size());
+
+      for (String stringValue : stringValues) {
+        try {
+          values.add(pd.decodeValue(stringValue));
+        } catch (IllegalPropertyValueStringException e) {
+          exception = new DefaultBehaviorException(pd, e);
+          break;
+        }
+      }
+
+      return values;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Collection<T> visitRelativeInherited(
+        RelativeInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath p) {
+      try {
+        return getInheritedProperty(d.getManagedObjectPath(p), d
+            .getManagedObjectDefinition(), d.getPropertyName());
+      } catch (DefaultBehaviorException e) {
+        exception = new DefaultBehaviorException(pd, e);
+      }
+      return Collections.emptySet();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
+        ManagedObjectPath p) {
+      return Collections.emptySet();
+    }
+
+
+
+    // Get an inherited property value.
+    private Collection<T> getInheritedProperty(ManagedObjectPath target,
+        AbstractManagedObjectDefinition<?, ?> d, String propertyName)
+        throws DefaultBehaviorException {
+      try {
+        // First check that the requested type of managed object
+        // corresponds to the path.
+        AbstractManagedObjectDefinition<?, ?> supr = target
+            .getManagedObjectDefinition();
+        if (!supr.isParentOf(d)) {
+          throw new DefinitionDecodingException(Reason.WRONG_TYPE_INFORMATION);
+        }
+
+        // Get the actual managed object definition.
+        DN dn = DNBuilder.create(target);
+        ConfigEntry configEntry = getManagedObjectConfigEntry(dn);
+        DefinitionResolver resolver = new MyDefinitionResolver(configEntry);
+        ManagedObjectDefinition<?, ?> mod = d
+            .resolveManagedObjectDefinition(resolver);
+
+        PropertyDefinition<?> pd2;
+        try {
+          pd2 = mod.getPropertyDefinition(propertyName);
+        } catch (IllegalArgumentException e) {
+          throw new PropertyNotFoundException(propertyName);
+        }
+
+        List<String> stringValues = getAttribute(mod, pd2, configEntry);
+        if (stringValues.isEmpty()) {
+          // Recursively retrieve this property's default values.
+          Collection<?> tmp = getDefaultValues(target, pd2);
+          Collection<T> values = new ArrayList<T>(tmp.size());
+          for (Object o : tmp) {
+            T value;
+            try {
+              value = pd.castValue(o);
+            } catch (ClassCastException e) {
+              throw new IllegalPropertyValueException(pd, o);
+            }
+            pd.validateValue(value);
+            values.add(value);
+          }
+          return values;
+        } else {
+          Collection<T> values = new ArrayList<T>(stringValues.size());
+          for (String s : stringValues) {
+            values.add(pd.decodeValue(s));
+          }
+          return values;
+        }
+      } catch (DefinitionDecodingException e) {
+        throw new DefaultBehaviorException(pd, e);
+      } catch (PropertyNotFoundException e) {
+        throw new DefaultBehaviorException(pd, e);
+      } catch (IllegalPropertyValueException e) {
+        throw new DefaultBehaviorException(pd, e);
+      } catch (IllegalPropertyValueStringException e) {
+        throw new DefaultBehaviorException(pd, e);
+      } catch (ConfigException e) {
+        throw new DefaultBehaviorException(pd, e);
+      }
+    }
+  }
+
+
+
+  /**
+   * A definition resolver that determines the managed object
+   * definition from the object classes of a ConfigEntry.
+   */
+  private static class MyDefinitionResolver implements DefinitionResolver {
+
+    // The config entry.
+    private final ConfigEntry entry;
+
+
+
+    // Private constructor.
+    private MyDefinitionResolver(ConfigEntry entry) {
+      this.entry = entry;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean matches(AbstractManagedObjectDefinition<?, ?> d) {
+      String oc = LDAPProfile.getInstance().getObjectClass(d);
+      return entry.hasObjectClass(oc);
+    }
+  };
+
+  /**
+   * The root server managed object.
+   */
+  private static final ServerManagedObject<RootCfg> ROOT =
+    new ServerManagedObject<RootCfg>(
+      ManagedObjectPath.emptyPath(), RootCfgDefn.getInstance(), Collections
+          .<PropertyDefinition<?>, SortedSet<?>> emptyMap(), null);
 
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
-  /**
-   * Internal inherited default value provider implementation.
-   */
-  private static class MyInheritedDefaultValueProvider implements
-      InheritedDefaultValueProvider {
-
-    // The base path.
-    private final ManagedObjectPath<?, ?> path;
-
-
-
-    /**
-     * Create a new inherited default value provider.
-     *
-     * @param path
-     *          The base path.
-     */
-    public MyInheritedDefaultValueProvider(ManagedObjectPath path) {
-      this.path = path;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public Collection<?> getDefaultPropertyValues(
-        ManagedObjectPath path, String propertyName)
-        throws OperationsException, PropertyNotFoundException {
-      // Get the configuration entry.
-      DN targetDN = DNBuilder.create(path);
-      final ConfigEntry configEntry;
-      try {
-        configEntry = DirectoryServer.getConfigEntry(targetDN);
-      } catch (ConfigException e) {
-        throw new ManagedObjectNotFoundException(e);
-      }
-
-      if (configEntry == null) {
-        throw new ManagedObjectNotFoundException();
-      }
-
-      ManagedObjectPath<?, ?> tmp = path;
-      ServerManagedObject<?> mo = decode(tmp, tmp
-          .getManagedObjectDefinition(), configEntry);
-      ManagedObjectDefinition<?, ?> mod = mo
-          .getManagedObjectDefinition();
-      try {
-        PropertyDefinition<?> dpd = mod
-            .getPropertyDefinition(propertyName);
-        return mo.getPropertyValues(dpd);
-      } catch (IllegalArgumentException e) {
-        throw new PropertyNotFoundException(propertyName);
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public ManagedObjectPath getManagedObjectPath() {
-      return path;
-    }
-
-  }
 
 
 
@@ -183,74 +361,34 @@ public final class ServerManagedObject<S extends Configuration>
    *           If one or more of the managed object's properties could
    *           not be decoded.
    */
-  static <S extends Configuration>
-  ServerManagedObject<? extends S> decode(
-      ManagedObjectPath path,
-      AbstractManagedObjectDefinition<?, S> definition,
-      final ConfigEntry configEntry)
-      throws DefinitionDecodingException,
+  static <S extends Configuration> ServerManagedObject<? extends S> decode(
+      ManagedObjectPath path, AbstractManagedObjectDefinition<?, S> definition,
+      ConfigEntry configEntry) throws DefinitionDecodingException,
       ServerManagedObjectDecodingException {
     // First determine the correct definition to use for the entry.
     // This could either be the provided definition, or one of its
     // sub-definitions.
-    DefinitionResolver resolver = new DefinitionResolver() {
-
-      public boolean matches(AbstractManagedObjectDefinition<?, ?> d) {
-        String oc = LDAPProfile.getInstance().getObjectClass(d);
-        return configEntry.hasObjectClass(oc);
-      }
-
-    };
-
-    final ManagedObjectDefinition<?, ? extends S> mod = definition
+    DefinitionResolver resolver = new MyDefinitionResolver(configEntry);
+    ManagedObjectDefinition<?, ? extends S> mod = definition
         .resolveManagedObjectDefinition(resolver);
 
-    // Use a string-based property provider to pull in the property
-    // values.
-    StringPropertyProvider provider = new StringPropertyProvider() {
-
-      public Collection<String> getPropertyValues(
-          PropertyDefinition<?> d) throws IllegalArgumentException {
-        String attrID = LDAPProfile.getInstance().getAttributeName(
-            mod, d);
-        // TODO: we create a default attribute type if it is
-        // undefined. We should log a warning here if this is the case
-        // since the attribute should have been defined.
-        AttributeType type = DirectoryServer.getAttributeType(attrID, true);
-        AttributeValueDecoder<String> decoder =
-          new AttributeValueDecoder<String>() {
-
-          public String decode(AttributeValue value)
-              throws DirectoryException {
-            return value.getStringValue();
-          }
-        };
-
-        try {
-          Collection<String> values = new LinkedList<String>();
-          configEntry.getEntry().getAttributeValues(type, decoder,
-              values);
-          return values;
-        } catch (DirectoryException e) {
-          // Should not happen.
-          throw new RuntimeException(e);
-        }
-      }
-
-    };
-
-    // Create the new managed object's property set, saving any
-    // decoding exceptions.
+    // Build the managed object's properties.
     List<PropertyException> exceptions = new LinkedList<PropertyException>();
-    InheritedDefaultValueProvider i = new MyInheritedDefaultValueProvider(
-        path);
-    PropertySet properties = PropertySet.create(mod, provider, i,
-        exceptions);
-    ServerManagedObject<? extends S> mo = decodeAux(path, mod,
-        properties, configEntry);
+    Map<PropertyDefinition<?>, SortedSet<?>> properties =
+      new HashMap<PropertyDefinition<?>, SortedSet<?>>();
+    for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
+      List<String> values = getAttribute(mod, pd, configEntry);
+      try {
+        decodeProperty(properties, path, pd, values);
+      } catch (PropertyException e) {
+        exceptions.add(e);
+      }
+    }
 
-    // If there were no decoding problems then return the object,
-    // otherwise throw an operations exception.
+    // If there were no decoding problems then return the managed
+    // object, otherwise throw an operations exception.
+    ServerManagedObject<? extends S> mo = decodeAux(path, mod, properties,
+        configEntry);
     if (exceptions.isEmpty()) {
       return mo;
     } else {
@@ -261,28 +399,12 @@ public final class ServerManagedObject<S extends Configuration>
 
 
   /**
-   * Construct a root server managed object.
+   * Gets the root server managed object.
    *
-   * @return Returns a root server managed object.
+   * @return Returns the root server managed object.
    */
   static ServerManagedObject<RootCfg> getRootManagedObject() {
-    ManagedObjectPath path = ManagedObjectPath.emptyPath();
-    List<PropertyException> exceptions = new LinkedList<PropertyException>();
-    InheritedDefaultValueProvider i = new MyInheritedDefaultValueProvider(
-        path);
-    PropertySet properties = PropertySet.create(
-        RootCfgDefn.getInstance(),
-        PropertyProvider.DEFAULT_PROVIDER, i, exceptions);
-
-    // Should never get any exceptions.
-    if (!exceptions.isEmpty()) {
-      throw new RuntimeException(
-          "Got exceptions when creating root managed object");
-    }
-
-    return new ServerManagedObject<RootCfg>(path,
-        RootCfgDefn.getInstance(), properties,
-        null);
+    return ROOT;
   }
 
 
@@ -290,10 +412,124 @@ public final class ServerManagedObject<S extends Configuration>
   // Decode helper method required to avoid generics warning.
   private static <S extends Configuration> ServerManagedObject<S> decodeAux(
       ManagedObjectPath path, ManagedObjectDefinition<?, S> d,
-      PropertySet properties, ConfigEntry configEntry) {
-    return new ServerManagedObject<S>(path, d, properties,
-        configEntry);
+      Map<PropertyDefinition<?>, SortedSet<?>> properties,
+      ConfigEntry configEntry) {
+    return new ServerManagedObject<S>(path, d, properties, configEntry);
   }
+
+
+
+  // Create a property using the provided string values.
+  private static <T> void decodeProperty(
+      Map<PropertyDefinition<?>, SortedSet<?>> properties,
+      ManagedObjectPath path, PropertyDefinition<T> pd,
+      List<String> stringValues) throws PropertyException {
+    PropertyException exception = null;
+    SortedSet<T> values = new TreeSet<T>(pd);
+
+    if (!stringValues.isEmpty()) {
+      // The property has values defined for it.
+      for (String value : stringValues) {
+        try {
+          values.add(pd.decodeValue(value));
+        } catch (IllegalPropertyValueStringException e) {
+          exception = e;
+        }
+      }
+    } else {
+      // No values defined so get the defaults.
+      try {
+        values.addAll(DefaultValueFinder.getDefaultValues(path, pd));
+      } catch (DefaultBehaviorException e) {
+        exception = e;
+      }
+    }
+
+    if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
+      // This exception takes precedence over previous exceptions.
+      exception = new PropertyIsSingleValuedException(pd);
+      T value = values.first();
+      values.clear();
+      values.add(value);
+    }
+
+    if (values.isEmpty() && pd.hasOption(PropertyOption.MANDATORY)) {
+      // The values maybe empty because of a previous exception.
+      if (exception == null) {
+        exception = new PropertyIsMandatoryException(pd);
+      }
+    }
+
+    // TODO: If an exception occurs should we leave the property
+    // empty?
+    properties.put(pd, values);
+    if (exception != null) {
+      throw exception;
+    }
+  }
+
+
+
+  // Gets the attribute associated with a property from a ConfigEntry.
+  private static List<String> getAttribute(ManagedObjectDefinition<?, ?> d,
+      PropertyDefinition<?> pd, ConfigEntry configEntry) {
+    // TODO: we create a default attribute type if it is
+    // undefined. We should log a warning here if this is the case
+    // since the attribute should have been defined.
+    String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
+    AttributeType type = DirectoryServer.getAttributeType(attrID, true);
+    AttributeValueDecoder<String> decoder =
+      new AttributeValueDecoder<String>() {
+
+      public String decode(AttributeValue value) throws DirectoryException {
+        return value.getStringValue();
+      }
+    };
+
+    List<String> values = new LinkedList<String>();
+    try {
+      configEntry.getEntry().getAttributeValues(type, decoder, values);
+    } catch (DirectoryException e) {
+      // Should not happen.
+      throw new RuntimeException(e);
+    }
+    return values;
+  }
+
+
+
+  // Gets a config entry required for a managed object and throws a
+  // config exception on failure.
+  private static ConfigEntry getManagedObjectConfigEntry(DN dn)
+      throws ConfigException {
+    ConfigEntry configEntry;
+    try {
+      configEntry = DirectoryServer.getConfigEntry(dn);
+    } catch (ConfigException e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_GET_MANAGED_OBJECT;
+      String message = getMessage(msgID, String.valueOf(dn),
+          stackTraceToSingleLineString(e));
+      throw new ConfigException(msgID, message, e);
+    }
+
+    // The configuration handler is free to return null indicating
+    // that the entry does not exist.
+    if (configEntry == null) {
+      int msgID = AdminMessages.MSGID_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST;
+      String message = getMessage(msgID, String.valueOf(dn));
+      throw new ConfigException(msgID, message);
+    }
+
+    return configEntry;
+  }
+
+  // The configuration entry associated with this server managed
+  // object (null if root).
+  private ConfigEntry configEntry;
 
   // The managed object's definition.
   private final ManagedObjectDefinition<?, S> definition;
@@ -303,17 +539,14 @@ public final class ServerManagedObject<S extends Configuration>
   private final ManagedObjectPath<?, ?> path;
 
   // The managed object's properties.
-  private final PropertySet properties;
-
-  // The configuration entry associated with this server managed
-  // object (null if root).
-  private ConfigEntry configEntry;
+  private final Map<PropertyDefinition<?>, SortedSet<?>> properties;
 
 
 
   // Create an new server side managed object.
   private ServerManagedObject(ManagedObjectPath path,
-      ManagedObjectDefinition<?, S> d, PropertySet properties,
+      ManagedObjectDefinition<?, S> d,
+      Map<PropertyDefinition<?>, SortedSet<?>> properties,
       ConfigEntry configEntry) {
     this.definition = d;
     this.path = path;
@@ -338,8 +571,7 @@ public final class ServerManagedObject<S extends Configuration>
    */
   public <M extends Configuration> void deregisterAddListener(
       InstantiableRelationDefinition<?, M> d,
-      ConfigurationAddListener<M> listener)
-      throws IllegalArgumentException {
+      ConfigurationAddListener<M> listener) throws IllegalArgumentException {
     validateRelationDefinition(d);
 
     DN baseDN = DNBuilder.create(path, d);
@@ -362,8 +594,7 @@ public final class ServerManagedObject<S extends Configuration>
    *           with this managed object's definition.
    */
   public <M extends Configuration> void deregisterAddListener(
-      OptionalRelationDefinition<?, M> d,
-      ConfigurationAddListener<M> listener)
+      OptionalRelationDefinition<?, M> d, ConfigurationAddListener<M> listener)
       throws IllegalArgumentException {
     validateRelationDefinition(d);
 
@@ -408,8 +639,7 @@ public final class ServerManagedObject<S extends Configuration>
    */
   public <M extends Configuration> void deregisterDeleteListener(
       InstantiableRelationDefinition<?, M> d,
-      ConfigurationDeleteListener<M> listener)
-      throws IllegalArgumentException {
+      ConfigurationDeleteListener<M> listener) throws IllegalArgumentException {
     validateRelationDefinition(d);
 
     DN baseDN = DNBuilder.create(path, d);
@@ -433,8 +663,7 @@ public final class ServerManagedObject<S extends Configuration>
    */
   public <M extends Configuration> void deregisterDeleteListener(
       OptionalRelationDefinition<?, M> d,
-      ConfigurationDeleteListener<M> listener)
-      throws IllegalArgumentException {
+      ConfigurationDeleteListener<M> listener) throws IllegalArgumentException {
     validateRelationDefinition(d);
 
     DN baseDN = DNBuilder.create(path);
@@ -465,7 +694,6 @@ public final class ServerManagedObject<S extends Configuration>
       InstantiableRelationDefinition<?, M> d, String name)
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
-
     ManagedObjectPath childPath = path.child(d, name);
     return getChild(childPath, d);
   }
@@ -489,11 +717,9 @@ public final class ServerManagedObject<S extends Configuration>
    *           could not be decoded.
    */
   public <M extends Configuration> ServerManagedObject<? extends M> getChild(
-      OptionalRelationDefinition<?, M> d)
-      throws IllegalArgumentException, ConfigException {
+      OptionalRelationDefinition<?, M> d) throws IllegalArgumentException,
+      ConfigException {
     validateRelationDefinition(d);
-
-    // Get the configuration entry.
     ManagedObjectPath childPath = path.child(d);
     return getChild(childPath, d);
   }
@@ -517,11 +743,9 @@ public final class ServerManagedObject<S extends Configuration>
    *           could not be decoded.
    */
   public <M extends Configuration> ServerManagedObject<? extends M> getChild(
-      SingletonRelationDefinition<?, M> d)
-      throws IllegalArgumentException, ConfigException {
+      SingletonRelationDefinition<?, M> d) throws IllegalArgumentException,
+      ConfigException {
     validateRelationDefinition(d);
-
-    // Get the configuration entry.
     ManagedObjectPath childPath = path.child(d);
     return getChild(childPath, d);
   }
@@ -582,44 +806,49 @@ public final class ServerManagedObject<S extends Configuration>
 
 
   /**
-   * Get the current value of the specified property.
-   * <p>
-   * If the value has been modified then the new value is returned,
-   * otherwise the original value will be returned.
+   * Get the effective value of the specified property. If the
+   * property is multi-valued then just the first value is returned.
+   * If the property does not have a value then its default value is
+   * returned if it has one, or <code>null</code> indicating that
+   * any default behavior is applicable.
    *
    * @param <T>
    *          The type of the property to be retrieved.
    * @param d
    *          The property to be retrieved.
-   * @return Returns the property's current value, or
-   *         <code>null</code> if there is no value(s) associated
-   *         with the property and any default behavior is
-   *         applicable.
+   * @return Returns the property's effective value, or
+   *         <code>null</code> indicating that any default behavior
+   *         is applicable.
    * @throws IllegalArgumentException
    *           If the property definition is not associated with this
    *           managed object's definition.
    */
   public <T> T getPropertyValue(PropertyDefinition<T> d)
       throws IllegalArgumentException {
-    return properties.getPropertyValue(d);
+    Set<T> values = getPropertyValues(d);
+    if (values.isEmpty()) {
+      return null;
+    } else {
+      return values.iterator().next();
+    }
   }
 
 
 
   /**
-   * Get the current values of the specified property.
-   * <p>
-   * If the property has been modified then the new values are
-   * returned, otherwise the original values will be returned.
+   * Get the effective values of the specified property. If the
+   * property does not have any values then its default values are
+   * returned if it has any, or an empty set indicating that any
+   * default behavior is applicable.
    *
    * @param <T>
    *          The type of the property to be retrieved.
    * @param d
    *          The property to be retrieved.
    * @return Returns a newly allocated set containing a copy of the
-   *         property's current values. An empty set indicates that
-   *         the property has no values defined and any default
-   *         behavior is applicable.
+   *         property's effective values. An empty set indicates that
+   *         the property has no default values defined and any
+   *         default behavior is applicable.
    * @throws IllegalArgumentException
    *           If the property definition is not associated with this
    *           managed object's definition.
@@ -627,7 +856,10 @@ public final class ServerManagedObject<S extends Configuration>
   @SuppressWarnings("unchecked")
   public <T> SortedSet<T> getPropertyValues(PropertyDefinition<T> d)
       throws IllegalArgumentException {
-    return properties.getPropertyValues(d);
+    if (!properties.containsKey(d)) {
+      throw new IllegalArgumentException("Unknown property " + d.getName());
+    }
+    return new TreeSet<T>((SortedSet<T>) properties.get(d));
   }
 
 
@@ -721,14 +953,14 @@ public final class ServerManagedObject<S extends Configuration>
    */
   public <M extends Configuration> void registerAddListener(
       InstantiableRelationDefinition<?, M> d,
-      ConfigurationAddListener<M> listener)
-      throws IllegalArgumentException, ConfigException {
+      ConfigurationAddListener<M> listener) throws IllegalArgumentException,
+      ConfigException {
     validateRelationDefinition(d);
 
     DN baseDN = DNBuilder.create(path, d);
     ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
-    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path,
-        d, listener);
+    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
+        listener);
 
     if (relationEntry != null) {
       relationEntry.registerAddListener(adaptor);
@@ -758,13 +990,12 @@ public final class ServerManagedObject<S extends Configuration>
    *           with this managed object's definition.
    */
   public <M extends Configuration> void registerAddListener(
-      OptionalRelationDefinition<?, M> d,
-      ConfigurationAddListener<M> listener)
+      OptionalRelationDefinition<?, M> d, ConfigurationAddListener<M> listener)
       throws IllegalArgumentException {
     validateRelationDefinition(d);
 
-    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path,
-        d, listener);
+    ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
+        listener);
     configEntry.registerAddListener(adaptor);
   }
 
@@ -779,8 +1010,8 @@ public final class ServerManagedObject<S extends Configuration>
    */
   public void registerChangeListener(
       ConfigurationChangeListener<? super S> listener) {
-    ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<S>(
-        path, definition, listener);
+    ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<S>(path,
+        definition, listener);
     configEntry.registerChangeListener(adaptor);
   }
 
@@ -805,14 +1036,14 @@ public final class ServerManagedObject<S extends Configuration>
    */
   public <M extends Configuration> void registerDeleteListener(
       InstantiableRelationDefinition<?, M> d,
-      ConfigurationDeleteListener<M> listener)
-      throws IllegalArgumentException, ConfigException {
+      ConfigurationDeleteListener<M> listener) throws IllegalArgumentException,
+      ConfigException {
     validateRelationDefinition(d);
 
     DN baseDN = DNBuilder.create(path, d);
     ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
-    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(
-        path, d, listener);
+    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
+        listener);
 
     if (relationEntry != null) {
       relationEntry.registerDeleteListener(adaptor);
@@ -843,12 +1074,11 @@ public final class ServerManagedObject<S extends Configuration>
    */
   public <M extends Configuration> void registerDeleteListener(
       OptionalRelationDefinition<?, M> d,
-      ConfigurationDeleteListener<M> listener)
-      throws IllegalArgumentException {
+      ConfigurationDeleteListener<M> listener) throws IllegalArgumentException {
     validateRelationDefinition(d);
 
-    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(
-        path, d, listener);
+    ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
+        listener);
     configEntry.registerDeleteListener(adaptor);
   }
 
@@ -870,8 +1100,8 @@ public final class ServerManagedObject<S extends Configuration>
 
 
   // Deregister an add listener.
-  private <M extends Configuration> void deregisterAddListener(
-      DN baseDN, ConfigurationAddListener<M> listener) {
+  private <M extends Configuration> void deregisterAddListener(DN baseDN,
+      ConfigurationAddListener<M> listener) {
     try {
       ConfigEntry configEntry = getListenerConfigEntry(baseDN);
       if (configEntry != null) {
@@ -886,8 +1116,7 @@ public final class ServerManagedObject<S extends Configuration>
       }
     } catch (ConfigException e) {
       // Ignore the exception since this implies deregistration.
-      if (debugEnabled())
-      {
+      if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
@@ -901,8 +1130,7 @@ public final class ServerManagedObject<S extends Configuration>
     try {
       ConfigEntry configEntry = getListenerConfigEntry(baseDN);
       if (configEntry != null) {
-        for (ConfigDeleteListener l : configEntry
-            .getDeleteListeners()) {
+        for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
           if (l instanceof ConfigDeleteListenerAdaptor) {
             ConfigDeleteListenerAdaptor adaptor =
               (ConfigDeleteListenerAdaptor) l;
@@ -914,8 +1142,7 @@ public final class ServerManagedObject<S extends Configuration>
       }
     } catch (ConfigException e) {
       // Ignore the exception since this implies deregistration.
-      if (debugEnabled())
-      {
+      if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
@@ -945,15 +1172,13 @@ public final class ServerManagedObject<S extends Configuration>
 
   // Gets a config entry required for a listener and throws a config
   // exception on failure or returns null if the entry does not exist.
-  private ConfigEntry getListenerConfigEntry(DN dn)
-      throws ConfigException {
+  private ConfigEntry getListenerConfigEntry(DN dn) throws ConfigException {
     // Attempt to retrieve the listener base entry.
     ConfigEntry configEntry;
     try {
       configEntry = DirectoryServer.getConfigEntry(dn);
     } catch (ConfigException e) {
-      if (debugEnabled())
-      {
+      if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
@@ -968,48 +1193,14 @@ public final class ServerManagedObject<S extends Configuration>
 
 
 
-  // Gets a config entry required for a managed object and throws a
-  // config exception on failure.
-  private ConfigEntry getManagedObjectConfigEntry(DN dn)
-      throws ConfigException {
-    ConfigEntry configEntry;
-    try {
-      configEntry = DirectoryServer.getConfigEntry(dn);
-    } catch (ConfigException e) {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_GET_MANAGED_OBJECT;
-      String message = getMessage(msgID, String.valueOf(dn),
-          stackTraceToSingleLineString(e));
-      throw new ConfigException(msgID, message, e);
-    }
-
-    // The configuration handler is free to return null indicating
-    // that the entry does not exist.
-    if (configEntry == null) {
-      int msgID = AdminMessages.MSGID_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST;
-      String message = getMessage(msgID, String.valueOf(dn));
-      throw new ConfigException(msgID, message);
-    }
-
-    return configEntry;
-  }
-
-
-
   // Validate that a relation definition belongs to this managed
   // object.
   private void validateRelationDefinition(RelationDefinition<?, ?> rd)
       throws IllegalArgumentException {
-    RelationDefinition tmp = definition.getRelationDefinition(rd
-        .getName());
+    RelationDefinition tmp = definition.getRelationDefinition(rd.getName());
     if (tmp != rd) {
-      throw new IllegalArgumentException("The relation "
-          + rd.getName() + " is not associated with a "
-          + definition.getName());
+      throw new IllegalArgumentException("The relation " + rd.getName()
+          + " is not associated with a " + definition.getName());
     }
   }
 }

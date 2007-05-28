@@ -32,6 +32,7 @@ import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
+import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.types.DN;
@@ -47,8 +48,39 @@ public final class TestChildCfgDefn extends
   // The singleton configuration definition instance.
   private static final TestChildCfgDefn INSTANCE = new TestChildCfgDefn();
 
+  // The "maximum-length" property definition.
+  private static final IntegerPropertyDefinition PD_MAXIMUM_LENGTH;
+
+  // The "minimum-length" property definition.
+  private static final IntegerPropertyDefinition PD_MINIMUM_LENGTH;
+
   // The "heartbeat-interval" property definition.
   private static final DurationPropertyDefinition PD_HEARTBEAT_INTERVAL;
+
+  // Build the "maximum-length" property definition.
+  static {
+    IntegerPropertyDefinition.Builder builder = IntegerPropertyDefinition
+        .createBuilder(INSTANCE, "maximum-length");
+    DefaultBehaviorProvider<Integer> provider = new RelativeInheritedDefaultBehaviorProvider<Integer>(
+        TestParentCfgDefn.getInstance(), "maximum-length", 1);
+    builder.setDefaultBehaviorProvider(provider);
+    builder.setLowerLimit(0);
+    PD_MAXIMUM_LENGTH = builder.getInstance();
+    INSTANCE.registerPropertyDefinition(PD_MAXIMUM_LENGTH);
+  }
+
+  // Build the "minimum-length" property definition.
+  static {
+    IntegerPropertyDefinition.Builder builder = IntegerPropertyDefinition
+        .createBuilder(INSTANCE, "minimum-length");
+    DefaultBehaviorProvider<Integer> provider = new AbsoluteInheritedDefaultBehaviorProvider<Integer>(
+        ManagedObjectPath.valueOf("/relation=test-parent+name=test parent 2"),
+        "minimum-length");
+    builder.setDefaultBehaviorProvider(provider);
+    builder.setLowerLimit(0);
+    PD_MINIMUM_LENGTH = builder.getInstance();
+    INSTANCE.registerPropertyDefinition(PD_MINIMUM_LENGTH);
+  }
 
   // Build the "heartbeat-interval" property definition.
   static {
@@ -127,6 +159,28 @@ public final class TestChildCfgDefn extends
 
 
   /**
+   * Get the "maximum-length" property definition.
+   *
+   * @return Returns the "maximum-length" property definition.
+   */
+  public IntegerPropertyDefinition getMaximumLengthPropertyDefinition() {
+    return PD_MAXIMUM_LENGTH;
+  }
+
+
+
+  /**
+   * Get the "minimum-length" property definition.
+   *
+   * @return Returns the "minimum-length" property definition.
+   */
+  public IntegerPropertyDefinition getMinimumLengthPropertyDefinition() {
+    return PD_MINIMUM_LENGTH;
+  }
+
+
+
+  /**
    * Managed object client implementation.
    */
   private static class TestChildCfgClientImpl implements TestChildCfgClient {
@@ -167,6 +221,46 @@ public final class TestChildCfgDefn extends
     /**
      * {@inheritDoc}
      */
+    public int getMaximumLength() {
+      return impl.getPropertyValue(INSTANCE
+          .getMaximumLengthPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setMaximumLength(Integer value) {
+      impl.setPropertyValue(INSTANCE.getMaximumLengthPropertyDefinition(),
+          value);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getMinimumLength() {
+      return impl.getPropertyValue(INSTANCE
+          .getMinimumLengthPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setMinimumLength(Integer value) {
+      impl.setPropertyValue(INSTANCE.getMinimumLengthPropertyDefinition(),
+          value);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
     public ManagedObjectDefinition<? extends TestChildCfgClient, ? extends TestChildCfg> definition() {
       return INSTANCE;
     }
@@ -187,7 +281,8 @@ public final class TestChildCfgDefn extends
      */
     public void commit() throws ConcurrentModificationException,
         OperationRejectedException, AuthorizationException,
-        CommunicationException {
+        CommunicationException, ManagedObjectAlreadyExistsException,
+        MissingMandatoryPropertiesException {
       impl.commit();
     }
   }
@@ -218,6 +313,26 @@ public final class TestChildCfgDefn extends
     public long getHeartbeatInterval() {
       return impl.getPropertyValue(INSTANCE
           .getHeartbeatIntervalPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getMaximumLength() {
+      return impl.getPropertyValue(INSTANCE
+          .getMaximumLengthPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getMinimumLength() {
+      return impl.getPropertyValue(INSTANCE
+          .getMinimumLengthPropertyDefinition());
     }
 
 

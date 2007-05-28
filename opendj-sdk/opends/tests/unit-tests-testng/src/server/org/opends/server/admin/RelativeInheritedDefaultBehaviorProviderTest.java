@@ -27,44 +27,70 @@
 
 package org.opends.server.admin;
 
+
+
 import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
+
+
 
 /**
  * RelativeInheritedDefaultBehaviorProvider Tester.
  */
 public class RelativeInheritedDefaultBehaviorProviderTest {
 
-  static private final String PROPERTY_NAME = "test-property";
-  static private final int OFFSET = 0;
+  private static final int OFFSET = 0;
 
-  private RelativeInheritedDefaultBehaviorProvider<Object> ridbp = null;
+  private static final TestParentCfgDefn d = TestParentCfgDefn.getInstance();
 
+  private RelativeInheritedDefaultBehaviorProvider<Integer> ridbp = null;
+
+
+
+  /**
+   * Creates the default behavior provider.
+   */
   @BeforeClass
   public void setUp() {
-    this.ridbp = new RelativeInheritedDefaultBehaviorProvider<Object>(OFFSET, PROPERTY_NAME);
+    this.ridbp = new RelativeInheritedDefaultBehaviorProvider<Integer>(d, d
+        .getMaximumLengthPropertyDefinition().getName(), OFFSET);
   }
 
+
+
+  /**
+   * Tests the accept method.
+   */
   @Test
   public void testAccept() {
-    ridbp.accept(new DefaultBehaviorProviderVisitor<Object,Object,Object>(){
+    ridbp.accept(new DefaultBehaviorProviderVisitor<Integer, Object, Object>() {
 
-      public Object visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider d, Object o) {
+      public Object visitAbsoluteInherited(
+          AbsoluteInheritedDefaultBehaviorProvider d, Object o) {
         return null;
       }
+
+
 
       public Object visitAlias(AliasDefaultBehaviorProvider d, Object o) {
         return null;
       }
 
+
+
       public Object visitDefined(DefinedDefaultBehaviorProvider d, Object o) {
         return null;
       }
 
-      public Object visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider d, Object o) {
+
+
+      public Object visitRelativeInherited(
+          RelativeInheritedDefaultBehaviorProvider d, Object o) {
         return null;
       }
+
+
 
       public Object visitUndefined(UndefinedDefaultBehaviorProvider d, Object o) {
         return null;
@@ -72,16 +98,33 @@ public class RelativeInheritedDefaultBehaviorProviderTest {
     }, new Object());
   }
 
+
+
+  /**
+   * Tests the getManagedObjectPath method.
+   */
   @Test
   public void testGetManagedObjectPath() {
-    ridbp.getManagedObjectPath(ManagedObjectPath.emptyPath());
+    assertEquals(ridbp.getManagedObjectPath(ManagedObjectPath.emptyPath()),
+        ManagedObjectPath.emptyPath());
   }
 
+
+
+  /**
+   * Tests the getPropertyDefinition method.
+   */
   @Test
-  public void testGetPropertyName() {
-    assertEquals(ridbp.getPropertyName(), PROPERTY_NAME);
+  public void testGetPropertyDefinition() {
+    assertEquals(ridbp.getPropertyName(), d
+        .getMaximumLengthPropertyDefinition().getName());
   }
 
+
+
+  /**
+   * Tests the getRelativeOffset method.
+   */
   @Test
   public void testGetRelativeOffset() {
     assertEquals(ridbp.getRelativeOffset(), OFFSET);

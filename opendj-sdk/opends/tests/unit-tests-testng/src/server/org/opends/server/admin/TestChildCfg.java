@@ -51,4 +51,22 @@ public interface TestChildCfg extends Configuration {
    * @return Returns the value of the "heartbeat-interval" property.
    */
   long getHeartbeatInterval();
+
+
+
+  /**
+   * Get the "maximum-length" property.
+   *
+   * @return Returns the value of the "maximum-length" property.
+   */
+  int getMaximumLength();
+
+
+
+  /**
+   * Get the "minimum-length" property.
+   *
+   * @return Returns the value of the "minimum-length" property.
+   */
+  int getMinimumLength();
 }

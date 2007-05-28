@@ -63,4 +63,46 @@ public interface TestChildCfgClient extends ConfigurationClient {
    *           If the new value is invalid.
    */
   void setHeartbeatInterval(Long value) throws IllegalPropertyValueException;
+
+
+
+  /**
+   * Get the "maximum-length" property.
+   *
+   * @return Returns the value of the "maximum-length" property.
+   */
+  int getMaximumLength();
+
+
+
+  /**
+   * Set the "maximum-length" property.
+   *
+   * @param value
+   *          The value of the "maximum-length" property.
+   * @throws IllegalPropertyValueException
+   *           If the new value is invalid.
+   */
+  void setMaximumLength(Integer value) throws IllegalPropertyValueException;
+
+
+
+  /**
+   * Get the "minimum-length" property.
+   *
+   * @return Returns the value of the "minimum-length" property.
+   */
+  int getMinimumLength();
+
+
+
+  /**
+   * Set the "minimum-length" property.
+   *
+   * @param value
+   *          The value of the "minimum-length" property.
+   * @throws IllegalPropertyValueException
+   *           If the new value is invalid.
+   */
+  void setMinimumLength(Integer value) throws IllegalPropertyValueException;
 }

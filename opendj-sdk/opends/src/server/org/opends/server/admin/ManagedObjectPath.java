@@ -44,6 +44,64 @@ import org.opends.server.admin.std.server.RootCfg;
 /**
  * A path which can be used to determine the location of a managed
  * object instance.
+ * <p>
+ * A path is made up of zero or more elements each of which represents
+ * a managed object. Managed objects are arranged hierarchically with
+ * the root configuration being the top-most managed object. Elements
+ * are ordered such that the root configuration managed object is the
+ * first element and subsequent elements representing managed objects
+ * further down the hierarchy.
+ * <p>
+ * A path can be encoded into a string representation using the
+ * {@link #toString()} and {@link #toString(StringBuilder)} methods.
+ * Conversely, this string representation can be parsed using the
+ * {@link #valueOf(String)} method.
+ * <p>
+ * The string representation of a managed object path is similar in
+ * principle to a UNIX file-system path and is defined as follows:
+ * <ul>
+ * <li>the root element is represented by the string <code>/</code>
+ * <li>subordinate elements are arranged in big-endian order
+ * separated by a forward slash <code>/</code> character
+ * <li>an element representing a managed object associated with a
+ * one-to-one (singleton) or one-to-zero-or-one (optional) relation
+ * has the form <code>relation=</code><i>relation</i>
+ * <code>[+type=</code><i>definition</i><code>]</code>, where
+ * <i>relation</i> is the name of the relation and <i>definition</i>
+ * is the name of the referenced managed object's definition if
+ * required (usually this is implied by the relation itself)
+ * <li>an element representing a managed object associated with a
+ * one-to-many (instantiable) relation has the form
+ * <code>relation=</code><i>relation</i><code>[+type=</code>
+ * <i>definition</i><code>]</code><code>+name=</code><i>name</i>,
+ * where <i>relation</i> is the name of the relation and
+ * <i>definition</i> is the name of the referenced managed object's
+ * definition if required (usually this is implied by the relation
+ * itself), and <i>name</i> is the name of the managed object
+ * instance.
+ * </ul>
+ * The following path string representation identifies a connection
+ * handler instance (note that the <code>type</code> is not
+ * specified indicating that the path identifies a connection handler
+ * called <i>my handler</i> which can be any type of connection
+ * handler):
+ *
+ * <pre>
+ *  /relation=connection-handler+name=my handler
+ * </pre>
+ *
+ * If the identified connection handler must be an LDAP connection
+ * handler then the above path should include the <code>type</code>:
+ *
+ * <pre>
+ *  /relation=connection-handler+type=ldap-connection-handler+name=my handler
+ * </pre>
+ *
+ * The final example identifies the global configuration:
+ *
+ * <pre>
+ *  /relation=global-configuration
+ * </pre>
  *
  * @param <C>
  *          The type of client managed object configuration that this
@@ -52,14 +110,14 @@ import org.opends.server.admin.std.server.RootCfg;
  *          The type of server managed object configuration that this
  *          path references.
  */
-public final class ManagedObjectPath
-    <C extends ConfigurationClient, S extends Configuration> {
+public final class ManagedObjectPath<C extends ConfigurationClient,
+    S extends Configuration> {
 
   /**
    * Abstract path element.
    */
-  private static abstract class Element
-      <C extends ConfigurationClient, S extends Configuration> {
+  private static abstract class Element<C extends ConfigurationClient,
+      S extends Configuration> {
 
     // The type of managed object referenced by this element.
     private final AbstractManagedObjectDefinition<C, S> definition;
@@ -92,6 +150,17 @@ public final class ManagedObjectPath
 
 
     /**
+     * Get the relation definition associated with this element.
+     *
+     * @return Returns the relation definition associated with this
+     *         element.
+     */
+    public abstract RelationDefinition<? super C, ? super S>
+        getRelationDefinition();
+
+
+
+    /**
      * Serialize this path element using the provided serialization
      * strategy.
      *
@@ -111,8 +180,8 @@ public final class ManagedObjectPath
       extends Element<C, S> {
 
     // Factory method.
-    private static final
-        <C extends ConfigurationClient, S extends Configuration>
+    private static final <C extends ConfigurationClient,
+        S extends Configuration>
         InstantiableElement<C, S> create(
         InstantiableRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d, String name) {
@@ -142,6 +211,17 @@ public final class ManagedObjectPath
      * {@inheritDoc}
      */
     @Override
+    public InstantiableRelationDefinition<? super C, ? super S>
+        getRelationDefinition() {
+      return r;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void serialize(ManagedObjectPathSerializer serializer) {
       serializer.appendManagedObjectPathElement(r,
           getManagedObjectDefinition(), name);
@@ -158,9 +238,8 @@ public final class ManagedObjectPath
       extends Element<C, S> {
 
     // Factory method.
-    private static final
-        <C extends ConfigurationClient, S extends Configuration>
-        OptionalElement<C, S> create(
+    private static final <C extends ConfigurationClient,
+        S extends Configuration> OptionalElement<C, S> create(
         OptionalRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d) {
       return new OptionalElement<C, S>(r, d);
@@ -176,6 +255,17 @@ public final class ManagedObjectPath
         AbstractManagedObjectDefinition<C, S> d) {
       super(d);
       this.r = r;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public OptionalRelationDefinition<? super C, ? super S>
+        getRelationDefinition() {
+      return r;
     }
 
 
@@ -200,9 +290,8 @@ public final class ManagedObjectPath
       extends Element<C, S> {
 
     // Factory method.
-    private static final
-        <C extends ConfigurationClient, S extends Configuration>
-        SingletonElement<C, S> create(
+    private static final <C extends ConfigurationClient,
+        S extends Configuration> SingletonElement<C, S> create(
         SingletonRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d) {
       return new SingletonElement<C, S>(r, d);
@@ -219,6 +308,17 @@ public final class ManagedObjectPath
         AbstractManagedObjectDefinition<C, S> d) {
       super(d);
       this.r = r;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SingletonRelationDefinition<? super C, ? super S>
+        getRelationDefinition() {
+      return r;
     }
 
 
@@ -312,8 +412,8 @@ public final class ManagedObjectPath
 
   // Single instance of a root path.
   private static final ManagedObjectPath<RootCfgClient, RootCfg> EMPTY_PATH =
-    new ManagedObjectPath<RootCfgClient, RootCfg>(
-      new LinkedList<Element<?, ?>>(), RootCfgDefn.getInstance());
+      new ManagedObjectPath<RootCfgClient, RootCfg>(
+      new LinkedList<Element<?, ?>>(), null, RootCfgDefn.getInstance());
 
   // A regular expression used to parse path elements.
   private static final Pattern PE_REGEXP = Pattern
@@ -358,6 +458,7 @@ public final class ManagedObjectPath
 
     // Parse the elements.
     LinkedList<Element<?, ?>> elements = new LinkedList<Element<?, ?>>();
+    Element<?, ?> lastElement = null;
     AbstractManagedObjectDefinition<?, ?> definition = RootCfgDefn
         .getInstance();
 
@@ -397,10 +498,14 @@ public final class ManagedObjectPath
             + "\" in path \"" + ns + "\"");
       }
 
-      String relation = m.group(1); // Mandatory.
-      String type = m.group(3); // Optional.
-      String name = m.group(5); // Mandatory if relation is
-      // instantiable.
+      // Mandatory.
+      String relation = m.group(1);
+
+      // Optional.
+      String type = m.group(3);
+
+      // Mandatory if relation is instantiable.
+      String name = m.group(5);
 
       // Get the relation definition.
       RelationDefinition<?, ?> r;
@@ -413,9 +518,9 @@ public final class ManagedObjectPath
       }
 
       // Append the next element.
-      Element<?, ?> e = createElement(r, ns, es, type, name);
-      elements.add(e);
-      definition = e.getManagedObjectDefinition();
+      lastElement = createElement(r, ns, es, type, name);
+      elements.add(lastElement);
+      definition = lastElement.getManagedObjectDefinition();
 
       // Update start to point to the beginning of the next element.
       if (end < ns.length()) {
@@ -428,7 +533,7 @@ public final class ManagedObjectPath
     }
 
     // Construct the new path.
-    return create(elements, definition);
+    return create(elements, lastElement);
   }
 
 
@@ -437,9 +542,9 @@ public final class ManagedObjectPath
   // construction of new paths.
   private static <C extends ConfigurationClient, S extends Configuration>
       ManagedObjectPath<C, S> create(
-      LinkedList<Element<?, ?>> elements,
-      AbstractManagedObjectDefinition<C, S> definition) {
-    return new ManagedObjectPath<C, S>(elements, definition);
+      LinkedList<Element<?, ?>> elements, Element<C, S> lastElement) {
+    return new ManagedObjectPath<C, S>(elements, lastElement
+        .getRelationDefinition(), lastElement.getManagedObjectDefinition());
   }
 
 
@@ -508,19 +613,24 @@ public final class ManagedObjectPath
     }
   }
 
-  // The last element in this path.
-  private final AbstractManagedObjectDefinition<C, S> definition;
+  // The managed object definition in this path.
+  private final AbstractManagedObjectDefinition<C, S> d;
 
   // The list of path elements in this path.
   private final List<Element<?, ?>> elements;
+
+  // The last relation definition in this path.
+  private final RelationDefinition<? super C, ? super S> r;
 
 
 
   // Private constructor.
   private ManagedObjectPath(LinkedList<Element<?, ?>> elements,
-      AbstractManagedObjectDefinition<C, S> definition) {
+      RelationDefinition<? super C, ? super S> r,
+      AbstractManagedObjectDefinition<C, S> d) {
     this.elements = Collections.unmodifiableList(elements);
-    this.definition = definition;
+    this.r = r;
+    this.d = d;
   }
 
 
@@ -552,7 +662,7 @@ public final class ManagedObjectPath
     LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(
         elements);
     celements.add(new InstantiableElement<M, N>(r, d, name));
-    return new ManagedObjectPath<M, N>(celements, d);
+    return new ManagedObjectPath<M, N>(celements, r, d);
   }
 
 
@@ -607,7 +717,7 @@ public final class ManagedObjectPath
     LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(
         elements);
     celements.add(new OptionalElement<M, N>(r, d));
-    return new ManagedObjectPath<M, N>(celements, d);
+    return new ManagedObjectPath<M, N>(celements, r, d);
   }
 
 
@@ -628,8 +738,7 @@ public final class ManagedObjectPath
    *         provided parent path.
    */
   public <M extends ConfigurationClient, N extends Configuration>
-      ManagedObjectPath<M, N> child(
-      OptionalRelationDefinition<M, N> r) {
+      ManagedObjectPath<M, N> child(OptionalRelationDefinition<M, N> r) {
     return child(r, r.getChildDefinition());
   }
 
@@ -660,7 +769,7 @@ public final class ManagedObjectPath
     LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(
         elements);
     celements.add(new SingletonElement<M, N>(r, d));
-    return new ManagedObjectPath<M, N>(celements, d);
+    return new ManagedObjectPath<M, N>(celements, r, d);
   }
 
 
@@ -681,8 +790,7 @@ public final class ManagedObjectPath
    *         provided parent path.
    */
   public <M extends ConfigurationClient, N extends Configuration>
-      ManagedObjectPath<M, N> child(
-      SingletonRelationDefinition<M, N> r) {
+      ManagedObjectPath<M, N> child(SingletonRelationDefinition<M, N> r) {
     return child(r, r.getChildDefinition());
   }
 
@@ -716,7 +824,23 @@ public final class ManagedObjectPath
    *         empty.
    */
   public AbstractManagedObjectDefinition<C, S> getManagedObjectDefinition() {
-    return definition;
+    return d;
+  }
+
+
+
+  /**
+   * Get the relation definition of the managed object referred to by
+   * this path.
+   * <p>
+   * When the path is empty, the <code>null</code> is returned.
+   *
+   * @return Returns the relation definition of the managed object
+   *         referred to by this path, or the <code>null</code> if
+   *         the path is empty.
+   */
+  public RelationDefinition<? super C, ? super S> getRelationDefinition() {
+    return r;
   }
 
 
@@ -745,8 +869,8 @@ public final class ManagedObjectPath
 
   /**
    * Creates a new parent managed object path representing the
-   * immediate parent of this path. This method is a short-hand
-   * for <code>parent(1)</code>.
+   * immediate parent of this path. This method is a short-hand for
+   * <code>parent(1)</code>.
    *
    * @return Returns a new parent managed object path representing the
    *         immediate parent of this path.
@@ -796,9 +920,7 @@ public final class ManagedObjectPath
 
     LinkedList<Element<?, ?>> celements = new LinkedList<Element<?, ?>>(
         elements.subList(0, elements.size() - offset));
-    AbstractManagedObjectDefinition<?, ?> definition = celements.getLast()
-        .getManagedObjectDefinition();
-    return create(celements, definition);
+    return create(celements, celements.getLast());
   }
 
 

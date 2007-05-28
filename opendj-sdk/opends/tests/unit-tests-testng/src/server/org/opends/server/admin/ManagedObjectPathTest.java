@@ -116,6 +116,17 @@ public class ManagedObjectPathTest {
 
 
   /**
+   * Tests that the empty path represents has no relation.
+   */
+  @Test
+  public void testEmptyPathHasNoRelation() {
+    ManagedObjectPath<?, ?> path = ManagedObjectPath.emptyPath();
+    assertEquals(path.getRelationDefinition(), null);
+  }
+
+
+
+  /**
    * Tests that the empty path has a string representation of "/".
    */
   @Test
@@ -152,6 +163,8 @@ public class ManagedObjectPathTest {
     assertEquals(child.parent(), path);
     assertEquals(child.getManagedObjectDefinition(), GlobalCfgDefn
         .getInstance());
+    assertEquals(child.getRelationDefinition(), RootCfgDefn.getInstance()
+        .getGlobalConfigurationRelationDefinition());
     assertEquals(child.toString(), "/relation=global-configuration");
     assertEquals(child, ManagedObjectPath
         .valueOf("/relation=global-configuration"));
@@ -175,6 +188,8 @@ public class ManagedObjectPathTest {
     assertEquals(child.parent(), path);
     assertEquals(child.getManagedObjectDefinition(), ConnectionHandlerCfgDefn
         .getInstance());
+    assertEquals(child.getRelationDefinition(), RootCfgDefn.getInstance()
+        .getConnectionHandlersRelationDefinition());
     assertEquals(child.toString(),
         "/relation=connection-handler+name=LDAP connection handler");
     assertEquals(child, ManagedObjectPath
@@ -200,6 +215,8 @@ public class ManagedObjectPathTest {
     assertEquals(child.parent(), path);
     assertEquals(child.getManagedObjectDefinition(),
         LDAPConnectionHandlerCfgDefn.getInstance());
+    assertEquals(child.getRelationDefinition(), RootCfgDefn.getInstance()
+        .getConnectionHandlersRelationDefinition());
     assertEquals(
         child.toString(),
         "/relation=connection-handler+type=ldap-connection-handler+name=LDAP connection handler");
@@ -229,6 +246,9 @@ public class ManagedObjectPathTest {
     assertEquals(domain.parent(2), root);
     assertEquals(domain.getManagedObjectDefinition(), MultimasterDomainCfgDefn
         .getInstance());
+    assertEquals(domain.getRelationDefinition(),
+        MultimasterSynchronizationProviderCfgDefn.getInstance()
+            .getMultimasterDomainsRelationDefinition());
     assertEquals(
         domain.toString(),
         "/relation=synchronization-provider+type=multimaster-synchronization-provider+name=MMR/relation=multimaster-domain+name=Domain");

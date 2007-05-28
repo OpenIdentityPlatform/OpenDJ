@@ -30,34 +30,40 @@ package org.opends.server.admin;
 
 
 /**
- * Thrown to indicate that a property's inherited default values could not be
- * determined due to some underlying operations exception which occurred when
- * attempting to retrieve them.
+ * This exception is thrown when a property's default values cannot be
+ * determined. This can occur in the following situations:
+ * <ul>
+ * <li>the property has a well-defined set of default values but they
+ * are invalid according to the property's syntax
+ * <li>the property inherits its default values from another managed
+ * object but they could not be retrieved, perhaps because of a
+ * communication problem.
+ * </ul>
  */
-public class InheritedDefaultValueException extends PropertyException {
+public class DefaultBehaviorException extends PropertyException {
 
   /**
    * Serialization ID.
    */
-  private static final long serialVersionUID = 7228186032995472371L;
+  private static final long serialVersionUID = -2542117466747573053L;
 
-  // The operations exception that caused default value look up to fail.
-  private final OperationsException cause;
+  // The cause of this exception.
+  private final Throwable cause;
 
 
 
   /**
-   * Create a new inherited default value exception.
+   * Create a new default behavior exception with a cause.
    *
-   * @param d
-   *          The property definition.
+   * @param pd
+   *          The property definition whose default values could not
+   *          be determined.
    * @param cause
-   *          The operations exception that caused default value look up to
-   *          fail.
+   *          The exception that prevented the default values from
+   *          being determined.
    */
-  public InheritedDefaultValueException(PropertyDefinition d,
-      OperationsException cause) {
-    super(d);
+  public DefaultBehaviorException(PropertyDefinition pd, Throwable cause) {
+    super(pd);
     this.cause = cause;
   }
 
@@ -78,20 +84,7 @@ public class InheritedDefaultValueException extends PropertyException {
    */
   @Override
   public String getMessage() {
-    return "The inherited default values could not be determined "
+    return "The default values could not be determined "
         + "for the property \"" + getPropertyDefinition().getName() + "\"";
   }
-
-
-
-  /**
-   * Get the operations exception that caused default value look up to fail.
-   *
-   * @return Returns the operations exception that caused default value look up
-   *         to fail.
-   */
-  public final OperationsException getOperationsException() {
-    return cause;
-  }
-
 }

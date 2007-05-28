@@ -176,34 +176,26 @@
           <xsl:with-param name="indent" select="2" />
           <xsl:with-param name="content"
             select="concat(
-                       'Creates the ', $ufn,' if it does not exist yet.&#xa;',
+                       'Creates a new ', $ufn,'. The new ', $ufn,' will initially ',
+                       'not contain any property values (including mandatory ',
+                       'properties). Once the ', $ufn,' has been configured it ',
+                       'can be added to the server using the {@link #commit()} ',
+                       'method.&#xa;',
                        '&#xa;',
                        '@param &lt;C&gt;&#xa;',
-                       '         The type of the ', $ufn,' being added.&#xa;',
+                       '         The type of the ', $ufn,' being created.&#xa;',
                        '@param d&#xa;',
                        '         The definition of the ', $ufn,' to be created.&#xa;',
-                       '@param p&#xa;',
-                       '         A property provider which can be used to initialize the property values of the new ', $ufn,'.&#xa;',
-                       '@return Returns the ', $ufn,' instance representing the ', $ufn,' that was created.&#xa;',
-                       '@throws ManagedObjectDecodingException&#xa;',
-                       '          If the ', $ufn,' could not be created because one or more of its properties are invalid.&#xa;',
-                       '@throws ManagedObjectAlreadyExistsException&#xa;',
-                       '          If the ', $ufn,' cannot be created because it already exists on the server.&#xa;',
-                       '@throws ConcurrentModificationException&#xa;',
-                       '          If this ', $ufn,' has been removed from the server by another client.&#xa;',
-                       '@throws OperationRejectedException&#xa;',
-                       '          If the server refuses to create the ', $ufn,' due to some server-side constraint which cannot be satisfied.&#xa;',
-                       '@throws AuthorizationException&#xa;',
-                       '          If the server refuses to create the ', $ufn,' because the client does not have the correct privileges.&#xa;',
-                       '@throws CommunicationException&#xa;',
-                       '          If the client cannot contact the server due to an underlying communication problem.&#xa;')" />
+                       '@param exceptions&#xa;',
+                       '         An optional collection in which to place any ',
+                       '{@link DefaultBehaviorException}s that occurred whilst ',
+                       'attempting to determine the default values of the ', $ufn,
+                       '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
+                       '@return Returns a new ', $ufn,' configuration instance.&#xa;')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                           '      ManagedObjectDefinition&lt;C, ?&gt; d, PropertyProvider p)&#xa;',
-                           '      throws ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,&#xa;',
-                           '      ConcurrentModificationException, OperationRejectedException,&#xa;',
-                           '      AuthorizationException, CommunicationException;&#xa;')" />
+                           '      ManagedObjectDefinition&lt;C, ?&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions);&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -297,36 +289,28 @@
           <xsl:with-param name="indent" select="2" />
           <xsl:with-param name="content"
             select="concat(
-                       'Creates a new ', $ufn,'.&#xa;',
+                       'Creates a new ', $ufn,'. The new ', $ufn,' will initially ',
+                       'not contain any property values (including mandatory ',
+                       'properties). Once the ', $ufn,' has been configured it ',
+                       'can be added to the server using the {@link #commit()} ',
+                       'method.&#xa;',
                        '&#xa;',
                        '@param &lt;C&gt;&#xa;',
-                       '         The type of the ', $ufn,' being added.&#xa;',
+                       '         The type of the ', $ufn,' being created.&#xa;',
                        '@param d&#xa;',
                        '         The definition of the ', $ufn,' to be created.&#xa;',
                        '@param name&#xa;',
                        '         The name of the new ', $ufn,'.&#xa;',
-                       '@param p&#xa;',
-                       '         A property provider which can be used to initialize the property values of the new ', $ufn,'.&#xa;',
-                       '@return Returns a new ', $ufn,' instance representing the ', $ufn,' that was created.&#xa;',
-                       '@throws ManagedObjectDecodingException&#xa;',
-                       '          If the ', $ufn,' could not be created because one or more of its properties are invalid.&#xa;',
-                       '@throws ManagedObjectAlreadyExistsException&#xa;',
-                       '          If the ', $ufn,' cannot be created because it already exists on the server.&#xa;',
-                       '@throws ConcurrentModificationException&#xa;',
-                       '          If this ', $ufn,' has been removed from the server by another client.&#xa;',
-                       '@throws OperationRejectedException&#xa;',
-                       '          If the server refuses to create the ', $ufn,' due to some server-side constraint which cannot be satisfied.&#xa;',
-                       '@throws AuthorizationException&#xa;',
-                       '          If the server refuses to create the ', $ufn,' because the client does not have the correct privileges.&#xa;',
-                       '@throws CommunicationException&#xa;',
-                       '          If the client cannot contact the server due to an underlying communication problem.&#xa;')" />
+                       '@param exceptions&#xa;',
+                       '         An optional collection in which to place any ',
+                       '{@link DefaultBehaviorException}s that occurred whilst ',
+                       'attempting to determine the default values of the ', $ufn,
+                       '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
+                       '@return Returns a new ', $ufn,' configuration instance.&#xa;')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                           '      ManagedObjectDefinition&lt;C, ?&gt; d, String name, PropertyProvider p)&#xa;',
-                           '      throws ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,&#xa;',
-                           '      ConcurrentModificationException, OperationRejectedException,&#xa;',
-                           '      AuthorizationException, CommunicationException;&#xa;')" />
+                           '      ManagedObjectDefinition&lt;C, ?&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions);&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -382,10 +366,13 @@
           <import>java.util.Collection</import>
           <import>java.util.SortedSet</import>
         </xsl:if>
-        <xsl:if test="$this-local-properties[not(@read-only='true')]">
+        <xsl:if test="$this-local-properties[not(@monitoring='true')]">
           <import>
             org.opends.server.admin.IllegalPropertyValueException
           </import>
+        </xsl:if>
+        <xsl:if test="$this-local-properties[@read-only='true']">
+          <import>org.opends.server.admin.PropertyIsReadOnlyException</import>
         </xsl:if>
         <xsl:if test="$this-local-relations">
           <import>
@@ -409,9 +396,9 @@
         </xsl:if>
         <xsl:if
           test="$this-local-relations/adm:one-to-zero-or-one|$this-local-relations/adm:one-to-many">
-          <import>org.opends.server.admin.PropertyProvider</import>
+          <import>java.util.Collection</import>
           <import>
-            org.opends.server.admin.ManagedObjectAlreadyExistsException
+            org.opends.server.admin.DefaultBehaviorException
           </import>
           <import>
             org.opends.server.admin.client.OperationRejectedException

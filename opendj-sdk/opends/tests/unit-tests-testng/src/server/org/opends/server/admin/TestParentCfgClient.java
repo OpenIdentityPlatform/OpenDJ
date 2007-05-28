@@ -28,6 +28,8 @@ package org.opends.server.admin;
 
 
 
+import java.util.Collection;
+
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.client.AuthorizationException;
@@ -111,36 +113,17 @@ public interface TestParentCfgClient extends ConfigurationClient {
    *          The definition of the test child to be created.
    * @param name
    *          The name of the new test child.
-   * @param p
-   *          A property provider which can be used to initialize the
-   *          property values of the new test child.
+   * @param exceptions
+   *          An optional collection in which to place any {@link
+   *          DefaultBehaviorException}s that occurred whilst
+   *          attempting to determine the default values of the test
+   *          child. This argument can be <code>null<code>.
    * @return Returns a new test child instance representing the test
    *         child that was created.
-   * @throws ManagedObjectDecodingException
-   *           If the test child could not be created because one or
-   *           more of its properties are invalid.
-   * @throws ManagedObjectAlreadyExistsException
-   *           If the test child cannot be created because it already
-   *           exists on the server.
-   * @throws ConcurrentModificationException
-   *           If this test parent has been removed from the server by
-   *           another client.
-   * @throws OperationRejectedException
-   *           If the server refuses to create the test child due to
-   *           some server-side constraint which cannot be satisfied.
-   * @throws AuthorizationException
-   *           If the server refuses to create the test child because
-   *           the client does not have the correct privileges.
-   * @throws CommunicationException
-   *           If the client cannot contact the server due to an
-   *           underlying communication problem.
    */
   <C extends TestChildCfgClient> C createTestChild(
-      ManagedObjectDefinition<C, ?> d, String name, PropertyProvider p)
-      throws ManagedObjectDecodingException,
-      ManagedObjectAlreadyExistsException, ConcurrentModificationException,
-      OperationRejectedException, AuthorizationException,
-      CommunicationException;
+      ManagedObjectDefinition<C, ?> d, String name,
+      Collection<DefaultBehaviorException> exceptions);
 
 
 
