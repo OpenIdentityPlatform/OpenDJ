@@ -131,6 +131,7 @@ public class ADSContextHelper
         suffixes = new TreeSet<DN>();
       }
       suffixes.add(DN.decode(ADSContext.getAdministrationSuffixDN()));
+      backend.setBackendBaseDN(suffixes);
       backend.commit();
     }
     catch (Throwable t)
