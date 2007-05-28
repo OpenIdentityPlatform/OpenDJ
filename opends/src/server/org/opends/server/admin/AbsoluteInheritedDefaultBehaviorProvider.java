@@ -29,9 +29,10 @@ package org.opends.server.admin;
 
 
 /**
- * A default behavior provider which retrieves default values from a managed
- * object in an abolute location. It should be used by properties which inherit
- * their default value(s) from properties held in an other managed object.
+ * A default behavior provider which retrieves default values from a
+ * managed object in an abolute location. It should be used by
+ * properties which inherit their default value(s) from properties
+ * held in an other managed object.
  *
  * @param <T>
  *          The type of values represented by this provider.
@@ -48,16 +49,26 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> implements
 
 
   /**
-   * Create an absolute inherited default behavior provider associated with the
-   * managed object at the specified absolute location.
+   * Create an absolute inherited default behavior provider associated
+   * with the managed object at the specified absolute location.
    *
    * @param path
    *          The absolute location of the managed object.
    * @param propertyName
-   *          The name of the property containing the inherited default values.
+   *          The name of the property containing the inherited
+   *          default values.
+   * @throws IllegalArgumentException
+   *           If the named property is associated with the managed
+   *           object definition identified by the path.
+   * @throws ClassCastException
+   *           If the named property does not have the same type of
+   *           property values as this default behavior provider.
    */
+  @SuppressWarnings("unchecked")
   public AbsoluteInheritedDefaultBehaviorProvider(ManagedObjectPath path,
-      String propertyName) {
+      String propertyName) throws IllegalArgumentException, ClassCastException {
+    // We do not decode the property name now because the property
+    // might not have been constructed at this point.
     this.path = path;
     this.propertyName = propertyName;
   }
@@ -74,11 +85,24 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> implements
 
 
   /**
-   * Get the absolute path of the managed object containing the property which
-   * has the default values.
+   * Get the definition of the parent managed object containing the
+   * inherited default values.
    *
-   * @return Returns the absolute path of the managed object containing the
-   *         property which has the default values.
+   * @return Returns the definition of the parent managed object
+   *         containing the inherited default values.
+   */
+  public AbstractManagedObjectDefinition<?, ?> getManagedObjectDefinition() {
+    return path.getManagedObjectDefinition();
+  }
+
+
+
+  /**
+   * Get the absolute path of the managed object containing the
+   * property which has the default values.
+   *
+   * @return Returns the absolute path of the managed object
+   *         containing the property which has the default values.
    */
   public ManagedObjectPath getManagedObjectPath() {
     return path;
@@ -87,10 +111,11 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> implements
 
 
   /**
-   * Get the name of the property containing the inherited default values.
+   * Get the name of the property containing the inherited default
+   * values.
    *
-   * @return Returns the name of the property containing the inherited default
-   *         values.
+   * @return Returns the name of the property containing the inherited
+   *         default values.
    */
   public String getPropertyName() {
     return propertyName;

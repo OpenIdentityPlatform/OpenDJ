@@ -387,7 +387,8 @@
       select="concat('    /**&#xa;',
                      '     * {@inheritDoc}&#xa;',
                      '     */&#xa;',
-                     '    public void commit() throws ConcurrentModificationException,&#xa;',
+                     '    public void commit() throws ManagedObjectAlreadyExistsException,&#xa;',
+                     '        MissingMandatoryPropertiesException, ConcurrentModificationException,&#xa;',
                      '        OperationRejectedException, AuthorizationException,&#xa;',
                      '        CommunicationException {&#xa;',
                      '      impl.commit();&#xa;',
@@ -568,29 +569,33 @@
           select="concat('      ', $type, '.Builder builder = ', $type, '.createBuilder(INSTANCE, &quot;',@name, '&quot;);&#xa;')" />
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:if test="string(@multi-valued) = 'true'">
+    <xsl:if test="@multi-valued='true'">
       <xsl:value-of
         select="'      builder.setOption(PropertyOption.MULTI_VALUED);&#xa;'" />
     </xsl:if>
-    <xsl:if test="string(@read-only) = 'true'">
+    <xsl:if test="@read-only='true'">
       <xsl:value-of
         select="'      builder.setOption(PropertyOption.READ_ONLY);&#xa;'" />
+    </xsl:if>
+    <xsl:if test="@monitoring='true'">
+      <xsl:value-of
+        select="'      builder.setOption(PropertyOption.MONITORING);&#xa;'" />
     </xsl:if>
     <xsl:if
       test="adm:requires-admin-action/adm:server-restart|adm:requires-admin-action/adm:component-restart|adm:requires-admin-action/adm:other">
       <xsl:value-of
         select="'      builder.setOption(PropertyOption.REQUIRES_ADMIN_ACTION);&#xa;'" />
     </xsl:if>
-    <xsl:if test="string(@mandatory) = 'true'">
+    <xsl:if test="@mandatory='true'">
       <xsl:value-of
         select="'      builder.setOption(PropertyOption.MANDATORY);&#xa;'" />
     </xsl:if>
-    <xsl:if test="string(@hidden) = 'true'">
+    <xsl:if test="@hidden='true'">
       <xsl:value-of
         select="'      builder.setOption(PropertyOption.HIDDEN);&#xa;'" />
     </xsl:if>
     <xsl:choose>
-      <xsl:when test="string(@mandatory) = 'true'">
+      <xsl:when test="@mandatory='true'">
         <xsl:value-of
           select="concat('      builder.setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider&lt;', $value-type,'&gt;());&#xa;')" />
       </xsl:when>
@@ -629,19 +634,37 @@
           </xsl:when>
           <xsl:when
             test="adm:default-behavior/adm:inherited/adm:relative">
-            <xsl:message terminate="yes">
-              <xsl:value-of
-                select="concat('Relative inherited property defaults not yet implemented (property &quot;', @name,
-                         '&quot;).')" />
-            </xsl:message>
+            <xsl:value-of
+              select="concat('      DefaultBehaviorProvider&lt;', $value-type,'&gt; provider = ',
+                             'new RelativeInheritedDefaultBehaviorProvider&lt;', $value-type,'&gt;(')" />
+            <xsl:variable name="managed-object-name">
+              <xsl:call-template name="name-to-java">
+                <xsl:with-param name="value"
+                  select="adm:default-behavior/adm:inherited/adm:relative/@managed-object-name" />
+              </xsl:call-template>
+            </xsl:variable>
+            <xsl:variable name="property-name"
+              select="adm:default-behavior/adm:inherited/adm:relative/@property-name" />
+            <xsl:variable name="offset"
+              select="adm:default-behavior/adm:inherited/adm:relative/@offset" />
+            <xsl:value-of
+              select="concat($managed-object-name, 'CfgDefn.getInstance(), &quot;', $property-name, '&quot;, ', $offset, ');&#xa;')" />
+            <xsl:value-of
+              select="'      builder.setDefaultBehaviorProvider(provider);&#xa;'" />
           </xsl:when>
           <xsl:when
             test="adm:default-behavior/adm:inherited/adm:absolute">
-            <xsl:message terminate="yes">
-              <xsl:value-of
-                select="concat('Absolute inherited property defaults not yet implemented (property &quot;', @name,
-                         '&quot;).')" />
-            </xsl:message>
+            <xsl:value-of
+              select="concat('      DefaultBehaviorProvider&lt;', $value-type,'&gt; provider = ',
+                             'new AbsoluteInheritedDefaultBehaviorProvider&lt;', $value-type,'&gt;(')" />
+            <xsl:variable name="property-name"
+              select="adm:default-behavior/adm:inherited/adm:absolute/@property-name" />
+            <xsl:variable name="path"
+              select="adm:default-behavior/adm:inherited/adm:absolute/@path" />
+            <xsl:value-of
+              select="concat('ManagedObjectPath.valueOf(&quot;', $path, '&quot;), &quot;', $property-name, '&quot;);&#xa;')" />
+            <xsl:value-of
+              select="'      builder.setDefaultBehaviorProvider(provider);&#xa;'" />
           </xsl:when>
           <xsl:otherwise>
             <xsl:message terminate="yes">
@@ -1017,7 +1040,7 @@
     Generate a property value setter.
   -->
   <xsl:template name="generate-property-setter">
-    <xsl:if test="string(@read-only) != 'true'">
+    <xsl:if test="not(@monitoring='true')">
       <xsl:variable name="java-prop-name">
         <xsl:call-template name="name-to-java">
           <xsl:with-param name="value" select="@name" />
@@ -1031,9 +1054,9 @@
                      $java-prop-name ,
                      '(')" />
       <xsl:choose>
-        <xsl:when test="string(@multi-valued) != 'true'">
+        <xsl:when test="not(@multi-valued='true')">
           <xsl:choose>
-            <xsl:when test="@mandatory = 'true'">
+            <xsl:when test="@mandatory='true'">
               <xsl:call-template
                 name="get-property-java-primitive-type" />
             </xsl:when>
@@ -1041,8 +1064,12 @@
               <xsl:call-template name="get-property-java-type" />
             </xsl:otherwise>
           </xsl:choose>
+          <xsl:value-of select="' value)'" />
+          <xsl:if test="@read-only='true'">
+            <xsl:value-of select="' throws PropertyIsReadOnlyException'" />
+          </xsl:if>
           <xsl:value-of
-            select="concat(' value) {&#xa;' ,
+            select="concat(' {&#xa;' ,
                      '      impl.setPropertyValue(INSTANCE.get',
                      $java-prop-name ,
                      'PropertyDefinition(), value);&#xa;',
@@ -1119,11 +1146,8 @@
                          '     * {@inheritDoc}&#xa;',
                          '     */&#xa;',
                          '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
-                         '        ManagedObjectDefinition&lt;M, ?&gt; d, PropertyProvider p)&#xa;',
-                         '        throws ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,&#xa;',
-                         '        ConcurrentModificationException, OperationRejectedException,&#xa;',
-                         '        AuthorizationException, CommunicationException {&#xa;',
-                         '      return impl.createChild(INSTANCE.get', $java-relation-name,'RelationDefinition(), d, p).getConfiguration();&#xa;',
+                         '        ManagedObjectDefinition&lt;M, ?&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions) {&#xa;',
+                         '      return impl.createChild(INSTANCE.get', $java-relation-name,'RelationDefinition(), d, exceptions).getConfiguration();&#xa;',
                          '    }&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -1175,11 +1199,8 @@
                          '     * {@inheritDoc}&#xa;',
                          '     */&#xa;',
                          '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
-                         '        ManagedObjectDefinition&lt;M, ?&gt; d, String name, PropertyProvider p)&#xa;',
-                         '        throws ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,&#xa;',
-                         '        ConcurrentModificationException, OperationRejectedException,&#xa;',
-                         '        AuthorizationException, CommunicationException {&#xa;',
-                         '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, name, p).getConfiguration();&#xa;',
+                         '        ManagedObjectDefinition&lt;M, ?&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) {&#xa;',
+                         '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, name, exceptions).getConfiguration();&#xa;',
                          '    }&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -1571,6 +1592,7 @@
         <xsl:if
           test="$this-local-properties[@multi-valued='true' or
                                        @read-only='true' or
+                                       @monitoring='true' or
                                        @hidden='true' or
                                        @mandatory='true']">
           <import>org.opends.server.admin.PropertyOption</import>
@@ -1587,6 +1609,34 @@
           <import>
             org.opends.server.admin.AliasDefaultBehaviorProvider
           </import>
+        </xsl:if>
+        <xsl:if
+          test="$this-local-properties/adm:default-behavior/adm:inherited/adm:absolute">
+          <import>
+            org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider
+          </import>
+          <import>org.opends.server.admin.ManagedObjectPath</import>
+        </xsl:if>
+        <xsl:if
+          test="$this-local-properties/adm:default-behavior/adm:inherited/adm:relative">
+          <import>
+            org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider
+          </import>
+          <xsl:for-each
+            select="$this-local-properties/adm:default-behavior/adm:inherited/adm:relative">
+            <xsl:if test="@managed-object-package != $this-package">
+              <xsl:variable name="java-class-name">
+                <xsl:call-template name="name-to-java">
+                  <xsl:with-param name="value"
+                    select="@managed-object-name" />
+                </xsl:call-template>
+              </xsl:variable>
+              <xsl:element name="import">
+                <xsl:value-of
+                  select="concat(@managed-object-package, '.meta.', $java-class-name, 'CfgDefn')" />
+              </xsl:element>
+            </xsl:if>
+          </xsl:for-each>
         </xsl:if>
         <xsl:if
           test="$this-local-properties/adm:default-behavior/adm:defined">
@@ -1655,6 +1705,12 @@
             </import>
             <import>org.opends.server.admin.PropertyProvider</import>
             <import>
+              org.opends.server.admin.client.MissingMandatoryPropertiesException
+            </import>
+            <import>
+              org.opends.server.admin.ManagedObjectAlreadyExistsException
+            </import>
+            <import>
               org.opends.server.admin.client.AuthorizationException
             </import>
             <import>
@@ -1692,8 +1748,9 @@
               </import>
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-many">
+              <import>java.util.Collection</import>
               <import>
-                org.opends.server.admin.ManagedObjectAlreadyExistsException
+                org.opends.server.admin.DefaultBehaviorException
               </import>
               <import>
                 org.opends.server.admin.server.ConfigurationAddListener
@@ -1704,8 +1761,9 @@
               <import>org.opends.server.config.ConfigException</import>
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-zero-or-one">
+              <import>java.util.Collection</import>
               <import>
-                org.opends.server.admin.ManagedObjectAlreadyExistsException
+                org.opends.server.admin.DefaultBehaviorException
               </import>
               <import>
                 org.opends.server.admin.server.ConfigurationAddListener
@@ -1721,6 +1779,9 @@
             <xsl:if test="$this-all-properties[@multi-valued='true']">
               <import>java.util.SortedSet</import>
               <import>java.util.Collection</import>
+            </xsl:if>
+            <xsl:if test="$this-all-properties[@read-only='true']">
+              <import>org.opends.server.admin.PropertyIsReadOnlyException</import>
             </xsl:if>
           </xsl:otherwise>
         </xsl:choose>

@@ -270,7 +270,7 @@
     Generate the property setter declarations.
   -->
   <xsl:template name="generate-property-setter-declaration">
-    <xsl:if test="string(@read-only) != 'true'">
+    <xsl:if test="not(@monitoring='true')">
       <xsl:variable name="name" select="@name" />
       <xsl:variable name="java-property-name">
         <xsl:call-template name="name-to-java">
@@ -294,14 +294,28 @@
           <xsl:with-param name="content" select="adm:description" />
         </xsl:call-template>
       </xsl:if>
+      <xsl:if test="@read-only='true'">
+        <xsl:value-of select="'   * &lt;p&gt;&#xa;'" />
+        <xsl:value-of
+          select="concat(
+                     '   * This property is read-only and can only be modified during&#xa;',
+                     '   * creation of a ', $this-ufn, '.&#xa;')" />
+      </xsl:if>
       <xsl:choose>
-        <xsl:when test="string(@multi-valued) != 'true'">
+        <xsl:when test="not(@multi-valued='true')">
           <xsl:value-of
             select="concat('   *&#xa;',
                      '   * @param value The value of the &quot;', $name, '&quot; property.&#xa;',
                      '   * @throws IllegalPropertyValueException&#xa;',
-                     '   *           If the new value is invalid.&#xa;',
-                     '   *&#xa;',
+                     '   *           If the new value is invalid.&#xa;')" />
+          <xsl:if test="@read-only='true'">
+            <xsl:value-of
+              select="concat(
+                     '   * @throws PropertyIsReadOnlyException&#xa;',
+                     '   *           If this ', $this-ufn, ' is not being initialized.&#xa;')" />
+          </xsl:if>
+          <xsl:value-of
+            select="concat(
                      '   */&#xa;',
                      '  void set', $java-property-name, '(')" />
           <xsl:choose>
@@ -313,23 +327,33 @@
               <xsl:call-template name="get-property-java-type" />
             </xsl:otherwise>
           </xsl:choose>
-          <xsl:value-of
-            select="' value) throws IllegalPropertyValueException;&#xa;'" />
+          <xsl:value-of select="' value'" />
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of
             select="concat('   *&#xa;',
                      '   * @param values The values of the &quot;', $name, '&quot; property.&#xa;',
                      '   * @throws IllegalPropertyValueException&#xa;',
-                     '   *           If one or more of the new values are invalid.&#xa;',
-                     '   *&#xa;',
+                     '   *           If one or more of the new values are invalid.&#xa;')" />
+          <xsl:if test="@read-only='true'">
+            <xsl:value-of
+              select="concat(
+                     '   * @throws PropertyIsReadOnlyException&#xa;',
+                     '   *           If this ', $this-ufn, ' is not being initialized.&#xa;')" />
+          </xsl:if>
+          <xsl:value-of
+            select="concat(
                      '   */&#xa;',
                      '  void set', $java-property-name, '(Collection&lt;')" />
           <xsl:call-template name="get-property-java-type" />
-          <xsl:value-of
-            select="'&gt; values) throws IllegalPropertyValueException;&#xa;'" />
+          <xsl:value-of select="'&gt; values'" />
         </xsl:otherwise>
       </xsl:choose>
+      <xsl:value-of select="') throws IllegalPropertyValueException'" />
+      <xsl:if test="@read-only='true'">
+        <xsl:value-of select="', PropertyIsReadOnlyException'" />
+      </xsl:if>
+      <xsl:value-of select="';&#xa;'" />
     </xsl:if>
   </xsl:template>
 </xsl:stylesheet>

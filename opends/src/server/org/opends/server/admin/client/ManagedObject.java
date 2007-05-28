@@ -32,6 +32,7 @@ package org.opends.server.admin.client;
 import java.util.Collection;
 import java.util.SortedSet;
 
+import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.InstantiableRelationDefinition;
@@ -91,27 +92,40 @@ public interface ManagedObject<C extends ConfigurationClient> extends
     PropertyProvider {
 
   /**
-   * Commit any changes made to this managed object. Pending property
-   * values will be committed to the managed object. If successful,
-   * the pending values will become active values.
+   * Adds this managed object to the server or commits any changes
+   * made to it depending on whether or not the managed object already
+   * exists on the server. Pending property values will be committed
+   * to the managed object. If successful, the pending values will
+   * become active values.
    * <p>
    * See the class description for more information regarding pending
    * and active values.
    *
+   * @throws ManagedObjectAlreadyExistsException
+   *           If the managed object cannot be added to the server
+   *           because it already exists.
+   * @throws MissingMandatoryPropertiesException
+   *           If the managed object contains some mandatory
+   *           properties which have been left undefined.
    * @throws ConcurrentModificationException
-   *           If this managed object has been removed from the server
-   *           by another client.
+   *           If the managed object is being added to the server but
+   *           its parent has been removed by another client, or if
+   *           this managed object is being modified but it has been
+   *           removed from the server by another client.
    * @throws OperationRejectedException
-   *           If the server refuses to apply the changes due to some
-   *           server-side constraint which cannot be satisfied.
+   *           If the server refuses to add or modify this managed
+   *           object due to some server-side constraint which cannot
+   *           be satisfied.
    * @throws AuthorizationException
-   *           If the server refuses to apply the changes because the
-   *           client does not have the correct privileges.
+   *           If the server refuses to add or modify this managed
+   *           object because the client does not have the correct
+   *           privileges.
    * @throws CommunicationException
    *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
-  void commit() throws ConcurrentModificationException,
+  void commit() throws ManagedObjectAlreadyExistsException,
+      MissingMandatoryPropertiesException, ConcurrentModificationException,
       OperationRejectedException, AuthorizationException,
       CommunicationException;
 
@@ -119,10 +133,10 @@ public interface ManagedObject<C extends ConfigurationClient> extends
 
   /**
    * Creates a new child managed object bound to the specified
-   * instantiable relation. The new managed object instance will be
-   * created with values taken from a property provider. The caller
-   * must make sure that the property provider provides values for
-   * mandatory properties.
+   * instantiable relation. The new managed object will initially not
+   * contain any property values (including mandatory properties).
+   * Once the managed object has been configured it can be added to
+   * the server using the {@link #commit()} method.
    *
    * @param <M>
    *          The expected type of the child managed object
@@ -136,50 +150,30 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    *          The definition of the managed object to be created.
    * @param name
    *          The name of the child managed object.
-   * @param p
-   *          A property provider which should be used to initialize
-   *          property values of the new managed object.
+   * @param exceptions
+   *          A collection in which to place any
+   *          {@link DefaultBehaviorException}s that occurred whilst
+   *          attempting to determine the managed object's default
+   *          values.
    * @return Returns a new child managed object bound to the specified
    *         instantiable relation.
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws ManagedObjectDecodingException
-   *           If the managed object could not be create because one
-   *           or more of its properties are invalid.
-   * @throws ManagedObjectAlreadyExistsException
-   *           If the managed object cannot be created because it
-   *           already exists on the server.
-   * @throws ConcurrentModificationException
-   *           If this managed object has been removed from the server
-   *           by another client.
-   * @throws OperationRejectedException
-   *           If the server refuses to create the managed object due
-   *           to some server-side constraint which cannot be
-   *           satisfied.
-   * @throws AuthorizationException
-   *           If the server refuses to create the managed object
-   *           because the client does not have the correct
-   *           privileges.
-   * @throws CommunicationException
-   *           If the client cannot contact the server due to an
-   *           underlying communication problem.
    */
   <M extends ConfigurationClient, N extends M> ManagedObject<N> createChild(
       InstantiableRelationDefinition<M, ?> r, ManagedObjectDefinition<N, ?> d,
-      String name, PropertyProvider p) throws IllegalArgumentException,
-      ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,
-      ConcurrentModificationException, OperationRejectedException,
-      AuthorizationException, CommunicationException;
+      String name, Collection<DefaultBehaviorException> exceptions)
+      throws IllegalArgumentException;
 
 
 
   /**
    * Creates a new child managed object bound to the specified
-   * optional relation. The new managed object instance will be
-   * created with values taken from a property provider. The caller
-   * must make sure that the property provider provides values for
-   * mandatory properties.
+   * optional relation. The new managed object will initially not
+   * contain any property values (including mandatory properties).
+   * Once the managed object has been configured it can be added to
+   * the server using the {@link #commit()} method.
    *
    * @param <M>
    *          The expected type of the child managed object
@@ -191,41 +185,21 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    *          The optional relation definition.
    * @param d
    *          The definition of the managed object to be created.
-   * @param p
-   *          A property provider which should be used to initialize
-   *          property values of the new managed object.
+   * @param exceptions
+   *          A collection in which to place any
+   *          {@link DefaultBehaviorException}s that occurred whilst
+   *          attempting to determine the managed object's default
+   *          values.
    * @return Returns a new child managed object bound to the specified
    *         optional relation.
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
-   * @throws ManagedObjectDecodingException
-   *           If the managed object could not be created because one
-   *           or more of its properties are invalid.
-   * @throws ManagedObjectAlreadyExistsException
-   *           If the managed object cannot be created because it
-   *           already exists on the server.
-   * @throws ConcurrentModificationException
-   *           If this managed object has been removed from the server
-   *           by another client.
-   * @throws OperationRejectedException
-   *           If the server refuses to create the managed object due
-   *           to some server-side constraint which cannot be
-   *           satisfied.
-   * @throws AuthorizationException
-   *           If the server refuses to create the managed object
-   *           because the client does not have the correct
-   *           privileges.
-   * @throws CommunicationException
-   *           If the client cannot contact the server due to an
-   *           underlying communication problem.
    */
   <M extends ConfigurationClient, N extends M> ManagedObject<N> createChild(
       OptionalRelationDefinition<M, ?> r, ManagedObjectDefinition<N, ?> d,
-      PropertyProvider p) throws IllegalArgumentException,
-      ManagedObjectDecodingException, ManagedObjectAlreadyExistsException,
-      ConcurrentModificationException, OperationRejectedException,
-      AuthorizationException, CommunicationException;
+      Collection<DefaultBehaviorException> exceptions)
+      throws IllegalArgumentException;
 
 
 
@@ -576,7 +550,8 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    *           If the new pending value is deemed to be invalid
    *           according to the property definition.
    * @throws PropertyIsReadOnlyException
-   *           If an attempt was made to modify a read-only property.
+   *           If this is not a new managed object and the property is
+   *           read-only or for monitoring purposes.
    * @throws PropertyIsMandatoryException
    *           If an attempt was made to remove a mandatory property.
    * @throws IllegalArgumentException
@@ -611,7 +586,8 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    *           If an attempt was made to add multiple pending values
    *           to a single-valued property.
    * @throws PropertyIsReadOnlyException
-   *           If an attempt was made to modify a read-only property.
+   *           If this is not a new managed object and the property is
+   *           read-only or for monitoring purposes.
    * @throws PropertyIsMandatoryException
    *           If an attempt was made to remove a mandatory property.
    * @throws IllegalArgumentException

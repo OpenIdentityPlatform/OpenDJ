@@ -140,16 +140,6 @@ public class PropertySetTest {
   }
 
   /**
-   * Tests basic property set creation with a string
-   * property provider
-   */
-  @Test
-  public void testCreate1() {
-    PropertySet ps = createTestPropertySet(StringPropertyProvider.DEFAULT_PROVIDER);
-    assertNotNull(ps);
-  }
-
-  /**
    * Tests setting and getting property values
    * @param pd PropertyDefinition for which values are set and gotten
    * @param values property values to test
@@ -229,9 +219,9 @@ public class PropertySetTest {
     PropertySet ps = createTestPropertySet();
     Property<T> p = ps.getProperty(pd);
     SortedSet<T> ss = p.getDefaultValues();
-    assertTrue(ss.size() == expected.size());
+    assertEquals(ss.size(), expected.size());
     for (T v : expected) {
-      ss.contains(v);
+      assertTrue(ss.contains(v), "does not contain " + v);
     }
   }
 
@@ -282,9 +272,9 @@ public class PropertySetTest {
     // before setting any values, the effective data
     // is supposed to just be the defaults
     Set<T> ev1 = p.getEffectiveValues();
-    assertTrue(ev1.size() == expectedDefaults.size());
+    assertEquals(ev1.size(), expectedDefaults.size());
     for(T v : ev1) {
-      assertTrue(expectedDefaults.contains(v));
+      assertTrue(expectedDefaults.contains(v), "does not contain " + v);
     }
 
     // now set some data and make sure the effective
@@ -292,9 +282,9 @@ public class PropertySetTest {
     ps.setPropertyValues(pd, newValues);
 
     Set<T> ev2 = p.getEffectiveValues();
-    assertTrue(ev2.size() == newValues.size());
+    assertEquals(ev2.size(), newValues.size());
     for(T v : ev2) {
-      assertTrue(newValues.contains(v));
+      assertTrue(newValues.contains(v), "does not contain " + v);
     }
 
   }
@@ -391,21 +381,27 @@ public class PropertySetTest {
   }
 
   private PropertySet createTestPropertySet(PropertyProvider pp) {
-    return PropertySet.create(
-            new TestManagedObjectDefinition<ConfigurationClient, Configuration>("test-mod",null),
-            pp,
-            new InheritedDefaultValueProvider() {
-              public ManagedObjectPath getManagedObjectPath() {
-                System.out.println("getManagedObjectPath");
-                return null;
-              }
-              public Collection<?> getDefaultPropertyValues(ManagedObjectPath path, String propertyName) throws OperationsException {
-                System.out.println("getDefPrV path=" + path + " pn=" + propertyName);
-                return null;
-              }
-            },
-            new HashSet<PropertyException>()
-    );
+    ManagedObjectDefinition<?, ?> d = new TestManagedObjectDefinition<ConfigurationClient, Configuration>("test-mod", null);
+    PropertySet ps = new PropertySet();
+    for (PropertyDefinition<?> pd : d.getPropertyDefinitions()) {
+      addProperty(ps, pd, pp);
+    }
+    return ps;
+  }
+
+  private <T> void addProperty(PropertySet ps, PropertyDefinition<T> pd, PropertyProvider pp) {
+    Collection<T> defaultValues = new LinkedList<T>();
+    DefaultBehaviorProvider<T> dbp = pd.getDefaultBehaviorProvider();
+    if (dbp instanceof DefinedDefaultBehaviorProvider) {
+      DefinedDefaultBehaviorProvider<T> ddbp = (DefinedDefaultBehaviorProvider<T>) dbp;
+      Collection<String> stringValues = ddbp.getDefaultValues();
+      for (String sv : stringValues) {
+        defaultValues.add(pd.decodeValue(sv));
+      }
+    }
+    
+    Collection<T> activeValues = pp.getPropertyValues(pd);
+    ps.addProperty(pd, defaultValues, activeValues);
   }
 
   private class TestManagedObjectDefinition<C extends ConfigurationClient,S extends Configuration> extends
@@ -474,24 +470,6 @@ public class PropertySetTest {
 
   private PropertySet createTestPropertySet() {
     return createTestPropertySet(PropertyProvider.DEFAULT_PROVIDER);
-  }
-
-  private PropertySet createTestPropertySet(StringPropertyProvider pp) {
-    return PropertySet.create(
-            new TestManagedObjectDefinition<ConfigurationClient, Configuration>("test-mod", null),
-            pp,
-            new InheritedDefaultValueProvider() {
-              public ManagedObjectPath getManagedObjectPath() {
-                System.out.println("getManagedObjectPath");
-                return null;
-              }
-              public Collection<?> getDefaultPropertyValues(ManagedObjectPath path, String propertyName) throws OperationsException {
-                System.out.println("getDefPrV path=" + path + " pn=" + propertyName);
-                return null;
-              }
-            },
-            new HashSet<PropertyException>()
-    );
   }
 
 }

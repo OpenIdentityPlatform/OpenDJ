@@ -27,9 +27,12 @@
 
 package org.opends.server.admin;
 
+
+
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
+import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 
 
@@ -62,22 +65,35 @@ public interface ConfigurationClient {
 
 
   /**
-   * Commit any changes made to this configuration client.
+   * If this is a new configuration this method will attempt to add it
+   * to the server, otherwise it will commit any changes made to this
+   * configuration.
    *
+   * @throws ManagedObjectAlreadyExistsException
+   *           If this is a new configuration but it could not be
+   *           added to the server because it already exists.
+   * @throws MissingMandatoryPropertiesException
+   *           If this configuration contains some mandatory
+   *           properties which have been left undefined.
    * @throws ConcurrentModificationException
-   *           If this configuration has been removed from the server
-   *           by another client.
+   *           If this is a new configuration which is being added to
+   *           the server but its parent has been removed by another
+   *           client, or if this configuration is being modified but
+   *           it has been removed from the server by another client.
    * @throws OperationRejectedException
-   *           If the server refuses to apply the changes due to some
-   *           server-side constraint which cannot be satisfied.
+   *           If the server refuses to add or modify this
+   *           configuration due to some server-side constraint which
+   *           cannot be satisfied.
    * @throws AuthorizationException
-   *           If the server refuses to apply the changes because the
-   *           client does not have the correct privileges.
+   *           If the server refuses to add or modify this
+   *           configuration because the client does not have the
+   *           correct privileges.
    * @throws CommunicationException
    *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
-  void commit() throws ConcurrentModificationException,
+  void commit() throws ManagedObjectAlreadyExistsException,
+      MissingMandatoryPropertiesException, ConcurrentModificationException,
       OperationRejectedException, AuthorizationException,
       CommunicationException;
 

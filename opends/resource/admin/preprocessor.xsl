@@ -696,6 +696,36 @@
     </xsl:copy>
   </xsl:template>
   <!--
+    Process a relative inherited default behavior
+  -->
+  <xsl:template match="adm:relative" mode="pre-process">
+    <xsl:param name="mopackage" select="/.." />
+    <xsl:param name="moname" select="/.." />
+    <xsl:param name="hierarchy" select="/.." />
+    <xsl:copy>
+      <!--
+        Shallow copy.
+      -->
+      <xsl:copy-of select="@*" />
+      <!--
+        Add missing attribute managed-object-package if it is not provided.
+      -->
+      <xsl:if test="not(@managed-object-package)">
+        <xsl:attribute name="managed-object-package">
+          <xsl:value-of select="$mopackage" />
+        </xsl:attribute>
+      </xsl:if>
+      <!--
+        Apply templates to subordinate elements.
+      -->
+      <xsl:apply-templates mode="pre-process">
+        <xsl:with-param name="mopackage" select="$mopackage" />
+        <xsl:with-param name="moname" select="$moname" />
+        <xsl:with-param name="hierarchy" select="$hierarchy" />
+      </xsl:apply-templates>
+    </xsl:copy>
+  </xsl:template>
+  <!--
     Process a user-friendly-name element.
   -->
   <xsl:template match="adm:user-friendly-name"

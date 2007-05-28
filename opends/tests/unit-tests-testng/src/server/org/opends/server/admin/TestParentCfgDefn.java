@@ -28,11 +28,14 @@ package org.opends.server.admin;
 
 
 
+import java.util.Collection;
+
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.std.meta.RootCfgDefn;
@@ -266,7 +269,8 @@ public final class TestParentCfgDefn extends
      */
     public void commit() throws ConcurrentModificationException,
         OperationRejectedException, AuthorizationException,
-        CommunicationException {
+        CommunicationException, ManagedObjectAlreadyExistsException,
+        MissingMandatoryPropertiesException {
       impl.commit();
     }
 
@@ -276,13 +280,10 @@ public final class TestParentCfgDefn extends
      * {@inheritDoc}
      */
     public <C extends TestChildCfgClient> C createTestChild(
-        ManagedObjectDefinition<C, ?> d, String name, PropertyProvider p)
-        throws ManagedObjectDecodingException,
-        ManagedObjectAlreadyExistsException, ConcurrentModificationException,
-        OperationRejectedException, AuthorizationException,
-        CommunicationException {
+        ManagedObjectDefinition<C, ?> d, String name,
+        Collection<DefaultBehaviorException> exceptions) {
       return impl.createChild(INSTANCE.getTestChildrenRelationDefinition(), d,
-          name, p).getConfiguration();
+          name, exceptions).getConfiguration();
     }
 
 
