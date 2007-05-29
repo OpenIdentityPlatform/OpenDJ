@@ -119,6 +119,18 @@ public class ReplicationMonitor extends MonitorProvider
     addMonitorData(attributes, "replayed-updates-ok",
                    domain.getNumReplayedPostOpCalled());
 
+    /* get number of modify conflicts */
+    addMonitorData(attributes, "resolved-modify-conflicts",
+                   domain.getNumResolvedModifyConflicts());
+
+    /* get number of naming conflicts */
+    addMonitorData(attributes, "resolved-naming-conflicts",
+                   domain.getNumResolvedNamingConflicts());
+
+    /* get number of unresolved naming conflicts */
+    addMonitorData(attributes, "unresolved-naming-conflicts",
+                   domain.getNumUnresolvedNamingConflicts());
+
     /* get window information */
     addMonitorData(attributes, "max-rcv-window", domain.getMaxRcvWindow());
     addMonitorData(attributes, "current-rcv-window",

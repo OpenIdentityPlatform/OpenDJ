@@ -137,6 +137,9 @@ public class ReplicationDomain extends DirectoryThread
   private AtomicInteger numRcvdUpdates = new AtomicInteger(0);
   private AtomicInteger numSentUpdates = new AtomicInteger(0);
   private AtomicInteger numProcessedUpdates = new AtomicInteger();
+  private AtomicInteger numResolvedNamingConflicts = new AtomicInteger();
+  private AtomicInteger numResolvedModifyConflicts = new AtomicInteger();
+  private AtomicInteger numUnresolvedNamingConflicts = new AtomicInteger();
   private int debugCount = 0;
   private PersistentServerState state;
   private int numReplayedPostOpCalled = 0;
@@ -618,7 +621,10 @@ public class ReplicationDomain extends DirectoryThread
       Historical historicalInformation = Historical.load(modifiedEntry);
       modifyOperation.setAttachment(HISTORICAL, historicalInformation);
 
-      historicalInformation.replayOperation(modifyOperation, modifiedEntry);
+      if (historicalInformation.replayOperation(modifyOperation, modifiedEntry))
+      {
+        numResolvedModifyConflicts.incrementAndGet();
+      }
 
       if (modifyOperation.getModifications().isEmpty())
       {
@@ -1150,8 +1156,13 @@ public class ReplicationDomain extends DirectoryThread
         String message = getMessage(msgID, op.toString());
         logError(ErrorLogCategory.SYNCHRONIZATION,
             ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+        numUnresolvedNamingConflicts.incrementAndGet();
 
         updateError(changeNumber);
+      }
+      else
+      {
+        numResolvedNamingConflicts.incrementAndGet();
       }
     }
     catch (ASN1Exception e)
@@ -1557,6 +1568,7 @@ public class ReplicationDomain extends DirectoryThread
       ModifyDNMsg modifyDnMsg = (ModifyDNMsg) msg;
       msg.setDn(currentDN.toString());
       modifyDnMsg.setNewSuperior(newSuperior.toString());
+      numUnresolvedNamingConflicts.incrementAndGet();
       return false;
     }
     else if (result == ResultCode.ENTRY_ALREADY_EXISTS)
@@ -1572,6 +1584,7 @@ public class ReplicationDomain extends DirectoryThread
       modifyDnMsg.setNewRDN(generateConflictDn(entryUid,
                             modifyDnMsg.getNewRDN()));
       modifyDnMsg.setNewSuperior(newSuperior.toString());
+      numUnresolvedNamingConflicts.incrementAndGet();
       return false;
     }
     return true;
@@ -1674,6 +1687,33 @@ public class ReplicationDomain extends DirectoryThread
   public int getNumLostConnections()
   {
     return broker.getNumLostConnections();
+  }
+
+  /**
+   * Get the number of modify conflicts successfully resolved.
+   * @return The number of modify conflicts successfully resolved.
+   */
+  public int getNumResolvedModifyConflicts()
+  {
+    return numResolvedModifyConflicts.get();
+  }
+
+  /**
+   * Get the number of namign conflicts successfully resolved.
+   * @return The number of naming conflicts successfully resolved.
+   */
+  public int getNumResolvedNamingConflicts()
+  {
+    return numResolvedNamingConflicts.get();
+  }
+
+  /**
+   * Get the number of unresolved conflicts.
+   * @return The number of unresolved conflicts.
+   */
+  public int getNumUnresolvedNamingConflicts()
+  {
+    return numUnresolvedNamingConflicts.get();
   }
 
   /**
