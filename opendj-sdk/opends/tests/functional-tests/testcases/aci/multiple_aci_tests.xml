@@ -2439,7 +2439,7 @@
               #@TestPostamble             none 
               #@TestResult                Success if OpenDS returns 0
                                           for all ldap operations. 
-                                          Entry is returned only for step 2 
+                                          Entries are returned only for steps 1 and 2 
                                           and only with the appropriate attributes.
           -->
         <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
@@ -2490,6 +2490,15 @@
               <call function="'searchStringForSubstring'">
                   { 'returnString'       : returnString ,
                     'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Search Tests,o=ACI Tests' }
+              </call>
+              
+              <if expr="returnCode != '1'">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'roomnumber:' }
               </call>
               
               <if expr="returnCode != '0'">
