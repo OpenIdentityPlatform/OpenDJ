@@ -32,7 +32,13 @@ package org.opends.server.admin;
 import static org.testng.Assert.*;
 
 import java.util.Collection;
+import java.util.Collections;
 
+import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
+import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
+import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -74,6 +80,21 @@ public class AbstractManagedObjectDefinitionTest {
   private TestDefinition bottom2 = new TestDefinition("bottom2", middle1);
 
   private TestDefinition bottom3 = new TestDefinition("bottom3", middle1);
+
+
+
+  /**
+   * Sets up tests
+   *
+   * @throws Exception
+   *           If the server could not be initialized.
+   */
+  @BeforeClass
+  public void setUp() throws Exception {
+    // This test suite depends on having the schema available, so
+    // we'll start the server.
+    TestCaseUtils.startServer();
+  }
 
 
 
@@ -212,4 +233,69 @@ public class AbstractManagedObjectDefinitionTest {
     assertEquals(children.size(), 0);
   }
 
+
+
+  /**
+   * Tests that overridden properties work properly. FIXME: should not
+   * use Connection Handlers - should define our own definitions.
+   * <p>
+   * Check that the generic connection handler definition does not
+   * have a default behavior defined for the
+   * java-implementation-class.
+   */
+  @Test
+  public void testPropertyOverride1() {
+    AbstractManagedObjectDefinition<?, ?> d = ConnectionHandlerCfgDefn
+        .getInstance();
+    PropertyDefinition<?> pd = d
+        .getPropertyDefinition("java-implementation-class");
+    DefaultBehaviorProvider<?> dbp = pd.getDefaultBehaviorProvider();
+    assertEquals(dbp.getClass(), UndefinedDefaultBehaviorProvider.class);
+  }
+
+
+
+  /**
+   * Tests that overridden properties work properly. FIXME: should not
+   * use Connection Handlers - should define our own definitions.
+   * <p>
+   * Check that the LDAP connection handler definition does have a
+   * default behavior defined for the java-implementation-class.
+   */
+  @Test
+  public void testPropertyOverride2() {
+    AbstractManagedObjectDefinition<?, ?> d = LDAPConnectionHandlerCfgDefn
+        .getInstance();
+    PropertyDefinition<?> pd = d
+        .getPropertyDefinition("java-implementation-class");
+    DefaultBehaviorProvider<?> dbp = pd.getDefaultBehaviorProvider();
+    assertEquals(dbp.getClass(), DefinedDefaultBehaviorProvider.class);
+
+    DefinedDefaultBehaviorProvider<?> ddbp = (DefinedDefaultBehaviorProvider<?>) dbp;
+    assertEquals(ddbp.getDefaultValues(), Collections
+        .singleton("org.opends.server.protocols.ldap.LDAPConnectionHandler"));
+  }
+
+
+
+  /**
+   * Tests that overridden properties work properly. FIXME: should not
+   * use Connection Handlers - should define our own definitions.
+   * <p>
+   * Check that the JMX connection handler definition does have a
+   * default behavior defined for the java-implementation-class.
+   */
+  @Test
+  public void testPropertyOverride3() {
+    AbstractManagedObjectDefinition<?, ?> d = JMXConnectionHandlerCfgDefn
+        .getInstance();
+    PropertyDefinition<?> pd = d
+        .getPropertyDefinition("java-implementation-class");
+    DefaultBehaviorProvider<?> dbp = pd.getDefaultBehaviorProvider();
+    assertEquals(dbp.getClass(), DefinedDefaultBehaviorProvider.class);
+
+    DefinedDefaultBehaviorProvider<?> ddbp = (DefinedDefaultBehaviorProvider<?>) dbp;
+    assertEquals(ddbp.getDefaultValues(), Collections
+        .singleton("org.opends.server.protocols.jmx.JmxConnectionHandler"));
+  }
 }

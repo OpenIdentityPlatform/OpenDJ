@@ -73,6 +73,14 @@ public abstract class AbstractManagedObjectDefinition
   // definition.
   private final Map<String, RelationDefinition<?, ?>> relationDefinitions;
 
+  // The set of all property definitions associated with this managed
+  // object definition including inherited property definitions.
+  private final Map<String, PropertyDefinition<?>> allPropertyDefinitions;
+
+  // The set of all relation definitions associated with this managed
+  // object definition including inherited relation definitions.
+  private final Map<String, RelationDefinition<?, ?>> allRelationDefinitions;
+
   // The set of managed object definitions which inherit from this definition.
   private final Map<String,
     AbstractManagedObjectDefinition<? extends C, ? extends S>> children;
@@ -94,12 +102,23 @@ public abstract class AbstractManagedObjectDefinition
     this.parent = parent;
     this.propertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
     this.relationDefinitions = new HashMap<String, RelationDefinition<?,?>>();
+    this.allPropertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
+    this.allRelationDefinitions =
+      new HashMap<String, RelationDefinition<?, ?>>();
     this.children = new HashMap<String,
-      AbstractManagedObjectDefinition<? extends C, ? extends S>>();
+        AbstractManagedObjectDefinition<? extends C, ? extends S>>();
 
     // If we have a parent definition then inherit its features.
     if (parent != null) {
       parent.children.put(name, this);
+
+      for (PropertyDefinition<?> pd : parent.getAllPropertyDefinitions()) {
+        allPropertyDefinitions.put(pd.getName(), pd);
+      }
+
+      for (RelationDefinition<?, ?> rd : parent.getAllRelationDefinitions()) {
+        allRelationDefinitions.put(rd.getName(), rd);
+      }
     }
   }
 
@@ -139,14 +158,7 @@ public abstract class AbstractManagedObjectDefinition
    *         object.
    */
   public final Collection<PropertyDefinition<?>> getAllPropertyDefinitions() {
-    if (parent == null) {
-      return getPropertyDefinitions();
-    } else {
-      List<PropertyDefinition<?>> list = new ArrayList<PropertyDefinition<?>>(
-          propertyDefinitions.values());
-      list.addAll(parent.getAllPropertyDefinitions());
-      return Collections.unmodifiableCollection(list);
-    }
+    return Collections.unmodifiableCollection(allPropertyDefinitions.values());
   }
 
 
@@ -162,14 +174,7 @@ public abstract class AbstractManagedObjectDefinition
    */
   public final Collection<RelationDefinition<?, ?>>
       getAllRelationDefinitions() {
-    if (parent == null) {
-      return getRelationDefinitions();
-    } else {
-      List<RelationDefinition<?, ?>> list =
-        new ArrayList<RelationDefinition<?, ?>>(relationDefinitions.values());
-      list.addAll(parent.getAllRelationDefinitions());
-      return Collections.unmodifiableCollection(list);
-    }
+    return Collections.unmodifiableCollection(allRelationDefinitions.values());
   }
 
 
@@ -314,15 +319,10 @@ public abstract class AbstractManagedObjectDefinition
       throw new IllegalArgumentException("null or empty property name");
     }
 
-    PropertyDefinition d = propertyDefinitions.get(name);
-
+    PropertyDefinition d = allPropertyDefinitions.get(name);
     if (d == null) {
-      if (parent != null) {
-        return parent.getPropertyDefinition(name);
-      } else {
-        throw new IllegalArgumentException("property definition \"" + name
-            + "\" not found");
-      }
+      throw new IllegalArgumentException("property definition \"" + name
+          + "\" not found");
     }
 
     return d;
@@ -365,15 +365,10 @@ public abstract class AbstractManagedObjectDefinition
       throw new IllegalArgumentException("null or empty relation name");
     }
 
-    RelationDefinition d = relationDefinitions.get(name);
-
+    RelationDefinition d = allRelationDefinitions.get(name);
     if (d == null) {
-      if (parent != null) {
-        return parent.getRelationDefinition(name);
-      } else {
-        throw new IllegalArgumentException("relation definition \"" + name
-            + "\" not found");
-      }
+      throw new IllegalArgumentException("relation definition \"" + name
+          + "\" not found");
     }
 
     return d;
@@ -497,30 +492,6 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Determine whether this type of managed object has any property definitions.
-   *
-   * @return Returns <code>true</code> if this type of managed object has any
-   *         property definitions, <code>false</code> otherwise.
-   */
-  public final boolean hasPropertyDefinitions() {
-    return !propertyDefinitions.isEmpty();
-  }
-
-
-
-  /**
-   * Determine whether this type of managed object has any relation definitions.
-   *
-   * @return Returns <code>true</code> if this type of managed object has any
-   *         relation definitions, <code>false</code> otherwise.
-   */
-  public final boolean hasRelationDefinitions() {
-    return !relationDefinitions.isEmpty();
-  }
-
-
-
-  /**
    * Determines whether or not this managed object definition is a
    * sub-type of the provided managed object definition. This managed
    * object definition is a sub-type of the provided managed object
@@ -579,6 +550,7 @@ public abstract class AbstractManagedObjectDefinition
     String name = d.getName();
 
     propertyDefinitions.put(name, d);
+    allPropertyDefinitions.put(name, d);
   }
 
 
@@ -596,6 +568,7 @@ public abstract class AbstractManagedObjectDefinition
     String name = d.getName();
 
     relationDefinitions.put(name, d);
+    allRelationDefinitions.put(name, d);
   }
 
 
