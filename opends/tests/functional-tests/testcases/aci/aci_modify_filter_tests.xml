@@ -37,6 +37,13 @@
       
         <sequence>
   
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='aci'			  			  
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
 
           <!---
                 Place suite-specific test information here.
@@ -46,6 +53,9 @@
                 #@TestScript                aci_modify_filter_test.xml
           -->
 
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_setup'" />
 									    
           <!---
                 Place test-specific test information here.
@@ -515,6 +525,10 @@
             file="'%s/testcases/aci/aci_modify_filter_tests_aci26.xml' % (TESTS_DIR)"/>
           <call function="'aci_modify_filter_tests_aci26'" />
 
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_cleanup'" />
+			
 			 
         </sequence>
       
