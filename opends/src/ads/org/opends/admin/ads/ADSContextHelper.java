@@ -83,6 +83,7 @@ public class ADSContextHelper
           {
             if (suffixes.size() > 0)
             {
+              backend.setBackendBaseDN(suffixes);
               backend.commit();
             }
             else
