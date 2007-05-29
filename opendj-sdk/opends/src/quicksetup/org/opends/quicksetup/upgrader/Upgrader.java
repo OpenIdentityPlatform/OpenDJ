@@ -47,8 +47,9 @@ import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.InProcessServerController;
 import org.opends.quicksetup.util.ServerHealthChecker;
 import org.opends.quicksetup.util.FileManager;
-import org.opends.quicksetup.util.OperationOutput;
+
 import org.opends.quicksetup.util.ExternalTools;
+import org.opends.quicksetup.util.OperationOutput;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.UIFactory;
@@ -59,7 +60,6 @@ import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.upgrader.ui.UpgraderReviewPanel;
 import org.opends.quicksetup.upgrader.ui.WelcomePanel;
 
-import javax.swing.*;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileFilter;
@@ -859,17 +859,21 @@ public class Upgrader extends GuiApplication implements CliApplication {
           LOG.log(Level.INFO, "starting server");
           setCurrentProgressStep(
                   UpgradeProgressStep.PREPARING_CUSTOMIZATIONS);
-          startServerWithoutConnectionHandlers();
+          InProcessServerController ipsc =
+                  new InProcessServerController(getInstallation());
+          InProcessServerController.disableConnectionHandlers(true);
+          ipsc.startServer();
+          LOG.log(Level.INFO, "start server finished");
           notifyListeners(formatter.getFormattedDone() +
                   formatter.getLineBreak());
-          LOG.log(Level.INFO, "start server finished");
-        } catch (ApplicationException e) {
+        } catch (Exception e) {
           notifyListeners(formatter.getFormattedError() +
                   formatter.getLineBreak());
           LOG.log(Level.INFO,
-                  "Error starting server in process in order to apply custom" +
+                  "Error starting server in order to apply custom" +
                           "schema and/or configuration", e);
-          throw e;
+          throw new ApplicationException(ApplicationException.Type.APPLICATION,
+                  "Error starting server:" + e.getLocalizedMessage(), e);
         }
 
         checkAbort();
@@ -919,6 +923,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
           // This class imports classes from the server
           new InProcessServerController(
                   getInstallation()).stopServer();
+          InProcessServerController.disableConnectionHandlers(false);
           LOG.log(Level.INFO, "server stopped");
         } catch (Throwable t) {
           LOG.log(Level.INFO, "Error stopping server", t);
@@ -1342,7 +1347,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
           throws ApplicationException {
     ExternalTools et = new ExternalTools(getInstallation());
     try {
-      OperationOutput oo = et.ldifDiff(source, target, output);
+      String[] args = new String[] {
+              "-o", Utils.getPath(output),
+              "-O",
+      };
+      OperationOutput oo = et.ldifDiff(source, target, args);
       int ret = oo.getReturnCode();
       if (ret != 0) {
         throw new ApplicationException(
