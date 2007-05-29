@@ -288,7 +288,8 @@ public class ReplicationServer
         synchronized (this)
         {
           /* check if we are connected every second */
-          wait(1000);
+          int randomizer = (int) Math.random()*100;
+          wait(1000 + randomizer);
         }
       } catch (InterruptedException e)
       {

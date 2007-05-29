@@ -381,6 +381,20 @@ public class ReplicationMessages {
   public static final int MSGID_READER_EXCEPTION =
     CATEGORY_MASK_SYNC | SEVERITY_MASK_NOTICE | 53;
 
+  /**
+   * A replication server received a null messsage from
+   * another server.
+   */
+  public static final int MSGID_DUPLICATE_SERVER_ID =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 54;
+
+  /**
+   * A server disconnected from the replication server.
+   * (this is an informational message)
+   */
+  public static final int MSGID_DUPLICATE_REPLICATION_SERVER_ID =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 55;
+
 
 
   /**
@@ -520,6 +534,10 @@ public class ReplicationMessages {
         "The provider class does not allow the operation requested");
     registerMessage(MSGID_COULD_NOT_SOLVE_HOSTNAME,
         "The hostname %s could not be resolved as an IP address");
+    registerMessage(MSGID_DUPLICATE_SERVER_ID,
+        "Servers %s and %s have the same ServerId : %d");
+    registerMessage(MSGID_DUPLICATE_REPLICATION_SERVER_ID,
+        "Replication Servers %s and %s have the same ServerId : %d");
     registerMessage(MSGID_READER_NULL_MSG,
         "Received a Null Msg from %s");
     registerMessage(MSGID_READER_EXCEPTION,

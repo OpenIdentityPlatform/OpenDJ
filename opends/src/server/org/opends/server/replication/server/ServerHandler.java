@@ -302,34 +302,49 @@ public class ServerHandler extends MonitorProvider
 
       replicationCache = replicationServer.getReplicationCache(this.baseDn);
 
+      boolean started;
       if (serverIsLDAPserver)
       {
-        replicationCache.startServer(this);
+        started = replicationCache.startServer(this);
       }
       else
       {
-        replicationCache.startReplicationServer(this);
+        started = replicationCache.startReplicationServer(this);
       }
 
-      writer = new ServerWriter(session, serverId, this, replicationCache);
-
-      reader = new ServerReader(session, serverId, this,
-                                             replicationCache);
-
-      reader.start();
-      writer.start();
-
-      // Create a thread to send heartbeat messages.
-      if (heartbeatInterval > 0)
+      if (started)
       {
-        heartbeatThread = new HeartbeatThread("replication Heartbeat",
-                                              session, heartbeatInterval);
-        heartbeatThread.start();
+        writer = new ServerWriter(session, serverId, this, replicationCache);
+
+        reader = new ServerReader(session, serverId, this,
+            replicationCache);
+
+        reader.start();
+        writer.start();
+
+        // Create a thread to send heartbeat messages.
+        if (heartbeatInterval > 0)
+        {
+          heartbeatThread = new HeartbeatThread("replication Heartbeat",
+              session, heartbeatInterval);
+          heartbeatThread.start();
+        }
+
+
+        DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
+        DirectoryServer.registerMonitorProvider(this);
       }
-
-
-      DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
-      DirectoryServer.registerMonitorProvider(this);
+      else
+      {
+        // the connection is not valid, close it.
+        try
+        {
+          session.close();
+        } catch (IOException e1)
+        {
+          // ignore
+        }
+      }
     }
     catch (Exception e)
     {

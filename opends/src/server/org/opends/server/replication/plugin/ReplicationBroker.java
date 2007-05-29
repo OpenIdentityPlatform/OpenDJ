@@ -405,20 +405,16 @@ public class ReplicationBroker implements InternalSearchListener
            * This server could not find any replicationServer
            * Let's wait a little and try again.
            */
-          synchronized (this)
+          checkState = false;
+          int    msgID   = MSGID_COULD_NOT_FIND_CHANGELOG;
+          String message = getMessage(msgID);
+          logError(ErrorLogCategory.SYNCHRONIZATION,
+              ErrorLogSeverity.NOTICE, message, msgID);
+          try
           {
-            checkState = false;
-            int    msgID   = MSGID_COULD_NOT_FIND_CHANGELOG;
-            String message = getMessage(msgID);
-            logError(ErrorLogCategory.SYNCHRONIZATION,
-                ErrorLogSeverity.NOTICE,
-                message, msgID);
-            try
-            {
-              this.wait(1000);
-            } catch (InterruptedException e)
-            {
-            }
+            Thread.sleep(1000);
+          } catch (InterruptedException e)
+          {
           }
         }
       }
