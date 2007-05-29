@@ -229,20 +229,31 @@ public class ReplicationCache
    *
    * @param handler handler for the server that must be started
    * @throws Exception when method has failed
+   * @return A boolean indicating if the start was successfull.
    */
-  public void startServer(ServerHandler handler) throws Exception
+  public boolean startServer(ServerHandler handler) throws Exception
   {
     /*
      * create the balanced tree that will be used to forward changes
      */
     synchronized (connectedServers)
     {
+      ServerHandler oldHandler = connectedServers.get(handler.getServerId());
+
       if (connectedServers.containsKey(handler.getServerId()))
       {
-        /* TODO : handle error properly */
-        throw new Exception("serverId already registered");
+        // looks like two LDAP servers have the same serverId
+        // log an error message and drop this connection.
+        int    msgID   = MSGID_DUPLICATE_SERVER_ID;
+        String message = getMessage(msgID, oldHandler.toString(),
+            handler.toString(), handler.getServerId());
+        logError(ErrorLogCategory.SYNCHRONIZATION,
+                 ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+        return false;
       }
       connectedServers.put(handler.getServerId(), handler);
+      return true;
     }
   }
 
@@ -267,20 +278,41 @@ public class ReplicationCache
    *
    * @param handler the server ID to which we want to forward changes
    * @throws Exception in case of errors
+   * @return A boolean indicating if the start was successfull.
    */
-  public void startReplicationServer(ServerHandler handler) throws Exception
+  public boolean startReplicationServer(ServerHandler handler) throws Exception
   {
     /*
      * create the balanced tree that will be used to forward changes
-     * TODO throw proper exception
      */
     synchronized (replicationServers)
     {
-      if (replicationServers.containsKey(handler.getServerId()))
+      ServerHandler oldHandler = replicationServers.get(handler.getServerId());
+      if ((oldHandler != null))
       {
-        throw new Exception("Replication Server Id already registered");
+        if (oldHandler.getServerAddressURL().equals(
+            handler.getServerAddressURL()))
+        {
+          // this is the same server, this means that our ServerStart messages
+          // have been sent at about the same time and 2 connections
+          // have been established.
+          // Silently drop this connection.
+        }
+        else
+        {
+          // looks like two replication servers have the same serverId
+          // log an error message and drop this connection.
+          int    msgID   = MSGID_DUPLICATE_REPLICATION_SERVER_ID;
+          String message = getMessage(msgID, oldHandler.getServerAddressURL(),
+                handler.getServerAddressURL(), handler.getServerId());
+          logError(ErrorLogCategory.SYNCHRONIZATION,
+                   ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+        }
+        return false;
       }
       replicationServers.put(handler.getServerId(), handler);
+      return true;
     }
   }
 
