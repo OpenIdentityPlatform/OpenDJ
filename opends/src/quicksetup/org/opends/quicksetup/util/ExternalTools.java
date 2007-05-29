@@ -80,12 +80,12 @@ public class ExternalTools {
    * Backs up all the databases to a specified directory.
    * @param source File representing the source data
    * @param target File representing the target data
-   * @param output File representing the output data
+   * @param otherArgs File representing the output data
    * @return OperationOutput containing information about the operation
    * @throws java.io.IOException if the process could not be started
    * @throws InterruptedException if the process was prematurely interrupted
    */
-  public OperationOutput ldifDiff(File source, File target, File output)
+  public OperationOutput ldifDiff(File source, File target, String... otherArgs)
           throws IOException, InterruptedException {
     String toolName = Installation.LDIF_DIFF;
     List<String> args = new ArrayList<String>();
@@ -94,10 +94,11 @@ public class ExternalTools {
     args.add(Utils.getPath(source));
     args.add("-t"); // target LDIF
     args.add(Utils.getPath(target));
-    args.add("-o"); // output LDIF
-    args.add(Utils.getPath(output));
-    args.add("-O"); // overwrite
-    args.add("-S"); // single-value changes
+    if (otherArgs != null) {
+      for (String otherArg : otherArgs) {
+        args.add(otherArg);
+      }
+    }
     return startProcess(toolName, args);
   }
 

@@ -78,7 +78,7 @@ public class ServerHealthChecker {
       if (installation.getStatus().isServerRunning()) {
         new ServerController(installation).stopServer(true);
       }
-      OperationOutput op = control.startServer(false);
+      OperationOutput op = control.startServer();
       errors = op.getErrorMessages(UNHEALTHY_SERVER_LOG_REGEX);
     } catch (Exception e) {
       if (e instanceof ApplicationException) {

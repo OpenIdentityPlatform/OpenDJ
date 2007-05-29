@@ -481,7 +481,10 @@ public abstract class GuiApplication extends Application {
       if (getInstallation().getStatus().isServerRunning()) {
         control.stopServer(true);
       }
-      new InProcessServerController(getInstallation()).startServer(true);
+      InProcessServerController ipsc =
+              new InProcessServerController(getInstallation());
+      ipsc.disableConnectionHandlers(true);
+      ipsc.startServer();
     } catch (IOException e) {
       String msg = "Failed to determine server state: " +
       e.getLocalizedMessage();

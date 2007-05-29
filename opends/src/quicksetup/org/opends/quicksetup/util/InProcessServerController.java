@@ -213,15 +213,31 @@ public class InProcessServerController {
    *         Directory Server.
    */
   public OperationOutput startServer(boolean disableConnectionHandlers)
-          throws
-          org.opends.server.types.InitializationException,
-          org.opends.server.config.ConfigException {
+          throws InitializationException, ConfigException
+  {
     LOG.log(Level.INFO, "Starting in process server with connection handlers " +
             (disableConnectionHandlers ? "disabled" : "enabled"));
     System.setProperty(
             "org.opends.server.DisableConnectionHandlers",
             disableConnectionHandlers ? "true" : "false");
     return startServer();
+  }
+
+  /**
+   * Disables the server's connection handlers upon startup.  The server
+   * when started is otherwise up and running but will not accept any
+   * connections from external clients (i.e., does not create or initialize the
+   * connection handlers). This could be useful, for example, in an upgrade mode
+   * where it might be helpful to start the server but don't want it to appear
+   * externally as if the server is online without connection handlers
+   * listening.
+   * @param disable boolean that when true disables connection handlers when
+   * the server is started.
+   */
+  static public void disableConnectionHandlers(boolean disable) {
+    System.setProperty(
+            "org.opends.server.DisableConnectionHandlers",
+            disable ? "true" : "false");
   }
 
   /**
@@ -333,8 +349,7 @@ public class InProcessServerController {
   }
 
   /**
-   * Applies configuration or schema customizations.
-   * NOTE: Assumes that the server is running in process.
+   * Applies modifications contained in an LDIF file to the server.
    *
    * @param ldifFile LDIF file to apply
    * @throws IOException if there is an IO Error
@@ -354,7 +369,7 @@ public class InProcessServerController {
               new LDIFReader(importCfg);
       org.opends.server.util.ChangeRecordEntry cre;
       while (null != (cre = ldifReader.readChangeRecord(false))) {
-        if (cre instanceof org.opends.server.util.ModifyChangeRecordEntry) {
+        if (cre instanceof ModifyChangeRecordEntry) {
           ModifyChangeRecordEntry mcre =
                   (ModifyChangeRecordEntry) cre;
           ByteString dnByteString =
@@ -363,28 +378,22 @@ public class InProcessServerController {
           ModifyOperation op =
                   cc.processModify(dnByteString, mcre.getModifications());
           ResultCode rc = op.getResultCode();
-          if (rc.equals(
-                  ResultCode.
-                          OBJECTCLASS_VIOLATION)) {
-            // try again without schema checking
-            DirectoryServer.setCheckSchema(false);
-            op = cc.processModify(dnByteString, mcre.getModifications());
-            rc = op.getResultCode();
-          }
           if (rc.equals(ResultCode.
                   SUCCESS)) {
             LOG.log(Level.INFO, "processed server modification " +
-                    (DirectoryServer.checkSchema() ?
-                            ":" : "(schema checking off):" +
-                            modListToString(op.getModifications())));
-            if (!DirectoryServer.checkSchema()) {
-              DirectoryServer.setCheckSchema(true);
-            }
+                            modListToString(op.getModifications()));
           } else if (rc.equals(
                   ResultCode.
                           ATTRIBUTE_OR_VALUE_EXISTS)) {
             // ignore this error
             LOG.log(Level.INFO, "ignoring attribute that already exists: " +
+                    modListToString(op.getModifications()));
+          } else if (rc.equals(ResultCode.NO_SUCH_ATTRIBUTE)) {
+            // This can·happen if for instance the old configuration was
+            // changed so that the value of an attribute matches the default
+            // value of the attribute in the new configuration.
+            // Just log it and move on.
+            LOG.log(Level.INFO, "Ignoring attribute not found: " +
                     modListToString(op.getModifications()));
           } else {
             // report the error to the user
