@@ -27,11 +27,14 @@
 package org.opends.server.replication.plugin;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.api.DirectoryThread;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
@@ -42,6 +45,11 @@ import org.opends.server.types.ErrorLogSeverity;
  */
 public class ListenerThread extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   private ReplicationDomain listener;
   private boolean shutdown = false;
 
@@ -70,23 +78,38 @@ public class ListenerThread extends DirectoryThread
   public void run()
   {
     UpdateMessage msg;
+    boolean done = false;
 
-    try
+    if (debugEnabled())
     {
-      while (((msg = listener.receive()) != null) && (shutdown == false))
+      TRACER.debugInfo("Replication Listener thread starting.");
+    }
+
+    while (!done)
+    {
+      try
       {
-        listener.replay(msg);
+        while (((msg = listener.receive()) != null) && (shutdown == false))
+        {
+          listener.replay(msg);
+        }
+        done = true;
+      } catch (Exception e)
+      {
+        /*
+         * catch all exceptions happening in listener.receive and
+         * listener.replay so that the thread never dies even in case
+         * of problems.
+         */
+        int msgID = MSGID_EXCEPTION_RECEIVING_REPLICATION_MESSAGE;
+        String message = getMessage(msgID, stackTraceToSingleLineString(e));
+        logError(ErrorLogCategory.SYNCHRONIZATION,
+            ErrorLogSeverity.SEVERE_ERROR, message, msgID);
       }
-    } catch (Exception e)
+    }
+    if (debugEnabled())
     {
-      /*
-       * catch all exceptions happening in listener.receive and listener.replay
-       * so that the thread never dies even in case of problems.
-       */
-      int msgID = MSGID_EXCEPTION_RECEIVING_REPLICATION_MESSAGE;
-      String message = getMessage(msgID, stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+      TRACER.debugInfo("Replication Listener thread stopping.");
     }
   }
 }

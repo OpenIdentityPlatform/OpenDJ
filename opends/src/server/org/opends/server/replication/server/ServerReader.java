@@ -29,6 +29,8 @@ package org.opends.server.replication.server;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
 
 import java.io.IOException;
 
@@ -45,6 +47,7 @@ import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.loggers.debug.DebugTracer;
 
 
 /**
@@ -59,6 +62,11 @@ import org.opends.server.types.ErrorLogSeverity;
  */
 public class ServerReader extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   private short serverId;
   private ProtocolSession session;
   private ServerHandler handler;
@@ -87,8 +95,18 @@ public class ServerReader extends DirectoryThread
    */
   public void run()
   {
+    if (debugEnabled())
+    {
+      if (handler.isReplicationServer())
+      {
+        TRACER.debugInfo("Replication server reader starting " + serverId);
+      }
+      else
+      {
+        TRACER.debugInfo("LDAP server reader starting " + serverId);
+      }
+    }
     /*
-     * TODO : catch exceptions in case of bugs
      * wait on input stream
      * grab all incoming messages and publish them to the replicationCache
      */
@@ -98,12 +116,6 @@ public class ServerReader extends DirectoryThread
       {
         ReplicationMessage msg = session.receive();
 
-        if (msg == null)
-        {
-          // TODO : generate error in the log
-          // make sure that connection is closed
-          return;
-        }
         if (msg instanceof AckMessage)
         {
           AckMessage ack = (AckMessage) msg;
@@ -147,7 +159,19 @@ public class ServerReader extends DirectoryThread
           ErrorMessage errorMsg = (ErrorMessage) msg;
           handler.process(errorMsg);
         }
-
+        else if (msg == null)
+        {
+          /*
+           * The remote server has sent an unknown message,
+           * close the conenction.
+           */
+          int    msgID   = MSGID_READER_NULL_MSG;
+          String message = getMessage(msgID, handler.toString());
+          logError(ErrorLogCategory.SYNCHRONIZATION,
+                   ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+          return;
+        }
       }
     } catch (IOException e)
     {
@@ -160,7 +184,7 @@ public class ServerReader extends DirectoryThread
       String message = getMessage(msgID, handler.toString());
       logError(ErrorLogCategory.SYNCHRONIZATION,
                ErrorLogSeverity.NOTICE,
-               message, msgID);
+               message + e.getMessage(), msgID);
     } catch (ClassNotFoundException e)
     {
       /*
@@ -174,7 +198,15 @@ public class ServerReader extends DirectoryThread
                message, msgID);
     } catch (Exception e)
     {
-
+      /*
+       * The remote server has sent an unknown message,
+       * close the conenction.
+       */
+      int    msgID   = MSGID_READER_EXCEPTION;
+      String message = getMessage(msgID, handler.toString());
+      logError(ErrorLogCategory.SYNCHRONIZATION,
+               ErrorLogSeverity.SEVERE_ERROR,
+               message, msgID);
     }
     finally
     {
@@ -191,6 +223,17 @@ public class ServerReader extends DirectoryThread
        // ignore
       }
       replicationCache.stopServer(handler);
+    }
+    if (debugEnabled())
+    {
+      if (handler.isReplicationServer())
+      {
+        TRACER.debugInfo("Replication server reader stopping " + serverId);
+      }
+      else
+      {
+        TRACER.debugInfo("LDAP server reader stopping " + serverId);
+      }
     }
   }
 }

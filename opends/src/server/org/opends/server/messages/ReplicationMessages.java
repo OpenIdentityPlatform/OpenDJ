@@ -368,6 +368,22 @@ public class ReplicationMessages {
     CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 51;
 
   /**
+   * A replication server received a null messsage from
+   * another server.
+   */
+  public static final int MSGID_READER_NULL_MSG =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_NOTICE | 52;
+
+  /**
+   * A server disconnected from the replication server.
+   * (this is an informational message)
+   */
+  public static final int MSGID_READER_EXCEPTION =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_NOTICE | 53;
+
+
+
+  /**
    * Register the messages from this class in the core server.
    *
    */
@@ -376,7 +392,7 @@ public class ReplicationMessages {
     registerMessage(MSGID_SYNC_INVALID_DN,
        "The configured DN is already used by another domain");
     registerMessage(MSGID_INVALID_CHANGELOG_SERVER,
-        "Invalid changelog server configuration");
+        "Invalid replication server configuration");
     registerMessage(MSGID_UNKNOWN_HOSTNAME,
         "Changelog failed to start because the hostname is unknown");
     registerMessage(MSGID_COULD_NOT_BIND_CHANGELOG,
@@ -398,31 +414,31 @@ public class ReplicationMessages {
     registerMessage(MSGID_EXCEPTION_REPLAYING_OPERATION,
          "An Exception was caught while replaying operation %s : %s");
     registerMessage(MSGID_NEED_CHANGELOG_PORT,
-         "The Changelog server port must be defined");
+         "The replication server port must be defined");
     registerMessage(MSGID_ERROR_UPDATING_RUV,
          "Error %s when updating server state %s : %s base dn : %s");
     registerMessage(MSGID_ERROR_SEARCHING_RUV,
          "Error %s when searching for server state %s : %s base dn : %s");
     registerMessage(MSGID_SERVER_DISCONNECT,
-         "%s has disconnected from this changelog server");
+         "%s has disconnected from this replication server");
     registerMessage(MSGID_NO_CHANGELOG_SERVER_LISTENING,
-         "There is no changelog server listening on %s");
+         "There is no replication server listening on %s");
     registerMessage(MSGID_CHANGELOG_MISSING_CHANGES,
-        "The changelog server %s is missing some changes that this server" +
+        "The replication server %s is missing some changes that this server" +
         " has already processed");
     registerMessage(MSGID_NEED_MORE_THAN_ONE_CHANGELOG_SERVER,
-        "More than one changelog server should be configured");
+        "More than one replication server should be configured");
     registerMessage(MSGID_EXCEPTION_STARTING_SESSION,
         "Caught Exception during initial communication with " +
-        "changelog server : ");
+        "replication server : ");
     registerMessage(MSGID_CANNOT_RECOVER_CHANGES,
         "Error when searching old changes from the database. ");
     registerMessage(
         MSGID_COULD_NOT_FIND_CHANGELOG_WITH_MY_CHANGES,
-        "Could not find a changelog server that has seen all the local" +
+        "Could not find a replication server that has seen all the local" +
         " changes. Going to replay changes");
     registerMessage(MSGID_COULD_NOT_FIND_CHANGELOG,
-        "Could not connect to any changelog server, retrying...");
+        "Could not connect to any replication server, retrying...");
     registerMessage(MSGID_EXCEPTION_CLOSING_DATABASE,
         "Error closing changelog database %s : ");
     registerMessage(MSGID_EXCEPTION_DECODING_OPERATION,
@@ -458,33 +474,33 @@ public class ReplicationMessages {
         "An Exception was caught while testing existence or trying " +
         " to create the directory for the changelog database : %s");
     registerMessage(MSGID_CHANGELOG_SERVER_ATTR,
-        "Specifies the list of Changelog Servers to which this" +
-        " Changelog Server should connect. Each value of this attribute" +
+        "Specifies the list of replication servers to which this" +
+        " replication server should connect. Each value of this attribute" +
         " should contain a values build with the hostname and the port" +
         " number of the remote server separated with a \":\"");
     registerMessage(MSGID_SERVER_ID_ATTR,
-        "Specifies the server ID. Each Changelog Server in the topology" +
+        "Specifies the server ID. Each replication server in the topology" +
         " Must be assigned a unique server ID in the topology");
     registerMessage(MSGID_CHANGELOG_PORT_ATTR,
-        "Specifies the port number that the changelog server will use to" +
+        "Specifies the port number that the replication server will use to" +
         " listen for connections from LDAP servers");
     registerMessage(MSGID_WINDOW_SIZE_ATTR,
-        "Specifies the receive window size of the changelog server");
+        "Specifies the receive window size of the replication server");
     registerMessage(MSGID_QUEUE_SIZE_ATTR,
-        "Specifies the receive queue size of the changelog server." +
-        " The Changelog servers will queue up to this number of messages" +
+        "Specifies the receive queue size of the replication server." +
+        " The replication servers will queue up to this number of messages" +
         " in its memory queue and save the older messages to persistent" +
         " storage. Using a larger size may improve performances when" +
         " The replication delay is larger than this size but at the cost" +
         " of using more memory");
     registerMessage(MSGID_CHANGELOG_DIR_PATH_ATTR,
-        "Specifies the Changelog Server directory. The Changelog server" +
+        "Specifies the replication server directory. The replication server" +
         " will create all persistent storage below this path");
     registerMessage(MSGID_PURGE_DELAY_ATTR,
-        "Specifies the Changelog Purge Delay, The Changelog servers will" +
+        "Specifies the Changelog Purge Delay, The replication servers will" +
         " keep all changes up to this amount of time before deleting them." +
         " This values defines the maximum age of a backup that can be" +
-        " restored because changelog servers would not be able to refresh" +
+        " restored because replication servers would not be able to refresh" +
         " LDAP servers with older versions of the data. A zero value" +
         " can be used to specify an infinite delay (or never purge)");
     registerMessage(MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED,
@@ -504,5 +520,9 @@ public class ReplicationMessages {
         "The provider class does not allow the operation requested");
     registerMessage(MSGID_COULD_NOT_SOLVE_HOSTNAME,
         "The hostname %s could not be resolved as an IP address");
+    registerMessage(MSGID_READER_NULL_MSG,
+        "Received a Null Msg from %s");
+    registerMessage(MSGID_READER_EXCEPTION,
+        "Exception when reading messages from %s");
   }
 }
