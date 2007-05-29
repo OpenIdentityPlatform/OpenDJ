@@ -594,86 +594,79 @@
       <xsl:value-of
         select="'      builder.setOption(PropertyOption.HIDDEN);&#xa;'" />
     </xsl:if>
+    <xsl:if
+      test="not(@mandatory='true') and not(adm:default-behavior)">
+      <xsl:message terminate="yes">
+        <xsl:value-of
+          select="concat('No default behavior defined for non-mandatory property &quot;', @name,
+                         '&quot;.')" />
+      </xsl:message>
+    </xsl:if>
     <xsl:choose>
-      <xsl:when test="@mandatory='true'">
+      <xsl:when test="not(adm:default-behavior) or adm:default-behavior/adm:undefined">
         <xsl:value-of
           select="concat('      builder.setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider&lt;', $value-type,'&gt;());&#xa;')" />
       </xsl:when>
-      <xsl:otherwise>
-        <xsl:if test="not(adm:default-behavior)">
-          <xsl:message terminate="yes">
-            <xsl:value-of
-              select="concat('No default behavior defined for non-mandatory property &quot;', @name,
-                         '&quot;.')" />
-          </xsl:message>
-        </xsl:if>
-        <xsl:choose>
-          <xsl:when test="adm:default-behavior/adm:undefined">
-            <xsl:value-of
-              select="concat('      builder.setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider&lt;', $value-type,'&gt;());&#xa;')" />
-          </xsl:when>
-          <xsl:when test="adm:default-behavior/adm:alias">
-            <xsl:value-of
-              select="concat('      builder.setDefaultBehaviorProvider(new AliasDefaultBehaviorProvider&lt;', $value-type,'&gt;(INSTANCE, &quot;', @name, '&quot;));&#xa;')" />
-          </xsl:when>
-          <xsl:when test="adm:default-behavior/adm:defined">
-            <xsl:value-of
-              select="concat('      DefaultBehaviorProvider&lt;', $value-type,'&gt; provider = ',
+      <xsl:when test="adm:default-behavior/adm:alias">
+        <xsl:value-of
+          select="concat('      builder.setDefaultBehaviorProvider(new AliasDefaultBehaviorProvider&lt;', $value-type,'&gt;(INSTANCE, &quot;', @name, '&quot;));&#xa;')" />
+      </xsl:when>
+      <xsl:when test="adm:default-behavior/adm:defined">
+        <xsl:value-of
+          select="concat('      DefaultBehaviorProvider&lt;', $value-type,'&gt; provider = ',
                              'new DefinedDefaultBehaviorProvider&lt;', $value-type,'&gt;(')" />
-            <xsl:for-each
-              select="adm:default-behavior/adm:defined/adm:value">
-              <xsl:value-of
-                select="concat('&quot;', normalize-space(), '&quot;')" />
-              <xsl:if test="position() != last()">
-                <xsl:value-of select="', '" />
-              </xsl:if>
-            </xsl:for-each>
-            <xsl:value-of select="');&#xa;'" />
-            <xsl:value-of
-              select="'      builder.setDefaultBehaviorProvider(provider);&#xa;'" />
-          </xsl:when>
-          <xsl:when
-            test="adm:default-behavior/adm:inherited/adm:relative">
-            <xsl:value-of
-              select="concat('      DefaultBehaviorProvider&lt;', $value-type,'&gt; provider = ',
+        <xsl:for-each
+          select="adm:default-behavior/adm:defined/adm:value">
+          <xsl:value-of
+            select="concat('&quot;', normalize-space(), '&quot;')" />
+          <xsl:if test="position() != last()">
+            <xsl:value-of select="', '" />
+          </xsl:if>
+        </xsl:for-each>
+        <xsl:value-of select="');&#xa;'" />
+        <xsl:value-of
+          select="'      builder.setDefaultBehaviorProvider(provider);&#xa;'" />
+      </xsl:when>
+      <xsl:when
+        test="adm:default-behavior/adm:inherited/adm:relative">
+        <xsl:value-of
+          select="concat('      DefaultBehaviorProvider&lt;', $value-type,'&gt; provider = ',
                              'new RelativeInheritedDefaultBehaviorProvider&lt;', $value-type,'&gt;(')" />
-            <xsl:variable name="managed-object-name">
-              <xsl:call-template name="name-to-java">
-                <xsl:with-param name="value"
-                  select="adm:default-behavior/adm:inherited/adm:relative/@managed-object-name" />
-              </xsl:call-template>
-            </xsl:variable>
-            <xsl:variable name="property-name"
-              select="adm:default-behavior/adm:inherited/adm:relative/@property-name" />
-            <xsl:variable name="offset"
-              select="adm:default-behavior/adm:inherited/adm:relative/@offset" />
-            <xsl:value-of
-              select="concat($managed-object-name, 'CfgDefn.getInstance(), &quot;', $property-name, '&quot;, ', $offset, ');&#xa;')" />
-            <xsl:value-of
-              select="'      builder.setDefaultBehaviorProvider(provider);&#xa;'" />
-          </xsl:when>
-          <xsl:when
-            test="adm:default-behavior/adm:inherited/adm:absolute">
-            <xsl:value-of
-              select="concat('      DefaultBehaviorProvider&lt;', $value-type,'&gt; provider = ',
+        <xsl:variable name="managed-object-name">
+          <xsl:call-template name="name-to-java">
+            <xsl:with-param name="value"
+              select="adm:default-behavior/adm:inherited/adm:relative/@managed-object-name" />
+          </xsl:call-template>
+        </xsl:variable>
+        <xsl:variable name="property-name"
+          select="adm:default-behavior/adm:inherited/adm:relative/@property-name" />
+        <xsl:variable name="offset"
+          select="adm:default-behavior/adm:inherited/adm:relative/@offset" />
+        <xsl:value-of
+          select="concat($managed-object-name, 'CfgDefn.getInstance(), &quot;', $property-name, '&quot;, ', $offset, ');&#xa;')" />
+        <xsl:value-of
+          select="'      builder.setDefaultBehaviorProvider(provider);&#xa;'" />
+      </xsl:when>
+      <xsl:when
+        test="adm:default-behavior/adm:inherited/adm:absolute">
+        <xsl:value-of
+          select="concat('      DefaultBehaviorProvider&lt;', $value-type,'&gt; provider = ',
                              'new AbsoluteInheritedDefaultBehaviorProvider&lt;', $value-type,'&gt;(')" />
-            <xsl:variable name="property-name"
-              select="adm:default-behavior/adm:inherited/adm:absolute/@property-name" />
-            <xsl:variable name="path"
-              select="adm:default-behavior/adm:inherited/adm:absolute/@path" />
-            <xsl:value-of
-              select="concat('ManagedObjectPath.valueOf(&quot;', $path, '&quot;), &quot;', $property-name, '&quot;);&#xa;')" />
-            <xsl:value-of
-              select="'      builder.setDefaultBehaviorProvider(provider);&#xa;'" />
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:message terminate="yes">
-              <xsl:value-of
-                select="concat('Unrecognized default behavior type for property &quot;', @name,
+        <xsl:variable name="property-name"
+          select="adm:default-behavior/adm:inherited/adm:absolute/@property-name" />
+        <xsl:variable name="path"
+          select="adm:default-behavior/adm:inherited/adm:absolute/@path" />
+        <xsl:value-of
+          select="concat('ManagedObjectPath.valueOf(&quot;', $path, '&quot;), &quot;', $property-name, '&quot;);&#xa;')" />
+        <xsl:value-of
+          select="'      builder.setDefaultBehaviorProvider(provider);&#xa;'" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:message terminate="yes">
+          <xsl:value-of
+            select="concat('Unrecognized default behavior type for property &quot;', @name,
                          '&quot;.')" />
-            </xsl:message>
-          </xsl:otherwise>
-        </xsl:choose>
+        </xsl:message>
       </xsl:otherwise>
     </xsl:choose>
     <xsl:call-template name="get-property-definition-ctor" />
@@ -1066,7 +1059,8 @@
           </xsl:choose>
           <xsl:value-of select="' value)'" />
           <xsl:if test="@read-only='true'">
-            <xsl:value-of select="' throws PropertyIsReadOnlyException'" />
+            <xsl:value-of
+              select="' throws PropertyIsReadOnlyException'" />
           </xsl:if>
           <xsl:value-of
             select="concat(' {&#xa;' ,
@@ -1781,7 +1775,9 @@
               <import>java.util.Collection</import>
             </xsl:if>
             <xsl:if test="$this-all-properties[@read-only='true']">
-              <import>org.opends.server.admin.PropertyIsReadOnlyException</import>
+              <import>
+                org.opends.server.admin.PropertyIsReadOnlyException
+              </import>
             </xsl:if>
           </xsl:otherwise>
         </xsl:choose>

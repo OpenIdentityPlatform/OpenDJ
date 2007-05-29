@@ -208,11 +208,15 @@
       <!--
         Copy all inherited properties.
       -->
-      <xsl:copy-of select="$hierarchy/adm:managed-object/adm:property" />
+      <xsl:variable name="property-overrides"
+        select="adm:property-override" />
+      <xsl:copy-of
+        select="$hierarchy/adm:managed-object/adm:property[not(@name=$property-overrides/@name)]" />
       <!--
         Copy all local properties.
       -->
-      <xsl:apply-templates select="adm:property|adm:property-reference"
+      <xsl:apply-templates
+        select="adm:property|adm:property-reference|adm:property-override"
         mode="pre-process">
         <xsl:with-param name="moname" select="@name" />
         <xsl:with-param name="mopackage" select="@package" />
@@ -457,6 +461,113 @@
         <xsl:element name="admpp:package">
           <xsl:attribute name="name">
             <xsl:value-of select="$package" />
+          </xsl:attribute>
+        </xsl:element>
+      </xsl:element>
+    </xsl:element>
+  </xsl:template>
+  <!--
+    Pre-process a property override pulling in the inherited property
+    definition and by adding a "preprocessor" profile which contains
+    information about where the property was redefined.
+  -->
+  <xsl:template match="adm:property-override" mode="pre-process">
+    <xsl:param name="mopackage" select="/.." />
+    <xsl:param name="moname" select="/.." />
+    <xsl:param name="hierarchy" />
+    <!--
+      Make sure that this property override does not have the same name as another
+      property override in this managed object.
+    -->
+    <xsl:variable name="name" select="@name" />
+    <xsl:if test="../adm:property-override[@name=$name][2]">
+      <xsl:message terminate="yes">
+        <xsl:value-of
+          select="concat('Property override ', @name, ' is already overridden in this managed object')" />
+      </xsl:message>
+    </xsl:if>
+    <!--
+      Make sure that this property overrides an existing property.
+    -->
+    <xsl:if
+      test="not($hierarchy/adm:managed-object/adm:property[@name=$name])">
+      <xsl:message terminate="yes">
+        <xsl:value-of
+          select="concat('Cannot find inherited property ', @name, ' for property override')" />
+      </xsl:message>
+    </xsl:if>
+    <!--
+      Copy the inherited property definition taking care to override
+      the default behavior and admin action if required.
+    -->
+    <xsl:variable name="property"
+      select="$hierarchy/adm:managed-object/adm:property[@name=$name]" />
+    <xsl:element name="adm:property">
+      <xsl:copy-of select="$property/@*" />
+      <xsl:apply-templates
+        select="$property/adm:TODO | $property/adm:synopsis | $property/adm:description"
+        mode="pre-process">
+        <xsl:with-param name="mopackage" select="$mopackage" />
+        <xsl:with-param name="moname" select="$moname" />
+        <xsl:with-param name="hierarchy" select="$hierarchy" />
+      </xsl:apply-templates>
+      <xsl:choose>
+        <xsl:when test="adm:requires-admin-action">
+          <xsl:apply-templates select="adm:requires-admin-action"
+            mode="pre-process">
+            <xsl:with-param name="mopackage" select="$mopackage" />
+            <xsl:with-param name="moname" select="$moname" />
+            <xsl:with-param name="hierarchy" select="$hierarchy" />
+          </xsl:apply-templates>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates
+            select="$property/adm:requires-admin-action"
+            mode="pre-process">
+            <xsl:with-param name="mopackage" select="$mopackage" />
+            <xsl:with-param name="moname" select="$moname" />
+            <xsl:with-param name="hierarchy" select="$hierarchy" />
+          </xsl:apply-templates>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:choose>
+        <xsl:when test="adm:default-behavior">
+          <xsl:apply-templates select="adm:default-behavior"
+            mode="pre-process">
+            <xsl:with-param name="mopackage" select="$mopackage" />
+            <xsl:with-param name="moname" select="$moname" />
+            <xsl:with-param name="hierarchy" select="$hierarchy" />
+          </xsl:apply-templates>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="$property/adm:default-behavior"
+            mode="pre-process">
+            <xsl:with-param name="mopackage" select="$mopackage" />
+            <xsl:with-param name="moname" select="$moname" />
+            <xsl:with-param name="hierarchy" select="$hierarchy" />
+          </xsl:apply-templates>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:apply-templates
+        select="$property/adm:syntax | $property/adm:profile[@name!='preprocessor']"
+        mode="pre-process">
+        <xsl:with-param name="mopackage" select="$mopackage" />
+        <xsl:with-param name="moname" select="$moname" />
+        <xsl:with-param name="hierarchy" select="$hierarchy" />
+      </xsl:apply-templates>
+      <!--
+        Now append the preprocessor profile.
+      -->
+      <xsl:element name="adm:profile">
+        <xsl:attribute name="name">
+          <xsl:value-of select="'preprocessor'" />
+        </xsl:attribute>
+        <xsl:element name="admpp:managed-object">
+          <xsl:attribute name="name">
+            <xsl:value-of select="$moname" />
+          </xsl:attribute>
+          <xsl:attribute name="package">
+            <xsl:value-of select="$mopackage" />
           </xsl:attribute>
         </xsl:element>
       </xsl:element>

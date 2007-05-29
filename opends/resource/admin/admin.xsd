@@ -115,6 +115,21 @@
             </xsd:documentation>
           </xsd:annotation>
         </xsd:element>
+        <xsd:element name="property-override"
+          type="tns:property-override-type">
+          <xsd:annotation>
+            <xsd:documentation>
+              Overrides a property definition inherited from a parent
+              managed object definition. Using a property override it is
+              possible to modify the behavior of an inherited property
+              definition in a non-critical way. For example, a managed
+              object definition might override the default behavior of
+              an inherited Java implementation class property so that
+              new instances are created with the correct default
+              implementation class.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
         <xsd:element name="property-reference"
           type="tns:property-reference-type">
           <xsd:annotation>
@@ -403,6 +418,58 @@
           The package containing the referenced property. By default,
           the package in which this managed object is defined will be
           used.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:complexType name="property-override-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        Overrides a property definition inherited from a parent managed
+        object definition. Using a property override it is possible to
+        modify the behavior of an inherited property definition in a
+        non-critical way. For example, a managed object definition might
+        override the default behavior of an inherited Java
+        implementation class property so that new instances are created
+        with the correct default implementation class.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="requires-admin-action"
+        type="tns:admin-action-type" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            Optionally override the administrative action defined in the
+            overridden property definition. An administrative action
+            defines an optional action which administators must perform
+            after they have modified this property. By default
+            modifications to properties are assumed to take effect
+            immediately and require no additional administrative action.
+            Developers should be aware that, where feasible, they should
+            implement components such that property modifications
+            require no additional administrative action. This is
+            required in order to minimize server downtime during
+            administration and provide a more user-friendly experience.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="default-behavior" type="tns:default-type"
+        minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            Optionally override the default behavior defined in the
+            overridden property definition. The default behavior is
+            applicable when the property has no values specified. All
+            properties must have a default behavior defined unless they
+            are mandatory.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="name" type="tns:name-type" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+          The name of the overridden property.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>

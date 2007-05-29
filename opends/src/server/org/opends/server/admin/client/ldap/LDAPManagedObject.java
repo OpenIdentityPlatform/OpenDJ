@@ -424,7 +424,8 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
 
     for (PropertyDefinition<?> pd : definition.getAllPropertyDefinitions()) {
       Property<?> p = properties.getProperty(pd);
-      if (pd.hasOption(PropertyOption.MANDATORY) && p.isEmpty()) {
+      if (pd.hasOption(PropertyOption.MANDATORY)
+          && p.getEffectiveValues().isEmpty()) {
         exceptions.add(new PropertyIsMandatoryException(pd));
       }
     }
@@ -941,8 +942,17 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
   private <T> void encodeProperty(Attribute attribute,
       PropertyDefinition<T> pd, PropertySet properties) {
     Property<T> p = properties.getProperty(pd);
-    for (T value : p.getPendingValues()) {
-      attribute.add(pd.encodeValue(value));
+    if (pd.hasOption(PropertyOption.MANDATORY)) {
+      // For mandatory properties we fall-back to the default values
+      // if defined which can sometimes be the case e.g when a
+      // mandatory property is overridden.
+      for (T value : p.getEffectiveValues()) {
+        attribute.add(pd.encodeValue(value));
+      }
+    } else {
+      for (T value : p.getPendingValues()) {
+        attribute.add(pd.encodeValue(value));
+      }
     }
   }
 
