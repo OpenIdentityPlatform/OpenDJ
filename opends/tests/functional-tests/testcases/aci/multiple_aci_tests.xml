@@ -198,7 +198,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -214,7 +214,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -268,7 +268,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -295,7 +295,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, one true, user searching non-targeted entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -322,7 +322,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, one true, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, one true, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -338,7 +338,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -396,7 +396,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -412,7 +412,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -466,7 +466,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -520,7 +520,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, one true, user searching non-targeted entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -547,7 +547,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, one true, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, one true, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -563,7 +563,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -621,7 +621,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -637,7 +637,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -691,7 +691,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -745,7 +745,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, one true, user searching non-targeted entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -772,7 +772,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, one true, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, one true, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -788,7 +788,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -846,7 +846,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -862,7 +862,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -916,7 +916,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -970,7 +970,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, one true, user searching second entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, one true, user searching second entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -997,7 +997,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, one true, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, one true, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -1013,7 +1013,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1070,7 +1070,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, deny, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, deny, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -1086,7 +1086,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, deny, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, deny, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1113,7 +1113,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, deny, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, deny, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1140,7 +1140,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, deny, user searching non-targeted entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, deny, user searching non-targeted entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -1167,7 +1167,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, deny, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, deny, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -1183,7 +1183,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-one entry, deny, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-one entry, deny, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1240,7 +1240,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, deny, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, deny, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -1256,7 +1256,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, deny, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, deny, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1283,7 +1283,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, deny, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, deny, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1310,7 +1310,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, deny, one true, user searching non-targeted entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, deny, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -1337,7 +1337,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, deny, one true, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, deny, one true, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -1353,7 +1353,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, deny, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, deny, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1410,7 +1410,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, deny, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, deny, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -1426,7 +1426,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, deny, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, deny, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1453,7 +1453,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, deny, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, deny, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1480,7 +1480,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, deny, one true, user searching non-targeted entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, deny, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -1507,7 +1507,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, deny, one true, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, deny, one true, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -1523,7 +1523,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 2, deny, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 2, deny, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1581,7 +1581,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, deny, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, deny, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -1597,7 +1597,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, deny, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, deny, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1651,7 +1651,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, deny, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, deny, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1678,7 +1678,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, deny, user searching second entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, deny, user searching second entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -1705,7 +1705,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, deny, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, deny, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -1721,7 +1721,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 3, deny, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 3, deny, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1779,7 +1779,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -1795,7 +1795,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1849,7 +1849,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -1903,7 +1903,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, one true, user searching non-targeted entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -1930,7 +1930,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, one true, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, one true, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -1946,7 +1946,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters, one aci-two entries 1, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters, one aci-two entries 1, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2004,7 +2004,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targeattr, deny one attr, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters and targeattr, deny one attr, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -2020,7 +2020,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targeattr, deny one attr, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targeattr, deny one attr, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2074,7 +2074,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targeattr, deny one attr, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targeattr, deny one attr, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2128,7 +2128,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targeattr, deny one attr, one true, user searching non-targeted entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters and targeattr, deny one attr, one true, user searching non-targeted entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -2155,7 +2155,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targeattr, deny one attr, one true, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters and targeattr, deny one attr, one true, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -2171,7 +2171,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targeattr, deny one attr, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targeattr, deny one attr, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2229,7 +2229,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr with not equals, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr with not equals, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -2245,7 +2245,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr with not equals, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr with not equals, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2299,7 +2299,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr with not equals, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr with not equals, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2353,7 +2353,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr with not equals, one true, user searching second entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr with not equals, one true, user searching second entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -2380,7 +2380,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr with not equals, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr with not equals, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -2396,7 +2396,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr with not equals, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr with not equals, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2454,7 +2454,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read with missing read, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with missing read, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -2470,7 +2470,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read with missing read, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with missing read, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2506,7 +2506,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read with missing read, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with missing read, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2560,7 +2560,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read missing read, user searching second entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read missing read, user searching second entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -2587,7 +2587,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read missing read, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read missing read, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -2603,7 +2603,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read missing read, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read missing read, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2661,7 +2661,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -2677,7 +2677,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2731,7 +2731,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2785,7 +2785,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read, user searching second entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read, user searching second entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -2812,7 +2812,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -2828,7 +2828,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2886,7 +2886,7 @@
               </script>
         
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read with deny search, preamble adding aci,\n %s' % curr_aci
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with deny search, preamble adding aci,\n %s' % curr_aci
               </message>
   
               <call function="'modifyEntry'">
@@ -2902,7 +2902,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read with deny search, user searching targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with deny search, user searching targeted entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2929,7 +2929,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read with deny search, user searching second entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with deny search, user searching second entry'
               </message>
   
               <call function="'SearchObject'">
@@ -2983,7 +2983,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read with deny search, user searching second entry outside of the scope of the aci'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with deny search, user searching second entry outside of the scope of the aci'
               </message>
   
               <call function="'SearchObject'">
@@ -3010,7 +3010,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read with deny search, admin deleting aci'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with deny search, admin deleting aci'
               </message>
   
               <call function="'modifyEntry'">
@@ -3026,7 +3026,7 @@
               </if>
   
               <message>
-                 'ACI: Targetfilter: Different targetfilters and targetattr, separate search-read with deny search, user searching previously targeted entry'
+                 'ACI: Multiple ACIs: Different targetfilters and targetattr, separate search-read with deny search, user searching previously targeted entry'
               </message>
   
               <call function="'SearchObject'">
