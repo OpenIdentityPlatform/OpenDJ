@@ -129,10 +129,12 @@ public class Historical
    *
    * @param modifyOperation the operation to be processed
    * @param modifiedEntry the entry that is being modified (before modification)
+   * @return true if the replayed operation was in conflict
    */
-  public void replayOperation(ModifyOperation modifyOperation,
+  public boolean replayOperation(ModifyOperation modifyOperation,
                               Entry modifiedEntry)
   {
+    boolean bConflict = false;
     List<Modification> mods = modifyOperation.getModifications();
     ChangeNumber changeNumber =
       OperationContext.getChangeNumber(modifyOperation);
@@ -212,6 +214,7 @@ public class Historical
             // TODO : FILL ME
             break;
         }
+        bConflict = true;
       }
       else
       {
@@ -226,6 +229,7 @@ public class Historical
     {
       moreRecentChangenumber = changeNumber;
     }
+    return bConflict;
   }
 
   /**

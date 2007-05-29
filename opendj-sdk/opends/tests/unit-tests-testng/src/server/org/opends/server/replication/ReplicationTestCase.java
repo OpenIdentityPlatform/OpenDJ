@@ -32,6 +32,7 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
+import static org.testng.Assert.assertTrue;
 
 import java.net.SocketException;
 import java.util.ArrayList;
@@ -45,6 +46,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.ReplicationBroker;
+import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.replication.plugin.PersistentServerState;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
@@ -97,6 +99,18 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected Entry synchroServerEntry;
 
   protected Entry replServerEntry;
+
+  /**
+   * Replication monitor stats
+   */
+  private DN monitorDn;
+  private String monitorAttr;
+  private long lastCount;
+  
+  /**
+   * schema check flag
+   */
+  protected boolean schemaCheck;
 
   /**
    * The replication plugin entry
@@ -359,16 +373,17 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
   }
 
+
   /**
-   * Retrieve the number of replayed updates for a given replication
+   * Get the value of the specified attribute for a given replication
    * domain from the monitor entry.
-   * @return The number of replayed updates.
+   * @return The monitor value
    * @throws Exception If an error occurs.
    */
-  protected long getReplayedUpdatesCount(DN syncDN) throws Exception
+  protected long getMonitorAttrValue(DN baseDn, String attr) throws Exception
   {
     String monitorFilter =
-         "(&(cn=replication*)(base-dn=" + syncDN + "))";
+         "(&(cn=replication plugin*)(base-dn=" + baseDn + "))";
 
     InternalSearchOperation op;
     int count = 0;
@@ -386,9 +401,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       throw new Exception("Could not read monitoring information");
     
     SearchResultEntry entry = op.getSearchEntries().getFirst();
-
     AttributeType attrType =
-         DirectoryServer.getDefaultAttributeType("replayed-updates");
+         DirectoryServer.getDefaultAttributeType(attr);
     return entry.getAttributeValue(attrType, IntegerSyntax.DECODER).longValue();
   }
 
@@ -499,7 +513,42 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       LockManager.unlock(dn, lock);
     }
   }
-
+  
+  /**
+   * Update the monitor count for the specified monitor attribute.
+   */
+  protected void updateMonitorCount(DN baseDn, String attr) {
+    monitorDn = baseDn;
+    monitorAttr = attr;
+    try
+    {
+      Thread.sleep(2000);
+      lastCount = getMonitorAttrValue(baseDn, attr);
+    }
+    catch (Exception ex)
+    {
+      ex.printStackTrace();
+      assertTrue(false);
+    }
+  }
+  
+  /**
+   * Get the delta between the current / last monitor counts.
+   * @return The delta between the current and last monitor count.
+   */
+  protected long getMonitorDelta() {
+    long delta = 0;
+    try {
+      Thread.sleep(2000);
+      long currentCount = getMonitorAttrValue(monitorDn, monitorAttr);
+      delta = (currentCount - lastCount);
+      lastCount = currentCount;
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      assertTrue(false);
+    }
+    return delta;
+  }
   /**
    * Generate a new modification replace with the given information.
    *
