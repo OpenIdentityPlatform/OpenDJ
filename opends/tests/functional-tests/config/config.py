@@ -16,6 +16,7 @@ TESTS_ROOT                  = '%s/tests' % OPENDSDIR
 TESTS_SHARED_DIR            = '%s/shared' % TESTS_DIR
 TESTS_FUNCTIONS_DIR         = '%s/functions' % TESTS_SHARED_DIR
 TESTS_DATA_DIR              = '%s/data' % TESTS_SHARED_DIR
+TESTS_JAVA_DIR		    = '%s/java' % TESTS_SHARED_DIR
 TMP_DATA_DIR                = '%s/functional-tests' % TMPDIR
 DIRECTORY_INSTANCE_DN       = 'cn=Directory Manager'
 DIRECTORY_INSTANCE_PSWD     = 'password'
