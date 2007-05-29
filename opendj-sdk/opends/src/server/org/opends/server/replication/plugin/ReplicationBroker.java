@@ -207,7 +207,7 @@ public class ReplicationBroker implements InternalSearchListener
     }
 
     boolean checkState = true;
-    while( !connected)
+    while ((!connected) && (!shutdown))
     {
       for (String server : servers)
       {

@@ -29,6 +29,7 @@ package org.opends.server.replication.protocol;
 
 import org.opends.server.api.DirectoryThread;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import org.opends.server.loggers.debug.DebugTracer;
 
 import java.io.IOException;
@@ -66,7 +67,7 @@ public class HeartbeatThread extends DirectoryThread
   /**
    * Set this to stop the thread.
    */
-  private boolean shutdown = false;
+  private Boolean shutdown = false;
 
 
   /**
@@ -133,7 +134,14 @@ public class HeartbeatThread extends DirectoryThread
           {
             TRACER.debugVerbose("Heartbeat thread sleeping for %d", sleepTime);
           }
-          Thread.sleep(sleepTime);
+
+          synchronized (shutdown)
+          {
+            if (!shutdown)
+            {
+              shutdown.wait(sleepTime);
+            }
+          }
         }
         catch (InterruptedException e)
         {
@@ -161,10 +169,23 @@ public class HeartbeatThread extends DirectoryThread
 
   /**
    * Call this method to stop the thread.
+   * This method is blocking until the thread has stopped.
    */
   public void shutdown()
   {
-    shutdown = true;
+    synchronized (shutdown)
+    {
+      shutdown.notifyAll();
+      shutdown = true;
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Going to notify Heartbeat thread.");
+      }
+    }
+    if (debugEnabled())
+    {
+      TRACER.debugInfo("Returning from Heartbeat shutdown.");
+    }
   }
 
 

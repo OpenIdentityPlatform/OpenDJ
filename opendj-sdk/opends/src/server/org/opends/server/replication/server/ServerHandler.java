@@ -28,6 +28,7 @@ package org.opends.server.replication.server;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ReplicationMessages.*;
@@ -78,6 +79,12 @@ public class ServerHandler extends MonitorProvider
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+  /**
+   * Time during which the server will wait for existing thread to stop
+   * during the shutdown.
+   */
+  private static final int SHUTDOWN_JOIN_TIMEOUT = 30000;
 
   private short serverId;
   private ProtocolSession session;
@@ -747,7 +754,7 @@ public class ServerHandler extends MonitorProvider
   private UpdateMessage getnextMessage()
   {
     UpdateMessage msg;
-    do
+    while (active == true)
     {
       if (following == false)
       {
@@ -884,7 +891,7 @@ public class ServerHandler extends MonitorProvider
        * the first check at the beginning of this method
        * and the second check just above.
        */
-    } while (active == true);
+    }
     return null;
   }
 
@@ -905,6 +912,15 @@ public class ServerHandler extends MonitorProvider
   public void stopHandler()
   {
     active = false;
+
+    try
+    {
+      session.close();
+    } catch (IOException e)
+    {
+      // ignore.
+    }
+
     synchronized (msgQueue)
     {
       /* wake up the writer thread on an empty queue so that it disappear */
@@ -1218,7 +1234,17 @@ public class ServerHandler extends MonitorProvider
     {
       // Service is closing.
     }
+
     stopHandler();
+
+    try
+    {
+      writer.join(SHUTDOWN_JOIN_TIMEOUT);
+      reader.join(SHUTDOWN_JOIN_TIMEOUT);
+    } catch (InterruptedException e)
+    {
+      // don't try anymore to join and return.
+    }
   }
 
   /**

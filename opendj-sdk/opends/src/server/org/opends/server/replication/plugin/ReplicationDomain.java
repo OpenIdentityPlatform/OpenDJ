@@ -126,6 +126,12 @@ public class ReplicationDomain extends DirectoryThread
    */
   private static final DebugTracer TRACER = getTracer();
 
+  /**
+   * on shutdown, the server will wait for existing threads to stop
+   * during this timeout (in ms).
+   */
+  private static final int SHUTDOWN_JOIN_TIMEOUT = 30000;
+
   private ReplicationMonitor monitor;
 
   private ReplicationBroker broker;
@@ -1047,6 +1053,12 @@ public class ReplicationDomain extends DirectoryThread
 
     // stop the ReplicationBroker
     broker.stop();
+
+    //  wait for the listener thread to stop
+    for (ListenerThread thread : synchroThreads)
+    {
+      thread.shutdown();
+    }
   }
 
   /**
@@ -1745,6 +1757,17 @@ public class ReplicationDomain extends DirectoryThread
       thread.shutdown();
     }
     broker.stop(); // this will cut the session and wake-up the listeners
+
+    for (ListenerThread thread : synchroThreads)
+    {
+      try
+      {
+        thread.join(SHUTDOWN_JOIN_TIMEOUT);
+      } catch (InterruptedException e)
+      {
+        // ignore
+      }
+    }
   }
 
   /**

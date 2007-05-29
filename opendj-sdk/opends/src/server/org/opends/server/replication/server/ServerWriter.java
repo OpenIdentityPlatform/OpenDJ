@@ -27,6 +27,8 @@
 package org.opends.server.replication.server;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ReplicationMessages.*;
 
@@ -35,6 +37,7 @@ import java.net.SocketException;
 import java.util.NoSuchElementException;
 
 import org.opends.server.api.DirectoryThread;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.types.ErrorLogCategory;
@@ -47,9 +50,15 @@ import org.opends.server.types.ErrorLogSeverity;
  */
 public class ServerWriter extends DirectoryThread
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   private ProtocolSession session;
   private ServerHandler handler;
   private ReplicationCache replicationCache;
+  private short serverId;
 
   /**
    * Create a ServerWriter.
@@ -66,6 +75,7 @@ public class ServerWriter extends DirectoryThread
   {
     super(handler.toString() + " writer");
 
+    this.serverId = serverId;
     this.session = session;
     this.handler = handler;
     this.replicationCache = replicationCache;
@@ -78,6 +88,17 @@ public class ServerWriter extends DirectoryThread
    */
   public void run()
   {
+    if (debugEnabled())
+    {
+      if (handler.isReplicationServer())
+      {
+        TRACER.debugInfo("Replication server writer starting " + serverId);
+      }
+      else
+      {
+        TRACER.debugInfo("LDAP server writer starting " + serverId);
+      }
+    }
     try {
       while (true)
       {
@@ -132,6 +153,18 @@ public class ServerWriter extends DirectoryThread
        // Can't do much more : ignore
       }
       replicationCache.stopServer(handler);
+
+      if (debugEnabled())
+      {
+        if (handler.isReplicationServer())
+        {
+          TRACER.debugInfo("Replication server writer stopping " + serverId);
+        }
+        else
+        {
+          TRACER.debugInfo("LDAP server writer stopping " + serverId);
+        }
+      }
     }
   }
 }

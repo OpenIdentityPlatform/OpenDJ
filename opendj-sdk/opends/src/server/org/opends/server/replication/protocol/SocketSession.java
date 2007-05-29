@@ -26,12 +26,17 @@
  */
 package org.opends.server.replication.protocol;
 
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.zip.DataFormatException;
+
+import org.opends.server.loggers.debug.DebugTracer;
 
 /**
  * This class Implement a protocol session using a basic socket and relying on
@@ -44,6 +49,11 @@ import java.util.zip.DataFormatException;
  */
 public class SocketSession implements ProtocolSession
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   private Socket socket;
   private InputStream input;
   private OutputStream output;
@@ -83,6 +93,10 @@ public class SocketSession implements ProtocolSession
    */
   public void close() throws IOException
   {
+    if (debugEnabled())
+    {
+      TRACER.debugVerbose("Closing SocketSession.");
+    }
     socket.close();
   }
 
