@@ -53,6 +53,15 @@
       <ldap:superior>ds-cfg-key-manager-provider</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="java-implementation-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.FileBasedKeyManagerProvider
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="key-store-file" mandatory="true">
     <adm:TODO>Should use a file-based property definition?</adm:TODO>
     <adm:synopsis>

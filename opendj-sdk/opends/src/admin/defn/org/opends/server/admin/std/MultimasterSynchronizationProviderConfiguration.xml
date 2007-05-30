@@ -57,4 +57,13 @@
       <ldap:rdn-sequence>cn=replication server</ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
+  <adm:property-override name="java-implementation-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.replication.plugin.MultimasterReplication
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
 </adm:managed-object>

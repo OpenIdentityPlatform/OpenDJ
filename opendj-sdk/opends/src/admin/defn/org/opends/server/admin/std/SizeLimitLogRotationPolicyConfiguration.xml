@@ -16,6 +16,15 @@
       <ldap:superior>ds-cfg-log-rotation-policy</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="java-implementation-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.loggers.SizeBasedRotationPolicy
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="file-size-limit" mandatory="true">
     <adm:synopsis>
       The size of the file when rotation takes place.

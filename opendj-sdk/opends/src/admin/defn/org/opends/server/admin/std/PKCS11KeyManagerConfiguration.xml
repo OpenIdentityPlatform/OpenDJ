@@ -54,6 +54,15 @@
       <ldap:superior>ds-cfg-key-manager-provider</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="java-implementation-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.PKCS11KeyManagerProvider
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property-reference name="key-store-pin" />
   <adm:property-reference name="key-store-pin-property" />
   <adm:property-reference name="key-store-pin-environment-variable" />

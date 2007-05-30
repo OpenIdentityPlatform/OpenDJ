@@ -1592,8 +1592,7 @@
           <import>org.opends.server.admin.PropertyOption</import>
         </xsl:if>
         <xsl:if
-          test="$this-local-properties/adm:default-behavior/adm:undefined
-                | $this-local-properties[@mandatory='true']">
+          test="$this-local-properties[adm:default-behavior/adm:undefined or not(adm:default-behavior)]">
           <import>
             org.opends.server.admin.UndefinedDefaultBehaviorProvider
           </import>

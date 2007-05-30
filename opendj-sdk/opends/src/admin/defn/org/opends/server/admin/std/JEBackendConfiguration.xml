@@ -52,6 +52,15 @@
       <ldap:superior>ds-cfg-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="backend-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.backends.jeb.BackendImpl
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="backend-deadlock-retry-limit"
     mandatory="false"
     multi-valued="false">

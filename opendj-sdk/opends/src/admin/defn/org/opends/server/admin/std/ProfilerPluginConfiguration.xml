@@ -44,6 +44,15 @@
       <ldap:superior>ds-cfg-plugin</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="plugin-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.plugins.profiler.ProfilerPlugin
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="profile-sample-interval" mandatory="true">
     <adm:synopsis>
       Specifies the profiler sample interval.
