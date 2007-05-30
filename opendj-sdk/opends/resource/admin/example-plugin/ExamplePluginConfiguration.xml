@@ -12,6 +12,13 @@
       <ldap:superior>ds-cfg-plugin</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="plugin-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>com.example.opends.ExamplePlugin</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="message">
     <adm:synopsis>The message to be logged.</adm:synopsis>
     <adm:default-behavior>
