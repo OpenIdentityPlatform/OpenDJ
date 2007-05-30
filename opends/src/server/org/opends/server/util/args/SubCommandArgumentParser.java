@@ -1314,6 +1314,10 @@ public class SubCommandArgumentParser
     int indentNb = 0;
     for (SubCommand sc : subCommands.values())
     {
+      if (sc.isHidden())
+      {
+        continue;
+      }
       if (sc.getName().length() > indentNb )
       {
         indentNb = sc.getName().length();
@@ -1322,6 +1326,10 @@ public class SubCommandArgumentParser
     indentNb++;
     for (SubCommand sc : subCommands.values())
     {
+      if (sc.isHidden())
+      {
+        continue;
+      }
       buffer.append("    " + sc.getName());
       for (int i=0; i < indentNb - sc.getName().length() ; i++)
       {

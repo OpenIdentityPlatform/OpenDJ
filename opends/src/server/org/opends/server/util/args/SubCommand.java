@@ -45,6 +45,10 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class SubCommand
 {
+  // Indicates whether this subCommand should be hidden in the usage
+  // information.
+  private boolean isHidden;
+
   // The mapping between the short argument IDs and the arguments for this
   // subcommand.
   private HashMap<Character,Argument> shortIDMap;
@@ -157,6 +161,7 @@ public class SubCommand
     this.minTrailingArguments = minTrailingArguments;
     this.maxTrailingArguments = maxTrailingArguments;
     this.trailingArgsDisplayName = trailingArgsDisplayName;
+    this.isHidden  = false;
 
     String nameToCheck = name;
     if (parser.longArgumentsCaseSensitive())
@@ -449,6 +454,34 @@ public class SubCommand
   public ArrayList<String> getTrailingArguments()
   {
     return parser.getTrailingArguments();
+  }
+
+  /**
+   * Indicates whether this subcommand should be hidden from the usage
+   * information.
+   *
+   * @return <CODE>true</CODE> if this subcommand should be hidden
+   *         from the usage information, or <CODE>false</CODE> if
+   *         not.
+   */
+  public boolean isHidden()
+  {
+    return isHidden;
+  }
+
+
+
+  /**
+   * Specifies whether this subcommand should be hidden from the usage
+   * information.
+   *
+   * @param isHidden
+   *          Indicates whether this subcommand should be hidden from
+   *          the usage information.
+   */
+  public void setHidden(boolean isHidden)
+  {
+    this.isHidden = isHidden;
   }
 }
 
