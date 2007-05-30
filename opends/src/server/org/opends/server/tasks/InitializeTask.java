@@ -119,7 +119,7 @@ public class InitializeTask extends Task
           message, msgID);
     }
 
-    domain=ReplicationDomain.retrievesReplicationDomain(domainDN);
+    domain = ReplicationDomain.retrievesReplicationDomain(domainDN);
 
     attrList = taskEntry.getAttribute(typeSourceScope);
     String sourceString = TaskUtils.getSingleValueString(attrList);
@@ -139,7 +139,7 @@ public class InitializeTask extends Task
       TRACER.debugInfo("InitializeTask is starting domain: %s source:%d",
                 domain.getBaseDN(), source);
     }
-    initState = getTaskState(); // RUNNING
+    initState = getTaskState();
     try
     {
       // launch the import
@@ -170,7 +170,8 @@ public class InitializeTask extends Task
 
     if (debugEnabled())
     {
-      TRACER.debugInfo("InitializeTask is ending with state:%d", initState);
+      TRACER.debugInfo("InitializeTask is ending with state:%s",
+          initState.toString());
     }
     return initState;
   }
@@ -195,10 +196,7 @@ public class InitializeTask extends Task
       }
       if (debugEnabled())
       {
-        logError(ErrorLogCategory.TASK,
-            ErrorLogSeverity.SEVERE_ERROR,
-            "setState: "+newState, 1);
-        TRACER.debugInfo("InitializeTask/setState: ", newState);
+        TRACER.debugInfo("InitializeTask/setState: %s", newState);
       }
       initState = newState;
       synchronized (initState)
