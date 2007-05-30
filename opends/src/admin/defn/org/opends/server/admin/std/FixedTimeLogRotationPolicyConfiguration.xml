@@ -16,6 +16,15 @@
       <ldap:superior>ds-cfg-log-rotation-policy</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="java-implementation-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.loggers.FixedTimeRotationPolicy
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="time-of-day" multi-valued="true" mandatory="true">
     <adm:synopsis>
       The time of day which log rotation should occur.

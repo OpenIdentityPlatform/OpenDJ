@@ -15,6 +15,15 @@
       <ldap:superior>ds-cfg-error-logger</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="java-implementation-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.loggers.TextErrorLogPublisher
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="asynchronous" mandatory="true">
     <adm:synopsis>
       Indicate whether the

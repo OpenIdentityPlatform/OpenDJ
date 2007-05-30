@@ -54,6 +54,15 @@
       <ldap:superior>ds-cfg-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="backend-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.backends.SchemaBackend
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="schema-entry-dn"
     mandatory="false"
     multi-valued="true">

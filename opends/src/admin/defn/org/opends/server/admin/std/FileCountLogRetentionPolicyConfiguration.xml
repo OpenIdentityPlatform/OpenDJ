@@ -16,6 +16,15 @@
       <ldap:superior>ds-cfg-log-retention-policy</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="java-implementation-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.loggers.FileNumberRetentionPolicy
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="number-of-files" mandatory="true">
     <adm:synopsis>
       Number of log files to retain before the oldest ones will be cleaned.

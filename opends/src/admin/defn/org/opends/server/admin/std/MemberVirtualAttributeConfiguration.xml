@@ -47,6 +47,15 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       <ldap:superior>ds-cfg-virtual-attribute</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="provider-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.MemberVirtualAttributeProvider
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="allow-retrieving-membership" mandatory="true">
     <adm:synopsis>
       Indicates whether to handle requests that request all values for the

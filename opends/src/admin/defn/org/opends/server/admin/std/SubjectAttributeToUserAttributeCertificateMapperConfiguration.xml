@@ -45,6 +45,15 @@
       <ldap:superior>ds-cfg-certificate-mapper</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="mapper-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="subject-attribute-mapping" mandatory="true"
     multi-valued="true">
     <adm:synopsis>

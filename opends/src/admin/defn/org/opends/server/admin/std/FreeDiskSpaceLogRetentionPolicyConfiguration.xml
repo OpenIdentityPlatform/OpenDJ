@@ -17,6 +17,15 @@
       <ldap:superior>ds-cfg-log-retention-policy</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="java-implementation-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.loggers.FreeDiskSpaceRetentionPolicy
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="free-disk-space" mandatory="true">
     <adm:synopsis>
       The size of free disk space needed.

@@ -43,6 +43,15 @@
       <ldap:superior>ds-cfg-access-control-handler</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="acl-handler-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.authorization.dseecompat.AciProvider
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="global-aci" mandatory="false"
     multi-valued="true">
     <adm:synopsis>
