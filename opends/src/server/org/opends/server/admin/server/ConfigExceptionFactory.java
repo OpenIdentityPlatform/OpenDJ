@@ -41,7 +41,7 @@ import org.opends.server.types.DN;
 /**
  * A utility class for converting admin exceptions to config exceptions.
  */
-public final class ConfigExceptionFactory {
+final class ConfigExceptionFactory {
 
   // The singleton instance.
   private static final ConfigExceptionFactory INSTANCE =

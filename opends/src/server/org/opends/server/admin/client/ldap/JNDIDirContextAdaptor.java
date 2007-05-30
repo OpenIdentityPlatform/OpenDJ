@@ -54,8 +54,8 @@ import org.opends.server.admin.client.CommunicationException;
 
 
 /**
- * An LDAP connection JNDI connection adaptor. This maps LDAP requests
- * onto an underlying JNDI connection context.
+ * An LDAP connection adaptor which maps LDAP requests onto an
+ * underlying JNDI connection context.
  */
 public final class JNDIDirContextAdaptor extends LDAPConnection {
 

@@ -39,6 +39,15 @@ import org.opends.server.admin.std.client.RootCfgClient;
 public abstract class ManagementContext {
 
   /**
+   * Creates a new management context.
+   */
+  protected ManagementContext() {
+    // No implementation required.
+  }
+
+
+
+  /**
    * Get the root configuration managed object associated with this
    * management context.
    *
@@ -46,7 +55,7 @@ public abstract class ManagementContext {
    *         with this management context.
    */
   public abstract ManagedObject<RootCfgClient>
-    getRootConfigurationManagedObject();
+      getRootConfigurationManagedObject();
 
 
 

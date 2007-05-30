@@ -55,16 +55,9 @@ public final class ServerManagementContext {
 
 
 
-  /**
-   * Get the root configuration server managed object associated with
-   * this management context.
-   *
-   * @return Returns the root configuration server managed object
-   *         associated with this management context.
-   */
-  public ServerManagedObject<RootCfg>
-      getRootConfigurationManagedObject() {
-    return ServerManagedObject.getRootManagedObject();
+  // Private constructor.
+  private ServerManagementContext() {
+    // No implementation required.
   }
 
 
@@ -80,4 +73,16 @@ public final class ServerManagementContext {
     return getRootConfigurationManagedObject().getConfiguration();
   }
 
+
+
+  /**
+   * Get the root configuration server managed object associated with
+   * this management context.
+   *
+   * @return Returns the root configuration server managed object
+   *         associated with this management context.
+   */
+  public ServerManagedObject<RootCfg> getRootConfigurationManagedObject() {
+    return ServerManagedObject.getRootManagedObject();
+  }
 }

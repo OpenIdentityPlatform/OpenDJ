@@ -37,8 +37,8 @@ import javax.naming.ldap.LdapName;
 
 
 /**
- * A client connection which is used to perform JNDI-based LDAP
- * operations.
+ * An LDAP connection adaptor interface which is used to perform LDAP
+ * client operations.
  * <p>
  * This interface is provided in order to make it easier to keep track
  * of which JNDI DirContext methods we require and also to facilitate
