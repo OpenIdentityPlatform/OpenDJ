@@ -275,6 +275,13 @@ public class InitOnLineTest extends ReplicationTestCase
         " Expected entries :" + updatedEntries.length);
   }
 
+  /**
+   * Add a task to the configuration of the current running DS.
+   * @param taskEntry The task to add.
+   * @param expectedResult The expected result code for the ADD.
+   * @param errorMessageID The expected error messageID when the expected
+   * result code is not SUCCESS
+   */
   private void addTask(Entry taskEntry, ResultCode expectedResult,
       int errorMessageID)
   {
@@ -762,7 +769,7 @@ public class InitOnLineTest extends ReplicationTestCase
       // suffix synchronized
       String synchroServerStringDN = synchroPluginStringDN;
       String synchroServerLdif =
-        "dn: cn=example, cn=domains" + synchroServerStringDN + "\n"
+        "dn: cn=example, cn=domains," + synchroServerStringDN + "\n"
       + "objectClass: top\n"
       + "objectClass: ds-cfg-synchronization-provider-config\n"
       + "cn: example\n"
@@ -1262,6 +1269,7 @@ public class InitOnLineTest extends ReplicationTestCase
     // Creates config to synchronize suffix
     connectServer1ToChangelog(changelog1ID);
 
+    // Test 1
     Entry taskInit = TestCaseUtils.makeEntry(
         "dn: ds-task-id=" + UUID.randomUUID() +
         ",cn=Scheduled Tasks,cn=Tasks",
@@ -1276,6 +1284,19 @@ public class InitOnLineTest extends ReplicationTestCase
 
     waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
         MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN);
+
+    // Test 2
+    taskInit = TestCaseUtils.makeEntry(
+        "dn: ds-task-id=" + UUID.randomUUID() +
+        ",cn=Scheduled Tasks,cn=Tasks",
+        "objectclass: top",
+        "objectclass: ds-task",
+        "objectclass: ds-task-initialize-from-remote-replica",
+        "ds-task-class-name: org.opends.server.tasks.InitializeTask",
+        "ds-task-initialize-domain-dn: "+baseDn,
+        "ds-task-initialize-replica-server-id: " + server1ID);
+
+    addTask(taskInit, ResultCode.OTHER, MSGID_INVALID_IMPORT_SOURCE);
 
     if (sd != null)
     {

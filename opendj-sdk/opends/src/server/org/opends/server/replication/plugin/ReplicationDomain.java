@@ -705,12 +705,8 @@ public class ReplicationDomain extends DirectoryThread
               }
               catch(DirectoryException de)
               {
-                // Returns an error message to notify the sender
-                int msgID = de.getMessageID();
-                ErrorMessage errorMsg =
-                  new ErrorMessage(initMsg.getsenderID(),
-                                   msgID, de.getMessage());
-                broker.publish(errorMsg);
+                // An error message has been sent to the peer
+                // Nothing more to do locally
               }
             }
             else if (msg instanceof InitializeTargetMessage)
@@ -1900,7 +1896,7 @@ public class ReplicationDomain extends DirectoryThread
         ((InitializeTask)ieContext.initializeTask).
         setState(ieContext.updateTaskCompletionState(),ieContext.exception);
 
-        ieContext = null;
+        releaseIEContext();
       }
     }
   }
@@ -2184,7 +2180,7 @@ public class ReplicationDomain extends DirectoryThread
     try
     {
       source = Integer.decode(sourceString).shortValue();
-      if (source >= -1)
+      if ((source >= -1) && (source != serverId))
       {
         // TODO Verifies serverID is in the domain
         // We shold check here that this is a server implied
@@ -2302,34 +2298,52 @@ public class ReplicationDomain extends DirectoryThread
   public void initializeTarget(short target, short requestorID, Task initTask)
   throws DirectoryException
   {
+    // FIXME Temporary workaround - will probably be fixed when implementing
+    // dynamic config
+    retrievesBackendInfos(this.baseDN);
+
     acquireIEContext();
 
     ieContext.exportTarget = target;
-    ieContext.initializeTask = initTask;
-    ieContext.initTaskCounters(backend.getEntryCount());
+    if (initTask != null)
+    {
+      ieContext.initializeTask = initTask;
+      ieContext.initTaskCounters(backend.getEntryCount());
+    }
 
-    // Send start message
+    // Send start message to the peer
     InitializeTargetMessage initializeMessage = new InitializeTargetMessage(
         baseDN, serverId, ieContext.exportTarget, requestorID,
-        ieContext.entryLeftCount);
+        backend.getEntryCount());
 
     log("SD : publishes " + initializeMessage +
-        " for #entries=" + ieContext.entryCount);
+        " for #entries=" + backend.getEntryCount() + ieContext.entryLeftCount);
 
     broker.publish(initializeMessage);
 
-    // make an export and send entries
-    exportBackend();
-
-    // Successfull termnation
-    DoneMessage doneMsg = new DoneMessage(serverId,
-      initializeMessage.getDestination());
-    broker.publish(doneMsg);
-
-    if (ieContext != null)
+    try
     {
-      ieContext.updateTaskCompletionState();
-      ieContext = null;
+      exportBackend();
+
+      // Notify the peer of the success
+      DoneMessage doneMsg = new DoneMessage(serverId,
+        initializeMessage.getDestination());
+      broker.publish(doneMsg);
+
+      releaseIEContext();
+    }
+    catch(DirectoryException de)
+    {
+      // Notify the peer of the failure
+      int msgID = de.getMessageID();
+      ErrorMessage errorMsg =
+        new ErrorMessage(target,
+                         msgID, de.getMessage());
+      broker.publish(errorMsg);
+
+      releaseIEContext();
+
+      throw(de);
     }
   }
 
@@ -2470,7 +2484,8 @@ public class ReplicationDomain extends DirectoryThread
    *
    * @param baseDN The baseDN of the domain to retrieve
    * @return The domain retrieved
-   * @throws DirectoryException When an error occured.
+   * @throws DirectoryException When an error occured or no domain
+   * match the provided baseDN.
    */
   public static ReplicationDomain retrievesReplicationDomain(DN baseDN)
   throws DirectoryException
@@ -2495,12 +2510,8 @@ public class ReplicationDomain extends DirectoryThread
         MultimasterReplication.findDomain(baseDN, null);
       if (sdomain == null)
       {
-        int msgID = MSGID_NO_MATCHING_DOMAIN;
-        String message = getMessage(msgID) + " " + baseDN;
-        throw new DirectoryException(ResultCode.OTHER,
-            message, msgID);
+        break;
       }
-
       if (replicationDomain != null)
       {
         // Should never happen
@@ -2510,6 +2521,14 @@ public class ReplicationDomain extends DirectoryThread
             message, msgID);
       }
       replicationDomain = sdomain;
+    }
+
+    if (replicationDomain == null)
+    {
+      int msgID = MSGID_NO_MATCHING_DOMAIN;
+      String message = getMessage(msgID) + " " + baseDN;
+      throw new DirectoryException(ResultCode.OTHER,
+         message, msgID);
     }
     return replicationDomain;
   }

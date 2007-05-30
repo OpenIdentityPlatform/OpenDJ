@@ -89,7 +89,7 @@ public class ReplLDIFOutputStream
       }
       else
       {
-        entryBuffer = new String(b, startOfEntryIndex, len);
+        entryBuffer = new String(b, startOfEntryIndex, bytesToRead);
         break;
       }
     }
