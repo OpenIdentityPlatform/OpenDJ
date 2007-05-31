@@ -389,7 +389,7 @@ public class InProcessServerController {
             LOG.log(Level.INFO, "ignoring attribute that already exists: " +
                     modListToString(op.getModifications()));
           } else if (rc.equals(ResultCode.NO_SUCH_ATTRIBUTE)) {
-            // This can·happen if for instance the old configuration was
+            // This can happen if for instance the old configuration was
             // changed so that the value of an attribute matches the default
             // value of the attribute in the new configuration.
             // Just log it and move on.
