@@ -1358,8 +1358,9 @@ public class TextAccessLogPublisher
     DN proxiedAuthDN = searchOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
     {
-      buffer.append("\" authzDN=\"");
+      buffer.append(" authzDN=\"");
       proxiedAuthDN.toString(buffer);
+      buffer.append("\"");
     }
 
     buffer.append(" etime=");
