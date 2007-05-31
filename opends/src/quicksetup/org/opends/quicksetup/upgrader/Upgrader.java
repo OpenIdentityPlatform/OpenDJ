@@ -137,11 +137,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
             "summary-upgrade-calculating-schema-customization", 40),
 
     CALCULATING_CONFIGURATION_CUSTOMIZATIONS(
-            "summary-upgrade-calculating-config-customization", 45),
+            "summary-upgrade-calculating-config-customization", 48),
 
     BACKING_UP_DATABASES("summary-upgrade-backing-up-db", 50),
 
-    BACKING_UP_FILESYSTEM("summary-upgrade-backing-up-files",55),
+    BACKING_UP_FILESYSTEM("summary-upgrade-backing-up-files",52),
 
     UPGRADING_COMPONENTS("summary-upgrade-upgrading-components", 60),
 
@@ -796,18 +796,20 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       checkAbort();
 
-      try {
-        LOG.log(Level.INFO, "backing up databases");
-        setCurrentProgressStep(UpgradeProgressStep.BACKING_UP_DATABASES);
-        backupDatabases();
-        notifyListeners(formatter.getFormattedDone() +
-                formatter.getLineBreak());
-        LOG.log(Level.INFO, "database backup finished");
-      } catch (ApplicationException e) {
-        notifyListeners(formatter.getFormattedError() +
-                formatter.getLineBreak());
-        LOG.log(Level.INFO, "Error backing up databases", e);
-        throw e;
+      if (getUpgradeUserData().getPerformDatabaseBackup()) {
+        try {
+          LOG.log(Level.INFO, "backing up databases");
+          setCurrentProgressStep(UpgradeProgressStep.BACKING_UP_DATABASES);
+          backupDatabases();
+          notifyListeners(formatter.getFormattedDone() +
+                  formatter.getLineBreak());
+          LOG.log(Level.INFO, "database backup finished");
+        } catch (ApplicationException e) {
+          notifyListeners(formatter.getFormattedError() +
+                  formatter.getLineBreak());
+          LOG.log(Level.INFO, "Error backing up databases", e);
+          throw e;
+        }
       }
 
       checkAbort();
