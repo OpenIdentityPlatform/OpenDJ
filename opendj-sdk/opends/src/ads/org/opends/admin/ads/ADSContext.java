@@ -1341,7 +1341,7 @@ public class ADSContext
     {
       for (ServerGroupProperty prop : ServerGroupProperty.values())
       {
-        Attribute attr = (Attribute) attrs.get(prop.getAttributeName());
+        Attribute attr = attrs.get(prop.getAttributeName());
         if (attr == null)
         {
           continue ;
