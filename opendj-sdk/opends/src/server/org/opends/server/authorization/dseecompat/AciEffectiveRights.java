@@ -105,6 +105,12 @@ public class AciEffectiveRights {
   //related to the "aclRightsInfo" attribute can be performed.
   private static AttributeType aclRightsInfo = null;
 
+  //Attribute type used in the geteffectiverights selfwrite evaluation.
+  private static AttributeType dnAttributeType=null;
+
+  //The distinguishedName string.
+  private static final String dnAttrStr = "distinguishedname";
+
   //String used to fill in the summary status field when access was allowed.
   private static String ALLOWED="access allowed";
 
@@ -192,10 +198,12 @@ public class AciEffectiveRights {
     int attrMask=ACI_NULL;
     if(aclRights == null)
       aclRights =
-              DirectoryServer.getAttributeType(aclRightsAttrStr.toLowerCase());
+               DirectoryServer.getAttributeType(aclRightsAttrStr.toLowerCase());
     if(aclRightsInfo == null)
       aclRightsInfo =
            DirectoryServer.getAttributeType(aclRightsInfoAttrStr.toLowerCase());
+    if(dnAttributeType == null)
+      dnAttributeType = DirectoryServer.getAttributeType(dnAttrStr);
     //Check if the attributes aclRights and aclRightsInfo were requested and
     //add attributes less those two attributes to a new list of attribute types.
     for(String a : searchAttributes) {
@@ -227,13 +235,13 @@ public class AciEffectiveRights {
     //return the specific attribute rights if they exist.
     if(nonRightsAttrs.isEmpty()) {
       e=addAttributeLevelRights(container,handler,attrMask,e,
-              container.getSpecificAttributes(), skipCheck);
+              container.getSpecificAttributes(), skipCheck, true);
       e=addEntryLevelRights(container,handler,attrMask,e, skipCheck);
     } else {
       e=addAttributeLevelRights(container,handler,attrMask,e,
-              nonRightsAttrs,skipCheck);
+              nonRightsAttrs, skipCheck, false);
       e=addAttributeLevelRights(container,handler,attrMask,e,
-              container.getSpecificAttributes(), skipCheck);
+              container.getSpecificAttributes(), skipCheck, true);
       e=addEntryLevelRights(container,handler,attrMask,e,skipCheck);
     }
     return e;
@@ -267,6 +275,8 @@ public class AciEffectiveRights {
    * @param attrList The list of attribute types to iterate over.
    * @param skipCheck True if ACI evaluation was skipped because bypass-acl
    *                  privilege was found.
+   * @param  specificAttr True if this evaluation is result of specific
+   *                      attributes sent in the request.
    * @return  A SearchResultEntry with geteffectiverights attribute level
    *          information added to it.
    */
@@ -275,7 +285,8 @@ public class AciEffectiveRights {
                                         AciHandler handler, int mask,
                                         SearchResultEntry retEntry,
                                         List<AttributeType> attrList,
-                                        boolean skipCheck) {
+                                        boolean skipCheck,
+                                        boolean specificAttr) {
 
     //The attribute list might be null.
     if(attrList == null)
@@ -311,6 +322,8 @@ public class AciEffectiveRights {
       ByteString clientDNStr=
               new ASN1OctetString(container.getClientDN().toString());
       AttributeValue val1=new AttributeValue(a, clientDNStr);
+      if(!specificAttr)
+        container.setCurrentAttributeType(dnAttributeType);
       container.setCurrentAttributeValue(val1);
       container.setRights(ACI_WRITE_ADD | ACI_SKIP_PROXY_CHECK);
       evalInfo.append(rightsString(container, handler, skipCheck,
@@ -322,6 +335,7 @@ public class AciEffectiveRights {
                        "selfwrite_delete"));
       addAttrLevelRightsInfo(container, mask, a, retEntry, "selfwrite_delete");
       evalInfo.append(',');
+      container.setCurrentAttributeType(a);
       container.setCurrentAttributeValue(null);
                 container.setRights(ACI_PROXY | ACI_SKIP_PROXY_CHECK);
       evalInfo.append(rightsString(container, handler, skipCheck, "proxy"));

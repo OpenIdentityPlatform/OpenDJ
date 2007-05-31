@@ -452,7 +452,9 @@ public class AciTargets {
      * skiprights rights mask.
      */
     public static boolean skipRightsHasRights(int rights) {
-         return  ((skipRights & rights) == rights);
+      //geteffectiverights sets this flag, turn it off before evaluating.
+      int tmpRights=rights & ~ACI_SKIP_PROXY_CHECK;
+      return  ((skipRights & tmpRights) == tmpRights);
     }
 
 

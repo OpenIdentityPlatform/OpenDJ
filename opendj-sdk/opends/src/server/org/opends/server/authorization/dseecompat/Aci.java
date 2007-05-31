@@ -228,7 +228,7 @@ public class Aci  {
     /**
      * ACI_SKIP_PROXY_CHECK is used to bypass the proxy access check.
      */
-    public static final int ACI_SKIP_PROXY_CHECK = 0x4000;
+    public static final int ACI_SKIP_PROXY_CHECK = 0x400000;
 
     /**
      * TARGATTRFILTER_ADD is used to specify that a

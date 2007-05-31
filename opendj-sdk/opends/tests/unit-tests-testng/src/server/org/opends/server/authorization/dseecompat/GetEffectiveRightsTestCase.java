@@ -67,7 +67,7 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
   //Results for attributeLevel searches
   private static final String srwMailAttrRights =
           "search:1,read:1,compare:0,write:1," +
-          "selfwrite_add:1,selfwrite_delete:1,proxy:0";
+          "selfwrite_add:0,selfwrite_delete:0,proxy:0";
 
   private static final String srDescrptionAttrRights =
           "search:1,read:1,compare:0,write:0," +

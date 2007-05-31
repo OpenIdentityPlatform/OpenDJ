@@ -284,7 +284,7 @@ public class AciBody {
             if(evalCtx.isDenyEval() &&
                     (p.hasAccessType(EnumAccessType.ALLOW)))
                 continue;
-            if(!p.hasRights(evalCtx.getRights()))
+            if(!p.hasRights(getEvalRights(evalCtx)))
                 continue;
             res=p.getBindRule().evaluate(evalCtx);
             // The evaluation result could be FAIL. Stop processing and return
@@ -318,4 +318,39 @@ public class AciBody {
   public String getName() {
       return this.name;
     }
+
+
+  /**
+   * Mainly used because geteffectiverights adds flags to the rights that aren't
+   * needed in the actual evaluation of the ACI. This routine returns only the
+   * rights needed in the evaluation. The order does matter, ACI_SELF evaluation
+   * needs to be before ACI_WRITE.
+   *
+   * @param evalCtx  The evaluation context to determine the rights of.
+   * @return  The evaluation rights to used in the evaluation.
+   */
+  private int getEvalRights(AciEvalContext evalCtx) {
+    if(evalCtx.hasRights(ACI_WRITE) &&
+            evalCtx.hasRights(ACI_SELF))
+      return ACI_SELF;
+    else  if(evalCtx.hasRights(ACI_COMPARE))
+      return ACI_COMPARE;
+    else if(evalCtx.hasRights(ACI_SEARCH))
+      return ACI_SEARCH;
+    else if(evalCtx.hasRights(ACI_READ))
+      return ACI_READ;
+    else if(evalCtx.hasRights(ACI_DELETE))
+      return ACI_DELETE;
+    else if(evalCtx.hasRights(ACI_ADD))
+      return ACI_ADD;
+    else if(evalCtx.hasRights(ACI_WRITE))
+      return ACI_WRITE;
+    else if(evalCtx.hasRights(ACI_PROXY))
+      return ACI_PROXY;
+    else if(evalCtx.hasRights(ACI_IMPORT))
+      return ACI_IMPORT;
+    else if(evalCtx.hasRights(ACI_EXPORT))
+      return ACI_EXPORT;
+    return ACI_NULL;
+  }
 }
