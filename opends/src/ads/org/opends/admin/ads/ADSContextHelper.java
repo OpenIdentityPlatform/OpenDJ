@@ -32,6 +32,7 @@ import java.util.TreeSet;
 
 import javax.naming.ldap.InitialLdapContext;
 
+import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
@@ -72,7 +73,15 @@ public class ADSContextHelper
       ManagementContext mCtx = LDAPManagementContext.createFromContext(
           JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
-      BackendCfgClient backend = root.getBackend(backendName);
+      BackendCfgClient backend = null;
+      try
+      {
+        backend = root.getBackend(backendName);
+      }
+      catch (ManagedObjectNotFoundException monfe)
+      {
+        // It does not exist.
+      }
       if (backend != null)
       {
         SortedSet<DN> suffixes = backend.getBackendBaseDN();

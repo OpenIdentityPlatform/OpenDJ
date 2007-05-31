@@ -151,7 +151,7 @@ public class ADSContextException extends Exception {
   {
     if (toString == null)
     {
-      toString = "ADSContextException: error type"+error+".";
+      toString = "ADSContextException: error type "+error+".";
       if (getCause() != null)
       {
         toString += "  Root cause: "+getCause().toString();

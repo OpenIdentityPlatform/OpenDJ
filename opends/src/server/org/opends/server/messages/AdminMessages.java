@@ -306,6 +306,29 @@ public final class AdminMessages {
   public static final int MSGID_DSSERVICE_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 31;
 
+  /**
+   * The message ID for the message that will be used if the
+   * client CLI cannot contact the ADS. This does one take argument.
+   */
+  public static final int MSGID_DSSERVICE_CANNOT_CONNECT_TO_ADS =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_SEVERE_ERROR | 32;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * create-ads subcommand part of dsservice tool.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_SUBCMD_CREATE_ADS_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 33;
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * delete-ads subcommand part of dsservice tool.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_DSSERVICE_SUBCMD_DELETE_ADS_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 34;
+
   // Prevent instantiation.
   private AdminMessages() {
     // Do nothing.
@@ -427,6 +450,12 @@ public final class AdminMessages {
         "List members of the specified group" );
     registerMessage(MSGID_DSSERVICE_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION,
         "List groups in which the specified server is a member" );
-
+    registerMessage(MSGID_DSSERVICE_CANNOT_CONNECT_TO_ADS,
+        "Could not connect to %s. Check that the "+
+        "server is running and that the provided credentials are valid");
+    registerMessage(MSGID_DSSERVICE_SUBCMD_CREATE_ADS_DESCRIPTION,
+        "Create a new ADS DN");
+    registerMessage(MSGID_DSSERVICE_SUBCMD_DELETE_ADS_DESCRIPTION,
+         "Delete an existing ADS DN");
   }
 }
