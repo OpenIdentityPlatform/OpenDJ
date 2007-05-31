@@ -167,8 +167,8 @@
                 <call function="'SearchObject'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
-                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
                     'attributes'       : 'uid aclRights roomnumber' ,
@@ -1070,7 +1070,7 @@
                 
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                      'testString'         : 'entryLevel: add:1,delete:0,read:1,write:0,proxy:0' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -1415,7 +1415,7 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:1,selfwrite_add:1,selfwrite_delete:1,proxy:0' }
+                      'testString'         : 'attributeLevel;uid: search:1,read:1,compare:0,write:1,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -1424,7 +1424,7 @@
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:1,selfwrite_add:1,selfwrite_delete:1,proxy:0' }
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:1,compare:0,write:1,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2664,6 +2664,154 @@
               </sequence>
             </testcase>
     
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Effective Rights Tests
+                #@TestName                  Effective Rights - targetattr with search,read - aclRightsInfo
+                #@TestIssue                 87
+                #@TestPurpose               Test effective rights with targetattr with search,read permission
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap operations, and
+                                            an entry is returned for step 1.
+                                            Also, for step 1, the entryLevel permission is 1 for read,
+                                            the attributeLevel permissions are 1 for search and read for uid, 
+                                            and all attribute permissions are 0 for roomnumber.
+            -->
+            <!--
+            <testcase name="'ACI: Effective Rights: targetattr with not equal and search,read - aclRightsInfo'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci31.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_effective_rights/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Effective Rights: targetattr with not equal and search,read - aclRightsInfo, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_effective_rights/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Effective Rights: targetattr with not equal and search,read - aclRightsInfo, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'uid=*'  ,
+                    'attributes'       : 'uid aclRightsInfo roomnumber cn' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryLevel;read: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Effective Rights: targetattr with not equal and search,read - aclRightsInfo, user searching non-targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'uid=*'  ,
+                    'attributes'       : 'aclRights' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Effective Rights: targetattr with not equal and search,read - aclRightsInfo, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_effective_rights/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Effective Rights: targetattr with not equal and search,read - aclRightsInfo, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'uid=*'  ,
+                    'attributes'       : 'aclRights' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestStringNotPresent'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+            -->
+          
           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
