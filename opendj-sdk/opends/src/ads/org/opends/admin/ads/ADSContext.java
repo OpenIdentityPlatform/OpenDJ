@@ -27,11 +27,6 @@
 
 package org.opends.admin.ads;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.HashSet;
@@ -186,7 +181,7 @@ public class ADSContext
     /**
      * The members of the server group.
      */
-    MEMBERS("members");
+    MEMBERS("uniqueMember");
 
     private String attrName;
 
@@ -445,11 +440,80 @@ public class ADSContext
     return result;
   }
 
+  /**
+   * Returns the member list of a group of server.
+   *
+   * @param serverGroupId
+   *          The group name.
+   * @return the member list of a group of server.
+   * @throws ADSContextException
+   *           if something goes wrong.
+   */
+  public Set<String> getServerGroupMemberList(
+      String serverGroupId) throws ADSContextException
+  {
+    LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(serverGroupId) + ","
+        + getServerGroupContainerDN());
+
+    Set<String> result = new HashSet<String>() ;
+    try
+    {
+      SearchControls sc = new SearchControls();
+      sc.setSearchScope(SearchControls.OBJECT_SCOPE);
+      NamingEnumeration<SearchResult> srs = getDirContext().search(dn,
+          "(objectclass=*)", sc);
+
+      if (!srs.hasMore())
+      {
+        return result;
+      }
+      Attributes attrs = srs.next().getAttributes();
+      NamingEnumeration ne = attrs.getAll();
+      while (ne.hasMore())
+      {
+        Attribute attr = (Attribute)ne.next();
+        String attrID = attr.getID();
+
+        if (!attrID.toLowerCase().equals(
+            ServerGroupProperty.MEMBERS.getAttributeName().toLowerCase()))
+        {
+          continue;
+        }
+
+        // We have the members list
+        NamingEnumeration ae = attr.getAll();
+        while (ae.hasMore())
+        {
+          result.add((String)ae.next());
+        }
+        break;
+      }
+    }
+    catch (NameNotFoundException x)
+    {
+      result = new HashSet<String>();
+    }
+    catch (NoPermissionException x)
+    {
+      throw new ADSContextException(
+          ADSContextException.ErrorType.ACCESS_PERMISSION);
+    }
+    catch (NamingException x)
+    {
+      throw new ADSContextException(
+          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
+    return result;
+  }
 
   /**
-   * Returns a set containing the servers that are registered in the ADS.
-   * @return a set containing the servers that are registered in the ADS.
-   * @throws ADSContextException if something goes wrong.
+   * Returns a set containing the servers that are registered in the
+   * ADS.
+   *
+   * @return a set containing the servers that are registered in the
+   *         ADS.
+   * @throws ADSContextException
+   *           if something goes wrong.
    */
   public Set<Map<ServerProperty,Object>> readServerRegistry()
   throws ADSContextException
@@ -583,6 +647,9 @@ public class ADSContext
     LdapName dn = makeDNFromServerGroupProperties(serverGroupProperties);
     BasicAttributes attrs = makeAttrsFromServerGroupProperties(
         serverGroupProperties);
+    // Add the objectclass attribute value
+    attrs.put("objectclass", "top");
+    attrs.put("objectclass", "groupOfUniqueNames");
     try
     {
       DirContext ctx = dirContext.createSubcontext(dn, attrs);
@@ -604,18 +671,53 @@ public class ADSContext
    * Updates the properties of a Server Group in the ADS.
    * @param serverGroupProperties the new properties of the server group to be
    * updated.
+   * @param groupID The group name.
    * @throws ADSContextException if somethings goes wrong.
    */
-  public void updateServerGroup(
+  public void updateServerGroup(String groupID,
       Map<ServerGroupProperty, Object> serverGroupProperties)
   throws ADSContextException
   {
-    LdapName dn = makeDNFromServerGroupProperties(serverGroupProperties);
+
+    LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(groupID) + "," +
+        getServerGroupContainerDN());
     BasicAttributes attrs =
       makeAttrsFromServerGroupProperties(serverGroupProperties);
     try
     {
       dirContext.modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE, attrs);
+    }
+    catch (NameAlreadyBoundException x)
+    {
+      throw new ADSContextException(
+          ADSContextException.ErrorType.ALREADY_REGISTERED);
+    }
+    catch (NamingException x)
+    {
+      throw new ADSContextException(
+          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
+  }
+
+  /**
+   * Updates the properties of a Server Group in the ADS.
+   * @param serverGroupProperties the new properties of the server group to be
+   * updated.
+   * @param groupID The group name.
+   * @throws ADSContextException if somethings goes wrong.
+   */
+  public void removeServerGroupProp(String groupID,
+      Set<ServerGroupProperty> serverGroupProperties)
+  throws ADSContextException
+  {
+
+    LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(groupID) + "," +
+        getServerGroupContainerDN());
+    BasicAttributes attrs =
+      makeAttrsFromServerGroupProperties(serverGroupProperties);
+    try
+    {
+      dirContext.modifyAttributes(dn, DirContext.REMOVE_ATTRIBUTE, attrs);
     }
     catch (NameAlreadyBoundException x)
     {
@@ -762,134 +864,6 @@ public class ADSContext
     createContainerEntry(getServerGroupContainerDN());
   }
 
-  /**
-   * TODO: remove this method if we can assume that the server during setup
-   * can be started to do a number of things.
-   * NOTE: this can only be called locally.
-   * The call to this method assumes that OpenDS.jar has already been loaded.
-   * So this should not be called by the Java Web Start before being sure that
-   * this jar is loaded.
-   * @param serverProperties the properties of the servers to register.
-   * @param serverGroupProperties the properties of the server groups to
-   * register.
-   * @param administratorProperties the properties of the administrators to
-   * register.
-   * @param installPath the installation path of the server.
-   * @throws ADSContextException if something goes wrong.
-   */
-  public static void createOfflineAdminData(
-      Set<Map<ServerProperty, Object>> serverProperties,
-      Set<Map<ServerGroupProperty, Object>> serverGroupProperties,
-      Set<Map<AdministratorProperty, Object>> administratorProperties,
-      String installPath)
-  throws ADSContextException
-  {
-    // Add the administration suffix
-    createOfflineAdministrationSuffix(installPath);
-
-    // Create the DIT below the administration suffix
-    try
-    {
-      File ldifFile = File.createTempFile("ads", ".ldif");
-      ldifFile.deleteOnExit();
-
-      LinkedList<String> lines = new LinkedList<String>();
-
-      lines.add("dn: "+getAdministrationSuffixDN());
-      lines.add("objectclass: extensibleobject");
-      lines.add("aci: "+getTopContainerACI());
-      lines.add("");
-
-      lines.add("dn: "+getAdministratorContainerDN());
-      lines.add("objectclass: groupOfUniqueNames");
-      lines.add("objectclass: groupofurls");
-      lines.add("memberURL: ldap:///" + getAdministratorContainerDN() +
-      "??one?(objectclass=*)");
-      lines.add("description: Group of identities which have full access.");
-
-      lines.add("dn: "+getServerContainerDN());
-      lines.add("objectclass: extensibleobject");
-      lines.add("");
-
-      lines.add("dn: "+getServerGroupContainerDN());
-      lines.add("objectclass: extensibleobject");
-
-      for (Map<ServerProperty, Object> props : serverProperties)
-      {
-        lines.add("");
-        LdapName dn = makeDNFromServerProperties(props);
-        BasicAttributes attrs = makeAttrsFromServerProperties(props);
-        addToLines(dn, attrs, lines);
-      }
-      for (Map<ServerGroupProperty, Object> props : serverGroupProperties)
-      {
-        lines.add("");
-        LdapName dn = makeDNFromServerGroupProperties(props);
-        BasicAttributes attrs = makeAttrsFromServerGroupProperties(props);
-        addToLines(dn, attrs, lines);
-      }
-      for (Map<AdministratorProperty, Object> props : administratorProperties)
-      {
-        lines.add("");
-        LdapName dn = makeDNFromAdministratorProperties(props);
-        BasicAttributes attrs = makeAttrsFromAdministratorProperties(props);
-        addToLines(dn, attrs, lines);
-      }
-
-
-      BufferedWriter writer = new BufferedWriter(new FileWriter(ldifFile));
-      for (String line : lines)
-      {
-        writer.write(line);
-        writer.newLine();
-      }
-
-      writer.flush();
-      writer.close();
-
-      ArrayList<String> argList = new ArrayList<String>();
-      argList.add("-C");
-      argList.add(
-          org.opends.server.extensions.ConfigFileHandler.class.getName());
-
-      argList.add("-c");
-      argList.add(installPath+File.separator+"config"+File.separator+
-          "config.ldif");
-
-      argList.add("-n");
-      argList.add(getBackendName());
-      argList.add("-t");
-      argList.add(ldifFile.getAbsolutePath());
-      argList.add("-S");
-      argList.add("0");
-
-      String[] args = new String[argList.size()];
-      argList.toArray(args);
-
-      try
-      {
-
-        int result = org.opends.server.tools.ImportLDIF.mainImportLDIF(args);
-
-        if (result != 0)
-        {
-          throw new ADSContextException(
-              ADSContextException.ErrorType.ERROR_UNEXPECTED);
-        }
-      } catch (Throwable t)
-      {
-//      This should not happen
-        throw new ADSContextException(
-            ADSContextException.ErrorType.ERROR_UNEXPECTED, t);
-      }
-    }
-    catch (IOException ioe)
-    {
-//    This should not happen
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, ioe);
-    }
-  }
 
   /**
    * Removes the administration data.
@@ -1297,8 +1271,29 @@ public class ADSContext
         result.put(attr);
       }
     }
-    // Add the objectclass attribute value
-    result.put("objectclass", "extensibleobject");
+    return result;
+  }
+
+  /**
+   * Returns the attributes for some server group properties.
+   * @param serverProperties the server group properties.
+   * @return the attributes for the given server group properties.
+   * @throws ADSContextException if something goes wrong.
+   */
+  private static BasicAttributes makeAttrsFromServerGroupProperties(
+      Set<ServerGroupProperty> serverGroupProperties)
+  {
+    BasicAttributes result = new BasicAttributes();
+
+    // Transform 'properties' into 'attributes'
+    for (ServerGroupProperty prop: serverGroupProperties)
+    {
+      Attribute attr = makeAttrFromServerGroupProperty(prop,null);
+      if (attr != null)
+      {
+        result.put(attr);
+      }
+    }
     return result;
   }
 
@@ -1344,28 +1339,14 @@ public class ADSContext
       new HashMap<ServerGroupProperty, Object>();
     try
     {
-      NamingEnumeration ne = attrs.getAll();
-      while (ne.hasMore())
+      for (ServerGroupProperty prop : ServerGroupProperty.values())
       {
-        Attribute attr = (Attribute)ne.next();
-        String attrID = attr.getID();
+        Attribute attr = (Attribute) attrs.get(prop.getAttributeName());
+        if (attr == null)
+        {
+          continue ;
+        }
         Object value = null;
-
-        ServerGroupProperty prop = null;
-        ServerGroupProperty[] props = ServerGroupProperty.values();
-        for (int i=0; i<props.length && (prop == null); i++)
-        {
-          String v = props[i].getAttributeName();
-          if (attrID.equalsIgnoreCase(v))
-          {
-            prop = props[i];
-          }
-        }
-        if (prop == null)
-        {
-          throw new ADSContextException(
-              ADSContextException.ErrorType.ERROR_UNEXPECTED);
-        }
 
         if (attr.size() >= 1 &&
             MULTIVALUED_SERVER_GROUP_PROPERTIES.contains(prop))
@@ -1769,7 +1750,9 @@ public class ADSContext
   {
     BasicAttributes attrs = new BasicAttributes();
 
-    attrs.put("objectclass", "extensibleobject");
+    attrs.put("objectclass", "top");
+    attrs.put("objectclass", "ds-cfg-branch");
+    // attrs.put("objectclass", "extensibleobject");
     createEntry(dn, attrs);
   }
 
@@ -1798,7 +1781,8 @@ public class ADSContext
   {
     BasicAttributes attrs = new BasicAttributes();
 
-    attrs.put("objectclass", "extensibleobject");
+    attrs.put("objectclass", "top");
+    attrs.put("objectclass", "ds-cfg-branch");
     attrs.put("aci", getTopContainerACI());
     createEntry(getAdministrationSuffixDN(), attrs);
   }
@@ -1848,41 +1832,6 @@ public class ADSContext
   {
     ADSContextHelper helper = new ADSContextHelper();
     helper.createAdministrationSuffix(getDirContext(), getBackendName());
-  }
-
-  /**
-   * Creates the Administration Suffix when the server is down.  This can only
-   * be called locally.
-   * @param installPath the installation path of the server
-   * @throws ADSContextException if something goes wrong.
-   */
-  private static void createOfflineAdministrationSuffix(String installPath)
-  throws ADSContextException
-  {
-    // NOTE: the call to this method assumes
-    // that OpenDS.jar has already been loaded.  So this should not be called by
-    // the Java Web Start before being sure that this jar is loaded.
-    ArrayList<String> argList = new ArrayList<String>();
-    argList.add("-C");
-    argList.add(org.opends.server.extensions.ConfigFileHandler.class.getName());
-
-    argList.add("-c");
-    argList.add(installPath+File.separator+"config"+File.separator+
-        "config.ldif");
-
-    argList.add("-b");
-    argList.add(getAdministrationSuffixDN());
-
-    String[] args = new String[argList.size()];
-    argList.toArray(args);
-
-    int returnValue = org.opends.server.tools.ConfigureDS.configMain(args);
-
-    if (returnValue != 0)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED);
-    }
   }
 
   /**

@@ -570,5 +570,11 @@ public class ToolConstants
    * displayed in usage information.
    */
   public static final String OPERAND_MEMBERID = "MEMBER_ID";
+
+  /**
+   * The placeholder value of backend name that will be
+   * displayed in usage information.
+   */
+  public static final String OPERAND_BACKEND = "BACKEND_NAME";
 }
 
