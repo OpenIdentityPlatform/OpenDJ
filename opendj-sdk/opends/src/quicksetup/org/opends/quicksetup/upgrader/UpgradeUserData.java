@@ -76,4 +76,15 @@ public class UpgradeUserData extends UserData {
     this.buildToDownload = build;
   }
 
+  /**
+   * Indicates whether or not the upgrader should perform a
+   * backup of the databases as part of the upgrade.
+   * @return boolean where true indicates that the databases
+   * should be backed up
+   */
+  public boolean getPerformDatabaseBackup() {
+    // It would be nice to make this an option (see issue 1740)
+    return false;
+  }
+
 }
