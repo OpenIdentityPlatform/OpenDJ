@@ -654,7 +654,10 @@ implements AciTargetMatchContext, AciEvalContext {
       if(this.useAuthzid)
         return this.authzid;
       else
-       return this.authorizationEntry.getDN();
+       if (this.authorizationEntry == null)
+         return DN.nullDN();
+       else
+         return this.authorizationEntry.getDN();
     }
 
    /**

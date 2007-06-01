@@ -97,7 +97,9 @@ public class CompareOperationTestCase extends OperationTestCase
          "givenname;lang-en: Rodney",
          "sn;lang-en: Ogasawara",
          "cn;lang-en: Rodney Ogasawara",
-         "title;lang-en: Sales, Director"
+         "title;lang-en: Sales, Director",
+         "aci: (targetattr=\"*\")(version 3.0; acl \"Proxy Rights\"; " +
+              "allow(proxy) userdn=\"ldap:///uid=proxy.user,o=test\";)"
     );
     AddOperation addOperation =
          connection.processAdd(entry.getDN(),
@@ -483,7 +485,8 @@ public class CompareOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     ProxiedAuthV1Control authV1Control =
-         new ProxiedAuthV1Control(new ASN1OctetString());
+         new ProxiedAuthV1Control(new ASN1OctetString(
+              "cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
 
@@ -536,7 +539,8 @@ public class CompareOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     ProxiedAuthV2Control authV2Control =
-         new ProxiedAuthV2Control(new ASN1OctetString("dn:"));
+         new ProxiedAuthV2Control(new ASN1OctetString(
+                  "dn:cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
 

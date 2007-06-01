@@ -837,7 +837,7 @@ public abstract class ClientConnection
     if (authenticationInfo == null)
     {
       this.authenticationInfo = new AuthenticationInfo();
-      privileges = new HashSet<Privilege>();
+      updatePrivileges(null, false);
     }
     else
     {
@@ -861,8 +861,6 @@ public abstract class ClientConnection
           DirectoryServer.getAuthenticatedUsers().put(
                authZEntry.getDN(), this);
         }
-
-        updatePrivileges(authNEntry, authenticationInfo.isRoot());
       }
       else
       {
@@ -871,9 +869,9 @@ public abstract class ClientConnection
           DirectoryServer.getAuthenticatedUsers().put(
                authZEntry.getDN(), this);
         }
-
-        privileges = new HashSet<Privilege>();
       }
+
+      updatePrivileges(authZEntry, authenticationInfo.isRoot());
     }
   }
 
@@ -954,11 +952,23 @@ public abstract class ClientConnection
   public boolean hasPrivilege(Privilege privilege,
                               Operation operation)
   {
-    boolean result = privileges.contains(privilege);
+    boolean result;
 
-    if (debugEnabled())
+    if (privilege == Privilege.PROXIED_AUTH)
     {
-      if (operation == null)
+      // This determination should always be made against the
+      // authentication identity rather than the authorization
+      // identity.
+      Entry authEntry = authenticationInfo.getAuthenticationEntry();
+      boolean isRoot  = authenticationInfo.isRoot();
+      return getPrivileges(authEntry,
+                           isRoot).contains(Privilege.PROXIED_AUTH);
+    }
+
+    if (operation == null)
+    {
+      result = privileges.contains(privilege);
+      if (debugEnabled())
       {
         DN authDN = authenticationInfo.getAuthenticationDN();
 
@@ -968,16 +978,39 @@ public abstract class ClientConnection
                                     privilege.getName(), result);
         TRACER.debugMessage(DebugLogLevel.INFO, message);
       }
+    }
+    else
+    {
+      if (operation.getAuthorizationDN().equals(
+               authenticationInfo.getAuthorizationDN()))
+      {
+        result = privileges.contains(privilege);
+        if (debugEnabled())
+        {
+          DN authDN = authenticationInfo.getAuthenticationDN();
+
+          int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE;
+          String message = getMessage(msgID, getConnectionID(),
+                                      operation.getOperationID(),
+                                      String.valueOf(authDN),
+                                      privilege.getName(), result);
+          TRACER.debugMessage(DebugLogLevel.INFO, message);
+        }
+      }
       else
       {
-        DN authDN = authenticationInfo.getAuthenticationDN();
-
-        int    msgID   = MSGID_CLIENTCONNECTION_AUDIT_HASPRIVILEGE;
-        String message = getMessage(msgID, getConnectionID(),
-                                    operation.getOperationID(),
-                                    String.valueOf(authDN),
-                                    privilege.getName(), result);
-        TRACER.debugMessage(DebugLogLevel.INFO, message);
+        Entry authorizationEntry = operation.getAuthorizationEntry();
+        if (authorizationEntry == null)
+        {
+          result = false;
+        }
+        else
+        {
+          boolean isRoot =
+               DirectoryServer.isRootDN(authorizationEntry.getDN());
+          result = getPrivileges(authorizationEntry,
+                                 isRoot).contains(privilege);
+        }
       }
     }
 
@@ -1069,18 +1102,24 @@ public abstract class ClientConnection
 
 
   /**
-   * Updates the privileges associated with this client connection
-   * object based on the provided entry for the authentication
-   * identity.
+   * Retrieves the set of privileges encoded in the provided entry.
    *
-   * @param  entry   The entry for the authentication identity
-   *                 associated with this client connection.
-   * @param  isRoot  Indicates whether the associated user is a root
-   *                 user and should automatically inherit the root
+   * @param  entry   The entry to use to obtain the privilege
+   *                 information.
+   * @param  isRoot  Indicates whether the set of root privileges
+   *                 should be automatically included in the
    *                 privilege set.
+   *
+   * @return  A set of the privileges that should be assigned.
    */
-  private void updatePrivileges(Entry entry, boolean isRoot)
+  private HashSet<Privilege> getPrivileges(Entry entry,
+                                           boolean isRoot)
   {
+    if (entry == null)
+    {
+      return new HashSet<Privilege>(0);
+    }
+
     HashSet<Privilege> newPrivileges = new HashSet<Privilege>();
     HashSet<Privilege> removePrivileges = new HashSet<Privilege>();
 
@@ -1115,8 +1154,7 @@ public abstract class ClientConnection
               // We don't know what privilege to remove, so we'll
               // remove all of them.
               newPrivileges.clear();
-              privileges = newPrivileges;
-              return;
+              return newPrivileges;
             }
             else
             {
@@ -1144,7 +1182,25 @@ public abstract class ClientConnection
       newPrivileges.remove(p);
     }
 
-    privileges = newPrivileges;
+    return newPrivileges;
+  }
+
+
+
+  /**
+   * Updates the privileges associated with this client connection
+   * object based on the provided entry for the authentication
+   * identity.
+   *
+   * @param  entry   The entry for the authentication identity
+   *                 associated with this client connection.
+   * @param  isRoot  Indicates whether the associated user is a root
+   *                 user and should automatically inherit the root
+   *                 privilege set.
+   */
+  private void updatePrivileges(Entry entry, boolean isRoot)
+  {
+    privileges = getPrivileges(entry, isRoot);
   }
 
 
