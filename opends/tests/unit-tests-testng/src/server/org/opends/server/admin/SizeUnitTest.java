@@ -214,28 +214,57 @@ public class SizeUnitTest {
    *
    * @return data
    */
-  @DataProvider(name = "bestFitData")
-  public Object[][] createBestFitData() {
+  @DataProvider(name = "bestFitUnitExactData")
+  public Object[][] createBestFitExactData() {
     return new Object[][]{
-            { SizeUnit.KILO_BYTES, Double.MIN_VALUE, SizeUnit.KILO_BYTES },
-            { SizeUnit.KILO_BYTES, 0D, SizeUnit.KILO_BYTES },
-            { SizeUnit.KILO_BYTES, 0.5D, SizeUnit.BYTES },
-            { SizeUnit.KILO_BYTES, 1999D, SizeUnit.KILO_BYTES },
-            { SizeUnit.KILO_BYTES, 2000D, SizeUnit.MEGA_BYTES },
-            { SizeUnit.KILO_BYTES, 2001D, SizeUnit.KILO_BYTES },
-            // { SizeUnit.KILO_BYTES, Double.MAX_VALUE, SizeUnit.KILO_BYTES }  // fails
+            { 0, SizeUnit.BYTES },
+            { 999, SizeUnit.BYTES },
+            { 1000, SizeUnit.KILO_BYTES },
+            { 1024, SizeUnit.KIBI_BYTES },
+            { 1025, SizeUnit.BYTES },
+            { 999999, SizeUnit.BYTES },
+            { 1000000, SizeUnit.MEGA_BYTES },
+            { 1000001, SizeUnit.BYTES }
     };
   }
 
   /**
    * Test best fit
-   * @param unit to use
    * @param value for which best fit sought
    * @param expectedUnit for comparison
    */
-  @Test(dataProvider = "bestFitData")
-  public void testGetBestFitUnit(SizeUnit unit, double value, SizeUnit expectedUnit) {
-    assertEquals(unit.getBestFitUnit(value), expectedUnit);
+  @Test(dataProvider = "bestFitUnitExactData")
+  public void testGetBestFitUnitExact(long value, SizeUnit expectedUnit) {
+    assertEquals(SizeUnit.getBestFitUnitExact(value), expectedUnit);
+  }
+
+  /**
+   * Creates data for testing fromBytes
+   *
+   * @return data
+   */
+  @DataProvider(name = "bestFitUnitData")
+  public Object[][] createBestFitData() {
+    return new Object[][]{
+            { 0, SizeUnit.BYTES },
+            { 999, SizeUnit.BYTES },
+            { 1000, SizeUnit.KILO_BYTES },
+            { 1024, SizeUnit.KIBI_BYTES },
+            { 1025, SizeUnit.KILO_BYTES },
+            { 999999, SizeUnit.KILO_BYTES },
+            { 1000000, SizeUnit.MEGA_BYTES },
+            { 1000001, SizeUnit.MEGA_BYTES }
+    };
+  }
+
+  /**
+   * Test best fit
+   * @param value for which best fit sought
+   * @param expectedUnit for comparison
+   */
+  @Test(dataProvider = "bestFitUnitData")
+  public void testGetBestFitUnit(long value, SizeUnit expectedUnit) {
+    assertEquals(SizeUnit.getBestFitUnit(value), expectedUnit);
   }
 
   /**
