@@ -104,7 +104,9 @@ public class CustomHTMLEditorKit extends HTMLEditorKit
   class MyFormView extends FormView
   {
     /**
-     * {@inheritDoc}
+     * Creates a new FormView object.
+     *
+     * @param elem the element to decorate
      */
     MyFormView(Element elem)
     {
