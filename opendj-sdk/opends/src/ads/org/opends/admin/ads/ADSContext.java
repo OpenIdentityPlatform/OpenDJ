@@ -663,7 +663,7 @@ public class ADSContext
     catch (NamingException x)
     {
       throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+          ADSContextException.ErrorType.BROKEN_INSTALL, x);
     }
   }
 
@@ -681,11 +681,39 @@ public class ADSContext
 
     LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(groupID) + "," +
         getServerGroupContainerDN());
-    BasicAttributes attrs =
-      makeAttrsFromServerGroupProperties(serverGroupProperties);
     try
     {
+      // Entry renaming ?
+      if (serverGroupProperties.containsKey(ServerGroupProperty.UID))
+      {
+        String newGroupId = serverGroupProperties
+            .get(ServerGroupProperty.UID).toString();
+        if (!newGroupId.equals(groupID))
+        {
+          // Rename to entry
+          LdapName newDN = nameFromDN("cn=" + Rdn.escapeValue(newGroupId)
+              + "," + getServerGroupContainerDN());
+          dirContext.rename(dn, newDN);
+          dn = newDN ;
+        }
+
+        // In any case, we remove the "cn" attribute.
+        serverGroupProperties.remove(ServerGroupProperty.UID);
+      }
+      if (serverGroupProperties.isEmpty())
+      {
+        return ;
+      }
+
+      BasicAttributes attrs =
+        makeAttrsFromServerGroupProperties(serverGroupProperties);
+      // attribute modification
       dirContext.modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE, attrs);
+    }
+    catch (NameNotFoundException x)
+    {
+      throw new ADSContextException(
+          ADSContextException.ErrorType.NOT_YET_REGISTERED);
     }
     catch (NameAlreadyBoundException x)
     {
