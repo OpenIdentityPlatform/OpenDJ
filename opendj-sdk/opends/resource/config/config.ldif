@@ -541,7 +541,7 @@ objectClass: ds-cfg-file-based-error-logger
 cn: File-Based Error Logger
 ds-cfg-logger-class: org.opends.server.loggers.TextErrorLogPublisher
 ds-cfg-logger-enabled: true
-ds-cfg-log-file: logs/error
+ds-cfg-log-file: logs/errors
 ds-cfg-log-file-mode: 640
 ds-cfg-default-severity: severe-warning
 ds-cfg-default-severity: severe-error
