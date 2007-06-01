@@ -777,6 +777,7 @@ email.server.pwd=${email.server.pwd.input}
 				<isset property="staf.spawn"/>
 			</not>
 		</condition>
+    <echo message="Starting STAF..."/>
     <exec
       dir="${staf.bin.dir}"
       executable="${staf.daemon}"
@@ -789,6 +790,11 @@ email.server.pwd=${email.server.pwd.input}
      <env key="STAFCODEPAGE" value="LATIN_1"/>
      <env key="STAF_INSTANCE_NAME" value="STAF"/>
    </exec>
+   <echo message="Waiting for service to become available..."/>
+    <waitfor>
+      <socket server="${host.name}" port="${staf.port}"/>
+    </waitfor>
+    <echo message="STAF is now ready to serve requests"/>
    </target>
   <target name="start-dont" if="staf.running">
     <echo>Staf is already running.</echo>
@@ -801,6 +807,7 @@ email.server.pwd=${email.server.pwd.input}
 		<property name="staf.spawn" value="false"/>
 		<antcall target="start"/>
 	</target>
+
 <!-- Start section - bottom    -->
   
 <!-- Stop section - top     -->
@@ -816,8 +823,13 @@ email.server.pwd=${email.server.pwd.input}
       <env key="STAFCODEPAGE" value="LATIN_1"/>
       <arg line="local shutdown shutdown"/>
     </exec>
-    <echo>staf has been instructed to close the shop.</echo>
-    <echo>Please allow some time as staf wipes the plate clean</echo>
+    <echo message="Waiting for service to shutdown gracefully..."/>
+    <waitfor>
+      <not>
+        <socket server="${host.name}" port="${staf.port}"/>
+      </not>
+    </waitfor>
+    <echo message="STAF stopped"/>
   </target>
   <target name="stop-dont" unless="staf.running">
     <echo>Staf is not running.</echo>
@@ -965,6 +977,8 @@ email.server.pwd=${email.server.pwd.input}
     <sleep seconds="60"/>
 		<antcall target="uninstall"/>
 	</target>
+
+  <target name="restart" depends="stop,start"/>
 <!--  Macros section - bottom -->
   <target name="javadoc" depends="status-do" if="staf.installed">
     <delete dir="${staf.home}/doc"/>
