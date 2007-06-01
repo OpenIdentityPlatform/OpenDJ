@@ -79,28 +79,37 @@ public class DurationUnitTest {
     /**
      * @return test data for testing getUnit
      */
-    @DataProvider(name = "testGetBestFitUnit")
-    public Object[][] createGetBestFitData() {
+    @DataProvider(name = "testToString")
+    public Object[][] createToStringData() {
       return new Object[][]{
-              { SECONDS, 0, SECONDS },
-              { MINUTES, 0, MINUTES },
-              { HOURS, 0, HOURS },
-              { MINUTES, .5D, SECONDS },
-              { MINUTES, 119D, MINUTES },
-              { MINUTES, 120D, HOURS },
-              { MINUTES, 121D, MINUTES },
-              { MINUTES, Double.MIN_VALUE, MINUTES }
+              { 0L, "0ms" },
+              { 1L, "1ms" },
+              { 999L, "999ms" },
+              { 1000L, "1s" },
+              { 1001L, "1s1ms" },
+              { 59999L, "59s999ms" },
+              { 60000L, "1m" },
+              { 3599999L, "59m59s999ms" },
+              { 3600000L, "1h" }
       };
     }
 
     /**
-     * @param unit of best fit value
      * @param value ordinal value
-     * @param expectedValue for comparison
+     * @param expected for comparison
      */
-    @Test(dataProvider = "testGetBestFitUnit")
-    public void testGetBestFitUnit(DurationUnit unit, double value, DurationUnit expectedValue) {
-        assertEquals(unit.getBestFitUnit(value), expectedValue);
+    @Test(dataProvider = "testToString")
+    public void testToString(long value, String expected) {
+        assertEquals(DurationUnit.toString(value), expected);
+    }
+
+    /**
+     * @param expected for comparison
+     * @param value for parsing
+     */
+    @Test(dataProvider = "testToString")
+    public void testParseValue(long expected, String value) {
+        assertEquals(DurationUnit.parseValue(value), expected);
     }
 
 }

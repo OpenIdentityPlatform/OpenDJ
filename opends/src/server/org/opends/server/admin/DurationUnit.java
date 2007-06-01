@@ -41,19 +41,9 @@ import java.util.regex.Pattern;
 public enum DurationUnit {
 
   /**
-   * A millisecond unit.
+   * A day unit.
    */
-  MILLI_SECONDS(1L, "ms", "milliseconds"),
-
-  /**
-   * A second unit.
-   */
-  SECONDS(1000L, "s", "seconds"),
-
-  /**
-   * A minute unit.
-   */
-  MINUTES((long) 60 * 1000, "m", "minutes"),
+  DAYS((long) 24 * 60 * 60 * 1000, "d", "days"),
 
   /**
    * An hour unit.
@@ -61,9 +51,19 @@ public enum DurationUnit {
   HOURS((long) 60 * 60 * 1000, "h", "hours"),
 
   /**
-   * A day unit.
+   * A millisecond unit.
    */
-  DAYS((long) 24 * 60 * 60 * 1000, "d", "days"),
+  MILLI_SECONDS(1L, "ms", "milliseconds"),
+
+  /**
+   * A minute unit.
+   */
+  MINUTES((long) 60 * 1000, "m", "minutes"),
+
+  /**
+   * A second unit.
+   */
+  SECONDS(1000L, "s", "seconds"),
 
   /**
    * A week unit.
@@ -108,13 +108,17 @@ public enum DurationUnit {
   /**
    * Parse the provided duration string and return its equivalent
    * duration in milli-seconds. The duration string must specify the
-   * unit e.g. "10s".
+   * unit e.g. "10s". This method will parse duration string
+   * representations produced from the {@link #toString(long)} method.
+   * Therefore, a duration can comprise of multiple duration
+   * specifiers, for example <code>1d15m25s</code>.
    *
    * @param s
    *          The duration string to be parsed.
    * @return Returns the parsed duration in milli-seconds.
    * @throws NumberFormatException
    *           If the provided duration string could not be parsed.
+   * @see #toString(long)
    */
   public static long parseValue(String s) throws NumberFormatException {
     return parseValue(s, null);
@@ -124,7 +128,10 @@ public enum DurationUnit {
 
   /**
    * Parse the provided duration string and return its equivalent
-   * duration in milli-seconds.
+   * duration in milli-seconds. This method will parse duration string
+   * representations produced from the {@link #toString(long)} method.
+   * Therefore, a duration can comprise of multiple duration
+   * specifiers, for example <code>1d15m25s</code>.
    *
    * @param s
    *          The duration string to be parsed.
@@ -135,53 +142,157 @@ public enum DurationUnit {
    * @return Returns the parsed duration in milli-seconds.
    * @throws NumberFormatException
    *           If the provided duration string could not be parsed.
+   * @see #toString(long)
    */
   public static long parseValue(String s, DurationUnit defaultUnit)
       throws NumberFormatException {
-    // Value must be a floating point number followed by a unit.
-    Pattern p = Pattern.compile("^\\s*(\\d+(\\.\\d+)?)\\s*(\\w+)?\\s*$");
-    Matcher m = p.matcher(s);
-
-    if (!m.matches()) {
-      throw new NumberFormatException("Invalid duration value \"" + s + "\"");
+    String ns = s.trim();
+    if (ns.length() == 0) {
+      throw new NumberFormatException("Empty duration value \"" + s + "\"");
     }
 
-    // Group 1 is the float.
-    double d;
-    try {
-      d = Double.valueOf(m.group(1));
-    } catch (NumberFormatException e) {
-      throw new NumberFormatException("Invalid duration value \"" + s + "\"");
-    }
+    Pattern p1 = Pattern.compile("^((\\d+)w)?" + "((\\d+)d)?"
+        + "((\\d+)h)?" + "((\\d+)m)?" + "((\\d+)s)?" + "((\\d+)ms)?$",
+        Pattern.CASE_INSENSITIVE);
+    Matcher m1 = p1.matcher(ns);
+    if (m1.matches()) {
+      // Value must be of the form produced by toString(long).
+      String weeks = m1.group(2);
+      String days = m1.group(4);
+      String hours = m1.group(6);
+      String minutes = m1.group(8);
+      String seconds = m1.group(10);
+      String ms = m1.group(12);
 
-    // Group 3 is the unit.
-    String unitString = m.group(3);
-    DurationUnit unit;
-    if (unitString == null) {
-      if (defaultUnit == null) {
-        throw new NumberFormatException("Invalid duration value \"" + s + "\"");
-      } else {
-        unit = defaultUnit;
-      }
-    } else {
+      long duration = 0;
+
       try {
-        unit = getUnit(unitString);
-      } catch (IllegalArgumentException e) {
+        if (weeks != null) {
+          duration += Long.valueOf(weeks) * WEEKS.getDuration();
+        }
+
+        if (days != null) {
+          duration += Long.valueOf(days) * DAYS.getDuration();
+        }
+
+        if (hours != null) {
+          duration += Long.valueOf(hours) * HOURS.getDuration();
+        }
+
+        if (minutes != null) {
+          duration += Long.valueOf(minutes) * MINUTES.getDuration();
+        }
+
+        if (seconds != null) {
+          duration += Long.valueOf(seconds) * SECONDS.getDuration();
+        }
+
+        if (ms != null) {
+          duration += Long.valueOf(ms) * MILLI_SECONDS.getDuration();
+        }
+      } catch (NumberFormatException e) {
         throw new NumberFormatException("Invalid duration value \"" + s + "\"");
       }
-    }
 
-    return unit.toMilliSeconds(d);
+      return duration;
+    } else {
+      // Value must be a floating point number followed by a unit.
+      Pattern p2 = Pattern.compile("^(\\d+(\\.\\d+)?)\\s*(\\w+)?$");
+      Matcher m2 = p2.matcher(ns);
+
+      if (!m2.matches()) {
+        throw new NumberFormatException("Invalid duration value \"" + s + "\"");
+      }
+
+      // Group 1 is the float.
+      double d;
+      try {
+        d = Double.valueOf(m2.group(1));
+      } catch (NumberFormatException e) {
+        throw new NumberFormatException("Invalid duration value \"" + s + "\"");
+      }
+
+      // Group 3 is the unit.
+      String unitString = m2.group(3);
+      DurationUnit unit;
+      if (unitString == null) {
+        if (defaultUnit == null) {
+          throw new NumberFormatException("Invalid duration value \"" + s
+              + "\"");
+        } else {
+          unit = defaultUnit;
+        }
+      } else {
+        try {
+          unit = getUnit(unitString);
+        } catch (IllegalArgumentException e) {
+          throw new NumberFormatException("Invalid duration value \"" + s
+              + "\"");
+        }
+      }
+
+      return unit.toMilliSeconds(d);
+    }
   }
 
-  // The size of the unit in milli-seconds.
-  private final long sz;
+
+
+  /**
+   * Returns a string representation of the provided duration. The
+   * string representation can be parsed using the
+   * {@link #parseValue(String)} method. The string representation is
+   * comprised of one or more of the number of weeks, days, hours,
+   * minutes, seconds, and milli-seconds. Here are some examples:
+   *
+   * <pre>
+   * toString(0)       // 0ms
+   * toString(999)     // 999ms
+   * toString(1000)    // 1s
+   * toString(1500)    // 1s500ms
+   * toString(3650000) // 1h50s
+   * toString(3700000) // 1h1m40s
+   * </pre>
+   *
+   * @param duration
+   *          The duration in milli-seconds.
+   * @return Returns a string representation of the provided duration.
+   * @throws IllegalArgumentException
+   *           If the provided duration is negative.
+   * @see #parseValue(String)
+   * @see #parseValue(String, DurationUnit)
+   */
+  public static String toString(long duration) throws IllegalArgumentException {
+    if (duration < 0) {
+      throw new IllegalArgumentException("Negative duration " + duration);
+    }
+
+    if (duration == 0) {
+      return "0ms";
+    }
+
+    DurationUnit[] units = new DurationUnit[] { WEEKS, DAYS, HOURS, MINUTES,
+        SECONDS, MILLI_SECONDS };
+    long remainder = duration;
+    StringBuilder builder = new StringBuilder();
+    for (DurationUnit unit : units) {
+      long count = remainder / unit.getDuration();
+      if (count > 0) {
+        builder.append(count);
+        builder.append(unit.getShortName());
+        remainder = remainder - (count * unit.getDuration());
+      }
+    }
+    return builder.toString();
+  }
+
+  // The long name of the unit.
+  private final String longName;
 
   // The abbreviation of the unit.
   private final String shortName;
 
-  // The long name of the unit.
-  private final String longName;
+  // The size of the unit in milli-seconds.
+  private final long sz;
 
 
 
@@ -203,34 +314,6 @@ public enum DurationUnit {
    */
   public double fromMilliSeconds(long duration) {
     return ((double) duration / sz);
-  }
-
-
-
-  /**
-   * Get the best-fit unit for the specified duration in this unit.
-   * For example, if this unit is minutes and the duration 120 is
-   * provided, then the best fit unit is hours: 2h. Similarly, if the
-   * duration is 0.5, then the best fit unit will by seconds: 30s.
-   *
-   * @param duration
-   *          The duration.
-   * @return Returns the best-fit unit for the specified duration in
-   *         this unit.
-   */
-  public DurationUnit getBestFitUnit(double duration) {
-    long ms = toMilliSeconds(duration);
-    if (ms == 0) {
-      return this;
-    } else if (ms > 0) {
-      for (DurationUnit unit : new DurationUnit[] { WEEKS, DAYS, HOURS,
-          MINUTES, SECONDS }) {
-        if ((ms % unit.sz) == 0) {
-          return unit;
-        }
-      }
-    }
-    return MILLI_SECONDS;
   }
 
 

@@ -29,11 +29,9 @@ package org.opends.server.admin;
 
 
 
-import static org.opends.server.util.Validator.ensureNotNull;
+import static org.opends.server.util.Validator.*;
 
 import java.util.EnumSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 
@@ -526,48 +524,21 @@ public final class DurationPropertyDefinition extends
       }
     }
 
-    // Value must be a floating point number followed by a unit.
-    Pattern p = Pattern.compile("^\\s*(\\d+(\\.\\d+)?)\\s*(\\w+)\\s*$");
-    Matcher m = p.matcher(value);
-
-    if (!m.matches()) {
-      throw new IllegalPropertyValueStringException(this, value);
-    }
-
-    // Group 1 is the float.
-    double d;
+    // Parse the string representation.
+    long ms;
     try {
-      d = Double.valueOf(m.group(1));
+      ms = DurationUnit.parseValue(value);
     } catch (NumberFormatException e) {
       throw new IllegalPropertyValueStringException(this, value);
     }
 
-    // Group 3 is the unit.
-    String unitString = m.group(3);
-    DurationUnit unit;
-    if (unitString == null) {
-      unit = baseUnit;
-    } else {
-      try {
-        unit = DurationUnit.getUnit(unitString);
-      } catch (IllegalArgumentException e) {
-        throw new IllegalPropertyValueStringException(this, value);
-      }
-    }
-
-    // Check the unit is in range.
-    if (unit.getDuration() < baseUnit.getDuration()) {
+    // Check the unit is in range - values must not be more granular
+    // than the base unit.
+    if ((ms % baseUnit.getDuration()) != 0) {
       throw new IllegalPropertyValueStringException(this, value);
     }
 
-    if (maximumUnit != null) {
-      if (unit.getDuration() > maximumUnit.getDuration()) {
-        throw new IllegalPropertyValueStringException(this, value);
-      }
-    }
-
     // Convert the value a long in the property's required unit.
-    long ms = unit.toMilliSeconds(d);
     Long i = (long) baseUnit.fromMilliSeconds(ms);
     try {
       validateValue(i);
