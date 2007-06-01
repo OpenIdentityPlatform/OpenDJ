@@ -339,7 +339,7 @@ public final class TestCaseUtils {
 
     TextAccessLogPublisher startupAccessPublisher =
         TextAccessLogPublisher.getStartupTextAccessPublisher(
-            TestListener.ACCESS_TEXT_WRITER);
+            TestListener.ACCESS_TEXT_WRITER, false);
     AccessLogger.removeAllAccessLogPublishers();
     AccessLogger.addAccessLogPublisher(DN.decode("cn=Test Access Publisher"),
                                        startupAccessPublisher);
