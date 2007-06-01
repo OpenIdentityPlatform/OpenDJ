@@ -160,7 +160,6 @@ objectclass: inetOrgPerson
 ou: Accounting
 ou: People
 l: Sunnyvale
-manager: uid=amanager, ou=People, o=ACI Tests, dc=example,dc=com
 uid: dmillerone
 mail: dmillerone@example.com
 telephonenumber: +1 408 555 9423
@@ -183,7 +182,6 @@ objectclass: inetOrgPerson
 ou: Accounting
 ou: People
 l: Sunnyvale
-manager: uid=amanager, ou=People, o=ACI Tests, dc=example,dc=com
 uid: dmillertwo
 mail: dmillertwo@example.com
 telephonenumber: +1 408 555 9423
