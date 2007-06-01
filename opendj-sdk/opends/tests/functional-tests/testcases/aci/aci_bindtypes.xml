@@ -4374,7 +4374,6 @@
                     <tcstatus result="'fail'"/>
                 </if>
     
-<!--    The rest of the test case should be uncommented when Issue 1600 is resolved.    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, deny children, user searching in second child level'
                 </message>
@@ -4402,7 +4401,7 @@
                 <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
--->    
+    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, deny children, admin deleting aci'
                 </message>
@@ -4569,15 +4568,6 @@
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
                       'testString'         : 'cn:' }
-                </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'manager:' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -4783,15 +4773,6 @@
                     <tcstatus result="'fail'"/>
                 </if>
     
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'manager:' }
-                </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow two child levels, user searching in second child level'
                 </message>
@@ -4823,15 +4804,6 @@
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
                       'testString'         : 'cn:' }
-                </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'manager:' }
                 </call>
                 
                 <if expr="returnCode != '1'">
