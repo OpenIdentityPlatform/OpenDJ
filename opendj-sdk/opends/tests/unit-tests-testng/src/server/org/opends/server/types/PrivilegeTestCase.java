@@ -201,9 +201,18 @@ public class PrivilegeTestCase
       "uid: pwreset.target",
       "userPassword: password");
 
-// FIXME -- It will likely be necessary to also have access control rules in
-//          place to allow operations as necessary once that functionality has
-//          integrated into the server.
+    TestCaseUtils.applyModifications(
+      "dn: o=test",
+      "changetype: modify",
+      "add: aci",
+      "aci: (version 3.0; acl \"Proxy Root\"; allow (proxy) " +
+           "userdn=\"ldap:///cn=Proxy Root,cn=Root DNs,cn=config\";)",
+      "aci: (version 3.0; acl \"Unprivileged Root\"; allow (proxy) " +
+           "userdn=\"ldap:///cn=Unprivileged Root,cn=Root DNs,cn=config\";)",
+      "aci: (version 3.0; acl \"Privileged User\"; allow (proxy) " +
+           "userdn=\"ldap:///cn=Privileged User,o=test\";)",
+      "aci: (targetattr=\"*\")(version 3.0; acl \"PWReset Target\"; " +
+           "allow (all) userdn=\"ldap:///cn=PWReset Target,o=test\";)");
 
 
     // Build the array of connections we will use to perform the tests.
@@ -1365,6 +1374,7 @@ public class PrivilegeTestCase
 
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
+    DN authDN = conn.getAuthenticationInfo().getAuthenticationDN();
     AddOperation addOperation =
          new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
                           controls, e.getDN(), e.getObjectClasses(),
@@ -1373,12 +1383,14 @@ public class PrivilegeTestCase
 
     if (hasProxyPrivilege)
     {
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
+                   "Unexpected add failure for user " + authDN);
     }
     else
     {
       assertEquals(addOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
+                   ResultCode.AUTHORIZATION_DENIED,
+                   "Unexpected add success for user " + authDN);
       TestCaseUtils.addEntry(e);
     }
 
@@ -1395,12 +1407,14 @@ public class PrivilegeTestCase
 
     if (hasProxyPrivilege)
     {
-      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS,
+                   "Unexpected mod failure for user " + authDN);
     }
     else
     {
       assertEquals(modifyOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
+                   ResultCode.AUTHORIZATION_DENIED,
+                   "Unexpected mod success for user " + authDN);
     }
 
 
@@ -1414,13 +1428,15 @@ public class PrivilegeTestCase
     DN newEntryDN;
     if (hasProxyPrivilege)
     {
-      assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS,
+                   "Unexpected moddn failure for user " + authDN);
       newEntryDN = modifyDNOperation.getUpdatedEntry().getDN();
     }
     else
     {
       assertEquals(modifyDNOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
+                   ResultCode.AUTHORIZATION_DENIED,
+                   "Unexpected moddn success for user " + authDN);
       newEntryDN = e.getDN();
     }
 
@@ -1434,12 +1450,14 @@ public class PrivilegeTestCase
 
     if (hasProxyPrivilege)
     {
-      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS,
+                   "Unexpected delete failure for user " + authDN);
     }
     else
     {
       assertEquals(deleteOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
+                   ResultCode.AUTHORIZATION_DENIED,
+                   "Unexpected delete success for user " + authDN);
 
       InternalClientConnection rootConnection =
            InternalClientConnection.getRootConnection();

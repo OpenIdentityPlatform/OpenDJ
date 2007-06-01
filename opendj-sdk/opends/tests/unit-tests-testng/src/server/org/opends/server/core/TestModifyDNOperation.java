@@ -63,6 +63,7 @@ public class TestModifyDNOperation extends OperationTestCase
   public void setUp() throws Exception
   {
     TestCaseUtils.startServer();
+    TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
 
     InternalClientConnection connection =
@@ -73,7 +74,9 @@ public class TestModifyDNOperation extends OperationTestCase
       "dn: dc=example,dc=com",
       "objectclass: top",
       "objectclass: domain",
-      "dc: example"
+      "dc: example",
+      "aci: (targetattr=\"*\")(version 3.0; acl \"Proxy Rights\"; " +
+           "allow(proxy) userdn=\"ldap:///uid=proxy.user,o=test\";)"
     );
 
     // Add the people entry
@@ -825,8 +828,8 @@ public class TestModifyDNOperation extends OperationTestCase
   @Test
   public void testRawProxyAuthV1Modify() throws Exception
   {
-    ProxiedAuthV1Control authV1Control =
-         new ProxiedAuthV1Control(new ASN1OctetString());
+    ProxiedAuthV1Control authV1Control = new ProxiedAuthV1Control(
+         new ASN1OctetString("cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
     InvocationCounterPlugin.resetAllCounters();
@@ -884,8 +887,8 @@ public class TestModifyDNOperation extends OperationTestCase
   @Test
   public void testProcessedProxyAuthV1Modify() throws Exception
   {
-    ProxiedAuthV1Control authV1Control =
-         new ProxiedAuthV1Control(new ASN1OctetString());
+    ProxiedAuthV1Control authV1Control = new ProxiedAuthV1Control(new ASN1OctetString(
+      "cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
     InvocationCounterPlugin.resetAllCounters();
@@ -969,7 +972,8 @@ public class TestModifyDNOperation extends OperationTestCase
   public void testProcessedProxyAuthV2Modify() throws Exception
   {
     ProxiedAuthV2Control authV2Control =
-         new ProxiedAuthV2Control(new ASN1OctetString("dn:"));
+         new ProxiedAuthV2Control(new ASN1OctetString(
+              "dn:cn=Directory Manager,cn=Root DNs,cn=config"));
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
     InvocationCounterPlugin.resetAllCounters();
