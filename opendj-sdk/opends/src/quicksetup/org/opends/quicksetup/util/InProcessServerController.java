@@ -453,7 +453,7 @@ public class InProcessServerController {
 
       AccessLogPublisher startupAccessPublisher =
               TextAccessLogPublisher.getStartupTextAccessPublisher(
-                      accessWriter);
+                      accessWriter, true);
       AccessLogger.addAccessLogPublisher(
               DN.decode("cn=QuickSetup,cn=Loggers,cn=config"),
               startupAccessPublisher);

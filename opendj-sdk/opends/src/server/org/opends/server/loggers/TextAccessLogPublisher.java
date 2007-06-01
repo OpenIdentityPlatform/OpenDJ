@@ -73,14 +73,16 @@ public class TextAccessLogPublisher
    * to the console when the server starts up.
    *
    * @param writer The text writer where the message will be written to.
+   * @param suppressInternal Indicates whether to suppress internal operations.
    * @return The instance of the text error log publisher that will print
    * all messages to standard out.
    */
   public static TextAccessLogPublisher
-      getStartupTextAccessPublisher(TextWriter writer)
+      getStartupTextAccessPublisher(TextWriter writer, boolean suppressInternal)
   {
     TextAccessLogPublisher startupPublisher = new TextAccessLogPublisher();
     startupPublisher.writer = writer;
+    startupPublisher.suppressInternalOperations = suppressInternal;
 
     return startupPublisher;
   }
