@@ -255,10 +255,11 @@ public class SizePropertyDefinitionTest {
             {1000L, "1kb"},
             {1001L, "1001b"},
             {1023L, "1023b"},
-            {1024L, "1024b"},
+            {1024L, "1kib"},
             {1025L, "1025b"},
             {1000L * 1000L, "1mb"},
             {1000L * 1000L * 1000L, "1gb"},
+            {1024L * 1024L * 1024L, "1gib"},
             {1000L * 1000L * 1000L * 1000L, "1tb"}
 
     };
@@ -313,14 +314,20 @@ public class SizePropertyDefinitionTest {
     spd.toString();
   }
 
+  /**
+   * Test comparator method.
+   */
   @Test
   public void testCompare() {
     SizePropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(true);
     SizePropertyDefinition spd = buildTestDefinition(builder);
-    spd.compare(1L, 2L);
+    assertEquals(spd.compare(1L, 2L), -1);
   }
 
+  /**
+   * Tests default behavior.
+   */
   @Test
   public void testSetDefaultBehaviorProvider() {
     SizePropertyDefinition.Builder builder = createTestBuilder();
@@ -332,6 +339,9 @@ public class SizePropertyDefinitionTest {
     });
   }
 
+  /**
+   * Tests option setting.
+   */
   @Test
   public void testSetOption() {
     SizePropertyDefinition.Builder builder = createTestBuilder();

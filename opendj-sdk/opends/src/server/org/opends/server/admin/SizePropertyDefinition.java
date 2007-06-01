@@ -312,9 +312,10 @@ public final class SizePropertyDefinition extends
         return UNLIMITED;
       }
     }
+
     // Encode the size value using the best-fit unit.
     StringBuilder builder = new StringBuilder();
-    SizeUnit unit = SizeUnit.BYTES.getBestFitUnit(value);
+    SizeUnit unit = SizeUnit.getBestFitUnitExact(value);
 
     // Cast to a long to remove fractional part (which should not be there
     // anyway as the best-fit unit should result in an exact conversion).
