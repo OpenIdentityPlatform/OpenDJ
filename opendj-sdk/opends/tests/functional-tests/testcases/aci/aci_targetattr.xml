@@ -1480,6 +1480,51 @@
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
               #@TestMarker                ACI Targetattr Tests
+              #@TestName                  Targetattr equals one attribute with wildcard
+              #@TestIssue                 435
+              #@TestPurpose               Test with the targetattr set equal to a specific attribute with wildcard
+              #@TestPreamble              Admin adds an aci to one branch with the targetattr equal to a specific attribute.
+              #@TestStep                  Client searches entry with the targeted dn for the targetattr.
+              #@TestStep                  Client searches entry that does not have the targeted dn for the targetattr.
+              #@TestStep                  Remove aci.
+              #@TestStep                  Client searches entry with the previously targeted dn for the targetattr.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 21.
+          -->
+          <testcase name="'ACI: Targetattr: Targetattr Equals One Attribute with wildcard'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                  curr_aci_ldif_file = 'add_aci11.ldif'
+                  curr_aci=retrieve_aci('%s/aci/aci_targetattr/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+              </script>
+        
+              <message>
+                 'ACI: Targetattr: Targetattr Equals One Attribute with wildcard, preamble adding aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyEntry'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+              </call>
+  
+              <if expr="RC != 21">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <call function="'testCase_Postamble'"/>
+  
+            </sequence>
+          </testcase>
+  
+          <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Targetattr Tests
               #@TestName                  Postamble
               #@TestIssue                 435
               #@TestPurpose               Test default aci settings

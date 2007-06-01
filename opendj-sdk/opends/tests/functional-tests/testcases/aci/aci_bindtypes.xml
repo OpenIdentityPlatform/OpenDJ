@@ -1942,7 +1942,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
-                                            and entry is returned only for step 1.
+                                            no entries are returned for any step.
             -->
             <testcase name="'ACI: Bind Types: groupdn equals one static group with wildcard'">
               <sequence>
@@ -1992,20 +1992,10 @@
                       'testString'         : 'dn: uid=scarter,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
                 </call>
                 
-                <if expr="returnCode != '1'">
+                <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
 
-<!--    The rest of the test case should be uncommented when Issue 1582 is resolved.
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
-                </call>
-                
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group with wildcard, user searching in non-targeted branch'
                 </message>
@@ -2086,7 +2076,7 @@
                 <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
--->    
+    
                 <message>
                    'ACI: Bind Types: groupdn equals one static group with wildcard, admin deleting aci'
                 </message>
@@ -5151,6 +5141,165 @@
                     { 'returncode' : RC ,
                       'result'     : STAXResult ,
                       'expected'   : 21 }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+
+<!-- UserDN tests -->          
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Bind Type Tests
+                #@TestName                  userdn with filter
+                #@TestIssue                 454
+                #@TestPurpose               Test behavior with userdn and filter
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry in the targeted branch dn as a group member.
+                #@TestStep                  Client searches entry in a non-targeted branch dn as a group member.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap operations, and
+                                            and entry is returned only for step 1.
+            -->
+            <testcase name="'ACI: Bind Types: groupdn equals userdn with filter'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_userdn_aci1.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_bindtypes/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Bind Types: userdn with filter, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Bind Types: userdn with filter, user searching targeted entry with group member'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'roomnumber=4135' ,
+                    'extraParams'      : '-T'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Bind Types: userdn with filter, user searching in non-targeted branch with group member'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'roomnumber=4135' ,
+                    'extraParams'      : '-T'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+               <message>
+                   'ACI: Bind Types: userdn with filter, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/del_aci.ldif' % STAGED_DATA_DIR }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Bind Types: userdn with filter, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'roomnumber=4135'  ,
+                    'extraParams'      : '-T'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestStringNotPresent'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>

@@ -404,6 +404,24 @@ facsimiletelephonenumber: +1 408 555 9751
 roomnumber: 4612
 userpassword: sprain
 
+dn: uid=acarter\, and Sons, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
+cn: Abe Carter
+sn: Carter
+givenname: Abe
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Accounting
+ou: People
+l: Sunnyvale
+uid: acarter
+mail: acarter@example.com
+telephonenumber: +1 408 555 4798
+facsimiletelephonenumber: +1 408 555 9751
+roomnumber: 4612
+userpassword: sprain
+
 dn: uid=tmorris, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com
 cn: Ted Morris
 sn: Morris
