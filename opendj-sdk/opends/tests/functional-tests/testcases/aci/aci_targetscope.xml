@@ -341,8 +341,7 @@
                 #@TestPostamble             none
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations.
-                                            Parent and child entries are returned in step 1.
-                                            Child entry is returned in step 2.
+                                            Child entry are returned in steps 1 and 2.
             -->
             <testcase name="'ACI: Targetscope: onelevel'">
               <sequence>
@@ -393,7 +392,7 @@
                       'testString'         : 'dn: uid=dmiller,ou=People,ou=aci branch,o=Targetscope Tests,o=ACI Tests' }
                 </call>
                 
-                <if expr="returnCode != '1'">
+                <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
     
