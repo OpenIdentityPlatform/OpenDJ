@@ -60,11 +60,26 @@
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/backends/backend_setup.xml' % (TESTS_DIR)"/>
           <call function="'backend_setup'"> 
-            { 'startDS' : False,
+            { 'startDS' : True,
 			  'loadBackend' : True } 
 		  </call>	  
 
-															    
+	  <sequence>
+            <message>
+              'Create a backup of the data in OpenDS to be used in the restore testcase'
+            </message>
+            <call function="'backup'">
+              { 
+                'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR
+              }
+            </call>
+    
+            <call function="'checktestRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
+            </call>   
+          </sequence>
+														    
           <!--- Test Case information
             #@TestMarker          Backend Restore Tests
             #@TestName            Export: Restore 1
