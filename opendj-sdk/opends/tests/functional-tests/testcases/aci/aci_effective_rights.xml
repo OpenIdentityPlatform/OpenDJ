@@ -2670,7 +2670,7 @@
                 #@TestMarker                ACI Effective Rights Tests
                 #@TestName                  Effective Rights - targetattr with search,read - aclRightsInfo
                 #@TestIssue                 87
-                #@TestPurpose               Test effective rights with targetattr with search,read permission
+                #@TestPurpose               Test effective rights with targetattr with search,read permission, return aclRightsInfo
                 #@TestPreamble              Admin adds an aci.
                 #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
                 #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
@@ -2680,11 +2680,9 @@
                 #@TestResult                Success if OpenDS returns 0
                                             for all ldap operations, and
                                             an entry is returned for step 1.
-                                            Also, for step 1, the entryLevel permission is 1 for read,
-                                            the attributeLevel permissions are 1 for search and read for uid, 
-                                            and all attribute permissions are 0 for roomnumber.
+                                            Also, for step 1, the entryLevel and attributeLevel permissions
+                                            are returned.
             -->
-            <!--
             <testcase name="'ACI: Effective Rights: targetattr with not equal and search,read - aclRightsInfo'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -2732,6 +2730,114 @@
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
                       'testString'         : 'entryLevel;read: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryLevel;read: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryLevel;add: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryLevel;delete: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryLevel;write: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryLevel;proxy: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;compare;uid: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;read;uid: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;search;uid: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;write;uid: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;proxy;uid: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;selfwrite_add;uid: acl_summary' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;selfwrite_delete;uid: acl_summary' }
                 </call>
                 
                 <if expr="returnCode != '1'">
@@ -2810,8 +2916,7 @@
     
               </sequence>
             </testcase>
-            -->
-          
+            
           <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
