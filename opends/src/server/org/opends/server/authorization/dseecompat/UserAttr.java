@@ -342,21 +342,21 @@ public class UserAttr implements KeywordBindRule {
                         getDNParentLevel(levels[i], evalCtx.getResourceDN());
                 if(pDN == null)
                     continue;
+                LinkedHashSet<String> reqAttrs = new LinkedHashSet<String>(1);
+                reqAttrs.add(parentInheritance.getAttrTypeStr());
                 InternalClientConnection conn =
                         InternalClientConnection.getRootConnection();
                 InternalSearchOperation op = conn.processSearch(pDN,
                         SearchScope.BASE_OBJECT,
                         DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                        filter, null);
+                        filter, reqAttrs);
                 LinkedList<SearchResultEntry> result =
                         op.getSearchEntries();
                 if (!result.isEmpty()) {
                     Entry e = result.getFirst();
-                    if (e.hasAttribute(attrType)) {
                         matched = evalEntryAttr(e, evalCtx, attrType);
                         if(matched.equals(EnumEvalResult.TRUE))
                             stop=true;
-                    }
                 }
             }
         }
