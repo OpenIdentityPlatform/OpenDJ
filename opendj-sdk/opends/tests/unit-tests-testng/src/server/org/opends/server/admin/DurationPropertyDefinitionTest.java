@@ -405,10 +405,12 @@ public class DurationPropertyDefinitionTest {
             {"0 h", 0L},
             {"0.00 h", 0L},
             {"1h", 1L},
-            {"1.1h", 1L},
             {"1 h", 1L},
-            {"1.1 h", 1L},
-
+            { "0ms", 0L },
+            { "1h60m", 2L },
+            { "1d10h", 34L },
+            { "4d600m", 106L },
+            
             // conversion tests
             {"1 d", 24L},
             {"2 d", 48L},
@@ -441,12 +443,16 @@ public class DurationPropertyDefinitionTest {
   @DataProvider(name = "decodeValueData2")
   public Object[][] createDecodeValueData2() {
     return new Object[][]{
+            {""},
+            {"0"}, // no unit
+            {"123"}, // no unit
             {"a s"},
             {"1 x"},
             {"0.h"},
             {"0. h"},
             {"1.h"},
             {"1. h"},
+            {"1.1 h"}, // too granular
             {"30 m"}, // unit too small violation
             {"60 m"}, // unit too small violation
             {"1 w"},  // unit too big violation
