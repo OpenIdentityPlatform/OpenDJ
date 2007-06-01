@@ -69,6 +69,12 @@ public class ParentInheritance {
      */
     private AttributeType attributeType;
 
+    /*
+     * The attribute type string parsed from the rule. Only used in
+     * inheritance search.
+     */
+    private String attrTypeStr;
+
 
     /**
      * Construct a class from the inheritance pattern. The skipParsing boolean
@@ -150,6 +156,7 @@ public class ParentInheritance {
                 DirectoryServer.getAttributeType(toks[1])) == null)
                 this.attributeType =
                     DirectoryServer.getDefaultAttributeType(toks[1]);
+            attrTypeStr=toks[1];
             StringTokenizer tok=new StringTokenizer(toks[0],"],",false);
             while(tok.hasMoreTokens()) {
                 String v=tok.nextToken();
@@ -205,6 +212,14 @@ public class ParentInheritance {
      */
     public AttributeType getAttributeType() {
         return attributeType;
+    }
+
+    /**
+     * Return the string representation of the attribute type.
+     * @return   The attribute type string.
+     */
+    public String getAttrTypeStr() {
+        return attrTypeStr;
     }
 }
 
