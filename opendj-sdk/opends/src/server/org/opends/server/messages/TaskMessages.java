@@ -236,6 +236,44 @@ public class TaskMessages
 
 
   /**
+   * The message ID for the message that will be used if a nonroot user attempts
+   * to place the server in lockdown mode.  It does not take any arguments.
+   */
+  public static final int  MSGID_TASK_ENTERLOCKDOWN_NOT_ROOT =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 21;
+
+
+
+  /**
+   * The message ID for the message that will be used if a client not connected
+   * via a loopback address attempts to place the server in lockdown mode.  It
+   * does not take any arguments.
+   */
+  public static final int  MSGID_TASK_ENTERLOCKDOWN_NOT_LOOPBACK =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 22;
+
+
+
+  /**
+   * The message ID for the message that will be used if a nonroot user attempts
+   * to remove the server from lockdown mode.  It does not take any arguments.
+   */
+  public static final int  MSGID_TASK_LEAVELOCKDOWN_NOT_ROOT =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 23;
+
+
+
+  /**
+   * The message ID for the message that will be used if a client not connected
+   * via a loopback address attempts to remove the server from lockdown mode.
+   * It does not take any arguments.
+   */
+  public static final int  MSGID_TASK_LEAVELOCKDOWN_NOT_LOOPBACK =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 24;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -310,6 +348,20 @@ public class TaskMessages
 
     registerMessage(MSGID_TASK_INITIALIZE_INVALID_DN,
                     "Invalid DN provided with the Initialize task");
+
+
+    registerMessage(MSGID_TASK_ENTERLOCKDOWN_NOT_ROOT,
+                    "Only root users may place the server in lockdown mode");
+    registerMessage(MSGID_TASK_ENTERLOCKDOWN_NOT_LOOPBACK,
+                    "Only root users connected from a loopback address may " +
+                    "place the server in lockdown mode");
+
+    registerMessage(MSGID_TASK_LEAVELOCKDOWN_NOT_ROOT,
+                    "Only root users may cause the server to leave lockdown " +
+                    "mode");
+    registerMessage(MSGID_TASK_LEAVELOCKDOWN_NOT_LOOPBACK,
+                    "Only root users connected from a loopback address may " +
+                    "cause the server to leave lockdown mode");
   }
 }
 

@@ -1286,6 +1286,46 @@ public class ServerConstants
 
   /**
    * The description for the alert type that will be used for the alert
+   * notification generated upon entering lockdown mode.
+   */
+  public static final String ALERT_DESCRIPTION_ENTERING_LOCKDOWN_MODE =
+       "This alert type will be used to notify administrators that the " +
+       "Directory Server is entering lockdown mode, in which only root " +
+       "users will be allowed to perform operations and only over the " +
+       "loopback address.";
+
+
+
+  /**
+   * The alert type that will be used when the Directory Server enters lockdown
+   * mode.
+   */
+  public static final String ALERT_TYPE_ENTERING_LOCKDOWN_MODE =
+       "org.opends.server.EnteringLockdownMode";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
+   * notification generated upon leaving lockdown mode.
+   */
+  public static final String ALERT_DESCRIPTION_LEAVING_LOCKDOWN_MODE =
+       "This alert type will be used to notify administrators that the " +
+       "Directory Server is leaving lockdown mode.";
+
+
+
+  /**
+   * The alert type that will be used when the Directory Server leaves lockdown
+   * mode.
+   */
+  public static final String ALERT_TYPE_LEAVING_LOCKDOWN_MODE =
+       "org.opends.server.LeavingLockdownMode";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
    * notification generated if the server detects that the configuration has
    * been manually edited with the server online and those edits would have been
    * lost by an online config change.

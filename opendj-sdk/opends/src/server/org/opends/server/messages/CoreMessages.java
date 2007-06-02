@@ -6128,6 +6128,48 @@ public class CoreMessages
    */
   public static final int MSGID_ERROR_STARTING_CONNECTION_HANDLERS =
     CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 615;
+
+
+
+  /**
+   * The message ID for the message that will be used if a bind is rejected '
+   * because the server is in lockdown mode and the client was not a root user.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_BIND_REJECTED_LOCKDOWN_MODE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 616;
+
+
+
+  /**
+   * The message ID for the message that will be used as the alert message
+   * string when the server enters lockdown mode.  It does not take any
+   * arguments.
+   */
+  public static final int MSGID_DIRECTORY_SERVER_ENTERING_LOCKDOWN_MODE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 617;
+
+
+
+  /**
+   * The message ID for the message that will be as used the alert message
+   * string when the server leaves lockdown mode.  It does not take any
+   * arguments.
+   */
+  public static final int MSGID_DIRECTORY_SERVER_LEAVING_LOCKDOWN_MODE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_NOTICE | 618;
+
+
+
+  /**
+   * The message ID for the message that will be used if an unauthorized client
+   * tries to submit a request with the server in lockdown mode.
+   */
+  public static final int MSGID_REJECT_OPERATION_IN_LOCKDOWN_MODE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_NOTICE | 619;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
@@ -6902,6 +6944,9 @@ public class CoreMessages
                     "contained a control with OID %s that was marked " +
                     "critical but this control is not supported for the bind " +
                     "operation");
+    registerMessage(MSGID_BIND_REJECTED_LOCKDOWN_MODE,
+                    "Unable to process the non-root bind because the server " +
+                    "is in lockdown mode");
     registerMessage(MSGID_BIND_DN_BUT_NO_PASSWORD,
                     "Unable to process the simple bind request because it " +
                     "contained a bind DN but no password, which is forbidden " +
@@ -8343,6 +8388,19 @@ public class CoreMessages
     registerMessage(MSGID_ERROR_STARTING_CONNECTION_HANDLERS,
                     "Could not start connection handlers");
 
+
+    registerMessage(MSGID_REJECT_OPERATION_IN_LOCKDOWN_MODE,
+                    "Rejecting the requested operation because the server " +
+                    "is in lockdown mode and will only accept requests from " +
+                    "root users over loopback connections");
+    registerMessage(MSGID_DIRECTORY_SERVER_ENTERING_LOCKDOWN_MODE,
+                    "The Directory Server is entering lockdown mode, in " +
+                    "which clients will only be allowed to connect via a " +
+                    "loopback address, and only root users will be allowed " +
+                    "to process operations");
+    registerMessage(MSGID_DIRECTORY_SERVER_LEAVING_LOCKDOWN_MODE,
+                    "The Directory Server is leaving lockdown mode and will " +
+                    "resume normal operation");
   }
 }
 
