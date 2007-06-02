@@ -5531,7 +5531,8 @@ public class ProtocolMessages
                     "The attempt to register this connection with the " +
                     "Directory Server was rejected.  This may indicate that " +
                     "the server already has the maximum allowed number of " +
-                    "concurrent connections established");
+                    "concurrent connections established, or that it is in a " +
+                    "restricted access mode");
 
 
     registerMessage(MSGID_LDAP_CONNHANDLER_DESCRIPTION_LISTEN_ADDRESS,

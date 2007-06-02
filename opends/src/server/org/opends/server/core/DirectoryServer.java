@@ -232,6 +232,9 @@ public class DirectoryServer
   // Indicates whether the server is currently online.
   private boolean isRunning;
 
+  // Indicates whether the server is currently in "lockdown mode".
+  private boolean lockdownMode;
+
   // Indicates whether the server should send a response to operations that have
   // been abandoned.
   private boolean notifyAbandonedOperations;
@@ -567,6 +570,7 @@ public class DirectoryServer
     isBootstrapped        = false;
     isRunning             = false;
     shuttingDown          = false;
+    lockdownMode          = false;
     serverErrorResultCode = ResultCode.OTHER;
 
     operatingSystem = OperatingSystem.forName(System.getProperty("os.name"));
@@ -7239,7 +7243,8 @@ public class DirectoryServer
 
     //Reject or accept the unauthenticated requests based on the configuration
     // settings.
-    if(directoryServer.rejectUnauthenticatedRequests &&
+    if ((directoryServer.rejectUnauthenticatedRequests ||
+         directoryServer.lockdownMode) &&
         !clientConnection.getAuthenticationInfo().isAuthenticated())
     {
       switch(operation.getOperationType())
@@ -7250,20 +7255,41 @@ public class DirectoryServer
         case SEARCH:
         case MODIFY:
         case MODIFY_DN:
-         int msgID = MSGID_REJECT_UNAUTHENTICATED_OPERATION;
-         String message = getMessage(msgID);
-         throw new DirectoryException(
-         ResultCode.UNWILLING_TO_PERFORM,message,msgID);
+          if (directoryServer.lockdownMode)
+          {
+            int msgID = MSGID_REJECT_OPERATION_IN_LOCKDOWN_MODE;
+            String message = getMessage(msgID);
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID);
+          }
+          else
+          {
+            int msgID = MSGID_REJECT_UNAUTHENTICATED_OPERATION;
+            String message = getMessage(msgID);
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         message, msgID);
+          }
+
         case EXTENDED:
          ExtendedOperation extOp      = (ExtendedOperation) operation;
          String   requestOID = extOp.getRequestOID();
          if (!((requestOID != null) &&
                  requestOID.equals(OID_START_TLS_REQUEST)))
          {
-            msgID = MSGID_REJECT_UNAUTHENTICATED_OPERATION;
-            message = getMessage(msgID);
-            throw new DirectoryException(
-              ResultCode.UNWILLING_TO_PERFORM,message,msgID);
+           if (directoryServer.lockdownMode)
+           {
+             int msgID = MSGID_REJECT_OPERATION_IN_LOCKDOWN_MODE;
+             String message = getMessage(msgID);
+             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                          message, msgID);
+           }
+           else
+           {
+             int msgID = MSGID_REJECT_UNAUTHENTICATED_OPERATION;
+             String message = getMessage(msgID);
+             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                          message, msgID);
+           }
          }
          break;
 
@@ -8230,6 +8256,15 @@ public class DirectoryServer
   {
     synchronized (directoryServer.establishedConnections)
     {
+      if (directoryServer.lockdownMode)
+      {
+        InetAddress remoteAddress = clientConnection.getRemoteAddress();
+        if ((remoteAddress != null) && (! remoteAddress.isLoopbackAddress()))
+        {
+          return -1;
+        }
+      }
+
       if ((directoryServer.maxAllowedConnections > 0) &&
           (directoryServer.currentConnections >=
                directoryServer.maxAllowedConnections))
@@ -8506,6 +8541,55 @@ public class DirectoryServer
 
 
   /**
+   * Indicates whether the Directory Server is currently configured to operate
+   * in the lockdown mode, in which all non-root requests will be rejected and
+   * all connection attempts from non-loopback clients will be rejected.
+   *
+   * @return  {@code true} if the Directory Server is currently configured to
+   *          operate in the lockdown mode, or {@code false} if not.
+   */
+  public static boolean lockdownMode()
+  {
+    return directoryServer.lockdownMode;
+  }
+
+
+
+  /**
+   * Specifies whether the server should operate in lockdown mode.
+   *
+   * @param  lockdownMode  Indicates whether the Directory Server should operate
+   *                       in lockdown mode.
+   */
+  public static void setLockdownMode(boolean lockdownMode)
+  {
+    directoryServer.lockdownMode = lockdownMode;
+
+    if (lockdownMode)
+    {
+      int    msgID   = MSGID_DIRECTORY_SERVER_ENTERING_LOCKDOWN_MODE;
+      String message = getMessage(msgID);
+      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.NOTICE, message,
+               msgID);
+
+      sendAlertNotification(directoryServer, ALERT_TYPE_ENTERING_LOCKDOWN_MODE,
+                            msgID, message);
+    }
+    else
+    {
+      int    msgID   = MSGID_DIRECTORY_SERVER_LEAVING_LOCKDOWN_MODE;
+      String message = getMessage(msgID);
+      logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.NOTICE, message,
+               msgID);
+
+      sendAlertNotification(directoryServer, ALERT_TYPE_LEAVING_LOCKDOWN_MODE,
+                            msgID, message);
+    }
+  }
+
+
+
+  /**
    * Retrieves the DN of the configuration entry with which this alert generator
    * is associated.
    *
@@ -8572,6 +8656,10 @@ public class DirectoryServer
     alerts.put(ALERT_TYPE_SERVER_SHUTDOWN, ALERT_DESCRIPTION_SERVER_SHUTDOWN);
     alerts.put(ALERT_TYPE_UNCAUGHT_EXCEPTION,
                ALERT_DESCRIPTION_UNCAUGHT_EXCEPTION);
+    alerts.put(ALERT_TYPE_ENTERING_LOCKDOWN_MODE,
+               ALERT_DESCRIPTION_ENTERING_LOCKDOWN_MODE);
+    alerts.put(ALERT_TYPE_LEAVING_LOCKDOWN_MODE,
+               ALERT_DESCRIPTION_LEAVING_LOCKDOWN_MODE);
 
     return alerts;
   }

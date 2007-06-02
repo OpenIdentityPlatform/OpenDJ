@@ -931,6 +931,16 @@ public final class LDAPConnectionHandler extends
                       .accept();
                   LDAPClientConnection clientConnection =
                     new LDAPClientConnection(this, clientChannel);
+
+                  // Check to see if the core server rejected the
+                  // connection (e.g., already too many connections
+                  // established).
+                  if (clientConnection.getConnectionID() < 0) {
+                    // The connection will have already been closed.
+                    iterator.remove();
+                    continue;
+                  }
+
                   InetAddress clientAddr = clientConnection
                       .getRemoteAddress();
                   // Check to see if the client is on the denied list.
@@ -990,16 +1000,6 @@ public final class LDAPConnectionHandler extends
                          DisconnectReason.SECURITY_PROBLEM, false,
                          MSGID_LDAP_CONNHANDLER_CANNOT_SET_SECURITY_PROVIDER,
                          String.valueOf(e));
-                    iterator.remove();
-                    continue;
-                  }
-
-
-                  // Check to see if the core server rejected the
-                  // connection (e.g., already too many connections
-                  // established).
-                  if (clientConnection.getConnectionID() < 0) {
-                    // The connection will have already been closed.
                     iterator.remove();
                     continue;
                   }

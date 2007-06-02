@@ -1104,6 +1104,19 @@ bindProcessing:
           // to allow it.
           if ((simplePassword == null) || (simplePassword.value().length == 0))
           {
+            // If the server is in lockdown mode, then fail.
+            if (DirectoryServer.lockdownMode())
+            {
+              setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+              int msgID = MSGID_BIND_REJECTED_LOCKDOWN_MODE;
+              setAuthFailureReason(msgID, getMessage(msgID));
+
+              processingStopTime = System.currentTimeMillis();
+              logBindResponse(this);
+              break bindProcessing;
+            }
+
             // If there is a bind DN, then see whether that is acceptable.
             if (DirectoryServer.bindWithDNRequiresPassword() &&
                 ((bindDN != null) && (! bindDN.isNullDN())))
@@ -1447,6 +1460,16 @@ bindProcessing:
               setResultCode(ResultCode.SUCCESS);
 
               boolean isRoot = DirectoryServer.isRootDN(userEntry.getDN());
+              if (DirectoryServer.lockdownMode() && (! isRoot))
+              {
+                setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+                int msgID = MSGID_BIND_REJECTED_LOCKDOWN_MODE;
+                setAuthFailureReason(msgID, getMessage(msgID));
+
+                break bindProcessing;
+              }
+
               authInfo = new AuthenticationInfo(userEntry, simplePassword,
                                                 isRoot);
 
@@ -1725,6 +1748,29 @@ bindProcessing:
 
           // Actually process the SASL bind.
           saslHandler.processSASLBind(this);
+
+
+          // If the server is operating in lockdown mode, then we will need to
+          // ensure that the authentication was successful and performed as a
+          // root user to continue.
+          if (DirectoryServer.lockdownMode())
+          {
+            ResultCode resultCode = getResultCode();
+            if (resultCode != ResultCode.SASL_BIND_IN_PROGRESS)
+            {
+              if ((resultCode != ResultCode.SUCCESS) ||
+                  (saslAuthUserEntry == null) ||
+                  (! DirectoryServer.isRootDN(saslAuthUserEntry.getDN())))
+              {
+                setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+                int msgID = MSGID_BIND_REJECTED_LOCKDOWN_MODE;
+                setAuthFailureReason(msgID, getMessage(msgID));
+
+                break bindProcessing;
+              }
+            }
+          }
 
 
           // Create the password policy state object.
