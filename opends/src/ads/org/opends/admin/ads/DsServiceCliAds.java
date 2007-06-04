@@ -44,17 +44,6 @@ import org.opends.server.util.args.SubCommandArgumentParser;
  */
 public class DsServiceCliAds implements DsServiceCliSubCommandGroup
 {
-
-  /**
-   * The subcommand Parser.
-   */
-  SubCommandArgumentParser argParser ;
-
-  /**
-   * The verbose argument.
-   */
-  BooleanArgument verboseArg ;
-
   /**
    * The enumeration containing the different subCommand names.
    */
@@ -121,9 +110,6 @@ public class DsServiceCliAds implements DsServiceCliSubCommandGroup
       BooleanArgument verboseArg)
       throws ArgumentException
   {
-    this.argParser = argParser ;
-    this.verboseArg = verboseArg ;
-
     // Create-ads subcommand
     createAdsSubCmd = new SubCommand(argParser, SubCommandNameEnum.CREATE_ADS
         .toString(), true, 1, 1, OPERAND_BACKEND,
