@@ -354,9 +354,11 @@ public class UserAttr implements KeywordBindRule {
                         op.getSearchEntries();
                 if (!result.isEmpty()) {
                     Entry e = result.getFirst();
+                    if(e.hasAttribute(attrType)) {
                         matched = evalEntryAttr(e, evalCtx, attrType);
                         if(matched.equals(EnumEvalResult.TRUE))
                             stop=true;
+                    }
                 }
             }
         }
