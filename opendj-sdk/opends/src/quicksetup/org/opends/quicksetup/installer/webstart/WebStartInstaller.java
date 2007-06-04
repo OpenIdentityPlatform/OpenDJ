@@ -33,6 +33,8 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ProgressStep;
@@ -77,6 +79,9 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
   private HashMap<InstallProgressStep, String> hmSummary =
       new HashMap<InstallProgressStep, String>();
 
+  private static final Logger LOG =
+    Logger.getLogger(WebStartInstaller.class.getName());
+
   /**
    * WebStartInstaller constructor.
    */
@@ -106,24 +111,35 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
       InputStream in =
           getZipInputStream(getRatio(InstallProgressStep.EXTRACTING));
-      notifyListeners(getTaskSeparator());
 
       setStatus(InstallProgressStep.EXTRACTING);
+      notifyListeners(getTaskSeparator());
+
       createParentDirectoryIfRequired();
       extractZipFiles(in, getRatio(InstallProgressStep.EXTRACTING),
           getRatio(InstallProgressStep.CONFIGURING_SERVER));
+
+      try
+      {
+        in.close();
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.INFO, "Error closing zip input stream: "+t, t);
+      }
+      setStatus(InstallProgressStep.CONFIGURING_SERVER);
       notifyListeners(getTaskSeparator());
 
+      // Write java home before calling Installation class.  The installation
+      // class does a call to start-ds to get information about the build.
+      writeJavaHome();
       setInstallation(new Installation(getUserData().getServerLocation()));
 
       setStatus(InstallProgressStep.CONFIGURING_SERVER);
       configureServer();
-
       createData();
 
       updateADS();
-
-      writeJavaHome();
 
       if (Utils.isWindows())
       {
@@ -276,7 +292,6 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       throw new ApplicationException(ApplicationException.Type.DOWNLOAD_ERROR,
           getMsg("error-zipinputstreamnull", new String[] {zipName}), null);
     }
-
 
     notifyListeners(getFormattedDone());
     return in;
