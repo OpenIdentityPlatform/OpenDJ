@@ -359,14 +359,17 @@ public class TextErrorLogPublisher
             while (sevTokenizer.hasMoreElements())
             {
               String severityName = sevTokenizer.nextToken();
-              ErrorLogSeverity severity =
-                  ErrorLogSeverity.getByName(severityName);
-              if (severity == null)
+              if(!severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
               {
-                int msgID = MSGID_ERROR_LOGGER_INVALID_SEVERITY;
-                String msg = getMessage(msgID, severityName);
-                unacceptableReasons.add(msg);
-                return false;
+                ErrorLogSeverity severity =
+                    ErrorLogSeverity.getByName(severityName);
+                if (severity == null)
+                {
+                  int msgID = MSGID_ERROR_LOGGER_INVALID_SEVERITY;
+                  String msg = getMessage(msgID, severityName);
+                  unacceptableReasons.add(msg);
+                  return false;
+                }
               }
             }
           }
