@@ -722,6 +722,7 @@ public class StatusPanelDialog extends JFrame
     listenersTable = UIFactory.makeSortableTable(listenersTableModel,
         new ListenersCellRenderer(),
         UIFactory.makeHeaderRenderer());
+    listenersTable.setFocusable(false);
 
     gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
     p.add(listenersTable.getTableHeader(), gbc);
@@ -762,11 +763,13 @@ public class StatusPanelDialog extends JFrame
       UIFactory.makeSortableTable(dbTableModelWithReplication,
         new DatabasesCellRenderer(),
         UIFactory.makeHeaderRenderer());
+    dbTableWithReplication.setFocusable(false);
     toolTipManager.registerComponent(dbTableWithReplication);
     dbTableWithoutReplication =
       UIFactory.makeSortableTable(dbTableModelWithoutReplication,
         new DatabasesCellRenderer(),
         UIFactory.makeHeaderRenderer());
+    dbTableWithoutReplication.setFocusable(false);
     toolTipManager.registerComponent(dbTableWithoutReplication);
 
     gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;

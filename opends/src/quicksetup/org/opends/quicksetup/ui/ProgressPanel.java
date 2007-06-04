@@ -32,6 +32,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -59,6 +61,8 @@ public class ProgressPanel extends QuickSetupStepPanel
   private JEditorPane detailsTextArea;
 
   private String lastText;
+
+  private Component lastFocusComponent;
 
   /**
    * ProgressPanel constructor.
@@ -89,6 +93,8 @@ public class ProgressPanel extends QuickSetupStepPanel
         getMsg("progressbar-initial-label"), UIFactory.PROGRESS_FONT);
     progressBarLabel.setOpaque(false);
     progressBarLabel.setEditable(false);
+    progressBarLabel.setFocusable(false);
+    progressBarLabel.setFocusCycleRoot(false);
     CustomHTMLEditorKit htmlEditor = new CustomHTMLEditorKit();
     htmlEditor.addActionListener(new ActionListener()
     {
@@ -145,6 +151,8 @@ public class ProgressPanel extends QuickSetupStepPanel
     gbc.weighty = 1.0;
     panel.add(scroll, gbc);
 
+    addFocusListeners();
+
     return panel;
   }
 
@@ -167,6 +175,17 @@ public class ProgressPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
+  public void endDisplay()
+  {
+    if (lastFocusComponent != null)
+    {
+      lastFocusComponent.requestFocusInWindow();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public void displayProgress(ProgressDescriptor descriptor)
   {
     ProgressStep status = descriptor.getProgressStep();
@@ -175,6 +194,7 @@ public class ProgressPanel extends QuickSetupStepPanel
 
     if (status.isLast()) {
       progressBar.setVisible(false);
+      progressBarLabel.setFocusable(true);
       btnCancel.setVisible(false);
       if (!status.isError()) {
         summaryText = "<form>"+summaryText+"</form>";
@@ -250,6 +270,38 @@ public class ProgressPanel extends QuickSetupStepPanel
 
 
     return panel;
+  }
+
+  /**
+   * Adds the required focus listeners to the fields.
+   */
+  private void addFocusListeners()
+  {
+    final FocusListener l = new FocusListener()
+    {
+      public void focusGained(FocusEvent e)
+      {
+        lastFocusComponent = e.getComponent();
+      }
+
+      public void focusLost(FocusEvent e)
+      {
+      }
+    };
+
+    JComponent[] comps =
+    {
+        progressBarLabel,
+        progressBar,
+        btnCancel,
+        detailsTextArea
+    };
+    for (int i = 0; i < comps.length; i++)
+    {
+      comps[i].addFocusListener(l);
+    }
+
+    lastFocusComponent = detailsTextArea;
   }
 
 //  public static void main(String[] args) {
