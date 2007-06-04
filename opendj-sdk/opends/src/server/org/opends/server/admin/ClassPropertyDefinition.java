@@ -52,8 +52,7 @@ import java.util.List;
  * validation in the client by calling the static method
  * {@link #setAllowClassValidation(boolean)}.
  */
-public final class ClassPropertyDefinition extends
-    AbstractPropertyDefinition<String> {
+public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
   /**
    * An interface for incrementally constructing class property
@@ -128,11 +127,6 @@ public final class ClassPropertyDefinition extends
     }
 
   }
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -7775867133238274392L;
 
   // Regular expression for validating class names.
   private static final String CLASS_RE =
@@ -226,6 +220,16 @@ public final class ClassPropertyDefinition extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitClass(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
+    return v.visitClass(this, value, p);
   }
 
 

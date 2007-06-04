@@ -41,13 +41,7 @@ import org.opends.server.types.DirectoryException;
 /**
  * DN property definition.
  */
-public final class DNPropertyDefinition extends
-    AbstractPropertyDefinition<DN> {
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -380704355977504890L;
+public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
   // Optional base DN which all valid values must be immediately
   // subordinate to.
@@ -220,6 +214,16 @@ public final class DNPropertyDefinition extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitDN(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, DN value, P p) {
+    return v.visitDN(this, value, p);
   }
 
 

@@ -42,14 +42,7 @@ import org.opends.server.types.AddressMask;
  * IP address mask property definition.
  */
 public final class IPAddressMaskPropertyDefinition extends
-    AbstractPropertyDefinition<AddressMask> {
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -6641292526738863824L;
-
-
+    PropertyDefinition<AddressMask> {
 
   /**
    * An interface for incrementally constructing IP address mask property
@@ -146,6 +139,16 @@ public final class IPAddressMaskPropertyDefinition extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitIPAddressMask(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, AddressMask value, P p) {
+    return v.visitIPAddressMask(this, value, p);
   }
 
 

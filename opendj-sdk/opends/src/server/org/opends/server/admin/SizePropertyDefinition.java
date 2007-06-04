@@ -45,13 +45,7 @@ import java.util.EnumSet;
  * represented using a negative memory size value or using the string
  * "unlimited".
  */
-public final class SizePropertyDefinition extends
-    AbstractPropertyDefinition<Long> {
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 2263747274588279580L;
+public final class SizePropertyDefinition extends PropertyDefinition<Long> {
 
   // String used to represent unlimited memory sizes.
   private static final String UNLIMITED = "unlimited";
@@ -366,6 +360,16 @@ public final class SizePropertyDefinition extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitSize(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, Long value, P p) {
+    return v.visitSize(this, value, p);
   }
 
 
