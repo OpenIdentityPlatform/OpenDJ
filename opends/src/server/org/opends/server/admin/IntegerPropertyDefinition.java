@@ -45,12 +45,7 @@ import java.util.MissingResourceException;
  * represented using a negative value or using the string "unlimited".
  */
 public final class IntegerPropertyDefinition extends
-    AbstractPropertyDefinition<Integer> {
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 2819904868308720588L;
+    PropertyDefinition<Integer> {
 
   // String used to represent unlimited.
   private static final String UNLIMITED = "unlimited";
@@ -349,6 +344,16 @@ public final class IntegerPropertyDefinition extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitInteger(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, Integer value, P p) {
+    return v.visitInteger(this, value, p);
   }
 
 

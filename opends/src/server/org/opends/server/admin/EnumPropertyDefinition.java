@@ -47,7 +47,7 @@ import java.util.MissingResourceException;
  *          property definition.
  */
 public final class EnumPropertyDefinition<E extends Enum<E>> extends
-    AbstractPropertyDefinition<E> {
+    PropertyDefinition<E> {
 
   /**
    * An interface for incrementally constructing enumeration property
@@ -106,11 +106,6 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
     }
   }
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 338458138694686844L;
-
 
 
   /**
@@ -163,6 +158,16 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitEnum(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, E value, P p) {
+    return v.visitEnum(this, value, p);
   }
 
 

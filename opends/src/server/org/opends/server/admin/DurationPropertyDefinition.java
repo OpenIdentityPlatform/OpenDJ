@@ -63,13 +63,7 @@ import java.util.EnumSet;
  * Decoded values are represented using <code>long</code> values in
  * the base unit defined for the duration property definition.
  */
-public final class DurationPropertyDefinition extends
-    AbstractPropertyDefinition<Long> {
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -1491050690542547075L;
+public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
 
   // String used to represent unlimited durations.
   private static final String UNLIMITED = "unlimited";
@@ -556,6 +550,16 @@ public final class DurationPropertyDefinition extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitDuration(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, Long value, P p) {
+    return v.visitDuration(this, value, p);
   }
 
 

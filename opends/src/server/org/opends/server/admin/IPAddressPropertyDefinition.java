@@ -41,14 +41,7 @@ import java.util.EnumSet;
  * IP address property definition.
  */
 public final class IPAddressPropertyDefinition extends
-    AbstractPropertyDefinition<InetAddress> {
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -6641292526738863824L;
-
-
+    PropertyDefinition<InetAddress> {
 
   /**
    * An interface for incrementally constructing IP address property
@@ -156,6 +149,16 @@ public final class IPAddressPropertyDefinition extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitIPAddress(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, InetAddress value, P p) {
+    return v.visitIPAddress(this, value, p);
   }
 
 

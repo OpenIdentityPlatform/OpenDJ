@@ -41,12 +41,7 @@ import java.util.Map;
  * Boolean property definition.
  */
 public final class BooleanPropertyDefinition extends
-    AbstractPropertyDefinition<Boolean> {
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -3615113733243221668L;
+    PropertyDefinition<Boolean> {
 
   /**
    * Mapping used for parsing boolean values. This mapping is more flexible than
@@ -170,6 +165,16 @@ public final class BooleanPropertyDefinition extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitBoolean(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, Boolean value, P p) {
+    return v.visitBoolean(this, value, p);
   }
 
 

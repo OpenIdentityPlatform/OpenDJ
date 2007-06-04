@@ -43,13 +43,7 @@ import java.util.regex.PatternSyntaxException;
 /**
  * String property definition.
  */
-public final class StringPropertyDefinition extends
-    AbstractPropertyDefinition<String> {
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -2739105900274621416L;
+public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
   // Flag indicating whether values of this property are
   // case-insensitive.
@@ -295,5 +289,15 @@ public final class StringPropertyDefinition extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitString(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
+    return v.visitString(this, value, p);
   }
 }

@@ -42,7 +42,7 @@ import org.opends.server.types.AttributeType;
  * Attribute type property definition.
  */
 public final class AttributeTypePropertyDefinition extends
-    AbstractPropertyDefinition<AttributeType> {
+    PropertyDefinition<AttributeType> {
 
   /**
    * An interface for incrementally constructing attribute type
@@ -71,11 +71,6 @@ public final class AttributeTypePropertyDefinition extends
           options, defaultBehavior);
     }
   }
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 4622133184170201490L;
 
   // Flag indicating whether or not attribute type names should be
   // validated against the schema.
@@ -147,6 +142,17 @@ public final class AttributeTypePropertyDefinition extends
   @Override
   public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
     return v.visitAttributeType(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v,
+      AttributeType value, P p) {
+    return v.visitAttributeType(this, value, p);
   }
 
 
