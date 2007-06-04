@@ -163,7 +163,7 @@ public class AttrInfoSingle extends AttributeInfo
         if (changeNumber.newerOrEquals(deleteTime)
             && ((addTime == null ) || addTime.older(deleteTime)))
         {
-          // no conflict : don´t do anything beside setting the addTime
+          // no conflict : don't do anything beside setting the addTime
           addTime = changeNumber;
           value = newValue;
         }
