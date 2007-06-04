@@ -32,7 +32,7 @@ import java.util.LinkedHashSet;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.plugin.AttrInfo;
+import org.opends.server.replication.plugin.AttrInfoMultiple;
 import org.opends.server.replication.plugin.ValueInfo;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -87,23 +87,7 @@ public class AttrInfoTest
       throws Exception
   {
     // Create an empty AttrInfo
-    AttrInfo attrInfo1 = new AttrInfo();
-
-    // Check getLastUpdateTime setLastUpdateTime
-    if (attrInfo1.getLastUpdateTime() != null)
-    {
-      assertTrue(false);
-    }
-    attrInfo1.setLastUpdateTime(updateTime);
-    assertTrue(attrInfo1.getLastUpdateTime().compareTo(updateTime) == 0);
-
-    // Check getDeleteTime setDeleteTime
-    if (attrInfo1.getDeleteTime() != null)
-    {
-      assertTrue(false);
-    }
-    attrInfo1.setDeleteTime(deleteTime);
-    assertTrue(attrInfo1.getDeleteTime().compareTo(deleteTime) == 0);
+    AttrInfoMultiple attrInfo1 = new AttrInfoMultiple();
 
     // Check add(AttributeValue val, ChangeNumber CN)
     attrInfo1.add(att, updateTime);
@@ -116,15 +100,13 @@ public class AttrInfoTest
     ValueInfo valueInfo2 = new ValueInfo(att, updateTime, deleteTime);
     ArrayList<ValueInfo> values = new ArrayList<ValueInfo>();
     values.add(valueInfo2);
-    AttrInfo attrInfo2 = new AttrInfo(deleteTime, updateTime, values);
+    AttrInfoMultiple attrInfo2 = new AttrInfoMultiple(deleteTime, updateTime, values);
 
     // Check equality
-    assertTrue(attrInfo1.getLastUpdateTime().compareTo(
-        attrInfo2.getLastUpdateTime()) == 0);
-    assertTrue(attrInfo1.getDeleteTime().compareTo(attrInfo2.getDeleteTime())==0);
+    //assertTrue(attrInfo1.getDeleteTime().compareTo(attrInfo2.getDeleteTime())==0);
 
     //  Check constructor with time parameter and not Value
-    AttrInfo attrInfo3 = new AttrInfo(deleteTime, updateTime, null);
+    AttrInfoMultiple attrInfo3 = new AttrInfoMultiple(deleteTime, updateTime, null);
     attrInfo3.add(att, updateTime);
     ArrayList<ValueInfo> values3 = attrInfo3.getValuesInfo();
     assertTrue(values3.size() == 1);
@@ -132,11 +114,9 @@ public class AttrInfoTest
     assertTrue(values3.get(0).equals(valueInfo1));
 
     // Check duplicate
-    AttrInfo attrInfo4 = attrInfo3.duplicate();
+    AttrInfoMultiple attrInfo4 = attrInfo3.duplicate();
     ArrayList<ValueInfo> values4 = attrInfo4.getValuesInfo();
     assertTrue(attrInfo4.getDeleteTime().compareTo(attrInfo3.getDeleteTime())==0);
-    assertTrue(attrInfo4.getLastUpdateTime().compareTo(
-        attrInfo3.getLastUpdateTime()) == 0);
     assertEquals(values4.size(), values3.size());
 
     // Check delete(AttributeValue val, ChangeNumber CN)

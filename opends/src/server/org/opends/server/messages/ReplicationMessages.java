@@ -395,6 +395,11 @@ public class ReplicationMessages {
   public static final int MSGID_DUPLICATE_REPLICATION_SERVER_ID =
     CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 55;
 
+  /**
+   * Some bad historical information was found in an entry.
+   */
+  public static final int MSGID_BAD_HISTORICAL =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 56;
 
 
   /**
@@ -542,5 +547,8 @@ public class ReplicationMessages {
         "Received a Null Msg from %s");
     registerMessage(MSGID_READER_EXCEPTION,
         "Exception when reading messages from %s");
+    registerMessage(MSGID_BAD_HISTORICAL,
+        "Entry %s was containing some unknown historical information,"
+        + " This may cause some inconsistency for this entry");
   }
 }

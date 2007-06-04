@@ -195,7 +195,7 @@ public class HistoricalTest
    * second server on a different entry.  Confused yet?
    * @throws Exception If the test fails.
    */
-  @Test(enabled=false, groups="slow")
+  @Test(enabled=true, groups="slow")
   public void conflictSingleValue()
        throws Exception
   {
