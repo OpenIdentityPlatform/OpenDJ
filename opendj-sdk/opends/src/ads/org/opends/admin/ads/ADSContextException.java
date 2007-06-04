@@ -27,6 +27,9 @@
 
 package org.opends.admin.ads;
 
+import org.opends.admin.ads.DsServiceCliReturnCode.ReturnCode;
+
+
 /**
  * This is the exception that is thrown in ADSContext.
  * @see ADSContext.
@@ -47,59 +50,78 @@ public class ADSContextException extends Exception {
     /**
      * The host name is missing.
      */
-    MISSING_HOSTNAME,
+    MISSING_HOSTNAME(ReturnCode.MISSING_HOSTNAME),
     /**
      * The host name is not valid.
      */
-    NOVALID_HOSTNAME,
+    NOVALID_HOSTNAME(ReturnCode.NOVALID_HOSTNAME),
     /**
      * The installation path is missing.
      */
-    MISSING_IPATH,
+    MISSING_IPATH(ReturnCode.MISSING_IPATH),
     /**
      * The installation path is not valid.
      */
-    NOVALID_IPATH,
+    NOVALID_IPATH(ReturnCode.NOVALID_IPATH),
     /**
      * An access permission error.
      */
-    ACCESS_PERMISSION,
+    ACCESS_PERMISSION(ReturnCode.ACCESS_PERMISSION),
     /**
      * The entity is already registered.
      */
-    ALREADY_REGISTERED,
+    ALREADY_REGISTERED(ReturnCode.ALREADY_REGISTERED),
     /**
      * The installation is broken.
      */
-    BROKEN_INSTALL,
+    BROKEN_INSTALL(ReturnCode.BROKEN_INSTALL),
     /**
      * The entity is not yet registered.
      */
-    NOT_YET_REGISTERED,
+    NOT_YET_REGISTERED(ReturnCode.NOT_YET_REGISTERED),
     /**
      * The port is missing.
      */
-    MISSING_PORT,
+    MISSING_PORT(ReturnCode.MISSING_PORT),
     /**
      * The port is not valid.
      */
-    NOVALID_PORT,
+    NOVALID_PORT(ReturnCode.NOVALID_PORT),
     /**
      * The name is missing.
      */
-    MISSING_NAME,
+    MISSING_NAME(ReturnCode.MISSING_NAME),
     /**
      * The administration UID is missing.
      */
-    MISSING_ADMIN_UID,
+    MISSING_ADMIN_UID(ReturnCode.MISSING_ADMIN_UID),
     /**
      * The administratior password is missing.
      */
-    MISSING_ADMIN_PASSWORD,
+    MISSING_ADMIN_PASSWORD(ReturnCode.MISSING_ADMIN_PASSWORD),
     /**
      * Unexpected error (potential bug).
      */
-    ERROR_UNEXPECTED
+    ERROR_UNEXPECTED(ReturnCode.ERROR_UNEXPECTED);
+
+    // The corresponding return code.
+    private final ReturnCode returnCode;
+
+    // Private constructor.
+    private ErrorType(ReturnCode returnCode)
+    {
+      this.returnCode = returnCode;
+    }
+
+    /**
+     * Get the corresponding return code.
+     *
+     * @return The corresponding return code.
+     */
+    public ReturnCode getReturnCode()
+    {
+      return returnCode;
+    }
   };
 
   ErrorType error;
