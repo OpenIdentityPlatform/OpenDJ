@@ -38,8 +38,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.naming.ldap.Rdn;
+
 
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
+import org.opends.admin.ads.DsServiceCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
@@ -224,65 +227,65 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
     // Create-group subcommand
     createGoupSubCmd = new SubCommand(argParser, SubCommandNameEnum.CREATE_GROUP
         .toString(), true, 1, 1, OPERAND_GROUPID,
-        MSGID_DSSERVICE_SUBCMD_CREATE_GROUP_DESCRIPTION);
+        MSGID_ADMIN_SUBCMD_CREATE_GROUP_DESCRIPTION);
     createGoupDescriptionArg = new StringArgument("description",
         OPTION_SHORT_DESCRIPTION, OPTION_LONG_DESCRIPTION, false, false,
         true, OPTION_VALUE_DESCRIPTION, "", null,
-        MSGID_DSSERVICE_ARG_DESCRIPTION_DESCRIPTION);
+        MSGID_ADMIN_ARG_DESCRIPTION_DESCRIPTION);
     createGoupSubCmd.addArgument(createGoupDescriptionArg);
 
     // modify-group
     modifyGroupSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.MODIFY_GROUP.toString(), true, 1, 1,
-        OPERAND_GROUPID, MSGID_DSSERVICE_SUBCMD_MODIFY_GROUP_DESCRIPTION);
+        OPERAND_GROUPID, MSGID_ADMIN_SUBCMD_MODIFY_GROUP_DESCRIPTION);
     modifyGroupDescriptionArg = new StringArgument("new-description",
         OPTION_SHORT_DESCRIPTION, OPTION_LONG_DESCRIPTION, false, false,
         true, OPTION_VALUE_DESCRIPTION, "", null,
-        MSGID_DSSERVICE_ARG_NEW_DESCRIPTION_DESCRIPTION);
+        MSGID_ADMIN_ARG_NEW_DESCRIPTION_DESCRIPTION);
     modifyGroupSubCmd.addArgument(modifyGroupDescriptionArg);
     modifyGroupGroupIdArg = new StringArgument("new-groupID",
         OPTION_SHORT_GROUPID, OPTION_LONG_GROUPID, false, false, true,
         OPTION_VALUE_GROUPID, "", null,
-        MSGID_DSSERVICE_ARG_NEW_GROUPID_DESCRIPTION);
+        MSGID_ADMIN_ARG_NEW_GROUPID_DESCRIPTION);
     modifyGroupSubCmd.addArgument(modifyGroupGroupIdArg);
 
     // delete-group
     deleteGroupSubCmd = new SubCommand(argParser,SubCommandNameEnum.DELETE_GROUP
         .toString(), true, 1, 1, OPERAND_GROUPID,
-        MSGID_DSSERVICE_SUBCMD_DELETE_GROUP_DESCRIPTION);
+        MSGID_ADMIN_SUBCMD_DELETE_GROUP_DESCRIPTION);
 
     // list-groups
     listGroupSubCmd = new SubCommand(argParser, "list-groups",
-        MSGID_DSSERVICE_SUBCMD_LIST_GROUPS_DESCRIPTION);
+        MSGID_ADMIN_SUBCMD_LIST_GROUPS_DESCRIPTION);
 
     // add-to-group
     addToGroupSubCmd = new SubCommand(argParser, SubCommandNameEnum.ADD_TO_GROUP
         .toString(), true, 1, 1, OPERAND_GROUPID,
-        MSGID_DSSERVICE_SUBCMD_ADD_TO_GROUP_DESCRIPTION);
+        MSGID_ADMIN_SUBCMD_ADD_TO_GROUP_DESCRIPTION);
     addToGoupMemberIdArg = new StringArgument("memberID", OPTION_SHORT_MEMBERID,
         OPTION_LONG_MEMBERID, false, false, true, OPTION_VALUE_MEMBERID, "",
-        null, MSGID_DSSERVICE_ARG_ADD_MEMBERID_DESCRIPTION);
+        null, MSGID_ADMIN_ARG_ADD_MEMBERID_DESCRIPTION);
     addToGroupSubCmd.addArgument(addToGoupMemberIdArg);
 
     // remove-from-group
     removeFromGroupSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.REMOVE_FROM_GROUP.toString(), true, 1, 1,
-        OPERAND_GROUPID, MSGID_DSSERVICE_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION);
+        OPERAND_GROUPID, MSGID_ADMIN_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION);
     removeFromGoupMemberIdArg = new StringArgument("memberID",
         OPTION_SHORT_MEMBERID, OPTION_LONG_MEMBERID, false, false, true,
         OPTION_VALUE_MEMBERID, "", null,
-        MSGID_DSSERVICE_ARG_REMOVE_MEMBERID_DESCRIPTION);
+        MSGID_ADMIN_ARG_REMOVE_MEMBERID_DESCRIPTION);
     removeFromGroupSubCmd.addArgument(removeFromGoupMemberIdArg);
 
     // list-members
     listMembersSubCmd = new SubCommand(argParser,SubCommandNameEnum.LIST_MEMBERS
         .toString(), true, 1, 1, OPERAND_GROUPID,
-        MSGID_DSSERVICE_SUBCMD_LIST_MEMBERS_DESCRIPTION);
+        MSGID_ADMIN_SUBCMD_LIST_MEMBERS_DESCRIPTION);
 
     // list-membership
     listMembershipSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.LIST_MEMBERSHIP.toString(), true, 1, 1,
-        OPERAND_MEMBERID, MSGID_DSSERVICE_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION);
+        OPERAND_MEMBERID, MSGID_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION);
   }
 
   /**
@@ -297,7 +300,7 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
   /**
    * {@inheritDoc}
    */
-  public int performSubCommand(ADSContext adsContext, SubCommand subCmd,
+  public ReturnCode performSubCommand(ADSContext adsContext, SubCommand subCmd,
       OutputStream outStream, OutputStream errStream)
       throws ADSContextException
   {
@@ -322,7 +325,7 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
 
       // Create the group
       adsContext.createServerGroup(serverGroupProperties);
-      return 0;
+      return ReturnCode.SUCCESSFUL;
     }
     // -----------------------
     // delete-group subcommand
@@ -338,7 +341,7 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
 
       // Delete the group
       adsContext.deleteServerGroup(serverGroupProperties);
-      return 0;
+      return ReturnCode.SUCCESSFUL;
     }
     // -----------------------
     // list-group subcommand
@@ -391,7 +394,7 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
       catch (IOException e)
       {
       }
-      return 0;
+      return ReturnCode.SUCCESSFUL;
     }
     // -----------------------
     // modify-group subcommand
@@ -410,7 +413,9 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
       if (modifyGroupGroupIdArg.isPresent())
       {
         // rename the entry !
-        serverGroupProperties.put(ServerGroupProperty.UID, groupId);
+        serverGroupProperties.put(ServerGroupProperty.UID,
+            modifyGroupGroupIdArg.getValue());
+        updateRequired = true;
       }
       else
       {
@@ -447,7 +452,14 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
             serverGroupPropertiesToRemove);
       }
 
-      return 0;
+      if (updateRequired || removeRequired)
+      {
+        return ReturnCode.SUCCESSFUL;
+      }
+      else
+      {
+       return ReturnCode.SUCCESSFUL_NOP;
+      }
     }
     // -----------------------
     // add-to-group subcommand
@@ -464,13 +476,19 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
       {
         memberList = new HashSet<String>();
       }
-      memberList.add("cn=" + addToGoupMemberIdArg.getValue());
+      String newMember = "cn="
+          + Rdn.escapeValue(addToGoupMemberIdArg.getValue());
+      if (memberList.contains(newMember))
+      {
+        return ReturnCode.ALREADY_REGISTERED;
+      }
+      memberList.add(newMember);
       serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
 
       // Update the server group
       adsContext.updateServerGroup(groupId, serverGroupProperties);
 
-      return 0;
+      return ReturnCode.SUCCESSFUL;
     }
     // -----------------------
     // remove-from-group subcommand
@@ -485,14 +503,13 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
       Set<String> memberList = adsContext.getServerGroupMemberList(groupId);
       if (memberList == null)
       {
-        // TODO Error message
-        return 1;
+        return ReturnCode.NOT_YET_REGISTERED;
       }
-      String memberToRemove = "cn=" + removeFromGoupMemberIdArg.getValue();
-      if (! memberList.contains(memberToRemove))
+      String memberToRemove = "cn="
+          + Rdn.escapeValue(removeFromGoupMemberIdArg.getValue());
+      if (!memberList.contains(memberToRemove))
       {
-        // TODO Error message
-        return 1;
+        return ReturnCode.NOT_YET_REGISTERED;
       }
 
       memberList.remove(memberToRemove);
@@ -501,7 +518,7 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
       // Update the server group
       adsContext.updateServerGroup(groupId, serverGroupProperties);
 
-      return 0;
+      return ReturnCode.SUCCESSFUL;
     }
     // -----------------------
     // list-members subcommand
@@ -514,7 +531,7 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
       Set<String> memberList = adsContext.getServerGroupMemberList(groupId);
       if (memberList == null)
       {
-        return 0;
+        return ReturnCode.SUCCESSFUL;
       }
       StringBuffer buffer = new StringBuffer();
       for (String member : memberList)
@@ -530,7 +547,7 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
       {
       }
 
-      return 0;
+      return ReturnCode.SUCCESSFUL;
     }
     // -----------------------
     // list-membership subcommand
@@ -577,11 +594,11 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
       catch (IOException e)
       {
       }
-      return 0;
+      return ReturnCode.SUCCESSFUL;
     }
 
     // Should never occurs: If we are here, it means that the code to
     // handle to subcommand is not yet written.
-    return 1;
+    return ReturnCode.ERROR_UNEXPECTED;
   }
 }

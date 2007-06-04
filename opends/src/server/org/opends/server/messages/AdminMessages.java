@@ -202,7 +202,7 @@ public final class AdminMessages {
    * The message ID for the message that will be used as the description for the
    * dsservice tool.  This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_TOOL_DESCRIPTION =
+  public static final int MSGID_ADMIN_TOOL_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 18;
 
   /**
@@ -210,7 +210,7 @@ public final class AdminMessages {
    * create-group subcommand part of dsservice tool.
    * This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_SUBCMD_CREATE_GROUP_DESCRIPTION =
+  public static final int MSGID_ADMIN_SUBCMD_CREATE_GROUP_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 19;
 
 
@@ -218,7 +218,7 @@ public final class AdminMessages {
    * The message ID for the message that will be used as the description of the
    * "description" argument.  This does take one argument.
    */
-  public static final int MSGID_DSSERVICE_ARG_DESCRIPTION_DESCRIPTION =
+  public static final int MSGID_ADMIN_ARG_DESCRIPTION_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 20;
 
   /**
@@ -226,14 +226,14 @@ public final class AdminMessages {
    * modify-group subcommand part of dsservice tool.
    * This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_SUBCMD_MODIFY_GROUP_DESCRIPTION =
+  public static final int MSGID_ADMIN_SUBCMD_MODIFY_GROUP_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 21;
 
   /**
    * The message ID for the message that will be used as the description of the
    * new "description" argument.  This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_ARG_NEW_DESCRIPTION_DESCRIPTION =
+  public static final int MSGID_ADMIN_ARG_NEW_DESCRIPTION_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 22;
 
 
@@ -241,7 +241,7 @@ public final class AdminMessages {
    * The message ID for the message that will be used as the description of the
    * new "groupid" argument.  This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_ARG_NEW_GROUPID_DESCRIPTION =
+  public static final int MSGID_ADMIN_ARG_NEW_GROUPID_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 23;
 
   /**
@@ -249,7 +249,7 @@ public final class AdminMessages {
    * delete-group subcommand part of dsservice tool.
    * This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_SUBCMD_DELETE_GROUP_DESCRIPTION =
+  public static final int MSGID_ADMIN_SUBCMD_DELETE_GROUP_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 24;
 
   /**
@@ -257,7 +257,7 @@ public final class AdminMessages {
    * list-groups subcommand part of dsservice tool.
    * This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_SUBCMD_LIST_GROUPS_DESCRIPTION =
+  public static final int MSGID_ADMIN_SUBCMD_LIST_GROUPS_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 25;
 
   /**
@@ -265,14 +265,14 @@ public final class AdminMessages {
    * add-to-group subcommand part of dsservice tool.
    * This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_SUBCMD_ADD_TO_GROUP_DESCRIPTION =
+  public static final int MSGID_ADMIN_SUBCMD_ADD_TO_GROUP_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 26;
 
   /**
    * The message ID for the message that will be used as the description of the
    * added "member-id" argument.  This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_ARG_ADD_MEMBERID_DESCRIPTION =
+  public static final int MSGID_ADMIN_ARG_ADD_MEMBERID_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 27;
 
   /**
@@ -280,14 +280,14 @@ public final class AdminMessages {
    * remove-from-group subcommand part of dsservice tool.
    * This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION =
+  public static final int MSGID_ADMIN_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 28;
 
   /**
    * The message ID for the message that will be used as the description of the
    * removed "member-id" argument.  This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_ARG_REMOVE_MEMBERID_DESCRIPTION =
+  public static final int MSGID_ADMIN_ARG_REMOVE_MEMBERID_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 29;
 
   /**
@@ -295,7 +295,7 @@ public final class AdminMessages {
    * list-members subcommand part of dsservice tool.
    * This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_SUBCMD_LIST_MEMBERS_DESCRIPTION =
+  public static final int MSGID_ADMIN_SUBCMD_LIST_MEMBERS_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 30;
 
   /**
@@ -303,22 +303,22 @@ public final class AdminMessages {
    * list-members subcommand part of dsservice tool.
    * This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION =
+  public static final int MSGID_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 31;
 
   /**
    * The message ID for the message that will be used if the
    * client CLI cannot contact the ADS. This does one take argument.
    */
-  public static final int MSGID_DSSERVICE_CANNOT_CONNECT_TO_ADS =
-    CATEGORY_MASK_ADMIN | SEVERITY_MASK_SEVERE_ERROR | 32;
+  public static final int MSGID_ADMIN_CANNOT_CONNECT_TO_ADS =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 32;
 
   /**
    * The message ID for the message that will be used as the description for the
    * create-ads subcommand part of dsservice tool.
    * This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_SUBCMD_CREATE_ADS_DESCRIPTION =
+  public static final int MSGID_ADMIN_SUBCMD_CREATE_ADS_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 33;
 
   /**
@@ -326,8 +326,128 @@ public final class AdminMessages {
    * delete-ads subcommand part of dsservice tool.
    * This does not take any arguments.
    */
-  public static final int MSGID_DSSERVICE_SUBCMD_DELETE_ADS_DESCRIPTION =
+  public static final int MSGID_ADMIN_SUBCMD_DELETE_ADS_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 34;
+
+  /**
+   * The message ID for the message that will be used if the hostname of
+   * the ADS is missing.
+   */
+  public static final int MSGID_ADMIN_MISSING_HOSTNAME=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 35;
+
+  /**
+   * The message ID for the message that will be used if the hostname of
+   * the ADS is not valid.
+   */
+  public static final int MSGID_ADMIN_NOVALID_HOSTNAME=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 36;
+
+  /**
+   * The message ID for the message that will be used if the ipath of
+   * the ADS is missing.
+   */
+  public static final int MSGID_ADMIN_MISSING_IPATH=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 37;
+
+  /**
+   * The message ID for the message that will be used if the ipath of
+   * the ADS is not valid.
+   */
+  public static final int MSGID_ADMIN_NOVALID_IPATH=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 38;
+
+  /**
+   * The message ID for the message that will be used if we have an
+   * access permission error.
+   */
+  public static final int MSGID_ADMIN_ACCESS_PERMISSION=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 39;
+
+  /**
+   * The message ID for the message that will be used if the element is
+   * already registered in the ADS.
+   */
+  public static final int MSGID_ADMIN_ALREADY_REGISTERED=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 40;
+
+  /**
+   * The message ID for the message that will be used if the ADS is
+   * bot valid.
+   */
+  public static final int MSGID_ADMIN_BROKEN_INSTALL=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 41;
+
+  /**
+   * The message ID for the message that will be used if ADS is not
+   * defined in the instance and if we try to perform an admin operation.
+   */
+  public static final int MSGID_ADMIN_NOT_YET_REGISTERED=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 42;
+
+  /**
+   * The message ID for the message that will be used if the port of
+   * the ADS is missing.
+   */
+  public static final int MSGID_ADMIN_MISSING_PORT=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 43;
+
+  /**
+   * The message ID for the message that will be used if the port of
+   * the ADS is not valid.
+   */
+  public static final int MSGID_ADMIN_NOVALID_PORT=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 44;
+
+  /**
+   * The message ID for the message that will be used if the name of
+   * an element is missing.
+   */
+  public static final int MSGID_ADMIN_MISSING_NAME=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 45;
+
+  /**
+   * The message ID for the message that will be used if the admin uid name
+   * is missing.
+   */
+  public static final int MSGID_ADMIN_MISSING_ADMIN_UID=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 46;
+
+  /**
+   * The message ID for the message that will be used if the admin password
+   * is missing.
+   */
+  public static final int MSGID_ADMIN_MISSING_ADMIN_PASSWORD=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 47;
+
+  /**
+   * The message ID for the message that will be used if an unexpected error
+   * occurs.
+   */
+  public static final int MSGID_ADMIN_ERROR_UNEXPECTED=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 48;
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * message is an error message.
+   */
+  public static final int MSGID_ADMIN_ERROR=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 49;
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * operation is successful.
+   */
+  public static final int MSGID_ADMIN_SUCCESSFUL=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 50;
+
+  /**
+   * The message ID for the message that will be used to indicate that the
+   * operation is successful, but nothing was performed.
+   */
+  public static final int MSGID_ADMIN_SUCCESSFUL_NOP=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 51;
+
 
   // Prevent instantiation.
   private AdminMessages() {
@@ -420,42 +540,77 @@ public final class AdminMessages {
         "extension %s cannot be loaded because an unexpected error " +
         "occurred while trying to read it:  %s");
 
-    registerMessage(MSGID_DSSERVICE_TOOL_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_TOOL_DESCRIPTION,
         "This utility may be used to perform " +
         "operations in the Directory Server administration framework");
-    registerMessage(MSGID_DSSERVICE_SUBCMD_CREATE_GROUP_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_SUBCMD_CREATE_GROUP_DESCRIPTION,
         "Create a new group of servers");
-    registerMessage(MSGID_DSSERVICE_ARG_DESCRIPTION_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_ARG_DESCRIPTION_DESCRIPTION,
         "The group description. If not specified, " +
         "the description will be empty");
-    registerMessage(MSGID_DSSERVICE_SUBCMD_MODIFY_GROUP_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_SUBCMD_MODIFY_GROUP_DESCRIPTION,
         "Modify a group's properties");
-    registerMessage(MSGID_DSSERVICE_ARG_NEW_DESCRIPTION_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_ARG_NEW_DESCRIPTION_DESCRIPTION,
         "If specified, the new description");
-    registerMessage(MSGID_DSSERVICE_ARG_NEW_GROUPID_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_ARG_NEW_GROUPID_DESCRIPTION,
         "If specified, the new group's identifier");
-    registerMessage(MSGID_DSSERVICE_SUBCMD_DELETE_GROUP_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_SUBCMD_DELETE_GROUP_DESCRIPTION,
         "Delete an existing group of servers" );
-    registerMessage(MSGID_DSSERVICE_SUBCMD_LIST_GROUPS_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_SUBCMD_LIST_GROUPS_DESCRIPTION,
         "List groups that have been defined" );
-    registerMessage(MSGID_DSSERVICE_SUBCMD_ADD_TO_GROUP_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_SUBCMD_ADD_TO_GROUP_DESCRIPTION,
         "Add a member to a group" );
-    registerMessage(MSGID_DSSERVICE_ARG_ADD_MEMBERID_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_ARG_ADD_MEMBERID_DESCRIPTION,
         "The member to add" );
-    registerMessage(MSGID_DSSERVICE_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION,
         "Remove a member from a group" );
-    registerMessage(MSGID_DSSERVICE_ARG_REMOVE_MEMBERID_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_ARG_REMOVE_MEMBERID_DESCRIPTION,
         "The member to remove" );
-    registerMessage(MSGID_DSSERVICE_SUBCMD_LIST_MEMBERS_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_SUBCMD_LIST_MEMBERS_DESCRIPTION,
         "List members of the specified group" );
-    registerMessage(MSGID_DSSERVICE_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION,
         "List groups in which the specified server is a member" );
-    registerMessage(MSGID_DSSERVICE_CANNOT_CONNECT_TO_ADS,
+    registerMessage(MSGID_ADMIN_CANNOT_CONNECT_TO_ADS,
         "Could not connect to %s. Check that the "+
         "server is running and that the provided credentials are valid");
-    registerMessage(MSGID_DSSERVICE_SUBCMD_CREATE_ADS_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_SUBCMD_CREATE_ADS_DESCRIPTION,
         "Create a new ADS DN");
-    registerMessage(MSGID_DSSERVICE_SUBCMD_DELETE_ADS_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_SUBCMD_DELETE_ADS_DESCRIPTION,
          "Delete an existing ADS DN");
+    registerMessage(MSGID_ADMIN_MISSING_HOSTNAME,
+        "The host name is missing");
+    registerMessage(MSGID_ADMIN_NOVALID_HOSTNAME,
+        "The host name is not valid");
+    registerMessage(MSGID_ADMIN_MISSING_IPATH,
+        "The installation path is missing");
+    registerMessage(MSGID_ADMIN_NOVALID_IPATH,
+        "The installation path is not valid");
+    registerMessage(MSGID_ADMIN_ACCESS_PERMISSION,
+        "An access permission error occurs");
+    registerMessage(MSGID_ADMIN_ALREADY_REGISTERED,
+        "The entity is already registered");
+    registerMessage(MSGID_ADMIN_BROKEN_INSTALL,
+        "The administrative repository is broken");
+    registerMessage(MSGID_ADMIN_NOT_YET_REGISTERED,
+        "The entity is not yet registered");
+    registerMessage(MSGID_ADMIN_MISSING_PORT,
+        "The port is missing");
+    registerMessage(MSGID_ADMIN_NOVALID_PORT,
+        "The port is not vaklid");
+    registerMessage(MSGID_ADMIN_MISSING_NAME,
+        "The name is missing");
+    registerMessage(MSGID_ADMIN_MISSING_ADMIN_UID,
+        "The administration UID is missing");
+    registerMessage(MSGID_ADMIN_MISSING_ADMIN_PASSWORD,
+        "The administratior password is missing");
+    registerMessage(MSGID_ADMIN_ERROR_UNEXPECTED,
+        "An unexpected error occurs");
+    registerMessage(MSGID_ADMIN_ERROR,
+        "[error] ");
+    registerMessage(MSGID_ADMIN_SUCCESSFUL,
+        "The operation has been successfully completed");
+    registerMessage(MSGID_ADMIN_SUCCESSFUL_NOP,
+       "The operation has been successfully completed, "+
+       "but no action was required");
   }
 }

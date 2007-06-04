@@ -42,6 +42,7 @@ import static org.opends.server.messages.AdminMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.admin.ads.DsServiceCliReturnCode.*;
 
 
 /**
@@ -53,7 +54,7 @@ public class DsServiceCliMain
    * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
-      "org.opends.admin.ads.DsServiceCLI";
+      "org.opends.admin.ads.DsServiceCliMain";
 
   // The print stream to use for standard error.
   private PrintStream err;
@@ -144,12 +145,27 @@ public class DsServiceCliMain
       err = new PrintStream(errStream);
     }
 
+    DsServiceCliMain dsServiceCli = new DsServiceCliMain(out, err);
+    return dsServiceCli.execute(args);
+  }
+
+  /**
+   * Parses the provided command-line arguments and uses that information to
+   * run the dsservice tool.
+   *
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   *
+   * @return The error code.
+   */
+  public int execute(String[] args)
+  {
     // Create the command-line argument parser for use with this
     // program.
     DsServiceCliParser argParser ;
     try
     {
-      String toolDescription = getMessage(MSGID_DSSERVICE_TOOL_DESCRIPTION);
+      String toolDescription = getMessage(MSGID_ADMIN_TOOL_DESCRIPTION);
       argParser = new DsServiceCliParser(CLASS_NAME,
           toolDescription, false);
       argParser.initializeParser(out);
@@ -160,7 +176,7 @@ public class DsServiceCliMain
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return ReturnCode.CANNOT_INITIALIZE_ARGS.getReturnCode();
     }
 
     // Parse the command-line arguments provided to this program.
@@ -175,13 +191,13 @@ public class DsServiceCliMain
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
-      return 1;
+      return ReturnCode.ERROR_PARSING_ARGS.getReturnCode();
     }
 
     // If we should just display usage information, then print it and exit.
     if (argParser.usageOrVersionDisplayed())
     {
-      return 0;
+      return ReturnCode.SUCCESSFUL.getReturnCode();
     }
 
     // Get connection parameters
@@ -189,17 +205,12 @@ public class DsServiceCliMain
     String port = argParser.getPort() ;
     String dn   = argParser.getBindDN() ;
     String pwd  = argParser.getBindPassword(dn,out,err) ;
-    if (pwd == null)
-    {
-      // TODO Should we do something?
-      return 1;
-    }
 
     // Try to connect
     String ldapUrl = "ldap://"+host+":"+port;
 
    InitialLdapContext ctx = null;
-   int returnCode = 0 ;
+   ReturnCode returnCode = ReturnCode.SUCCESSFUL ;
     try
     {
       ctx = ConnectionUtils.createLdapContext(ldapUrl, dn, pwd,
@@ -207,25 +218,25 @@ public class DsServiceCliMain
     }
     catch (NamingException e)
     {
-      int    msgID   = MSGID_DSSERVICE_CANNOT_CONNECT_TO_ADS;
+      int    msgID   = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
       String message = getMessage(msgID, host);
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
+      return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
     }
     ADSContext adsContext = new ADSContext(ctx);
 
     DirectoryServer.bootstrapClient();
     // perform the subCommand
+    ADSContextException adsException = null ;
     try
     {
       returnCode = argParser.performSubCommand(adsContext, out, err);
     }
     catch (ADSContextException e)
     {
-      // TODO Print a nice message
-      e.printStackTrace();
-      returnCode = e.error.ordinal();
+      adsException = e;
+      returnCode = e.error.getReturnCode();
     }
 
     // deconnection
@@ -237,6 +248,29 @@ public class DsServiceCliMain
     {
       // TODO Should we do something ?
     }
-    return returnCode;
+
+    int msgID = returnCode.getMessageId();
+    String message = "" ;
+    if ( (returnCode == ReturnCode.SUCCESSFUL)
+         ||
+         (returnCode == ReturnCode.SUCCESSFUL_NOP))
+    {
+      if (argParser.isVerbose())
+      {
+        out.println(wrapText(getMessage(msgID), MAX_LINE_WIDTH));
+      }
+    }
+    else
+    if (msgID != -1)
+    {
+      message = getMessage(MSGID_ADMIN_ERROR);
+      message = message + getMessage(msgID);
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      if (argParser.isVerbose() && (adsException != null))
+      {
+        adsException.printStackTrace();
+      }
+    }
+    return returnCode.getReturnCode();
   }
 }

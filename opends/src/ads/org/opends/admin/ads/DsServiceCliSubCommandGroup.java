@@ -28,6 +28,7 @@
 
 import java.io.OutputStream;
 
+import org.opends.admin.ads.DsServiceCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
@@ -50,7 +51,7 @@ public interface DsServiceCliSubCommandGroup
    *           If there is a problem with any of the parameters used
    *           to create this argument.
    */
-  public abstract void initializeCliGroup(SubCommandArgumentParser argParser,
+  public void initializeCliGroup(SubCommandArgumentParser argParser,
       BooleanArgument verboseArg) throws ArgumentException;
 
   /**
@@ -60,7 +61,7 @@ public interface DsServiceCliSubCommandGroup
    *          The actual subcommand with input parameter.
    * @return True if the provided suncommand is part of this group.
    */
-  public abstract boolean isSubCommand(SubCommand subCmd);
+  public boolean isSubCommand(SubCommand subCmd);
 
   /**
    * Handle the subcommand.
@@ -78,7 +79,7 @@ public interface DsServiceCliSubCommandGroup
    *           If there is a problem with when trying to perform the
    *           operation.
    */
-  public abstract int performSubCommand(ADSContext adsContext,
+  public ReturnCode performSubCommand(ADSContext adsContext,
       SubCommand subCmd, OutputStream outStream, OutputStream errStream)
       throws ADSContextException;
 

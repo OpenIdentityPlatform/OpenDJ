@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opends.admin.ads.DsServiceCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
@@ -126,13 +127,13 @@ public class DsServiceCliAds implements DsServiceCliSubCommandGroup
     // Create-ads subcommand
     createAdsSubCmd = new SubCommand(argParser, SubCommandNameEnum.CREATE_ADS
         .toString(), true, 1, 1, OPERAND_BACKEND,
-        MSGID_DSSERVICE_SUBCMD_CREATE_ADS_DESCRIPTION);
+        MSGID_ADMIN_SUBCMD_CREATE_ADS_DESCRIPTION);
     createAdsSubCmd.setHidden(true);
 
     // delete-ads
     deleteAdsSubCmd = new SubCommand(argParser,SubCommandNameEnum.DELETE_ADS
-        .toString(), true, 1, 1, OPERAND_BACKEND,
-        MSGID_DSSERVICE_SUBCMD_DELETE_ADS_DESCRIPTION);
+        .toString(),  true, 1, 1, OPERAND_BACKEND,
+        MSGID_ADMIN_SUBCMD_DELETE_ADS_DESCRIPTION);
     deleteAdsSubCmd.setHidden(true);
   }
 
@@ -148,7 +149,7 @@ public class DsServiceCliAds implements DsServiceCliSubCommandGroup
   /**
    * {@inheritDoc}
    */
-  public int performSubCommand(ADSContext adsContext, SubCommand subCmd,
+  public ReturnCode performSubCommand(ADSContext adsContext, SubCommand subCmd,
       OutputStream outStream, OutputStream errStream)
       throws ADSContextException
   {
@@ -161,7 +162,7 @@ public class DsServiceCliAds implements DsServiceCliSubCommandGroup
       adsContext.createAdminData();
       helper.createAdministrationSuffix(adsContext.getDirContext(),
           backendName);
-      return 0;
+      return ReturnCode.SUCCESSFUL;
     }
     else if (subCmd.getName().equals(deleteAdsSubCmd.getName()))
     {
@@ -169,11 +170,11 @@ public class DsServiceCliAds implements DsServiceCliSubCommandGroup
       ADSContextHelper helper = new ADSContextHelper();
       helper.removeAdministrationSuffix(adsContext.getDirContext(),
           backendName);
-      return 0;
+      return ReturnCode.SUCCESSFUL;
     }
 
     // Should never occurs: If we are here, it means that the code to
     // handle to subcommand is not yet written.
-    return 1;
+    return ReturnCode.ERROR_UNEXPECTED;
   }
 }

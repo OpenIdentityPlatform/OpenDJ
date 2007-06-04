@@ -37,6 +37,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashSet;
 
+import org.opends.admin.ads.DsServiceCliReturnCode.ReturnCode;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
@@ -198,7 +199,6 @@ public class DsServiceCliParser extends SubCommandArgumentParser
     addGlobalArgument(verboseArg);
   }
 
-
   /**
    * Get the host name which has to be used for the command.
    *
@@ -215,7 +215,6 @@ public class DsServiceCliParser extends SubCommandArgumentParser
     {
       return hostNameArg.getDefaultValue();
     }
-
   }
 
   /**
@@ -234,7 +233,6 @@ public class DsServiceCliParser extends SubCommandArgumentParser
     {
       return portArg.getDefaultValue();
     }
-
   }
 
   /**
@@ -312,8 +310,8 @@ public class DsServiceCliParser extends SubCommandArgumentParser
    *           If there is a problem with when trying to perform the
    *           operation.
    */
-  public int performSubCommand(ADSContext adsContext, OutputStream outStream,
-      OutputStream errStream)
+  public ReturnCode performSubCommand(ADSContext adsContext,
+      OutputStream outStream, OutputStream errStream)
     throws ADSContextException
   {
     SubCommand subCmd = getSubCommand();
@@ -329,6 +327,23 @@ public class DsServiceCliParser extends SubCommandArgumentParser
 
     // Should never occurs: If we are here, it means that the code to
     // handle to subcommand is not yet written.
-    return 1;
+    return ReturnCode.ERROR_UNEXPECTED;
+  }
+
+  /**
+   * Indicate if the verbose mode is required.
+   *
+   * @return True if verbose mode is required
+   */
+  public boolean isVerbose()
+  {
+    if (verboseArg.isPresent())
+    {
+      return true;
+    }
+    else
+    {
+      return false ;
+    }
   }
 }
