@@ -4346,6 +4346,24 @@
                     <tcstatus result="'fail'"/>
                 </if>
 
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, deny children, user searching in first child level'
                 </message>
@@ -4368,6 +4386,15 @@
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
                       'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
                 </call>
                 
                 <if expr="returnCode != '0'">
@@ -4537,6 +4564,24 @@
                     <tcstatus result="'fail'"/>
                 </if>
     
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow one child level, user searching in first child level'
                 </message>
@@ -4561,16 +4606,16 @@
                       'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
                 </call>
                 
-                <if expr="returnCode != '1'">
+                <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
 
-                <call function="'searchStringForSubstring'">
+               <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
                 </call>
                 
-                <if expr="returnCode != '1'">
+                <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
     
@@ -4736,6 +4781,24 @@
                     <tcstatus result="'fail'"/>
                 </if>
     
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
                 <message>
                    'ACI: Bind Types: inheritance with bindtype, allow two child levels, user searching in first child level'
                 </message>
@@ -4760,16 +4823,16 @@
                       'testString'         : 'dn: uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
                 </call>
                 
-                <if expr="returnCode != '1'">
+                <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
     
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
+                      'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
                 </call>
                 
-                <if expr="returnCode != '1'">
+                <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
     
@@ -4797,16 +4860,7 @@
                       'testString'         : 'dn: uid=dmillertwo,uid=dmillerone,uid=dmiller,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
                 </call>
                 
-                <if expr="returnCode != '1'">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-                <call function="'searchStringForSubstring'">
-                    { 'returnString'       : returnString ,
-                      'testString'         : 'cn:' }
-                </call>
-                
-                <if expr="returnCode != '1'">
+                <if expr="returnCode != '0'">
                     <tcstatus result="'fail'"/>
                 </if>
     
