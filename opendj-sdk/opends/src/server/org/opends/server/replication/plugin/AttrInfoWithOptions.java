@@ -36,14 +36,14 @@ import java.util.Set;
  */
 public class AttrInfoWithOptions
 {
-  private HashMap<Set<String> ,AttrInfo> attributesInfo;
+  private HashMap<Set<String> ,AttributeInfo> attributesInfo;
 
   /**
    * creates a new AttrInfoWithOptions.
    */
   public AttrInfoWithOptions()
   {
-    attributesInfo = new HashMap<Set<String> ,AttrInfo>();
+    attributesInfo = new HashMap<Set<String> ,AttributeInfo>();
   }
 
   /**
@@ -52,7 +52,7 @@ public class AttrInfoWithOptions
    * @param options the options
    * @return the information
    */
-  public AttrInfo get(Set<String> options)
+  public AttributeInfo get(Set<String> options)
   {
     return attributesInfo.get(options);
   }
@@ -64,7 +64,7 @@ public class AttrInfoWithOptions
    * @param attrInfo the info to associate
    * @return the info to associate
    */
-  public AttrInfo put(Set<String> options,AttrInfo attrInfo )
+  public AttributeInfo put(Set<String> options, AttributeInfo attrInfo )
   {
     return attributesInfo.put(options, attrInfo);
   }
@@ -73,7 +73,7 @@ public class AttrInfoWithOptions
    * get the Attributes information associated to this object.
    * @return the set of informations
    */
-  public HashMap<Set<String>, AttrInfo> getAttributesInfo()
+  public HashMap<Set<String>, AttributeInfo> getAttributesInfo()
   {
     return attributesInfo;
   }

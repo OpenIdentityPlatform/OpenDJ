@@ -70,6 +70,9 @@ public class HistVal
      *  description:00000108b3a6cbb800000001:repl:new_value
      *  or
      *  description:00000108b3a6cbb800000001:delAttr
+     *  or
+     *  description:00000108b3a6554100000001:add
+     *  or
      *
      *  so after split
      *  token[0] will contain the attribute name
@@ -104,8 +107,13 @@ public class HistVal
     stringValue = null;
     if (histKey != HistKey.DELATTR)
     {
-      stringValue = token[3];
-      attributeValue = new AttributeValue(attrType, stringValue);
+      if (token.length == 4)
+      {
+        stringValue = token[3];
+        attributeValue = new AttributeValue(attrType, stringValue);
+      }
+      else
+        attributeValue = null;
     }
     else
     {
