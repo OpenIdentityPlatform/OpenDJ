@@ -42,20 +42,28 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ModifyChangeRecordEntry;
+import org.opends.server.util.ChangeRecordEntry;
+import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.config.ConfigException;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.List;
+import java.util.ArrayList;
 import java.io.File;
 import java.io.IOException;
 
@@ -367,17 +375,20 @@ public class InProcessServerController {
                       Utils.getPath(ldifFile));
       LDIFReader ldifReader =
               new LDIFReader(importCfg);
-      org.opends.server.util.ChangeRecordEntry cre;
+      ChangeRecordEntry cre;
       while (null != (cre = ldifReader.readChangeRecord(false))) {
-        if (cre instanceof ModifyChangeRecordEntry) {
+        ByteString dnByteString =
+                ByteStringFactory.create(
+                        cre.getDN().toString());
+        ResultCode rc;
+        switch(cre.getChangeOperationType()) {
+        case MODIFY:
+          LOG.log(Level.INFO, "proparing to modify " + dnByteString);
           ModifyChangeRecordEntry mcre =
                   (ModifyChangeRecordEntry) cre;
-          ByteString dnByteString =
-                  ByteStringFactory.create(
-                          mcre.getDN().toString());
           ModifyOperation op =
                   cc.processModify(dnByteString, mcre.getModifications());
-          ResultCode rc = op.getResultCode();
+          rc = op.getResultCode();
           if (rc.equals(ResultCode.
                   SUCCESS)) {
             LOG.log(Level.INFO, "processed server modification " +
@@ -398,15 +409,57 @@ public class InProcessServerController {
           } else {
             // report the error to the user
             StringBuilder error = op.getErrorMessage();
-            if (error != null) {
-              throw new ApplicationException(
-                      ApplicationException.Type.IMPORT_ERROR,
-                      "error processing custom configuration "
-                              + error.toString(),
-                      null);
-            }
+            throw new ApplicationException(
+                    ApplicationException.Type.IMPORT_ERROR,
+                    "error processing modification of '" +
+                            dnByteString + "': " +
+                            error != null ? error.toString() : "",
+                    null);
           }
-        } else {
+          break;
+        case ADD:
+          LOG.log(Level.INFO, "proparing to add " + dnByteString);
+          AddChangeRecordEntry acre = (AddChangeRecordEntry) cre;
+          List<Attribute> attrs = acre.getAttributes();
+          ArrayList<RawAttribute> rawAttrs =
+                  new ArrayList<RawAttribute>(attrs.size());
+          for (Attribute a : attrs) {
+            rawAttrs.add(new LDAPAttribute(a));
+          }
+          AddOperation addOp = cc.processAdd(dnByteString, rawAttrs);
+          rc = addOp.getResultCode();
+          if (rc.equals(ResultCode.SUCCESS)) {
+            LOG.log(Level.INFO, "processed server add " + addOp.getEntryDN());
+          } else {
+            // report the error to the user
+            StringBuilder error = addOp.getErrorMessage();
+            throw new ApplicationException(
+                    ApplicationException.Type.IMPORT_ERROR,
+                    "error processing add of '" +
+                            dnByteString + "': " +
+                            error != null ? error.toString() : "",
+                    null);
+          }
+          break;
+        case DELETE:
+          LOG.log(Level.INFO, "proparing to delete " + dnByteString);
+          DeleteOperation delOp = cc.processDelete(dnByteString);
+          rc = delOp.getResultCode();
+          if (rc.equals(ResultCode.SUCCESS)) {
+            LOG.log(Level.INFO, "processed server delete " +
+                    delOp.getEntryDN());
+          } else {
+            // report the error to the user
+            StringBuilder error = delOp.getErrorMessage();
+            throw new ApplicationException(
+                    ApplicationException.Type.IMPORT_ERROR,
+                    "error processing delete of '" +
+                            dnByteString + "': " +
+                            error != null ? error.toString() : "",
+                    null);
+          }
+          break;
+        default:
           throw new ApplicationException(
                   ApplicationException.Type.IMPORT_ERROR,
                   "unexpected change record type " + cre.getClass(),
