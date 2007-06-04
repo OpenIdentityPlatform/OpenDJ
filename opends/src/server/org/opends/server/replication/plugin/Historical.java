@@ -193,7 +193,7 @@ public class Historical
     Attribute modAttr = mod.getAttribute();
     if (modAttr.getAttributeType().equals(Historical.historicalAttrType))
     {
-      // Don´t keep historical information for the attribute that is
+      // Don't keep historical information for the attribute that is
       // used to store the historical information.
       return null;
     }
