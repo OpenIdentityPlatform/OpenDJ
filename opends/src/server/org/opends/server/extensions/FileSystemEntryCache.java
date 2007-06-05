@@ -281,8 +281,8 @@ public class FileSystemEntryCache
 
     // Initialize the cache maps and locks.
     backendMap = new LinkedHashMap<Backend,Map<Long,DN>>();
-    dnMap = new LinkedHashMapRotator<DN,Long>((int) 16, (float) 0.75,
-        (boolean) accessOrder);
+    dnMap = new LinkedHashMapRotator<DN,Long>(16, (float) 0.75,
+        accessOrder);
 
     cacheLock = new ReentrantReadWriteLock();
     if (accessOrder) {
@@ -2311,7 +2311,7 @@ public class FileSystemEntryCache
           // Remove the the eldest entry from supporting maps.
           cacheEntryKey.setData(
               ((DN) eldest.getKey()).toNormalizedString().getBytes("UTF-8"));
-          long entryID = (long) ((Long) eldest.getValue()).longValue();
+          long entryID = ((Long) eldest.getValue()).longValue();
           Set<Backend> backendSet = backendMap.keySet();
           Iterator<Backend> backendIterator = backendSet.iterator();
           while (backendIterator.hasNext()) {
