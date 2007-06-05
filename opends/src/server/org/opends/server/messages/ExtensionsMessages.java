@@ -7408,83 +7408,88 @@ public class ExtensionsMessages
                     "cache has been updated to %d bytes. If the previous " +
                     "amount has been reduced, it may take some time for " +
                     "entries to be purged so that the current cache space" +
-                    "consumption can reflect this new setting.");
+                    "consumption can reflect this new setting");
     registerMessage(MSGID_FSCACHE_UPDATED_MAX_ENTRIES,
                     "The number of entries that may be held in the entry " +
                     "cache has been updated to %d.  If this value has been " +
                     "reduced, it may take some time for entries to be purged " +
-                    "so that the cache can reflect this new setting.");
+                    "so that the cache can reflect this new setting");
     registerMessage(MSGID_FSCACHE_UPDATED_LOCK_TIMEOUT,
                     "The lock timeout that will be used to determine the " +
                     "length of time that the cache should block while " +
                     "attempting to acquire a lock for an entry has been " +
-                    "set to %d milliseconds.");
+                    "set to %d milliseconds");
     registerMessage(MSGID_FSCACHE_UPDATED_INCLUDE_FILTERS,
                     "The set of search filters that will control which " +
-                    "entries may be included in the cache has been updated.");
+                    "entries may be included in the cache has been updated");
     registerMessage(MSGID_FSCACHE_UPDATED_EXCLUDE_FILTERS,
                     "The set of search filters that will control which " +
                     "entries should be be excluded from the cache has been " +
-                    "updated.");
+                    "updated");
     registerMessage(MSGID_FSCACHE_UPDATED_TYPE,
-                    "The entry cache type has been changed to %s.");
+                    "The entry cache type has been changed to %s");
     registerMessage(MSGID_FSCACHE_UPDATED_JE_MEMORY_PCT,
                     "The amount of memory that may be used for the entry " +
                     "cache Berkeley DB JE internal cache has been updated " +
-                    "to %d percent of the total memory available to the JVM.");
+                    "to %d percent of the total memory available to the JVM");
     registerMessage(MSGID_FSCACHE_UPDATED_JE_MEMORY_SIZE,
                     "The amount of JVM memory that may be used for the entry " +
                     "cache Berkeley DB JE internal cache has been updated " +
-                    "to %d bytes.");
+                    "to %d bytes");
     registerMessage(MSGID_FSCACHE_UPDATED_IS_PERSISTENT,
                     "The persistence state for the entry cache has been " +
                     "changed to %s");
     registerMessage(MSGID_FSCACHE_CANNOT_LOAD_PERSISTENT_DATA,
                     "An error occurred while trying to load persistent cache." +
-                    " Persistent cache will be flushed now.");
+                    " Persistent cache will be flushed now");
     registerMessage(MSGID_FSCACHE_CANNOT_STORE_PERSISTENT_DATA,
                     "An error occurred while trying to store persistent cache" +
-                    ". Persistent cache will be flushed now.");
+                    ". Persistent cache will be flushed now");
     registerMessage(MSGID_FSCACHE_CANNOT_INITIALIZE,
                     "A fatal error occurred while trying to initialize file " +
-                    "system entry cache. This cache will be disabled now.");
+                    "system entry cache. This cache will be disabled now");
+    registerMessage(MSGID_FSCACHE_INVALID_HOME,
+                    "The file system entry cache home specified in entry %s " +
+                    "is invalid:  %s.  The configured location of %s cannot " +
+                    "be used so the server will attempt to use the default " +
+                    "location of %s");
     registerMessage(MSGID_FSCACHE_HOMELESS,
                     "A fatal error occurred while trying to setup file " +
                     "system entry cache home. No suitable path can be found " +
-                    "to host the cache home. This cache will be disabled now.");
+                    "to host the cache home. This cache will be disabled now");
     registerMessage(MSGID_FSCACHE_SET_PERMISSIONS_FAILED,
                     "Unable to set file permissions for the file system " +
-                    "entry cache backend database directory %s.");
+                    "entry cache backend database directory %s");
     registerMessage(MSGID_FSCACHE_CANNOT_STORE_ENTRY,
                     "Unable to store new cache entry in the file system " +
-                    "entry cache.");
+                    "entry cache");
     registerMessage(MSGID_FSCACHE_CANNOT_RETRIEVE_ENTRY,
                     "Unable to retrieve an existing cache entry from the " +
-                    "file system entry cache.");
+                    "file system entry cache");
     registerMessage(MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_PCT,
                     "Internal error occured while trying to set the entry " +
                     "cache backend internal cache size as percentage. The " +
-                    "previous or default value will be used instead.");
+                    "previous or default value will be used instead");
     registerMessage(MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE,
                     "Internal error occured while trying to set the entry " +
                     "cache backend internal cache size in bytes. The " +
-                    "previous or default value will be used instead.");
+                    "previous or default value will be used instead");
     registerMessage(MSGID_FSCACHE_OFFLINE_STATE_FAIL,
                     "%s backend current offline state does not match " +
                     "persistent cache last recorded offline state. All " +
-                    "cached data for this backend is now discarded.");
+                    "cached data for this backend is now discarded");
     registerMessage(MSGID_FSCACHE_RESTORE_PROGRESS_REPORT,
                     "Restored %d cache entries of %d total persistent cache " +
-                    "entries found.");
+                    "entries found");
     registerMessage(MSGID_FSCACHE_SAVE_PROGRESS_REPORT,
                     "Made persistent %d cache entries of %d total cache " +
-                    "entries found.");
+                    "entries found");
     registerMessage(MSGID_FSCACHE_INDEX_NOT_FOUND,
                     "No previous persistent cache state can be found. " +
-                    "Starting with an empty cache.");
+                    "Starting with an empty cache");
     registerMessage(MSGID_FSCACHE_INDEX_IMPAIRED,
                     "The persistent cache index is inconsistent or damaged. " +
-                    "Persistent cache will be flushed now.");
+                    "Persistent cache will be flushed now");
   }
 }
 
