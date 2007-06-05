@@ -234,6 +234,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
           "org.opends.quicksetup.upgrader.CreateError";
 
   /**
+   * If set to true, an error is introduced during the
+   * upgrade verification process.
+   */
+  static private final String SYS_PROP_CREATE_VERIFY_ERROR =
+          "org.opends.quicksetup.upgrader.VerifyError";
+
+  /**
    * If set to true, if the upgrader encounters an error
    * during upgrade, the abort method that backs out
    * changes is made a no-op leaving the server in the
@@ -955,6 +962,17 @@ public class Upgrader extends GuiApplication implements CliApplication {
       ServerHealthChecker healthChecker = new ServerHealthChecker(installation);
       healthChecker.checkServer();
       List<String> errors = healthChecker.getProblemMessages();
+
+      // For testing
+      if ("true".equals(
+              System.getProperty(SYS_PROP_CREATE_VERIFY_ERROR))) {
+        LOG.log(Level.WARNING, "creating artificial verification error");
+        if (errors == null || errors.size() == 0) {
+          errors = new ArrayList<String>();
+          errors.add("Artificial verification error for testing");
+        }
+      }
+
       if (errors != null && errors.size() > 0) {
         notifyListeners(formatter.getFormattedError() +
                 formatter.getLineBreak());
