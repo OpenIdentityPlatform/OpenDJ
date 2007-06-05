@@ -448,6 +448,13 @@ public final class AdminMessages {
   public static final int MSGID_ADMIN_SUCCESSFUL_NOP=
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 51;
 
+  /**
+   * The message ID which indicate that no message is required.
+   */
+  public static final int MSGID_ADMIN_NO_MESSAGE =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_SEVERE_ERROR | 52;
+
+
 
   // Prevent instantiation.
   private AdminMessages() {
@@ -612,5 +619,6 @@ public final class AdminMessages {
     registerMessage(MSGID_ADMIN_SUCCESSFUL_NOP,
        "The operation has been successfully completed, "+
        "but no action was required");
+    registerMessage(MSGID_ADMIN_NO_MESSAGE,"");
   }
 }

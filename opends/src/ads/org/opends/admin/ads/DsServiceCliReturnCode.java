@@ -53,16 +53,16 @@ public class DsServiceCliReturnCode
     /**
      * Unable to initialze arguments.
      */
-    CANNOT_INITIALIZE_ARGS(1, -1),
+    CANNOT_INITIALIZE_ARGS(1, MSGID_ADMIN_NO_MESSAGE),
 
     /**
      * Cannot parse argument.
      */
-    ERROR_PARSING_ARGS(2, -1),
+    ERROR_PARSING_ARGS(2, MSGID_ADMIN_NO_MESSAGE),
     /**
      * Return code: Cannot get the connection to the ADS.
      */
-    CANNOT_CONNECT_TO_ADS(3, -1),
+    CANNOT_CONNECT_TO_ADS(3, MSGID_ADMIN_NO_MESSAGE),
 
     /**
      * The host name is missing.
