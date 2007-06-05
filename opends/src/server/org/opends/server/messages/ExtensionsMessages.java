@@ -5013,6 +5013,202 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if maximum number of cache
+   * entries has been updated.  This takes a single argument, which is the new
+   * maximum number of entries.
+   */
+  public static final int MSGID_FSCACHE_UPDATED_MAX_ENTRIES =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 477;
+
+  /**
+   * The message ID for the message that will be used if the cache lock timeout
+   * has been updated.  This takes a single argument, which is the new lock
+   * timeout.
+   */
+  public static final int MSGID_FSCACHE_UPDATED_LOCK_TIMEOUT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 478;
+
+  /**
+   * The message ID for the message that will be used if the cache include
+   * filter set has been updated.  This does not take any arguments.
+   */
+  public static final int MSGID_FSCACHE_UPDATED_INCLUDE_FILTERS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 479;
+
+  /**
+   * The message ID for the message that will be used if the cache exclude
+   * filter set has been updated.  This does not take any arguments.
+   */
+  public static final int MSGID_FSCACHE_UPDATED_EXCLUDE_FILTERS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 480;
+
+  /**
+   * The message ID for the message that will be used if entry cache memory
+   * size has been updated.  This takes one argument, which is the new size
+   * of memory that may be used, in bytes.
+   */
+  public static final int MSGID_FSCACHE_UPDATED_MAX_MEMORY_SIZE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 481;
+
+  /**
+   * The message ID for the message that will be used if entry cache type
+   * has been changed.  This takes one argument, which is the new entry
+   * cache type.
+   */
+  public static final int MSGID_FSCACHE_UPDATED_TYPE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 482;
+
+
+  /**
+   * The message ID for the message that will be used if entry cache JE
+   * cache memory percent has been changed.  This takes one argument,
+   * which is the new percentage of JVM memory that can be utilized.
+   */
+  public static final int MSGID_FSCACHE_UPDATED_JE_MEMORY_PCT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 483;
+
+  /**
+   * The message ID for the message that will be used if entry cache JE
+   * cache memory size has been changed.  This takes one argument,
+   * which is the new maximum size of JVM memory that can be utilized.
+   */
+  public static final int MSGID_FSCACHE_UPDATED_JE_MEMORY_SIZE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 484;
+
+  /**
+   * The message ID for the message that will be used if entry cache
+   * persistence state has been changed.  This takes one argument,
+   * which is the new persistence state.
+   */
+  public static final int MSGID_FSCACHE_UPDATED_IS_PERSISTENT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 485;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to load persistent cache for the FS-based entry cache.
+   * This takes one argument which is a string representation of the exception
+   * that was caught.
+   */
+  public static final int MSGID_FSCACHE_CANNOT_LOAD_PERSISTENT_DATA =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 486;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to store persistence cache for the FS-based entry cache.
+   * This takes one argument which is a string representation of the exception
+   * that was caught.
+   */
+  public static final int MSGID_FSCACHE_CANNOT_STORE_PERSISTENT_DATA =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 487;
+
+  /**
+   * The message ID for the message that will be used if a fatal error occurs
+   * while trying to initialize the FS-based entry cache.  This takes one
+   * argument which is a string representation of the exception that was caught.
+   */
+  public static final int MSGID_FSCACHE_CANNOT_INITIALIZE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_FATAL_ERROR | 488;
+
+  /**
+   * The message ID for the message that will be used if we are unable to put
+   * a new entry to the cache. This takes one argument, which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_FSCACHE_CANNOT_STORE_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 489;
+
+  /**
+   * The message ID for the message that will be used if we are unable to get
+   * an existing entry from the cache. This takes one argument, which is a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_FSCACHE_CANNOT_RETRIEVE_ENTRY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 490;
+
+  /**
+   * The message ID for the message that will be used if we are unable to set
+   * the JE cache size as percentage. This takes one argument, which is a
+   * string representation of the exception that was caught.
+   */
+  public static final int MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_PCT =
+      CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 491;
+
+  /**
+   * The message ID for the message that will be used if we are unable to set
+   * the JE cache size in bytes. This takes one argument, which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE =
+      CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 492;
+
+  /**
+   * The message ID for the message that will be used if entry cache home
+   * either cannot be created or exist but already in use by another instance
+   * This takes four arguments, which are the DN of the configuration entry,
+   * the cache-home attribute value of the configuration entry, default cache
+   * home value and a string representation of the exception that was caught.
+   */
+  public static final int MSGID_FSCACHE_INVALID_HOME =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 493;
+
+  /**
+   * The message ID for the message that will be used if a fatal error occurs
+   * while trying to setup the cache db environment home.  This takes one
+   * argument which is a string representation of the exception that was caught.
+   */
+  public static final int MSGID_FSCACHE_HOMELESS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_FATAL_ERROR | 494;
+
+  /**
+   * The message ID of an error indicating that the file permissions for the
+   * file system entry cache database directory were not set.
+   */
+  public static final int MSGID_FSCACHE_SET_PERMISSIONS_FAILED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_WARNING | 495;
+
+  /**
+   * The message ID for the message that will be used if recorded offline state
+   * does not match the current offline state for given backend. This takes one
+   * argument which is the backend ID.
+   */
+  public static final int MSGID_FSCACHE_OFFLINE_STATE_FAIL =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_WARNING | 496;
+
+  /**
+   * The message ID for the message that will be used to report the cache
+   * persistent state restoration progress. This takes two arguments which
+   * are the restored entries count and the total number of entries to be
+   * restored.
+   */
+  public static final int MSGID_FSCACHE_RESTORE_PROGRESS_REPORT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 497;
+
+  /**
+   * The message ID for the message that will be used to report the cache
+   * persistent state preservation progress. This takes two arguments which
+   * are the preserved entries count and the total number of entries to be
+   * preserved.
+   */
+  public static final int MSGID_FSCACHE_SAVE_PROGRESS_REPORT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 498;
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to load persistent cache index of the FS-based persistent entry
+   * cache. Takes no arguments.
+   */
+  public static final int MSGID_FSCACHE_INDEX_NOT_FOUND =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 499;
+
+  /**
+   * The message ID for the message that will be used if persistent cache index
+   * of the FS-based persistent entry cache is empty or damaged in any way we
+   * can detect. Takes no arguments.
+   */
+  public static final int MSGID_FSCACHE_INDEX_IMPAIRED =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 500;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7205,6 +7401,90 @@ public class ExtensionsMessages
                     "which is itself a virtual static group.  One " +
                     "virtual static group is not allowed to reference " +
                     "another as its target group");
+
+
+    registerMessage(MSGID_FSCACHE_UPDATED_MAX_MEMORY_SIZE,
+                    "The amount of space that may be used for the entry " +
+                    "cache has been updated to %d bytes. If the previous " +
+                    "amount has been reduced, it may take some time for " +
+                    "entries to be purged so that the current cache space" +
+                    "consumption can reflect this new setting.");
+    registerMessage(MSGID_FSCACHE_UPDATED_MAX_ENTRIES,
+                    "The number of entries that may be held in the entry " +
+                    "cache has been updated to %d.  If this value has been " +
+                    "reduced, it may take some time for entries to be purged " +
+                    "so that the cache can reflect this new setting.");
+    registerMessage(MSGID_FSCACHE_UPDATED_LOCK_TIMEOUT,
+                    "The lock timeout that will be used to determine the " +
+                    "length of time that the cache should block while " +
+                    "attempting to acquire a lock for an entry has been " +
+                    "set to %d milliseconds.");
+    registerMessage(MSGID_FSCACHE_UPDATED_INCLUDE_FILTERS,
+                    "The set of search filters that will control which " +
+                    "entries may be included in the cache has been updated.");
+    registerMessage(MSGID_FSCACHE_UPDATED_EXCLUDE_FILTERS,
+                    "The set of search filters that will control which " +
+                    "entries should be be excluded from the cache has been " +
+                    "updated.");
+    registerMessage(MSGID_FSCACHE_UPDATED_TYPE,
+                    "The entry cache type has been changed to %s.");
+    registerMessage(MSGID_FSCACHE_UPDATED_JE_MEMORY_PCT,
+                    "The amount of memory that may be used for the entry " +
+                    "cache Berkeley DB JE internal cache has been updated " +
+                    "to %d percent of the total memory available to the JVM.");
+    registerMessage(MSGID_FSCACHE_UPDATED_JE_MEMORY_SIZE,
+                    "The amount of JVM memory that may be used for the entry " +
+                    "cache Berkeley DB JE internal cache has been updated " +
+                    "to %d bytes.");
+    registerMessage(MSGID_FSCACHE_UPDATED_IS_PERSISTENT,
+                    "The persistence state for the entry cache has been " +
+                    "changed to %s");
+    registerMessage(MSGID_FSCACHE_CANNOT_LOAD_PERSISTENT_DATA,
+                    "An error occurred while trying to load persistent cache." +
+                    " Persistent cache will be flushed now.");
+    registerMessage(MSGID_FSCACHE_CANNOT_STORE_PERSISTENT_DATA,
+                    "An error occurred while trying to store persistent cache" +
+                    ". Persistent cache will be flushed now.");
+    registerMessage(MSGID_FSCACHE_CANNOT_INITIALIZE,
+                    "A fatal error occurred while trying to initialize file " +
+                    "system entry cache. This cache will be disabled now.");
+    registerMessage(MSGID_FSCACHE_HOMELESS,
+                    "A fatal error occurred while trying to setup file " +
+                    "system entry cache home. No suitable path can be found " +
+                    "to host the cache home. This cache will be disabled now.");
+    registerMessage(MSGID_FSCACHE_SET_PERMISSIONS_FAILED,
+                    "Unable to set file permissions for the file system " +
+                    "entry cache backend database directory %s.");
+    registerMessage(MSGID_FSCACHE_CANNOT_STORE_ENTRY,
+                    "Unable to store new cache entry in the file system " +
+                    "entry cache.");
+    registerMessage(MSGID_FSCACHE_CANNOT_RETRIEVE_ENTRY,
+                    "Unable to retrieve an existing cache entry from the " +
+                    "file system entry cache.");
+    registerMessage(MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_PCT,
+                    "Internal error occured while trying to set the entry " +
+                    "cache backend internal cache size as percentage. The " +
+                    "previous or default value will be used instead.");
+    registerMessage(MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE,
+                    "Internal error occured while trying to set the entry " +
+                    "cache backend internal cache size in bytes. The " +
+                    "previous or default value will be used instead.");
+    registerMessage(MSGID_FSCACHE_OFFLINE_STATE_FAIL,
+                    "%s backend current offline state does not match " +
+                    "persistent cache last recorded offline state. All " +
+                    "cached data for this backend is now discarded.");
+    registerMessage(MSGID_FSCACHE_RESTORE_PROGRESS_REPORT,
+                    "Restored %d cache entries of %d total persistent cache " +
+                    "entries found.");
+    registerMessage(MSGID_FSCACHE_SAVE_PROGRESS_REPORT,
+                    "Made persistent %d cache entries of %d total cache " +
+                    "entries found.");
+    registerMessage(MSGID_FSCACHE_INDEX_NOT_FOUND,
+                    "No previous persistent cache state can be found. " +
+                    "Starting with an empty cache.");
+    registerMessage(MSGID_FSCACHE_INDEX_IMPAIRED,
+                    "The persistent cache index is inconsistent or damaged. " +
+                    "Persistent cache will be flushed now.");
   }
 }
 

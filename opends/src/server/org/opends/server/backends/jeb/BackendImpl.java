@@ -32,6 +32,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.zip.Adler32;
+import java.util.zip.CheckedInputStream;
+
 import com.sleepycat.je.DatabaseException;
 
 import org.opends.server.api.Backend;
@@ -185,6 +193,60 @@ public class BackendImpl
     }
   }
 
+ /**
+  * This method will attempt to checksum the current JE db environment by
+  * computing the Adler-32 checksum on the latest JE log file available.
+  *
+  * @return  The checksum of JE db environment or zero if checksum failed.
+  */
+  private long checksumDbEnv() {
+
+    List<File> jdbFiles =
+     Arrays.asList(config.getBackendDirectory().listFiles(new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        return name.endsWith(".jdb");
+      }
+    }));
+
+    if ( !jdbFiles.isEmpty() ) {
+      Collections.sort(jdbFiles, Collections.reverseOrder());
+      FileInputStream fis = null;
+      try {
+        fis = new FileInputStream(jdbFiles.get(0).toString());
+        CheckedInputStream cis = new CheckedInputStream(fis, new Adler32());
+        byte[] tempBuf = new byte[8192];
+        while (cis.read(tempBuf) >= 0) {
+        }
+
+        return cis.getChecksum().getValue();
+      } catch (Exception e) {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      } finally {
+        if (fis != null) {
+          try {
+            fis.close();
+          } catch (Exception e) {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
+      }
+    }
+
+    // Log a warning that we have failed to checksum this db environment.
+    int msgID = MSGID_JEB_BACKEND_CHECKSUM_FAIL;
+    String message = getMessage(msgID, cfg.getBackendId());
+    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
+        message, msgID);
+
+    return 0;
+  }
+
   /**
    * This method constructs a container name from a base DN. Only alphanumeric
    * characters are preserved, all other characters are replaced with an
@@ -239,9 +301,12 @@ public class BackendImpl
   public void initializeBackend()
        throws ConfigException, InitializationException
   {
+    // Checksum this db environment and register its offline state id/checksum.
+    DirectoryServer.registerOfflineBackendStateID(this.getBackendID(),
+      checksumDbEnv());
+
     // Open the database environment
-    try
-    {
+    try {
       rootContainer = new RootContainer(config, this);
       rootContainer.open();
     }
@@ -390,6 +455,10 @@ public class BackendImpl
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
     }
+
+    // Checksum this db environment and register its offline state id/checksum.
+    DirectoryServer.registerOfflineBackendStateID(this.getBackendID(),
+      checksumDbEnv());
 
     // Make sure the thread counts are zero for next initialization.
     threadTotalCount.set(0);

@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
+<adm:managed-object
+  name="file-system-entry-cache"
+  plural-name="file-system-entry-caches"
+  package="org.opends.server.admin.std"
+  extends="entry-cache"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  >
+
+  <adm:synopsis>
+    The <adm:user-friendly-name/> is an entry cache implementation which uses
+    a JE database to keep track of the entries.
+  </adm:synopsis>
+
+  <adm:description>
+    For the best performance the JE database should reside in a memory based
+    file system, although any file system will do for this cache to function.
+    Entries are maintained either by FIFO (default) or LRU (configurable)
+    based list implementation.
+
+    Cache sizing is based on the size or percentage of free space availble in
+    the file system, such that if enough memory is free, then adding an entry
+    to the cache will not require purging, but if more than a specified
+    percentage of the file system available space is already consumed, then
+    one or more entries will need to be removed in order to make room for a
+    new entry.  It is also possible to configure a maximum number of entries
+    for the cache. If this is specified, then the number of entries will not
+    be allowed to exceed this value, but it may not be possible to hold this
+    many entries if the available memory fills up first.
+
+    Other configurable parameters for this cache include the maximum length of
+    time to block while waiting to acquire a lock, and a set of filters that
+    may be used to define criteria for determining which entries are stored in
+    the cache. If a set of filters are provided then an entry must match at
+    least one of them in order to be stored in the cache.
+
+    JE environment cache size can also be configured either as percentage of
+    the free memory available in the JVM, or as an absolute size in bytes.
+
+    This cache has a persistence property which, if enabled, allows for the
+    contents of the cache to persist across server or cache restarts.
+  </adm:description>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.110</ldap:oid>
+      <ldap:name>ds-cfg-file-system-entry-cache</ldap:name>
+      <ldap:superior>ds-cfg-entry-cache</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property name="lock-timeout">
+    <adm:synopsis>
+      The length of time in milliseconds to wait while
+      attempting to acquire a read or write lock.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>2000.0ms</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" allow-unlimited="true"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.58</ldap:oid>
+        <ldap:name>ds-cfg-lock-timeout</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="max-memory-size">
+    <adm:synopsis>
+      The maximum size of the entry cache in bytes.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0b</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:size/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.362</ldap:oid>
+        <ldap:name>ds-cfg-max-memory-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="max-entries">
+    <adm:synopsis>
+      The maximum number of entries allowed in the cache.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>2147483647</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.65</ldap:oid>
+        <ldap:name>ds-cfg-max-entries</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="cache-type">
+    <adm:synopsis>
+      Specifies the policy which should be used for purging entries from the
+      cache. FIFO by default and LRU as configurable.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart/>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>fifo</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="fifo">
+          <adm:synopsis>
+            FIFO based entry cache.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="lru">
+        <adm:synopsis>
+            LRU based entry cache.
+        </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.363</ldap:oid>
+        <ldap:name>ds-cfg-cache-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="cache-directory">
+    <adm:synopsis>
+      Specifies the directory in which the JE environment should store the
+      cache.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart/>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>/tmp/OpenDS.FSCache</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.364</ldap:oid>
+        <ldap:name>ds-cfg-cache-directory</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="persistent-cache">
+    <adm:synopsis>
+      Specifies whether the cache should persist across restarts.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.365</ldap:oid>
+        <ldap:name>ds-cfg-persistent-cache</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="database-cache-percent">
+    <adm:synopsis>
+      The maximum memory usage for the internal JE cache as a percentage
+      of the total JVM memory.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" upper-limit="100"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.25</ldap:oid>
+        <ldap:name>ds-cfg-database-cache-percent</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="database-cache-size">
+    <adm:synopsis>
+      The maximum JVM memory usage in bytes for the internal JE cache.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0b</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:size/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.27</ldap:oid>
+        <ldap:name>ds-cfg-database-cache-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property-reference name="include-filter"/>
+  <adm:property-reference name="exclude-filter"/>
+
+  <adm:property-override name="entry-cache-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.FileSystemEntryCache
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+</adm:managed-object>
