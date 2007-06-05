@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="replication_cleanup"/>
+
+  <function name="replication_cleanup">
+
+    <sequence>
+
+      <block name="'replication-cleanup'">
+
+        <sequence>
+                			
+		  <script>
+			basicTopologyFile = '%s/config/replication/basic_topology.txt' % TESTS_DIR
+		  </script>
+			 		   		
+          <!-- Stop the servers in the topology -->					           
+          <iterate var="server" in="_topologyServerList">				
+            <sequence>
+    
+              <message>
+                 'Stop DS on host %s running on port %s' % (server.getHostname(),server.getPort())
+              </message>
+
+              <!--- Stop DS -->					      
+              <call function="'StopDsWithScript'">
+                { 'location'  : server.getHostname(),
+                  'dsHost' : server.getHostname(),
+                  'dsPath' : '%s/%s' % (server.getDir(),OPENDSNAME),
+                  'dsPort'    : server.getPort(),
+                  'dsBindDN'  : server.getRootDn(),
+                  'dsBindPwd' : server.getRootPwd() }
+              </call>
+    
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+    
+            </sequence>
+            
+  		</iterate>
+  
+  		<!-- Remove  the topology created for the test suite -->
+          <message>
+            'Remove DS topology created for the Synchronization Basic Test Suite'
+          </message>				  
+  
+          <call function="'removeTopology'">
+            { 'multipleInstanceTopology' : True }
+          </call>  
+  
+          <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+          </call>
+
+        </sequence>
+
+      </block>
+    
+    </sequence>
+
+  </function>
+
+</stax>

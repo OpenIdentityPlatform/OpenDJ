@@ -74,6 +74,9 @@
           </sequence>
         </else>
       </if>
+      
+      <return>RC</return>
+      
     </sequence>
   </function>
 
@@ -310,6 +313,7 @@
       <!-- Local variables -->
       <script>
         mylocation=location
+        mypath=dsPath
         myhost=dsInstanceHost
         myport=dsInstancePort
         mydn=dsInstanceDn
@@ -321,6 +325,7 @@
         <sequence>
           <call function="'SearchObject'">
             { 'location'       : mylocation,
+              'dsPath'         : mypath,
               'dsInstanceHost' : myhost ,
               'dsInstancePort' : myport ,
               'dsInstanceDn'   : mydn ,

@@ -43,12 +43,20 @@
 		  Specifies whether the instance should be initialised with some default data.
 		</function-arg-description>
 		<function-arg-property name="type" value="boolean"/>
-	  </function-arg-def>			
+	  </function-arg-def>
+    <function-arg-def name="sharedDataFolder" type="optional" default="''">
+      <function-arg-description>
+        Specifies a relative folder that holds the shared data for the tests
+    </function-arg-description>
+    <function-arg-property name="type" value="string"/>
+    </function-arg-def>    			
 	</function-map-args>
 	  
 	<sequence>
 
-      <call function="'prepareInstanceCreation'"></call>		
+      <call function="'prepareInstanceCreation'">
+        { 'groupDataDir' : sharedDataFolder }
+      </call>		
 
 	  <if expr="topologyDescFile == None">	
 		  <!-- SINGLE instance deployment: read parameters from config.py (done by default) -->
@@ -103,17 +111,17 @@
 					'dsBaseDN' : server.getBaseDn() }
 				</call>
 				
-				<!-- Configure synchronization if required so by the server
+				<!-- Configure replication if required so by the server
 				  !  (i.e. server is a changelog server and/or has synchronized suffixes) -->
 				<if expr="server.requiresSynchronization()">
 				  <sequence>					
-					<message> 'Instance requires SYNCHRONIZATION configuration.' </message>
+					<message> 'Instance requires REPLICATION configuration.' </message>
 					<script> 
 					  serverMap = {}
 					  serverMap['instance'] = server
 					</script>
 					  
-				    <call function="'configureSynchronization'">
+				    <call function="'configureReplication'">
 					  [serverMap]
 				    </call>									
 				  </sequence>
@@ -138,9 +146,16 @@
   <function name="prepareInstanceCreation">
     <function-prolog>
 		This function prepares locally the necessary 
-		files  to create an instance: data zip file and OpenDS zip file.
+		files to create an instance: data zip file and OpenDS zip file.
 	</function-prolog>	  
-	 
+    <function-map-args>     
+      <function-arg-def name="groupDataDir" type="optional" default="''">
+        <function-arg-description>
+          Specifies a relative folder that holds the shared data for the test group
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>     
+      </function-arg-def>
+    </function-map-args>	 
     <sequence>
 
       <!-- ON LOCAL HOST: get data ready to copy to remote host -->
@@ -158,31 +173,42 @@
                 'filename' : '%s/ldifdata.zip' % TMPDIR }
           </call>
 		
-				
+          <script>
+            testsGroupDir='%s/shared/data/%s' % (TESTS_DIR,groupDataDir)
+            tmpTestsGroupDir='%s/shared/data/%s' % (TMP_DATA_DIR,groupDataDir)
+          </script>
+          				
           <!-- Locally copy static data files to temporary staging area -->
           <!-- LDIF (.ldif) files -->
-          <message>'Copy ldif data files'</message>
+          <message>
+            'Copy ldif data files to %s.' % tmpTestsGroupDir
+          </message>
           <call function="'CopyFolderByExtension'">
               { 'location'   : STAXServiceMachine,
-                'srcfolder'  : TESTS_DIR,
-                'destfolder' : TMP_DATA_DIR,
+                'srcfolder'  : testsGroupDir,
+                'destfolder' : tmpTestsGroupDir,
                 'extension'  : 'ldif' }
           </call>
     
           <!-- PWD (.pwd) files -->
+          <message>
+            'Copy pwd data files to %s.' % tmpTestsGroupDir
+          </message>         
           <call function="'CopyFolderByExtension'">
               { 'location'   : STAXServiceMachine,
-                'srcfolder'  : TESTS_DIR,
-                'destfolder' : TMP_DATA_DIR,
+                'srcfolder'  : testsGroupDir,
+                'destfolder' : tmpTestsGroupDir,
                 'extension'  : 'pwd' }
           </call>
     
           <!-- Archive (.gz) files -->
-          <message>'Copy gz data files'</message>
+          <message>
+            'Copy gz data files to %s.' % tmpTestsGroupDir
+          </message>
           <call function="'CopyFolderByExtension'">
               { 'location'   : STAXServiceMachine,
-                'srcfolder'  : TESTS_DIR,
-                'destfolder' : TMP_DATA_DIR,
+                'srcfolder'  : testsGroupDir,
+                'destfolder' : tmpTestsGroupDir,
                 'extension'  : 'gz' }
           </call>
     
@@ -336,11 +362,11 @@
           'unzipdir' : dsDir }
       </call>
 
-      <!--- Configure DS -->
+      <!--- Set up DS -->
       <message>
-        'Configure DS on %s : %s/%s' % (dsHost,dsDir,OPENDSNAME)
+        'Set up DS on %s : %s/%s' % (dsHost,dsDir,OPENDSNAME)
       </message>
-      <call function="'ConfigureDsWithScript'">
+      <call function="'SetUpDsWithScript'">
         { 'location' : dsHost, 
 		  'dsPath' : '%s/%s' % (dsDir, OPENDSNAME),
 		  'dsPort'   : dsPort,
@@ -375,9 +401,9 @@
 
 	
 	
-  <function name="configureSynchronization">
+  <function name="configureReplication">
     <function-prolog>
-      This function configures synchronization in a given server.
+      This function configures replication in a given server.
 	</function-prolog>
 	  
 	<function-list-args>
@@ -393,18 +419,18 @@
 	  <script>
         syncserver = syncserverMap['instance']
         
-        filename = 'synchronization_conf.ldif'
+        filename = 'replication_conf.ldif'
         filePath = '%s/%s' % (TMP_DATA_DIR,filename)
         dataDir = '%s/functional-tests/shared/data' % syncserver.getDir()
         
-        write_synchronization_conf_ldif_file(filePath, syncserver)
+        write_replication_conf_ldif_file(filePath, syncserver)
 	  </script>
 
 	  <message>
-	    'Configure synchronization on server on host %s at directory %s' % (syncserver.getHostname(),syncserver.getDir())  
+	    'Configure replication on server on host %s at directory %s' % (syncserver.getHostname(),syncserver.getDir())  
 	  </message>		
 		
-      <!-- Copy the synchronization_conf ldif to remote host -->
+      <!-- Copy the replication_conf ldif to remote host -->
       <message>
 	    'Copy %s file from %s to %s' % (filename,TMP_DATA_DIR,dataDir)
 	  </message>
@@ -415,7 +441,7 @@
       </call>
 
 		
-	  <!--- Add synchronization configuration entries to config.ldif in server -->
+	  <!--- Add replication configuration entries to config.ldif in server -->
 		
 	  <script>
         remoteFilePath = '%s/%s' % (dataDir, filename)
@@ -435,7 +461,7 @@
       </call>		
 
       <message>
-	    'Add synchronization configuration entries in %s' % remoteFilePath
+	    'Add replication configuration entries in %s' % remoteFilePath
 	  </message>
 						
 	  <call function="'addEntry'">

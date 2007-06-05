@@ -147,12 +147,12 @@
               'unzipdir'   : '%s' % DIRECTORY_INSTANCE_DIR }
           </call>
     
-          <!--- Configure DS -->
+          <!--- Setup DS -->
           <sequence>
             <message>
-             'Configuring DS on %s' % STAF_REMOTE_HOSTNAME
+             'Set up DS on %s' % STAF_REMOTE_HOSTNAME
             </message>
-            <call function="'ConfigureDsWithScript'">
+            <call function="'SetUpDsWithScript'">
                 { 'location'  : STAF_REMOTE_HOSTNAME,
                   'dsPort'    : DIRECTORY_INSTANCE_PORT,
                   'dsBindDN'  : DIRECTORY_INSTANCE_DN,

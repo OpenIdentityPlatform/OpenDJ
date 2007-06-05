@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../../stax.dtd">
+<!DOCTYPE stax SYSTEM "../../../stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -27,35 +27,42 @@
  ! -->
 <stax>
 
-  <defaultcall function="main_synchronization"/>
+  <defaultcall function="main_replication"/>
 
-  <function name="main_synchronization">
+  <function name="main_replication">
 
     <sequence>
 
-      <block name="'synchronization'">
-      
+      <block name="'replication'">
+
         <sequence>
-  
-          <script>
-            CurrentTestPath['group']='synchronization'
-          </script>
-        
-          <call function="'testGroup_Preamble'"/>
 
-			     
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-            file="'%s/testcases/synchronization/basic/synchronization_basic.xml' % (TESTS_DIR)"/>
-          <call function="'synchronization_basic'" />
-
-
-						  
+            file="'%s/environment.xml' % (TESTS_FUNCTIONS_DIR)" />
+          <call function="'loadEnvironment'" />
+      			
+          <script>
+            CurrentTestPath={}
+            envAlreadyLoaded='true'
+            CurrentTestPath['group']='replication'
+          </script>
+      
+          <call function="'testGroup_Preamble'"/>
+						                
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/replication/totalupdate/totalupdate.xml' % (TESTS_DIR)"/>
+          <call function="'main_totalupdate'" />
+                    
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/replication/basic/replication_basic.xml' % (TESTS_DIR)"/>
+          <call function="'replication_basic'" />          
+								          
           <call function="'testGroup_Postamble'"/>
-        
+			 		   		
         </sequence>
-      
+
       </block>
-      
+    
     </sequence>
 
   </function>

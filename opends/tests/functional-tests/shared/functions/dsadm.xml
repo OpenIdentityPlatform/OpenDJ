@@ -28,9 +28,9 @@
 <stax>
   
   <!-- This function configures DS using the configure-ds script -->
-  <function name="ConfigureDsWithScript">
+  <function name="SetUpDsWithScript">
     <function-prolog>
-      This function configures a Directory Server using a script
+      This function sets up a Directory Server using a script
     </function-prolog>    
     <function-map-args>
       <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
@@ -129,7 +129,7 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
             
-      <process name="'Configure DS Script'">
+      <process name="'Setup DS Script'">
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
@@ -1037,7 +1037,7 @@
     
       <!-- Local variables -->
       <script>
-        mylocation=location
+        myLocation=location
         taskLdif='%s/../functional-tests/shared/data/import-task.ldif' % dsPath
         tmpTaskLdif='%s/import-task.ldif' % TMP_DATA_DIR
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -1102,12 +1102,12 @@
         { 'location'   : STAXServiceMachine,
           'srcfile'    : tmpTaskLdif,
           'destfile'   : taskLdif,
-          'remotehost' : mylocation }
+          'remotehost' : myLocation }
       </call>
 
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
-        { 'location'   : mylocation,
+        { 'location'   : myLocation,
           'taskLabel'  : 'Online Import Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1118,7 +1118,7 @@
       
       <!-- Check that the ldap task is completed -->
       <call function="'CheckLdapTask'">
-        { 'location'   : mylocation,
+        { 'location'   : myLocation,
           'dsTaskDn'   : taskDN,
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1214,7 +1214,8 @@
     
       <!-- Local variables -->
       <script>
-        mylocation=location
+        myLocation=location
+        myPath=dsPath
         myhost=dsHost
         myport=dsPort
         mydn=dsDn
@@ -1234,12 +1235,18 @@
         <sequence>
           <!-- StartDS -->
           <call function="'StartDsWithScript'">
-           { 'location'  : mylocation }
+           { 'location'  : myLocation,
+             'dsPath'    : myPath }
           </call>
           
           <!-- Wait for DS to start -->
           <call function="'isAlive'">
-            { 'location'         : mylocation,
+            { 'location'         : myLocation,
+              'dsPath'           : myPath,              
+              'dsInstanceHost'   : myhost ,
+              'dsInstancePort'   : myport ,
+              'dsInstanceDn'     : mydn ,
+              'dsInstancePswd'   : mypswd ,
               'noOfLoops'        : 5 ,
               'noOfMilliSeconds' : 2000 }
           </call>
@@ -1251,7 +1258,8 @@
       <iterate var="expectedEntry" in="expectedEntries">
         <sequence>
           <call function="'SearchObject'">
-            { 'location'       : mylocation ,
+            { 'location'       : myLocation ,
+              'dsPath'         : myPath,            
               'dsInstanceHost' : myhost ,
               'dsInstancePort' : myport ,
               'dsInstanceDn'   : mydn ,
@@ -1274,7 +1282,8 @@
             <break/>
           </if>
           <call function="'SearchObject'">
-           { 'location'       : mylocation ,
+           { 'location'       : myLocation ,
+             'dsPath'         : myPath,           
              'dsInstanceHost' : myhost ,
              'dsInstancePort' : myport ,
              'dsInstanceDn'   : mydn ,
@@ -1295,10 +1304,11 @@
       <if expr="stopDS == 'yes'">
         <!-- StopDS -->
         <call function="'StopDsWithScript'">
-           { 'location'       : mylocation ,
-             'dsHost' : myhost ,
-             'dsPort' : myport ,
-             'dsBindDN'   : mydn ,
+           { 'location'  : myLocation ,
+             'dsPath'    : myPath,           
+             'dsHost'    : myhost ,
+             'dsPort'    : myport ,
+             'dsBindDN'  : mydn ,
              'dsBindPwd' : mypswd }
         </call>  
       </if>
@@ -1503,7 +1513,7 @@
 
       <!-- Local variables -->
       <script>
-        mylocation=location
+        myLocation=location
         taskLdif='%s/../functional-tests/shared/data/export-task.ldif' % dsPath
         tmpTaskLdif='%s/export-task.ldif' % TMP_DATA_DIR
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -1562,12 +1572,12 @@
         { 'location'   : STAXServiceMachine,
           'srcfile'    : tmpTaskLdif,
           'destfile'   : taskLdif,
-          'remotehost' : mylocation }
+          'remotehost' : myLocation }
       </call>
 
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
-        { 'location'   : mylocation,
+        { 'location'   : myLocation,
           'taskLabel'  : 'Online Export Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1578,7 +1588,7 @@
       
       <!-- Check that the task is completed -->
       <call function="'CheckLdapTask'">
-        { 'location'   : mylocation,
+        { 'location'   : myLocation,
           'dsTaskDn'   : taskDN,
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1631,13 +1641,13 @@
     
       <!-- Local variables -->
       <script>
-        mylocation=location
+        myLocation=location
       </script>
       <message>
         'backup%s -n %s -d %s %s' % (fileExt,backEnd,backupDir,extraParams)
       </message>
       <process name="'Offline Backup'">
-        <location>'%s' % mylocation </location>
+        <location>'%s' % myLocation </location>
         <command>'%s/backup%s' % (dsBinPath,fileExt)</command>
         <parms>'-d %s -n %s %s' % (backupDir,backEnd,extraParams)</parms>
         <workdir>'%s' % dsBinPath</workdir>
@@ -1765,7 +1775,7 @@
     <sequence>
     
        <script>
-        mylocation=location
+        myLocation=location
         taskLdif='%s/../functional-tests/shared/data/backup-task.ldif' % dsPath
         tmpTaskLdif='%s/backup-task.ldif' % TMP_DATA_DIR
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -1812,12 +1822,12 @@
         { 'location'   : STAXServiceMachine,
           'srcfile'    : tmpTaskLdif,
           'destfile'   : taskLdif,
-          'remotehost' : mylocation }
+          'remotehost' : myLocation }
       </call>
 
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
-        { 'location'   : mylocation,
+        { 'location'   : myLocation,
           'taskLabel'  : 'Online Backup Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1828,7 +1838,7 @@
  
       <!-- Check that the ldap task is completed -->
       <call function="'CheckLdapTask'">
-        { 'location'   : mylocation,
+        { 'location'   : myLocation,
           'dsTaskDn'   : taskDN,
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1875,14 +1885,14 @@
     
       <!-- Local variables -->
       <script>
-        mylocation=location
+        myLocation=location
       </script>    
 
       <message>
         'restore%s -d %s %s' % (fileExt,backupDir,extraParams)
       </message>
       <process name="'Offline restore'">
-        <location>'%s' % mylocation </location>
+        <location>'%s' % myLocation </location>
         <command>'%s/restore%s' % (dsBinPath,fileExt)</command>
         <parms>'-d %s %s' % (backupDir,extraParams)</parms>
         <workdir>'%s' % dsBinPath</workdir>
@@ -1975,7 +1985,7 @@
     <sequence>
     
        <script>
-        mylocation=location
+        myLocation=location
         taskLdif='%s/../functional-tests/shared/data/restore-task.ldif' % dsPath
         tmpTaskLdif='%s/restore-task.ldif' % TMP_DATA_DIR
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -2014,12 +2024,12 @@
         { 'location'   : STAXServiceMachine,
           'srcfile'    : tmpTaskLdif,
           'destfile'   : taskLdif,
-          'remotehost' : mylocation }
+          'remotehost' : myLocation }
       </call>
 
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
-        { 'location'   : mylocation,
+        { 'location'   : myLocation,
           'taskLabel'  : 'Online Restore Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2030,7 +2040,7 @@
  
       <!-- Check that the ldap task is completed -->
       <call function="'CheckLdapTask'">
-        { 'location'   : mylocation,
+        { 'location'   : myLocation,
           'dsTaskDn'   : taskDN,
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2102,7 +2112,7 @@
       <sequence>
 
          <script>
-          mylocation=location
+          myLocation=location
           taskLdif='%s/../functional-tests/shared/data/schema-task.ldif' % dsPath
           tmpTaskLdif='%s/schema-task.ldif' % TMP_DATA_DIR
           taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
@@ -2138,21 +2148,21 @@
           { 'location'   : STAXServiceMachine,
             'srcfile'    : tmpTaskLdif,
             'destfile'   : taskLdif,
-            'remotehost' : mylocation }
+            'remotehost' : myLocation }
         </call>
         
         <!-- Copy the schema update ldif to remote host's config/schema directory -->
         <message>'Copy schema update ldif file.'</message>
         <call function="'copyFile'">
-          { 'location'   : mylocation,
+          { 'location'   : myLocation,
             'srcfile'    : '%s/schema/ldifs/%s' % (STAGED_DATA_DIR,ldifFile),
             'destfile'   : '%s/%s/config/schema/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,ldifFile),
-            'remotehost' : mylocation }
+            'remotehost' : myLocation }
         </call>
 
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
-        { 'location'   : mylocation,
+        { 'location'   : myLocation,
           'taskLabel'  : 'Online Schema Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2163,7 +2173,7 @@
  
       <!-- Check that the ldap task is completed -->
       <call function="'CheckLdapTask'">
-        { 'location'   : mylocation,
+        { 'location'   : myLocation,
           'dsTaskDn'   : taskDN,
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2173,6 +2183,185 @@
 
     </sequence>
   </function> 
+
+  <!-- Total Update Task Function --> 
+  <function name="TotalUpdateTask">
+
+    <function-prolog>
+        This function performs a total update of a replication domain
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server host name
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+      </function-arg-def>  
+      <function-arg-def name="taskID" type="optional">
+        <function-arg-description>
+          The identifier for the task
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="domainDN" type="required">
+        <function-arg-description>
+          The dn of the domain to be replicated
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="replicaServerID" type="required">
+        <function-arg-description>
+          The id of the replica server 
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>      
+    </function-map-args>
+
+    <sequence>
+
+      <script>
+        myLocation=location
+        myPath=dsPath
+        myDataFolder='shared/data/replication'
+        taskLdif='%s/../functional-tests/shared/data/totalupdate-task.ldif' % dsPath
+        tmpTaskLdif='%s/totalupdate-task.ldif' % TMP_DATA_DIR
+        taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
+      </script>
+      
+      <!-- Build the total update task configuration object -->
+      <script>
+        ldifLines=[]
+        ldifLines.append('dn: %s' % taskDN)
+        ldifLines.append('objectclass: top')
+        ldifLines.append('objectclass: ds-task')
+        ldifLines.append('objectclass: ds-task-initialize-from-remote-replica')
+        ldifLines.append('ds-task-class-name: org.opends.server.tasks.InitializeTask')
+        ldifLines.append('ds-task-id: %s' % taskID)
+        ldifLines.append('ds-task-initialize-domain-dn: %s' % domainDN)
+        ldifLines.append('ds-task-initialize-replica-server-id: %s' % replicaServerID)
+      </script>
+                 
+      <!-- Write out the totalupdate-task ldif -->
+      <script>
+        outfile = open(tmpTaskLdif,"w")
+          
+        for line in ldifLines:
+          outfile.write("%s\n" % line)
+          
+        outfile.close()
+      </script>
+      
+      <!-- Copy the totalupdate-task ldif to remote host -->
+      <message>'Copy totalupdate task ldif file.'</message>
+      <call function="'copyFile'">
+        { 'location'   : STAXServiceMachine,
+          'srcfile'    : tmpTaskLdif,
+          'destfile'   : taskLdif,
+          'remotehost' : myLocation }
+      </call>
+
+      <script>
+        STAXCode, STAXReason=STAXResult
+      </script>
+      
+      <if expr="STAXCode != 0">
+        <sequence>
+          <message>
+            'Copy of totalupdate task failed (STAXCode=%s)' % STAXCode
+          </message>
+          <return>[STAXCode, STAXReason]</return>
+        </sequence>
+      </if>
+      
+      <!-- Start the task using ldap task interface -->
+      <call function="'StartLdapTask'">
+        { 'location'   : myLocation,
+          'dsPath'     : myPath,
+          'taskLabel'  : 'Online Total Update Task',
+          'dsHost'     : dsInstanceHost,
+          'dsPort'     : dsInstancePort,
+          'dsBindDn'   : dsInstanceDn,
+          'dsBindPswd' : dsInstancePswd,
+          'dsTaskLdif' : taskLdif }
+      </call>
+
+      <script>
+        STAXCode, STAXReason=STAXResult
+      </script>
+      
+      <if expr="STAXCode != 0">
+        <sequence>
+          <message>
+            'Start of totalupdate task failed (Code=%s)' % STAXCode
+          </message>
+          <return>[STAXCode, STAXReason]</return>
+        </sequence>
+      </if>
+       
+      <!-- Check that the ldap task is completed -->
+      <call function="'CheckLdapTask'">
+        { 'location'   : myLocation,
+          'dsPath'     : myPath,        
+          'dsTaskDn'   : taskDN,
+          'dsHost'     : dsInstanceHost,
+          'dsPort'     : dsInstancePort,
+          'dsBindDn'   : dsInstanceDn,
+          'dsBindPswd' : dsInstancePswd }
+      </call>
+
+      <script>
+        STAXCode, STAXReason=STAXResult
+      </script>
+      
+      <if expr="STAXCode != 0">
+        <sequence>
+          <message>
+            'Check of totalupdate task failed (Code=%s)' % STAXCode
+          </message>
+          <return>[STAXCode, STAXReason]</return>
+        </sequence>
+      </if>
+
+      <script>
+        STAXCode=0
+        STAXReason='%s: Success' % STAXCurrentFunction
+      </script>
+      
+      <return>[STAXCode, STAXReason]</return>
+       
+    </sequence>
+    
+  </function>
 
   <function name="StartLdapTask">
     <function-prolog>
@@ -2233,7 +2422,7 @@
     
       <!-- Local variables -->
       <script>
-        mylocation=location
+        myLocation=location
       </script>
          
       <!-- Build the Modify Command -->
@@ -2268,7 +2457,7 @@
 
       <!-- Perform Task with ldapmodify -->
       <process name="'%s' % taskLabel">
-        <location>'%s' % mylocation</location>
+        <location>'%s' % myLocation</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
         <workdir>'%s' % dsBinPath</workdir>
@@ -2279,12 +2468,19 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
-
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
-      </call>
+ 
+      <script>
+        STAFCmdRC=RC
+        STAFCmdResult=STAXResult
+      </script>
       
+      <call function="'checkRC'">
+        { 'returncode' : STAFCmdRC ,
+          'result'     : STAFCmdResult }
+      </call>
+ 
+      <return>[STAFCmdRC, STAFCmdResult[0][1]]</return>
+           
     </sequence>
     
   </function>
@@ -2342,7 +2538,7 @@
 
       <!-- Local variables -->
       <script>
-        mylocation=location
+        myLocation=location
       </script>
           
       <script>
@@ -2376,17 +2572,21 @@
         
         dsAttribute='ds-task-state'
         STAFCmdParamsList.append('%s' % dsAttribute)
+
+        dsAttribute='ds-task-log-message'
+        STAFCmdParamsList.append('%s' % dsAttribute)        
            
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
 
       <script> 
-        searchre = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY') 
+        successPattern = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY')
+        stopErrPattern = re.compile('ds-task-state: STOPPED_BY_ERROR') 
       </script>
              
       <!-- Wait for the task to be COMPLETED_SUCCESSFULLY -->
       <script>taskRC=1</script>
-      <loop from="1" to="5" while="taskRC != 0">
+      <loop from="1" to="10" while="taskRC != 0">
         <sequence>
         
           <message>
@@ -2395,7 +2595,7 @@
 
           <!-- Search for task status -->
           <process name="'Search On line Import Task'">
-            <location>'%s' % mylocation</location>
+            <location>'%s' % myLocation</location>
             <command>'%s' % STAFCmd</command>
             <parms>'%s' % STAFCmdParams</parms>
             <workdir>'%s' % dsBinPath</workdir>
@@ -2407,38 +2607,46 @@
           </process>
           
           <script>
-            searchRC=RC
-            searchResult=STAXResult
+            STAFCmdRC=RC
+            STAFCmdResult=STAXResult
           </script>
-  
-          <script> 
-            result = STAXResult[0][1]
-          </script> 
-  
-          <if expr='re.search(searchre, result) != None'>
+            
+          <if expr='re.search(successPattern, STAFCmdResult[0][1]) != None'>
             <sequence>
               <script>taskRC=0</script>
               <message>
-                '%s' % searchResult
+                '%s' % STAFCmdResult
               </message>
+              <return>[taskRC, STAFCmdResult[0][1]]</return>
             </sequence>
+          <elseif expr='re.search(stopErrPattern, STAFCmdResult[0][1]) != None'>
+            <sequence>
+              <message level="'error'">
+                '%s' % STAFCmdResult
+              </message>                                      
+              <return>[taskRC, STAFCmdResult[0][1]]</return>
+            </sequence>                      
+          </elseif>  
           <else>
             <message level="'Warning'">
-              '%s' % searchResult
+              '%s' % STAFCmdResult
             </message>
           </else>
           </if>
           
           <call function="'checkRC'">
-              { 'returncode' : searchRC ,
-                'result'     : searchResult }
+              { 'returncode' : STAFCmdRC ,
+                'result'     : STAFCmdResult }
           </call>
         
           <call function="'Sleep'">
             { 'sleepForMilliSeconds' : '2000' }
           </call>
+          
         </sequence>
       </loop>
+      
+      <return>[taskRC, STAFCmdResult[0][1]]</return>
       
     </sequence>
     

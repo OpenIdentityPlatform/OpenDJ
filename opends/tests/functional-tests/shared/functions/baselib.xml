@@ -64,36 +64,45 @@
           'dsSystemInfo' : 'true' }
       </call>
 
-      <script>
-        DSInfo.SystemList=STAXResult[1].split('\n')
+      <if expr="RC != 0">
+        <message>
+          'Unable to obtain system information variables for %s %s.'  % (mylocation,mypath)
+        </message>                 
+      <else>
+        <script>
+          DSInfo.SystemList=STAXResult[1].split('\n')
+  
+          DSInfo.ServerDict['server version']= \
+            DSInfo.getServerVersion(DSInfo.SystemList[0])
+                    
+          for DSInfo.line in DSInfo.SystemList:
+            DSInfo.key=DSInfo.line[0:DSInfo.line.find(':')].strip()
+            DSInfo.value= \
+              DSInfo.line[DSInfo.line.find(':')+1:len(DSInfo.line)].strip()
+            DSInfo.SystemDict[DSInfo.key]=DSInfo.value
+  
+          DSInfo.ServerDict['server buildid']= \
+            DSInfo.getServerValueFromKey('Build ID',DSInfo.SystemDict)
+          DSInfo.ServerDict['java version']= \
+            DSInfo.getServerValueFromKey('Java Version',DSInfo.SystemDict)
+          DSInfo.ServerDict['java vendor']= \
+            DSInfo.getServerValueFromKey('Java Vendor',DSInfo.SystemDict)
+          DSInfo.ServerDict['jvm version']= \
+            DSInfo.getServerValueFromKey('JVM Version',DSInfo.SystemDict)
+          DSInfo.ServerDict['jvm vendor']= \
+            DSInfo.getServerValueFromKey('JVM Vendor',DSInfo.SystemDict)
+          DSInfo.ServerDict['system os']= \
+            DSInfo.getServerValueFromKey('Operating System',DSInfo.SystemDict)
+          DSInfo.ServerDict['system name']= \
+            DSInfo.getServerValueFromKey('System Name',DSInfo.SystemDict)
+          
+          DSInfoServersDict[dsPath]=DSInfo.ServerDict
+        </script>
+      
+      </else>
 
-        DSInfo.ServerDict['server version']= \
-          DSInfo.getServerVersion(DSInfo.SystemList[0])
-                  
-        for DSInfo.line in DSInfo.SystemList:
-          DSInfo.key=DSInfo.line[0:DSInfo.line.find(':')].strip()
-          DSInfo.value= \
-            DSInfo.line[DSInfo.line.find(':')+1:len(DSInfo.line)].strip()
-          DSInfo.SystemDict[DSInfo.key]=DSInfo.value
-
-        DSInfo.ServerDict['server buildid']= \
-          DSInfo.getServerValueFromKey('Build ID',DSInfo.SystemDict)
-        DSInfo.ServerDict['java version']= \
-          DSInfo.getServerValueFromKey('Java Version',DSInfo.SystemDict)
-        DSInfo.ServerDict['java vendor']= \
-          DSInfo.getServerValueFromKey('Java Vendor',DSInfo.SystemDict)
-        DSInfo.ServerDict['jvm version']= \
-          DSInfo.getServerValueFromKey('JVM Version',DSInfo.SystemDict)
-        DSInfo.ServerDict['jvm vendor']= \
-          DSInfo.getServerValueFromKey('JVM Vendor',DSInfo.SystemDict)
-        DSInfo.ServerDict['system os']= \
-          DSInfo.getServerValueFromKey('Operating System',DSInfo.SystemDict)
-        DSInfo.ServerDict['system name']= \
-          DSInfo.getServerValueFromKey('System Name',DSInfo.SystemDict)
-        
-        DSInfoServersDict[dsPath]=DSInfo.ServerDict
-      </script>
-
+      </if>
+      
       <!-- Obtain the secret variables for the system from start-ds -->
       <call function="'StartDsWithScript'">
         { 'location'    : mylocation,
@@ -101,30 +110,40 @@
           'dsBuildInfo' : 'true' }
       </call>
 
-      <script>
-        DSInfo.SystemList=STAXResult[1].split('\n')
-                  
-        for DSInfo.line in DSInfo.SystemList:
-          DSInfo.key=DSInfo.line[0:DSInfo.line.find(':')].strip()
-          DSInfo.value= \
-            DSInfo.line[DSInfo.line.find(':')+1:len(DSInfo.line)].strip()
-          DSInfo.SystemDict[DSInfo.key]=DSInfo.value
-
-        DSInfo.ServerDict['svn revision']= \
-          DSInfo.getServerValueFromKey('Revision Number',DSInfo.SystemDict)        
-        DSInfo.ServerDict['major version']= \
-          DSInfo.getServerValueFromKey('Major Version',DSInfo.SystemDict)
-        DSInfo.ServerDict['minor version']= \
-          DSInfo.getServerValueFromKey('Minor Version',DSInfo.SystemDict)
-        DSInfo.ServerDict['point version']= \
-          DSInfo.getServerValueFromKey('Point Version',DSInfo.SystemDict)
-        DSInfo.ServerDict['version qualifier']= \
-          DSInfo.getServerValueFromKey('Version Qualifier',DSInfo.SystemDict)
-        DSInfo.ServerDict['fix ids']= \
-          DSInfo.getServerValueFromKey('Fix IDs',DSInfo.SystemDict)
-        DSInfo.ServerDict['debug build']= \
-          DSInfo.getServerValueFromKey('Debug Build',DSInfo.SystemDict)            
-      </script>
+      <if expr="RC != 0">
+        <message>
+          'Unable to obtain build information variables for %s %s.'  % (mylocation,mypath)
+        </message>                 
+      <else>
+      
+        <script>
+          DSInfo.SystemList=STAXResult[1].split('\n')
+                    
+          for DSInfo.line in DSInfo.SystemList:
+            DSInfo.key=DSInfo.line[0:DSInfo.line.find(':')].strip()
+            DSInfo.value= \
+              DSInfo.line[DSInfo.line.find(':')+1:len(DSInfo.line)].strip()
+            DSInfo.SystemDict[DSInfo.key]=DSInfo.value
+  
+          DSInfo.ServerDict['svn revision']= \
+            DSInfo.getServerValueFromKey('Revision Number',DSInfo.SystemDict)        
+          DSInfo.ServerDict['major version']= \
+            DSInfo.getServerValueFromKey('Major Version',DSInfo.SystemDict)
+          DSInfo.ServerDict['minor version']= \
+            DSInfo.getServerValueFromKey('Minor Version',DSInfo.SystemDict)
+          DSInfo.ServerDict['point version']= \
+            DSInfo.getServerValueFromKey('Point Version',DSInfo.SystemDict)
+          DSInfo.ServerDict['version qualifier']= \
+            DSInfo.getServerValueFromKey('Version Qualifier',DSInfo.SystemDict)
+          DSInfo.ServerDict['fix ids']= \
+            DSInfo.getServerValueFromKey('Fix IDs',DSInfo.SystemDict)
+          DSInfo.ServerDict['debug build']= \
+            DSInfo.getServerValueFromKey('Debug Build',DSInfo.SystemDict)            
+        </script>
+      
+      </else>
+      
+      </if>
                           
     </sequence>
     
