@@ -261,7 +261,7 @@ public class DsServiceCliMain
       }
     }
     else
-    if (msgID != -1)
+    if (msgID != MSGID_ADMIN_NO_MESSAGE)
     {
       message = getMessage(MSGID_ADMIN_ERROR);
       message = message + getMessage(msgID);
