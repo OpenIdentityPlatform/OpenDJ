@@ -1032,7 +1032,7 @@ public abstract class Installer extends GuiApplication {
         getFormattedSuccess(
             getMsg("summary-install-finished-successfully", args)));
     hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,
-        getFormattedError(getMsg("summary-install-finished-with-error")));
+        getFormattedError(getMsg("summary-install-finished-with-error", args)));
   }
 
   /**
