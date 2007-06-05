@@ -75,7 +75,7 @@
               <call function="'ImportLdifWithScript'">
                 { 'location'     : server1.getHostname() ,
                   'dsPath'       : '%s/%s' % (server1.getDir(),OPENDSNAME),             
-                  'dsLdifFile'   : '%s/replication/Airius.ldif' % server1DataDir }
+                  'dsLdifFile'   : '%s/replication/Example.ldif' % server1DataDir }
               </call>
 
               <!-- Check some data was imported into Directory Server -->    
