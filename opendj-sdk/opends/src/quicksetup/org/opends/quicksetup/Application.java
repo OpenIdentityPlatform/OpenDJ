@@ -553,6 +553,21 @@ public abstract class Application implements ProgressNotifier, Runnable {
   abstract public void cancel();
 
   /**
+   * Makes available a <code>UserInteraction</code> class that can be used
+   * by the application to interact with the user.  If the user has requested
+   * a noninteractive session this method returns null.
+   * @return UserInteraction object
+   */
+  protected UserInteraction userInteraction() {
+    // Note:  overridden in GuiApplication
+    UserInteraction ui = null;
+    if (!getUserData().isNoninteractive()) {
+      ui = new CliUserInteraction();
+    }
+    return ui;
+  }
+
+  /**
    * This class is used to notify the ProgressUpdateListeners of events
    * that are written to the standard error.  It is used in WebStartInstaller
    * and in OfflineInstaller.  These classes just create a ErrorPrintStream and

@@ -29,11 +29,17 @@ package org.opends.quicksetup;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.server.util.args.ArgumentParser;
+import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.BooleanArgument;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Helper class containing useful methods for processing input and output
@@ -43,6 +49,22 @@ public class CliApplicationHelper {
 
   static private final Logger LOG =
           Logger.getLogger(CliApplication.class.getName());
+
+  /** Short form of the option for specifying a noninteractive session. */
+  static public final Character SILENT_OPTION_SHORT = 's';
+
+  /** Long form of the option for specifying a noninteractive session. */
+  static public final String SILENT_OPTION_LONG = "silent";
+
+  /** Short form of the option for specifying a noninteractive session. */
+  static public final Character NONINTERACTIVE_OPTION_SHORT = 'n';
+
+  /** Long form of the option for specifying a noninteractive session. */
+  static public final String NONINTERACTIVE_OPTION_LONG = "noninteractive";
+
+  private BooleanArgument noninteractiveArg = null;
+
+  private BooleanArgument silentArg = null;
 
   /**
    * Interactively prompts (on standard output) the user to provide a string
@@ -90,12 +112,23 @@ public class CliApplicationHelper {
 
   /**
    * Reads a line of text from standard input.
-   *
    * @return  The line of text read from standard input, or <CODE>null</CODE>
    *          if the end of the stream is reached or an error occurs while
    *          attempting to read the response.
    */
-  private String readLine()
+  public String readLine() {
+    return readLine(System.in, System.err);
+  }
+
+  /**
+   * Reads a line of text from standard input.
+   * @param   in InputSteam from which line will be read
+   * @param   err PrintSteam where any errors will be printed
+   * @return  The line of text read from standard input, or <CODE>null</CODE>
+   *          if the end of the stream is reached or an error occurs while
+   *          attempting to read the response.
+   */
+  public String readLine(InputStream in, PrintStream err)
   {
     try
     {
@@ -103,14 +136,14 @@ public class CliApplicationHelper {
 
       while (true)
       {
-        int b = System.in.read();
+        int b = in.read();
         if ((b < 0) || (b == '\n'))
         {
           break;
         }
         else if (b == '\r')
         {
-          int b2 = System.in.read();
+          int b2 = in.read();
           if (b2 == '\n')
           {
             break;
@@ -131,7 +164,7 @@ public class CliApplicationHelper {
     }
     catch (Exception e)
     {
-      System.err.println(getMsg("cli-uninstall-error-reading-stdin"));
+      err.println(getMsg("cli-uninstall-error-reading-stdin"));
 
       return null;
     }
@@ -188,6 +221,71 @@ public class CliApplicationHelper {
           QuickSetupCli.LINE_SEPARATOR+QuickSetupCli.LINE_SEPARATOR);
       throw new UserDataException(null, msg);
     }
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if this is a silent session and
+   * <CODE>false</CODE> otherwise.  This method relies on the a previous
+   * call to createArgumentParser having been made and the parser
+   * having been used to parse the arguments.
+   * @return <CODE>true</CODE> if this is a silent uninstall and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean isSilent() {
+    return silentArg != null && silentArg.isPresent();
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if this is a noninteractive sessions and
+   * <CODE>false</CODE> otherwise.  This method relies on the a previous
+   * call to createArgumentParser having been made and the parser
+   * having been used to parse the arguments.
+   * @return <CODE>true</CODE> if this is a noninteractive session and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean isNoninteractive() {
+    return noninteractiveArg != null && noninteractiveArg.isPresent();
+  }
+
+  /**
+   * Creates an argument parser having common arguments.
+   * @param mainClass class of the tool
+   * @param description localized description of the tool
+   * @param caseSensitive whether long args are case sensitive
+   * @return ArgumentParser ready for app specific customization
+   * @see org.opends.server.util.args.ArgumentParser#ArgumentParser(
+          String, String, boolean)
+   */
+  protected ArgumentParser createArgumentParser(String mainClass,
+                                                String description,
+                                                boolean caseSensitive) {
+
+    // Create the command-line argument parser for use with this program.
+    ArgumentParser argParser =
+         new ArgumentParser(mainClass, description, caseSensitive);
+
+    // Initialize all the common command-line argument types and register
+    // them with the parser.
+    try {
+      noninteractiveArg =
+           new BooleanArgument("noninteractive session",
+                   NONINTERACTIVE_OPTION_SHORT,
+                   NONINTERACTIVE_OPTION_LONG,
+                   0);
+      argParser.addArgument(noninteractiveArg);
+
+      silentArg =
+           new BooleanArgument("silent session",
+                   SILENT_OPTION_SHORT,
+                   SILENT_OPTION_LONG,
+                   0);
+      argParser.addArgument(silentArg);
+
+    } catch (ArgumentException e) {
+      LOG.log(Level.INFO, "error", e);
+    }
+
+    return argParser;
   }
 
   /**

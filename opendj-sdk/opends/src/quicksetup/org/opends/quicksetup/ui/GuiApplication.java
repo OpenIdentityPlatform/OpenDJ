@@ -30,6 +30,8 @@ package org.opends.quicksetup.ui;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.InProcessServerController;
+import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.webstart.WebStartDownloader;
 
 import javax.swing.*;
@@ -56,6 +58,9 @@ public abstract class GuiApplication extends Application {
 
   /** Downloads .jar files for webstart application. */
   protected WebStartDownloader loader;
+
+  /** The QuickSetupDialog in control. */
+  private QuickSetupDialog qs;
 
   /**
    * Constructs an instance of an application.  Subclasses
@@ -512,4 +517,26 @@ public abstract class GuiApplication extends Application {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  protected UserInteraction userInteraction() {
+    UserInteraction ui = null;
+    if (!getUserData().isNoninteractive()) {
+      if (Utils.isCli()) {
+        ui = new CliUserInteraction();
+      } else {
+        ui = new GuiUserInteraction(qs.getFrame());
+      }
+    }
+    return ui;
+  }
+
+  /**
+   * Sets the QuickSetupDialog driving this application.
+   * @param dialog QuickSetupDialog driving this application
+   */
+  public void setQuickSetupDialog(QuickSetupDialog dialog) {
+    this.qs = dialog;
+  }
 }
