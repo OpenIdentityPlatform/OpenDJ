@@ -52,10 +52,6 @@
         <request>'%s' % STAXRequest</request>
       </stafcmd>
 
-      <call function="'checkRC'">
-        { 'returncode' : RC , 'result' : STAFResult }
-      </call>
-
       <return>RC</return>
 
     </sequence>

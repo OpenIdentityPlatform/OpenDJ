@@ -38,9 +38,7 @@
         file="'%s/environment.xml' % (TESTS_FUNCTIONS_DIR)" />
       <call function="'loadEnvironment'" />  
 
-		
-		
-      <!--- The Functional Tests -->		
+      <!-- The Functional Tests -->
 		
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/security/security.xml' % (TESTS_DIR)" />
@@ -63,10 +61,8 @@
       <call function="'main_schema'" />
 
 	  <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-        file="'%s/testcases/synchronization/synchronization.xml' % (TESTS_DIR)" />
-      <call function="'main_synchronization'" />		
-
-			
+        file="'%s/testcases/replication/replication.xml' % (TESTS_DIR)" />
+      <call function="'main_replication'" />					
 
     </sequence>
   </function>

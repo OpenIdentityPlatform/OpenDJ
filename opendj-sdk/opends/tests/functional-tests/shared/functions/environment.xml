@@ -95,7 +95,7 @@
         sys.path.append("%s/python" % TESTS_SHARED_DIR )
         from common import *
         from security import *
-        from synchronization import *
+        from replication import *
       </script>     
 												
 		
@@ -243,7 +243,13 @@
         <call function="'deleteFolder'">
           { 'location'   : STAF_REMOTE_HOSTNAME ,
             'foldername' : '%s' % InstanceInstallDir }
-        </call> 
+        </call>
+        
+        <call function="'deleteFile'">
+          { 'location'   : STAF_REMOTE_HOSTNAME ,
+            'filename'   : '%s.zip' % InstanceInstallDir }
+        </call>
+                 
       </sequence>
     </catch>
 

@@ -134,13 +134,13 @@ class Server:
 
 
 
-# Define the function that writes a ldif file with the synchronization configuration
+# Define the function that writes a ldif file with the replication configuration
 # corresponding to the given server.
-def write_synchronization_conf_ldif_file(path, server):
+def write_replication_conf_ldif_file(path, server):
   
   ldifLines = []
 
-  # write the main synchronization configuration entry
+  # write the main replication configuration entry
   ldifLines.append('')
 	
   ldifLines.append('dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config')
@@ -172,7 +172,7 @@ def write_synchronization_conf_ldif_file(path, server):
     ldifLines.append('ds-cfg-replication-server-id: %s' % id)
 
 
-  # write the domains synchronization configuration entry
+  # write the domains replication configuration entry
   ldifLines.append('')
   ldifLines.append('dn: cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config')
   ldifLines.append('objectClass: top')
@@ -217,7 +217,7 @@ def write_synchronization_conf_ldif_file(path, server):
 
 # Define the function that writes a ldif file with the root suffix entry to add 
 # for a given suffix.
-def write_synchronization_add_root_suffix_ldif_file(path, suffix):
+def write_replication_add_root_suffix_ldif_file(path, suffix):
   
   ldifLines = []
   
@@ -255,7 +255,7 @@ def write_synchronization_add_root_suffix_ldif_file(path, suffix):
 
 # Define the function that writes a ldif file with an entry to add 
 # under a given suffix.
-def write_synchronization_add_single_ldif_file(path, suffix):
+def write_replication_add_single_ldif_file(path, suffix):
   
   ldifLines = []
   
@@ -293,41 +293,41 @@ def write_synchronization_add_single_ldif_file(path, suffix):
 
 # Define the function that writes a ldif file with the entries to add 
 # under a given suffix.
-def write_synchronization_add_multiple_ldif_file(path, suffix):
+def write_replication_add_multiple_ldif_file(path, suffix):
   
   ldifLines = []
 
-  ldifLines.append('dn: o=synchronization tests,%s' % suffix)
-  ldifLines.append('o: synchronization tests')
+  ldifLines.append('dn: o=replication tests,%s' % suffix)
+  ldifLines.append('o: replication tests')
   ldifLines.append('objectclass: top')
   ldifLines.append('objectclass: organization')
   ldifLines.append('')
-  ldifLines.append('dn: ou=People,o=synchronization tests,%s' % suffix)
+  ldifLines.append('dn: ou=People,o=replication tests,%s' % suffix)
   ldifLines.append('ou: People')
   ldifLines.append('objectclass: top')
   ldifLines.append('objectclass: organizationalunit')
   ldifLines.append('')
-  ldifLines.append('dn: ou=Groups, o=synchronization tests,%s' % suffix)
+  ldifLines.append('dn: ou=Groups, o=replication tests,%s' % suffix)
   ldifLines.append('objectclass: top')
   ldifLines.append('objectclass: organizationalunit')
   ldifLines.append('ou: Groups')
   ldifLines.append('')
-  ldifLines.append('dn: cn=Directory Administrators, ou=Groups, o=synchronization tests,%s' % suffix)
+  ldifLines.append('dn: cn=Directory Administrators, ou=Groups, o=replication tests,%s' % suffix)
   ldifLines.append('cn: Directory Administrators')
   ldifLines.append('objectclass: top')
   ldifLines.append('objectclass: groupofuniquenames')
   ldifLines.append('ou: Groups')
-  ldifLines.append('uniquemember: uid=kvaughan, ou=People, o=synchronization tests,%s' % suffix)
-  ldifLines.append('uniquemember: uid=rdaugherty, ou=People, o=synchronization tests,%s' % suffix)
-  ldifLines.append('uniquemember: uid=hmiller, ou=People, o=synchronization tests,%s' % suffix)
+  ldifLines.append('uniquemember: uid=kvaughan, ou=People, o=replication tests,%s' % suffix)
+  ldifLines.append('uniquemember: uid=rdaugherty, ou=People, o=replication tests,%s' % suffix)
+  ldifLines.append('uniquemember: uid=hmiller, ou=People, o=replication tests,%s' % suffix)
   ldifLines.append('')
-  ldifLines.append('dn: ou=Special Users,o=synchronization tests,%s' % suffix)
+  ldifLines.append('dn: ou=Special Users,o=replication tests,%s' % suffix)
   ldifLines.append('objectclass: top')
   ldifLines.append('objectclass: organizationalUnit')
   ldifLines.append('ou: Special Users')
   ldifLines.append('description: Special Administrative Accounts')
   ldifLines.append('')
-  ldifLines.append('dn: uid=scarter,ou=People,o=synchronization tests,%s' % suffix)
+  ldifLines.append('dn: uid=scarter,ou=People,o=replication tests,%s' % suffix)
   ldifLines.append('cn: Sam Carter')
   ldifLines.append('sn: Carter')
   ldifLines.append('givenname: Sam')
@@ -358,7 +358,7 @@ def write_synchronization_add_multiple_ldif_file(path, suffix):
 
 # Define the function that writes a ldif file with the modify to operate
 # on an entry in a given suffix.
-def write_synchronization_mod_ldif_file(path, dn, mod_type, attr_type, attr_value):
+def write_replication_mod_ldif_file(path, dn, mod_type, attr_type, attr_value):
   
   ldifLines = []
 

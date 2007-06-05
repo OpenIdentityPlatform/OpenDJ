@@ -70,7 +70,7 @@
         { 'returncode' : cmdRC ,
           'result'     : cmdResult }
       </call>
-      <return>cmdRC</return>
+      <return>[cmdRC,cmdResult]</return>
     </sequence>
   </function>
     
