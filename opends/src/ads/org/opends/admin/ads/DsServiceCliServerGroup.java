@@ -215,13 +215,17 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
   private SubCommand listMembershipSubCmd;
 
   /**
+   * Association between ADSContext enum and display field.
+   */
+  private HashMap<ServerGroupProperty, String> attributeDisplayName;
+
+  /**
    * {@inheritDoc}
    */
   public void initializeCliGroup(SubCommandArgumentParser argParser,
       BooleanArgument verboseArg)
       throws ArgumentException
   {
-    this.argParser = argParser ;
     this.verboseArg = verboseArg ;
 
     // Create-group subcommand
@@ -286,6 +290,14 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
     listMembershipSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.LIST_MEMBERSHIP.toString(), true, 1, 1,
         OPERAND_MEMBERID, MSGID_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION);
+
+    // Create association between ADSContext enum and display field
+    attributeDisplayName = new HashMap<ServerGroupProperty, String>();
+    attributeDisplayName.put(ServerGroupProperty.UID, OPTION_LONG_GROUPID);
+    attributeDisplayName.put(ServerGroupProperty.DESCRIPTION,
+        OPTION_LONG_DESCRIPTION);
+    attributeDisplayName.put(ServerGroupProperty.MEMBERS,
+        OPTION_LONG_MEMBERID);
   }
 
   /**
@@ -344,45 +356,102 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
       return ReturnCode.SUCCESSFUL;
     }
     // -----------------------
-    // list-group subcommand
+    // list-groups subcommand
     // -----------------------
     else if (subCmd.getName().equals(listGroupSubCmd.getName()))
     {
       Set<Map<ServerGroupProperty, Object>> result = adsContext
           .readServerGroupRegistry();
       StringBuffer buffer = new StringBuffer();
-      for (Map<ServerGroupProperty, Object> groupProps : result)
-      {
-        // Get the group name
-        buffer.append(ServerGroupProperty.UID.toString() + " ");
-        buffer.append(groupProps.get(ServerGroupProperty.UID));
-        buffer.append(EOL);
-        if (! verboseArg.isPresent())
-        {
-          continue;
-        }
 
-        // Write other props
-        for (ServerGroupProperty propName : groupProps.keySet())
+      // if not verbose mode, print group name (1 per line)
+      if (! verboseArg.isPresent())
+      {
+        for (Map<ServerGroupProperty, Object> groupProps : result)
         {
-          if ( propName.compareTo(ServerGroupProperty.UID) == 0)
+          // Get the group name
+          buffer.append(groupProps.get(ServerGroupProperty.UID));
+          buffer.append(EOL);
+        }
+      }
+      else
+      {
+        // Look for the max group identifier length
+        int uidLength = 0 ;
+        for (ServerGroupProperty sgp : ServerGroupProperty.values())
+        {
+          int cur = attributeDisplayName.get(sgp).toString().length();
+          if (cur > uidLength)
           {
-            continue;
+            uidLength = cur;
           }
-          buffer.append("  " + propName.toString() + " ");
-          if (propName.compareTo(ServerGroupProperty.MEMBERS) == 0)
+        }
+        uidLength++;
+
+        for (Map<ServerGroupProperty, Object> groupProps : result)
+        {
+          // Get the group name
+          buffer.append(attributeDisplayName.get(ServerGroupProperty.UID));
+          // add space
+          int curLen = attributeDisplayName.get(ServerGroupProperty.UID)
+              .length();
+          for (int i = curLen; i < uidLength; i++)
           {
-            Set atts = (Set)groupProps.get(propName);
-            Set<String> membersToPrint = new HashSet<String>(atts.size());
-            for (Object att : atts)
+            buffer.append(" ");
+          }
+          buffer.append(": ");
+          buffer.append(groupProps.get(ServerGroupProperty.UID));
+          buffer.append(EOL);
+
+          // Write other props
+          for (ServerGroupProperty propName : ServerGroupProperty.values())
+          {
+            if (propName.compareTo(ServerGroupProperty.UID) == 0)
             {
-              membersToPrint.add(att.toString().substring(3));
+              // We have already displayed the group Id
+              continue;
             }
-            buffer.append(membersToPrint);
-          }
-          else
-          {
-            buffer.append(groupProps.get(propName));
+            buffer.append(attributeDisplayName.get(propName));
+            // add space
+            curLen = attributeDisplayName.get(propName).length();
+            for (int i = curLen; i < uidLength; i++)
+            {
+              buffer.append(" ");
+            }
+            buffer.append(": ");
+
+            if (propName.compareTo(ServerGroupProperty.MEMBERS) == 0)
+            {
+              Set atts = (Set) groupProps.get(propName);
+              if (atts != null)
+              {
+                boolean indent = false;
+                for (Object att : atts)
+                {
+                  if (indent)
+                  {
+                    buffer.append(EOL);
+                    for (int i = 0; i < uidLength + 2; i++)
+                    {
+                      buffer.append(" ");
+                    }
+                  }
+                  else
+                  {
+                    indent = true;
+                  }
+                  buffer.append(att.toString().substring(3));
+                }
+              }
+            }
+            else
+            {
+              if (groupProps.get(propName) != null)
+              {
+                buffer.append(groupProps.get(propName));
+              }
+            }
+            buffer.append(EOL);
           }
           buffer.append(EOL);
         }
@@ -568,23 +637,23 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
         // look for memeber list attribute
         for (ServerGroupProperty propName : groupProps.keySet())
         {
-          if ( propName.compareTo(ServerGroupProperty.MEMBERS) != 0)
+          if (propName.compareTo(ServerGroupProperty.MEMBERS) != 0)
           {
             continue;
           }
           // Check if the member list contains the member-id
-            Set atts = (Set)groupProps.get(propName);
-            for (Object att : atts)
-            {
-              if (att.toString().substring(3).toLowerCase().equals(
+          Set atts = (Set) groupProps.get(propName);
+          for (Object att : atts)
+          {
+            if (att.toString().substring(3).toLowerCase().equals(
                 MemberId.toLowerCase()))
             {
               buffer.append(groupId);
               buffer.append(EOL);
               break;
             }
-            }
-            break ;
+          }
+          break;
         }
       }
       try
