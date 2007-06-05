@@ -60,7 +60,7 @@ public class GuiUserInteraction implements UserInteraction {
   public Object confirm(String summary, String details,
                         String title, MessageType type, String[] options,
                         String def) {
-    return confirm(summary, details, title, null, type, options, def, null);
+    return confirm(summary, details, null, title, type, options, def, null);
   }
 
   /**
