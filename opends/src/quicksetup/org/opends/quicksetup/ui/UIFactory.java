@@ -34,6 +34,8 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -834,6 +836,7 @@ public class UIFactory
   {
     JTextField f = new JTextField();
     updateTextFieldComponent(f, text, tooltip, size, style);
+    f.addFocusListener(new TextFieldFocusListener(f));
     return f;
   }
 
@@ -852,6 +855,7 @@ public class UIFactory
   {
     JPasswordField f = new JPasswordField();
     updateTextFieldComponent(f, text, tooltip, size, style);
+    f.addFocusListener(new TextFieldFocusListener(f));
     return f;
   }
 
@@ -1773,5 +1777,46 @@ class ProgressJEditorPane extends JEditorPane
       super.scrollRectToVisible(rect);
       ignoreScrollToVisible = false;
     }
+  }
+}
+
+/**
+ * A class used to be able to select the contents of the text field when
+ * it gets the focus.
+ *
+ */
+class TextFieldFocusListener implements FocusListener
+{
+  private JTextField tf;
+  /**
+   * The constructor for this listener.
+   * @param tf the text field associated with this listener.
+   */
+  TextFieldFocusListener(JTextField tf)
+  {
+    this.tf = tf;
+  }
+  /**
+   * {@inheritDoc}
+   */
+  public void focusGained(FocusEvent e)
+  {
+    if ((tf.getText() == null) || "".equals(tf.getText()))
+    {
+      tf.setText(" ");
+      tf.selectAll();
+      tf.setText("");
+    }
+    else
+    {
+      tf.selectAll();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void focusLost(FocusEvent e)
+  {
   }
 }
