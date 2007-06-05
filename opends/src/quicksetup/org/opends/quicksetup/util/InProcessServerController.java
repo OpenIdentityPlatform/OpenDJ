@@ -70,10 +70,6 @@ import java.io.IOException;
 /**
  * Class used to manipulate an OpenDS server in the same JVM process as
  * the client class.
- *
- * NOTE:  this class imports classes from the server packages.  You should
- * refer to the class using a fully qualified package name and insure that
- * that this class does not appear in any import statements.
  */
 public class InProcessServerController {
 
