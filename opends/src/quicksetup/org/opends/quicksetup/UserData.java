@@ -72,6 +72,10 @@ public class UserData
 
   private SuffixesToReplicateOptions suffixesToReplicateOptions;
 
+  private boolean silent;
+
+  private boolean noninteractive;
+
   /**
    * Creates a user data object with default values.
    */
@@ -384,6 +388,40 @@ public class UserData
   public void setSecurityOptions(SecurityOptions securityOptions)
   {
     this.securityOptions = securityOptions;
+  }
+
+  /**
+   * Sets whether or not this session should print messages to the
+   * console if in CLI mode.
+   * @param silent where true indicates this sesssion should be silent
+   */
+  public void setSilent(boolean silent) {
+    this.silent = silent;
+  }
+
+  /**
+   * Indicates whether or not the user has requested silent mode.
+   * @return boolean where true indicates this session should be silent.
+   */
+  public boolean isSilent() {
+    return this.silent;
+  }
+
+  /**
+   * Sets whether or not this session should solicite feedback from the user.
+   * @param noninteractive boolean where true indicates this application
+   *        should NOT solicite feedback from the user
+   */
+  public void setNoninteractive(boolean noninteractive) {
+    this.noninteractive = noninteractive;
+  }
+
+  /**
+   * Indicates whether or not the user has requested noninteractive mode.
+   * @return boolean where true indicates this session should be noninteractive
+   */
+  public boolean isNoninteractive() {
+    return this.noninteractive;
   }
 
   /**

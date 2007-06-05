@@ -521,6 +521,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       dialog = new QuickSetupDialog(application,
               installStatus, this);
       dialog.addButtonActionListener(this);
+      application.setQuickSetupDialog(dialog);
     }
     return dialog;
   }

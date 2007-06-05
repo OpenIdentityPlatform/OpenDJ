@@ -94,7 +94,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   public String getFormattedError(String text, boolean applyMargin)
   {
     String html;
-    if (!containsHtml(text)) {
+    if (!Utils.containsHtml(text)) {
       html = UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE)
           + SPACE
           + SPACE
@@ -127,7 +127,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   public String getFormattedWarning(String text, boolean applyMargin)
   {
     String html;
-    if (!containsHtml(text)) {
+    if (!Utils.containsHtml(text)) {
       html =
         UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE)
             + SPACE
@@ -620,10 +620,5 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     }
   }
 
-  private boolean containsHtml(String text) {
-    return (text != null &&
-            text.indexOf('<') != -1 &&
-            text.indexOf('>') != -1);
-  }
 }
 

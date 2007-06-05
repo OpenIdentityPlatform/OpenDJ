@@ -1265,9 +1265,31 @@ public class Utils
    * @return String representing the list
    */
   static public String listToString(List<?> list, String separator) {
+    return listToString(list, separator, null, null);
+  }
+
+  /**
+   * Creates a string consisting of the string representation of the
+   * elements in the <code>list</code> separated by <code>separator</code>.
+   * @param list the list to print
+   * @param separator to use in separating elements
+   * @param prefix prepended to each individual element in the list before
+   *        adding to the returned string.
+   * @param suffix appended to each individual element in the list before
+   *        adding to the returned string.
+   * @return String representing the list
+   */
+  static public String listToString(List<?> list, String separator,
+                                    String prefix, String suffix) {
     StringBuffer sb = new StringBuffer();
     for (int i = 0; i < list.size(); i++) {
+      if (prefix != null) {
+        sb.append(prefix);
+      }
       sb.append(list.get(i));
+      if (suffix != null) {
+        sb.append(suffix);
+      }
       if (i < list.size() - 1) {
         sb.append(separator);
       }
@@ -1363,6 +1385,46 @@ public class Utils
               getMsg("upgrade-build-id-unknown");
     }
     return b;
+  }
+
+  /**
+   * Inserts HTML break tags into <code>d</code> breaking it up
+   * so that no line is longer than <code>maxll</code>.
+   * @param d String to break
+   * @param maxll int maximum line length
+   * @return String representing <code>d</code> with HTML break
+   *         tags inserted
+   */
+  static public String breakHtmlString(String d, int maxll) {
+    // Primitive line wrapping
+    int len = d.length();
+    if (len <= 0)
+      return d;
+    if (len > maxll) {
+      int p = d.lastIndexOf(' ', maxll);
+      if (p <= 0)
+        p = d.indexOf(' ', maxll);
+      if (p > 0 && p < len) {
+        return d.substring(0, p) +
+                "<br>" +
+               breakHtmlString(d.substring(p + 1), maxll);
+      } else {
+        return d;
+      }
+    } else {
+      return d;
+    }
+  }
+
+  /**
+   * Tests a text string to see if it contains HTML.
+   * @param text String to test
+   * @return true if the string contains HTML
+   */
+  static public boolean containsHtml(String text) {
+    return (text != null &&
+            text.indexOf('<') != -1 &&
+            text.indexOf('>') != -1);
   }
 
 }

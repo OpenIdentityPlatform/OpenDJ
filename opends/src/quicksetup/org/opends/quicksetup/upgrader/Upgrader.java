@@ -40,6 +40,7 @@ import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.Step;
 import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.webstart.WebStartDownloader;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ZipExtractor;
@@ -573,7 +574,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
             || getCurrentProgressStep() ==
             UpgradeProgressStep.FINISHED_WITH_ERRORS
             || getCurrentProgressStep() ==
-            UpgradeProgressStep.FINISHED_WITH_WARNINGS;
+            UpgradeProgressStep.FINISHED_WITH_WARNINGS
+            || getCurrentProgressStep() ==
+            UpgradeProgressStep.FINISHED_CANCELED;
   }
 
   /**
@@ -946,19 +949,46 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 null, "ARTIFICIAL ERROR FOR TESTING ABORT PROCESS", null);
       }
 
-      try {
-        LOG.log(Level.INFO, "verifying upgrade");
-        setCurrentProgressStep(UpgradeProgressStep.VERIFYING);
-        verifyUpgrade();
-        notifyListeners(formatter.getFormattedDone() +
-                formatter.getLineBreak());
-        LOG.log(Level.INFO, "upgrade verification complete");
-      } catch (ApplicationException e) {
+      LOG.log(Level.INFO, "verifying upgrade");
+      setCurrentProgressStep(UpgradeProgressStep.VERIFYING);
+      Installation installation = getInstallation();
+      ServerHealthChecker healthChecker = new ServerHealthChecker(installation);
+      healthChecker.checkServer();
+      List<String> errors = healthChecker.getProblemMessages();
+      if (errors != null && errors.size() > 0) {
         notifyListeners(formatter.getFormattedError() +
                 formatter.getLineBreak());
-        LOG.log(Level.INFO, "Error verifying upgrade", e);
-        throw e;
+        String sep = System.getProperty("line.separator");
+        String formattedDetails =
+                Utils.listToString(errors, sep, /*bullet=*/"\u2022 ", "");
+        runWarning = new ApplicationException(
+                ApplicationException.Type.APPLICATION,
+              "Upgraded server failed verification test by signaling " +
+                      "errors during startup:" + sep +
+                      formattedDetails, null);
+        String cancel = "Cancel Upgrade";
+        UserInteraction ui = userInteraction();
+        if (ui == null || cancel.equals(ui.confirm(
+                  "Upgrade Verification Failed",
+                  "The upgraded server returned errors on startup.  Would " +
+                          "you like to cancel the upgrade?  If you cancel, " +
+                          "any changes made to the server by this upgrade " +
+                          "will be backed out.",
+                  formattedDetails,
+                  "Upgrade Error",
+                  UserInteraction.MessageType.ERROR,
+                  new String[] { "Continue", cancel },
+                  cancel, "View Error Details"))) {
+            cancel();
+            throw new ApplicationException(
+              ApplicationException.Type.APPLICATION,
+              "Upgrade canceled", null);
+        }
+      } else {
+        notifyListeners(formatter.getFormattedDone() +
+                formatter.getLineBreak());
       }
+      LOG.log(Level.INFO, "upgrade verification complete");
 
       // Leave the server in the state requested by the user via the
       // checkbox on the review panel.  The upgrade has already been
@@ -1102,17 +1132,22 @@ public class Upgrader extends GuiApplication implements CliApplication {
       } else if (runWarning != null) {
         LOG.log(Level.INFO, "upgrade completed with warnings");
         String warningText = runWarning.getLocalizedMessage();
+
+        // By design, the warnings are written as errors to the details section
+        // as errors.  Warning markup is used surrounding the main message
+        // at the end of progress.
         if (!Utils.isCli()) {
           notifyListenersOfLog();
           this.currentProgressStep = UpgradeProgressStep.FINISHED_WITH_WARNINGS;
-          notifyListeners(formatter.getFormattedWarning(warningText, true));
+          notifyListeners(formatter.getFormattedError(warningText, true));
         } else {
-          notifyListeners(formatter.getFormattedWarning(warningText, true) +
+          notifyListeners(formatter.getFormattedError(warningText, true) +
                           formatter.getLineBreak());
           notifyListeners(formatter.getLineBreak());
           setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_WARNINGS);
           notifyListeners(formatter.getLineBreak());
         }
+
       } else {
         LOG.log(Level.INFO, "upgrade completed successfully");
         if (!Utils.isCli()) {
@@ -1197,19 +1232,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
 
 
-  }
-
-  private void verifyUpgrade() throws ApplicationException {
-    Installation installation = getInstallation();
-    ServerHealthChecker healthChecker = new ServerHealthChecker(installation);
-    healthChecker.checkServer();
-    List<String> errors = healthChecker.getProblemMessages();
-    if (errors != null && errors.size() > 0) {
-      throw new ApplicationException(ApplicationException.Type.APPLICATION,
-              "Upgraded server failed verification test by signaling " +
-                      "errors during startup: " +
-                      Utils.listToString(errors, " "), null);
-    }
   }
 
   private void applyConfigurationCustomizations() throws ApplicationException {

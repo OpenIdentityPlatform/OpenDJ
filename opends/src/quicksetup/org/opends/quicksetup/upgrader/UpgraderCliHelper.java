@@ -68,7 +68,8 @@ public class UpgraderCliHelper extends CliApplicationHelper {
     ArgumentParser ap = createArgumentParser();
     try {
       ap.parseArguments(args);
-
+      uud.setSilent(isSilent());
+      uud.setNoninteractive(isNoninteractive());
       if (localInstallPackFileNameArg.isPresent()) {
         String localInstallPackFileName =
                 localInstallPackFileNameArg.getValue();
@@ -87,31 +88,27 @@ public class UpgraderCliHelper extends CliApplicationHelper {
       }
 
     } catch (ArgumentException e) {
-      e.printStackTrace(); // TODO remove
-      throw new UserDataException(null, "error parsing arguments");
+      throw new UserDataException(null, "Error parsing arguments");
     }
     return uud;
   }
 
   private ArgumentParser createArgumentParser() {
 
-    // Create the command-line argument parser for use with this program.
     String toolDescription = getMsg("upgrade-launcher-description");
-    ArgumentParser argParser =
-         new ArgumentParser("org.opends.quicksetup.upgrader.Upgrader",
-                 toolDescription,
-                 false);
+    ArgumentParser argParser = createArgumentParser(
+            "org.opends.quicksetup.upgrader.Upgrader",
+            toolDescription,
+            false);
 
-    // Initialize all the command-line argument types and register them with the
-    // parser.
-    // try {
+    // Initialize all the app specific command-line argument types
+    // and register them with the parser.
     try {
       localInstallPackFileNameArg =
-           new StringArgument("install package file",
-                   FILE_OPTION_SHORT, FILE_OPTION_LONG,
-                   false, true, "{install package file}", 0);
+              new StringArgument("install package file",
+                      FILE_OPTION_SHORT, FILE_OPTION_LONG,
+                      false, true, "{install package file}", 0);
       argParser.addArgument(localInstallPackFileNameArg);
-
     } catch (ArgumentException e) {
       LOG.log(Level.INFO, "error", e);
     }
