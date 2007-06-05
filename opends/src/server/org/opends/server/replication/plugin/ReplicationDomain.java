@@ -264,7 +264,6 @@ public class ReplicationDomain extends DirectoryThread
   private List<DN> branches = new ArrayList<DN>(0);
 
   private int listenerThreadNumber = 10;
-  private boolean receiveStatus = true;
 
   private Collection<String> replicationServers;
 
@@ -345,8 +344,6 @@ public class ReplicationDomain extends DirectoryThread
       synchronized (broker)
       {
         broker.start(replicationServers);
-        if (!receiveStatus)
-          broker.suspendReceive();
       }
 
       // Retrieves the related backend and its config entry
