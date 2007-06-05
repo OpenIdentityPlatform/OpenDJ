@@ -28,6 +28,7 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.BuildInformation;
+import org.opends.quicksetup.i18n.ResourceProvider;
 
 import java.util.StringTokenizer;
 import java.util.EnumSet;
@@ -270,27 +271,31 @@ public class HistoricalRecord {
    * {@inheritDoc}
    */
   public String toString() {
-    StringBuilder sb = new StringBuilder()
-    .append(OPERATION)
-    .append(operationId)
-    .append(SEPARATOR)
-    .append(TIME)
-    .append(new SimpleDateFormat(DATE_FORMAT).format(date))
-    .append(SEPARATOR)
-    .append(FROM)
-    .append(from.getBuildString())
-    .append(SEPARATOR)
-    .append(TO)
-    .append(to.getBuildString())
-    .append(SEPARATOR)
-    .append(STATUS)
-    .append(status);
+    StringBuilder sb = new StringBuilder();
+    sb.append(OPERATION);
+    sb.append(operationId != null ? operationId : getMsg("general-unset"));
+    sb.append(SEPARATOR);
+    sb.append(TIME);
+    sb.append(new SimpleDateFormat(DATE_FORMAT).format(date));
+    sb.append(SEPARATOR);
+    sb.append(FROM);
+    sb.append(from != null ? from.getBuildString() : getMsg("general-unset"));
+    sb.append(SEPARATOR);
+    sb.append(TO);
+    sb.append(to != null ? to.getBuildString() : getMsg("general-unset"));
+    sb.append(SEPARATOR);
+    sb.append(STATUS);
+    sb.append(status);
     if (note != null) {
       sb.append(SEPARATOR)
       .append(NOTE)
       .append(note);
     }
     return sb.toString();
+  }
+
+  private String getMsg(String key) {
+    return ResourceProvider.getInstance().getMsg(key);
   }
 
 }
