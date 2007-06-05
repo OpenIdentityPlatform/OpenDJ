@@ -1158,6 +1158,14 @@ public class JebMessages
       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 146;
 
   /**
+   * The message ID to use when we have failed to checksum db environment.
+   * This takes one argument which is the backend ID.
+   */
+  public static final int MSGID_JEB_BACKEND_CHECKSUM_FAIL =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 147;
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1466,8 +1474,9 @@ public class JebMessages
     registerMessage(MSGID_JEB_REBUILD_BACKEND_ONLINE,
                     "Rebuilding system index(es) must be done with the " +
                     "backend containing the base DN disabled");
-
-
+    registerMessage(MSGID_JEB_BACKEND_CHECKSUM_FAIL,
+                    "Failed to checksum the database environment for " +
+                    "backend %s");
     registerMessage(MSGID_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY,
                     "Unable to examine the entry with ID %s for sorting " +
                     "purposes:  %s");

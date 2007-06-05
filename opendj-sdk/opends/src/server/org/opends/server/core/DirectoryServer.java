@@ -540,6 +540,11 @@ public class DirectoryServer
   // The set of backends registered with the server.
   private TreeMap<String,Backend> backends;
 
+  // The mapping between backends and their unique indentifiers for their
+  // offline state, representing either checksum or other unique value to
+  // be used for detecting any offline modifications to a given backend.
+  private ConcurrentHashMap<String,Long> offlineBackendsStateIDs;
+
   // The set of supported controls registered with the Directory Server.
   private TreeSet<String> supportedControls;
 
@@ -662,6 +667,8 @@ public class DirectoryServer
     directoryServer.monitorProviders =
          new ConcurrentHashMap<String,MonitorProvider>();
     directoryServer.backends = new TreeMap<String,Backend>();
+    directoryServer.offlineBackendsStateIDs =
+         new ConcurrentHashMap<String,Long>();
     directoryServer.backendInitializationListeners =
          new CopyOnWriteArraySet<BackendInitializationListener>();
     directoryServer.baseDNs = new TreeMap<DN,Backend>();
@@ -1060,11 +1067,6 @@ public class DirectoryServer
       initializeAlertHandlers();
 
 
-      // Initialize the entry cache.
-      entryCacheConfigManager = new EntryCacheConfigManager();
-      entryCacheConfigManager.initializeEntryCache();
-
-
       // Initialize the key manager provider.
       keyManagerProviderConfigManager = new KeyManagerProviderConfigManager();
       keyManagerProviderConfigManager.initializeKeyManagerProviders();
@@ -1098,6 +1100,13 @@ public class DirectoryServer
 
       // Initialize all the backends and their associated suffixes.
       initializeBackends();
+
+      // Initialize the entry cache.
+      entryCacheConfigManager = new EntryCacheConfigManager();
+      entryCacheConfigManager.initializeEntryCache();
+
+      // Reset the map as we can no longer guarantee offline state.
+      directoryServer.offlineBackendsStateIDs.clear();
 
       // Register the supported controls and supported features.
       initializeSupportedControls();
@@ -6018,6 +6027,37 @@ public class DirectoryServer
 
 
   /**
+   * This method returns a map that contains a unique offline state id,
+   * such as checksum, for every server backend that has registered one.
+   *
+   * @return  <CODE>Map</CODE> backend to checksum map for offline state.
+   */
+  public static Map<String,Long> getOfflineBackendsStateIDs() {
+    return Collections.unmodifiableMap(directoryServer.offlineBackendsStateIDs);
+  }
+
+
+
+  /**
+   * This method allows any server backend to register its unique offline
+   * state, such as checksum, in a global map other server components can
+   * access to determine if any changes were made to given backend while
+   * offline.
+   *
+   * @param  backend  As returned by <CODE>getBackendID()</CODE> method.
+   *
+   * @param  id       Unique offline state identifier such as checksum.
+   */
+  public static void registerOfflineBackendStateID(String backend, long id) {
+    // Zero means failed checksum so just skip it.
+    if (id != 0) {
+      directoryServer.offlineBackendsStateIDs.put(backend, id);
+    }
+  }
+
+
+
+  /**
    * Retrieves the entire set of base DNs registered with the Directory Server,
    * mapped from the base DN to the backend responsible for that base DN.  The
    * same backend may be present multiple times, mapped from different base DNs.
@@ -8110,6 +8150,9 @@ public class DirectoryServer
         }
       }
     }
+
+    // Finalize the entry cache.
+    DirectoryServer.getEntryCache().finalizeEntryCache();
 
     // Release the exclusive lock for the Directory Server process.
     String lockFile = LockFileManager.getServerLockFileName();

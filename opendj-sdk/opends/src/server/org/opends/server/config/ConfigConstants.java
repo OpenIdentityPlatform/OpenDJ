@@ -766,6 +766,118 @@ public class ConfigConstants
   public static final int DEFAULT_FIFOCACHE_MAX_MEMORY_PCT = 90;
 
 
+  /**
+   * The name of the configuration attribute that contains a set of search
+   * filters to use to determine which entries should be excluded from the
+   * cache.
+   */
+  public static final String ATTR_FSCACHE_EXCLUDE_FILTER =
+       NAME_PREFIX_CFG + "exclude-filter";
+
+  /**
+   * The name of the configuration attribute that contains a set of search
+   * filters to use to determine which entries should be included in the cache.
+   */
+  public static final String ATTR_FSCACHE_INCLUDE_FILTER =
+       NAME_PREFIX_CFG + "include-filter";
+
+  /**
+   * The name of the configuration attribute that indicates the maximum length
+   * of time in milliseconds to spend trying to acquire a lock for an entry in
+   * the cache.
+   */
+  public static final String ATTR_FSCACHE_LOCK_TIMEOUT =
+       NAME_PREFIX_CFG + "lock-timeout";
+
+  /**
+   * The default value for the entry cache lockout timeout that will be used if
+   * no other value is specified.
+   */
+  public static final long DEFAULT_FSCACHE_LOCK_TIMEOUT = 2000L;
+
+  /**
+   * The name of the configuration attribute that indicates the maximum number
+   * of entries that the FIFO entry cache will be allowed to hold.
+   */
+  public static final String ATTR_FSCACHE_MAX_ENTRIES =
+       NAME_PREFIX_CFG + "max-entries";
+
+  /**
+   * The default value for the entry cache max entries that will be used if no
+   * other value is specified.
+   */
+  public static final long DEFAULT_FSCACHE_MAX_ENTRIES = Long.MAX_VALUE;
+
+  /**
+   * The name of the configuration attribute that indicates the maximum
+   * memory size of the FS entry cache.
+   */
+  public static final String ATTR_FSCACHE_MAX_MEMORY_SIZE =
+       NAME_PREFIX_CFG + "max-memory-size";
+
+  /**
+   * The name of the configuration attribute that specifies the entry cache JE
+   * environment home.
+   */
+  public static final String ATTR_FSCACHE_HOME =
+      NAME_PREFIX_CFG + "cache-directory";
+
+  /**
+   * The default value for the entry cache JE environment home that will be used
+   * if no other value is specified.
+   */
+  public static final String DEFAULT_FSCACHE_HOME = "/tmp/OpenDS.FSCache";
+
+  /**
+   * The name of the configuration attribute that indicates the maximum
+   * available space in bytes in the file system that JE cache will be
+   * allowed to consume.
+   */
+  public static final String ATTR_FSCACHE_JE_CACHE_SIZE =
+       NAME_PREFIX_CFG + "database-cache-size";
+
+  /**
+   * The default value for the JE cache size in bytes that will be used
+   * if no other value is specified.
+   */
+  public static final long DEFAULT_FSCACHE_JE_CACHE_SIZE = 0;
+
+  /**
+   * The name of the configuration attribute that indicates the maximum
+   * available memory percent that JE cache can consume.
+   */
+  public static final String ATTR_FSCACHE_JE_CACHE_PCT =
+       NAME_PREFIX_CFG + "database-cache-percent";
+
+  /**
+   * The default value for the JE cache size percent that will be used
+   * if no other value is specified.
+   */
+  public static final int DEFAULT_FSCACHE_JE_CACHE_PCT = 0;
+
+  /**
+   * The name of the configuration attribute that indicates whether
+   * file system entry cache is configured as persistent or not.
+   */
+  public static final String ATTR_FSCACHE_IS_PERSISTENT =
+       NAME_PREFIX_CFG + "persistent-cache";
+
+  /**
+   * The default value to indicate whether the cache is persistent or not.
+   */
+  public static final boolean DEFAULT_FSCACHE_IS_PERSISTENT = false;
+
+  /**
+   * The default value to indicate which cache type to use.
+   */
+  public static final String DEFAULT_FSCACHE_TYPE = "FIFO";
+
+  /**
+   * The name of the configuration attribute that indicates which
+   * cache type will be used.
+   */
+  public static final String ATTR_FSCACHE_TYPE =
+       NAME_PREFIX_CFG + "cache-type";
 
   /**
    * The name of the configuration attribute that specifies the fully-qualified
