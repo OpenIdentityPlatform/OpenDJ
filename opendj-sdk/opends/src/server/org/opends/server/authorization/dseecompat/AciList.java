@@ -27,15 +27,15 @@
 
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.server.messages.AciMessages.*;
+import org.opends.server.api.Backend;
+import static org.opends.server.authorization.dseecompat.AciHandler.aciType;
+import static org.opends.server.authorization.dseecompat.AciHandler.globalAciType;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.messages.AciMessages.MSGID_ACI_ADD_LIST_FAILED_DECODE;
 import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.server.types.*;
 
 import java.util.*;
-
-import static org.opends.server.authorization.dseecompat.AciHandler.*;
-import org.opends.server.types.*;
-import org.opends.server.api.Backend;
 
 /**
  * The AciList class performs caching of the ACI attribute values
@@ -135,9 +135,12 @@ public class AciList {
    * to check for global ACIs since they are processe by the AciHandler at
    * startup using the addACi single entry method.
    * @param entries The set of entries containing the "aci" attribute values.
+   * @param failedACIMsgs List that will hold error messages from ACI decode
+   *                      exceptions.
    * @return The number of valid ACI attribute values added to the ACI list.
    */
-  public synchronized int addAci(List<? extends Entry> entries)
+  public synchronized int addAci(List<? extends Entry> entries,
+                                 LinkedList<String> failedACIMsgs)
   {
     // Copy the ACI list.
     LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
@@ -147,7 +150,8 @@ public class AciList {
       DN dn=entry.getDN();
       List<Attribute> attributeList =
            entry.getOperationalAttribute(AciHandler.aciType);
-      validAcis += addAciAttributeList(aciCopy, dn, attributeList);
+      validAcis += addAciAttributeList(aciCopy, dn, configDN,
+                                       attributeList, failedACIMsgs);
     }
 
     // Replace the ACI list with the copy.
@@ -162,10 +166,13 @@ public class AciList {
    * @param hasAci True if the "aci" attribute type was seen in the entry.
    * @param hasGlobalAci True if the "ds-cfg-global-aci" attribute type was
    * seen in the entry.
+   * @param failedACIMsgs List that will hold error messages from ACI decode
+   *                      exceptions.
    * @return The number of valid ACI attribute values added to the ACI list.
    */
   public synchronized int addAci(Entry entry,  boolean hasAci,
-                                               boolean hasGlobalAci) {
+                                 boolean hasGlobalAci,
+                                 LinkedList<String> failedACIMsgs) {
     int validAcis=0;
 
     // Copy the ACI list.
@@ -175,12 +182,14 @@ public class AciList {
     //attributes are skipped.
     if(hasGlobalAci && entry.getDN().equals(configDN)) {
         List<Attribute> attributeList = entry.getAttribute(globalAciType);
-        validAcis = addAciAttributeList(aciCopy, DN.nullDN(), attributeList);
+        validAcis = addAciAttributeList(aciCopy, DN.nullDN(), configDN,
+                                        attributeList, failedACIMsgs);
     }
 
     if(hasAci) {
         List<Attribute> attributeList = entry.getAttribute(aciType);
-        validAcis += addAciAttributeList(aciCopy, entry.getDN(), attributeList);
+        validAcis += addAciAttributeList(aciCopy, entry.getDN(), configDN,
+                                         attributeList, failedACIMsgs);
     }
     // Replace the ACI list with the copy.
     aciList = aciCopy;
@@ -194,13 +203,18 @@ public class AciList {
    * returned of the number of valid ACIs added.
    * @param aciList The ACI list to which the ACI is to be added.
    * @param dn The DN to use as the key in the ACI list.
+   * @param configDN The DN of the configuration entry used to configure the
+   *                 ACI handler. Used if a global ACI has an decode exception.
    * @param attributeList List of attributes containing the ACI attribute
    * values.
+   * @param failedACIMsgs List that will hold error messages from ACI decode
+   *                      exceptions.
    * @return The number of valid attribute values added to the ACI list.
    */
-  private static int addAciAttributeList(
-       LinkedHashMap<DN,List<Aci>> aciList, DN dn,
-       List<Attribute> attributeList) {
+  private static int addAciAttributeList(LinkedHashMap<DN,List<Aci>> aciList,
+                                         DN dn, DN configDN,
+                                         List<Attribute> attributeList,
+                                         LinkedList<String> failedACIMsgs) {
 
     if (attributeList == null) {
       return 0;
@@ -215,19 +229,16 @@ public class AciList {
           acis.add(aci);
           validAcis++;
         } catch (AciException ex) {
-          /* An illegal ACI might have been loaded
-           * during import and is failing at ACI handler
-           * initialization time. Log a message and continue
-           * processing. ACIs added via LDAP add have their
-           * syntax checked before adding and should never
-           * hit this code.
-           */
           int    msgID  = MSGID_ACI_ADD_LIST_FAILED_DECODE;
-          String message = getMessage(msgID,
-                                      ex.getMessage());
-          logError(ErrorLogCategory.ACCESS_CONTROL,
-                   ErrorLogSeverity.INFORMATIONAL,
-                   message, msgID);
+          DN msgDN=dn;
+          if(dn == DN.nullDN()) {
+            msgDN=configDN;
+          }
+            String t=value.getValue().toString();
+          String message = getMessage(msgID, value.getValue().toString(),
+                                            String.valueOf(msgDN),
+                                            ex.getMessage());
+          failedACIMsgs.add(message);
         }
       }
     }
@@ -255,12 +266,14 @@ public class AciList {
 
       // Copy the ACI list.
       LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
+      LinkedList<String>failedACIMsgs=new LinkedList<String>();
       //Process "aci" attribute types.
       if(hasAci) {
           aciCopy.remove(oldEntry.getDN());
           List<Attribute> attributeList =
                   newEntry.getOperationalAttribute(aciType);
-          addAciAttributeList(aciCopy,newEntry.getDN(),attributeList);
+          addAciAttributeList(aciCopy,newEntry.getDN(), configDN,
+                              attributeList, failedACIMsgs);
       }
       //Process global "ds-cfg-global-aci" attribute type. The oldentry
       //DN is checked to verify it is equal to the config DN. If not those
@@ -269,7 +282,8 @@ public class AciList {
           aciCopy.remove(DN.nullDN());
           List<Attribute> attributeList =
                   newEntry.getAttribute(globalAciType);
-          addAciAttributeList(aciCopy, DN.nullDN(), attributeList);
+          addAciAttributeList(aciCopy, DN.nullDN(), configDN,
+                              attributeList, failedACIMsgs);
       }
       // Replace the ACI list with the copy.
       aciList = aciCopy;
@@ -376,8 +390,9 @@ public class AciList {
             //ACI with a new DN is being made. Log a message if it does and
             //keep going.
             int    msgID  = MSGID_ACI_ADD_LIST_FAILED_DECODE;
-            String message = getMessage(msgID,
-                    ex.getMessage());
+            String message = getMessage(msgID, aci.toString(),
+                                        String.valueOf(relocateDN),
+                                        ex.getMessage());
             logError(ErrorLogCategory.ACCESS_CONTROL,
                     ErrorLogSeverity.INFORMATIONAL,
                     message, msgID);

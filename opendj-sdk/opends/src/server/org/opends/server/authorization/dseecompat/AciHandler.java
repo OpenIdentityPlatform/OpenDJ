@@ -29,21 +29,22 @@ package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
-import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
 import org.opends.server.core.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import org.opends.server.types.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.config.ConfigConstants.*;
-import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import static org.opends.server.schema.SchemaConstants.*;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_DN_OID;
+import org.opends.server.types.*;
 import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -52,18 +53,25 @@ import java.util.concurrent.locks.Lock;
  * The AciHandler class performs the main processing for the
  * dseecompat package.
  */
-public class AciHandler extends AccessControlHandler
-{
+public class AciHandler extends AccessControlHandler {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
+
     /*
      * The list that holds that ACIs keyed by the DN of the entry
-      * holding the ACI.
+     * holding the ACI.
      */
     private AciList aciList;
+
+    /*
+     * The listener that handles ACI changes caused by LDAP operations, ACI
+     * decode failure alert logging and backend initialization ACI list
+     * adjustment.
+     */
+    private AciListenerManager aciListenerMgr;
 
     /**
      * Attribute type corresponding to "aci" attribute.
@@ -95,21 +103,15 @@ public class AciHandler extends AccessControlHandler
      */
      public static String ALL_ATTRS_MATCHED = "allAttrsMatched";
 
-
     /**
      * This constructor instantiates the ACI handler class that performs the
      * main processing for the dseecompat ACI package. It does the following
      * initializations:
      *
+     *
      *  - Instantiates the ACI list cache.
      *
-     *  - Instantiates and registers the change notification listener that is
-     *    used to manage the ACI list cache after ACI modifications have been
-     *    performed.
-     *
-     *  - Instantiates and registers the backend initialization listener that is
-     *    used to manage the ACI list cache when backends are
-     *    initialized/finalized.
+     *  - Instantiates thr AciListenerManager.
      *
      *  - Processes all global attribute types found in the configuration entry
      *    and adds them to the ACI list cache.
@@ -124,11 +126,9 @@ public class AciHandler extends AccessControlHandler
     */
     public AciHandler(DseeCompatAccessControlHandlerCfg configuration)
     throws InitializationException  {
-        aciList = new AciList(configuration.dn());
-        AciListenerManager aciListenerMgr =
-            new AciListenerManager(aciList);
-        DirectoryServer.registerChangeNotificationListener(aciListenerMgr);
-        DirectoryServer.registerBackendInitializationListener(aciListenerMgr);
+        DN configurationDN=configuration.dn();
+        aciList = new AciList(configurationDN);
+        aciListenerMgr = new AciListenerManager(aciList, configurationDN);
         if((aciType = DirectoryServer.getAttributeType("aci")) == null)
             aciType = DirectoryServer.getDefaultAttributeType("aci");
         if((globalAciType =
@@ -143,7 +143,9 @@ public class AciHandler extends AccessControlHandler
      * Process all global ACI attribute types found in the configuration
      * entry and adds them to that ACI list cache. It also logs messages about
      * the number of ACI attribute types added to the cache. This method is
-     * called once at startup.
+     * called once at startup.  It also will put the server into  lockdown
+     * mode if needed.
+     *
      * @param configuration   The config handler containing the ACI
      *  configuration information.
      * @throws InitializationException If there is an error reading
@@ -153,6 +155,7 @@ public class AciHandler extends AccessControlHandler
         DseeCompatAccessControlHandlerCfg configuration)
     throws InitializationException {
         int msgID;
+        LinkedList<String>failedACIMsgs=new LinkedList<String>();
         SortedSet<String> globalAci = configuration.getGlobalACI();
         try {
             if (globalAci != null)   {
@@ -167,7 +170,9 @@ public class AciHandler extends AccessControlHandler
                         attVals);
                 Entry e = new Entry(configuration.dn(), null, null, null);
                 e.addAttribute(attr, new ArrayList<AttributeValue>());
-                int aciCount =  aciList.addAci(e, false, true);
+                int aciCount =  aciList.addAci(e, false, true, failedACIMsgs);
+                if(!failedACIMsgs.isEmpty())
+                    aciListenerMgr.logMsgsSetLockDownMode(failedACIMsgs);
                 msgID  = MSGID_ACI_ADD_LIST_GLOBAL_ACIS;
                 String message = getMessage(msgID, Integer.toString(aciCount));
                 logError(ErrorLogCategory.ACCESS_CONTROL,
@@ -194,7 +199,9 @@ public class AciHandler extends AccessControlHandler
     /**
      * Process all ACIs under the "cn=config" naming context and adds them to
      * the ACI list cache. It also logs messages about the number of ACIs added
-     * to the cache. This method is called once at startup.
+     * to the cache. This method is called once at startup.  It will put the
+     * server in lockdown mode if needed.
+     *
      * @throws InitializationException If there is an error searching for
      * the ACIs in the naming context.
      */
@@ -204,6 +211,7 @@ public class AciHandler extends AccessControlHandler
             DN configDN=DN.decode("cn=config");
             LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
             attrs.add("aci");
+            LinkedList<String>failedACIMsgs=new LinkedList<String>();
             InternalClientConnection conn =
                     InternalClientConnection.getRootConnection();
             InternalSearchOperation op = conn.processSearch(configDN,
@@ -216,7 +224,10 @@ public class AciHandler extends AccessControlHandler
                 logError(ErrorLogCategory.ACCESS_CONTROL,
                         ErrorLogSeverity.INFORMATIONAL, message, msgID);
             } else {
-                int validAcis = aciList.addAci(op.getSearchEntries());
+                int validAcis =
+                           aciList.addAci(op.getSearchEntries(), failedACIMsgs);
+                if(!failedACIMsgs.isEmpty())
+                    aciListenerMgr.logMsgsSetLockDownMode(failedACIMsgs);
                 int    msgID  = MSGID_ACI_ADD_LIST_ACIS;
                 String message = getMessage(msgID, Integer.toString(validAcis),
                         String.valueOf(configDN));
@@ -230,6 +241,7 @@ public class AciHandler extends AccessControlHandler
             throw new InitializationException(msgID, message, e);
         }
     }
+
 
     /**
      * Checks to see if a LDAP modification is allowed access.
@@ -372,7 +384,7 @@ public class AciHandler extends AccessControlHandler
      * @return  True if access is allowed.
      */
     private boolean testApplicableLists(AciEvalContext evalCtx) {
-        EnumEvalResult res=EnumEvalResult.FALSE;
+        EnumEvalResult res;
         evalCtx.setEvalReason(EnumEvalReason.NO_REASON);
         LinkedList<Aci>denys=evalCtx.getDenyList();
         LinkedList<Aci>allows=evalCtx.getAllowList();
