@@ -263,63 +263,67 @@ public class UIFactory
   /**
    * Specifies the default background color.
    */
-  public static final Color DEFAULT_BACKGROUND = new Color(236, 236, 236);
+  public static final Color DEFAULT_BACKGROUND =
+    getColor("default-background-color");
 
   /**
    * Specifies the current step background color.
    */
   public static final Color CURRENT_STEP_PANEL_BACKGROUND =
-    Color.WHITE;
+    getColor("current-step-panel-background-color");
 
   /**
    * Specifies the default label color.
    */
-  public static final Color DEFAULT_LABEL_COLOR = Color.BLACK;
+  public static final Color DEFAULT_LABEL_COLOR =
+    getColor("default-label-color");
 
   /**
    * Specifies the valid field color.
    */
-  public static final Color FIELD_VALID_COLOR = Color.BLACK;
+  public static final Color FIELD_VALID_COLOR = getColor("field-valid-color");
 
   /**
    * Specifies the invalid field color.
    */
-  public static final Color FIELD_INVALID_COLOR = Color.RED;
+  public static final Color FIELD_INVALID_COLOR =
+    getColor("field-invalid-color");
 
   /**
    * Specifies the read only text color.
    */
-  public static final Color READ_ONLY_COLOR = Color.BLACK;
+  public static final Color READ_ONLY_COLOR = getColor("read-only-color");
 
   /**
    * Specifies the check box text color.
    */
-  public static final Color CHECKBOX_COLOR = Color.BLACK;
+  public static final Color CHECKBOX_COLOR = getColor("checkbox-color");
 
   /**
    * Specifies the progress text color.
    */
-  public static final Color PROGRESS_COLOR = Color.BLACK;
+  public static final Color PROGRESS_COLOR = getColor("progress-color");
 
   /**
    * Specifies the instructions text color.
    */
-  public static final Color INSTRUCTIONS_COLOR = Color.BLACK;
+  public static final Color INSTRUCTIONS_COLOR = getColor("instructions-color");
 
   /**
    * Specifies the text field text color.
    */
-  public static final Color TEXTFIELD_COLOR = Color.BLACK;
+  public static final Color TEXTFIELD_COLOR = getColor("textfield-color");
 
   /**
    * Specifies the password field text color.
    */
-  public static final Color PASSWORD_FIELD_COLOR = Color.BLACK;
+  public static final Color PASSWORDFIELD_COLOR =
+    getColor("passwordfield-color");
 
   /**
    * Specifies the panel border color.
    */
-  public static final Color PANEL_BORDER_COLOR = new Color(204, 204, 204);
+  public static final Color PANEL_BORDER_COLOR = getColor("panel-border-color");
 
   /**
    * Specifies the current step panel border.
@@ -331,7 +335,8 @@ public class UIFactory
    * Specifies the text area border.
    */
   public static final Border TEXT_AREA_BORDER =
-    BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK);
+    BorderFactory.createMatteBorder(1, 1, 1, 1,
+        getColor("text-area-border-color"));
 
   /**
    * Specifies the dialog border.
@@ -478,34 +483,44 @@ public class UIFactory
   private static final String DIV_CLOSE = "</div>";
 
   private static final String DIV_OPEN_ERROR_BACKGROUND =
-      "<div style=\"color:#000;background-color:#FFFFCC;"
-          + "padding:10px 10px 10px 10px;"
-          + "border-style:solid;border-width:3px;border-color:#E1E1A7;"
-          + "vertical-align:middle;text-align:left\">";
+    "<div style=\"color:#"+
+    getMsg("div-open-error-background-1-color")+
+    ";background-color:#"+
+    getMsg("div-open-error-background-2-color")+
+    ";padding:10px 10px 10px 10px;"+
+    "border-style:solid;border-width:3px;border-color:#"+
+    getMsg("div-open-error-background-3-color")+
+    ";vertical-align:middle;text-align:left\">";
 
   private static final String DIV_OPEN_WARNING_BACKGROUND =
       DIV_OPEN_ERROR_BACKGROUND;
 
   private static final String DIV_OPEN_SUCCESSFUL_BACKGROUND =
-      "<div style=\"color:#000;background-color:#FFFFCC;"
-          + "padding:10px 10px 10px 10px;"
-          + "border-style:solid;border-width:3px;border-color:#E1E1A7;"
-          + "vertical-align:middle;text-align:left\">";
+    "<div style=\"color:#"+
+    getMsg("div-open-successful-background-1-color")+
+    ";background-color:#"+
+    getMsg("div-open-successful-background-2-color")+
+    ";padding:10px 10px 10px 10px;"+
+    "border-style:solid;border-width:3px;border-color:#"+
+    getMsg("div-open-successful-background-3-color")+
+    ";vertical-align:middle;text-align:left\">";
 
   /**
    * An HTML separator text that can be used in the progress panel.
    */
   public static final String HTML_SEPARATOR =
-      "<div style=\"font-size:1px;background-color:#666666;"
-          + "margin:10px 5px 10px 5px;\"></div>";
+    "<div style=\"font-size:1px;background-color:#"+
+    getMsg("html-separator-color")+
+    ";margin:10px 5px 10px 5px;\"></div>";
 
   private static final HashMap<IconType, ImageIcon> hmIcons =
       new HashMap<IconType, ImageIcon>();
 
   static {
-    UIManager.put("OptionPane.background",Color.WHITE);
-    UIManager.put("Panel.background",Color.WHITE);
-    UIManager.put("ComboBox.background", Color.WHITE);
+    UIManager.put("OptionPane.background",
+        getColor("optionpane-background-color"));
+    UIManager.put("Panel.background", getColor("panel-background-color"));
+    UIManager.put("ComboBox.background", getColor("combobox-background-color"));
   }
 
   /**
@@ -1004,7 +1019,7 @@ public class UIFactory
 
     case PASSWORD_FIELD:
       l.setFont(UIFactory.PASSWORD_FIELD_FONT);
-      l.setForeground(PASSWORD_FIELD_COLOR);
+      l.setForeground(PASSWORDFIELD_COLOR);
       break;
 
     case NO_STYLE:
@@ -1375,6 +1390,20 @@ public class UIFactory
   private static String getMsg(String key)
   {
     return getI18n().getMsg(key);
+  }
+
+  private static Color getColor(String l)
+  {
+    String s = getMsg(l);
+    int r = 0;
+    int g = 0;
+    int b = 0;
+    String[] colors = s.split(",");
+    r = Integer.parseInt(colors[0].trim());
+    g = Integer.parseInt(colors[1].trim());
+    b = Integer.parseInt(colors[2].trim());
+
+    return new Color(r, g, b);
   }
 
   /**
