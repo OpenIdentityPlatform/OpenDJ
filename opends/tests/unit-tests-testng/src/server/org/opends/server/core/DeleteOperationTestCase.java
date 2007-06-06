@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import org.testng.annotations.BeforeClass;
@@ -39,6 +40,7 @@ import org.testng.annotations.AfterMethod;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
+import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
@@ -1128,6 +1130,34 @@ responseLoop:
 
     assertEquals(changeListener.getDeleteCount(), 0);
     DirectoryServer.deregisterChangeNotificationListener(changeListener);
+  }
+
+
+
+  /**
+   * Tests the behavior of the server when short-circuiting out of a delete
+   * operation in the pre-parse phase with a success result code.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testShortCircuitInPreParse()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    List<Control> controls =
+         ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
+
+    DeleteOperation deleteOperation =
+         new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+                             controls, new ASN1OctetString("o=test"));
+    deleteOperation.run();
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
   }
 }
 

@@ -40,6 +40,7 @@ import org.testng.annotations.AfterMethod;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
+import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -4501,6 +4502,40 @@ responseLoop:
     };
 
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the server when short-circuiting out of a modify
+   * operation in the pre-parse phase with a success result code.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testShortCircuitInPreParse()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    List<Control> controls =
+         ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
+
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    mods.add(RawModification.create(ModificationType.REPLACE, "description",
+                                    "foo"));
+
+    ModifyOperation modifyOperation =
+         new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+                             controls, new ASN1OctetString("o=test"), mods);
+    modifyOperation.run();
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
+    assertFalse(DirectoryServer.getEntry(DN.decode("o=test")).hasAttribute(
+                     DirectoryServer.getAttributeType("description", true)));
   }
 }
 
