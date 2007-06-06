@@ -2284,7 +2284,7 @@ public class FileSystemEntryCache
   * This inner class exist solely to override <CODE>removeEldestEntry()</CODE>
   * method of the LinkedHashMap.
   *
-  * @see  java.util.LinkedHashMap<K,V>
+  * @see  java.util.LinkedHashMap
   */
   private class LinkedHashMapRotator<K,V> extends LinkedHashMap<K,V> {
 
