@@ -30,6 +30,7 @@ package org.opends.server.authorization.dseecompat;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.Backend;
+import org.opends.server.api.AlertGenerator;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
@@ -42,8 +43,12 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.server.core.DirectoryServer;
+import static org.opends.server.util.ServerConstants.*;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.LinkedList;
+import java.util.LinkedHashMap;
 
 /**
  * The AciListenerManager updates an ACI list after each
@@ -51,12 +56,30 @@ import java.util.List;
  * and finalized.
  */
 public class AciListenerManager
-        implements ChangeNotificationListener, BackendInitializationListener {
+        implements ChangeNotificationListener, BackendInitializationListener,
+                   AlertGenerator {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
+
+    /**
+     * The fully-qualified name of this class.
+     */
+    private static final String CLASS_NAME =
+         "org.opends.server.authorization.dseecompat.AciListenerManager";
+
+    /*
+     *  The configuration DN.
+     */
+    private DN configurationDN;
+
+
+    /*
+     *  True if the server is in lockdown mode.
+     */
+    private boolean inLockDownMode=false;
 
     /*
      * The AciList caches the ACIs.
@@ -87,11 +110,23 @@ public class AciListenerManager
     }
 
     /**
-     * Save the list created by the AciHandler routine.
+     * Save the list created by the AciHandler routine. Registers as an
+     * Alert Generator that can send alerts when the server is being put
+     * in lockdown  mode. Registers as backend initialization listener that is
+     * used to manage the ACI list cache when backends are
+     * initialized/finalized. Registers as a change notification listener that
+     * is used to manage the ACI list cache after ACI modifications have been
+     * performed.
+     *
      * @param aciList The list object created and loaded by the handler.
+     * @param cfgDN The DN of the access control configuration entry.
      */
-    public AciListenerManager(AciList aciList) {
+    public AciListenerManager(AciList aciList, DN cfgDN) {
         this.aciList=aciList;
+        this.configurationDN=cfgDN;
+        DirectoryServer.registerChangeNotificationListener(this);
+        DirectoryServer.registerBackendInitializationListener(this);
+        DirectoryServer.registerAlertGenerator(this);
     }
 
     /**
@@ -118,10 +153,13 @@ public class AciListenerManager
     public void handleAddOperation(PostResponseAddOperation addOperation,
                                    Entry entry) {
         boolean hasAci, hasGlobalAci=false;
+        //Ignore this list, the ACI syntax has already passed and it should be
+        //empty.
+        LinkedList<String>failedACIMsgs=new LinkedList<String>();
         //This entry might have both global and aci attribute types.
         if((hasAci=entry.hasOperationalAttribute(AciHandler.aciType)) ||
                 (hasGlobalAci=entry.hasAttribute(AciHandler.globalAciType)))
-            aciList.addAci(entry, hasAci, hasGlobalAci);
+            aciList.addAci(entry, hasAci, hasGlobalAci, failedACIMsgs);
     }
 
     /**
@@ -176,18 +214,18 @@ public class AciListenerManager
     public void performBackendInitializationProcessing(Backend backend) {
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
+      LinkedList<String>failedACIMsgs=new LinkedList<String>();
       for (DN baseDN : backend.getBaseDNs()) {
         try {
           if (! backend.entryExists(baseDN))  {
             continue;
           }
         } catch (Exception e) {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-          //TODO log message
-          continue;
+            if (debugEnabled())
+            {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+            continue;
         }
         InternalSearchOperation internalSearch =
              new InternalSearchOperation(
@@ -200,12 +238,11 @@ public class AciListenerManager
         try  {
           backend.search(internalSearch);
         } catch (Exception e) {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-          //TODO log message
-          continue;
+            if (debugEnabled())
+            {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+            continue;
         }
         if(internalSearch.getSearchEntries().isEmpty()) {
           int    msgID  = MSGID_ACI_ADD_LIST_NO_ACIS;
@@ -214,7 +251,9 @@ public class AciListenerManager
                    ErrorLogSeverity.INFORMATIONAL, message, msgID);
         } else {
           int validAcis = aciList.addAci(
-               internalSearch.getSearchEntries());
+               internalSearch.getSearchEntries(), failedACIMsgs);
+          if(!failedACIMsgs.isEmpty())
+                    logMsgsSetLockDownMode(failedACIMsgs);
           int    msgID  = MSGID_ACI_ADD_LIST_ACIS;
           String message = getMessage(msgID, Integer.toString(validAcis),
                                       String.valueOf(baseDN));
@@ -231,5 +270,93 @@ public class AciListenerManager
      */
     public void performBackendFinalizationProcessing(Backend backend) {
         aciList.removeAci(backend);
+    }
+
+
+
+    /**
+     * Retrieves the fully-qualified name of the Java class for this alert
+     * generator implementation.
+     *
+     * @return  The fully-qualified name of the Java class for this alert
+     *          generator implementation.
+     */
+    public String getClassName()
+    {
+        return CLASS_NAME;
+    }
+
+
+    /**
+     * Retrieves the DN of the configuration entry used to configure the
+     * handler.
+     *
+     * @return  The DN of the configuration entry containing the Access Control
+     *          configuration information.
+     */
+    public DN getComponentEntryDN()
+    {
+      return this.configurationDN;
+    }
+
+
+    /**
+     * Retrieves information about the set of alerts that this generator may
+     * produce.  The map returned should be between the notification type for a
+     * particular notification and the human-readable description for that
+     * notification.  This alert generator must not generate any alerts with
+     * types that are not contained in this list.
+     *
+     * @return  Information about the set of alerts that this generator may
+     *          produce.
+     */
+    public LinkedHashMap<String,String> getAlerts()
+    {
+        LinkedHashMap<String,String> alerts =
+                new LinkedHashMap<String,String>();
+        alerts.put(ALERT_TYPE_ACCESS_CONTROL_PARSE_FAILED,
+                ALERT_DESCRIPTION_ACCESS_CONTROL_PARSE_FAILED);
+        return alerts;
+
+    }
+
+    /**
+     * Log the exception messages from the failed ACI decode and then put the
+     * server in lockdown mode -- if needed.
+     *
+     * @param failedACIMsgs  List of exception messages from failed ACI decodes.
+     */
+    public  void logMsgsSetLockDownMode(LinkedList<String> failedACIMsgs) {
+        int msgID=MSGID_ACI_SERVER_DECODE_FAILED;
+        for(String msg : failedACIMsgs) {
+            String message=getMessage(msgID, msg);
+            logError(ErrorLogCategory.ACCESS_CONTROL,
+                    ErrorLogSeverity.SEVERE_ERROR,
+                    message, msgID);
+        }
+        if(!inLockDownMode)
+            setLockDownMode();
+    }
+
+
+    /**
+     * Send an MSGID_ACI_ENTER_LOCKDOWN_MODE alert notification and put the
+     * server in lockdown mode.
+     *
+     */
+    private void setLockDownMode() {
+        if(!inLockDownMode) {
+            inLockDownMode=true;
+            //Send ALERT_TYPE_ACCESS_CONTROL_PARSE_FAILED alert that
+            //lockdown is about to be entered.
+            int lockDownID=MSGID_ACI_ENTER_LOCKDOWN_MODE;
+            String lockDownMsg=getMessage(lockDownID);
+            DirectoryServer.sendAlertNotification(this,
+                    ALERT_TYPE_ACCESS_CONTROL_PARSE_FAILED,
+                    lockDownID, lockDownMsg );
+            //Enter lockdown mode.
+            DirectoryServer.setLockdownMode(true);
+
+        }
     }
 }

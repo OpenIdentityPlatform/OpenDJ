@@ -1557,6 +1557,30 @@ public class ServerConstants
 
 
   /**
+   * The description for the alert type that will be used for the alert
+   * notification generated if the dseecompat access control subsystem failed
+   * to parse one or more ACI rules when the server is first started or a
+   * backend is being initialized.
+   */
+  public static final String ALERT_DESCRIPTION_ACCESS_CONTROL_PARSE_FAILED =
+          "This alert type will be used to notify administrators if the  " +
+             "dseecompat access control subsystem failed to correctly parse " +
+             "one or more ACI rules when the server is first started.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if the dseecompat access control subsystem failed to parse
+   * one or more ACI rules when the server is first started or a backend
+   * is being initialized.
+   */
+  public static final String ALERT_TYPE_ACCESS_CONTROL_PARSE_FAILED =
+          "org.opends.server.authentiation.dseecompat.ACIParseFailed";
+
+
+
+  /**
    * The name of the default password storage scheme that will be used for new
    * passwords.
    */
