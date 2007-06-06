@@ -138,6 +138,355 @@
     
   </function>
 
+  <!-- ldapmodify Function With Script-->
+  <function name="ldapModifyWithScript">
+    <function-prolog>
+      This function performs an ldapmodify using the script
+    </function-prolog>  
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsAdd" type="optional">
+        <function-arg-description>
+          Continue processing even if there are errors
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsAssertionFilter" type="optional">
+        <function-arg-description>
+          Use the LDAP assertion control with the provided filter
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsContinueOnError" type="optional">
+        <function-arg-description>
+          Continue processing even if there are errors
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsReportAuthzID" type="optional">
+        <function-arg-description>
+          Use the authorization identity control
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsFilename" type="optional">
+        <function-arg-description>
+          Specifies the LDIF file containing the changes to apply
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsEncoding" type="optional">
+        <function-arg-description>
+          Use the specified character set for command-line input
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPasswordFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsControl" type="optional">
+        <function-arg-description>
+          Use a request control with the provided information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePath" type="optional">
+        <function-arg-description>
+          Certificate keystore path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePassword" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsDryRun" type="optional">
+        <function-arg-description>
+          Show what would be done but do not perform any operation
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsSaslOption" type="optional">
+        <function-arg-description>
+          SASL bind options
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+      <function-arg-def name="dsTrustStorePath" type="optional">
+        <function-arg-description>
+          Certificate trust store path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePassword" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseStartTLS" type="optional">
+        <function-arg-description>
+          Use StartTLS to secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSASLExternal" type="optional">
+        <function-arg-description>
+          Use the SASL EXTERNAL authentication mechanism
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSSL" type="optional">
+        <function-arg-description>
+          Use SSL for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustAll" type="optional">
+        <function-arg-description>
+          Trust all server SSL certificates
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsCertNickname" type="optional">
+        <function-arg-description>
+          Nickname of certificate for SSL client authentication
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsProxyAs" type="optional">
+        <function-arg-description>
+          Use the proxied authorization control with the given authorization ID
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsPreReadAttributes" type="optional">
+        <function-arg-description>
+          Use the LDAP ReadEntry pre-read control
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+      <function-arg-def name="dsPostReadAttributes" type="optional">
+        <function-arg-description>
+          Use the LDAP ReadEntry post-read control
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsLdapVersion" type="optional">
+        <function-arg-description>
+          LDAP protocol version number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsVerbose" type="optional">
+        <function-arg-description>
+          Use verbose mode
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory Server Host Name
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory Server Port Number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>                
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Directory Server Manager DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>     
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Directory Server Manager Password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapmodify%s' % (dsBinPath,fileExt)
+          
+        if dsAdd:
+          STAFCmdParamsList.append('-a')
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)                  
+          
+        if dsAssertionFilter:
+          STAFCmdParamsList.append('--assertionFilter "%s"' % dsAssertionFilter)
+          
+        if dsContinueOnError:
+          STAFCmdParamsList.append('-c')       
+         
+        if dsReportAuthzID:
+          STAFCmdParamsList.append('-E')
+         
+        if dsFilename:
+          STAFCmdParamsList.append('-f %s' % dsFilename) 
+  
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+           
+        if dsEncoding:
+          STAFCmdParamsList.append('-i %s' % dsEncoding)
+         
+        if dsBindPasswordFile:
+          STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
+         
+        if dsControl:
+          STAFCmdParamsList.append('-J %s' % dsControl)
+         
+        if dsKeyStorePath:
+          STAFCmdParamsList.append('-K %s' % dsKeyStorePath)
+                  
+        if dsCertNickname:
+          STAFCmdParamsList.append('-N %s' % dsCertNickname)
+          
+        if dsDryRun:
+          STAFCmdParamsList.append('-n')
+          
+        if dsSaslOption:
+          STAFCmdParamsList.append('-o %s' % dsSaslOption)
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort) 
+          
+        if dsTrustStorePath:
+          STAFCmdParamsList.append('-P %s' % dsTrustStorePath)
+          
+        if dsUseStartTLS:
+          STAFCmdParamsList.append('-q')
+          
+        if dsUseSASLExternal:
+          STAFCmdParamsList.append('-r')
+                    
+        if dsTrustStorePassword:
+          STAFCmdParamsList.append('--trustStorePassword %s' % dsTrustStorePassword)
+                             
+        if dsTrustStorePasswordFile:
+          STAFCmdParamsList.append('-U %s' % dsTrustStorePasswordFile) 
+        
+        if dsKeyStorePasswordFile:
+          STAFCmdParamsList.append('-u %s' % dsKeyStorePasswordFile)  
+                    
+        if dsVersion:
+          STAFCmdParamsList.append('--version')
+                              
+        if dsVerbose:
+          STAFCmdParamsList.append('-v')
+                            
+        if dsLdapVersion:
+          STAFCmdParamsList.append('-V %s' % dsLdapVersion)
+                                     
+        if dsKeyStorePassword:
+          STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
+          
+        if dsTrustAll:
+          STAFCmdParamsList.append('-X')
+                  
+        if dsProxyAs:
+          STAFCmdParamsList.append('-Y "%s"' % dsProxyAs)
+                          
+        if dsUseSSL:
+          STAFCmdParamsList.append('-Z')  
+          
+        if dsPreReadAttributes:
+          for attribute in dsPreReadAttributes:
+            STAFCmdParamsList.append('--preReadAttributes %s' % attribute)
+                      
+        if dsPostReadAttributes:
+          for attribute in dsPostReadAttributes:
+            STAFCmdParamsList.append('--postReadAttributes %s' % attribute)
+
+         
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+            
+      <process name="'LDAP Modify Script'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>         
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+            
+    </sequence>
+  </function>
+  
   <function name="modifyEntry">
     <function-prolog>
       This function modifies an entry in the Directory Server
@@ -249,6 +598,481 @@
     
   </function>
 
+  <!-- ldapsearch Function With Script-->
+  <function name="ldapSearchWithScript">
+    <function-prolog>
+      This function performs an ldapsearch using the script
+    </function-prolog>  
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsDereferencePolicy" type="optional">
+        <function-arg-description>
+          Specifies dereference alias policy
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTypesOnly" type="optional">
+        <function-arg-description>
+          Specifies to only include attribute type names
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsAssertionFilter" type="optional">
+        <function-arg-description>
+          Use the LDAP assertion control with the provided filter
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsContinueOnError" type="optional">
+        <function-arg-description>
+          Continue processing even if there are errors
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsPersistentSearch" type="optional">
+        <function-arg-description>
+          Use the persistent search control
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsCountEntries" type="optional">
+        <function-arg-description>
+          Count the number of entries returned by the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsReportAuthzID" type="optional">
+        <function-arg-description>
+          Use the authorization identity control
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsFilename" type="optional">
+        <function-arg-description>
+          File containing a list of search filter strings
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsEncoding" type="optional">
+        <function-arg-description>
+          Use the specified character set for command-line input
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPasswordFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsControl" type="optional">
+        <function-arg-description>
+          Use a request control with the provided information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePath" type="optional">
+        <function-arg-description>
+          Certificate keystore path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePassword" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTimeLimit" type="optional">
+        <function-arg-description>
+          Maximum length of time in seconds to allow for the search
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsMatchedValuesFilter" type="optional">
+        <function-arg-description>
+          Use the LDAP matched values control with the provided filter
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsDryRun" type="optional">
+        <function-arg-description>
+          Show what would be done but do not perform any operation
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsSaslOption" type="optional">
+        <function-arg-description>
+          SASL bind options
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+      <function-arg-def name="dsTrustStorePath" type="optional">
+        <function-arg-description>
+          Certificate trust store path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePassword" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseStartTLS" type="optional">
+        <function-arg-description>
+          Use StartTLS to secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSASLExternal" type="optional">
+        <function-arg-description>
+          Use the SASL EXTERNAL authentication mechanism
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSSL" type="optional">
+        <function-arg-description>
+          Use SSL for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustAll" type="optional">
+        <function-arg-description>
+          Trust all server SSL certificates
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsCertNickname" type="optional">
+        <function-arg-description>
+          Nickname of certificate for SSL client authentication
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsProxyAs" type="optional">
+        <function-arg-description>
+          Use the proxied authorization control with the given authorization ID
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsUsePasswordPolicyControl" type="optional">
+        <function-arg-description>
+          Use the password policy request control
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsSimplePageSize" type="optional">
+        <function-arg-description>
+          Use the simple paged results control with the given page size
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsSortOrder" type="optional">
+        <function-arg-description>
+          Sort the results using the provided sort order
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsVirtualListView" type="optional">
+        <function-arg-description>
+          Use the virtual list view control to retrieve the specified results page
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsGetEffectiveRightsAuthzid" type="optional">
+        <function-arg-description>
+          Use geteffectiverights control with the provided authzid
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsGetEffectiveRightsAttribute" type="optional">
+        <function-arg-description>
+          Specifies geteffectiverights control specific attribute list
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          LDAP protocol version number
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsSizeLimit" type="optional">
+        <function-arg-description>
+          Maximum number of entries to return from the search
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsDontWrap" type="optional">
+        <function-arg-description>
+          Do not wrap long lines
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVerbose" type="optional">
+        <function-arg-description>
+          Use verbose mode
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory Server Host Name
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory Server Port Number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>                
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Directory Server Manager DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>     
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Directory Server Manager Password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsScope" type="optional">
+        <function-arg-description>
+          The scope of the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>        
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          The baseDN for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsFilter" type="optional">
+        <function-arg-description>
+          The filter for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsAttributes" type="optional">
+        <function-arg-description>
+          Only return these attributes
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapsearch%s' % (dsBinPath,fileExt)
+
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)                  
+
+        if dsScope:
+          STAFCmdParamsList.append('-s %s' % dsScope)
+
+        if dsDereferencePolicy:
+          STAFCmdParamsList.append('-a %s' % dsDereferencePolicy)
+         
+        if dsTypesOnly:
+          STAFCmdParamsList.append('-A')
+          
+        if dsAssertionFilter:
+          STAFCmdParamsList.append('--assertionFilter "%s"' % dsAssertionFilter)
+        
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+          
+        if dsContinueOnError:
+          STAFCmdParamsList.append('-c')       
+          
+        if dsPersistentSearch:
+          STAFCmdParamsList.append('-C %s' % dsPersistentSearch)
+                 
+        if dsCountEntries:
+          STAFCmdParamsList.append('--countEntries')
+                    
+        if dsGetEffectiveRightsAttribute:
+          for attribute in dsGetEffectiveRightsAttribute:
+            STAFCmdParamsList.append('-e %s' % attribute)
+         
+        if dsReportAuthzID:
+          STAFCmdParamsList.append('-E')
+         
+        if dsFilename:
+          STAFCmdParamsList.append('-f %s' % dsFilename)
+                             
+        if dsGetEffectiveRightsAuthzid:
+          STAFCmdParamsList.append('-g %s' % dsGetEffectiveRightsAuthzid)
+                   
+        if dsVirtualListView:
+          STAFCmdParamsList.append('-G %s' % dsVirtualListView)
+  
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+           
+        if dsEncoding:
+          STAFCmdParamsList.append('-i %s' % dsEncoding)
+         
+        if dsBindPasswordFile:
+          STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
+         
+        if dsControl:
+          STAFCmdParamsList.append('-J %s' % dsControl)
+         
+        if dsKeyStorePath:
+          STAFCmdParamsList.append('-K %s' % dsKeyStorePath)
+          
+        if dsTimeLimit:
+          STAFCmdParamsList.append('-l %s' % dsTimeLimit)
+          
+        if dsMatchedValuesFilter:
+          STAFCmdParamsList.append('--matchedValuesFilter "%s"' % dsMatchedValuesFilter)
+          
+        if dsDryRun:
+          STAFCmdParamsList.append('-n')
+                            
+        if dsCertNickname:
+          STAFCmdParamsList.append('-N %s' % dsCertNickname)
+          
+        if dsSaslOption:
+          STAFCmdParamsList.append('-o %s' % dsSaslOption)
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort) 
+          
+        if dsTrustStorePath:
+          STAFCmdParamsList.append('-P %s' % dsTrustStorePath)
+          
+        if dsUseStartTLS:
+          STAFCmdParamsList.append('-q')
+          
+        if dsUseSASLExternal:
+          STAFCmdParamsList.append('-r')
+                                        
+        if dsSimplePageSize:
+          STAFCmdParamsList.append('--simplePageSize %s' % dsSimplePageSize)
+                                                  
+        if dsSortOrder:
+          STAFCmdParamsList.append('-S %s' % dsSortOrder)
+                    
+        if dsDontWrap:
+          STAFCmdParamsList.append('-T')
+                              
+        if dsTrustStorePassword:
+          STAFCmdParamsList.append('--trustStorePassword %s' % dsTrustStorePassword)
+                             
+        if dsTrustStorePasswordFile:
+          STAFCmdParamsList.append('-U %s' % dsTrustStorePasswordFile)
+                  
+        if dsKeyStorePasswordFile:
+          STAFCmdParamsList.append('-u %s' % dsKeyStorePasswordFile)
+                    
+        if dsUsePasswordPolicyControl:
+          STAFCmdParamsList.append('--usePasswordPolicyControl')
+                              
+        if dsVersion:
+          STAFCmdParamsList.append('-V %s' % dsVersion)
+                              
+        if dsVerbose:
+          STAFCmdParamsList.append('-v')
+                                               
+        if dsKeyStorePassword:
+          STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
+                      
+        if dsTrustAll:
+          STAFCmdParamsList.append('-X')
+                            
+        if dsProxyAs:
+          STAFCmdParamsList.append('-Y "%s"' % dsProxyAs)
+                  
+        if dsUseSSL:
+          STAFCmdParamsList.append('-Z')
+                                      
+        if dsSizeLimit:
+          STAFCmdParamsList.append('-z %s' % dsSizeLimit)
+                                              
+        if dsFilter:
+          STAFCmdParamsList.append('"%s"' % dsFilter)
+  
+        if dsAttributes:
+          for attribute in dsAttributes:
+            STAFCmdParamsList.append('%s' % attribute)
+
+         
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+            
+      <process name="'LDAP Search Script'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>         
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+            
+    </sequence>
+  </function>
+  
   <function name="SearchObject">
     <function-prolog>
       This function searches the Directory Server with optional arguments possible
@@ -553,6 +1377,317 @@
     </sequence>
   </function>
   
+    <!-- ldapdelete Function With Script-->
+  <function name="ldapDeleteWithScript">
+    <function-prolog>
+      This function performs an ldapdelete using the script
+    </function-prolog>  
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsContinueOnError" type="optional">
+        <function-arg-description>
+          Continue processing even if there are errors
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsFilename" type="optional">
+        <function-arg-description>
+          Specifies the LDIF file containing the changes to apply
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsEncoding" type="optional">
+        <function-arg-description>
+          Use the specified character set for command-line input
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPasswordFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsControl" type="optional">
+        <function-arg-description>
+          Use a request control with the provided information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePath" type="optional">
+        <function-arg-description>
+          Certificate keystore path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePassword" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsDryRun" type="optional">
+        <function-arg-description>
+          Show what would be done but do not perform any operation
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsSaslOption" type="optional">
+        <function-arg-description>
+          SASL bind options
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+      <function-arg-def name="dsTrustStorePath" type="optional">
+        <function-arg-description>
+          Certificate trust store path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePassword" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseStartTLS" type="optional">
+        <function-arg-description>
+          Use StartTLS to secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSASLExternal" type="optional">
+        <function-arg-description>
+          Use the SASL EXTERNAL authentication mechanism
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSSL" type="optional">
+        <function-arg-description>
+          Use SSL for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustAll" type="optional">
+        <function-arg-description>
+          Trust all server SSL certificates
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsCertNickname" type="optional">
+        <function-arg-description>
+          Nickname of certificate for SSL client authentication
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsLdapVersion" type="optional">
+        <function-arg-description>
+          LDAP protocol version number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsVerbose" type="optional">
+        <function-arg-description>
+          Use verbose mode
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsDeleteSubtree" type="optional">
+        <function-arg-description>
+          Delete the specified entry and all entries below it
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory Server Host Name
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory Server Port Number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>                
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Directory Server Manager DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>     
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Directory Server Manager Password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>         
+      <function-arg-def name="dsDn" type="optional">
+        <function-arg-description>
+          DNs of the entries to delete
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapdelete%s' % (dsBinPath,fileExt)
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)                  
+          
+        if dsContinueOnError:
+          STAFCmdParamsList.append('-c')       
+         
+        if dsFilename:
+          STAFCmdParamsList.append('-f %s' % dsFilename) 
+  
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+           
+        if dsEncoding:
+          STAFCmdParamsList.append('-i %s' % dsEncoding)
+         
+        if dsBindPasswordFile:
+          STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
+         
+        if dsControl:
+          STAFCmdParamsList.append('-J %s' % dsControl)
+         
+        if dsKeyStorePath:
+          STAFCmdParamsList.append('-K %s' % dsKeyStorePath)
+                            
+        if dsCertNickname:
+          STAFCmdParamsList.append('-N %s' % dsCertNickname)
+          
+        if dsDryRun:
+          STAFCmdParamsList.append('-n')
+          
+        if dsSaslOption:
+          STAFCmdParamsList.append('-o %s' % dsSaslOption)
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort) 
+          
+        if dsTrustStorePath:
+          STAFCmdParamsList.append('-P %s' % dsTrustStorePath)
+          
+        if dsUseStartTLS:
+          STAFCmdParamsList.append('-q')
+          
+        if dsUseSASLExternal:
+          STAFCmdParamsList.append('-r')
+                    
+        if dsTrustStorePassword:
+          STAFCmdParamsList.append('--trustStorePassword %s' % dsTrustStorePassword)
+                             
+        if dsTrustStorePasswordFile:
+          STAFCmdParamsList.append('-U %s' % dsTrustStorePasswordFile) 
+        
+        if dsKeyStorePasswordFile:
+          STAFCmdParamsList.append('-u %s' % dsKeyStorePasswordFile)  
+                    
+        if dsVersion:
+          STAFCmdParamsList.append('--version')
+                              
+        if dsVerbose:
+          STAFCmdParamsList.append('-v')
+                            
+        if dsLdapVersion:
+          STAFCmdParamsList.append('-V %s' % dsLdapVersion)
+                                     
+        if dsKeyStorePassword:
+          STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
+          
+        if dsTrustAll:
+          STAFCmdParamsList.append('-X')
+                  
+        if dsDeleteSubtree:
+          STAFCmdParamsList.append('-x')
+                          
+        if dsUseSSL:
+          STAFCmdParamsList.append('-Z')  
+          
+        if dsDn:
+          for dn in dsDn:
+            STAFCmdParamsList.append('"%s"' % dn)
+         
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+            
+      <process name="'LDAP Delete Script'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>         
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+            
+    </sequence>
+  </function>
+  
   <function name="DeleteEntry">
     <function-prolog>
       This function an entry in the Directory Server
@@ -665,6 +1800,326 @@
     
   </function>
 
+  <!-- ldapcompare Function With Script-->
+  <function name="ldapCompareWithScript">
+    <function-prolog>
+      This function performs an ldapcompare using the script
+    </function-prolog>  
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsAssertionFilter" type="optional">
+        <function-arg-description>
+          Use the LDAP assertion control with the provided filter
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsContinueOnError" type="optional">
+        <function-arg-description>
+          Continue processing even if there are errors
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsFilename" type="optional">
+        <function-arg-description>
+          Specifies the LDIF file containing the changes to apply
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsEncoding" type="optional">
+        <function-arg-description>
+          Use the specified character set for command-line input
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPasswordFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsControl" type="optional">
+        <function-arg-description>
+          Use a request control with the provided information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePath" type="optional">
+        <function-arg-description>
+          Certificate keystore path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePassword" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsDryRun" type="optional">
+        <function-arg-description>
+          Show what would be done but do not perform any operation
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsSaslOption" type="optional">
+        <function-arg-description>
+          SASL bind options
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+      <function-arg-def name="dsTrustStorePath" type="optional">
+        <function-arg-description>
+          Certificate trust store path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePassword" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseStartTLS" type="optional">
+        <function-arg-description>
+          Use StartTLS to secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSASLExternal" type="optional">
+        <function-arg-description>
+          Use the SASL EXTERNAL authentication mechanism
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSSL" type="optional">
+        <function-arg-description>
+          Use SSL for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustAll" type="optional">
+        <function-arg-description>
+          Trust all server SSL certificates
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsCertNickname" type="optional">
+        <function-arg-description>
+          Nickname of certificate for SSL client authentication
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsLdapVersion" type="optional">
+        <function-arg-description>
+          LDAP protocol version number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsVerbose" type="optional">
+        <function-arg-description>
+          Use verbose mode
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory Server Host Name
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory Server Port Number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>                
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Directory Server Manager DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>     
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Directory Server Manager Password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsAttributeValue" type="optional">
+        <function-arg-description>
+          Attribute:value assertion argument
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsDn" type="optional">
+        <function-arg-description>
+          DNs of the entries for with to perform the compare operations
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldapcompare%s' % (dsBinPath,fileExt)
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)                  
+          
+        if dsAssertionFilter:
+          STAFCmdParamsList.append('--assertionFilter "%s"' % dsAssertionFilter)
+          
+        if dsContinueOnError:
+          STAFCmdParamsList.append('-c')       
+         
+        if dsReportAuthzID:
+          STAFCmdParamsList.append('-E')
+         
+        if dsFilename:
+          STAFCmdParamsList.append('-f %s' % dsFilename) 
+  
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+           
+        if dsEncoding:
+          STAFCmdParamsList.append('-i %s' % dsEncoding)
+         
+        if dsBindPasswordFile:
+          STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
+         
+        if dsControl:
+          STAFCmdParamsList.append('-J %s' % dsControl)
+         
+        if dsKeyStorePath:
+          STAFCmdParamsList.append('-K %s' % dsKeyStorePath)
+                  
+        if dsCertNickname:
+          STAFCmdParamsList.append('-N %s' % dsCertNickname)
+          
+        if dsDryRun:
+          STAFCmdParamsList.append('-n')
+          
+        if dsSaslOption:
+          STAFCmdParamsList.append('-o %s' % dsSaslOption)
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort) 
+          
+        if dsTrustStorePath:
+          STAFCmdParamsList.append('-P %s' % dsTrustStorePath)
+          
+        if dsUseStartTLS:
+          STAFCmdParamsList.append('-q')
+          
+        if dsUseSASLExternal:
+          STAFCmdParamsList.append('-r')
+                    
+        if dsTrustStorePassword:
+          STAFCmdParamsList.append('--trustStorePassword %s' % dsTrustStorePassword)
+                             
+        if dsTrustStorePasswordFile:
+          STAFCmdParamsList.append('-U %s' % dsTrustStorePasswordFile) 
+        
+        if dsKeyStorePasswordFile:
+          STAFCmdParamsList.append('-u %s' % dsKeyStorePasswordFile)  
+                    
+        if dsVersion:
+          STAFCmdParamsList.append('--version')
+                              
+        if dsVerbose:
+          STAFCmdParamsList.append('-v')
+                            
+        if dsLdapVersion:
+          STAFCmdParamsList.append('-V %s' % dsLdapVersion)
+                                     
+        if dsKeyStorePassword:
+          STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
+          
+        if dsTrustAll:
+          STAFCmdParamsList.append('-X')
+                          
+        if dsUseSSL:
+          STAFCmdParamsList.append('-Z')
+          
+        if dsDn:
+          for dn in dsDn:
+            STAFCmdParamsList.append('"%s"' % dn)
+
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+            
+      <process name="'LDAP Compare Script'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>         
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+            
+    </sequence>
+  </function>
+  
   <function name="compareEntry">
     <function-prolog>
       This function compares the attribute and value an entry to the Directory Server
@@ -813,7 +2268,267 @@
               
   </function>
   
+  <!-- ldappasswordmodify Function With Script-->
+  <function name="ldapPasswordModifyWithScript">
+    <function-prolog>
+      This function performs an ldappasswordmodify using the script
+    </function-prolog>  
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPasswordFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePath" type="optional">
+        <function-arg-description>
+          Certificate keystore path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePassword" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePath" type="optional">
+        <function-arg-description>
+          Certificate trust store path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePassword" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseStartTLS" type="optional">
+        <function-arg-description>
+          Use StartTLS to secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSSL" type="optional">
+        <function-arg-description>
+          Use SSL for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustAll" type="optional">
+        <function-arg-description>
+          Trust all server SSL certificates
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsAuthzID" type="optional">
+        <function-arg-description>
+          Specifies the authorization ID for the user entry whose password should be changed
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def> 
+      <function-arg-def name="dsProvideDNForAuthzID" type="optional">
+        <function-arg-description>
+          Indicates that the bind DN should be used as the authorization ID for the password modify operation
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def> 
+      <function-arg-def name="dsCurrentPassword" type="optional">
+        <function-arg-description>
+          Specifies the current password for the target user
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsCurrentPasswordFile" type="optional">
+        <function-arg-description>
+          Specifies the path to a file containing the current password for the target user
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsNewPassword" type="optional">
+        <function-arg-description>
+          Specifies the new password for the target user
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsNewPasswordFile" type="optional">
+        <function-arg-description>
+          Specifies the path to a file containing the new password for the target user
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory Server Host Name
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory Server Port Number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>                
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Directory Server Manager DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>     
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Directory Server Manager Password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldappasswordmodify%s' % (dsBinPath,fileExt)
+          
+        if dsAuthzID:
+          STAFCmdParamsList.append('-a "%s"' % dsAuthzID)
+                    
+        if dsProvideDNForAuthzID:
+          STAFCmdParamsList.append('-A')
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)                  
+          
+        if dsAssertionFilter:
+          STAFCmdParamsList.append('--assertionFilter "%s' % dsAssertionFilter)
+          
+        if dsCurrentPassword:
+          STAFCmdParamsList.append('-c %s' % dsCurrentPassword)       
+                   
+        if dsCurrentPasswordFile:
+          STAFCmdParamsList.append('-C %s' % dsCurrentPasswordFile)
   
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+         
+        if dsBindPasswordFile:
+          STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
+         
+        if dsKeyStorePath:
+          STAFCmdParamsList.append('-K %s' % dsKeyStorePath)
+                           
+        if dsNewPassword:
+          STAFCmdParamsList.append('-n %s' % dsNewPassword)
+         
+        if dsNewPasswordFile:
+          STAFCmdParamsList.append('-N %s' % dsNewPasswordFile)
+          
+        if dsSaslOption:
+          STAFCmdParamsList.append('-o %s' % dsSaslOption)
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort) 
+          
+        if dsTrustStorePath:
+          STAFCmdParamsList.append('-P %s' % dsTrustStorePath)
+          
+        if dsUseStartTLS:
+          STAFCmdParamsList.append('-q')
+                    
+        if dsTrustStorePassword:
+          STAFCmdParamsList.append('--trustStorePassword %s' % dsTrustStorePassword)
+                             
+        if dsTrustStorePasswordFile:
+          STAFCmdParamsList.append('-U %s' % dsTrustStorePasswordFile) 
+        
+        if dsKeyStorePasswordFile:
+          STAFCmdParamsList.append('-u %s' % dsKeyStorePasswordFile)  
+                    
+        if dsVersion:
+          STAFCmdParamsList.append('-V')
+                                     
+        if dsKeyStorePassword:
+          STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
+          
+        if dsTrustAll:
+          STAFCmdParamsList.append('-X')
+                          
+        if dsUseSSL:
+          STAFCmdParamsList.append('-Z')  
+         
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+            
+      <process name="'LDAP Password Modify Script'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>         
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+            
+    </sequence>
+  </function>
   
 	<!-- Modify an attribut -->
   <function name="modifyAnAttribute">
