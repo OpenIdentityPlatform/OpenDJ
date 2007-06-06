@@ -2230,7 +2230,7 @@ addProcessing:
 
     // Notify any change notification listeners that might be registered with
     // the server.
-    if (getResultCode() == ResultCode.SUCCESS)
+    if ((getResultCode() == ResultCode.SUCCESS) && (entry != null))
     {
       for (ChangeNotificationListener changeListener :
            DirectoryServer.getChangeNotificationListeners())
@@ -2268,7 +2268,7 @@ addProcessing:
 
 
     // Notify any persistent searches that might be registered with the server.
-    if (getResultCode() == ResultCode.SUCCESS)
+    if ((getResultCode() == ResultCode.SUCCESS) && (entry != null))
     {
       for (PersistentSearch persistentSearch :
            DirectoryServer.getPersistentSearches())

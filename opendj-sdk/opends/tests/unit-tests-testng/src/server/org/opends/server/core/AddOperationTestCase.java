@@ -41,6 +41,7 @@ import org.testng.annotations.AfterMethod;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
+import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -2486,6 +2487,42 @@ responseLoop:
     };
 
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the behavior of the server when short-circuiting out of an add
+   * operation in the pre-parse phase with a success result code.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testShortCircuitInPreParse()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(false);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    List<Control> controls =
+         ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
+
+    ArrayList<ByteString> ocValues = new ArrayList<ByteString>();
+    ocValues.add(new ASN1OctetString("top"));
+    ocValues.add(new ASN1OctetString("organization"));
+
+    ArrayList<RawAttribute> rawAttrs = new ArrayList<RawAttribute>();
+    rawAttrs.add(RawAttribute.create("objectClass", ocValues));
+    rawAttrs.add(RawAttribute.create("o", "test"));
+
+    AddOperation addOperation =
+         new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+                          controls, new ASN1OctetString("o=test"), rawAttrs);
+    addOperation.run();
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertFalse(DirectoryServer.entryExists(DN.decode("o=test")));
   }
 }
 

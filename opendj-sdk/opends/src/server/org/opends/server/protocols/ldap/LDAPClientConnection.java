@@ -842,12 +842,12 @@ public class LDAPClientConnection
   /**
    * Sends the provided LDAP message to the client.
    *
-   * @param  securityProvider  The connection security provider to use to
-   *                           handle any necessary security translation.
-   * @param  message           The LDAP message to send to the client.
+   * @param  secProvider  The connection security provider to use to handle any
+   *                      necessary security translation.
+   * @param  message      The LDAP message to send to the client.
    */
-  private void sendLDAPMessage(ConnectionSecurityProvider secProvider,
-                               LDAPMessage message)
+  public void sendLDAPMessage(ConnectionSecurityProvider secProvider,
+                              LDAPMessage message)
   {
     ASN1Element messageElement = message.encode();
 
