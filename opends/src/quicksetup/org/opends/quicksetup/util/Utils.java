@@ -177,22 +177,26 @@ public class Utils
    */
   public static String getPath(File f)
   {
-    try
-    {
-      /*
-       * Do a best effort to avoid having a relative representation (for
-       * instance to avoid having ../../../).
-       */
-      File canonical = f.getCanonicalFile();
-      f = canonical;
+    String path = null;
+    if (f != null) {
+      try
+      {
+        /*
+         * Do a best effort to avoid having a relative representation (for
+         * instance to avoid having ../../../).
+         */
+        File canonical = f.getCanonicalFile();
+        f = canonical;
+      }
+      catch (IOException ioe)
+      {
+        /* This is a best effort to get the best possible representation of the
+         * file: reporting the error is not necessary.
+         */
+      }
+      path = f.toString();
     }
-    catch (IOException ioe)
-    {
-      /* This is a best effort to get the best possible representation of the
-       * file: reporting the error is not necessary.
-       */
-    }
-    return f.toString();
+    return path;
   }
 
   /**

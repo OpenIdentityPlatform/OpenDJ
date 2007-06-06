@@ -28,6 +28,7 @@
 package org.opends.quicksetup.util;
 
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
@@ -407,9 +408,8 @@ public class InProcessServerController {
             StringBuilder error = op.getErrorMessage();
             throw new ApplicationException(
                     ApplicationException.Type.IMPORT_ERROR,
-                    "error processing modification of '" +
-                            dnByteString + "': " +
-                            error != null ? error.toString() : "",
+                    getMsg("error-apply-ldif-modify", dnByteString.toString(),
+                            error != null ? error.toString() : ""),
                     null);
           }
           break;
@@ -431,9 +431,8 @@ public class InProcessServerController {
             StringBuilder error = addOp.getErrorMessage();
             throw new ApplicationException(
                     ApplicationException.Type.IMPORT_ERROR,
-                    "error processing add of '" +
-                            dnByteString + "': " +
-                            error != null ? error.toString() : "",
+                    getMsg("error-apply-ldif-add", dnByteString.toString(),
+                            error != null ? error.toString() : ""),
                     null);
           }
           break;
@@ -449,22 +448,21 @@ public class InProcessServerController {
             StringBuilder error = delOp.getErrorMessage();
             throw new ApplicationException(
                     ApplicationException.Type.IMPORT_ERROR,
-                    "error processing delete of '" +
-                            dnByteString + "': " +
-                            error != null ? error.toString() : "",
+                    getMsg("error-apply-ldif-delete", dnByteString.toString(),
+                            error != null ? error.toString() : ""),
                     null);
           }
           break;
         default:
-          throw new ApplicationException(
-                  ApplicationException.Type.IMPORT_ERROR,
-                  "unexpected change record type " + cre.getClass(),
+          LOG.log(Level.SEVERE, "Unexpected record type " + cre.getClass());
+          throw new ApplicationException(ApplicationException.Type.BUG,
+                  getMsg("bug-msg"),
                   null);
         }
       }
     } catch (Throwable t) {
       throw new ApplicationException(ApplicationException.Type.BUG,
-              t.getMessage(), t);
+              getMsg("bug-msg"), t);
     }
   }
 
@@ -517,6 +515,10 @@ public class InProcessServerController {
     DebugLogger.removeDebugLogPublisher(DN.NULL_DN);
     ErrorLogger.removeErrorLogPublisher(DN.NULL_DN);
     AccessLogger.removeAccessLogPublisher(DN.NULL_DN);
+  }
+
+  static private String getMsg(String key, String... args) {
+    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
 }

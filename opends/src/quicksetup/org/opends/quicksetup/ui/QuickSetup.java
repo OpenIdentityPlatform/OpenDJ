@@ -101,23 +101,17 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   public void initialize(String[] args)
   {
     ProgressMessageFormatter formatter = new HtmlProgressMessageFormatter();
-    try {
-      installStatus = new CurrentInstallStatus();
 
-      application = Application.create();
-      application.setProgressMessageFormatter(formatter);
-      application.setCurrentInstallStatus(installStatus);
+    installStatus = new CurrentInstallStatus();
 
-      initLookAndFeel();
+    application = Application.create();
+    application.setProgressMessageFormatter(formatter);
+    application.setCurrentInstallStatus(installStatus);
 
-      /* In the calls to setCurrentStep the dialog will be created */
-      setCurrentStep(application.getFirstWizardStep());
+    initLookAndFeel();
 
-    } catch (ApplicationException e) {
-      LOG.log(Level.INFO, "error", e);
-      throw new RuntimeException("failed to create quicksetup application", e);
-    }
-
+    /* In the calls to setCurrentStep the dialog will be created */
+    setCurrentStep(application.getFirstWizardStep());
   }
 
   /**

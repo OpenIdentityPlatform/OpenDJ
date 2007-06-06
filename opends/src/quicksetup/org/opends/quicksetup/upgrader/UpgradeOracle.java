@@ -87,7 +87,7 @@ public class UpgradeOracle {
    * @return String representing a localized message giving a summary of
    * this hypothetical operation.
    */
-  public String getSummaryMessage() {
+  public String getLocalizedSummaryMessage() {
     String msg;
     String[] args = { currentBuildInfo.toString(),
             currentBuildInfo.toString() };

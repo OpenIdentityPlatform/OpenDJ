@@ -101,7 +101,7 @@ public class BuildInformation implements Comparable {
       }
     } catch (IOException e) {
       throw new ApplicationException(ApplicationException.Type.START_ERROR,
-              "Error creating build info", e);
+              getMsg("error-creating-build-info"), e);
     } finally {
       if (is != null) {
         try {
@@ -353,10 +353,14 @@ public class BuildInformation implements Comparable {
     for (String prop : props) {
       if (null == values.get(prop)) {
         throw new ApplicationException(ApplicationException.Type.TOOL_ERROR,
-                "'" + prop + "' could not be determined", null);
+                getMsg("error-prop-value", prop), null);
       }
     }
 
+  }
+
+  static private String getMsg(String key, String... args) {
+    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
 }
