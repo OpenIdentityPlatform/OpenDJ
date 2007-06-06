@@ -29,6 +29,7 @@ package org.opends.quicksetup.util;
 
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.server.util.ServerConstants;
 
 import java.util.List;
@@ -85,7 +86,8 @@ public class ServerHealthChecker {
         throw (ApplicationException)e;
       } else {
         throw new ApplicationException(ApplicationException.Type.APPLICATION,
-                "Server health check failed: " + e.getLocalizedMessage(), e);
+                ResourceProvider.getInstance().getMsg(
+                        "error-server-health-check-failure"), e);
       }
     } finally {
       if (control != null) {

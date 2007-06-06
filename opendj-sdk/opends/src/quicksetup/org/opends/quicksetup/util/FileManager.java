@@ -530,7 +530,10 @@ public class FileManager {
       }
       if (!objectFile.renameTo(destination)) {
         throw ApplicationException.createFileSystemException(
-                "failed to move " + objectFile + " to " + destination, null);
+                getMsg("error-failed-moving-file",
+                        Utils.getPath(objectFile),
+                        Utils.getPath(destination)),
+                null);
       }
     }
   }

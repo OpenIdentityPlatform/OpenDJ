@@ -72,11 +72,11 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * denoted by the System property
    * <code>org.opends.quicksetup.Application.class</code>.
    * @return Application object that was newly instantiated
-   * @throws org.opends.quicksetup.ApplicationException if there was a problem
+   * @throws RuntimeException if there was a problem
    *  creating the new Application object
    */
   static public GuiApplication create()
-          throws ApplicationException {
+          throws RuntimeException {
     GuiApplication app;
     String appClassName =
             System.getProperty("org.opends.quicksetup.Application.class");
@@ -88,25 +88,25 @@ public abstract class Application implements ProgressNotifier, Runnable {
       } catch (ClassNotFoundException e) {
         LOG.log(Level.INFO, "error creating quicksetup application", e);
         String msg = "Application class " + appClass + " not found";
-        throw new ApplicationException(ApplicationException.Type.BUG, msg, e);
+        throw new RuntimeException(msg, e);
       } catch (IllegalAccessException e) {
         LOG.log(Level.INFO, "error creating quicksetup application", e);
         String msg = "Could not access class " + appClass;
-        throw new ApplicationException(ApplicationException.Type.BUG, msg, e);
+        throw new RuntimeException(msg, e);
       } catch (InstantiationException e) {
         LOG.log(Level.INFO, "error creating quicksetup application", e);
         String msg = "Error instantiating class " + appClass;
-        throw new ApplicationException(ApplicationException.Type.BUG, msg, e);
+        throw new RuntimeException(msg, e);
       } catch (ClassCastException e) {
         String msg = "The class indicated by the system property " +
                   "'org.opends.quicksetup.Application.class' must " +
                   " must be of type Application";
-        throw new ApplicationException(ApplicationException.Type.BUG, msg, e);
+        throw new RuntimeException(msg, e);
       }
     } else {
       String msg = "System property 'org.opends.quicksetup.Application.class'" +
                 " must specify class quicksetup application";
-      throw new ApplicationException(ApplicationException.Type.BUG, msg, null);
+      throw new RuntimeException(msg);
     }
     return app;
   }
@@ -565,6 +565,10 @@ public abstract class Application implements ProgressNotifier, Runnable {
       ui = new CliUserInteraction();
     }
     return ui;
+  }
+
+  static private String getMessage(String key, String... args) {
+    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
   /**

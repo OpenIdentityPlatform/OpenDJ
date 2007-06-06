@@ -162,9 +162,9 @@ public class BuildExtractor extends Application implements Runnable {
       fm.deleteRecursively(stageDir);
     }
     if (!stageDir.mkdirs()) {
-      // TODO: i18n
-      throw ApplicationException.createFileSystemException(
-              "failed to create staging directory " + stageDir, null);
+      String msg = getMsg("error-failed-to-create-stage-directory",
+              Utils.getPath(stageDir));
+      throw ApplicationException.createFileSystemException(msg, null);
     }
     LOG.log(Level.INFO, "stage directory " + stageDir.getPath());
     return stageDir;

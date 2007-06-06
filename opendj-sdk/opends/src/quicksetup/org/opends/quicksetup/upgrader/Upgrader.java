@@ -885,7 +885,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
                   "Error starting server in order to apply custom" +
                           "schema and/or configuration", e);
           throw new ApplicationException(ApplicationException.Type.APPLICATION,
-                  "Error starting server:" + e.getLocalizedMessage(), e);
+                  getMsg("error-starting-server"), e);
         }
 
         checkAbort();
@@ -940,7 +940,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
         } catch (Throwable t) {
           LOG.log(Level.INFO, "Error stopping server", t);
           throw new ApplicationException(ApplicationException.Type.BUG,
-                  "Error stopping server in process", t);
+                  getMsg("error-stopping-server"), t);
         }
       }
 
@@ -953,7 +953,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
               System.getProperty(SYS_PROP_CREATE_ERROR))) {
         LOG.log(Level.WARNING, "creating artificial error");
         throw new ApplicationException(
-                null, "ARTIFICIAL ERROR FOR TESTING ABORT PROCESS", null);
+                null, getMsg("error-artificial"), null);
       }
 
       LOG.log(Level.INFO, "verifying upgrade");
@@ -981,26 +981,23 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 Utils.listToString(errors, sep, /*bullet=*/"\u2022 ", "");
         runWarning = new ApplicationException(
                 ApplicationException.Type.APPLICATION,
-              "Upgraded server failed verification test by signaling " +
-                      "errors during startup:" + sep +
-                      formattedDetails, null);
-        String cancel = "Cancel Upgrade";
+                getMsg("error-upgraded-server-starts-with-errors",
+                        sep + formattedDetails), null);
+        String cancel = getMsg("upgrade-verification-failure-cancel");
         UserInteraction ui = userInteraction();
         if (ui == null || cancel.equals(ui.confirm(
-                  "Upgrade Verification Failed",
-                  "The upgraded server returned errors on startup.  Would " +
-                          "you like to cancel the upgrade?  If you cancel, " +
-                          "any changes made to the server by this upgrade " +
-                          "will be backed out.",
+                  getMsg("upgrade-verification-failure-title"),
+                  getMsg("upgrade-verification-failure-prompt"),
                   formattedDetails,
-                  "Upgrade Error",
+                  getMsg("upgrade-verification-failure-title"),
                   UserInteraction.MessageType.ERROR,
-                  new String[] { "Continue", cancel },
-                  cancel, "View Error Details"))) {
+                  new String[] { getMsg("continue-button-label"), cancel },
+                  cancel,
+                  getMsg("upgrade-verification-failure-view-details")))) {
             cancel();
             throw new ApplicationException(
               ApplicationException.Type.APPLICATION,
-              "Upgrade canceled", null);
+              getMsg("upgrade-canceled"), null);
         }
       } else {
         notifyListeners(formatter.getFormattedDone() +
@@ -1024,10 +1021,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
             if (port != -1 && !Utils.canUseAsPort(port)) {
               throw new ApplicationException(
                       ApplicationException.Type.APPLICATION,
-                      "The server can not be started as another application " +
-                              "is using port " + port + ".  Check that you " +
-                              "have access to this port before restarting " +
-                              "the server.", null);
+                      getMsg("error-port-in-use", Integer.toString(port)),
+                      null);
             }
             control.startServer(true);
             notifyListeners(formatter.getFormattedDone() +
@@ -1056,7 +1051,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
         LOG.log(Level.INFO, "error determining if server running");
         this.runWarning = new ApplicationException(
                 ApplicationException.Type.TOOL_ERROR,
-                "Error determining whether or not server running", ioe);
+                getMsg("error-server-status"), ioe);
       }
 
     } catch (ApplicationException ae) {
@@ -1064,8 +1059,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     } catch (Throwable t) {
       this.runError =
               new ApplicationException(ApplicationException.Type.BUG,
-                      "Unexpected error: " + t.getLocalizedMessage(),
-                      t);
+                      getMsg("bug-msg"), t);
     } finally {
       try {
         HistoricalRecord.Status status;
@@ -1183,7 +1177,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private void checkAbort() throws ApplicationException {
     if (abort) throw new ApplicationException(
             ApplicationException.Type.APPLICATION,
-            "Upgrade canceled", null);
+            getMsg("upgrade-canceled"), null);
   }
 
   /**
@@ -1260,15 +1254,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 getInstallation()).modify(configDiff);
 
       }
-    } catch (IOException e) {
-      String msg = "I/O Error applying configuration customization: " +
-              e.getLocalizedMessage();
-      LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              msg, e);
     } catch (Exception e) {
-      String msg = "Error applying configuration customization: " +
-              e.getLocalizedMessage();
+      String msg = getMsg("error-applying-custom-config");
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
               msg, e);
@@ -1282,15 +1269,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
         new InProcessServerController(
                 getInstallation()).modify(schemaDiff);
       }
-    } catch (IOException e) {
-      String msg = "I/O Error applying schema customization: " +
-              e.getLocalizedMessage();
-      LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              msg, e);
     } catch (Exception e) {
-      String msg = "Error applying schema customization: " +
-              e.getLocalizedMessage();
+      String msg = getMsg("error-applying-custom-schema");
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
               msg, e);
@@ -1308,7 +1288,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       id = log.append(fromVersion, toVersion,
               HistoricalRecord.Status.STARTED, null);
     } catch (IOException e) {
-      String msg = "I/O Error logging operation: " + e.getLocalizedMessage();
+      String msg = getMsg("error-logging-operation");
       throw ApplicationException.createFileSystemException(
               msg, e);
     }
@@ -1327,7 +1307,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
               new HistoricalLog(getInstallation().getHistoryLogFile());
       log.append(id, from, to, status, note);
     } catch (IOException e) {
-      String msg = "Error logging operation: " + e.getLocalizedMessage();
+      String msg = getMsg("error-logging-operation");
       throw ApplicationException.createFileSystemException(msg, e);
     }
   }
@@ -1353,7 +1333,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     } catch (IOException e) {
       throw ApplicationException.createFileSystemException(
-              "I/0 error upgrading components: " + e.getLocalizedMessage(), e);
+              getMsg("error-upgrading-components"), e);
     }
   }
 
@@ -1370,43 +1350,36 @@ public class Upgrader extends GuiApplication implements CliApplication {
                   getCustomConfigDiffFile());
         } catch (Exception e) {
           throw ApplicationException.createFileSystemException(
-                  "Error determining configuration customizations: "
-                          + e.getLocalizedMessage(), e);
+                  getMsg("error-determining-custom-config"), e);
         }
       } else {
         LOG.log(Level.INFO, "No configuration customizations to migrate");
       }
     } catch (IOException e) {
-      // TODO i18n
       throw ApplicationException.createFileSystemException(
-              "Could not determine configuration modifications: " +
-                      e.getLocalizedMessage(), e);
+              getMsg("error-determining-custom-config"), e);
     }
     return isCustom;
   }
 
   private void ldifDiff(File source, File target, File output)
-          throws ApplicationException {
+          throws ApplicationException, IOException, InterruptedException {
     ExternalTools et = new ExternalTools(getInstallation());
-    try {
-      String[] args = new String[] {
-              "-o", Utils.getPath(output),
-              "-O",
-      };
-      OperationOutput oo = et.ldifDiff(source, target, args);
-      int ret = oo.getReturnCode();
-      if (ret != 0) {
-        throw new ApplicationException(
-                ApplicationException.Type.TOOL_ERROR,
-                "ldif-diff tool returned error code " + ret,
-                null);
-      }
-    } catch (Exception e) {
+    String[] args = new String[]{
+            "-o", Utils.getPath(output),
+            "-O",
+    };
+    OperationOutput oo = et.ldifDiff(source, target, args);
+    int ret = oo.getReturnCode();
+    if (ret != 0) {
       throw new ApplicationException(
               ApplicationException.Type.TOOL_ERROR,
-              "Error performing determining customizations", e);
+              getMsg("error-ldif-diff-tool-return-code",
+                      Integer.toString(ret)),
+              null);
     }
   }
+
 
   private boolean calculateSchemaCustomizations() throws ApplicationException {
     boolean isCustom = false;
@@ -1420,8 +1393,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 getCustomSchemaDiffFile());
       } catch (Exception e) {
         throw ApplicationException.createFileSystemException(
-                "Error determining schema customizations: " +
-                        e.getLocalizedMessage(), e);
+                getMsg("error-determining-custom-schema"), e);
       }
     } else {
       LOG.log(Level.INFO, "No schema customizations to migrate");
@@ -1443,7 +1415,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     } catch (Exception e) {
       throw new ApplicationException(
               ApplicationException.Type.FILE_SYSTEM_ERROR,
-              e.getLocalizedMessage(),
+              getMsg("error-backup-filesystem"),
               e);
     }
   }
@@ -1456,14 +1428,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
       if (ret != 0) {
         throw new ApplicationException(
                 ApplicationException.Type.TOOL_ERROR,
-                "backup tool returned error code " + ret,
+                getMsg("error-backup-db-tool-return-code",
+                        Integer.toString(ret)),
                 null);
 
       }
     } catch (Exception e) {
       throw new ApplicationException(
               ApplicationException.Type.TOOL_ERROR,
-              "Error backing up databases", e);
+              getMsg("error-backup-db"), e);
     }
   }
 
@@ -1487,12 +1460,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
       }
 
     } catch (IOException e) {
-      // TODO i18n
       throw ApplicationException.createFileSystemException(
-              "Error attempting to clean up tmp directory " +
-                      stagingDir != null ? stagingDir.getName() : "null" +
-                      ": " + e.getLocalizedMessage(),
-              e);
+              getMsg("error-deleting-stage-directory",
+                      Utils.getPath(stagingDir)), e);
     }
   }
 
@@ -1512,7 +1482,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     } catch (Exception e) {
       throw new ApplicationException(
               ApplicationException.Type.FILE_SYSTEM_ERROR,
-              e.getMessage(), e);
+              getMsg("error-initializing-upgrade"), e);
     }
   }
 
@@ -1531,8 +1501,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     } catch (ApplicationException e) {
       LOG.log(Level.INFO, "error", e);
       throw ApplicationException.createFileSystemException(
-              "Could not determine current build information: " +
-                      e.getLocalizedMessage(), e);
+              getMsg("error-determining-current-build"), e);
     }
 
     try {
@@ -1540,14 +1509,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
     } catch (Exception e) {
       LOG.log(Level.INFO, "error", e);
       throw ApplicationException.createFileSystemException(
-              "Could not determine upgrade build information: " +
-                      e.getLocalizedMessage(), e);
-    }
+              getMsg("error-determining-upgrade-build"), e);    }
 
     UpgradeOracle uo = new UpgradeOracle(currentVersion, newVersion);
     if (!uo.isSupported()) {
       throw new ApplicationException(ApplicationException.Type.APPLICATION,
-              uo.getSummaryMessage(), null);
+              uo.getLocalizedSummaryMessage(), null);
     }
 
   }
@@ -1560,13 +1527,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
         Installation.validateRootDirectory(stageDir);
         stagedInstallation = new Installation(getStageDirectory());
       } catch (IllegalArgumentException e) {
-        throw ApplicationException.createFileSystemException(
-                "Directory '" + getStageDirectory() +
-                        "' does not contain a staged installation of OpenDS" +
-                        " as was expected.  Verify that the new installation" +
-                        " package (.zip) is an OpenDS installation file and" +
-                        " that you have write access permission for this " +
-                        " directory.", null);
+        String msg = getMsg("error-bad-stage-directory",
+                Utils.getPath(getStageDirectory()));
+        throw ApplicationException.createFileSystemException(msg, e);
       }
     }
     return stagedInstallation;

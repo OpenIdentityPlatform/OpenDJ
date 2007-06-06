@@ -491,8 +491,7 @@ public abstract class GuiApplication extends Application {
       ipsc.disableConnectionHandlers(true);
       ipsc.startServer();
     } catch (IOException e) {
-      String msg = "Failed to determine server state: " +
-      e.getLocalizedMessage();
+      String msg = getMsg("error-determining-server-state");
       LOG.log(Level.INFO, msg, e);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
           msg, e);
