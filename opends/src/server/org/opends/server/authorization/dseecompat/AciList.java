@@ -28,10 +28,9 @@
 package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.api.Backend;
-import static org.opends.server.authorization.dseecompat.AciHandler.aciType;
-import static org.opends.server.authorization.dseecompat.AciHandler.globalAciType;
+import static org.opends.server.authorization.dseecompat.AciHandler.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.messages.AciMessages.MSGID_ACI_ADD_LIST_FAILED_DECODE;
+import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.types.*;
 
