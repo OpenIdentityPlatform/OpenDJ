@@ -54,6 +54,11 @@
 	  
 	<sequence>
 
+      <script>
+        if not sharedDataFolder and CurrentTestPath.has_key('group'):
+          sharedDataFolder=CurrentTestPath['group']
+      </script>
+      
       <call function="'prepareInstanceCreation'">
         { 'groupDataDir' : sharedDataFolder }
       </call>		
@@ -160,14 +165,14 @@
 
       <!-- ON LOCAL HOST: get data ready to copy to remote host -->
           <!-- Locally delete any existing files from staging area -->
-          <message>'Delete the temporary staging area'</message>
+          <message>'Delete the temporary local staging area %s' % TMP_DATA_DIR</message>
           <call function="'deleteFolder'">
             { 'location'   :  STAXServiceMachine,
               'foldername' : '%s' % TMP_DATA_DIR }
           </call>				
 		
           <!-- Locally delete any existing files from the zip archive -->
-          <message>'Delete existing zip archive.'</message>
+          <message>'Delete existing local zip archive %s/ldifdata.zip.' % TMPDIR</message>
           <call function="'deleteFile'">
               { 'location' : STAXServiceMachine,
                 'filename' : '%s/ldifdata.zip' % TMPDIR }
@@ -181,7 +186,7 @@
           <!-- Locally copy static data files to temporary staging area -->
           <!-- LDIF (.ldif) files -->
           <message>
-            'Copy ldif data files to %s.' % tmpTestsGroupDir
+            'Copy ldif data files locally to %s.' % tmpTestsGroupDir
           </message>
           <call function="'CopyFolderByExtension'">
               { 'location'   : STAXServiceMachine,
@@ -189,10 +194,25 @@
                 'destfolder' : tmpTestsGroupDir,
                 'extension'  : 'ldif' }
           </call>
-    
+
+         <!-- LDIF (.ldif) files for quickinstall -->
+          <script>
+            quickStartGroupDir='%s/shared/data/quickstart' % (TESTS_DIR)
+            quickStartTmpTestsGroupDir='%s/shared/data/quickstart' % (TMP_DATA_DIR)
+          </script>
+          <message>
+            'Copy ldif data files locally to %s.' % quickStartTmpTestsGroupDir
+          </message>
+          <call function="'CopyFolderByExtension'">
+              { 'location'   : STAXServiceMachine,
+                'srcfolder'  : quickStartGroupDir,
+                'destfolder' : quickStartTmpTestsGroupDir,
+                'extension'  : 'ldif' }
+          </call>
+              
           <!-- PWD (.pwd) files -->
           <message>
-            'Copy pwd data files to %s.' % tmpTestsGroupDir
+            'Copy pwd data files locally to %s.' % tmpTestsGroupDir
           </message>         
           <call function="'CopyFolderByExtension'">
               { 'location'   : STAXServiceMachine,
@@ -203,7 +223,7 @@
     
           <!-- Archive (.gz) files -->
           <message>
-            'Copy gz data files to %s.' % tmpTestsGroupDir
+            'Copy gz data files locally to %s.' % tmpTestsGroupDir
           </message>
           <call function="'CopyFolderByExtension'">
               { 'location'   : STAXServiceMachine,
@@ -214,13 +234,16 @@
     
           <!-- Dynamically create ldif files for staging -->
           <!-- Modify SSL port to a user-defined value -->
+          <message>
+              'Create locally the security ldif file'
+          </message>          
           <script>
             write_ldaps_ldif_file('%s/shared/data' % (TMP_DATA_DIR), '%s' % (DIRECTORY_INSTANCE_SSL_PORT));
           </script>
         
           <!--  Zip up contents of tests directory -->
           <message>
-              'Zip up data directory.'
+              'Zip up local data directory %s/ldifdata.zip' % TMPDIR
           </message>
           <call function="'zipUpFile'">
             { 'location'   : STAXServiceMachine,
