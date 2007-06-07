@@ -559,6 +559,9 @@ public class InstallDS
     }
     else
     {
+      /* Do not ask for the JMX port if the user did not provide it.*/
+      jmxPortNumber = -1;
+      /*
       while (true)
       {
         int    msgID   = MSGID_INSTALLDS_PROMPT_JMXPORT;
@@ -594,6 +597,7 @@ public class InstallDS
           }
         }
       }
+      */
     }
 
 
@@ -841,8 +845,11 @@ public class InstallDS
     argList.add(configFileName);
     argList.add("-p");
     argList.add(String.valueOf(ldapPortNumber));
-    argList.add("-x");
-    argList.add(String.valueOf(jmxPortNumber));
+    if (jmxPortNumber != -1)
+    {
+      argList.add("-x");
+      argList.add(String.valueOf(jmxPortNumber));
+    }
 
     for (DN dn : baseDNs)
     {

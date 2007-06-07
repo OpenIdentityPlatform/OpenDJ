@@ -694,9 +694,11 @@ public abstract class Installer extends GuiApplication {
           sec.getCertificateType());
     }
 
+    // For the moment do not enable JMX
+    /*
     argList.add("-x");
     argList.add(String.valueOf(getUserData().getServerJMXPort()));
-
+     */
     argList.add("-D");
     argList.add(getUserData().getDirectoryManagerDn());
 
@@ -1688,11 +1690,13 @@ public abstract class Installer extends GuiApplication {
       qs.displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM, false);
     }
 
+    // For the moment do not enable JMX
     int defaultJMXPort =
       UserData.getDefaultJMXPort(new int[] {port, securePort});
     if (defaultJMXPort != -1)
     {
-      getUserData().setServerJMXPort(defaultJMXPort);
+      //getUserData().setServerJMXPort(defaultJMXPort);
+      getUserData().setServerJMXPort(-1);
     }
 
     if (errorMsgs.size() > 0)
