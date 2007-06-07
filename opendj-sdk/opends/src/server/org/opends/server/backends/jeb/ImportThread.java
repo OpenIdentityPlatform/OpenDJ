@@ -31,6 +31,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
 import com.sleepycat.je.Transaction;
@@ -317,6 +318,13 @@ public class ImportThread extends DirectoryThread
       importContext.incrEntryInsertCount(entryInsertCount);
     }
     catch (DatabaseException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+    catch (DirectoryException e)
     {
       if (debugEnabled())
       {
