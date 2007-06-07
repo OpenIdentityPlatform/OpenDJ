@@ -95,37 +95,15 @@ public class EntryCacheConfigManager
 
 
   /**
-   * Initializes the configuration associated with the Directory Server entry
-   * cache.  This should only be called at Directory Server startup.  If an
-   * error occurs, then a message will be logged and the default entry cache
-   * will be installed.
-   *
-   * @throws  ConfigException  If a configuration problem causes the entry
-   *                           cache initialization process to fail.
+   * Initializes the default entry cache.
+   * This should only be called at Directory Server startup.
    *
    * @throws  InitializationException  If a problem occurs while trying to
    *                                   install the default entry cache.
    */
-  public void initializeEntryCache()
-         throws ConfigException, InitializationException
+  public void initializeDefaultEntryCache()
+         throws InitializationException
   {
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-      ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-      managementContext.getRootConfiguration();
-
-    // Register as an add and delete listener with the root configuration so we
-    // can be notified if any entry cache entry is added or removed.
-    // If entry cache configuration is using a one-to-zero-or-one relation
-    // then uncomment the lines below (see issue #1558).
-    /*
-    // rootConfiguration.addEntryCacheAddListener(this);
-    // rootConfiguration.addEntryCacheDeleteListener(this);
-    */
-
-    // First, install a default entry cache so that there will be one even if
-    // we encounter a problem later.
     try
     {
       DefaultEntryCache defaultCache = new DefaultEntryCache();
@@ -144,6 +122,41 @@ public class EntryCacheConfigManager
       String message = getMessage(msgID, stackTraceToSingleLineString(e));
       throw new InitializationException(msgID, message, e);
     }
+
+  }
+
+
+  /**
+   * Initializes the configuration associated with the Directory Server entry
+   * cache.  This should only be called at Directory Server startup.  If an
+   * error occurs, then a message will be logged and the default entry cache
+   * will be installed.
+   *
+   * @throws  ConfigException  If a configuration problem causes the entry
+   *                           cache initialization process to fail.
+   */
+  public void initializeEntryCache()
+         throws ConfigException
+  {
+    // Get the root configuration object.
+    ServerManagementContext managementContext =
+      ServerManagementContext.getInstance();
+    RootCfg rootConfiguration =
+      managementContext.getRootConfiguration();
+
+    // Default entry cache should be already installed with
+    // <CODE>initializeDefaultEntryCache()</CODE> method so
+    // that there will be one even if we encounter a problem
+    // later.
+
+    // Register as an add and delete listener with the root configuration so we
+    // can be notified if any entry cache entry is added or removed.
+    // If entry cache configuration is using a one-to-zero-or-one relation
+    // then uncomment the lines below (see issue #1558).
+    /*
+    // rootConfiguration.addEntryCacheAddListener(this);
+    // rootConfiguration.addEntryCacheDeleteListener(this);
+    */
 
     // If the entry cache configuration is not present then keep the
     // default entry cache already installed.
