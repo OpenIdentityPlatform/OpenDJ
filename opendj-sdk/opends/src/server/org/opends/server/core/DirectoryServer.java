@@ -1067,6 +1067,12 @@ public class DirectoryServer
       initializeAlertHandlers();
 
 
+      // Initialize the default entry cache. We have to have one before
+      // <CODE>initializeBackends()</CODE> method kicks in further down.
+      entryCacheConfigManager = new EntryCacheConfigManager();
+      entryCacheConfigManager.initializeDefaultEntryCache();
+
+
       // Initialize the key manager provider.
       keyManagerProviderConfigManager = new KeyManagerProviderConfigManager();
       keyManagerProviderConfigManager.initializeKeyManagerProviders();
@@ -1101,8 +1107,8 @@ public class DirectoryServer
       // Initialize all the backends and their associated suffixes.
       initializeBackends();
 
-      // Initialize the entry cache.
-      entryCacheConfigManager = new EntryCacheConfigManager();
+      // Check for and initialize user configured entry cache if any,
+      // if not stick with default entry cache initialized earlier.
       entryCacheConfigManager.initializeEntryCache();
 
       // Reset the map as we can no longer guarantee offline state.
