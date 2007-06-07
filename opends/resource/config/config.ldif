@@ -1310,11 +1310,9 @@ ds-cfg-default-root-privilege-name: server-shutdown
 ds-cfg-default-root-privilege-name: server-restart
 ds-cfg-default-root-privilege-name: disconnect-client
 ds-cfg-default-root-privilege-name: cancel-request
-ds-cfg-default-root-privilege-name: search-unindexed
 ds-cfg-default-root-privilege-name: password-reset
 ds-cfg-default-root-privilege-name: update-schema
 ds-cfg-default-root-privilege-name: privilege-change
-ds-cfg-default-root-privilege-name: index-rebuild
 ds-cfg-default-root-privilege-name: unindexed-search
 
 dn: cn=Directory Manager,cn=Root DNs,cn=config

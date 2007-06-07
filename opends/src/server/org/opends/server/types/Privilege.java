@@ -171,14 +171,6 @@ public enum Privilege
 
 
   /**
-   * The privilege that provides the ability to request unindexed
-   * searches.
-   */
-  SEARCH_UNINDEXED("search-unindexed"),
-
-
-
-  /**
    * The privilege that provides the ability to reset user passwords.
    */
   PASSWORD_RESET("password-reset"),
@@ -207,14 +199,6 @@ public enum Privilege
    * automatically assigned to a root user.
    */
   PRIVILEGE_CHANGE("privilege-change"),
-
-
-
-  /**
-   * The privilege that provides the ability to rebuild one or more
-   * indexes in a backend that supports indexing.
-   */
-  INDEX_REBUILD("index-rebuild"),
 
 
 
@@ -276,12 +260,10 @@ public enum Privilege
     PRIV_MAP.put("proxied-auth", PROXIED_AUTH);
     PRIV_MAP.put("disconnect-client", DISCONNECT_CLIENT);
     PRIV_MAP.put("cancel-request", CANCEL_REQUEST);
-    PRIV_MAP.put("search-unindexed", SEARCH_UNINDEXED);
     PRIV_MAP.put("password-reset", PASSWORD_RESET);
     PRIV_MAP.put("data-sync", DATA_SYNC);
     PRIV_MAP.put("update-schema", UPDATE_SCHEMA);
     PRIV_MAP.put("privilege-change", PRIVILEGE_CHANGE);
-    PRIV_MAP.put("index-rebuild", INDEX_REBUILD);
     PRIV_MAP.put("unindexed-search", UNINDEXED_SEARCH);
 
     PRIV_NAMES.add("bypass-acl");
@@ -300,12 +282,10 @@ public enum Privilege
     PRIV_NAMES.add("proxied-auth");
     PRIV_NAMES.add("disconnect-client");
     PRIV_NAMES.add("cancel-request");
-    PRIV_NAMES.add("search-unindexed");
     PRIV_NAMES.add("password-reset");
     PRIV_NAMES.add("data-sync");
     PRIV_NAMES.add("update-schema");
     PRIV_NAMES.add("privilege-change");
-    PRIV_NAMES.add("index-rebuild");
     PRIV_NAMES.add("unindexed-search");
 
     DEFAULT_ROOT_PRIV_SET.add(BYPASS_ACL);
@@ -320,11 +300,9 @@ public enum Privilege
     DEFAULT_ROOT_PRIV_SET.add(SERVER_RESTART);
     DEFAULT_ROOT_PRIV_SET.add(DISCONNECT_CLIENT);
     DEFAULT_ROOT_PRIV_SET.add(CANCEL_REQUEST);
-    DEFAULT_ROOT_PRIV_SET.add(SEARCH_UNINDEXED);
     DEFAULT_ROOT_PRIV_SET.add(PASSWORD_RESET);
     DEFAULT_ROOT_PRIV_SET.add(UPDATE_SCHEMA);
     DEFAULT_ROOT_PRIV_SET.add(PRIVILEGE_CHANGE);
-    DEFAULT_ROOT_PRIV_SET.add(INDEX_REBUILD);
     DEFAULT_ROOT_PRIV_SET.add(UNINDEXED_SEARCH);
   }
 
