@@ -5208,6 +5208,19 @@ public class ExtensionsMessages
   public static final int MSGID_FSCACHE_INDEX_IMPAIRED =
        CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 500;
 
+
+
+  /**
+   * The message ID for the message that will be used if a search operation has
+   * a filter targeting the entryUUID virtual attribute, which is not
+   * searchable.  This takes a single argument, which is the name of the
+   * entryUUID attribute type.
+   */
+  public static final int MSGID_ENTRYUUID_VATTR_NOT_SEARCHABLE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 501;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -7490,6 +7503,10 @@ public class ExtensionsMessages
     registerMessage(MSGID_FSCACHE_INDEX_IMPAIRED,
                     "The persistent cache index is inconsistent or damaged. " +
                     "Persistent cache will be flushed now");
+
+    registerMessage(MSGID_ENTRYUUID_VATTR_NOT_SEARCHABLE,
+                    "The %s attribute is not searchable and should not be " +
+                    "included in otherwise unindexed search filters");
   }
 }
 

@@ -1795,6 +1795,15 @@ ds-cfg-virtual-attribute-enabled: true
 ds-cfg-virtual-attribute-type: entryDN
 ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real
 
+dn: cn=entryUUID,cn=Virtual Attributes,cn=config
+objectClass: top
+objectClass: ds-cfg-virtual-attribute
+cn: entryUUIUD
+ds-cfg-virtual-attribute-class: org.opends.server.extensions.EntryUUIDVirtualAttributeProvider
+ds-cfg-virtual-attribute-enabled: true
+ds-cfg-virtual-attribute-type: entryUUID
+ds-cfg-virtual-attribute-conflict-behavior: real-overrides-virtual
+
 dn: cn=isMemberOf,cn=Virtual Attributes,cn=config
 objectClass: top
 objectClass: ds-cfg-virtual-attribute
