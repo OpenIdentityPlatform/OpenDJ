@@ -638,6 +638,11 @@ public class ConfigureDS
                                           true, false, true, true, 1, true,
                                           65535, jmxPort.getIntValue());
           configEntry.putConfigAttribute(portAttr);
+          msgID = MSGID_JMX_CONNHANDLER_DESCRIPTION_ENABLE;
+          BooleanConfigAttribute enablePortAttr =
+            new BooleanConfigAttribute(ATTR_CONNECTION_HANDLER_ENABLED,
+                getMessage(msgID), true, true, true);
+          configEntry.putConfigAttribute(enablePortAttr);
         }
         catch (Exception e)
         {

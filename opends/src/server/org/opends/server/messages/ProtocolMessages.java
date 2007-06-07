@@ -4617,6 +4617,13 @@ public class ProtocolMessages
   public static final int MSGID_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 427;
 
+  /**
+   * The message ID for the message that will be used as the description of the
+   * configuration attribute specifying whether to enable the LDAPS
+   * connection handler.
+   */
+  public static final int MSGID_JMX_CONNHANDLER_DESCRIPTION_ENABLE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 428;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -6371,6 +6378,9 @@ public class ProtocolMessages
             "configuration attribute will not take effect until the " +
             "connection handler is disabled and re-enabled, or until " +
             "the Directory Server is restarted");
+    registerMessage(MSGID_JMX_CONNHANDLER_DESCRIPTION_ENABLE,
+            "Specifies whether to enable the JMX connection " +
+            "handler");
     registerMessage(MSGID_JMX_CONNHANDLER_NO_LISTEN_PORT,
             "No listen port was defined using configuration " +
             ATTR_LISTEN_PORT + " in configuration entry %s.  This is " +

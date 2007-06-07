@@ -95,7 +95,7 @@ objectClass: top
 objectClass: ds-cfg-alert-handler
 cn: JMX Alert Handler
 ds-cfg-alert-handler-class: org.opends.server.extensions.JMXAlertHandler
-ds-cfg-alert-handler-enabled: true
+ds-cfg-alert-handler-enabled: false
 
 dn: cn=Backends,cn=config
 objectClass: top
@@ -372,7 +372,7 @@ objectClass: ds-cfg-connection-handler
 objectClass: ds-cfg-jmx-connection-handler
 cn: JMX Connection Handler
 ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler
-ds-cfg-connection-handler-enabled: true
+ds-cfg-connection-handler-enabled: false
 ds-cfg-use-ssl: false
 ds-cfg-listen-port: 1689
 ds-cfg-ssl-cert-nickname: server-cert
