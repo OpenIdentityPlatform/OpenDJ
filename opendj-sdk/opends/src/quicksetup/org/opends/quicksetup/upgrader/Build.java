@@ -43,17 +43,17 @@ public class Build implements Comparable<Build> {
     /**
      * Daily build descriptor.
      */
-    DAILY("Daily Build"),
+    DAILY("Daily Build"), // DO NOT i18n
 
     /**
      * Weekly build descriptor.
      */
-    WEEKLY("Weekly Build"),
+    WEEKLY("Weekly Build"), // DO NOT i18n
 
     /**
      * Release build descriptor.
      */
-    RELEASE("Release Build");
+    RELEASE("Release Build"); // DO NOT i18n
 
     /**
      * Creates a Category from its 'key' String value.

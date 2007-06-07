@@ -31,6 +31,7 @@ import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 
 import java.util.logging.Logger;
@@ -63,7 +64,8 @@ public class UpgradeLauncher extends Launcher {
       QuickSetupLog.initLogFileHandler(
               File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
     } catch (Throwable t) {
-      System.err.println("Unable to initialize log");
+      System.err.println(
+              ResourceProvider.getInstance().getMsg("error-initializing-log"));
       t.printStackTrace();
     }
     new UpgradeLauncher(args).launch();

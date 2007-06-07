@@ -118,8 +118,7 @@ public class Configuration {
       int index1 = getContents().indexOf(attrWithPoints, index);
       if (index1 != -1) {
         int index2 =
-                getContents().indexOf(
-                        System.getProperty("line.separator"), index1);
+                getContents().indexOf(Constants.LINE_SEPARATOR, index1);
         if (index2 != -1) {
           String sPort =
                   getContents().substring(attrWithPoints.length() +
@@ -184,7 +183,7 @@ public class Configuration {
     String line;
     // We do not care about encoding: we are just interested in the ports
     while ((line = in.readLine()) != null) {
-      buf.append(line).append(System.getProperty("line.separator"));
+      buf.append(line).append(Constants.LINE_SEPARATOR);
     }
     reader.close();
     contents = buf.toString().toLowerCase();
@@ -197,8 +196,7 @@ public class Configuration {
     attrName += ":";
     int index1 = getContents().indexOf(attrName);
     while (index1 != -1) {
-      int index2 = getContents().indexOf(
-              System.getProperty("line.separator"), index1);
+      int index2 = getContents().indexOf(Constants.LINE_SEPARATOR, index1);
       String value;
       if (index2 > (index1 + attrName.length())) {
         value = getContents().substring(attrName.length() + index1,

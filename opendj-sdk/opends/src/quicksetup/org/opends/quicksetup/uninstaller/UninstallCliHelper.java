@@ -213,13 +213,13 @@ class UninstallCliHelper extends CliApplicationHelper {
             if (i == 6)
             {
               String[] arg = {Utils.getStringFromCollection(outsideDbs,
-                  QuickSetupCli.LINE_SEPARATOR)};
+                  Constants.LINE_SEPARATOR)};
               msg = getMsg(keys[i], arg);
             }
             else if (i == 7)
             {
               String[] arg = {Utils.getStringFromCollection(outsideLogs,
-                  QuickSetupCli.LINE_SEPARATOR)};
+                  Constants.LINE_SEPARATOR)};
               msg = getMsg(keys[i], arg);
             }
             else
@@ -293,7 +293,7 @@ class UninstallCliHelper extends CliApplicationHelper {
             !userData.getRemoveLogs())
         {
           somethingSelected = false;
-          System.out.println(QuickSetupCli.LINE_SEPARATOR+
+          System.out.println(Constants.LINE_SEPARATOR+
               getMsg("cli-uninstall-nothing-to-be-uninstalled"));
         }
         else

@@ -46,17 +46,23 @@ public class HistoricalRecord {
   static private final Logger LOG =
           Logger.getLogger(HistoricalRecord.class.getName());
 
-  static private String OPERATION = "operation:";
+  //--------------------------------------------------//
+  // Since these are internationalized, logs that are //
+  // moved from one locale to another may not be      //
+  // readable programmatically.                       //
+  //--------------------------------------------------//
 
-  static private String TIME = "time:";
+  static private String OPERATION = getMsg("upgrade-log-field-op");
 
-  static private String FROM = "from:";
+  static private String TIME = getMsg("upgrade-log-field-time");
 
-  static private String TO = "to:";
+  static private String FROM = getMsg("upgrade-log-field-from");
 
-  static private String STATUS = "status:";
+  static private String TO = getMsg("upgrade-log-field-to");
 
-  static private String NOTE = "note:";
+  static private String STATUS = getMsg("upgrade-log-field-status");
+
+  static private String NOTE = getMsg("upgrade-log-field-note");
 
   static private String SEPARATOR = " ";
 
@@ -67,11 +73,11 @@ public class HistoricalRecord {
    */
   enum Status {
 
-    STARTED("started"),
+    STARTED(getMsg("upgrade-log-status-started")),
 
-    SUCCESS("success"),
+    SUCCESS(getMsg("upgrade-log-status-success")),
 
-    FAILURE("failure");
+    FAILURE(getMsg("upgrade-log-status-failure"));
 
     private String representation;
 
@@ -136,7 +142,7 @@ public class HistoricalRecord {
 
       token = st.nextToken();
       String toString = token.substring(TO.length());
-      to = BuildInformation.fromBuildString(fromString);
+      to = BuildInformation.fromBuildString(toString);
 
       token = st.nextToken();
       String outcomeString = token.substring(STATUS.length());
@@ -294,7 +300,7 @@ public class HistoricalRecord {
     return sb.toString();
   }
 
-  private String getMsg(String key) {
+  static private String getMsg(String key) {
     return ResourceProvider.getInstance().getMsg(key);
   }
 

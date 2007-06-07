@@ -249,6 +249,7 @@ public class SplashScreen extends Window
       });
     } catch (Exception ex)
     {
+      // do nothing;
     }
   }
 
@@ -270,6 +271,7 @@ public class SplashScreen extends Window
       });
     } catch (Exception ex)
     {
+      // do nothing;
     }
   }
 
@@ -294,6 +296,7 @@ public class SplashScreen extends Window
         Thread.sleep(sleepTime);
       } catch (Exception ex)
       {
+        // do nothing;
       }
     }
   }

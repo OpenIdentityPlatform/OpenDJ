@@ -75,20 +75,21 @@ public class UpgraderCliHelper extends CliApplicationHelper {
                 localInstallPackFileNameArg.getValue();
         File installPackFile = new File(localInstallPackFileName);
         if (!installPackFile.exists()) {
-          throw new UserDataException(null, "File '" +
-                  localInstallPackFileName +
-                  "' does not exist");
+          throw new UserDataException(null,
+                  getMsg("build-extractor-error-file-no-exist",
+                          localInstallPackFileName));
         } else {
           uud.setInstallPackage(installPackFile);
         }
       } else {
-        // TODO i18N
+        // TODO: ask the user for this information if non noninteractive
         throw new UserDataException(null,
-                "Option -f is required.");
+                getMsg("error-option-required",
+                        "-" + FILE_OPTION_SHORT + "/--" + FILE_OPTION_LONG));
       }
 
     } catch (ArgumentException e) {
-      throw new UserDataException(null, "Error parsing arguments");
+      throw new UserDataException(null, getMsg("error-parsing-options"));
     }
     return uud;
   }

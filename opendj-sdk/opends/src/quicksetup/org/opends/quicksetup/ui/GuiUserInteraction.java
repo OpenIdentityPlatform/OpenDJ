@@ -28,6 +28,8 @@
 package org.opends.quicksetup.ui;
 
 import org.opends.quicksetup.UserInteraction;
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
@@ -102,9 +104,10 @@ public class GuiUserInteraction implements UserInteraction {
     // characters per line functionality of the extends options
     // pane does not affect message that are components so we
     // have to format this ourselves.
-    StringBuilder sb = new StringBuilder("<b>");
+    StringBuilder sb = new StringBuilder(Constants.HTML_BOLD_OPEN);
     sb.append(Utils.breakHtmlString(summary, MAX_CHARS_PER_LINE));
-    sb.append("</b><br>");
+    sb.append(Constants.HTML_BOLD_CLOSE);
+    sb.append(Constants.HTML_LINE_BREAK);
     sb.append(Utils.breakHtmlString(details, MAX_CHARS_PER_LINE));
     JEditorPane ep = UIFactory.makeHtmlPane(
             sb.toString(),
@@ -187,7 +190,9 @@ public class GuiUserInteraction implements UserInteraction {
         detailsButtonsPanel.setLayout(
                 new BoxLayout(detailsButtonsPanel,
                               BoxLayout.LINE_AXIS));
-        final JButton btnDetails = new JButton("Show Details");
+        final String showDetailsLabel = getMsg("show-details-button-label");
+        final String hideDetailsLabel = getMsg("hide-details-button-label");
+        final JButton btnDetails = new JButton(showDetailsLabel);
         btnDetails.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             Dimension current = dialog.getSize();
@@ -195,12 +200,12 @@ public class GuiUserInteraction implements UserInteraction {
               // detailsComponent.setVisible(true);
               dialog.setSize(current.width,
                       current.height + getExpansionHeight());
-              btnDetails.setText("Hide Details");
+              btnDetails.setText(hideDetailsLabel);
             } else {
               // detailsComponent.setVisible(false);
               dialog.setSize(current.width,
                       current.height - getExpansionHeight());
-              btnDetails.setText("Show Details");
+              btnDetails.setText(showDetailsLabel);
             }
             detailsShowing = !detailsShowing;
           }
@@ -248,7 +253,7 @@ public class GuiUserInteraction implements UserInteraction {
       gbc.insets = new Insets(15, 0, 0, 0);
       gbc.fill = GridBagConstraints.HORIZONTAL;
       detailsPanel.add(UIFactory.makeJLabel(null,
-              "Details:",
+              getMsg("details-label"),
               UIFactory.TextStyle.PRIMARY_FIELD_VALID), gbc);
 
       gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
@@ -274,6 +279,10 @@ public class GuiUserInteraction implements UserInteraction {
               MAX_DETAILS_COMPONENT_HEIGHT);
     }
 
+  }
+
+  private static String getMsg(String key) {
+    return ResourceProvider.getInstance().getMsg(key);
   }
 
 //  public static void main(String[] args) {

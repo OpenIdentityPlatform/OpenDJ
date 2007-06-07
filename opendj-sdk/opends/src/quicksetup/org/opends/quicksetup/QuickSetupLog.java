@@ -78,6 +78,7 @@ public class QuickSetupLog {
   }
 
   static private String getInitialLogRecord() {
+    // Note; currently the logs are not internationalized.
     StringBuffer sb = new StringBuffer()
             .append("QuickSetup application launched " +
                     DateFormat.getDateTimeInstance(DateFormat.LONG,

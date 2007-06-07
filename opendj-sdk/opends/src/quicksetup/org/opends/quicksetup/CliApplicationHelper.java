@@ -218,7 +218,7 @@ public class CliApplicationHelper {
     if (errors.size() > 0)
     {
       String msg = Utils.getStringFromCollection(errors,
-          QuickSetupCli.LINE_SEPARATOR+QuickSetupCli.LINE_SEPARATOR);
+          Constants.LINE_SEPARATOR+Constants.LINE_SEPARATOR);
       throw new UserDataException(null, msg);
     }
   }
@@ -307,7 +307,7 @@ public class CliApplicationHelper {
    * @param args String[] args
    * @return String message
    */
-  protected static String getMsg(String key, String[] args)
+  protected static String getMsg(String key, String... args)
   {
     return org.opends.server.util.StaticUtils.wrapText(
         getI18n().getMsg(key, args), Utils.getCommandLineMaxLineWidth());

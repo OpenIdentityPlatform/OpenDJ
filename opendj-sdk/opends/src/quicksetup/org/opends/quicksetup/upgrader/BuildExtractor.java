@@ -28,6 +28,7 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.util.Utils;
@@ -70,7 +71,8 @@ public class BuildExtractor extends Application implements Runnable {
                       UpgradeLauncher.LOG_FILE_PREFIX + "ext-",
                       UpgradeLauncher.LOG_FILE_SUFFIX));
     } catch (Throwable t) {
-      System.err.println("Unable to initialize log");
+      System.err.println(
+              ResourceProvider.getInstance().getMsg("error-initializing-log"));
       t.printStackTrace();
     }
     new BuildExtractor(args).run();
@@ -106,15 +108,16 @@ public class BuildExtractor extends Application implements Runnable {
       File buildFile = getBuildFile(args);
       if (buildFile != null) {
         if (!buildFile.exists()) {
-          // TODO: i18n
           throw new FileNotFoundException(
-                  buildFile.getName() + " does not exist");
+                  getMsg("build-extractor-error-file-no-exist",
+                          Utils.getPath(buildFile)));
         }
         expandZipFile(buildFile);
       }
     } catch (Throwable t) {
       LOG.log(Level.INFO, "unexpected error extracting build", t);
-      System.err.println("Failed to extract build: " + t.getLocalizedMessage());
+      String reason = t.getLocalizedMessage();
+      System.err.println(getMsg("build-extractor-error", reason));
       retCode = 1;
     }
     LOG.log(Level.INFO, "extractor exiting code=" + retCode);

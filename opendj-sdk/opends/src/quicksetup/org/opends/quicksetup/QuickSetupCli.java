@@ -74,9 +74,6 @@ public class QuickSetupCli {
    */
   static public int UNKNOWN = 100;
 
-  /** Platform dependent filesystem separator. */
-  public static String LINE_SEPARATOR = System.getProperty("line.separator");
-
   /** Arguments passed in the command line. */
   protected String[] args;
 
@@ -137,6 +134,7 @@ public class QuickSetupCli {
           }
           catch (Exception ex)
           {
+            // do nothing;
           }
         }
 
@@ -180,8 +178,8 @@ public class QuickSetupCli {
     }
     catch (UserDataException uude)
     {
-      System.err.println(LINE_SEPARATOR+uude.getLocalizedMessage()+
-          LINE_SEPARATOR);
+      System.err.println(Constants.LINE_SEPARATOR+uude.getLocalizedMessage()+
+          Constants.LINE_SEPARATOR);
       returnValue = USER_DATA_ERROR;
     }
     return returnValue;

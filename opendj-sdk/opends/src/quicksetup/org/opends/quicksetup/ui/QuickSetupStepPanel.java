@@ -46,6 +46,7 @@ import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.ProgressDescriptor;
 import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.URLWorker;
@@ -413,7 +414,7 @@ implements HyperlinkListener
         {
           if (html)
           {
-            buf.append("<br>");
+            buf.append(Constants.HTML_LINE_BREAK);
           }
           else
           {
@@ -425,7 +426,7 @@ implements HyperlinkListener
       }
       if (html)
       {
-        buf.append("<br>");
+        buf.append(Constants.HTML_LINE_BREAK);
       }
       else
       {

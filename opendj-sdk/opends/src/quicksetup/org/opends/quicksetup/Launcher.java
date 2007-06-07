@@ -200,9 +200,8 @@ public abstract class Launcher {
             while (t != null)
             {
               StackTraceElement[] stack = t.getStackTrace();
-              for (int i = 0; i < stack.length; i++)
-              {
-                buf.append(stack[i].toString()+"\n");
+              for (StackTraceElement aStack : stack) {
+                buf.append(aStack.toString()).append("\n");
               }
 
               t = t.getCause();
@@ -273,7 +272,6 @@ public abstract class Launcher {
   private void printVersion()
   {
     System.out.print(PRINTABLE_VERSION_STRING);
-    return;
   }
 
   /**

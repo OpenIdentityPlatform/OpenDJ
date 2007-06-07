@@ -356,8 +356,7 @@ public class CurrentInstallStatus
       if (index1 != -1)
       {
         int index2 =
-            getConfigFileContents().indexOf(
-                System.getProperty("line.separator"), index1);
+            getConfigFileContents().indexOf(Constants.LINE_SEPARATOR, index1);
         if (index2 != -1)
         {
           String sPort =
@@ -436,7 +435,7 @@ public class CurrentInstallStatus
         // We do not care about encoding: we are just interested in the ports
         while ((line = in.readLine()) != null)
         {
-          buf.append(line + System.getProperty("line.separator"));
+          buf.append(line).append(Constants.LINE_SEPARATOR);
         }
         reader.close();
       } catch (IOException ioe)
@@ -473,7 +472,7 @@ public class CurrentInstallStatus
     while (index1 != -1)
     {
       int index2 = getConfigFileContents().indexOf(
-            System.getProperty("line.separator"), index1);
+            Constants.LINE_SEPARATOR, index1);
       String value;
       if (index2 > (index1 + attrName.length()))
       {

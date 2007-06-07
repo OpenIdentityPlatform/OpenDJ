@@ -30,9 +30,12 @@ package org.opends.quicksetup.util;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.Constants;
 
 /**
  * This is an implementation of the ProgressMessageFormatter class that
@@ -41,13 +44,11 @@ import org.opends.quicksetup.ui.UIFactory;
  */
 public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
 {
+  static private final Logger LOG =
+          Logger.getLogger(HtmlProgressMessageFormatter.class.getName());
+
   private String doneHtml;
   private String errorHtml;
-
-  /**
-   * The line break in HTML.
-   */
-  private static String LINE_BREAK = "<br>";
 
   /**
    * The constant used to separate parameters in an URL.
@@ -163,8 +164,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
         UIFactory.getIconHtml(UIFactory.IconType.INFORMATION_LARGE) + SPACE
         + SPACE + UIFactory.applyFontToHtml(text, UIFactory.PROGRESS_FONT);
 
-    String result = UIFactory.applySuccessfulBackgroundToHtml(html);
-    return result;
+    return UIFactory.applySuccessfulBackgroundToHtml(html);
   }
 
   /**
@@ -284,7 +284,8 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     Throwable root = ex.getCause();
     while (root != null)
     {
-      stackBuf.append(getHtml(getMsg("exception-root-cause")) + LINE_BREAK);
+      stackBuf.append(getHtml(getMsg("exception-root-cause")))
+              .append(Constants.HTML_LINE_BREAK);
       stackBuf.append(getHtmlStack(root));
       root = root.getCause();
     }
@@ -297,11 +298,10 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     if (msg != null)
     {
       buf.append(UIFactory.applyFontToHtml(getHtml(ex.getMessage()),
-          UIFactory.PROGRESS_ERROR_FONT)
-          + LINE_BREAK);
+              UIFactory.PROGRESS_ERROR_FONT)).append(Constants.HTML_LINE_BREAK);
     } else
     {
-      buf.append(ex.toString() + LINE_BREAK);
+      buf.append(ex.toString()).append(Constants.HTML_LINE_BREAK);
     }
     buf.append(getErrorWithStackHtml(openDiv, hideText, showText, stackText,
         closeDiv, false));
@@ -329,7 +329,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   public String getLineBreak()
   {
-    return LINE_BREAK;
+    return Constants.HTML_LINE_BREAK;
   }
 
   /**
@@ -367,8 +367,8 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     int index = lastText.indexOf(urlText);
     if (index == -1)
     {
-      System.out.println("lastText: " + lastText);
-      System.out.println("does not contain: " + urlText);
+      LOG.log(Level.FINE, "lastText: " + lastText +
+              "does not contain: " + urlText);
     } else
     {
       lastText =
@@ -397,7 +397,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
       {
         if (i != 0)
         {
-          buffer.append("<br>");
+          buffer.append(Constants.HTML_LINE_BREAK);
         }
         buffer.append(escape(lines[i]));
       }
@@ -481,10 +481,19 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   {
     StringBuilder buf = new StringBuilder();
     StackTraceElement[] stack = ex.getStackTrace();
-    for (int i = 0; i < stack.length; i++)
-    {
-      buf.append(SPACE + SPACE + SPACE + SPACE + SPACE + SPACE + SPACE +
-          SPACE + SPACE + SPACE + getHtml(stack[i].toString()) + LINE_BREAK);
+    for (StackTraceElement aStack : stack) {
+      buf.append(SPACE)
+              .append(SPACE)
+              .append(SPACE)
+              .append(SPACE)
+              .append(SPACE)
+              .append(SPACE)
+              .append(SPACE)
+              .append(SPACE)
+              .append(SPACE)
+              .append(SPACE)
+              .append(getHtml(aStack.toString()))
+              .append(Constants.HTML_LINE_BREAK);
     }
     return buf.toString();
   }
@@ -535,11 +544,12 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     try
     {
       String text = hide ? hideText : showText;
-      buf.append(openDiv + "<a href=\"http://").append(
-          URLEncoder.encode(params, "UTF-8") + "\">" + text + "</a>");
+      buf.append(openDiv).append("<a href=\"http://")
+              .append(URLEncoder.encode(params, "UTF-8"))
+              .append("\">").append(text).append("</a>");
       if (hide)
       {
-        buf.append(LINE_BREAK + stackText);
+        buf.append(Constants.HTML_LINE_BREAK).append(stackText);
       }
       buf.append(closeDiv);
 
@@ -568,11 +578,11 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
       String showText, String stackText, String closeDiv, boolean hide)
   {
     StringBuilder buf = new StringBuilder();
-    buf.append(openDiv + PARAM_SEPARATOR);
-    buf.append(hideText + PARAM_SEPARATOR);
-    buf.append(showText + PARAM_SEPARATOR);
-    buf.append(stackText + PARAM_SEPARATOR);
-    buf.append(closeDiv + PARAM_SEPARATOR);
+    buf.append(openDiv).append(PARAM_SEPARATOR);
+    buf.append(hideText).append(PARAM_SEPARATOR);
+    buf.append(showText).append(PARAM_SEPARATOR);
+    buf.append(stackText).append(PARAM_SEPARATOR);
+    buf.append(closeDiv).append(PARAM_SEPARATOR);
     buf.append(hide);
     return buf.toString();
   }
@@ -607,7 +617,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     String showText = params[i++];
     String stackText = params[i++];
     String closeDiv = params[i++];
-    boolean isHide = new Boolean(params[i]);
+    boolean isHide = Boolean.valueOf(params[i]);
 
     if (isHide)
     {
