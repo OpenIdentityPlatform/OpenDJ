@@ -36,6 +36,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.i18n.ResourceProvider;
 
 /**
  * This class represents the physical state of an OpenDS installation.
@@ -216,18 +217,21 @@ public class Installation {
    * an actual OpenDS installation.
    * @param rootDirectory File directory candidate
    * @throws IllegalArgumentException if root directory does not appear to
-   * be an OpenDS installation root.
+   *         be an OpenDS installation root.  The thrown exception contains
+   *         a localized message indicating the reason why
+   *         <code>rootDirectory</code> is not a valid OpenDS install root.
    */
   static public void validateRootDirectory(File rootDirectory)
           throws IllegalArgumentException {
-    // TODO:  i18n
     String failureReason = null;
     if (rootDirectory == null) {
-      failureReason = "root directory is null";
+      failureReason = getMsg("error-install-root-dir-null");
     } else if (!rootDirectory.exists()) {
-      failureReason = "is not a directory";
+      failureReason = getMsg("error-install-root-dir-no-exist",
+              Utils.getPath(rootDirectory));
     } else if (!rootDirectory.isDirectory()) {
-      failureReason = "does not exist";
+      failureReason = getMsg("error-install-root-dir-not-dir",
+              Utils.getPath(rootDirectory));
     } else {
       String[] children = rootDirectory.list();
       if (children != null) {
@@ -240,19 +244,17 @@ public class Installation {
         };
         for (String dir : dirsToCheck) {
           if (!childrenSet.contains(dir)) {
-            failureReason = "does not contain directory '" + dir + "'";
+            failureReason = getMsg("error-install-root-dir-no-dir",
+                    Utils.getPath(rootDirectory), dir);
           }
         }
       } else {
-        failureReason = "is empty or you lack permissions " +
-                "to access this directory";
+        failureReason = getMsg("error-install-root-dir-empty",
+                    Utils.getPath(rootDirectory));
       }
     }
     if (failureReason != null) {
-      throw new IllegalArgumentException("Install root '" +
-              (rootDirectory != null ? Utils.getPath(rootDirectory) : "null") +
-              "' is not an OpenDS installation root: " +
-              " " + failureReason);
+      throw new IllegalArgumentException(failureReason);
     }
   }
 
@@ -477,10 +479,9 @@ public class Installation {
       }
     }
     if (rev == null) {
-      // TODO: i18n
       throw new ApplicationException(
           ApplicationException.Type.FILE_SYSTEM_ERROR,
-          "Could not determine SVN rev", null);
+          getMsg("error-determining-svn-rev"), null);
     }
     return rev;
   }
@@ -590,7 +591,6 @@ public class Installation {
       backupDirectory.delete();
     }
     if (!backupDirectory.mkdirs()) {
-      // TODO: i18n
       throw new IOException("failed to create history backup directory");
     }
     return backupDirectory;
@@ -750,7 +750,7 @@ public class Installation {
   public BuildInformation getBuildInformation(boolean useCachedVersion)
           throws ApplicationException
   {
-    if (buildInformation == null || useCachedVersion == false) {
+    if (buildInformation == null || !useCachedVersion) {
       FutureTask<BuildInformation> ft = new FutureTask<BuildInformation>(
               new Callable<BuildInformation>() {
                 public BuildInformation call() throws ApplicationException {
@@ -775,4 +775,13 @@ public class Installation {
   public String toString() {
     return Utils.getPath(rootDirectory);
   }
+
+  static private String getMsg(String key) {
+    return ResourceProvider.getInstance().getMsg(key);
+  }
+
+  static private String getMsg(String key, String... args) {
+    return ResourceProvider.getInstance().getMsg(key, args);
+  }
+
 }

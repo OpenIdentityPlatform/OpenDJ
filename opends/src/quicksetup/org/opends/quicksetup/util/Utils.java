@@ -1410,7 +1410,7 @@ public class Utils
         p = d.indexOf(' ', maxll);
       if (p > 0 && p < len) {
         return d.substring(0, p) +
-                "<br>" +
+                Constants.HTML_LINE_BREAK +
                breakHtmlString(d.substring(p + 1), maxll);
       } else {
         return d;

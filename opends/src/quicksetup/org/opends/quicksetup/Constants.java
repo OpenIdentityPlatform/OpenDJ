@@ -22,35 +22,30 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
 
 /**
- * This class is just used to specify which are the default values that will be
- * proposed to the user in the Data Options panel of the Installation wizard.
- *
+ * Defines common constants.
  */
-class DefaultDataOptions extends DataOptions
-{
-  /**
-   * Default constructor.
-   *
-   */
-  public DefaultDataOptions()
-  {
-    super(Type.CREATE_BASE_ENTRY, "dc=example,dc=com");
-  }
+public class Constants {
 
-  /**
-   * Get the number of entries that will be automatically generated.
-   *
-   * @return the number of entries that will be automatically generated.
-   */
-  public int getNumberEntries()
-  {
-    return 2000;
-  }
+  /** Platform appropriate line separator. */
+  static public final String LINE_SEPARATOR =
+          System.getProperty("line.separator");
+
+  /** HTML line break tag. */
+  public static final String HTML_LINE_BREAK = "<br>";
+
+  /** HTML bold open tag. */
+  public static final String HTML_BOLD_OPEN = "<b>";
+
+  /** HTML bold close tag. */
+  public static final String HTML_BOLD_CLOSE = "</b>";
+
+  /** Default dynamic name of directory manager. */
+  public static final String DIRECTORY_MANAGER_DN = "cn=Directory Manager";
 
 }

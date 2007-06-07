@@ -308,6 +308,7 @@ public class FileManager {
      * Create a new copy operation.
      * @param objectFile to copy
      * @param destDir to copy to
+     * @param overwrite if true copy should overwrite any existing file
      */
     public CopyOperation(File objectFile, File destDir, boolean overwrite) {
       super(objectFile);
@@ -507,6 +508,7 @@ public class FileManager {
     /**
      * Creates a delete operation.
      * @param objectFile to delete
+     * @param newParent Filr where <code>objectFile</code> will be copied.
      */
     public MoveOperation(File objectFile, File newParent) {
       super(objectFile);

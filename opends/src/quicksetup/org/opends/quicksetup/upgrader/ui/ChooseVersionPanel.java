@@ -59,7 +59,6 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
   private JLabel lblCurrentVersion = null;
   private JRadioButton rbRemote = null;
   private JRadioButton rbLocal = null;
-  private ButtonGroup grpRemoteLocal = null;
   private JComboBox cboBuild = null;
   private JLabel lblFile = null;
   private JTextField tfFile = null;
@@ -110,7 +109,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
           try {
             loadBuildList();
           } catch (IOException e) {
-            LOG.log(Level.INFO, "error", e);
+            LOG.log(Level.INFO, "Error loading build list", e);
           }
         }
       };
@@ -130,7 +129,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
   public Object getFieldValue(FieldName fieldName) {
     Object value = null;
     if (FieldName.UPGRADE_DOWNLOAD.equals(fieldName)) {
-      value = new Boolean(rbRemote.isSelected());
+      value = rbRemote.isSelected();
     } else if (FieldName.UPGRADE_BUILD_TO_DOWNLOAD.equals(fieldName)) {
       value = cboBuild.getSelectedItem();
     } else if (FieldName.UPGRADE_FILE.equals(fieldName)) {
@@ -172,7 +171,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
             getMsg("upgrade-choose-version-local-tooltip"),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
 
-    grpRemoteLocal = new ButtonGroup();
+    ButtonGroup grpRemoteLocal = new ButtonGroup();
     grpRemoteLocal.add(rbRemote);
     grpRemoteLocal.add(rbLocal);
     grpRemoteLocal.setSelected(rbRemote.getModel(), true);
@@ -314,7 +313,8 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
       try {
         bld = new RemoteBuildListComboBoxModelCreator(rbm);
       } catch (IOException e) {
-        LOG.log(Level.INFO, "error", e);
+        LOG.log(Level.INFO, "error creating remote build list combo " +
+                "box model creator", e);
       }
     }
     return bld;
@@ -343,7 +343,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
      * Creates a default instance.
      */
     public BuildListErrorComboBoxRenderer() {
-      super("Unable to access remote build information",
+      super(getMsg("upgrade-choose-version-unable-to-access-build-info"),
               UIFactory.getImageIcon(UIFactory.IconType.WARNING),
               SwingConstants.LEFT);
       UIFactory.setTextStyle(this, UIFactory.TextStyle.SECONDARY_STATUS);
@@ -382,7 +382,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
      * Creates a default instance.
      */
     public BuildListLoadingComboBoxRenderer() {
-      super("Loading remote build information...",
+      super(getMsg("upgrade-choose-version-loading-build-info"),
               UIFactory.getImageIcon(UIFactory.IconType.WAIT_TINY),
               SwingConstants.LEFT);
       UIFactory.setTextStyle(this, UIFactory.TextStyle.SECONDARY_STATUS);
@@ -449,11 +449,14 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
         cbm = new DefaultComboBoxModel(buildList.toArray());
       } else {
         try {
-        String[] options = { "Retry", "Close" };
+        String[] options = {
+                getMsg("retry-button-label"),
+                getMsg("close-button-label")
+        };
         int i = JOptionPane.showOptionDialog(getMainWindow(),
                 new BuildListDownloadErrorPanel(rbm,
                         throwable),
-                "Network Error",
+                getMsg("network-error-title"),
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.ERROR_MESSAGE,
                 null,
@@ -501,7 +504,7 @@ public class ChooseVersionPanel extends QuickSetupStepPanel {
     private InputStream getInputStream() throws IOException {
       if (this.in == null) {
         this.in = rbm.getDailyBuildsInputStream(getMainWindow(),
-                "Reading build information");
+                getMsg("upgrade-choose-version-reading-build-info"));
       }
       return this.in;
     }

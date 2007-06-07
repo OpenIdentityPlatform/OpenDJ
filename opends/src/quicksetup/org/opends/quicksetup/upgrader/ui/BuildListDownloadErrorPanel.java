@@ -40,7 +40,6 @@ import java.awt.event.ActionEvent;
 import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * This panel represents the big error message the pops up when the
@@ -72,14 +71,14 @@ class BuildListDownloadErrorPanel extends JPanel {
   private void layoutPanel() {
     setLayout(new GridBagLayout());
 
-    String proxyString = "None";
+    String proxyString = getMsg("general-none");
     Proxy proxy = rbm.getProxy();
     if (proxy != null) {
       SocketAddress addr = proxy.address();
       proxyString = addr.toString();
     }
 
-    String baseContext = "Unspecified";
+    String baseContext = getMsg("general-unspecified");
     URL url = rbm.getBaseContext();
     if (url != null) {
       baseContext = url.toString();
@@ -87,10 +86,9 @@ class BuildListDownloadErrorPanel extends JPanel {
 
     String html =
             getMsg("upgrade-choose-version-build-list-error",
-                    new String[]{
-                            baseContext,
-                            reason.getLocalizedMessage(),
-                            proxyString});
+                    baseContext,
+                    reason.getLocalizedMessage(),
+                    proxyString);
 
     /* This helps with debugger the HTML rendering
     StringBuffer content = new StringBuffer();
@@ -125,33 +123,12 @@ class BuildListDownloadErrorPanel extends JPanel {
     add(UIFactory.makeHtmlPane(html, ek, UIFactory.INSTRUCTIONS_FONT));
   }
 
-  /**
-   * Returns a localized message for a key value.  In  the properties file we
-   * have something of type:
-   * key=value
-   * <p/>
-   * For instance if we pass as key "mykey" and as arguments {"value1"} and
-   * in the properties file we have:
-   * mykey=value with argument {0}.
-   * <p/>
-   * This method will return "value with argument value1".
-   *
-   * @param key  the key in the properties file.
-   * @param args the arguments to be passed to generate the resulting value.
-   * @return the value associated to the key in the properties file.
-   * @see org.opends.quicksetup.i18n.ResourceProvider#getMsg(String,String[])
-   */
-  public String getMsg(String key, String[] args) {
-    return getI18n().getMsg(key, args);
+  private String getMsg(String key) {
+    return ResourceProvider.getInstance().getMsg(key);
   }
 
-  /**
-   * Returns a ResourceProvider instance.
-   *
-   * @return a ResourceProvider instance.
-   */
-  public ResourceProvider getI18n() {
-    return ResourceProvider.getInstance();
+  private String getMsg(String key, String... args) {
+    return ResourceProvider.getInstance().getMsg(key, args);
   }
 
   /**
@@ -199,12 +176,8 @@ class BuildListDownloadErrorPanel extends JPanel {
     } else {
       try {
         SwingUtilities.invokeAndWait(proxySpecifier);
-      } catch (InterruptedException e) {
-        LOG.log(Level.INFO, "error", e);
-      } catch (InvocationTargetException e) {
-        LOG.log(Level.INFO, "error", e);
       } catch (Throwable t) {
-        LOG.log(Level.INFO, "error", t);
+        LOG.log(Level.INFO, "error waiting for event thread", t);
       }
     }
   }

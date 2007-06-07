@@ -93,11 +93,11 @@ public class UserData
       setServerPort(defaultPort);
     }
 
-    setDirectoryManagerDn("cn=Directory Manager");
+    setDirectoryManagerDn(Constants.DIRECTORY_MANAGER_DN);
 
     setNewSuffixOptions(defaultNewSuffixOptions);
     AuthenticationData data = new AuthenticationData();
-    data.setDn("cn=Directory Manager");
+    data.setDn(Constants.DIRECTORY_MANAGER_DN);
     data.setPort(389);
     DataReplicationOptions repl = new DataReplicationOptions(
         DataReplicationOptions.Type.STANDALONE, data);

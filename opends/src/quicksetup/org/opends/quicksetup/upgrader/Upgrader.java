@@ -41,6 +41,8 @@ import org.opends.quicksetup.Step;
 import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.UserInteraction;
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.webstart.WebStartDownloader;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ZipExtractor;
@@ -321,7 +323,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
                         UpgradeLauncher.LOG_FILE_PREFIX,
                         UpgradeLauncher.LOG_FILE_SUFFIX));
     } catch (IOException e) {
-      System.err.println("Failed to initialize log");
+      System.err.println(
+              ResourceProvider.getInstance().getMsg("error-initializing-log"));
+      e.printStackTrace();
     }
 
     // Get started on downloading the web start jars
@@ -449,7 +453,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public String getSummary(ProgressStep step) {
-    String txt = null;
+    String txt;
     if (step == UpgradeProgressStep.FINISHED) {
       txt = getFinalSuccessMessage();
     } else if (step == UpgradeProgressStep.FINISHED_CANCELED) {
@@ -697,8 +701,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public boolean canFinish(WizardStep step) {
-    boolean cf = UpgradeWizardStep.REVIEW.equals(step);
-    return cf;
+    return UpgradeWizardStep.REVIEW.equals(step);
   }
 
   /**
@@ -719,7 +722,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     try {
 
       if (Utils.isWebStart()) {
-        ZipExtractor extractor = null;
+        ZipExtractor extractor;
         try {
           LOG.log(Level.INFO, "Waiting for Java Web Start jar download");
           waitForLoader(15); // TODO: ratio
@@ -769,7 +772,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       checkAbort();
 
-      boolean schemaCustomizationPresent = false;
+      boolean schemaCustomizationPresent;
       try {
         LOG.log(Level.INFO, "checking for schema customizations");
         setCurrentProgressStep(
@@ -787,7 +790,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       checkAbort();
 
-      boolean configCustimizationPresent = false;
+      boolean configCustimizationPresent;
       try {
         LOG.log(Level.INFO, "checking for config customizations");
         setCurrentProgressStep(
@@ -976,13 +979,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
       if (errors != null && errors.size() > 0) {
         notifyListeners(formatter.getFormattedError() +
                 formatter.getLineBreak());
-        String sep = System.getProperty("line.separator");
         String formattedDetails =
-                Utils.listToString(errors, sep, /*bullet=*/"\u2022 ", "");
+                Utils.listToString(errors,
+                        Constants.LINE_SEPARATOR, /*bullet=*/"\u2022 ", "");
         runWarning = new ApplicationException(
                 ApplicationException.Type.APPLICATION,
                 getMsg("error-upgraded-server-starts-with-errors",
-                        sep + formattedDetails), null);
+                        Constants.LINE_SEPARATOR + formattedDetails), null);
         String cancel = getMsg("upgrade-verification-failure-cancel");
         UserInteraction ui = userInteraction();
         if (ui == null || cancel.equals(ui.confirm(
@@ -1106,8 +1109,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       } catch (ApplicationException e) {
         notifyListeners(formatter.getFormattedError() +
                 formatter.getLineBreak());
-        System.err.print("Error cleaning up after upgrade: " +
-                e.getLocalizedMessage());
+        LOG.log(Level.INFO, "Error cleaning up after upgrade.", e);
       }
 
       // Decide final status based on presense of error
@@ -1223,9 +1225,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
             fm.move(f, root, null);
           } catch (Throwable t) {
             restoreError = true;
-            notifyListeners("The following could not be restored after the" +
-                    "failed upgrade attempt.  You should restore this " +
-                    "file/directory manually: '" + f + "' to '" + root + "'");
+            notifyListeners(getMsg("error-restoring-file",
+                    Utils.getPath(f),
+                    Utils.getPath(root)));
           }
         }
         if (!restoreError) {
@@ -1491,6 +1493,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * an upgrade from the current version to the next version
    * is possible.  Upgrading may not be possible due to 'flag
    * day' types of changes to the codebase.
+   * @throws org.opends.quicksetup.ApplicationException if upgradability
+   *         cannot be insured.
    */
   private void insureUpgradability() throws ApplicationException {
     BuildInformation currentVersion;
@@ -1499,7 +1503,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
     try {
       currentVersion = getInstallation().getBuildInformation();
     } catch (ApplicationException e) {
-      LOG.log(Level.INFO, "error", e);
+      LOG.log(Level.INFO, "error getting build information for " +
+              "current installation", e);
       throw ApplicationException.createFileSystemException(
               getMsg("error-determining-current-build"), e);
     }
@@ -1507,7 +1512,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
     try {
       newVersion = getStagedInstallation().getBuildInformation();
     } catch (Exception e) {
-      LOG.log(Level.INFO, "error", e);
+      LOG.log(Level.INFO, "error getting build information for " +
+              "staged installation", e);
       throw ApplicationException.createFileSystemException(
               getMsg("error-determining-upgrade-build"), e);    }
 
@@ -1579,7 +1585,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private String getFinalSuccessMessage() {
     String txt;
     String installPath = Utils.getPath(getInstallation().getRootDirectory());
-    String newVersion = null;
+    String newVersion;
     try {
       BuildInformation bi = getInstallation().getBuildInformation();
       if (bi != null) {
@@ -1686,7 +1692,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
       try {
         stagedVersion = getStagedInstallation().getBuildInformation();
       } catch (Exception e) {
-        LOG.log(Level.INFO, "error", e);
+        LOG.log(Level.INFO, "error getting build info for staged installation",
+                e);
       }
     }
     return stagedVersion;

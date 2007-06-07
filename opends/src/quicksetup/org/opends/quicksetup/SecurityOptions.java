@@ -244,7 +244,7 @@ public class SecurityOptions
 
   /**
    * Sets the key store password.
-   * @param keystorePassword the new key store password.
+   * @param keyStorePassword the new key store password.
    */
   private void setKeyStorePassword(String keyStorePassword)
   {

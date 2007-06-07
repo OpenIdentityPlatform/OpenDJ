@@ -120,7 +120,7 @@ public class RemoteBuildManager {
     }
     String proxyAuthString = createProxyAuthString();
     if (proxyAuthString != null) {
-      conn.setRequestProperty("Proxy-Authorization", "Basic " +
+      conn.setRequestProperty("Proxy-Authorization", "Basic " + // DO NOT i18n
               proxyAuthString);
     }
     InputStream in;
@@ -170,7 +170,7 @@ public class RemoteBuildManager {
     }
     String proxyAuthString = createProxyAuthString();
     if (proxyAuthString != null) {
-      conn.setRequestProperty("Proxy-Authorization", "Basic " +
+      conn.setRequestProperty("Proxy-Authorization", "Basic " + // DO NOT i18n
               proxyAuthString);
     }
     InputStream is = null;

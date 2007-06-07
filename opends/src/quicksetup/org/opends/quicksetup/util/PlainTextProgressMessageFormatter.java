@@ -28,6 +28,7 @@
 package org.opends.quicksetup.util;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.quicksetup.Constants;
 
 /**
  * This is an implementation of the ProgressMessageFormatter class that
@@ -39,11 +40,6 @@ implements ProgressMessageFormatter
 {
   private String doneText;
   private String errorText;
-
-  /**
-   * The line break in plain text.
-   */
-  private static String LINE_BREAK = System.getProperty("line.separator");
 
   /**
    * The space in plain text.
@@ -87,7 +83,7 @@ implements ProgressMessageFormatter
     String result;
     if (applyMargin)
     {
-      result = LINE_BREAK+text;
+      result = Constants.LINE_SEPARATOR+text;
     } else
     {
       result = text;
@@ -108,7 +104,7 @@ implements ProgressMessageFormatter
     String result;
     if (applyMargin)
     {
-      result = LINE_BREAK+text;
+      result = Constants.LINE_SEPARATOR+text;
     } else
     {
       result = text;
@@ -226,7 +222,7 @@ implements ProgressMessageFormatter
     String result;
     if (applyMargin)
     {
-      result = LINE_BREAK+msg;
+      result = Constants.LINE_SEPARATOR+msg;
     } else
     {
       result = msg;
@@ -240,7 +236,7 @@ implements ProgressMessageFormatter
    */
   public String getLineBreak()
   {
-    return LINE_BREAK;
+    return Constants.LINE_SEPARATOR;
   }
 
   /**

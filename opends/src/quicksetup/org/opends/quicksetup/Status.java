@@ -66,8 +66,6 @@ public class Status {
    * @return boolean where true means the configuration has been modified
    */
   public boolean configurationHasBeenModified() {
-    // TODO: a better way might be to diff config.ldif with configuration
-    // base in config/upgrade/config.ldif.<svn rev>
     boolean mod = false;
     try {
       mod = installation.getCurrentConfiguration().hasBeenModified();

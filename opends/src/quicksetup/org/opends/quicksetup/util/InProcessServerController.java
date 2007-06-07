@@ -175,8 +175,8 @@ public class InProcessServerController {
     // Attempting to use DirectoryServer with a configuration file
     // for a different version of the server can cause problems for
     // the server at startup.
-    BuildInformation installBi = null;
-    BuildInformation currentBi = null;
+    BuildInformation installBi;
+    BuildInformation currentBi;
     try {
       installBi = installation.getBuildInformation();
       currentBi = BuildInformation.getCurrent();
@@ -509,12 +509,6 @@ public class InProcessServerController {
       LOG.log(Level.INFO, "Error installing test log publishers: " +
               e.toString());
     }
-  }
-
-  static private void unregisterListenersForOutput() {
-    DebugLogger.removeDebugLogPublisher(DN.NULL_DN);
-    ErrorLogger.removeErrorLogPublisher(DN.NULL_DN);
-    AccessLogger.removeAccessLogPublisher(DN.NULL_DN);
   }
 
   static private String getMsg(String key, String... args) {
