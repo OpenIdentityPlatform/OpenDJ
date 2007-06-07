@@ -135,7 +135,6 @@ public class PrivilegeTestCase
       "ds-privilege-name: -ldif-export",
       "ds-privilege-name: -backend-backup",
       "ds-privilege-name: -backend-restore",
-      "ds-privilege-name: -index-rebuild",
       "ds-privilege-name: -unindexed-search",
       "",
       "dn: cn=Proxy Root,cn=Root DNs,cn=config",
@@ -171,7 +170,6 @@ public class PrivilegeTestCase
       "ds-privilege-name: backend-restore",
       "ds-privilege-name: proxied-auth",
       "ds-privilege-name: bypass-acl",
-      "ds-privilege-name: index-rebuild",
       "ds-privilege-name: unindexed-search",
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config",
@@ -1093,7 +1091,7 @@ public class PrivilegeTestCase
 
   /**
    * Test to ensure that attempts to rebuild indexes will property respect
-   * the INDEX_REBUILD privilege.
+   * the LDIF_IMPORT privilege.
    *
    * @param conn The client connection to use to perform the rebuild.
    * @param hasPrivilege Indicates weather the authenticated user is
@@ -1106,7 +1104,7 @@ public class PrivilegeTestCase
                                boolean hasPrivilege)
       throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.INDEX_REBUILD, null), hasPrivilege);
+    assertEquals(conn.hasPrivilege(Privilege.LDIF_IMPORT, null), hasPrivilege);
 
     Entry taskEntry = TestCaseUtils.makeEntry(
       "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",

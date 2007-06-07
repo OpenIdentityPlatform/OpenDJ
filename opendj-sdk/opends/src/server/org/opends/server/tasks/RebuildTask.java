@@ -104,7 +104,7 @@ public class RebuildTask extends Task
     if (operation != null)
     {
       ClientConnection clientConnection = operation.getClientConnection();
-      if (! clientConnection.hasPrivilege(Privilege.INDEX_REBUILD, operation))
+      if (! clientConnection.hasPrivilege(Privilege.LDIF_IMPORT, operation))
       {
         int    msgID   = MSGID_TASK_INDEXREBUILD_INSUFFICIENT_PRIVILEGES;
         String message = getMessage(msgID);
