@@ -6171,6 +6171,47 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if an attribute used an
+   * undefined token.  This takes a single argument, which is the hex
+   * representation of the token bytes.
+   */
+  public static final int MSGID_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 620;
+
+
+
+  /**
+   * The message ID for the message that will be used if an object class set
+   * used an undefined token.  This takes a single argument, which is the hex
+   * representation of the token bytes.
+   */
+  public static final int MSGID_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 621;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to write the updated compressed schema definitions.  This takes a
+   * single argument, which is a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_COMPRESSEDSCHEMA_CANNOT_WRITE_UPDATED_DATA =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 622;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to decode an entry encode config object because it had an invalid
+   * length.  This does not take any arguments.
+   */
+  public static final int MSGID_ENTRYENCODECFG_INVALID_LENGTH =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 623;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -8401,6 +8442,22 @@ public class CoreMessages
     registerMessage(MSGID_DIRECTORY_SERVER_LEAVING_LOCKDOWN_MODE,
                     "The Directory Server is leaving lockdown mode and will " +
                     "resume normal operation");
+
+
+    registerMessage(MSGID_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN,
+                    "Unable to decode the provided attribute because it " +
+                    "used an undefined attribute description token %s");
+    registerMessage(MSGID_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN,
+                    "Unable to decode the provided object class set because " +
+                    "it used an undefined token %s");
+    registerMessage(MSGID_COMPRESSEDSCHEMA_CANNOT_WRITE_UPDATED_DATA,
+                    "Unable to write the updated compressed schema token " +
+                    "data:  %s");
+
+
+    registerMessage(MSGID_ENTRYENCODECFG_INVALID_LENGTH,
+                    "Unable to decode the provided entry encode " +
+                    "configuration element because it has an invalid length");
   }
 }
 

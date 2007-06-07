@@ -41,6 +41,7 @@ import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
 
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
 /**
@@ -140,8 +141,12 @@ public class ID2Entry
    *
    * @param entry The LDAP entry to be converted.
    * @return The database entry.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to encode
+   *                              the entry.
    */
   private DatabaseEntry entryData(Entry entry)
+          throws DirectoryException
   {
     byte[] entryBytes;
     entryBytes = JebFormat.entryToDatabase(entry, dataConfig);
@@ -157,9 +162,11 @@ public class ID2Entry
    * @return true if the entry was inserted, false if a record with that
    *         ID already existed.
    * @throws DatabaseException If an error occurs in the JE database.
+   * @throws  DirectoryException  If a problem occurs while attempting to encode
+   *                              the entry.
    */
   public boolean insert(Transaction txn, EntryID id, Entry entry)
-       throws DatabaseException
+       throws DatabaseException, DirectoryException
   {
     DatabaseEntry key = id.getDatabaseEntry();
     DatabaseEntry data = entryData(entry);
@@ -181,9 +188,11 @@ public class ID2Entry
    * @param entry The LDAP entry.
    * @return true if the entry was written, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
+   * @throws  DirectoryException  If a problem occurs while attempting to encode
+   *                              the entry.
    */
   public boolean put(Transaction txn, EntryID id, Entry entry)
-       throws DatabaseException
+       throws DatabaseException, DirectoryException
   {
     DatabaseEntry key = id.getDatabaseEntry();
     DatabaseEntry data = entryData(entry);

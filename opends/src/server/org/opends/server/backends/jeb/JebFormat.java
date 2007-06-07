@@ -36,6 +36,7 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.EntryEncodeConfig;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -70,6 +71,11 @@ public class JebFormat
    * The ASN1 tag for the DirectoryServerEntry type.
    */
   public static final byte TAG_DIRECTORY_SERVER_ENTRY = 0x61;
+
+  /**
+   * The configuration to use when encoding entries in the database.
+   */
+  private static EntryEncodeConfig encodeConfig = new EntryEncodeConfig();
 
   /**
    * Decode a DatabaseEntry.  The encoded bytes may be compressed and/or
@@ -236,8 +242,12 @@ public class JebFormat
    * @param entry The entry to encode.
    * @param dataConfig Compression and cryptographic options.
    * @return A byte array containing the encoded database value.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to encode
+   *                              the entry.
    */
   static public byte[] entryToDatabase(Entry entry, DataConfig dataConfig)
+         throws DirectoryException
   {
     byte[] uncompressedBytes = encodeDirectoryServerEntry(entry);
     return encodeDatabaseEntry(uncompressedBytes, dataConfig);
@@ -248,8 +258,12 @@ public class JebFormat
    *
    * @param entry The entry to encode.
    * @return A byte array containing the encoded database value.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to encode
+   *                              the entry.
    */
   static public byte[] entryToDatabase(Entry entry)
+         throws DirectoryException
   {
     return entryToDatabase(entry, new DataConfig());
   }
@@ -259,10 +273,14 @@ public class JebFormat
    *
    * @param entry The entry to encode.
    * @return A byte array containing the encoded DirectoryServerEntry.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to encode
+   *                              the entry.
    */
   static private byte[] encodeDirectoryServerEntry(Entry entry)
+         throws DirectoryException
   {
-    return entry.encode();
+    return entry.encode(encodeConfig);
   }
 
   /**

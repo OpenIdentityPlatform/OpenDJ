@@ -38,10 +38,13 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Entry;
+import org.opends.server.types.EntryEncodeConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
+
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -235,24 +238,112 @@ public class TestJebFormat extends JebTestCase {
         assertEquals(listBefore.size(), listAfter.size());
 
         for (Attribute attrBefore : listBefore) {
+          boolean found = false;
+
           for (Attribute attrAfter : listAfter) {
             if (attrAfter.optionsEqual(attrBefore.getOptions())) {
               // Found the corresponding attribute
 
-              String beforeAttrString = attrBefore.toString();
-              String afterAttrString = attrAfter.toString();
-
-              if (!beforeAttrString.equals(afterAttrString)) {
-                System.out.printf(
-                    "Original attr:\n%s\nRetrieved attr:\n%s\n\n",
-                    beforeAttrString, afterAttrString);
-              }
-
-              assertEquals(beforeAttrString, afterAttrString);
+              assertEquals(attrBefore, attrAfter);
+              found = true;
             }
           }
+
+          assertTrue(found);
         }
       }
+    }
+    reader.close();
+  }
+
+  /**
+   * Tests the entry encoding and decoding process the version 1 encoding.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test()
+  public void testEntryToAndFromDatabaseV1() throws Exception {
+    // Make sure that the server is up and running.
+    TestCaseUtils.startServer();
+
+    // Convert the test LDIF string to a byte array
+    byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
+
+    LDIFReader reader = new LDIFReader(new LDIFImportConfig(
+        new ByteArrayInputStream(originalLDIFBytes)));
+
+    Entry entryBefore, entryAfterGeneric, entryAfterV1;
+    while ((entryBefore = reader.readEntry(false)) != null) {
+      byte[] entryBytes = entryBefore.encodeV1();
+      entryAfterGeneric = Entry.decode(entryBytes);
+      assertEquals(entryBefore, entryAfterGeneric);
+
+      entryAfterV1 = Entry.decodeV1(entryBytes);
+      assertEquals(entryBefore, entryAfterV1);
+
+      assertEquals(entryAfterGeneric, entryAfterV1);
+    }
+    reader.close();
+  }
+
+  /**
+   * Retrieves a set of entry encode configurations that may be used to test the
+   * entry encoding and decoding capabilities.
+   */
+  @DataProvider(name = "encodeConfigs")
+  public Object[][] getEntryEncodeConfigs()
+  {
+    return new Object[][]
+    {
+      new Object[] { new EntryEncodeConfig() },
+      new Object[] { new EntryEncodeConfig(false, false, false) },
+      new Object[] { new EntryEncodeConfig(true, false, false) },
+      new Object[] { new EntryEncodeConfig(false, true, false) },
+      new Object[] { new EntryEncodeConfig(false, false, true) },
+      new Object[] { new EntryEncodeConfig(true, true, false) },
+      new Object[] { new EntryEncodeConfig(true, false, true) },
+      new Object[] { new EntryEncodeConfig(false, true, true) },
+      new Object[] { new EntryEncodeConfig(true, true, true) },
+    };
+  }
+
+  /**
+   * Tests the entry encoding and decoding process the version 1 encoding.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test(dataProvider = "encodeConfigs")
+  public void testEntryToAndFromDatabaseV2(EntryEncodeConfig config)
+         throws Exception {
+    // Make sure that the server is up and running.
+    TestCaseUtils.startServer();
+
+    // Convert the test LDIF string to a byte array
+    byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
+
+    LDIFReader reader = new LDIFReader(new LDIFImportConfig(
+        new ByteArrayInputStream(originalLDIFBytes)));
+
+    Entry entryBefore, entryAfterGeneric, entryAfterV2;
+    while ((entryBefore = reader.readEntry(false)) != null) {
+      byte[] entryBytes = entryBefore.encodeV2(config);
+      entryAfterGeneric = Entry.decode(entryBytes);
+      if (config.excludeDN())
+      {
+        entryAfterGeneric.setDN(entryBefore.getDN());
+      }
+      assertEquals(entryBefore, entryAfterGeneric);
+
+      entryAfterV2 = Entry.decodeV2(entryBytes);
+      if (config.excludeDN())
+      {
+        entryAfterV2.setDN(entryBefore.getDN());
+      }
+      assertEquals(entryBefore, entryAfterV2);
+
+      assertEquals(entryAfterGeneric, entryAfterV2);
     }
     reader.close();
   }

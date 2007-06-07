@@ -2674,6 +2674,15 @@ public class ConfigConstants
 
 
   /**
+   * The base name (with no path information) of the file that will be used to
+   * hold schema tokens used for compressed schema elements.
+   */
+  public static final String COMPRESSED_SCHEMA_FILE_NAME =
+       "schematokens.dat";
+
+
+
+  /**
    * The base name (with no path information) of the directory that will hold
    * the archived versions of previous configurations.
    */
