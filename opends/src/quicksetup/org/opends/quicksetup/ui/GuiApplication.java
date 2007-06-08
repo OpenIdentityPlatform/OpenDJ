@@ -561,7 +561,7 @@ public abstract class GuiApplication extends Application {
    */
   protected UserInteraction userInteraction() {
     UserInteraction ui = null;
-    if (!getUserData().isNoninteractive()) {
+    if (!getUserData().isSilent()) {
       if (Utils.isCli()) {
         ui = new CliUserInteraction();
       } else {

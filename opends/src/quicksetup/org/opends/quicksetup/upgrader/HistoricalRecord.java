@@ -77,7 +77,9 @@ public class HistoricalRecord {
 
     SUCCESS(getMsg("upgrade-log-status-success")),
 
-    FAILURE(getMsg("upgrade-log-status-failure"));
+    FAILURE(getMsg("upgrade-log-status-failure")),
+
+    CANCEL(getMsg("upgrade-log-status-cancel"));
 
     private String representation;
 

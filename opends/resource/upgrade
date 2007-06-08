@@ -136,8 +136,7 @@ do
 done
 export CLASSPATH
 "${JAVA_BIN}" org.opends.quicksetup.upgrader.BuildExtractor "${@}"
-
-if [ -r "${INSTANCE_ROOT}/tmp/upgrade" ]
+if test $? -eq 0
 then
   # Configure the appropriate CLASSPATH.
   # Unlike BuildExtractor, the Upgrader uses
@@ -149,14 +148,6 @@ then
   done
   # Launch the upgrade process.
   "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
-
-  # Clean up if necessary
-  if [ -r "${INSTANCE_ROOT}/tmp/upgrade" ]
-  then
-    rm -fr "${INSTANCE_ROOT}/tmp/upgrade"
-  fi
 else
-  # Build extractor didn't work.  Invoke the upgrader
-  # to report errors and usage.
-  "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
+  exit 101
 fi

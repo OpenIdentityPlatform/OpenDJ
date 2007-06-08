@@ -252,16 +252,11 @@ public abstract class Launcher {
    */
   protected int launchCli(String[] args, CliApplication cliApp) {
     System.setProperty("org.opends.quicksetup.cli", "true");
-
     QuickSetupCli cli = new QuickSetupCli(cliApp, args);
     int returnValue = cli.run();
     if (returnValue == QuickSetupCli.USER_DATA_ERROR) {
       printUsage();
     }
-
-    // Add an extra space systematically
-    System.out.println();
-
     return returnValue;
   }
 
@@ -315,8 +310,9 @@ public abstract class Launcher {
     else if (shouldPrintUsage()) {
       printUsage();
     } else if (isCli()) {
-      int exitCode = launchCli(args, createCliApplication());
-      preExit();
+      CliApplication cliApp = createCliApplication();
+      int exitCode = launchCli(args, cliApp);
+      preExit(cliApp);
       System.exit(exitCode);
     } else {
       willLaunchGui();
@@ -331,20 +327,28 @@ public abstract class Launcher {
         {
           guiLaunchFailed(null);
         }
-        exitCode = launchCli(args, createCliApplication());
+        CliApplication cliApp = createCliApplication();
+        exitCode = launchCli(args, cliApp);
         if (exitCode != 0) {
-          preExit();
+          preExit(cliApp);
           System.exit(exitCode);
         }
       }
     }
   }
 
-  private void preExit() {
-    File logFile = QuickSetupLog.getLogFile();
-    if (logFile != null) {
-      System.out.println(getMsg("general-see-for-details",
-            QuickSetupLog.getLogFile().getPath()));
+  private void preExit(CliApplication cliApp) {
+    UserData ud = cliApp.getUserData();
+    if (ud != null && !ud.isSilent()) {
+
+      // Add an extra space systematically
+      System.out.println();
+
+      File logFile = QuickSetupLog.getLogFile();
+      if (logFile != null) {
+        System.out.println(getMsg("general-see-for-details",
+              QuickSetupLog.getLogFile().getPath()));
+      }
     }
   }
 

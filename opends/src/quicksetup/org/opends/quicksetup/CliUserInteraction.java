@@ -133,6 +133,8 @@ public class CliUserInteraction extends CliApplicationHelper
     return returnValue;
   }
 
+
+
   private String createOption(int index, String option) {
     return new StringBuilder().
             append(Integer.toString(index)).

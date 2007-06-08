@@ -83,7 +83,7 @@ public class UserData
 
   private boolean silent;
 
-  private boolean noninteractive;
+  private boolean interactive;
 
   /**
    * Creates a user data object with default values.
@@ -454,6 +454,11 @@ public class UserData
 
   /**
    * Indicates whether or not the user has requested silent mode.
+   * <p>
+   * Silent mode in the CLI means that nothing is written to output including
+   * prompts for information and whether or not to continue an operation
+   * experiencing errors.
+   *
    * @return boolean where true indicates this session should be silent.
    */
   public boolean isSilent() {
@@ -461,20 +466,27 @@ public class UserData
   }
 
   /**
-   * Sets whether or not this session should solicite feedback from the user.
-   * @param noninteractive boolean where true indicates this application
+   * Sets whether or not this session should solicite feedback from the user
+   * for missing information.
+   * @param interactive boolean where true indicates this application
    *        should NOT solicite feedback from the user
    */
-  public void setNoninteractive(boolean noninteractive) {
-    this.noninteractive = noninteractive;
+  public void setInteractive(boolean interactive) {
+    this.interactive = interactive;
   }
 
   /**
-   * Indicates whether or not the user has requested noninteractive mode.
-   * @return boolean where true indicates this session should be noninteractive
+   * Indicates whether or not the user has requested interactive mode.
+   * <p>
+   * Interactive mode in the CLI means that the CLI will prompt the user
+   * for more information if it is required.  Interactivity does NOT
+   * affect prompts to the user regarding actions like continuing an operation
+   * that is experiencing errors.
+   *
+   * @return boolean where true indicates this session should be interactive
    */
-  public boolean isNoninteractive() {
-    return this.noninteractive;
+  public boolean isInteractive() {
+    return !this.silent && this.interactive;
   }
 
   /**

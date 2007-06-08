@@ -47,6 +47,13 @@ public interface CliApplication extends ProgressNotifier, Runnable {
           throws UserDataException;
 
   /**
+   * Gets the user data this application will use when running.
+   * @return UserData to use when running
+   */
+  UserData getUserData();
+
+
+  /**
    * Sets the user data this application will use when running.
    * @param userData UserData to use when running
    */

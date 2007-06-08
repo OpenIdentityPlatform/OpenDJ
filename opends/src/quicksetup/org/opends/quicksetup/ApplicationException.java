@@ -96,6 +96,11 @@ public class ApplicationException extends Exception
     TOOL_ERROR,
 
     /**
+     * User canceled operation.
+     */
+    CANCEL,
+
+    /**
      * A bug (for instance when we throw an IllegalStateException).
      */
     BUG

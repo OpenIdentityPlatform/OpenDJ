@@ -32,6 +32,7 @@ import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.StaticUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -57,12 +58,12 @@ public class CliApplicationHelper {
   static public final String SILENT_OPTION_LONG = "silent";
 
   /** Short form of the option for specifying a noninteractive session. */
-  static public final Character NONINTERACTIVE_OPTION_SHORT = 'n';
+  static public final Character INTERACTIVE_OPTION_SHORT = 'i';
 
   /** Long form of the option for specifying a noninteractive session. */
-  static public final String NONINTERACTIVE_OPTION_LONG = "noninteractive";
+  static public final String INTERACTIVE_OPTION_LONG = "interactive";
 
-  private BooleanArgument noninteractiveArg = null;
+  private BooleanArgument interactiveArg = null;
 
   private BooleanArgument silentArg = null;
 
@@ -109,6 +110,53 @@ public class CliApplicationHelper {
     }
     return response;
   }
+
+  /**
+   * Interactively prompts (on standard output) the user to provide a string
+   * value.  Any non-empty string will be allowed (the empty string will
+   * indicate that the default should be used, if there is one).
+   *
+   * @param  prompt        The prompt to present to the user.
+   * @param  defaultValue  The default value to assume if the user presses ENTER
+   *                       without typing anything, or <CODE>null</CODE> if
+   *                       there should not be a default and the user must
+   *                       explicitly provide a value.
+   *
+   * @return  The string value read from the user.
+   */
+  protected String promptForString(String prompt, String defaultValue) {
+    System.out.println();
+    String wrappedPrompt = StaticUtils.wrapText(prompt,
+            Utils.getCommandLineMaxLineWidth());
+
+    while (true) {
+      System.out.println(wrappedPrompt);
+
+      if (defaultValue == null) {
+        System.out.print(": ");
+      } else {
+        System.out.print("[");
+        System.out.print(defaultValue);
+        System.out.print("]: ");
+      }
+
+      System.out.flush();
+
+      String response = readLine();
+      if (response.equals("")) {
+        if (defaultValue == null) {
+          String message = getMsg("error-empty-response");
+          System.err.println(StaticUtils.wrapText(message,
+                  Utils.getCommandLineMaxLineWidth()));
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return response;
+      }
+    }
+  }
+
 
   /**
    * Reads a line of text from standard input.
@@ -243,8 +291,8 @@ public class CliApplicationHelper {
    * @return <CODE>true</CODE> if this is a noninteractive session and
    * <CODE>false</CODE> otherwise.
    */
-  protected boolean isNoninteractive() {
-    return noninteractiveArg != null && noninteractiveArg.isPresent();
+  protected boolean isInteractive() {
+    return interactiveArg != null && interactiveArg.isPresent();
   }
 
   /**
@@ -267,12 +315,12 @@ public class CliApplicationHelper {
     // Initialize all the common command-line argument types and register
     // them with the parser.
     try {
-      noninteractiveArg =
+      interactiveArg =
            new BooleanArgument("noninteractive session",
-                   NONINTERACTIVE_OPTION_SHORT,
-                   NONINTERACTIVE_OPTION_LONG,
+                   INTERACTIVE_OPTION_SHORT,
+                   INTERACTIVE_OPTION_LONG,
                    0);
-      argParser.addArgument(noninteractiveArg);
+      argParser.addArgument(interactiveArg);
 
       silentArg =
            new BooleanArgument("silent session",

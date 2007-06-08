@@ -110,21 +110,24 @@ public class QuickSetupCli {
                 new PlainTextProgressMessageFormatter();
         cliApp.setUserData(userData);
         cliApp.setProgressMessageFormatter(formatter);
-        cliApp.addProgressUpdateListener(
-            new ProgressUpdateListener()
-            {
-              /**
-               * ProgressUpdateListener implementation.
-               * @param ev the ProgressUpdateEvent we receive.
-               *
-               */
-              public void progressUpdate(ProgressUpdateEvent ev)
+        if (!userData.isSilent()) {
+          cliApp.addProgressUpdateListener(
+              new ProgressUpdateListener()
               {
-                System.out.print(
-                    org.opends.server.util.StaticUtils.wrapText(ev.getNewLogs(),
-                        Utils.getCommandLineMaxLineWidth()));
-              }
-            });
+                /**
+                 * ProgressUpdateListener implementation.
+                 * @param ev the ProgressUpdateEvent we receive.
+                 *
+                 */
+                public void progressUpdate(ProgressUpdateEvent ev)
+                {
+                  System.out.print(
+                          org.opends.server.util.StaticUtils.wrapText(
+                                  ev.getNewLogs(),
+                                  Utils.getCommandLineMaxLineWidth()));
+                }
+              });
+        }
         new Thread(cliApp).start();
         while (!cliApp.isFinished())
         {
