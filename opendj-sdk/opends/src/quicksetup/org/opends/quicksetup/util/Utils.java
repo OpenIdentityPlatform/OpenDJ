@@ -38,20 +38,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
-import java.net.ConnectException;
+import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.naming.CommunicationException;
-import javax.naming.Context;
 import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.TrustManager;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.i18n.ResourceProvider;
@@ -66,8 +68,6 @@ public class Utils
 {
   private static final Logger LOG =
           Logger.getLogger(Utils.class.getName());
-
-  private static final int DEFAULT_LDAP_CONNECT_TIMEOUT = 3000;
 
   private static final int BUFFER_SIZE = 1024;
 
@@ -757,6 +757,20 @@ public class Utils
     return p.waitFor();
   }
 
+  /**
+   * Returns the String that can be used to represent a given host name in a
+   * LDAP URL.
+   * This method must be used when we have IPv6 addresses (the address in the
+   * LDAP URL must be enclosed with brackets).
+   * @param host the host name.
+   * @return the String that can be used to represent a given host name in a
+   * LDAP URL.
+   */
+  public static String getHostNameForLdapUrl(String host)
+  {
+    return ConnectionUtils.getHostNameForLdapUrl(host);
+  }
+
   // Very limited for the moment: apply only permissions to the current user and
   // does not work in non-English environments... to work in non English we
   // should use xcalcs but it does not come in the windows default install...
@@ -847,54 +861,81 @@ public class Utils
       String pwd, int timeout, Hashtable<String, String> env)
       throws NamingException
   {
-    if (env != null)
-    { // We clone 'env' so that we can modify it freely
-      env = new Hashtable<String, String>(env);
-    } else
-    {
-      env = new Hashtable<String, String>();
-    }
-    env
-        .put(Context.INITIAL_CONTEXT_FACTORY,
-            "com.sun.jndi.ldap.LdapCtxFactory");
-    env.put(Context.PROVIDER_URL, ldapURL);
-    if (timeout >= 1)
-    {
-      env.put("com.sun.jndi.ldap.connect.timeout", String.valueOf(timeout));
-    }
-    if (dn != null)
-    {
-      env.put(Context.SECURITY_PRINCIPAL, dn);
-    }
-    if (pwd != null)
-    {
-      env.put(Context.SECURITY_CREDENTIALS, pwd);
-    }
-
-    /* Contains the DirContext and the Exception if any */
-    final Object[] pair = new Object[]
-      { null, null };
-    final Hashtable fEnv = env;
-    Thread t = new Thread(new Runnable()
-    {
-      public void run()
-      {
-        try
-        {
-          pair[0] = new InitialLdapContext(fEnv, null);
-
-        } catch (NamingException ne)
-        {
-          pair[1] = ne;
-
-        } catch (Throwable t)
-        {
-          pair[1] = t;
-        }
-      }
-    });
-    return getInitialLdapContext(t, pair, timeout);
+    return ConnectionUtils.createLdapContext(ldapURL, dn, pwd, timeout, env);
   }
+
+  /**
+   * Creates an LDAPS connection and returns the corresponding LdapContext.
+   * This method uses the TrusteSocketFactory class so that the specified
+   * trust manager gets called during the SSL handshake. If trust manager is
+   * null, certificates are not verified during SSL handshake.
+   *
+   * @param ldapsURL      the target *LDAPS* URL.
+   * @param dn            passed as Context.SECURITY_PRINCIPAL if not null.
+   * @param pwd           passed as Context.SECURITY_CREDENTIALS if not null.
+   * @param timeout       passed as com.sun.jndi.ldap.connect.timeout if > 0.
+   * @param env           null or additional environment properties.
+   * @param trustManager  null or the trust manager to be invoked during SSL
+   * negociation.
+   *
+   * @return the established connection with the given parameters.
+   *
+   * @throws NamingException the exception thrown when instantiating
+   * InitialLdapContext.
+   *
+   * @see javax.naming.Context
+   * @see javax.naming.ldap.InitialLdapContext
+   * @see TrustedSocketFactory
+   */
+  public static InitialLdapContext createLdapsContext(String ldapsURL,
+      String dn, String pwd, int timeout, Hashtable<String, String> env,
+      TrustManager trustManager) throws NamingException {
+    return ConnectionUtils.createLdapsContext(ldapsURL, dn, pwd, timeout, env,
+        trustManager);
+  }
+
+  /**
+   * Creates an LDAP+StartTLS connection and returns the corresponding
+   * LdapContext.
+   * This method first creates an LdapContext with anonymous bind. Then it
+   * requests a StartTlsRequest extended operation. The StartTlsResponse is
+   * setup with the specified hostname verifier. Negotiation is done using a
+   * TrustSocketFactory so that the specified TrustManager gets called during
+   * the SSL handshake.
+   * If trust manager is null, certificates are not checked during SSL
+   * handshake.
+   *
+   * @param ldapsURL      the target *LDAPS* URL.
+   * @param dn            passed as Context.SECURITY_PRINCIPAL if not null.
+   * @param pwd           passed as Context.SECURITY_CREDENTIALS if not null.
+   * @param timeout       passed as com.sun.jndi.ldap.connect.timeout if > 0.
+   * @param env           null or additional environment properties.
+   * @param trustManager  null or the trust manager to be invoked during SSL.
+   * negociation.
+   * @param verifier      null or the hostname verifier to be setup in the
+   * StartTlsResponse.
+   *
+   * @return the established connection with the given parameters.
+   *
+   * @throws NamingException the exception thrown when instantiating
+   * InitialLdapContext.
+   *
+   * @see javax.naming.Context
+   * @see javax.naming.ldap.InitialLdapContext
+   * @see javax.naming.ldap.StartTlsRequest
+   * @see javax.naming.ldap.StartTlsResponse
+   * @see TrustedSocketFactory
+   */
+
+  public static InitialLdapContext createStartTLSContext(String ldapsURL,
+      String dn, String pwd, int timeout, Hashtable<String, String> env,
+      TrustManager trustManager, HostnameVerifier verifier)
+  throws NamingException
+  {
+    return ConnectionUtils.createStartTLSContext(ldapsURL, dn, pwd, timeout,
+        env, trustManager, verifier);
+  }
+
 
   /**
    * Method used to know if we can connect as administrator in a server with a
@@ -908,33 +949,40 @@ public class Utils
   public static boolean canConnectAsAdministrativeUser(String ldapUrl,
       String dn, String pwd)
   {
-    boolean canConnectAsAdministrativeUser = false;
-    try
-    {
-      InitialLdapContext ctx =
-        Utils.createLdapContext(ldapUrl, dn, pwd,
-            Utils.getDefaultLDAPTimeout(), null);
+    return ConnectionUtils.canConnectAsAdministrativeUser(ldapUrl, dn, pwd);
+  }
 
-      /*
-       * Search for the config to check that it is the directory manager.
-       */
-      SearchControls searchControls = new SearchControls();
-      searchControls.setCountLimit(1);
-      searchControls.setSearchScope(
-      SearchControls. OBJECT_SCOPE);
-      searchControls.setReturningAttributes(
-      new String[] {"dn"});
-      ctx.search("cn=config", "objectclass=*", searchControls);
+/**
+ * Tells whether the provided Throwable was caused because of a problem with
+ * a certificate while trying to establish a connection.
+ * @param t the Throwable to analyze.
+ * @return <CODE>true</CODE> if the provided Throwable was caused because of a
+ * problem with a certificate while trying to establish a connection and
+ * <CODE>false</CODE> otherwise.
+ */
+  public static boolean isCertificateException(Throwable t)
+  {
+    boolean returnValue = false;
 
-      canConnectAsAdministrativeUser = true;
-    } catch (NamingException ne)
+    while (!returnValue && (t != null))
     {
-      // Nothing to do.
-    } catch (Throwable t)
-    {
-      throw new IllegalStateException("Unexpected throwable.", t);
+      returnValue = (t instanceof SSLHandshakeException) ||
+      (t instanceof GeneralSecurityException);
+      t = t.getCause();
     }
-    return canConnectAsAdministrativeUser;
+
+    return returnValue;
+  }
+
+  /**
+   * Returns the default LDAP timeout in milliseconds when we try to connect to
+   * a server.
+   * @return the default LDAP timeout in milliseconds when we try to connect to
+   * a server.
+   */
+  public static int getDefaultLDAPTimeout()
+  {
+    return ConnectionUtils.getDefaultLDAPTimeout();
   }
 
   /**
@@ -999,7 +1047,7 @@ public class Utils
      String title)
  {
    return JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(
-       parent, msg, title, JOptionPane.YES_NO_OPTION,
+       parent, wrapMsg(msg, 100), title, JOptionPane.YES_NO_OPTION,
        JOptionPane.QUESTION_MESSAGE, null, // don't use a custom
        // Icon
        null, // the titles of buttons
@@ -1018,7 +1066,7 @@ public class Utils
    */
   public static void displayError(Component parent, String msg, String title)
   {
-    JOptionPane.showMessageDialog(parent, msg, title,
+    JOptionPane.showMessageDialog(parent, wrapMsg(msg, 100), title,
         JOptionPane.ERROR_MESSAGE);
   }
 
@@ -1035,7 +1083,7 @@ public class Utils
   public static void displayInformationMessage(JFrame parent, String msg,
       String title)
   {
-    JOptionPane.showMessageDialog(parent, msg, title,
+    JOptionPane.showMessageDialog(parent, wrapMsg(msg, 100), title,
         JOptionPane.INFORMATION_MESSAGE);
   }
 
@@ -1087,95 +1135,6 @@ public class Utils
     return outsideLogs;
   }
 
-  /**
-   * This is just a commodity method used to try to get an InitialLdapContext.
-   * @param t the Thread to be used to create the InitialLdapContext.
-   * @param pair an Object[] array that contains the InitialLdapContext and the
-   * Throwable if any occurred.
-   * @param timeout the timeout.  If we do not get to create the connection
-   * before the timeout a CommunicationException will be thrown.
-   * @return the created InitialLdapContext
-   * @throws NamingException if something goes wrong during the creation.
-   */
-  private static InitialLdapContext getInitialLdapContext(Thread t,
-      Object[] pair, int timeout) throws NamingException
-  {
-    try
-    {
-      if (timeout > 0)
-      {
-        t.start();
-        t.join(timeout);
-      } else
-      {
-        t.run();
-      }
-
-    } catch (InterruptedException x)
-    {
-      // This might happen for problems in sockets
-      // so it does not necessarily imply a bug
-    }
-
-    boolean throwException = false;
-
-    if ((timeout > 0) && t.isAlive())
-    {
-      t.interrupt();
-      try
-      {
-        t.join(2000);
-      } catch (InterruptedException x)
-      {
-        // This might happen for problems in sockets
-        // so it does not necessarily imply a bug
-      }
-      throwException = true;
-    }
-
-    if ((pair[0] == null) && (pair[1] == null))
-    {
-      throwException = true;
-    }
-
-    if (throwException)
-    {
-      NamingException xx;
-      ConnectException x = new ConnectException("Connection timed out");
-      xx = new CommunicationException("Connection timed out");
-      xx.initCause(x);
-      throw xx;
-    }
-
-    if (pair[1] != null)
-    {
-      if (pair[1] instanceof NamingException)
-      {
-        throw (NamingException) pair[1];
-
-      } else if (pair[1] instanceof RuntimeException)
-      {
-        throw (RuntimeException) pair[1];
-
-      } else if (pair[1] instanceof Throwable)
-      {
-        throw new IllegalStateException("Unexpected throwable occurred",
-            (Throwable) pair[1]);
-      }
-    }
-    return (InitialLdapContext) pair[0];
-  }
-
-  /**
-   * Returns the default LDAP timeout in milliseconds when we try to connect to
-   * a server.
-   * @return the default LDAP timeout in milliseconds when we try to connect to
-   * a server.
-   */
-  public static int getDefaultLDAPTimeout()
-  {
-    return DEFAULT_LDAP_CONNECT_TIMEOUT;
-  }
 
   /**
 
@@ -1389,6 +1348,133 @@ public class Utils
               getMsg("upgrade-build-id-unknown");
     }
     return b;
+  }
+
+  /**
+   * Returns the String representation of the first value of an attribute in a
+   * LDAP entry.
+   * @param entry the entry.
+   * @param attrName the attribute name.
+   * @return the String representation of the first value of an attribute in a
+   * LDAP entry.
+   * @throws NamingException if there is an error processing the entry.
+   */
+  static public String getFirstValue(SearchResult entry, String attrName)
+  throws NamingException
+  {
+    return ConnectionUtils.getFirstValue(entry, attrName);
+  }
+
+  /**
+   * Private method used to wrap the messages that are displayed in dialogs
+   * of type JOptionPane.
+   * @param msg the message.
+   * @param width the maximum width of the column.
+   * @return the wrapped message.
+   */
+  private static String wrapMsg(String msg, int width)
+  {
+    StringBuilder   buffer        = new StringBuilder();
+    StringTokenizer lineTokenizer = new StringTokenizer(msg, "\n", true);
+    while (lineTokenizer.hasMoreTokens())
+    {
+      String line = lineTokenizer.nextToken();
+      if (line.equals("\n"))
+      {
+        // It's an end-of-line character, so append it as-is.
+        buffer.append(line);
+      }
+      else if (line.length() < width)
+      {
+        // The line fits in the specified width, so append it as-is.
+        buffer.append(line);
+      }
+      else
+      {
+        // The line doesn't fit in the specified width, so it needs to be
+        // wrapped.  Do so at space boundaries.
+        StringBuilder   lineBuffer    = new StringBuilder();
+        StringBuilder   delimBuffer   = new StringBuilder();
+        StringTokenizer wordTokenizer = new StringTokenizer(line, " ", true);
+        while (wordTokenizer.hasMoreTokens())
+        {
+          String word = wordTokenizer.nextToken();
+          if (word.equals(" "))
+          {
+            // It's a space, so add it to the delim buffer only if the line
+            // buffer is not empty.
+            if (lineBuffer.length() > 0)
+            {
+              delimBuffer.append(word);
+            }
+          }
+          else if (word.length() > width)
+          {
+            // This is a long word that can't be wrapped, so we'll just have to
+            // make do.
+            if (lineBuffer.length() > 0)
+            {
+              buffer.append(lineBuffer);
+              buffer.append("\n");
+              lineBuffer = new StringBuilder();
+            }
+            buffer.append(word);
+
+            if (wordTokenizer.hasMoreTokens())
+            {
+              // The next token must be a space, so remove it.  If there are
+              // still more tokens after that, then append an EOL.
+              wordTokenizer.nextToken();
+              if (wordTokenizer.hasMoreTokens())
+              {
+                buffer.append("\n");
+              }
+            }
+
+            if (delimBuffer.length() > 0)
+            {
+              delimBuffer = new StringBuilder();
+            }
+          }
+          else
+          {
+            // It's not a space, so see if we can fit it on the current line.
+            int newLineLength = lineBuffer.length() + delimBuffer.length() +
+            word.length();
+            if (newLineLength < width)
+            {
+              // It does fit on the line, so add it.
+              lineBuffer.append(delimBuffer).append(word);
+
+              if (delimBuffer.length() > 0)
+              {
+                delimBuffer = new StringBuilder();
+              }
+            }
+            else
+            {
+              // It doesn't fit on the line, so end the current line and start
+              // a new one.
+              buffer.append(lineBuffer);
+              buffer.append("\n");
+
+              lineBuffer = new StringBuilder();
+              lineBuffer.append(word);
+
+              if (delimBuffer.length() > 0)
+              {
+                delimBuffer = new StringBuilder();
+              }
+            }
+          }
+        }
+
+        // If there's anything left in the line buffer, then add it to the
+        // final buffer.
+        buffer.append(lineBuffer);
+      }
+    }
+    return buffer.toString();
   }
 
   /**

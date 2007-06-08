@@ -35,8 +35,8 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
-import javax.swing.Box;
 import javax.swing.Icon;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 /**
@@ -63,6 +63,8 @@ public class FramePanel extends JPanel
   private int buttonsPanelVerticalInsets;
 
   private int stepsPanelHorizontalInsets;
+
+  private JLabel progressLabel;
 
   /**
    * The constructor of the FramePanel.
@@ -108,10 +110,17 @@ public class FramePanel extends JPanel
     gbc.insets = UIFactory.getEmptyInsets();
     add(currentPanelContainer, gbc);
 
+    progressLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, null,
+        UIFactory.TextStyle.READ_ONLY);
+    gbc.weighty = 0.0;
+    gbc.insets.left = UIFactory.getStepsPanelInsets().left;
+    gbc.insets.bottom = UIFactory.getButtonsPanelInsets().bottom;
+    add(progressLabel, gbc);
     gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.anchor = GridBagConstraints.WEST;
     gbc.weightx = 0.0;
     gbc.weighty = 0.0;
-    add(Box.createHorizontalGlue(), gbc);
+    add(progressLabel, gbc);
 
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.weightx = 1.0;
@@ -139,6 +148,19 @@ public class FramePanel extends JPanel
             + UIFactory.TOP_INSET_BACKGROUND
             + UIFactory.BOTTOM_INSET_BACKGROUND);
     setPreferredSize(new Dimension(width, height));
+  }
+
+  /**
+   * This method sets up an icon on the bottom left side of the dialog.
+   * Generally this method is called with an animated gif that is passed to
+   * display progress.
+   * @param iconType the icon type to be set.
+   */
+  public void setProgressIcon(UIFactory.IconType iconType)
+  {
+    // For the moment we are lacking of a decent progress dialog to be
+    // displayed.
+    //progressLabel.setIcon(UIFactory.getImageIcon(iconType));
   }
 
   /**

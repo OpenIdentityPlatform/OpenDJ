@@ -63,6 +63,11 @@ public enum Step implements WizardStep
    */
   SUFFIXES_OPTIONS("suffixes-step"),
   /**
+   * Panel when the user specifies the replication ports of the remote servers
+   * that have not defined it.
+   */
+  REMOTE_REPLICATION_PORTS("remote-replication-ports-step"),
+  /**
    * Data Options panel (suffix dn, LDIF path, etc.).
    */
   NEW_SUFFIX_OPTIONS("data-options-step"),

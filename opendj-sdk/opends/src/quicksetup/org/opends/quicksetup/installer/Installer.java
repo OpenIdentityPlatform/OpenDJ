@@ -31,23 +31,40 @@ import static org.opends.quicksetup.Step.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.awt.event.WindowEvent;
 
+import javax.naming.AuthenticationException;
+import javax.naming.NameAlreadyBoundException;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
+import org.opends.admin.ads.ReplicaDescriptor;
+import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
+import org.opends.admin.ads.TopologyCache;
+import org.opends.admin.ads.TopologyCacheException;
+import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.util.InProcessServerController;
 import org.opends.quicksetup.*;
 import org.opends.server.util.CertificateManager;
 import org.opends.quicksetup.installer.ui.DataOptionsPanel;
@@ -55,6 +72,7 @@ import org.opends.quicksetup.installer.ui.DataReplicationPanel;
 import org.opends.quicksetup.installer.ui.GlobalAdministratorPanel;
 import org.opends.quicksetup.installer.ui.InstallReviewPanel;
 import org.opends.quicksetup.installer.ui.InstallWelcomePanel;
+import org.opends.quicksetup.installer.ui.RemoteReplicationPortsPanel;
 import org.opends.quicksetup.installer.ui.ServerSettingsPanel;
 import org.opends.quicksetup.installer.ui.SuffixesToReplicatePanel;
 import org.opends.server.util.SetupUtils;
@@ -80,6 +98,7 @@ import javax.swing.*;
  *
  */
 public abstract class Installer extends GuiApplication {
+  private TopologyCache lastLoadedCache;
 
   /* Indicates that we've detected that there is something installed */
   boolean forceToDisplaySetup = false;
@@ -108,9 +127,11 @@ public abstract class Installer extends GuiApplication {
   private final HashSet<WizardStep> SUBSTEPS = new HashSet<WizardStep>();
   {
     SUBSTEPS.add(Step.CREATE_GLOBAL_ADMINISTRATOR);
-//  TODO: remove this comment once the replication code is in place.
     SUBSTEPS.add(Step.SUFFIXES_OPTIONS);
+    // TODO: remove this comment once we want to display the replication options
+    // in setup.
     //SUBSTEPS.add(Step.NEW_SUFFIX_OPTIONS);
+    SUBSTEPS.add(Step.REMOTE_REPLICATION_PORTS);
   }
 
   private HashMap<WizardStep, WizardStep> hmPreviousSteps =
@@ -128,10 +149,13 @@ public abstract class Installer extends GuiApplication {
   public Installer() {
     lstSteps.add(WELCOME);
     lstSteps.add(SERVER_SETTINGS);
+    // TODO: remove this comment once we want to display the replication options
+    // in setup.
     /*
     lstSteps.add(REPLICATION_OPTIONS);
     lstSteps.add(CREATE_GLOBAL_ADMINISTRATOR);
     lstSteps.add(SUFFIXES_OPTIONS);
+    lstSteps.add(REMOTE_REPLICATION_PORTS);
     */
     lstSteps.add(NEW_SUFFIX_OPTIONS);
     lstSteps.add(REVIEW);
@@ -247,11 +271,19 @@ public abstract class Installer extends GuiApplication {
         isVisible = false;
       }
     }
+    else if (step == REMOTE_REPLICATION_PORTS)
+    {
+      isVisible = isVisible(SUFFIXES_OPTIONS) &&
+      (getUserData().getRemoteWithNoReplicationPort().size() > 0) &&
+      (getUserData().getSuffixesToReplicateOptions().getType() ==
+        SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES);
+    }
     else
     {
       isVisible = true;
     }
-    // TODO: to delete the following line once the replication code works.
+    // TODO: remove this line once we want to display the replication options
+    // in setup.
     isVisible = true;
     return isVisible;
   }
@@ -388,6 +420,8 @@ public abstract class Installer extends GuiApplication {
       p = new GlobalAdministratorPanel(this);
     } else if (step == SUFFIXES_OPTIONS) {
       p = new SuffixesToReplicatePanel(this);
+    } else if (step == REMOTE_REPLICATION_PORTS) {
+      p = new RemoteReplicationPortsPanel(this);
     } else if (step == NEW_SUFFIX_OPTIONS) {
         p = new DataOptionsPanel(this);
     } else if (step == REVIEW) {
@@ -538,11 +572,23 @@ public abstract class Installer extends GuiApplication {
           getType())
       {
       case REPLICATE_WITH_EXISTING_SUFFIXES:
-        next = Step.REVIEW;
+
+        if (getUserData().getRemoteWithNoReplicationPort().size() > 0)
+        {
+          next = Step.REMOTE_REPLICATION_PORTS;
+        }
+        else
+        {
+          next = Step.REVIEW;
+        }
         break;
       default:
         next = Step.NEW_SUFFIX_OPTIONS;
       }
+    }
+    else if (step == Step.REMOTE_REPLICATION_PORTS)
+    {
+      next = Step.REVIEW;
     }
     else
     {
@@ -566,11 +612,13 @@ public abstract class Installer extends GuiApplication {
     LinkedHashSet<WizardStep> orderedSteps = new LinkedHashSet<WizardStep>();
     orderedSteps.add(WELCOME);
     orderedSteps.add(SERVER_SETTINGS);
-    // TODO: remove this comment once the replication code is in place.
+    // TODO: remove this comment once we want to display the replication options
+    // in setup.
     /*
     orderedSteps.add(REPLICATION_OPTIONS);
     orderedSteps.add(CREATE_GLOBAL_ADMINISTRATOR);
     orderedSteps.add(SUFFIXES_OPTIONS);
+    orderedSteps.add(REMOTE_REPLICATION_PORTS);
     */
     orderedSteps.add(NEW_SUFFIX_OPTIONS);
     orderedSteps.add(REVIEW);
@@ -637,6 +685,8 @@ public abstract class Installer extends GuiApplication {
     argList.add(String.valueOf(getUserData().getServerPort()));
 
     SecurityOptions sec = getUserData().getSecurityOptions();
+    // TODO: even if the user does not configure SSL maybe we should choose
+    // a secure port that is not being used and that we can actually use.
     if (sec.getEnableSSL())
     {
       argList.add("-P");
@@ -710,6 +760,17 @@ public abstract class Installer extends GuiApplication {
       argList.add("-b");
       argList.add(getUserData().getNewSuffixOptions().getBaseDn());
     }
+    else
+    {
+      Set<SuffixDescriptor> suffixesToReplicate =
+        getUserData().getSuffixesToReplicateOptions().getSuffixes();
+
+      for (SuffixDescriptor suffix: suffixesToReplicate)
+      {
+        argList.add("-b");
+        argList.add(suffix.getDN());
+      }
+    }
 
     String[] args = new String[argList.size()];
     argList.toArray(args);
@@ -755,7 +816,7 @@ public abstract class Installer extends GuiApplication {
             CertificateManager.KEY_STORE_TYPE_JKS,
             pwd);
         certManager.generateSelfSignedCertificate("server-cert",
-            getSelfSignedCertificateSubjectDN(sec),
+            getSelfSignedCertificateSubjectDN(),
             getSelfSignedCertificateValidity());
         exportCertificate(certManager, "server-cert",
             getTemporaryCertificatePath());
@@ -844,7 +905,7 @@ public abstract class Installer extends GuiApplication {
    * the UserData object provided in the constructor.
    * @throws ApplicationException if something goes wrong.
    */
-  protected void createBaseEntry() throws ApplicationException {
+  private void createBaseEntry() throws ApplicationException {
     String[] arg =
       { getUserData().getNewSuffixOptions().getBaseDn() };
     notifyListeners(getFormattedWithPoints(
@@ -897,7 +958,7 @@ public abstract class Installer extends GuiApplication {
    * the UserData object provided in the constructor.
    * @throws ApplicationException if something goes wrong.
    */
-  protected void importLDIF() throws ApplicationException {
+  private void importLDIF() throws ApplicationException {
     String[] arg =
       { getUserData().getNewSuffixOptions().getLDIFPath() };
     notifyListeners(getFormattedProgress(getMsg("progress-importing-ldif", arg))
@@ -941,7 +1002,7 @@ public abstract class Installer extends GuiApplication {
    * of the UserData object provided in the constructor.
    * @throws ApplicationException if something goes wrong.
    */
-  protected void importAutomaticallyGenerated() throws ApplicationException {
+  private void importAutomaticallyGenerated() throws ApplicationException {
     File templatePath = createTemplateFile();
     int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
     String[] arg =
@@ -987,6 +1048,190 @@ public abstract class Installer extends GuiApplication {
   }
 
   /**
+   * This method creates the replication configuration for the suffixes on the
+   * the local server (and eventually in the remote servers) to synchronize
+   * things.
+   * NOTE: this method assumes that the server is running.
+   * @throws ApplicationException if something goes wrong.
+   */
+  protected void configureReplication() throws ApplicationException
+  {
+    notifyListeners(getFormattedWithPoints(
+        getMsg("progress-configuring-replication")));
+
+    InstallerHelper helper = new InstallerHelper();
+    Set<Integer> knownServerIds = new HashSet<Integer>();
+    Set<Integer> knownReplicationServerIds = new HashSet<Integer>();
+    if (lastLoadedCache != null)
+    {
+      for (SuffixDescriptor suffix : lastLoadedCache.getSuffixes())
+      {
+        for (ReplicaDescriptor replica : suffix.getReplicas())
+        {
+          knownServerIds.add(replica.getReplicationId());
+        }
+      }
+      for (ServerDescriptor server : lastLoadedCache.getServers())
+      {
+        Object v = server.getServerProperties().get
+        (ServerDescriptor.ServerProperty.REPLICATION_SERVER_ID);
+        if (v != null)
+        {
+          knownReplicationServerIds.add((Integer)v);
+        }
+      }
+    }
+    else
+    {
+      /* There is no ADS anywhere.  Just use the SuffixDescriptors we found */
+      for (SuffixDescriptor suffix :
+        getUserData().getSuffixesToReplicateOptions().getAvailableSuffixes())
+      {
+        for (ReplicaDescriptor replica : suffix.getReplicas())
+        {
+          knownServerIds.add(replica.getReplicationId());
+          Object v = replica.getServer().getServerProperties().get
+          (ServerDescriptor.ServerProperty.REPLICATION_SERVER_ID);
+          if (v != null)
+          {
+            knownReplicationServerIds.add((Integer)v);
+          }
+        }
+      }
+    }
+    Set<String> dns = new HashSet<String>();
+    DataReplicationOptions rep = getUserData().getReplicationOptions();
+    String newReplicationServer = getLocalReplicationServer();
+
+    Map<String, Set<String>> replicationServers =
+      new HashMap<String, Set<String>>();
+
+    if (rep.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY)
+    {
+      String dn = getUserData().getNewSuffixOptions().getBaseDn();
+      dns.add(dn);
+      HashSet<String> h = new HashSet<String>();
+      h.add(newReplicationServer);
+      replicationServers.put(dn, h);
+    }
+    else
+    {
+      Set<SuffixDescriptor> suffixes =
+        getUserData().getSuffixesToReplicateOptions().getSuffixes();
+      for (SuffixDescriptor suffix : suffixes)
+      {
+        dns.add(suffix.getDN());
+        HashSet<String> h = new HashSet<String>();
+        h.addAll(suffix.getReplicationServers());
+        h.add(newReplicationServer);
+        for (ReplicaDescriptor replica : suffix.getReplicas())
+        {
+          ServerDescriptor server = replica.getServer();
+          Integer replicationPort = getUserData().
+          getRemoteWithNoReplicationPort().get(server);
+          if (replicationPort != null)
+          {
+            h.add(server.getHostName()+":"+replicationPort);
+          }
+        }
+        replicationServers.put(suffix.getDN(), h);
+      }
+    }
+
+    InitialLdapContext ctx = null;
+    try
+    {
+      ctx = createLocalContext();
+      helper.configureReplication(ctx, dns, replicationServers,
+          getUserData().getReplicationOptions().getReplicationPort(),
+          getLocalHostPort(),
+          knownReplicationServerIds, knownServerIds);
+    }
+    catch (ApplicationException ae)
+    {
+      throw ae;
+    }
+    catch (NamingException ne)
+    {
+      String failedMsg = getThrowableMsg("error-connecting-to-local", null, ne);
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR, failedMsg, ne);
+    }
+    finally
+    {
+      try
+      {
+        if (ctx != null)
+        {
+          ctx.close();
+        }
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+    notifyListeners(getFormattedDone());
+
+    if (rep.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY)
+    {
+      Map<ServerDescriptor, Set<ReplicaDescriptor>> hm =
+        new HashMap<ServerDescriptor, Set<ReplicaDescriptor>>();
+      for (SuffixDescriptor suffix :
+        getUserData().getSuffixesToReplicateOptions().getSuffixes())
+      {
+        for (ReplicaDescriptor replica : suffix.getReplicas())
+        {
+          Set<ReplicaDescriptor> replicas = hm.get(replica.getServer());
+          if (replicas == null)
+          {
+            replicas = new HashSet<ReplicaDescriptor>();
+            hm.put(replica.getServer(), replicas);
+          }
+          replicas.add(replica);
+        }
+      }
+      for (ServerDescriptor server : hm.keySet())
+      {
+        notifyListeners(getLineBreak());
+        notifyListeners(getFormattedWithPoints(
+            getMsg("progress-configuring-replication-remote",
+                server.getHostPort(true))));
+        Integer v = (Integer)server.getServerProperties().get(
+            ServerDescriptor.ServerProperty.REPLICATION_SERVER_PORT);
+        int replicationPort;
+        if (v != null)
+        {
+          replicationPort = v;
+        }
+        else
+        {
+          replicationPort =
+            getUserData().getRemoteWithNoReplicationPort().get(server);
+        }
+        dns = new HashSet<String>();
+        for (ReplicaDescriptor replica : hm.get(server))
+        {
+          dns.add(replica.getSuffix().getDN());
+        }
+
+        ctx = getRemoteConnection(server, getTrustManager());
+        helper.configureReplication(ctx, dns, replicationServers,
+            replicationPort, server.getHostPort(true),
+            knownReplicationServerIds, knownServerIds);
+
+        try
+        {
+          ctx.close();
+        }
+        catch (Throwable t)
+        {
+        }
+        notifyListeners(getFormattedDone());
+      }
+    }
+  }
+
+  /**
    * This methods enables this server as a Windows service.
    * @throws ApplicationException if something goes wrong.
    */
@@ -1021,8 +1266,16 @@ public abstract class Installer extends GuiApplication {
         InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED,
         getFormattedSummary(
             getMsg("summary-importing-automatically-generated")));
+    hmSummary.put(InstallProgressStep.CONFIGURING_REPLICATION,
+        getFormattedSummary(getMsg("summary-configuring-replication")));
     hmSummary.put(InstallProgressStep.STARTING_SERVER,
         getFormattedSummary(getMsg("summary-starting")));
+    hmSummary.put(InstallProgressStep.STOPPING_SERVER,
+        getFormattedSummary(getMsg("summary-stopping")));
+    hmSummary.put(InstallProgressStep.CONFIGURING_ADS,
+        getFormattedSummary(getMsg("summary-configuring-ads")));
+    hmSummary.put(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES,
+        getFormattedSummary(getMsg("summary-initialize-replicated-suffixes")));
     hmSummary.put(InstallProgressStep.ENABLING_WINDOWS_SERVICE,
         getFormattedSummary(getMsg("summary-enabling-windows-service")));
 
@@ -1083,6 +1336,10 @@ public abstract class Installer extends GuiApplication {
     {
       updateUserDataForSuffixesOptionsPanel(qs);
     }
+    else if (cStep == REMOTE_REPLICATION_PORTS)
+    {
+      updateUserDataForRemoteReplicationPorts(qs);
+    }
     else if (cStep == NEW_SUFFIX_OPTIONS)
     {
       updateUserDataForNewSuffixOptionsPanel(qs);
@@ -1139,80 +1396,157 @@ public abstract class Installer extends GuiApplication {
         break;
       }
     }
-    else
+  }
+
+  /**
+   * This method initialize the contents of the synchronized servers with the
+   * contents of the first server we find.
+   * @throws ApplicationException if something goes wrong.
+   */
+  protected void initializeSuffixes() throws ApplicationException
+  {
+    InitialLdapContext ctx = null;
+    try
     {
-      /* We must replicate some suffixes: for the moment just create them. */
-      /* TODO: replicate them. */
-      Set<SuffixDescriptor> suffixesToReplicate =
-        getUserData().getSuffixesToReplicateOptions().getAvailableSuffixes();
-      boolean startedServer = false;
-      if (suffixesToReplicate.size() > 0)
+      ctx = createLocalContext();
+    }
+    catch (Throwable t)
+    {
+      String failedMsg = getThrowableMsg("error-connecting-to-local", null, t);
+      try
       {
-        startServerWithoutConnectionHandlers();
-        startedServer = true;
-      }
-      for (SuffixDescriptor suffix: suffixesToReplicate)
-      {
-        // TODO: localize
-        notifyListeners(getFormattedWithPoints("Creating Suffix"));
-
-        ArrayList<String> argList = new ArrayList<String>();
-        argList.add("-C");
-        argList.add(CONFIG_CLASS_NAME);
-
-        argList.add("-c");
-        argList.add(getInstallation().getCurrentConfigurationFile().toString());
-
-        argList.add("-b");
-        argList.add(suffix.getDN());
-
-        String[] args = new String[argList.size()];
-        argList.toArray(args);
-        try
+        if (ctx != null)
         {
-          InstallerHelper helper = new InstallerHelper();
-          int result = helper.invokeConfigureServer(args);
+          ctx.close();
+        }
+      }
+      catch (Throwable t1)
+      {
+      }
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR, failedMsg, t);
+    }
 
-          if (result != 0)
+    Set<SuffixDescriptor> suffixes =
+      getUserData().getSuffixesToReplicateOptions().getSuffixes();
+    int i = 0;
+    for (SuffixDescriptor suffix : suffixes)
+    {
+      String dn = suffix.getDN();
+
+      ReplicaDescriptor replica = suffix.getReplicas().iterator().next();
+      ServerDescriptor server = replica.getServer();
+      String hostPort = server.getHostPort(true);
+
+      notifyListeners(getFormattedProgress(
+        getMsg("progress-initializing-suffix", dn, hostPort)));
+      notifyListeners(getLineBreak());
+      try
+      {
+        int replicationId = replica.getReplicationId();
+        if (replicationId == -1)
+        {
+          /**
+           * This occurs if the remote server had not replication configured.
+           */
+          InitialLdapContext rCtx = null;
+          try
           {
+            rCtx = getRemoteConnection(server, getTrustManager());
+            ServerDescriptor s = ServerDescriptor.createStandalone(rCtx);
+            for (ReplicaDescriptor r : s.getReplicas())
+            {
+              if (Utils.areDnsEqual(r.getSuffix().getDN(), dn))
+              {
+                replicationId = r.getReplicationId();
+              }
+            }
+          }
+          catch (NamingException ne)
+          {
+            String[] arg = {server.getHostPort(true)};
             throw new ApplicationException(
                 ApplicationException.Type.CONFIGURATION_ERROR,
-                getMsg("error-configuring"), null);
+                getMsg("cannot-connect-to-remote-generic", arg), ne);
           }
-        } catch (Throwable t)
-        {
-          throw new ApplicationException(
-              ApplicationException.Type.CONFIGURATION_ERROR,
-              getThrowableMsg("error-configuring", null, t), t);
+          finally
+          {
+            try
+            {
+              rCtx.close();
+            }
+            catch (Throwable t)
+            {
+            }
+          }
         }
-        notifyListeners(getFormattedDone());
-
-        // TODO: localize
-        notifyListeners(
-            getFormattedProgress("One day we will replicate the suffixes!"));
+        int nTries = 4;
+        boolean initDone = false;
+        while (!initDone)
+        {
+          try
+          {
+            initializeSuffix(ctx, replicationId, dn, true, hostPort);
+            initDone = true;
+          }
+          catch (PeerNotFoundException pnfe)
+          {
+            LOG.log(Level.INFO, "Peer could not be found");
+            if (nTries == 1)
+            {
+              throw new ApplicationException(
+                  ApplicationException.Type.APPLICATION,
+                  pnfe.getLocalizedMessage(), null);
+            }
+            try
+            {
+              Thread.sleep((5 - nTries) * 3000);
+            }
+            catch (Throwable t)
+            {
+            }
+          }
+          nTries--;
+        }
       }
-      if (startedServer)
+      catch (ApplicationException ae)
       {
-        new InProcessServerController(getInstallation()).stopServer();
+        try
+        {
+          if (ctx != null)
+          {
+            ctx.close();
+          }
+        }
+        catch (Throwable t1)
+        {
+        }
+        throw ae;
       }
+      if (i > 0)
+      {
+        notifyListeners(getLineBreak());
+      }
+      i++;
     }
   }
 
   /**
-   * This methods updates the ADS contents (and creates the according suffixes).
+   * This method updates the ADS contents (and creates the according suffixes).
+   * NOTE: this method assumes that the server is running.
    * @throws ApplicationException if something goes wrong.
    */
   protected void updateADS() throws ApplicationException
   {
-    if (true) return;
-    /* First check if the remote server contains an ADS: if it is the case the
+    /*
+     * First check if the remote server contains an ADS: if it is the case the
      * best is to update its contents with the new data and then configure the
      * local server to be replicated with the remote server.
      */
-    DataReplicationOptions repl =
-      getUserData().getReplicationOptions();
+    DataReplicationOptions repl = getUserData().getReplicationOptions();
     boolean remoteServer =
       repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
+    InitialLdapContext localCtx = null;
     if (remoteServer)
     {
       // Try to connect
@@ -1223,11 +1557,22 @@ public abstract class Installer extends GuiApplication {
       InitialLdapContext ctx = null;
       try
       {
-        ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
-            Utils.getDefaultLDAPTimeout(), null);
+        if (auth.useSecureConnection())
+        {
+          ApplicationTrustManager trustManager = getTrustManager();
+          trustManager.setHost(auth.getHostName());
+          ctx = Utils.createLdapsContext(ldapUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null, trustManager);
+        }
+        else
+        {
+          ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null);
+        }
 
         ADSContext adsContext = new ADSContext(ctx);
-        if (adsContext.hasAdminData())
+        boolean hasAdminData = adsContext.hasAdminData();
+        if (hasAdminData)
         {
           /* Add global administrator if the user specified one. */
           if (getUserData().mustCreateAdministrator())
@@ -1236,9 +1581,10 @@ public abstract class Installer extends GuiApplication {
             {
               String[] arg = {getHostDisplay(auth)};
               notifyListeners(getFormattedWithPoints(
-                  getMsg("creating-administrator", arg)));
+                  getMsg("progress-creating-administrator", arg)));
               adsContext.createAdministrator(getAdministratorProperties());
               notifyListeners(getFormattedDone());
+              notifyListeners(getLineBreak());
             }
             catch (ADSContextException ade)
             {
@@ -1254,37 +1600,215 @@ public abstract class Installer extends GuiApplication {
               }
             }
           }
-
-          Map<ADSContext.ServerProperty, Object> serverProperties =
-            getNewServerProperties();
-
-          /* Register new server data. */
-          adsContext.registerServer(serverProperties);
-
-          /* Configure local server to have an ADS and replicate it */
-          // TODO
-          notifyListeners(getFormattedProgress(
-              "Here we create the new server ADS and we replicate it.\n"));
         }
         else
         {
-          /* TODO: We need to integrate in remote framework to make this work.
-           */
-          /*
+          notifyListeners(getFormattedWithPoints(
+              getMsg("progress-creating-ads-on-remote", getHostDisplay(auth))));
+
           adsContext.createAdminData();
           adsContext.createAdministrator(getAdministratorProperties());
           adsContext.registerServer(
-              getRemoteServerProperties(adsContext.getDirContext()));
-          adsContext.registerServer(getNewServerProperties());
-          */
-          notifyListeners(getFormattedProgress(
-              "Here we update the server in "+getHostDisplay(auth)+"\n"));
+              getRemoteServerProperties(auth.getHostName(),
+                  adsContext.getDirContext()));
 
-          /* Configure local server to have an ADS and replicate it */
-          // TODO
-          notifyListeners(getFormattedProgress(
-              "Here we create the new server ADS and we replicate it.\n"));
+          notifyListeners(getFormattedDone());
+          notifyListeners(getLineBreak());
+        }
+        /* Configure local server to have an ADS */
+        notifyListeners(getFormattedWithPoints(
+            getMsg("progress-creating-ads")));
+        try
+        {
+          localCtx = createLocalContext();
+        }
+        catch (Throwable t)
+        {
+          String failedMsg = getThrowableMsg("error-connecting-to-local", null,
+              t);
+          throw new ApplicationException(
+              ApplicationException.Type.CONFIGURATION_ERROR, failedMsg, t);
+        }
+        createLocalAds(localCtx);
+        notifyListeners(getFormattedDone());
+        notifyListeners(getLineBreak());
 
+        lastLoadedCache = new TopologyCache(adsContext, getTrustManager());
+        lastLoadedCache.reloadTopology();
+        Set<Integer> knownServerIds = new HashSet<Integer>();
+        Set<Integer> knownReplicationServerIds = new HashSet<Integer>();
+        Set<String> replicationServers = new HashSet<String>();
+        replicationServers.add(getLocalReplicationServer());
+        Set<ServerDescriptor> remoteWithAds = new HashSet<ServerDescriptor>();
+
+        for (SuffixDescriptor suffix : lastLoadedCache.getSuffixes())
+        {
+          for (ReplicaDescriptor replica : suffix.getReplicas())
+          {
+            knownServerIds.add(replica.getReplicationId());
+          }
+          if (Utils.areDnsEqual(suffix.getDN(),
+              ADSContext.getAdministrationSuffixDN()))
+          {
+            replicationServers.addAll(suffix.getReplicationServers());
+            for (ReplicaDescriptor replica : suffix.getReplicas())
+            {
+              ServerDescriptor server = replica.getServer();
+              Object e = server.getServerProperties().get
+              (ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
+              if (Boolean.TRUE.equals(e))
+              {
+                replicationServers.add(server.getHostName()+":"+
+                    server.getServerProperties().get
+                    (ServerDescriptor.ServerProperty.REPLICATION_SERVER_PORT));
+              }
+              remoteWithAds.add(server);
+            }
+          }
+        }
+        for (ServerDescriptor server : lastLoadedCache.getServers())
+        {
+          Object v = server.getServerProperties().get
+          (ServerDescriptor.ServerProperty.REPLICATION_SERVER_ID);
+          if (v != null)
+          {
+            knownReplicationServerIds.add((Integer)v);
+          }
+        }
+        InstallerHelper helper = new InstallerHelper();
+        Set<String> dns = new HashSet<String>();
+        dns.add(ADSContext.getAdministrationSuffixDN());
+        Map <String, Set<String>>hmRepServers =
+          new HashMap<String, Set<String>>();
+        hmRepServers.put(ADSContext.getAdministrationSuffixDN(),
+            replicationServers);
+        for (ServerDescriptor server : remoteWithAds)
+        {
+          Integer replicationPort = (Integer)server.getServerProperties().get
+          (ServerDescriptor.ServerProperty.REPLICATION_SERVER_PORT);
+          if (replicationPort != null)
+          {
+            InitialLdapContext rCtx = getRemoteConnection(server,
+                getTrustManager());
+            helper.configureReplication(rCtx, dns, hmRepServers,
+                replicationPort, server.getHostPort(true),
+                knownReplicationServerIds, knownServerIds);
+            try
+            {
+              rCtx.close();
+            }
+            catch (Throwable t)
+            {
+            }
+          }
+        }
+        /* Register new server data. */
+        try
+        {
+          adsContext.registerServer(getNewServerAdsProperties());
+        }
+        catch (ADSContextException adse)
+        {
+          if (adse.getError() ==
+            ADSContextException.ErrorType.ALREADY_REGISTERED)
+          {
+            /* This might occur after registering and unregistering a server */
+            adsContext.unregisterServer(getNewServerAdsProperties());
+            adsContext.registerServer(getNewServerAdsProperties());
+          }
+          else
+          {
+            throw adse;
+          }
+        }
+
+        /* Configure replication on local server */
+        helper.configureReplication(localCtx, dns, hmRepServers,
+            getUserData().getReplicationOptions().getReplicationPort(),
+            getLocalHostPort(), knownReplicationServerIds, knownServerIds);
+
+        /* Initialize local ADS contents. */
+        ServerDescriptor server = ServerDescriptor.createStandalone(ctx);
+        for (ReplicaDescriptor replica : server.getReplicas())
+        {
+          if (Utils.areDnsEqual(replica.getSuffix().getDN(),
+              ADSContext.getAdministrationSuffixDN()))
+          {
+            notifyListeners(getFormattedWithPoints(
+                getMsg("progress-initializing-ads")));
+
+            int replicationId = replica.getReplicationId();
+            if (replicationId == -1)
+            {
+              /**
+               * This occurs if the remote server had not replication
+               * configured.
+               */
+              InitialLdapContext rCtx = null;
+              try
+              {
+                rCtx = getRemoteConnection(server, getTrustManager());
+                ServerDescriptor s = ServerDescriptor.createStandalone(rCtx);
+                for (ReplicaDescriptor r : s.getReplicas())
+                {
+                  if (Utils.areDnsEqual(r.getSuffix().getDN(), dn))
+                  {
+                    replicationId = r.getReplicationId();
+                  }
+                }
+              }
+              catch (NamingException ne)
+              {
+                String[] arg = {server.getHostPort(true)};
+                throw new ApplicationException(
+                    ApplicationException.Type.CONFIGURATION_ERROR,
+                    getMsg("cannot-connect-to-remote-generic", arg), ne);
+              }
+              finally
+              {
+                try
+                {
+                  rCtx.close();
+                }
+                catch (Throwable t)
+                {
+                }
+              }
+            }
+            int nTries = 4;
+            boolean initDone = false;
+            while (!initDone)
+            {
+              try
+              {
+                initializeSuffix(localCtx, replica.getReplicationId(),
+                    ADSContext.getAdministrationSuffixDN(),
+                    true, server.getHostPort(true));
+                initDone = true;
+              }
+              catch (PeerNotFoundException pnfe)
+              {
+                LOG.log(Level.INFO, "Peer could not be found");
+                if (nTries == 1)
+                {
+                  throw new ApplicationException(
+                      ApplicationException.Type.APPLICATION,
+                      pnfe.getLocalizedMessage(), null);
+                }
+                try
+                {
+                  Thread.sleep((5 - nTries) * 3000);
+                }
+                catch (Throwable t)
+                {
+                }
+              }
+              nTries--;
+            }
+            notifyListeners(getFormattedDone());
+            notifyListeners(getLineBreak());
+            break;
+          }
         }
       }
       catch (NoPermissionException x)
@@ -1300,6 +1824,14 @@ public abstract class Installer extends GuiApplication {
         throw new ApplicationException(
             ApplicationException.Type.CONFIGURATION_ERROR,
             getMsg("cannot-connect-to-remote-generic", arg), ne);
+      }
+      catch (TopologyCacheException tpe)
+      {
+        LOG.log(Level.WARNING, "Error reloading topology cache to "+
+            "configure ADS replication.", tpe);
+        throw new ApplicationException(
+            ApplicationException.Type.CONFIGURATION_ERROR,
+            getMsg("bug-msg"), tpe);
       }
       catch (ADSContextException ace)
       {
@@ -1320,27 +1852,75 @@ public abstract class Installer extends GuiApplication {
           {
           }
         }
+        if (localCtx != null)
+        {
+          try
+          {
+            localCtx.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
       }
     }
     else
     {
-      notifyListeners(getFormattedWithPoints(getMsg("creating-ads")));
-      Map<ADSContext.ServerProperty, Object> serverProperties =
-        getNewServerProperties();
-      /*
       try
       {
-        ADSContext.createOfflineAdminData(serverProperties,
-            getUserData().getServerLocation(), getBackendName());
+        /* Configure local server to have an ADS */
+        notifyListeners(getFormattedWithPoints(
+            getMsg("progress-creating-ads")));
+        try
+        {
+          localCtx = createLocalContext();
+        }
+        catch (Throwable t)
+        {
+          String failedMsg = getThrowableMsg("error-connecting-to-local", null,
+              t);
+          throw new ApplicationException(
+              ApplicationException.Type.CONFIGURATION_ERROR, failedMsg, t);
+        }
+        createLocalAds(localCtx);
+        int replicationPort =
+          getUserData().getReplicationOptions().getReplicationPort();
+        Set<String> dns = new HashSet<String>();
+        dns.add(ADSContext.getAdministrationSuffixDN());
+        Map<String, Set<String>> hmReplicationServers =
+          new HashMap<String, Set<String>>();
+        HashSet<String> replicationServers = new HashSet<String>();
+        String newReplicationServer = getLocalReplicationServer();
+        replicationServers.add(newReplicationServer);
+        hmReplicationServers.put(ADSContext.getAdministrationSuffixDN(),
+            replicationServers);
+        InstallerHelper helper = new InstallerHelper();
+
+        helper.configureReplication(localCtx, dns, hmReplicationServers,
+            replicationPort, getLocalHostPort(),
+            new HashSet<Integer>(), new HashSet<Integer>());
+        notifyListeners(getFormattedDone());
+        notifyListeners(getLineBreak());
       }
       catch (ADSContextException ace)
       {
         throw new ApplicationException(
             ApplicationException.Type.CONFIGURATION_ERROR,
-            getMsg("local-ads-exception"), ace);
+            getMsg("ads-exception", ace.toString()), ace);
       }
-      */
-      notifyListeners(getFormattedDone());
+      finally
+      {
+        if (localCtx != null)
+        {
+          try
+          {
+            localCtx.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+      }
     }
   }
 
@@ -1350,7 +1930,7 @@ public abstract class Installer extends GuiApplication {
    * @return <CODE>true</CODE> if we must create a new suffix and
    * <CODE>false</CODE> otherwise.
    */
-  private boolean createNotReplicatedSuffix()
+  protected boolean createNotReplicatedSuffix()
   {
     boolean createSuffix;
 
@@ -1363,15 +1943,84 @@ public abstract class Installer extends GuiApplication {
     createSuffix =
       (repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY) ||
       (repl.getType() == DataReplicationOptions.Type.STANDALONE) ||
-      (suf.getType() ==
-        SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY);
+      (suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY);
 
     return createSuffix;
   }
 
+  /**
+   * Returns <CODE>true</CODE> if we must configure replication and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if we must configure replication and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean mustConfigureReplication()
+  {
+    return getUserData().getReplicationOptions().getType() !=
+      DataReplicationOptions.Type.STANDALONE;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if we must create the ADS and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if we must create the ADS and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean mustCreateAds()
+  {
+    return getUserData().getReplicationOptions().getType() !=
+      DataReplicationOptions.Type.STANDALONE;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if we must start the server and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if we must start the server and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean mustStart()
+  {
+    return getUserData().getStartServer() || mustCreateAds();
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if we must stop the server and
+   * <CODE>false</CODE> otherwise.
+   * The server might be stopped if the user asked not to start it at the
+   * end of the installation and it was started temporarily to update its
+   * configuration.
+   * @return <CODE>true</CODE> if we must stop the server and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean mustStop()
+  {
+    return !getUserData().getStartServer() && mustCreateAds();
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if we must initialize suffixes and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if we must initialize suffixes and
+   * <CODE>false</CODE> otherwise.
+   */
+  protected boolean mustInitializeSuffixes()
+  {
+    return getUserData().getReplicationOptions().getType() ==
+      DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
+  }
+
   private String getLdapUrl(AuthenticationData auth)
   {
-    return "ldap://"+auth.getHostName()+":"+auth.getPort();
+    String ldapUrl;
+    if (auth.useSecureConnection())
+    {
+      ldapUrl = "ldaps://"+auth.getHostName()+":"+auth.getPort();
+    }
+    else
+    {
+      ldapUrl = "ldap://"+auth.getHostName()+":"+auth.getPort();
+    }
+    return ldapUrl;
   }
 
   private String getHostDisplay(AuthenticationData auth)
@@ -1379,42 +2028,50 @@ public abstract class Installer extends GuiApplication {
     return auth.getHostName()+":"+auth.getPort();
   }
 
-  private Map<ADSContext.ServerProperty, Object> getNewServerProperties()
+  private Map<ADSContext.ServerProperty, Object> getNewServerAdsProperties()
   {
     Map<ADSContext.ServerProperty, Object> serverProperties =
       new HashMap<ADSContext.ServerProperty, Object>();
-    // TODO: this might not work
-    /*
-    try
-    {
-      serverProperties.put(ADSContext.ServerProperty.HOSTNAME,
-          java.net.InetAddress.getLocalHost().getHostName());
-    }
-    catch (Throwable t)
-    {
-      t.printStackTrace();
-    }
-    serverProperties.put(ADSContext.ServerProperty.PORT,
+    serverProperties.put(ADSContext.ServerProperty.HOST_NAME,
+          getUserData().getHostName());
+    serverProperties.put(ADSContext.ServerProperty.LDAP_PORT,
         String.valueOf(getUserData().getServerPort()));
     serverProperties.put(ADSContext.ServerProperty.LDAP_ENABLED, "true");
 
     // TODO: even if the user does not configure SSL maybe we should choose
     // a secure port that is not being used and that we can actually use.
-    serverProperties.put(ADSContext.ServerProperty.SECURE_PORT, "636");
-    serverProperties.put(ADSContext.ServerProperty.LDAPS_ENABLED, "false");
+    SecurityOptions sec = getUserData().getSecurityOptions();
+    if (sec.getEnableSSL())
+    {
+      serverProperties.put(ADSContext.ServerProperty.LDAPS_PORT,
+          String.valueOf(sec.getSslPort()));
+      serverProperties.put(ADSContext.ServerProperty.LDAPS_ENABLED, "true");
+    }
+    else
+    {
+      serverProperties.put(ADSContext.ServerProperty.LDAPS_PORT, "636");
+      serverProperties.put(ADSContext.ServerProperty.LDAPS_ENABLED, "false");
+    }
 
-    serverProperties.put(ADSContext.ServerProperty.JMX_PORT,
-        String.valueOf(getUserData().getServerJMXPort()));
-    serverProperties.put(ADSContext.ServerProperty.JMX_ENABLED, "true");
+    serverProperties.put(ADSContext.ServerProperty.JMX_PORT, "1689");
+    serverProperties.put(ADSContext.ServerProperty.JMX_ENABLED, "false");
 
-    serverProperties.put(ADSContext.ServerProperty.INSTANCE_PATH,
-        getUserData().getServerLocation());
+    String path;
+    if (Utils.isWebStart())
+    {
+      path = getUserData().getServerLocation();
+    }
+    else
+    {
+      path = Utils.getInstallPathFromClasspath();
+    }
+    serverProperties.put(ADSContext.ServerProperty.INSTANCE_PATH, path);
 
-    String serverID = serverProperties.get(ADSContext.ServerProperty.HOSTNAME)+
+    String serverID = serverProperties.get(ADSContext.ServerProperty.HOST_NAME)+
     ":"+getUserData().getServerPort();
-    */
+
     /* TODO: do we want to ask this specifically to the user? */
-    //serverProperties.put(ADSContext.ServerProperty.ID, serverID);
+    serverProperties.put(ADSContext.ServerProperty.ID, serverID);
 
     serverProperties.put(ADSContext.ServerProperty.HOST_OS,
         Utils.getOSString());
@@ -1428,7 +2085,7 @@ public abstract class Installer extends GuiApplication {
       new HashMap<ADSContext.AdministratorProperty, Object>();
     adminProperties.put(ADSContext.AdministratorProperty.UID,
         getUserData().getGlobalAdministratorUID());
-    adminProperties.put(ADSContext.AdministratorProperty.UID,
+    adminProperties.put(ADSContext.AdministratorProperty.PASSWORD,
         getUserData().getGlobalAdministratorPassword());
     adminProperties.put(ADSContext.AdministratorProperty.DESCRIPTION,
         getMsg("global-administrator-description"));
@@ -1546,6 +2203,20 @@ public abstract class Installer extends GuiApplication {
         getUserData().setServerLocation(serverLocation);
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, false);
       }
+    }
+
+    // Check the host is not empty.
+    // TODO: check that the host name is valid...
+    String hostName = qs.getFieldStringValue(FieldName.HOST_NAME);
+    if ((hostName == null) || hostName.trim().isEmpty())
+    {
+      errorMsgs.add(getMsg("empty-host-name"));
+      qs.displayFieldInvalid(FieldName.HOST_NAME, true);
+    }
+    else
+    {
+      qs.displayFieldInvalid(FieldName.HOST_NAME, false);
+      getUserData().setHostName(hostName);
     }
 
     // Check the port
@@ -1722,10 +2393,13 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForReplicationOptionsPanel(QuickSetup qs)
       throws UserDataException {
     boolean hasGlobalAdministrators = false;
+    Integer replicationPort = -1;
     String host = null;
     Integer port = null;
     String dn = null;
     String pwd = null;
+    boolean isSecure = Boolean.TRUE.equals(qs.getFieldValue(
+        FieldName.REMOTE_SERVER_IS_SECURE_PORT));
     ArrayList<String> errorMsgs = new ArrayList<String>();
 
     DataReplicationOptions.Type type = (DataReplicationOptions.Type)
@@ -1734,195 +2408,56 @@ public abstract class Installer extends GuiApplication {
     dn = qs.getFieldStringValue(FieldName.REMOTE_SERVER_DN);
     pwd = qs.getFieldStringValue(FieldName.REMOTE_SERVER_PWD);
 
+    if (type != DataReplicationOptions.Type.STANDALONE)
+    {
+      // Check replication port
+      replicationPort = checkReplicationPort(qs, errorMsgs);
+    }
+
+    UserDataConfirmationException confirmEx = null;
     switch (type)
     {
     case IN_EXISTING_TOPOLOGY:
     {
-      // Check host name
-      if ((host == null) || (host.length() == 0))
-      {
-        errorMsgs.add(getMsg("empty-remote-host"));
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
-      }
-      else
-      {
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, false);
-      }
-
-      // Check port
       String sPort = qs.getFieldStringValue(FieldName.REMOTE_SERVER_PORT);
-      try
-      {
-        port = Integer.parseInt(sPort);
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, false);
-      }
-      catch (Throwable t)
-      {
-        errorMsgs.add(getMsg("invalid-remote-port"));
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
-      }
-
-      // Check dn
-      if ((dn == null) || (dn.length() == 0))
-      {
-        errorMsgs.add(getMsg("empty-remote-dn"));
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
-      }
-      else
-      {
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, false);
-      }
-
-      // Check password
-      if ((pwd == null) || (pwd.length() == 0))
-      {
-        errorMsgs.add(getMsg("empty-remote-pwd"));
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
-      }
-      else
-      {
-        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, false);
-      }
+      checkRemoteHostPortDnAndPwd(host, sPort, dn, pwd, qs, errorMsgs);
 
       if (errorMsgs.size() == 0)
       {
+        port = Integer.parseInt(sPort);
         // Try to connect
-        String ldapUrl = "ldap://"+host+":"+port;
-        InitialLdapContext ctx = null;
+        boolean[] globalAdmin = {hasGlobalAdministrators};
+        String[] effectiveDn = {dn};
         try
         {
-          try
-          {
-            ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
-                Utils.getDefaultLDAPTimeout(), null);
-          }
-          catch (Throwable t)
-          {
-            // Try using a global administrator
-            dn = ADSContext.getAdministratorDN(dn);
-            ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
-                Utils.getDefaultLDAPTimeout(), null);
-          }
-
-          ADSContext adsContext = new ADSContext(ctx);
-          if (adsContext.hasAdminData())
-          {
-            /* Check if there are already global administrators */
-            Set administrators = adsContext.readAdministratorRegistry();
-            if (administrators.size() > 0)
-            {
-              hasGlobalAdministrators = true;
-            }
-            updateUserDataWithSuffixesInADS(adsContext);
-          }
-          else
-          {
-            getUserData().setSuffixesToReplicateOptions(
-                new SuffixesToReplicateOptions(
-                    SuffixesToReplicateOptions.Type.
-                    REPLICATE_WITH_EXISTING_SUFFIXES,
-                    staticSuffixes(),
-                    staticSuffixes()));
-          }
+          updateUserDataWithADS(host, port, dn, pwd, qs, errorMsgs,
+              globalAdmin, effectiveDn);
         }
-        catch (NoPermissionException x)
+        catch (UserDataConfirmationException e)
         {
-          String[] arg = {host+":"+port};
-          errorMsgs.add(getMsg("cannot-connect-to-remote-permissions", arg));
-          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
-          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+          confirmEx = e;
         }
-        catch (NamingException ne)
-        {
-          String[] arg = {host+":"+port};
-          errorMsgs.add(getMsg("cannot-connect-to-remote-generic", arg));
-          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
-          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
-          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
-          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
-        }
-        catch (ADSContextException ace)
-        {
-          String[] args = {host+":"+port, ace.toString()};
-          errorMsgs.add(getMsg("remote-ads-exception", args));
-        }
-        finally
-        {
-          if (ctx != null)
-          {
-            try
-            {
-              ctx.close();
-            }
-            catch (Throwable t)
-            {
-            }
-          }
-        }
+        hasGlobalAdministrators = globalAdmin[0];
+        dn = effectiveDn[0];
       }
       break;
     }
     case STANDALONE:
     {
-      Set<SuffixDescriptor> available;
-      SuffixesToReplicateOptions repl =
-        getUserData().getSuffixesToReplicateOptions();
-
-      if (repl != null)
-      {
-        available = repl.getAvailableSuffixes();
-      }
-      else
-      {
-        available = new HashSet<SuffixDescriptor>();
-      }
-
-      Set<SuffixDescriptor> chosen;
-      if (repl != null)
-      {
-        chosen = repl.getSuffixes();
-      }
-      else
-      {
-        chosen = new HashSet<SuffixDescriptor>();
-      }
-
       getUserData().setSuffixesToReplicateOptions(
           new SuffixesToReplicateOptions(
               SuffixesToReplicateOptions.Type.NO_SUFFIX_TO_REPLICATE,
-              available,
-              chosen));
+              new HashSet<SuffixDescriptor>(),
+              new HashSet<SuffixDescriptor>()));
       break;
     }
     case FIRST_IN_TOPOLOGY:
     {
-      Set<SuffixDescriptor> available;
-      SuffixesToReplicateOptions repl =
-        getUserData().getSuffixesToReplicateOptions();
-
-      if (repl != null)
-      {
-        available = repl.getAvailableSuffixes();
-      }
-      else
-      {
-        available = new HashSet<SuffixDescriptor>();
-      }
-
-      Set<SuffixDescriptor> chosen;
-      if (repl != null)
-      {
-        chosen = repl.getSuffixes();
-      }
-      else
-      {
-        chosen = new HashSet<SuffixDescriptor>();
-      }
       getUserData().setSuffixesToReplicateOptions(
           new SuffixesToReplicateOptions(
               SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY,
-              available,
-              chosen));
+              new HashSet<SuffixDescriptor>(),
+              new HashSet<SuffixDescriptor>()));
       break;
     }
     default:
@@ -1940,20 +2475,367 @@ public abstract class Installer extends GuiApplication {
       }
       auth.setDn(dn);
       auth.setPwd(pwd);
+      auth.setUseSecureConnection(isSecure);
 
       DataReplicationOptions repl = new DataReplicationOptions(type,
-          auth);
+          auth, replicationPort);
       getUserData().setReplicationOptions(repl);
 
       getUserData().createAdministrator(!hasGlobalAdministrators &&
       type == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY);
-
     }
     if (errorMsgs.size() > 0)
     {
       throw new UserDataException(Step.REPLICATION_OPTIONS,
           Utils.getStringFromCollection(errorMsgs, "\n"));
     }
+    if (confirmEx != null)
+    {
+      throw confirmEx;
+    }
+  }
+
+  private int checkReplicationPort(QuickSetup qs, ArrayList<String> errorMsgs)
+  {
+    int replicationPort = -1;
+    String sPort = qs.getFieldStringValue(FieldName.REPLICATION_PORT);
+    try
+    {
+      replicationPort = Integer.parseInt(sPort);
+      if ((replicationPort < MIN_PORT_VALUE) ||
+          (replicationPort > MAX_PORT_VALUE))
+      {
+        String[] args =
+        { String.valueOf(MIN_PORT_VALUE), String.valueOf(MAX_PORT_VALUE) };
+        errorMsgs.add(getMsg("invalid-replication-port-value-range", args));
+        qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
+      } else if (!Utils.canUseAsPort(replicationPort))
+      {
+        if (Utils.isPriviledgedPort(replicationPort))
+        {
+          errorMsgs.add(getMsg("cannot-bind-priviledged-port",
+              new String[] { String.valueOf(replicationPort) }));
+        } else
+        {
+          errorMsgs.add(getMsg("cannot-bind-port",
+              new String[] { String.valueOf(replicationPort) }));
+        }
+        qs.displayFieldInvalid(FieldName.REPLICATION_PORT, true);
+
+      } else
+      {
+        /* Check that we did not chose this port for another protocol */
+        SecurityOptions sec = getUserData().getSecurityOptions();
+        if ((replicationPort == getUserData().getServerPort()) ||
+            (replicationPort == getUserData().getServerJMXPort()) ||
+            ((replicationPort == sec.getSslPort()) && sec.getEnableSSL()))
+        {
+          errorMsgs.add(
+              getMsg("replication-port-already-chosen-for-other-protocol"));
+          qs.displayFieldInvalid(FieldName.REPLICATION_PORT, true);
+        }
+        else
+        {
+          qs.displayFieldInvalid(FieldName.REPLICATION_PORT, false);
+        }
+      }
+
+    } catch (NumberFormatException nfe)
+    {
+      String[] args =
+      { String.valueOf(MIN_PORT_VALUE), String.valueOf(MAX_PORT_VALUE) };
+      errorMsgs.add(getMsg("invalid-replication-port-value-range", args));
+      qs.displayFieldInvalid(FieldName.REPLICATION_PORT, true);
+    }
+    return replicationPort;
+  }
+
+  private void checkRemoteHostPortDnAndPwd(String host, String sPort, String dn,
+      String pwd, QuickSetup qs, ArrayList<String> errorMsgs)
+  {
+    // Check host
+    if ((host == null) || (host.length() == 0))
+    {
+      errorMsgs.add(getMsg("empty-remote-host"));
+      qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
+    }
+    else
+    {
+      qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, false);
+    }
+
+    // Check port
+    try
+    {
+      Integer.parseInt(sPort);
+      qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, false);
+    }
+    catch (Throwable t)
+    {
+      errorMsgs.add(getMsg("invalid-remote-port"));
+      qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
+    }
+
+    // Check dn
+    if ((dn == null) || (dn.length() == 0))
+    {
+      errorMsgs.add(getMsg("empty-remote-dn"));
+      qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
+    }
+    else
+    {
+      qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, false);
+    }
+
+    // Check password
+    if ((pwd == null) || (pwd.length() == 0))
+    {
+      errorMsgs.add(getMsg("empty-remote-pwd"));
+      qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+    }
+    else
+    {
+      qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, false);
+    }
+  }
+
+  private void updateUserDataWithADS(String host, int port, String dn,
+      String pwd, QuickSetup qs, ArrayList<String> errorMsgs,
+      boolean[] hasGlobalAdministrators,
+      String[] effectiveDn) throws UserDataException
+  {
+    String ldapUrl;
+    host = Utils.getHostNameForLdapUrl(host);
+    boolean isSecure = Boolean.TRUE.equals(qs.getFieldValue(
+        FieldName.REMOTE_SERVER_IS_SECURE_PORT));
+    if (isSecure)
+    {
+      ldapUrl = "ldaps://"+host+":"+port;
+    }
+    else
+    {
+      ldapUrl = "ldap://"+host+":"+port;
+    }
+    InitialLdapContext ctx = null;
+
+    ApplicationTrustManager trustManager = getTrustManager();
+    trustManager.setHost(host);
+    trustManager.resetLastRefusedItems();
+    try
+    {
+      try
+      {
+        if (isSecure)
+        {
+          ctx = Utils.createLdapsContext(ldapUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null, trustManager);
+        }
+        else
+        {
+          ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null);
+        }
+      }
+      catch (Throwable t)
+      {
+        if (!isCertificateException(t))
+        {
+          // Try using a global administrator
+          dn = ADSContext.getAdministratorDN(dn);
+          if (isSecure)
+          {
+            ctx = Utils.createLdapsContext(ldapUrl, dn, pwd,
+                Utils.getDefaultLDAPTimeout(), null, trustManager);
+          }
+          else
+          {
+            ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
+                Utils.getDefaultLDAPTimeout(), null);
+          }
+        }
+        else
+        {
+          throw t;
+        }
+      }
+
+      ADSContext adsContext = new ADSContext(ctx);
+      if (adsContext.hasAdminData())
+      {
+        /* Check if there are already global administrators */
+        Set administrators = adsContext.readAdministratorRegistry();
+        if (administrators.size() > 0)
+        {
+          hasGlobalAdministrators[0] = true;
+        }
+        else
+        {
+          hasGlobalAdministrators[0] = false;
+        }
+        Set<TopologyCacheException> exceptions =
+        updateUserDataWithSuffixesInADS(adsContext, trustManager);
+        Set<String> exceptionMsgs = new LinkedHashSet<String>();
+        /* Check the exceptions and see if we throw them or not. */
+        for (TopologyCacheException e : exceptions)
+        {
+          switch (e.getType())
+          {
+          case NOT_GLOBAL_ADMINISTRATOR:
+            String errorMsg = getMsg("not-global-administrator-provided");
+            throw new UserDataException(Step.REPLICATION_OPTIONS, errorMsg);
+          case GENERIC_CREATING_CONNECTION:
+            if ((e.getCause() != null) &&
+                isCertificateException(e.getCause()))
+            {
+              UserDataCertificateException.Type excType;
+              ApplicationTrustManager.Cause cause =
+                trustManager.getLastRefusedCause();
+              LOG.log(Level.INFO, "Certificate exception cause: "+cause);
+              if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
+              {
+                excType = UserDataCertificateException.Type.NOT_TRUSTED;
+              }
+              else if (cause ==
+                ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
+              {
+                excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
+              }
+              else
+              {
+                excType = null;
+              }
+              if (excType != null)
+              {
+                String h;
+                int p;
+                try
+                {
+                  URI uri = new URI(e.getLdapUrl());
+                  h = uri.getHost();
+                  p = uri.getPort();
+                }
+                catch (Throwable t)
+                {
+                  LOG.log(Level.WARNING,
+                      "Error parsing ldap url of TopologyCacheException.", t);
+                  h = getMsg("not-available-label");
+                  p = -1;
+                }
+                throw new UserDataCertificateException(Step.REPLICATION_OPTIONS,
+                    getMsg("certificate-exception", h, String.valueOf(p)),
+                    e.getCause(), h, p,
+                    e.getTrustManager().getLastRefusedChain(),
+                    trustManager.getLastRefusedAuthType(), excType);
+              }
+            }
+          }
+          exceptionMsgs.add(getStringRepresentation(e));
+        }
+        if (exceptionMsgs.size() > 0)
+        {
+          String confirmationMsg =
+            getMsg("error-reading-registered-servers-confirm",
+              Utils.getStringFromCollection(exceptionMsgs, "\n"));
+          throw new UserDataConfirmationException(Step.REPLICATION_OPTIONS,
+              confirmationMsg);
+        }
+      }
+      else
+      {
+        updateUserDataWithSuffixesInServer(ctx);
+      }
+    }
+    catch (UserDataException ude)
+    {
+      throw ude;
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.INFO, "Error connecting to remote server.", t);
+      if (isCertificateException(t))
+      {
+        UserDataCertificateException.Type excType;
+        ApplicationTrustManager.Cause cause =
+          trustManager.getLastRefusedCause();
+        LOG.log(Level.INFO, "Certificate exception cause: "+cause);
+        if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
+        {
+          excType = UserDataCertificateException.Type.NOT_TRUSTED;
+        }
+        else if (cause == ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
+        {
+          excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
+        }
+        else
+        {
+          excType = null;
+        }
+
+        if (excType != null)
+        {
+          throw new UserDataCertificateException(Step.REPLICATION_OPTIONS,
+              getMsg("certificate-exception", host, String.valueOf(port)), t,
+              host, port, trustManager.getLastRefusedChain(),
+              trustManager.getLastRefusedAuthType(), excType);
+        }
+        else
+        {
+          String[] arg = {host+":"+port, t.toString()};
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
+          qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+          errorMsgs.add(getMsg("cannot-connect-to-remote-generic", arg));
+        }
+      }
+      else if (t instanceof AuthenticationException)
+      {
+        String[] arg = {host+":"+port};
+        errorMsgs.add(getMsg("cannot-connect-to-remote-authentication", arg));
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+      }
+      else if (t instanceof NoPermissionException)
+      {
+        String[] arg = {host+":"+port};
+        errorMsgs.add(getMsg("cannot-connect-to-remote-permissions", arg));
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+      }
+      else if (t instanceof NamingException)
+      {
+        String[] arg = {host+":"+port, t.toString()};
+        errorMsgs.add(getMsg("cannot-connect-to-remote-generic", arg));
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
+        qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
+      }
+      else if (t instanceof ADSContextException)
+      {
+        String[] args = {host+":"+port, t.toString()};
+        errorMsgs.add(getMsg("remote-ads-exception", args));
+      }
+      else
+      {
+        throw new UserDataException(Step.REPLICATION_OPTIONS,
+            getThrowableMsg("bug-msg", null, t));
+      }
+    }
+    finally
+    {
+      if (ctx != null)
+      {
+        try
+        {
+          ctx.close();
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+    }
+    effectiveDn[0] = dn;
   }
 
   /**
@@ -2016,7 +2898,7 @@ public abstract class Installer extends GuiApplication {
 
     if (pwdValid)
     {
-      getUserData().setDirectoryManagerPwd(pwd1);
+      getUserData().setGlobalAdministratorPassword(pwd1);
       qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD, false);
       qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD_CONFIRM, false);
     }
@@ -2068,6 +2950,8 @@ public abstract class Installer extends GuiApplication {
               chosen);
         getUserData().setSuffixesToReplicateOptions(options);
       }
+      getUserData().setRemoteWithNoReplicationPort(
+          getRemoteWithNoReplicationPort(getUserData()));
     }
     else
     {
@@ -2087,6 +2971,77 @@ public abstract class Installer extends GuiApplication {
     {
       throw new UserDataException(Step.SUFFIXES_OPTIONS,
           Utils.getStringFromCollection(errorMsgs, "\n"));
+    }
+  }
+
+  /**
+   * Validate the data provided by the user in the remote server replication
+   * port panel and update the userData object according to that content.
+   *
+   * @throws UserDataException if the data provided by the user is not
+   *           valid.
+   */
+  private void updateUserDataForRemoteReplicationPorts(QuickSetup qs)
+      throws UserDataException
+  {
+    ArrayList<String> errorMsgs = new ArrayList<String>();
+    Map<ServerDescriptor, Integer> servers =
+      getUserData().getRemoteWithNoReplicationPort();
+    Map hm = (Map) qs.getFieldValue(FieldName.REMOTE_REPLICATION_PORT);
+    for (ServerDescriptor server : servers.keySet())
+    {
+      String hostName = server.getHostName();
+      int replicationPort = -1;
+      String sPort = (String)hm.get(server.getId());
+      try
+      {
+        replicationPort = Integer.parseInt(sPort);
+        if ((replicationPort < MIN_PORT_VALUE) ||
+            (replicationPort > MAX_PORT_VALUE))
+        {
+          String[] args = { server.getHostPort(true),
+              String.valueOf(MIN_PORT_VALUE), String.valueOf(MAX_PORT_VALUE)};
+          errorMsgs.add(getMsg("invalid-remote-replication-port-value-range",
+              args));
+        }
+        if (hostName.equalsIgnoreCase(getUserData().getHostName()))
+        {
+          int securePort = -1;
+          if (getUserData().getSecurityOptions().getEnableSSL())
+          {
+            securePort = getUserData().getSecurityOptions().getSslPort();
+          }
+          if ((replicationPort == getUserData().getServerPort()) ||
+              (replicationPort == getUserData().getServerJMXPort()) ||
+              (replicationPort ==
+                getUserData().getReplicationOptions().getReplicationPort()) ||
+              (replicationPort == securePort))
+          {
+            errorMsgs.add(getMsg(
+                    "remote-replication-port-already-chosen-for-other-protocol",
+                    server.getHostPort(true)));
+          }
+        }
+        servers.put(server, replicationPort);
+      } catch (NumberFormatException nfe)
+      {
+        String[] args = { hostName, String.valueOf(MIN_PORT_VALUE),
+            String.valueOf(MAX_PORT_VALUE)};
+        errorMsgs.add(getMsg("invalid-remote-replication-port-value-range",
+            args));
+      }
+    }
+
+    if (errorMsgs.size() > 0)
+    {
+      qs.displayFieldInvalid(FieldName.REMOTE_REPLICATION_PORT, true);
+      throw new UserDataException(Step.REMOTE_REPLICATION_PORTS,
+          Utils.getStringFromCollection(errorMsgs, "\n"));
+    }
+    else
+    {
+      qs.displayFieldInvalid(FieldName.REMOTE_REPLICATION_PORT, false);
+      getUserData().setRemoteWithNoReplicationPort(servers);
     }
   }
 
@@ -2239,22 +3194,125 @@ public abstract class Installer extends GuiApplication {
   }
 
   private Map<ADSContext.ServerProperty, Object> getRemoteServerProperties(
-      InitialLdapContext ctx) throws NamingException
+      String hostName, InitialLdapContext ctx) throws NamingException
   {
-    // TODO: use administration framework.
-    return new HashMap<ADSContext.ServerProperty, Object>();
+    ServerDescriptor server = ServerDescriptor.createStandalone(ctx);
+    Map<ADSContext.ServerProperty, Object> serverProperties =
+      new HashMap<ADSContext.ServerProperty, Object>();
+    serverProperties.put(ADSContext.ServerProperty.HOST_NAME, hostName);
+    ADSContext.ServerProperty[][] adsProperties =
+    {
+        {ADSContext.ServerProperty.LDAP_PORT,
+        ADSContext.ServerProperty.LDAP_ENABLED},
+        {ADSContext.ServerProperty.LDAPS_PORT,
+        ADSContext.ServerProperty.LDAPS_ENABLED},
+        {ADSContext.ServerProperty.JMX_PORT,
+        ADSContext.ServerProperty.JMX_ENABLED},
+        {ADSContext.ServerProperty.JMXS_PORT,
+        ADSContext.ServerProperty.JMXS_ENABLED}
+
+    };
+    ServerDescriptor.ServerProperty[][] properties =
+    {
+        {ServerDescriptor.ServerProperty.LDAP_PORT,
+         ServerDescriptor.ServerProperty.LDAP_ENABLED},
+        {ServerDescriptor.ServerProperty.LDAPS_PORT,
+         ServerDescriptor.ServerProperty.LDAPS_ENABLED},
+        {ServerDescriptor.ServerProperty.JMX_PORT,
+         ServerDescriptor.ServerProperty.JMX_ENABLED},
+        {ServerDescriptor.ServerProperty.JMXS_PORT,
+         ServerDescriptor.ServerProperty.JMXS_ENABLED}
+    };
+    for (int i=0; i<properties.length; i++)
+    {
+      ArrayList portNumbers =
+        (ArrayList)server.getServerProperties().get(properties[i][0]);
+      if (portNumbers != null)
+      {
+        ArrayList enabled =
+          (ArrayList)server.getServerProperties().get(properties[i][1]);
+        boolean enabledFound = false;
+        for (int j=0; j<enabled.size() && !enabledFound; j++)
+        {
+          if (Boolean.TRUE.equals(enabled.get(j)))
+          {
+            enabledFound = true;
+            serverProperties.put(adsProperties[i][0],
+                String.valueOf(portNumbers.get(j)));
+          }
+        }
+        if (!enabledFound && (portNumbers.size() > 0))
+        {
+          serverProperties.put(adsProperties[i][0],
+              String.valueOf(portNumbers.get(0)));
+        }
+        serverProperties.put(adsProperties[i][1], enabledFound?"true":"false");
+      }
+    }
+
+    serverProperties.put(ADSContext.ServerProperty.ID,
+        server.getHostPort(true));
+
+    return serverProperties;
   }
 
   /**
-   * Update the UserInstallData object according to the content of the review
-   * panel.
+   * Update the UserInstallData with the contents we discover in the ADS.
    */
-  private void updateUserDataWithSuffixesInADS(ADSContext adsContext)
+  private Set<TopologyCacheException> updateUserDataWithSuffixesInADS(
+      ADSContext adsContext, ApplicationTrustManager trustManager)
+  throws TopologyCacheException
+  {
+    Set<TopologyCacheException> exceptions =
+      new HashSet<TopologyCacheException>();
+    SuffixesToReplicateOptions suf =
+      getUserData().getSuffixesToReplicateOptions();
+    SuffixesToReplicateOptions.Type type;
+
+    if ((suf == null) || (suf.getType() ==
+      SuffixesToReplicateOptions.Type.NO_SUFFIX_TO_REPLICATE))
+    {
+      type = suf.getType();
+    }
+    else
+    {
+      type = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
+    }
+    lastLoadedCache = new TopologyCache(adsContext, trustManager);
+    lastLoadedCache.reloadTopology();
+    Set<SuffixDescriptor> suffixes = lastLoadedCache.getSuffixes();
+
+    getUserData().setSuffixesToReplicateOptions(
+        new SuffixesToReplicateOptions(type, suffixes, suf.getSuffixes()));
+
+    /* Analyze if we had any exception while loading servers.  For the moment
+     * only throw the exception found if the user did not provide the
+     * Administrator DN and this caused a problem authenticating in one server
+     * or if there is a certificate problem.
+     */
+    Set<ServerDescriptor> servers = lastLoadedCache.getServers();
+    for (ServerDescriptor server : servers)
+    {
+      TopologyCacheException e = server.getLastException();
+      if (e != null)
+      {
+        exceptions.add(e);
+      }
+    }
+    return exceptions;
+  }
+
+  /**
+   * Update the UserInstallData object with the contents of the server to which
+   * we are connected with the provided InitialLdapContext.
+   */
+  private void updateUserDataWithSuffixesInServer(InitialLdapContext ctx)
+  throws NamingException
   {
     SuffixesToReplicateOptions suf =
       getUserData().getSuffixesToReplicateOptions();
     SuffixesToReplicateOptions.Type type;
-    Set<SuffixDescriptor> suffixes = null;
+    Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
     if (suf == null)
     {
       type = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
@@ -2263,117 +3321,14 @@ public abstract class Installer extends GuiApplication {
     {
       type = suf.getType();
     }
-    // TODO: get the suffixes using the adsContext.
-    if (suffixes == null)
+    ServerDescriptor s = ServerDescriptor.createStandalone(ctx);
+    Set<ReplicaDescriptor> replicas = s.getReplicas();
+    for (ReplicaDescriptor replica : replicas)
     {
-      suffixes = new HashSet<SuffixDescriptor>();
+      suffixes.add(replica.getSuffix());
     }
-    suffixes = staticSuffixes();
     getUserData().setSuffixesToReplicateOptions(
-        new SuffixesToReplicateOptions(type, suffixes, suffixes));
-  }
-
-  private Set<SuffixDescriptor> staticSuffixes()
-  {
-    /*
-    ServerDescriptor server1 = new ServerDescriptor();
-    Map<ADSContext.ServerProperty, Object> serverProp1 =
-      new HashMap<ADSContext.ServerProperty, Object>();
-    serverProp1.put(ADSContext.ServerProperty.HOSTNAME, "potato.france");
-    serverProp1.put(ADSContext.ServerProperty.PORT, "389");
-    serverProp1.put(ADSContext.ServerProperty.SECURE_PORT, "689");
-    serverProp1.put(ADSContext.ServerProperty.LDAP_ENABLED, "true");
-    serverProp1.put(ADSContext.ServerProperty.LDAPS_ENABLED, "false");
-    serverProp1.put(ADSContext.ServerProperty.INSTANCE_PATH, "/tmp/jvl1");
-    server1.setAdsProperties(serverProp1);
-
-    ServerDescriptor server2 = new ServerDescriptor();
-    Map<ADSContext.ServerProperty, Object> serverProp2 =
-      new HashMap<ADSContext.ServerProperty, Object>();
-    serverProp2.put(ADSContext.ServerProperty.HOSTNAME, "skalariak.france");
-    serverProp2.put(ADSContext.ServerProperty.PORT, "389");
-    serverProp2.put(ADSContext.ServerProperty.SECURE_PORT, "689");
-    serverProp2.put(ADSContext.ServerProperty.LDAP_ENABLED, "false");
-    serverProp2.put(ADSContext.ServerProperty.LDAPS_ENABLED, "true");
-    serverProp2.put(ADSContext.ServerProperty.INSTANCE_PATH, "/tmp/jvl2");
-    server2.setAdsProperties(serverProp2);
-
-    SuffixDescriptor suffix1 = new SuffixDescriptor();
-    suffix1.setDN("dc=example,dc=com");
-    Set<ReplicaDescriptor> replicas1 = new HashSet<ReplicaDescriptor>();
-
-    SuffixDescriptor suffix2 = new SuffixDescriptor();
-    suffix2.setDN("dc=for real,dc=com");
-    Set<ReplicaDescriptor> replicas2 = new HashSet<ReplicaDescriptor>();
-
-    SuffixDescriptor suffix3 = new SuffixDescriptor();
-    suffix3.setDN("dc=s3,dc=com");
-    Set<ReplicaDescriptor> replicas3 = new HashSet<ReplicaDescriptor>();
-
-    SuffixDescriptor suffix4 = new SuffixDescriptor();
-    suffix4.setDN("dc=s4,dc=com");
-    Set<ReplicaDescriptor> replicas4 = new HashSet<ReplicaDescriptor>();
-
-
-    ReplicaDescriptor replica1 = new ReplicaDescriptor();
-    replica1.setSuffix(suffix1);
-    replica1.setServer(server1);
-    replica1.setEntries(1002);
-    replicas1.add(replica1);
-
-    ReplicaDescriptor replica2 = new ReplicaDescriptor();
-    replica2.setSuffix(suffix1);
-    replica2.setServer(server2);
-    replica2.setEntries(1003);
-    replicas1.add(replica2);
-
-    suffix1.setReplicas(replicas1);
-
-    ReplicaDescriptor replica3 = new ReplicaDescriptor();
-    replica3.setSuffix(suffix2);
-    replica3.setServer(server2);
-    replicas2.add(replica3);
-
-    suffix2.setReplicas(replicas2);
-
-    ReplicaDescriptor replica5 = new ReplicaDescriptor();
-    replica5.setSuffix(suffix3);
-    replica5.setServer(server1);
-    replica5.setEntries(1003);
-    replicas3.add(replica5);
-
-    ReplicaDescriptor replica6 = new ReplicaDescriptor();
-    replica6.setSuffix(suffix3);
-    replica6.setServer(server2);
-    replica6.setEntries(1003);
-    replicas3.add(replica6);
-
-    suffix3.setReplicas(replicas3);
-
-    ReplicaDescriptor replica7 = new ReplicaDescriptor();
-    replica7.setSuffix(suffix4);
-    replica7.setServer(server1);
-    replica7.setEntries(1003);
-    replicas4.add(replica7);
-
-    ReplicaDescriptor replica8 = new ReplicaDescriptor();
-    replica8.setSuffix(suffix3);
-    replica8.setServer(server2);
-    replica8.setEntries(1003);
-    replicas4.add(replica8);
-
-    suffix4.setReplicas(replicas4);
-     */
-    Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
-    /*
-    suffixes.add(suffix1);
-    suffixes.add(suffix2);
-    suffixes.add(suffix3);
-    suffixes.add(suffix4);
-*/
-    //suffixes.clear();
-
-    return suffixes;
+        new SuffixesToReplicateOptions(type, suffixes, suf.getSuffixes()));
   }
 
   /**
@@ -2441,9 +3396,9 @@ public abstract class Installer extends GuiApplication {
    * Returns the Subject DN to be used to generate the self-signed certificate.
    * @return the Subject DN to be used to generate the self-signed certificate.
    */
-  private String getSelfSignedCertificateSubjectDN(SecurityOptions sec)
+  private String getSelfSignedCertificateSubjectDN()
   {
-    return "cn="+Rdn.escapeValue(sec.getSelfSignedCertificateName())+
+    return "cn="+Rdn.escapeValue(getUserData().getHostName())+
     ",O=OpenDS Self-Signed Certificate";
   }
 
@@ -2522,10 +3477,408 @@ public abstract class Installer extends GuiApplication {
     return generatedChar;
   }
 
+  private boolean isCertificateException(Throwable t)
+  {
+    return Utils.isCertificateException(t);
+  }
+
+  private String getStringRepresentation(TopologyCacheException e)
+  {
+    StringBuilder buf = new StringBuilder();
+
+    String ldapUrl = e.getLdapUrl();
+    if (ldapUrl != null)
+    {
+      String hostName = ldapUrl.substring(ldapUrl.indexOf("://") + 3);
+      buf.append(getMsg("server-error", hostName) + " ");
+    }
+    if (e.getCause() instanceof NamingException)
+    {
+      buf.append(getThrowableMsg("bug-msg", null, e.getCause()));
+    }
+    else
+    {
+      // This is unexpected.
+      buf.append(getThrowableMsg("bug-msg", null, e.getCause()));
+    }
+    return buf.toString();
+  }
+
+  private Map<ServerDescriptor, Integer> getRemoteWithNoReplicationPort(
+      UserData userData)
+  {
+    Map<ServerDescriptor, Integer> servers =
+      new HashMap<ServerDescriptor, Integer>();
+    Set<SuffixDescriptor> suffixes =
+      userData.getSuffixesToReplicateOptions().getSuffixes();
+    for (SuffixDescriptor suffix : suffixes)
+    {
+      for (ReplicaDescriptor replica : suffix.getReplicas())
+      {
+        ServerDescriptor server = replica.getServer();
+        Object v = server.getServerProperties().get(
+            ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
+        if (!Boolean.TRUE.equals(v))
+        {
+          servers.put(server, 8989);
+        }
+      }
+    }
+    return servers;
+  }
+
+  private InitialLdapContext createLocalContext() throws NamingException
+  {
+    String ldapUrl = "ldap://"+getUserData().getHostName()+":"+
+    getUserData().getServerPort();
+    String dn = getUserData().getDirectoryManagerDn();
+    String pwd = getUserData().getDirectoryManagerPwd();
+    return Utils.createLdapContext(ldapUrl, dn, pwd,
+        Utils.getDefaultLDAPTimeout(), null);
+  }
+  private void createLocalAds(InitialLdapContext ctx)
+  throws ApplicationException, ADSContextException
+  {
+    try
+    {
+      ADSContext adsContext = new ADSContext(ctx);
+      adsContext.createAdminData();
+      adsContext.registerServer(getNewServerAdsProperties());
+      if (getUserData().mustCreateAdministrator())
+      {
+        adsContext.createAdministrator(getAdministratorProperties());
+      }
+    }
+    catch (ADSContextException ace)
+    {
+      throw ace;
+    }
+    catch (Throwable t)
+    {
+      String failedMsg = getThrowableMsg("bug-msg", null, t);
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR, failedMsg, t);
+    }
+  }
+
+  private InitialLdapContext getRemoteConnection(ServerDescriptor server,
+      ApplicationTrustManager trustManager) throws ApplicationException
+  {
+    Map<ADSContext.ServerProperty, Object> adsProperties;
+    AuthenticationData auth =
+      getUserData().getReplicationOptions().getAuthenticationData();
+    if (!server.isRegistered())
+    {
+      /* Create adsProperties to be able to use the class ServerLoader to
+       * get the connection.  Just update the connection parameters with what
+       * the user chose in the Topology Options panel (i.e. even if SSL
+       * is enabled on the remote server, use standard LDAP to connect to the
+       * server if the user specified the LDAP port: this avoids having an
+       * issue with the certificate if it has not been accepted previously
+       * by the user).
+       */
+      adsProperties = new HashMap<ADSContext.ServerProperty, Object>();
+      adsProperties.put(ADSContext.ServerProperty.HOST_NAME,
+          server.getHostName());
+      if (auth.useSecureConnection())
+      {
+        adsProperties.put(ADSContext.ServerProperty.LDAPS_PORT,
+          String.valueOf(auth.getPort()));
+        adsProperties.put(ADSContext.ServerProperty.LDAPS_ENABLED, "true");
+      }
+      else
+      {
+        adsProperties.put(ADSContext.ServerProperty.LDAP_PORT,
+            String.valueOf(auth.getPort()));
+        adsProperties.put(ADSContext.ServerProperty.LDAP_ENABLED, "true");
+      }
+    }
+    else
+    {
+      adsProperties = server.getAdsProperties();
+    }
+
+    ServerLoader loader = new ServerLoader(adsProperties, auth.getDn(),
+        auth.getPwd(), trustManager);
+
+    InitialLdapContext ctx = null;
+    try
+    {
+      ctx = loader.createContext();
+    }
+    catch (NamingException ne)
+    {
+      System.out.println("dn: "+auth.getDn());
+      System.out.println("dn: "+auth.getDn());
+
+      String errorMessage = getMsg("cannot-connect-to-remote-generic",
+          server.getHostPort(true), ne.toString(true));
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR, errorMessage, ne);
+    }
+    return ctx;
+  }
+
+  private void initializeSuffix(InitialLdapContext ctx, int replicaId,
+      String suffixDn, boolean displayProgress, String sourceServerDisplay)
+  throws ApplicationException, PeerNotFoundException
+  {
+    boolean taskCreated = false;
+    int i = 1;
+    boolean isOver = false;
+    String dn = null;
+    BasicAttributes attrs = new BasicAttributes();
+    Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top");
+    oc.add("ds-task");
+    oc.add("ds-task-initialize-from-remote-replica");
+    attrs.put(oc);
+    attrs.put("ds-task-class-name", "org.opends.server.tasks.InitializeTask");
+    attrs.put("ds-task-initialize-domain-dn", suffixDn);
+    attrs.put("ds-task-initialize-replica-server-id",
+        String.valueOf(replicaId));
+    while (!taskCreated)
+    {
+      String id = "quicksetup-initialize"+i;
+      dn = "ds-task-id="+id+",cn=Scheduled Tasks,cn=Tasks";
+      attrs.put("ds-task-id", id);
+      try
+      {
+        DirContext dirCtx = ctx.createSubcontext(dn, attrs);
+        taskCreated = true;
+        LOG.log(Level.INFO, "created task entry: "+attrs);
+        dirCtx.close();
+      }
+      catch (NameAlreadyBoundException x)
+      {
+      }
+      catch (NamingException ne)
+      {
+        LOG.log(Level.SEVERE, "Error creating task "+attrs, ne);
+        String[] arg = {sourceServerDisplay};
+        throw new ApplicationException(ApplicationException.Type.APPLICATION,
+            getThrowableMsg("error-launching-initialization", arg, ne), ne);
+      }
+      i++;
+    }
+    // Wait until it is over
+    SearchControls searchControls = new SearchControls();
+    searchControls.setCountLimit(1);
+    searchControls.setSearchScope(
+        SearchControls. OBJECT_SCOPE);
+    String filter = "objectclass=*";
+    searchControls.setReturningAttributes(
+        new String[] {
+            "ds-task-unprocessed-entry-count",
+            "ds-task-processed-entry-count",
+            "ds-task-log-message",
+            "ds-task-state"
+        });
+    String lastDisplayedMsg = null;
+    String lastLogMsg = null;
+    long lastTimeMsgDisplayed = -1;
+    int totalEntries = 0;
+    while (!isOver)
+    {
+      try
+      {
+        Thread.sleep(500);
+      }
+      catch (Throwable t)
+      {
+      }
+      try
+      {
+        NamingEnumeration res = ctx.search(dn, filter, searchControls);
+        SearchResult sr = (SearchResult)res.next();
+        if (displayProgress)
+        {
+          // Display the number of entries that have been handled and
+          // a percentage...
+          String msg;
+          String sProcessed = getFirstValue(sr,
+          "ds-task-processed-entry-count");
+          String sUnprocessed = getFirstValue(sr,
+          "ds-task-unprocessed-entry-count");
+          int processed = -1;
+          int unprocessed = -1;
+          if (sProcessed != null)
+          {
+            processed = Integer.parseInt(sProcessed);
+          }
+          if (sUnprocessed != null)
+          {
+            unprocessed = Integer.parseInt(sUnprocessed);
+          }
+          totalEntries = Math.max(totalEntries, processed+unprocessed);
+
+          if ((processed != -1) && (unprocessed != -1))
+          {
+            if (processed + unprocessed > 0)
+            {
+              int perc = (100 * processed) / (processed + unprocessed);
+              msg = getMsg("initialize-progress-with-percentage", sProcessed,
+                  String.valueOf(perc));
+            }
+            else
+            {
+              //msg = getMsg("no-entries-to-initialize");
+              msg = null;
+            }
+          }
+          else if (processed != -1)
+          {
+            msg = getMsg("initialize-progress-with-processed", sProcessed);
+          }
+          else if (unprocessed != -1)
+          {
+            msg = getMsg("initialize-progress-with-unprocessed",
+                sUnprocessed);
+          }
+          else
+          {
+            msg = lastDisplayedMsg;
+          }
+
+          if (msg != null)
+          {
+            long currentTime = System.currentTimeMillis();
+            /* Refresh period: to avoid having too many lines in the log */
+            long minRefreshPeriod;
+            if (totalEntries < 100)
+            {
+              minRefreshPeriod = 0;
+            }
+            else if (totalEntries < 1000)
+            {
+              minRefreshPeriod = 1000;
+            }
+            else if (totalEntries < 10000)
+            {
+              minRefreshPeriod = 5000;
+            }
+            else
+            {
+              minRefreshPeriod = 10000;
+            }
+            if (!msg.equals(lastDisplayedMsg) &&
+                ((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed))
+            {
+              notifyListeners(getFormattedProgress(msg));
+              lastDisplayedMsg = msg;
+              notifyListeners(getLineBreak());
+              lastTimeMsgDisplayed = currentTime;
+            }
+          }
+        }
+        String logMsg = getFirstValue(sr, "ds-task-log-message");
+        if (logMsg != null)
+        {
+          if (!logMsg.equals(lastLogMsg))
+          {
+            LOG.log(Level.INFO, logMsg);
+            lastLogMsg = logMsg;
+          }
+        }
+        InstallerHelper helper = new InstallerHelper();
+        String state = getFirstValue(sr, "ds-task-state");
+
+        if (helper.isDone(state) || helper.isStoppedByError(state))
+        {
+          isOver = true;
+          String errorMsg;
+          if (lastLogMsg == null)
+          {
+            errorMsg = getMsg("error-during-initialization-no-log",
+                sourceServerDisplay);
+          }
+          else
+          {
+            errorMsg = getMsg("error-during-initialization-log",
+                sourceServerDisplay, lastLogMsg);
+          }
+
+          if (helper.isCompletedWithErrors(state))
+          {
+            notifyListeners(getFormattedWarning(errorMsg));
+          }
+          else if (!helper.isSuccessful(state) ||
+              helper.isStoppedByError(state))
+          {
+            ApplicationException ae = new ApplicationException(
+                ApplicationException.Type.APPLICATION, errorMsg, null);
+            if ((lastLogMsg != null) &&
+                helper.isPeersNotFoundError(lastLogMsg))
+            {
+              throw new PeerNotFoundException(errorMsg);
+            }
+            else
+            {
+              throw ae;
+            }
+          }
+          else if (displayProgress)
+          {
+            notifyListeners(getFormattedProgress(
+                getMsg("suffix-initialized-successfully")));
+          }
+        }
+      }
+      catch (NameNotFoundException x)
+      {
+        isOver = true;
+        notifyListeners(getFormattedProgress(
+            getMsg("suffix-initialized-successfully")));
+      }
+      catch (NamingException ne)
+      {
+        String[] arg = {sourceServerDisplay};
+        throw new ApplicationException(ApplicationException.Type.APPLICATION,
+            getThrowableMsg("error-pooling-initialization", arg, ne), ne);
+      }
+    }
+  }
+
+  private String getFirstValue(SearchResult entry, String attrName)
+  throws NamingException
+  {
+    return Utils.getFirstValue(entry, attrName);
+  }
+
+  private String getLocalReplicationServer()
+  {
+    return getUserData().getHostName()+":"+
+    getUserData().getReplicationOptions().getReplicationPort();
+  }
+
+  private String getLocalHostPort()
+  {
+    return getUserData().getHostName()+":"+getUserData().getServerPort();
+  }
+
   private static int getRandomInt(Random random,int modulo)
   {
     int value = 0;
     value = (random.nextInt() & modulo);
     return value;
+  }
+}
+
+/**
+ * The exception that is thrown during initialization if the peer specified
+ * could not be found.
+ *
+ */
+class PeerNotFoundException extends Exception
+{
+  private static final long serialVersionUID = -362726764261560341L;
+
+  /**
+   * The constructor for the exception.
+   * @param localizedMsg the localized message.
+   */
+  PeerNotFoundException(String localizedMsg)
+  {
+    super(localizedMsg);
   }
 }

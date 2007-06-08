@@ -72,9 +72,29 @@ public enum InstallProgressStep implements ProgressStep {
   IMPORTING_AUTOMATICALLY_GENERATED,
 
   /**
+   * Configuring replication.
+   */
+  CONFIGURING_REPLICATION,
+
+  /**
    * Starting Open DS server.
    */
   STARTING_SERVER,
+
+  /**
+   * Stopping Open DS server.
+   */
+  STOPPING_SERVER,
+
+  /**
+   * Initialize Replicated Suffixes.
+   */
+  INITIALIZE_REPLICATED_SUFFIXES,
+
+  /**
+   * Configuring ADS.
+   */
+  CONFIGURING_ADS,
 
   /**
    * Enabling Windows service.

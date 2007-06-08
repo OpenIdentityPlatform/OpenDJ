@@ -1497,6 +1497,10 @@ public class UIFactory
       key = "wait-tiny";
       break;
 
+    case WAIT:
+      key = "wait";
+      break;
+
     default:
       throw new IllegalArgumentException("Unknown iconName: " + iconType);
     }
@@ -1574,6 +1578,10 @@ public class UIFactory
       break;
 
     case WAIT_TINY:
+      description = getMsg("help-wait-description");
+      break;
+
+    case WAIT:
       description = getMsg("help-wait-description");
       break;
 

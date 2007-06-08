@@ -38,7 +38,7 @@ public class UserDataConfirmationException extends UserDataException
   private static final long serialVersionUID = -2662491859817280513L;
 
   /**
-   * Constructor for UserDataException.
+   * Constructor for UserDataConfirmationException.
    * @param step the step in the wizard where the exception occurred.
    * @param localizedMessage the localized message describing the error.
    */

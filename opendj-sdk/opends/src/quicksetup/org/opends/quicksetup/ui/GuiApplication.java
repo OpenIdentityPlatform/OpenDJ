@@ -38,6 +38,7 @@ import javax.swing.*;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.File;
+import java.security.cert.X509Certificate;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -389,6 +390,43 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
+   * Updates the list of certificates accepted by the user in the trust manager
+   * based on the information stored in the UserDataCertificateException we got
+   * when trying to connect in secure mode.
+   * @param ce the UserDataCertificateException that contains the information to
+   * be used.
+   */
+  protected void acceptCertificateForException(UserDataCertificateException ce)
+  {
+    X509Certificate[] chain = ce.getChain();
+    String authType = ce.getAuthType();
+    String host = ce.getHost();
+
+    if ((chain != null) && (authType != null) && (host != null))
+    {
+      getTrustManager().acceptCertificate(chain, authType, host);
+    }
+    else
+    {
+      if (chain == null)
+      {
+        LOG.log(Level.WARNING,
+            "The chain is null for the UserDataCertificateException");
+      }
+      if (authType == null)
+      {
+        LOG.log(Level.WARNING,
+            "The auth type is null for the UserDataCertificateException");
+      }
+      if (host == null)
+      {
+        LOG.log(Level.WARNING,
+            "The host is null for the UserDataCertificateException");
+      }
+    }
+  }
+
+  /**
    * Begins downloading webstart jars in another thread
    * for WebStart applications only.
    */
@@ -511,8 +549,10 @@ public abstract class GuiApplication extends Application {
   protected void notifyListenersOfLog() {
     File logFile = QuickSetupLog.getLogFile();
     if (logFile != null) {
-      notifyListeners(getMsg("general-see-for-details", logFile.getPath()) +
-                  formatter.getLineBreak());
+      notifyListeners(
+          getFormattedProgress(getMsg("general-see-for-details",
+              logFile.getPath())) +
+          formatter.getLineBreak());
     }
   }
 

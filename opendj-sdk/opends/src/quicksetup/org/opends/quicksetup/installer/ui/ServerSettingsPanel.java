@@ -53,6 +53,7 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.UserData;
+import org.opends.server.util.CertificateManager;
 
 /**
  * This is the panel that contains the Server Settings: the port, the Directory
@@ -103,8 +104,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
     super(application);
     this.defaultUserData = application.getUserData();
     this.displayServerLocation = isWebStart();
-    canUpdateSecurity =
-      org.opends.server.util.CertificateManager.mayUseCertificateManager();
+    canUpdateSecurity = CertificateManager.mayUseCertificateManager();
     securityOptions = defaultUserData.getSecurityOptions();
     populateLabelAndFieldMaps();
     addFocusListeners();
@@ -185,6 +185,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
 
     FieldName[] fieldNames =
     {
+        FieldName.HOST_NAME,
         FieldName.SERVER_PORT,
         FieldName.SECURITY_OPTIONS,
         FieldName.DIRECTORY_MANAGER_DN,
@@ -376,6 +377,10 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       value = defaultUserData.getServerLocation();
       break;
 
+    case HOST_NAME:
+      value = defaultUserData.getHostName();
+      break;
+
     case SERVER_PORT:
       if (defaultUserData.getServerPort() > 0)
       {
@@ -419,6 +424,11 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
   {
     HashMap<FieldName, LabelFieldDescriptor> hm =
         new HashMap<FieldName, LabelFieldDescriptor>();
+
+    hm.put(FieldName.HOST_NAME, new LabelFieldDescriptor(
+        getMsg("host-name-label"), getMsg("host-name-tooltip"),
+        LabelFieldDescriptor.FieldType.TEXTFIELD,
+        LabelFieldDescriptor.LabelType.PRIMARY, UIFactory.HOST_FIELD_SIZE));
 
     hm.put(FieldName.SERVER_PORT, new LabelFieldDescriptor(
         getMsg("server-port-label"), getMsg("server-port-tooltip"),
