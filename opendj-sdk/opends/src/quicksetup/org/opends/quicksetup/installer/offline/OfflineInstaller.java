@@ -90,7 +90,7 @@ public class OfflineInstaller extends Installer
 
       writeJavaHome();
 
-      if (Utils.isWindows())
+      if (Utils.isWindows() && getUserData().getEnableWindowsService())
       {
           notifyListeners(getTaskSeparator());
           setStatus(InstallProgressStep.ENABLING_WINDOWS_SERVICE);

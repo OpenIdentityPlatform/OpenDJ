@@ -34,6 +34,7 @@ import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.*;
+import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -61,7 +62,8 @@ public class InstallReviewPanel extends ReviewPanel {
   private HashMap<FieldName, JTextComponent> hmFields =
       new HashMap<FieldName, JTextComponent>();
   private JPanel bottomComponent;
-  private JCheckBox checkBox;
+  private JCheckBox startCheckBox;
+  private JCheckBox enableWindowsServiceCheckBox;
   private JLabel warningLabel;
 
   /**
@@ -85,6 +87,8 @@ public class InstallReviewPanel extends ReviewPanel {
     {
       setFieldValue(FieldName.SERVER_LOCATION, userData.getServerLocation());
     }
+    setFieldValue(FieldName.HOST_NAME,
+        String.valueOf(userData.getHostName()));
     setFieldValue(FieldName.SERVER_PORT,
         String.valueOf(userData.getServerPort()));
     setFieldValue(FieldName.SECURITY_OPTIONS,
@@ -129,7 +133,11 @@ public class InstallReviewPanel extends ReviewPanel {
     Object value = null;
     if (fieldName == FieldName.SERVER_START)
     {
-      value = getCheckBox().isSelected();
+      value = getStartCheckBox().isSelected();
+    }
+    else if (fieldName == FieldName.ENABLE_WINDOWS_SERVICE)
+    {
+      value = getEnableWindowsServiceCheckBox().isSelected();
     }
     return value;
   }
@@ -165,6 +173,11 @@ public class InstallReviewPanel extends ReviewPanel {
           LabelFieldDescriptor.FieldType.READ_ONLY,
           LabelFieldDescriptor.LabelType.PRIMARY, 0));
     }
+
+    hm.put(FieldName.HOST_NAME, new LabelFieldDescriptor(
+        getMsg("host-name-label"), getMsg("host-name-tooltip"),
+        LabelFieldDescriptor.FieldType.READ_ONLY,
+        LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
     hm.put(FieldName.SERVER_PORT, new LabelFieldDescriptor(
         getMsg("server-port-label"), getMsg("server-port-tooltip"),
@@ -377,10 +390,10 @@ public class InstallReviewPanel extends ReviewPanel {
       fieldNames =
         new FieldName[]
           {
-            FieldName.SERVER_LOCATION, FieldName.SERVER_PORT,
-            FieldName.SECURITY_OPTIONS, FieldName.DIRECTORY_MANAGER_DN,
-            FieldName.GLOBAL_ADMINISTRATOR_UID, FieldName.DATA_OPTIONS,
-            FieldName.REPLICATION_PORT
+            FieldName.SERVER_LOCATION, FieldName.HOST_NAME,
+            FieldName.SERVER_PORT, FieldName.SECURITY_OPTIONS,
+            FieldName.DIRECTORY_MANAGER_DN, FieldName.GLOBAL_ADMINISTRATOR_UID,
+            FieldName.DATA_OPTIONS, FieldName.REPLICATION_PORT
           };
     }
     else
@@ -388,9 +401,10 @@ public class InstallReviewPanel extends ReviewPanel {
       fieldNames =
         new FieldName[]
           {
-            FieldName.SERVER_PORT, FieldName.SECURITY_OPTIONS,
-            FieldName.DIRECTORY_MANAGER_DN, FieldName.GLOBAL_ADMINISTRATOR_UID,
-            FieldName.DATA_OPTIONS, FieldName.REPLICATION_PORT
+            FieldName.HOST_NAME, FieldName.SERVER_PORT,
+            FieldName.SECURITY_OPTIONS, FieldName.DIRECTORY_MANAGER_DN,
+            FieldName.GLOBAL_ADMINISTRATOR_UID, FieldName.DATA_OPTIONS,
+            FieldName.REPLICATION_PORT
           };
     }
 
@@ -437,15 +451,23 @@ public class InstallReviewPanel extends ReviewPanel {
     {
       bottomComponent = new JPanel(new GridBagLayout());
       GridBagConstraints gbc = new GridBagConstraints();
+      gbc.anchor = GridBagConstraints.WEST;
+      JPanel auxPanel = new JPanel(new GridBagLayout());
       gbc.gridwidth = 3;
-      bottomComponent.add(getCheckBox(), gbc);
+      auxPanel.add(getStartCheckBox(), gbc);
       gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
       gbc.gridwidth = GridBagConstraints.RELATIVE;
-      bottomComponent.add(getWarningLabel(), gbc);
+      auxPanel.add(getWarningLabel(), gbc);
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       gbc.insets.left = 0;
       gbc.weightx = 1.0;
-      bottomComponent.add(Box.createHorizontalGlue(), gbc);
+      auxPanel.add(Box.createHorizontalGlue(), gbc);
+      bottomComponent.add(auxPanel, gbc);
+      if (Utils.isWindows())
+      {
+        gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+        bottomComponent.add(getEnableWindowsServiceCheckBox(), gbc);
+      }
     }
     return bottomComponent;
   }
@@ -461,15 +483,16 @@ public class InstallReviewPanel extends ReviewPanel {
     return warningLabel;
   }
 
-  private JCheckBox getCheckBox()
+  private JCheckBox getStartCheckBox()
   {
-    if (checkBox == null)
+    if (startCheckBox == null)
     {
-      checkBox =
+      startCheckBox =
           UIFactory.makeJCheckBox(getMsg("start-server-label"),
               getMsg("start-server-tooltip"), UIFactory.TextStyle.CHECKBOX);
-      checkBox.setSelected(getApplication().getUserData().getStartServer());
-      checkBox.addActionListener(new ActionListener()
+      startCheckBox.setSelected(
+          getApplication().getUserData().getStartServer());
+      startCheckBox.addActionListener(new ActionListener()
       {
         public void actionPerformed(ActionEvent ev)
         {
@@ -477,7 +500,21 @@ public class InstallReviewPanel extends ReviewPanel {
         }
       });
     }
-    return checkBox;
+    return startCheckBox;
+  }
+
+  private JCheckBox getEnableWindowsServiceCheckBox()
+  {
+    if (enableWindowsServiceCheckBox == null)
+    {
+      enableWindowsServiceCheckBox =
+          UIFactory.makeJCheckBox(getMsg("enable-windows-service-label"),
+              getMsg("enable-windows-service-tooltip"),
+              UIFactory.TextStyle.CHECKBOX);
+      enableWindowsServiceCheckBox.setSelected(
+          getApplication().getUserData().getEnableWindowsService());
+    }
+    return enableWindowsServiceCheckBox;
   }
 
   /**
@@ -486,7 +523,7 @@ public class InstallReviewPanel extends ReviewPanel {
    */
   private void checkStartWarningLabel()
   {
-    boolean visible = !getCheckBox().isSelected();
+    boolean visible = !getStartCheckBox().isSelected();
     if (visible)
     {
       UserData userData = getApplication().getUserData();

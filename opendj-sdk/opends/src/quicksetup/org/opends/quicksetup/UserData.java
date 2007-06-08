@@ -69,6 +69,8 @@ public class UserData
 
   private boolean stopServer;
 
+  private boolean enableWindowsService;
+
   private NewSuffixOptions newSuffixOptions;
 
   private DataReplicationOptions replicationOptions;
@@ -88,6 +90,7 @@ public class UserData
    */
   public UserData() {
     startServer = true;
+    enableWindowsService = false;
 
     NewSuffixOptions defaultNewSuffixOptions = new NewSuffixOptions(
         NewSuffixOptions.Type.CREATE_BASE_ENTRY, "dc=example,dc=com");
@@ -274,6 +277,27 @@ public class UserData
   public boolean getStopServer()
   {
     return stopServer;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the windows service must be enabled during
+   * installation, <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the windows service must be enabled during
+   * installation, <CODE>false</CODE> if not.
+   */
+  public boolean getEnableWindowsService()
+  {
+    return enableWindowsService;
+  }
+
+  /**
+   * Sets whether we want to enable windows service during installation or not.
+   * @param enableWindowsService the boolean indicating whether we want to
+   * enable windows service during installation or not.
+   */
+  public void setEnableWindowsService(boolean enableWindowsService)
+  {
+    this.enableWindowsService = enableWindowsService;
   }
 
   /**

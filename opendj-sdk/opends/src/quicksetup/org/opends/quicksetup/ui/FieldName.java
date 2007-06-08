@@ -146,6 +146,10 @@ public enum FieldName
   /**
    * The value associated with this is a Boolean.
    */
+  ENABLE_WINDOWS_SERVICE,
+  /**
+   * The value associated with this is a Boolean.
+   */
   REMOVE_LIBRARIES_AND_TOOLS,
   /**
    * The value associated with this is a Boolean.

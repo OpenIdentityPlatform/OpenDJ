@@ -139,7 +139,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       configureServer();
       createData();
 
-      if (Utils.isWindows())
+      if (Utils.isWindows() && getUserData().getEnableWindowsService())
       {
           notifyListeners(getTaskSeparator());
           setStatus(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
