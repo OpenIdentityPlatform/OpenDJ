@@ -303,7 +303,6 @@ public class ServerController {
     try
     {
       String startedId = getStartedId();
-
       Process process = pb.start();
 
       BufferedReader err =
@@ -314,6 +313,7 @@ public class ServerController {
       StartReader errReader = new StartReader(err, startedId, true);
       StartReader outputReader = new StartReader(out, startedId, false);
 
+      long finishedTime = 0;
       while (!errReader.isFinished() || !outputReader.isFinished())
       {
         try
@@ -321,6 +321,25 @@ public class ServerController {
           Thread.sleep(100);
         } catch (InterruptedException ie)
         {
+        }
+
+        if (errReader.startedIdFound() || outputReader.startedIdFound())
+        {
+          /* When we start the server in windows and we are not running it
+           * under a windows service, the readers are kept open forever.
+           * Once we find that is finished, wait at most 7 seconds.
+           */
+          if (finishedTime == 0)
+          {
+            finishedTime = System.currentTimeMillis();
+          }
+          else
+          {
+            if (System.currentTimeMillis() - finishedTime > 7000)
+            {
+              break;
+            }
+          }
         }
       }
 
@@ -532,6 +551,8 @@ public class ServerController {
 
     private boolean isFinished;
 
+    private boolean startedIdFound;
+
     private boolean isFirstLine;
 
     /**
@@ -577,9 +598,10 @@ public class ServerController {
                 isFirstLine = false;
               }
               LOG.log(Level.INFO, "server: " + line);
-              if (line.indexOf("id=" + startedId) != -1)
+              if (line.toLowerCase().indexOf("=" + startedId) != -1)
               {
                 isFinished = true;
+                startedIdFound = true;
               }
 
               messages.add(line);
@@ -624,10 +646,17 @@ public class ServerController {
     {
       return isFinished;
     }
-  }
 
-  private String getMsg(String key) {
-    return ResourceProvider.getInstance().getMsg(key);
+    /**
+     * Returns <CODE>true</CODE> if the server start Id was found and
+     * <CODE>false</CODE> otherwise.
+     * @return <CODE>true</CODE> if the server start Id was found and
+     * <CODE>false</CODE> otherwise.
+     */
+    public boolean startedIdFound()
+    {
+      return startedIdFound;
+    }
   }
 
   private String getMsg(String key, String... args) {
