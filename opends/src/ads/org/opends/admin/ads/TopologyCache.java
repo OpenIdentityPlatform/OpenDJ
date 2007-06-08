@@ -136,6 +136,9 @@ public class TopologyCache
         ServerDescriptor descriptor = loader.getServerDescriptor();
         for (ReplicaDescriptor replica : descriptor.getReplicas())
         {
+          LOG.log(Level.INFO, "Handling replica with dn: "+
+              replica.getSuffix().getDN());
+
           boolean suffixFound = false;
           LdapName dn = new LdapName(replica.getSuffix().getDN());
           Set<SuffixDescriptor> sufs = hmSuffixes.get(dn);

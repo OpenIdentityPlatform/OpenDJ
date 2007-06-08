@@ -115,22 +115,45 @@ public class ADSContextHelper
    * @param ctx the DirContext to be used.
    * @param backendName the name of the backend where the administration
    * suffix is stored.
+   * @param dbDirectory the path of the backend where the administration
+   * suffix is stored (will be used if the backend must be created).
+   * @param importTempDirectory the path of the backend where the temporary
+   * files of import are stored (will be used if the backend must be created).
    * @throws ADSContextException if the administration suffix could not be
    * created.
    */
   public void createAdministrationSuffix(InitialLdapContext ctx,
-      String backendName) throws ADSContextException
+      String backendName, String dbDirectory, String importTempDirectory)
+  throws ADSContextException
   {
     try
     {
       ManagementContext mCtx = LDAPManagementContext.createFromContext(
           JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
-      BackendCfgClient backend = root.getBackend(backendName);
+      JEBackendCfgClient backend = null;
+      try
+      {
+        backend = (JEBackendCfgClient)root.getBackend(backendName);
+      }
+      catch (ManagedObjectNotFoundException e)
+      {
+      }
+      catch (ClassCastException cce)
+      {
+        throw new ADSContextException(
+            ADSContextException.ErrorType.UNEXPECTED_ADS_BACKEND_TYPE, cce);
+      }
       if (backend == null)
       {
-        BackendCfgDefn provider = BackendCfgDefn.getInstance();
+        JEBackendCfgDefn provider = JEBackendCfgDefn.getInstance();
         backend = root.createBackend(provider, backendName, null);
+        backend.setBackendEnabled(true);
+        backend.setBackendId(backendName);
+        backend.setBackendDirectory(dbDirectory);
+        backend.setBackendImportTempDirectory(importTempDirectory);
+        backend.setBackendWritabilityMode(
+            BackendCfgDefn.BackendWritabilityMode.ENABLED);
       }
       SortedSet<DN> suffixes = backend.getBackendBaseDN();
       if (suffixes == null)

@@ -78,7 +78,7 @@ public class ApplicationTrustManager implements X509TrustManager
   private X509TrustManager sunJSSEX509TrustManager;
   private String lastRefusedAuthType;
   private X509Certificate[] lastRefusedChain;
-  private Cause lastRefusedCause;
+  private Cause lastRefusedCause = null;
 
   /*
    * The following ArrayList contain information about the certificates

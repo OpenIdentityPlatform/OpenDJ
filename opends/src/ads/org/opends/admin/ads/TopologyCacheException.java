@@ -65,6 +65,10 @@ public class TopologyCacheException extends Exception
      */
     NOT_GLOBAL_ADMINISTRATOR,
     /**
+     * Not enough permissions to read the server configuration.
+     */
+    NO_PERMISSIONS,
+    /**
      * Timeout reading the configuration of a particular server.
      */
     TIMEOUT,

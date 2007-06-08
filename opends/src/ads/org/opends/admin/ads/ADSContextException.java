@@ -96,9 +96,14 @@ public class ADSContextException extends Exception {
      */
     MISSING_ADMIN_UID(ReturnCode.MISSING_ADMIN_UID),
     /**
-     * The administratior password is missing.
+     * The administrator password is missing.
      */
     MISSING_ADMIN_PASSWORD(ReturnCode.MISSING_ADMIN_PASSWORD),
+    /**
+     * There is already a backend with the name of the ADS backend but not
+     * of the expected type.
+     */
+    UNEXPECTED_ADS_BACKEND_TYPE(ReturnCode.BROKEN_INSTALL),
     /**
      * Unexpected error (potential bug).
      */
