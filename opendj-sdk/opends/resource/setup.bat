@@ -67,7 +67,7 @@ rem Test that the provided JDK is 1.5 compatible.
 "%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
 if not %errorlevel% == 0 goto noValidJavaHome
 
-if %~0 == "" goto callLaunch
+if "%~1" == "" goto callLaunch
 goto callJava
 
 :callLaunch
