@@ -140,7 +140,7 @@ public class Index
    */
   public void open(DatabaseConfig dbConfig) throws DatabaseException
   {
-    this.dbConfig = dbConfig;
+    this.dbConfig = dbConfig.cloneConfig();
     this.dbConfig.setOverrideBtreeComparator(true);
     this.dbConfig.setBtreeComparator(comparator.getClass());
     getDatabase();

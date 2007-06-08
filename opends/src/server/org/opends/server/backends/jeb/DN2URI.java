@@ -130,7 +130,7 @@ public class DN2URI
                 String name)
   {
     this.entryContainer = entryContainer;
-    this.dbConfig = dbConfig;
+    this.dbConfig = dbConfig.cloneConfig();
     this.name = name;
   }
 
