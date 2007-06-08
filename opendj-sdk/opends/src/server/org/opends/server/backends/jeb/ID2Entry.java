@@ -95,7 +95,7 @@ public class ID2Entry
                   DataConfig dataConfig, String name)
   {
     this.entryContainer = entryContainer;
-    this.dbConfig = dbConfig;
+    this.dbConfig = dbConfig.cloneConfig();
     this.name = name;
     this.dataConfig = dataConfig;
   }
