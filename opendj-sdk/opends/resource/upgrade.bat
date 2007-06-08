@@ -69,18 +69,12 @@ if EXIST "%INSTANCE_ROOT%\tmp\upgrade" rd "%INSTANCE_ROOT%\tmp\upgrade" /s /q
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.BuildExtractor %*
-goto prepUpgrader
+if not %errorlevel% == 0 goto end
+goto upgrader
 
-:prepUpgrader
-if EXIST "%INSTANCE_ROOT%\tmp\upgrade" goto setClassPathToStageDir
-goto callUpgrader
-
-:setClassPathToStageDir
+:upgrader
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\tmp\upgrade\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
-goto callUpgrader
-
-:callUpgrader
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.UpgradeLauncher %*
 goto end
 

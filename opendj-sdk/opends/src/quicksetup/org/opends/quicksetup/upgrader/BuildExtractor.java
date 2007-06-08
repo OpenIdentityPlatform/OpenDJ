@@ -28,17 +28,14 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.*;
-import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.event.ProgressUpdateListener;
-import org.opends.quicksetup.event.ProgressUpdateEvent;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.quicksetup.util.FileManager;
-import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.FileNotFoundException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,7 +52,7 @@ import java.util.logging.Logger;
  * itself is dependent upon this tool, it should be kept simple and stable
  * to insure that the upgrade will work.
  */
-public class BuildExtractor extends Application implements Runnable {
+public class BuildExtractor extends UpgradeLauncher implements CliApplication {
 
   static private final Logger LOG =
           Logger.getLogger(BuildExtractor.class.getName());
@@ -75,21 +72,19 @@ public class BuildExtractor extends Application implements Runnable {
               ResourceProvider.getInstance().getMsg("error-initializing-log"));
       t.printStackTrace();
     }
-    new BuildExtractor(args).run();
+    new BuildExtractor(args).launch();
   }
 
-  private String[] args = null;
+  private BuildExtractorCliHelper helper = new BuildExtractorCliHelper();
 
-  private boolean finished = false;
+  private UpgradeUserData userData;
+
+  private boolean finished;
+
+  private ApplicationException error;
 
   private BuildExtractor(String[] args) {
-    this.args = args;
-    setProgressMessageFormatter(new PlainTextProgressMessageFormatter());
-    addProgressUpdateListener(new ProgressUpdateListener() {
-      public void progressUpdate(ProgressUpdateEvent ev) {
-        System.out.println(ev.getNewLogs());
-      }
-    });
+    super(args);
   }
 
   /**
@@ -103,60 +98,40 @@ public class BuildExtractor extends Application implements Runnable {
    * contents into the current build's staging are and exits with return code 0.
    */
   public void run() {
-    int retCode = 0;
     try {
-      File buildFile = getBuildFile(args);
+      UpgradeUserData uud = (UpgradeUserData)getUserData();
+      File buildFile = uud.getInstallPackage();
       if (buildFile != null) {
-        if (!buildFile.exists()) {
-          throw new FileNotFoundException(
-                  getMsg("build-extractor-error-file-no-exist",
-                          Utils.getPath(buildFile)));
+        LOG.log(Level.INFO, "expanding zip file " + buildFile.getPath());
+        File stageDirectory = initStageDirectory();
+        ZipExtractor extractor = new ZipExtractor(buildFile);
+        extractor.extract(stageDirectory);
+        LOG.log(Level.INFO, "extraction finished");
+        Installation installation = new Installation(stageDirectory);
+        if (!installation.isValid()) {
+          LOG.log(Level.INFO, "extraction produed an invalid OpenDS" +
+                  "installation: " + installation.getInvalidityReason());
+          String invalidMsg = getMsg("build-extractor-file-invalid",
+                  Utils.getPath(buildFile),
+                  installation.getInvalidityReason());
+          error = new ApplicationException(
+                ApplicationException.Type.APPLICATION,
+                  invalidMsg, null);
+          System.err.println(invalidMsg);
         }
-        expandZipFile(buildFile);
       }
     } catch (Throwable t) {
       LOG.log(Level.INFO, "unexpected error extracting build", t);
       String reason = t.getLocalizedMessage();
-      System.err.println(getMsg("build-extractor-error", reason));
-      retCode = 1;
-    }
-    LOG.log(Level.INFO, "extractor exiting code=" + retCode);
-    System.exit(retCode);
-  }
-
-  private File getBuildFile(String[] args) {
-    File buildFile = null;
-    String buildFileName = null;
-    if (args != null) {
-      for (int i = 0; i < args.length; i++) {
-        if (args[i].equals("--" + UpgraderCliHelper.FILE_OPTION_LONG) ||
-                args[i].equalsIgnoreCase(
-                        "-" + UpgraderCliHelper.FILE_OPTION_SHORT)) {
-          if (i < args.length - 1) {
-            buildFileName = args[i+ 1];
-          }
-        }
-      }
-    }
-    if (buildFileName != null) {
-      buildFile = new File(buildFileName);
-    }
-    return buildFile;
-  }
-
-  private void expandZipFile(File buildFile)
-          throws ApplicationException, IOException {
-    try {
-      LOG.log(Level.INFO, "expanding zip file " + buildFile.getPath());
-      ZipExtractor extractor = new ZipExtractor(buildFile);
-      extractor.extract(getStageDirectory());
-      LOG.log(Level.INFO, "extraction finished");
-    } finally {
+      error = new ApplicationException(ApplicationException.Type.APPLICATION,
+                getMsg("build-extractor-error", reason), t);
+      System.err.println(reason);
+    } finally   {
       finished = true;
     }
   }
 
-  private File getStageDirectory() throws ApplicationException {
+  private File initStageDirectory() throws ApplicationException {
     File stageDir;
     Installation installation = new Installation(getInstallationPath());
     stageDir = installation.getTemporaryUpgradeDirectory();
@@ -176,6 +151,13 @@ public class BuildExtractor extends Application implements Runnable {
   /**
    * {@inheritDoc}
    */
+  protected CliApplication createCliApplication() {
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   protected String getInstallationPath() {
     return Utils.getInstallPathFromClasspath();
   }
@@ -183,23 +165,33 @@ public class BuildExtractor extends Application implements Runnable {
   /**
    * {@inheritDoc}
    */
-  public ProgressStep getCurrentProgressStep() {
-    return null;
+  public UserData createUserData(String[] args, CurrentInstallStatus status)
+          throws UserDataException
+  {
+    return helper.createUserData(args);
   }
 
   /**
    * {@inheritDoc}
    */
-
-  public Integer getRatio(ProgressStep step) {
-    return null;
+  public UserData getUserData() {
+    return userData;
   }
 
   /**
    * {@inheritDoc}
    */
-  public String getSummary(ProgressStep step) {
-    return null;
+  public void setUserData(UserData userData) {
+    if (userData instanceof UpgradeUserData) {
+      this.userData = (UpgradeUserData)userData;
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void setProgressMessageFormatter(ProgressMessageFormatter formatter) {
+    // ignore
   }
 
   /**
@@ -212,14 +204,29 @@ public class BuildExtractor extends Application implements Runnable {
   /**
    * {@inheritDoc}
    */
-  public boolean isCancellable() {
-    return false;
+  public ApplicationException getException() {
+    return error;
   }
 
   /**
    * {@inheritDoc}
    */
-  public void cancel() {
-    // do nothing; not cancellable
+  public void addProgressUpdateListener(ProgressUpdateListener l) {
+    // ignored;  no progress messages
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void removeProgressUpdateListener(ProgressUpdateListener l) {
+    // ignored;  no progress messages
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void notifyListeners(Integer ratio, String currentPhaseSummary,
+                              String newLogDetail) {
+    // ignored;  no progress messages
   }
 }

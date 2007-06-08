@@ -982,25 +982,41 @@ public class Upgrader extends GuiApplication implements CliApplication {
         String formattedDetails =
                 Utils.listToString(errors,
                         Constants.LINE_SEPARATOR, /*bullet=*/"\u2022 ", "");
-        runWarning = new ApplicationException(
+        ApplicationException ae = new ApplicationException(
                 ApplicationException.Type.APPLICATION,
                 getMsg("error-upgraded-server-starts-with-errors",
                         Constants.LINE_SEPARATOR + formattedDetails), null);
-        String cancel = getMsg("upgrade-verification-failure-cancel");
         UserInteraction ui = userInteraction();
-        if (ui == null || cancel.equals(ui.confirm(
+        if (ui != null) {
+
+          // We are about to present the problems with the upgrade to the
+          // user and ask if they would like to continue.  Regardless of
+          // whether or not they continue at this point, since they will
+          // have seen the errors we consider the errors as warnings.
+          runWarning = ae;
+
+          // Ask the user if they would like to continue.
+          String cancel = getMsg("upgrade-verification-failure-cancel");
+          if (cancel.equals(ui.confirm(
                   getMsg("upgrade-verification-failure-title"),
                   getMsg("upgrade-verification-failure-prompt"),
                   formattedDetails,
                   getMsg("upgrade-verification-failure-title"),
                   UserInteraction.MessageType.ERROR,
-                  new String[] { getMsg("continue-button-label"), cancel },
+                  new String[]{getMsg("continue-button-label"), cancel},
                   cancel,
                   getMsg("upgrade-verification-failure-view-details")))) {
+            // User indicated cancel
             cancel();
-            throw new ApplicationException(
-              ApplicationException.Type.APPLICATION,
-              getMsg("upgrade-canceled"), null);
+            checkAbort();
+          } else {
+            // User wants to continue;  nothing to do
+          }
+        } else {
+          // We can't ask the user if they want to continue so we
+          // just bail on the upgrade by throwing an exception which
+          // will cause upgrader to exit unsuccessfully
+          throw ae;
         }
       } else {
         notifyListeners(formatter.getFormattedDone() +
@@ -1058,7 +1074,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
       }
 
     } catch (ApplicationException ae) {
-      this.runError = ae;
+
+      // We don't consider a  user cancelation exception
+      // to be an error.
+      if (ae.getType() != ApplicationException.Type.CANCEL) {
+        this.runError = ae;
+      }
+
     } catch (Throwable t) {
       this.runError =
               new ApplicationException(ApplicationException.Type.BUG,
@@ -1067,17 +1089,20 @@ public class Upgrader extends GuiApplication implements CliApplication {
       try {
         HistoricalRecord.Status status;
         String note = null;
-        if (runError == null) {
+        if (runError == null && !abort) {
           status = HistoricalRecord.Status.SUCCESS;
         } else {
-          status = HistoricalRecord.Status.FAILURE;
-          note = runError.getLocalizedMessage();
+          if (abort) {
+            status = HistoricalRecord.Status.CANCEL;
+          } else {
+            status = HistoricalRecord.Status.FAILURE;
+            note = runError.getLocalizedMessage();
+          }
 
           // Abort the upgrade and put things back like we found it
           LOG.log(Level.INFO, "canceling upgrade");
           ProgressStep lastProgressStep = getCurrentProgressStep();
           setCurrentProgressStep(UpgradeProgressStep.ABORT);
-          LOG.log(Level.INFO, "abort");
           abort(lastProgressStep);
           notifyListeners(formatter.getFormattedDone() +
                   formatter.getLineBreak());
@@ -1178,7 +1203,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private void checkAbort() throws ApplicationException {
     if (abort) throw new ApplicationException(
-            ApplicationException.Type.APPLICATION,
+            ApplicationException.Type.CANCEL,
             getMsg("upgrade-canceled"), null);
   }
 
@@ -1558,7 +1583,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   public UserData createUserData(String[] args, CurrentInstallStatus cis)
           throws UserDataException {
-    return getCliHelper().createUserData(args, cis);
+    return getCliHelper().createUserData(args);
   }
 
   /**

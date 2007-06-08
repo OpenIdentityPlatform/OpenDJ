@@ -136,7 +136,12 @@ public class UpgradeLauncher extends Launcher {
     }
   }
 
-  private UpgradeLauncher(String[] args) {
+  /**
+   * Creates an instance.
+   *
+   * @param args specified on command line
+   */
+  protected UpgradeLauncher(String[] args) {
     super(args);
   }
 
