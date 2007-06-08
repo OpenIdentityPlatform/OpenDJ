@@ -1465,7 +1465,7 @@ public class PasswordPolicyState
            (1000L * passwordPolicy.getLockoutDuration());
       if (unlockTime > currentTime)
       {
-        secondsUntilUnlock = (int) (unlockTime - currentTime);
+        secondsUntilUnlock = (int) ((unlockTime - currentTime) / 1000);
 
         if (debug)
         {
