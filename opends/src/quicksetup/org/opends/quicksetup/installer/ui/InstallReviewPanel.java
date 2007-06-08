@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup.installer.ui;
 
+import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
@@ -37,8 +38,12 @@ import org.opends.quicksetup.ui.*;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This is the panel that contains the Review Panel.
@@ -55,7 +60,9 @@ public class InstallReviewPanel extends ReviewPanel {
 
   private HashMap<FieldName, JTextComponent> hmFields =
       new HashMap<FieldName, JTextComponent>();
+  private JPanel bottomComponent;
   private JCheckBox checkBox;
+  private JLabel warningLabel;
 
   /**
    * Constructor of the panel.
@@ -97,6 +104,21 @@ public class InstallReviewPanel extends ReviewPanel {
       getField(FieldName.GLOBAL_ADMINISTRATOR_UID).setVisible(false);
       getLabel(FieldName.GLOBAL_ADMINISTRATOR_UID).setVisible(false);
     }
+
+    if (userData.getReplicationOptions().getType() ==
+      DataReplicationOptions.Type.STANDALONE)
+    {
+      getField(FieldName.REPLICATION_PORT).setVisible(false);
+      getLabel(FieldName.REPLICATION_PORT).setVisible(false);
+    }
+    else
+    {
+      setFieldValue(FieldName.REPLICATION_PORT,
+          getReplicationPortString(userData));
+      getField(FieldName.REPLICATION_PORT).setVisible(true);
+      getLabel(FieldName.REPLICATION_PORT).setVisible(true);
+    }
+    checkStartWarningLabel();
   }
 
   /**
@@ -169,6 +191,12 @@ public class InstallReviewPanel extends ReviewPanel {
         getMsg("directory-data-label"), null,
         LabelFieldDescriptor.FieldType.READ_ONLY,
         LabelFieldDescriptor.LabelType.PRIMARY, 0));
+
+    hm.put(FieldName.REPLICATION_PORT, new LabelFieldDescriptor(
+        getMsg("replication-port-label"), null,
+        LabelFieldDescriptor.FieldType.READ_ONLY,
+        LabelFieldDescriptor.LabelType.PRIMARY, 0));
+
     for (FieldName fieldName : hm.keySet())
     {
       LabelFieldDescriptor desc = hm.get(fieldName);
@@ -215,6 +243,7 @@ public class InstallReviewPanel extends ReviewPanel {
   {
     getField(fieldName).setText(value);
   }
+
 
   /**
    * Returns the localized string describing the DataOptions chosen by the user.
@@ -289,7 +318,49 @@ public class InstallReviewPanel extends ReviewPanel {
 
     return msg;
   }
+   /**
+    * Returns the String representing the replication port configuration.
+    * @param options the DataOptions of the user.
+    * @return the localized string describing the Replication Ports chosen by
+    * the user.
+    */
+  private String getReplicationPortString(UserData userInstallData)
+  {
+    StringBuilder buf = new StringBuilder();
 
+    DataReplicationOptions repl =
+      userInstallData.getReplicationOptions();
+
+    SuffixesToReplicateOptions suf =
+      userInstallData.getSuffixesToReplicateOptions();
+
+    Map<ServerDescriptor, Integer> remotePorts =
+      userInstallData.getRemoteWithNoReplicationPort();
+
+    if ((repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY) &&
+      (suf.getType() ==
+        SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES) &&
+        remotePorts.size() > 0)
+    {
+      buf.append(userInstallData.getReplicationOptions().getReplicationPort());
+      TreeSet<String> remoteServerLines = new TreeSet<String>();
+      for (ServerDescriptor server : remotePorts.keySet())
+      {
+        String[] args = {String.valueOf(remotePorts.get(server)),
+            server.getHostPort(true)};
+        remoteServerLines.add(getMsg("remote-server-replication-port", args));
+      }
+      for (String line : remoteServerLines)
+      {
+        buf.append("\n"+line);
+      }
+    }
+    else
+    {
+      buf.append(userInstallData.getReplicationOptions().getReplicationPort());
+    }
+    return buf.toString();
+  }
   /**
    * Returns and creates the fields panel.
    * @return the fields panel.
@@ -308,7 +379,8 @@ public class InstallReviewPanel extends ReviewPanel {
           {
             FieldName.SERVER_LOCATION, FieldName.SERVER_PORT,
             FieldName.SECURITY_OPTIONS, FieldName.DIRECTORY_MANAGER_DN,
-            FieldName.GLOBAL_ADMINISTRATOR_UID, FieldName.DATA_OPTIONS
+            FieldName.GLOBAL_ADMINISTRATOR_UID, FieldName.DATA_OPTIONS,
+            FieldName.REPLICATION_PORT
           };
     }
     else
@@ -318,7 +390,7 @@ public class InstallReviewPanel extends ReviewPanel {
           {
             FieldName.SERVER_PORT, FieldName.SECURITY_OPTIONS,
             FieldName.DIRECTORY_MANAGER_DN, FieldName.GLOBAL_ADMINISTRATOR_UID,
-            FieldName.DATA_OPTIONS
+            FieldName.DATA_OPTIONS, FieldName.REPLICATION_PORT
           };
     }
 
@@ -359,7 +431,37 @@ public class InstallReviewPanel extends ReviewPanel {
   /**
    * {@inheritDoc}
    */
-  protected JCheckBox getCheckBox()
+  protected JComponent getBottomComponent()
+  {
+    if (bottomComponent == null)
+    {
+      bottomComponent = new JPanel(new GridBagLayout());
+      GridBagConstraints gbc = new GridBagConstraints();
+      gbc.gridwidth = 3;
+      bottomComponent.add(getCheckBox(), gbc);
+      gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
+      gbc.gridwidth = GridBagConstraints.RELATIVE;
+      bottomComponent.add(getWarningLabel(), gbc);
+      gbc.gridwidth = GridBagConstraints.REMAINDER;
+      gbc.insets.left = 0;
+      gbc.weightx = 1.0;
+      bottomComponent.add(Box.createHorizontalGlue(), gbc);
+    }
+    return bottomComponent;
+  }
+
+  private JLabel getWarningLabel()
+  {
+    if (warningLabel == null)
+    {
+      warningLabel = UIFactory.makeJLabel(UIFactory.IconType.WARNING,
+          getMsg("install-server-must-be-temporarily-started"),
+          UIFactory.TextStyle.READ_ONLY);
+    }
+    return warningLabel;
+  }
+
+  private JCheckBox getCheckBox()
   {
     if (checkBox == null)
     {
@@ -367,7 +469,30 @@ public class InstallReviewPanel extends ReviewPanel {
           UIFactory.makeJCheckBox(getMsg("start-server-label"),
               getMsg("start-server-tooltip"), UIFactory.TextStyle.CHECKBOX);
       checkBox.setSelected(getApplication().getUserData().getStartServer());
+      checkBox.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent ev)
+        {
+          checkStartWarningLabel();
+        }
+      });
     }
     return checkBox;
+  }
+
+  /**
+   * Depending on whether we want to replicate or not, we do have to start
+   * the server temporarily to update its configuration and initialize data.
+   */
+  private void checkStartWarningLabel()
+  {
+    boolean visible = !getCheckBox().isSelected();
+    if (visible)
+    {
+      UserData userData = getApplication().getUserData();
+      DataReplicationOptions rep = userData.getReplicationOptions();
+      visible = rep.getType() != DataReplicationOptions.Type.STANDALONE;
+    }
+    getWarningLabel().setVisible(visible);
   }
 }

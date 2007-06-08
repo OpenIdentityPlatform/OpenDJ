@@ -57,6 +57,7 @@ public class DataReplicationOptions
   }
 
   private Type type;
+  private int replicationPort;
   private AuthenticationData authenticationData;
 
   /**
@@ -80,6 +81,7 @@ public class DataReplicationOptions
     {
     case IN_EXISTING_TOPOLOGY:
       authenticationData = (AuthenticationData)args[0];
+      replicationPort = (Integer)args[1];
       break;
 
     default:
@@ -87,6 +89,7 @@ public class DataReplicationOptions
       if ((args != null) && (args.length > 0))
       {
         authenticationData = (AuthenticationData)args[0];
+        replicationPort = (Integer)args[1];
       }
     }
   }
@@ -111,6 +114,16 @@ public class DataReplicationOptions
   public AuthenticationData getAuthenticationData()
   {
     return authenticationData;
+  }
+
+  /**
+   * Returns the port that is going to be used for replication.
+   *
+   * @return the replication that must be used to configure replication.
+   */
+  public int getReplicationPort()
+  {
+    return replicationPort;
   }
 }
 

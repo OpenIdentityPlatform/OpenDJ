@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup;
 
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
@@ -63,6 +64,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
   private Installation installation;
 
   private ServerController serverController;
+
+  private ApplicationTrustManager trustManager;
 
   /** Formats progress messages. */
   protected ProgressMessageFormatter formatter;
@@ -524,6 +527,21 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * </CODE> if not.
    */
   abstract public boolean isFinished();
+
+  /**
+   * Returns the trust manager that can be used to establish secure connections.
+   * @return the trust manager that can be used to establish secure connections.
+   */
+  protected ApplicationTrustManager getTrustManager()
+  {
+    if (trustManager == null)
+    {
+      trustManager = new ApplicationTrustManager();
+    }
+    return trustManager;
+  }
+
+
 
   /**
    * Indicates whether or not this application is capable of cancelling

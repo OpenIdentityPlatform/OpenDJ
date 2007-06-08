@@ -27,8 +27,11 @@
 
 package org.opends.quicksetup;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
+import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
@@ -46,6 +49,8 @@ import org.opends.quicksetup.util.Utils;
 public class UserData
 {
   private String serverLocation;
+
+  private String hostName;
 
   private int serverPort;
 
@@ -72,6 +77,8 @@ public class UserData
 
   private SuffixesToReplicateOptions suffixesToReplicateOptions;
 
+  private Map<ServerDescriptor, Integer> remoteWithNoReplicationPort;
+
   private boolean silent;
 
   private boolean noninteractive;
@@ -93,6 +100,8 @@ public class UserData
       setServerPort(defaultPort);
     }
 
+    setHostName(getDefaultHostName());
+
     setDirectoryManagerDn(Constants.DIRECTORY_MANAGER_DN);
 
     setNewSuffixOptions(defaultNewSuffixOptions);
@@ -100,7 +109,8 @@ public class UserData
     data.setDn(Constants.DIRECTORY_MANAGER_DN);
     data.setPort(389);
     DataReplicationOptions repl = new DataReplicationOptions(
-        DataReplicationOptions.Type.STANDALONE, data);
+        DataReplicationOptions.Type.STANDALONE, data,
+        getDefaultReplicationPort());
     setReplicationOptions(repl);
     setGlobalAdministratorUID("admin");
 
@@ -112,8 +122,9 @@ public class UserData
     setSuffixesToReplicateOptions(suffixes);
     SecurityOptions sec = SecurityOptions.createNoCertificateOptions();
     sec.setSslPort(getDefaultSslPort());
-    sec.setCertificateUserName(getDefaultSelfSignedName());
     setSecurityOptions(sec);
+
+    remoteWithNoReplicationPort = new HashMap<ServerDescriptor, Integer>();
   }
 
   /**
@@ -132,6 +143,24 @@ public class UserData
   public String getServerLocation()
   {
     return serverLocation;
+  }
+
+  /**
+   * Sets the host name.
+   * @param hostName the server host name.
+   */
+  public void setHostName(String hostName)
+  {
+    this.hostName = hostName;
+  }
+
+  /**
+   * Returns the server host name.
+   * @return the server host name.
+   */
+  public String getHostName()
+  {
+    return hostName;
   }
 
   /**
@@ -498,11 +527,34 @@ public class UserData
     }
     return defaultJMXPort;
   }
+
   /**
-   * Provides the default name for the self signed certificate that will be
-   * created.
+   * Provides the port that will be proposed to the user in the replication
+   * options panel of the installation wizard. It will check whether we can use
+   * ports of type X989 and if not it will return -1.
+   *
+   * @return the free port of type X989 if it is available and we can use and -1
+   * if not.
    */
-  private String getDefaultSelfSignedName()
+  static int getDefaultReplicationPort()
+  {
+    int defaultPort = -1;
+
+    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
+    {
+      int port = i + 8989;
+      if (Utils.canUseAsPort(port))
+      {
+        defaultPort = port;
+      }
+    }
+    return defaultPort;
+  }
+
+  /**
+   * Provides the default host name that will be displayed.
+   */
+  private String getDefaultHostName()
   {
     String name = "";
     try
@@ -513,5 +565,34 @@ public class UserData
     {
     }
     return name;
+  }
+
+  /**
+   * Returns a Map containing as key a ServerDescriptor and as value an Integer
+   * corresponding to the Replication Port chosen by the user.
+   *
+   * Only the servers that have no replication port appear on this map.
+   * @return a Map containing as key a ServerDescriptor and as value an Integer
+   * corresponding to the Replication Port chosen by the user.
+   */
+  public Map<ServerDescriptor, Integer> getRemoteWithNoReplicationPort()
+  {
+    HashMap<ServerDescriptor, Integer> copy =
+      new HashMap<ServerDescriptor, Integer>();
+    copy.putAll(remoteWithNoReplicationPort);
+    return copy;
+  }
+
+  /**
+   * Sets a the Replication Ports chosen by the user in the remote servers.
+   * @param remoteWithNoReplicationPort the Map containing as key a
+   * ServerDescriptor and as value an Integer corresponding to the Replication
+   * Port chosen by the user.
+   */
+  public void setRemoteWithNoReplicationPort(
+      Map<ServerDescriptor, Integer> remoteWithNoReplicationPort)
+  {
+    this.remoteWithNoReplicationPort.clear();
+    this.remoteWithNoReplicationPort.putAll(remoteWithNoReplicationPort);
   }
 }

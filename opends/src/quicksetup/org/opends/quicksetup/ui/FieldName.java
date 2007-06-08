@@ -48,6 +48,10 @@ public enum FieldName
   /**
    * The value associated with this is a String.
    */
+  HOST_NAME,
+  /**
+   * The value associated with this is a String.
+   */
   SERVER_PORT,
   /**
    * The value associated with this is a String.
@@ -96,6 +100,10 @@ public enum FieldName
   /**
    * The value associated with this is a String.
    */
+  REPLICATION_PORT,
+  /**
+   * The value associated with this is a String.
+   */
   REMOTE_SERVER_DN,
   /**
    * The value associated with this is a String.
@@ -110,6 +118,11 @@ public enum FieldName
    */
   REMOTE_SERVER_PORT,
   /**
+   * Whether the Remote Server Port is a secure port or not.  The value
+   * associated with this is a Boolean.
+   */
+  REMOTE_SERVER_IS_SECURE_PORT,
+  /**
    * The value associated with this is a String.
    */
   GLOBAL_ADMINISTRATOR_UID,
@@ -121,6 +134,11 @@ public enum FieldName
    * The value associated with this is a String.
    */
   GLOBAL_ADMINISTRATOR_PWD_CONFIRM,
+  /**
+   * The value associated with this is a Map where the key is a ServerDescriptor
+   * and the value an Integer.
+   */
+  REMOTE_REPLICATION_PORT,
   /**
    * The value associated with this is a Boolean.
    */

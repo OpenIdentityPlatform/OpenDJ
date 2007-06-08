@@ -51,10 +51,10 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
+import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
-
 
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
@@ -62,6 +62,7 @@ import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.util.Utils;
 
 /**
  * This class is used to provide a data model for the list of suffixes that
@@ -75,8 +76,8 @@ implements Comparator<SuffixDescriptor>
   private UserData defaultUserData;
   private TreeSet<SuffixDescriptor> orderedSuffixes =
     new TreeSet<SuffixDescriptor>(this);
-  private HashMap<SuffixDescriptor, JCheckBox> hmCheckBoxes =
-    new HashMap<SuffixDescriptor, JCheckBox>();
+  private HashMap<String, JCheckBox> hmCheckBoxes =
+    new HashMap<String, JCheckBox>();
   private Set<JEditorPane> suffixLabels = new HashSet<JEditorPane>();
 
   private JRadioButton rbCreateNewSuffix;
@@ -123,7 +124,7 @@ implements Comparator<SuffixDescriptor>
       Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
       for (SuffixDescriptor suffix:orderedSuffixes)
       {
-        if (hmCheckBoxes.get(suffix).isSelected())
+        if (hmCheckBoxes.get(suffix.getId()).isSelected())
         {
           suffixes.add(suffix);
         }
@@ -244,12 +245,23 @@ implements Comparator<SuffixDescriptor>
   {
     TreeSet<SuffixDescriptor> array = orderSuffixes(
         data.getSuffixesToReplicateOptions().getAvailableSuffixes());
-    Set<SuffixDescriptor> chosen =
-      data.getSuffixesToReplicateOptions().getSuffixes();
+
     if (!array.equals(orderedSuffixes))
     {
+      HashMap<String, Boolean> hmOldValues = new HashMap<String, Boolean>();
+      for (String id : hmCheckBoxes.keySet())
+      {
+        hmOldValues.put(id, hmCheckBoxes.get(id).isSelected());
+      }
       orderedSuffixes.clear();
-      orderedSuffixes.addAll(array);
+      for (SuffixDescriptor suffix : array)
+      {
+        if (!Utils.areDnsEqual(suffix.getDN(),
+            ADSContext.getAdministrationSuffixDN()))
+        {
+          orderedSuffixes.add(suffix);
+        }
+      }
       hmCheckBoxes.clear();
       for (SuffixDescriptor suffix : orderedSuffixes)
       {
@@ -257,7 +269,11 @@ implements Comparator<SuffixDescriptor>
             getMsg("suffixes-to-replicate-dn-tooltip"),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
         cb.setOpaque(false);
-        cb.setSelected(chosen.contains(suffix));
+        Boolean v = hmOldValues.get(suffix.getId());
+        if (v != null)
+        {
+          cb.setSelected(v);
+        }
         cb.addActionListener(new ActionListener()
         {
           public void actionPerformed(ActionEvent ev)
@@ -268,15 +284,16 @@ implements Comparator<SuffixDescriptor>
             }
           }
         });
-        hmCheckBoxes.put(suffix, cb);
+        hmCheckBoxes.put(suffix.getId(), cb);
       }
       populateCheckBoxPanel();
-      boolean display = orderedSuffixes.size() > 0;
-
-      noSuffixLabel.setVisible(!display);
-      labelGlue.setVisible(!display);
-      scroll.setVisible(display);
     }
+    boolean display = orderedSuffixes.size() > 0;
+
+    noSuffixLabel.setVisible(!display);
+    labelGlue.setVisible(!display);
+    scroll.setVisible(display);
+
     checkEnablingState();
   }
 
@@ -371,7 +388,7 @@ implements Comparator<SuffixDescriptor>
         gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
       }
       gbc.gridwidth = GridBagConstraints.RELATIVE;
-      JCheckBox cb = hmCheckBoxes.get(suffix);
+      JCheckBox cb = hmCheckBoxes.get(suffix.getId());
       cb.setVerticalAlignment(SwingConstants.TOP);
       checkBoxPanel.add(cb, gbc);
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
@@ -419,7 +436,7 @@ implements Comparator<SuffixDescriptor>
 
     ServerDescriptor server = replica.getServer();
 
-    String serverDisplay = getServerDisplay(server);
+    String serverDisplay = server.getHostPort(true);
 
     int nEntries = replica.getEntries();
 
@@ -428,24 +445,23 @@ implements Comparator<SuffixDescriptor>
       String[] args = {serverDisplay, String.valueOf(nEntries)};
       display = getMsg("suffix-list-replica-display-entries", args);
     }
-    else
+    else if (nEntries == 0)
     {
       String[] arg = {serverDisplay};
       display = getMsg("suffix-list-replica-display-no-entries", arg);
+    }
+    else
+    {
+      String[] arg = {serverDisplay};
+      display = getMsg("suffix-list-replica-display-entries-not-available",
+          arg);
     }
 
     return display;
   }
 
-
-  //TODO: only handles server that have ADSProperties.
-  private String getServerDisplay(ServerDescriptor server)
-  {
-    return server.getHostPort(true);
-  }
-
   private TreeSet<SuffixDescriptor> orderSuffixes(
-  Set<SuffixDescriptor> suffixes)
+      Set<SuffixDescriptor> suffixes)
   {
     TreeSet<SuffixDescriptor> ordered = new TreeSet<SuffixDescriptor>(this);
     ordered.addAll(suffixes);

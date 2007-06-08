@@ -68,7 +68,7 @@ public abstract class ReviewPanel extends QuickSetupStepPanel {
 
     addVerticalGlue(panel);
 
-    JCheckBox chk = getCheckBox();
+    JComponent chk = getBottomComponent();
     if (chk != null) {
       gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
       gbc.weighty = 0.0;
@@ -80,9 +80,11 @@ public abstract class ReviewPanel extends QuickSetupStepPanel {
   }
 
   /**
-   * Returns the start server check box.
-   * If it does not exist creates the start server check box.
-   * @return the start server check box.
+   * Returns the component that will placed at the bottom of the panel.
+   * In the case of the installer and the uninstaller this is basically the
+   * start server check box.
+   * If it does not exist creates the component.
+   * @return the component that will placed at the bottom of the panel.
    */
-  protected abstract JCheckBox getCheckBox();
+  protected abstract JComponent getBottomComponent();
 }

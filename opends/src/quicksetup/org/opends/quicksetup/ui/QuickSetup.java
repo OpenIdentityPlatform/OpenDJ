@@ -248,7 +248,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     final WizardStep cStep = getCurrentStep();
     application.nextClicked(cStep, this);
-    updateUserData(cStep);
+    BackgroundTask worker = new NextClickedBackgroundTask(cStep);
+    getDialog().workerStarted();
+    worker.startBackgroundTask();
   }
 
   private void updateUserData(final WizardStep cStep) {
@@ -278,7 +280,14 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
             if (displayConfirmation(ude.getLocalizedMessage(),
                 getMsg("confirmation-title")))
             {
+              try
+              {
               setCurrentStep(application.getNextWizardStep(cStep));
+              }
+              catch (Throwable t)
+              {
+                t.printStackTrace();
+              }
             }
           }
           else
@@ -553,6 +562,29 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
+   * Displays a dialog asking the user to accept a certificate.
+   *
+   * @param ce
+   *          the certificate exception that occurred.
+   * @param title
+   *          the title of the dialog.
+   * @return <CODE>true</CODE> if the user confirms the message, or
+   * <CODE>false</CODE> if not.
+   */
+  private boolean askToAcceptCertificate(UserDataCertificateException ce)
+  {
+    boolean accept = false;
+    CertificateDialog dlg = new CertificateDialog(getDialog().getFrame(), ce);
+    dlg.pack();
+    dlg.setVisible(true);
+    if (dlg.isAccepted())
+    {
+      accept = true;
+    }
+    return accept;
+  }
+
+  /**
    * Gets the string value for a given field name.
    *
    * @param fieldName
@@ -649,5 +681,79 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   private boolean isWebStart()
   {
     return Utils.isWebStart();
+  }
+
+  /**
+   * This is a class used when the user clicks on next and that extends
+   * BackgroundTask.
+   */
+  private class NextClickedBackgroundTask extends BackgroundTask
+  {
+    private WizardStep cStep;
+    public NextClickedBackgroundTask(WizardStep cStep)
+    {
+      this.cStep = cStep;
+    }
+
+    public Object processBackgroundTask() throws UserDataException {
+      try {
+        application.updateUserData(cStep, QuickSetup.this);
+      }
+      catch (UserDataException uide) {
+        throw uide;
+      }
+      catch (Throwable t) {
+        throw new UserDataException(cStep,
+                getThrowableMsg("bug-msg", t));
+      }
+      return null;
+    }
+
+    public void backgroundTaskCompleted(Object returnValue,
+                                        Throwable throwable) {
+      getDialog().workerFinished();
+
+      if (throwable != null)
+      {
+        if (!(throwable instanceof UserDataException))
+        {
+          LOG.log(Level.WARNING, "Unhandled exception.", throwable);
+        }
+        else
+        {
+          UserDataException ude = (UserDataException) throwable;
+          if (ude instanceof UserDataConfirmationException)
+          {
+            if (displayConfirmation(ude.getLocalizedMessage(),
+                getMsg("confirmation-title")))
+            {
+              setCurrentStep(application.getNextWizardStep(cStep));
+            }
+          }
+          else if (ude instanceof UserDataCertificateException)
+          {
+            final UserDataCertificateException ce =
+              (UserDataCertificateException)ude;
+            if (askToAcceptCertificate(ce))
+            {
+              /*
+               * Retry the click but now with the certificate accepted.
+               */
+              application.acceptCertificateForException(ce);
+              application.nextClicked(cStep, QuickSetup.this);
+              BackgroundTask worker = new NextClickedBackgroundTask(cStep);
+              getDialog().workerStarted();
+              worker.startBackgroundTask();
+            }
+          }
+          else
+          {
+            displayError(ude.getLocalizedMessage(), getMsg("error-title"));
+          }
+        }
+      } else {
+        setCurrentStep(application.getNextWizardStep(cStep));
+      }
+    }
   }
 }

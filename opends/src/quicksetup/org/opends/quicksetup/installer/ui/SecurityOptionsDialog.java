@@ -77,8 +77,6 @@ public class SecurityOptionsDialog extends JDialog
   private JTextField tfPort;
   private JRadioButton rbUseSelfSignedCertificate;
   private JRadioButton rbUseExistingCertificate;
-  private JLabel lSelfSignedName;
-  private JTextField tfSelfSignedName;
   private JLabel lKeystoreType;
   private JRadioButton rbPKCS11;
   private JRadioButton rbJKS;
@@ -163,8 +161,6 @@ public class SecurityOptionsDialog extends JDialog
     }
     UIFactory.setTextStyle(cbEnableSSL,
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    UIFactory.setTextStyle(lSelfSignedName,
-        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     UIFactory.setTextStyle(lKeystorePath,
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     UIFactory.setTextStyle(lKeystorePwd,
@@ -203,7 +199,7 @@ public class SecurityOptionsDialog extends JDialog
       if (rbUseSelfSignedCertificate.isSelected())
       {
         ops = SecurityOptions.createSelfSignedCertificateOptions(
-            tfSelfSignedName.getText(), enableSSL, enableStartTLS, sslPort);
+            enableSSL, enableStartTLS, sslPort);
       }
       else if (rbJKS.isSelected())
       {
@@ -365,15 +361,6 @@ public class SecurityOptionsDialog extends JDialog
         getMsg("use-self-signed-tooltip"),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
     rbUseSelfSignedCertificate.addActionListener(l);
-    lSelfSignedName = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
-        getMsg("self-signed-certificate-name-label"),
-        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
-    lSelfSignedName.setOpaque(false);
-    String selfSignedName = securityOptions.getSelfSignedCertificateName();
-    tfSelfSignedName = UIFactory.makeJTextField(selfSignedName,
-        getMsg("self-signed-certificate-name-tooltip"),
-        UIFactory.HOST_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
-    lSelfSignedName.setLabelFor(tfSelfSignedName);
     rbUseExistingCertificate = UIFactory.makeJRadioButton(
         getMsg("use-existing-certificate-label"),
         getMsg("use-existing-certificate-tooltip"),
@@ -513,22 +500,6 @@ public class SecurityOptionsDialog extends JDialog
     gbc.weightx = 1.0;
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     aux2Panel.add(Box.createHorizontalGlue(), gbc);
-    auxPanel.add(aux2Panel, gbc);
-
-    aux2Panel = new JPanel(new GridBagLayout());
-    aux2Panel.setOpaque(false);
-    gbc.weightx = 0.0;
-    gbc.gridwidth = 3;
-    aux2Panel.add(lSelfSignedName, gbc);
-    gbc.gridwidth = GridBagConstraints.RELATIVE;
-    gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
-    aux2Panel.add(tfSelfSignedName, gbc);
-    gbc.weightx = 1.0;
-    gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.insets.left = 0;
-    aux2Panel.add(Box.createHorizontalGlue(), gbc);
-    gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
-    gbc.insets.left = UIFactory.LEFT_INSET_RADIO_SUBORDINATE;
     auxPanel.add(aux2Panel, gbc);
 
     aux2Panel = new JPanel(new GridBagLayout());
@@ -679,8 +650,6 @@ public class SecurityOptionsDialog extends JDialog
 
         errorMsgs.addAll(checkPort());
 
-        errorMsgs.addAll(checkSelfSigned());
-
         errorMsgs.addAll(checkKeystore());
 
         return errorMsgs;
@@ -796,7 +765,6 @@ public class SecurityOptionsDialog extends JDialog
 
     case SELF_SIGNED_CERTIFICATE:
       rbUseSelfSignedCertificate.setSelected(true);
-      tfSelfSignedName.setText(securityOptions.getSelfSignedCertificateName());
       break;
 
     case JKS:
@@ -851,10 +819,6 @@ public class SecurityOptionsDialog extends JDialog
     tfPort.setEnabled(enableSSL);
 
     rbUseSelfSignedCertificate.setEnabled(useSSL);
-    lSelfSignedName.setEnabled(
-        rbUseSelfSignedCertificate.isSelected() && useSSL);
-    tfSelfSignedName.setEnabled(
-        rbUseSelfSignedCertificate.isSelected() && useSSL);
 
     rbUseExistingCertificate.setEnabled(useSSL);
     lKeystoreType.setEnabled(
@@ -965,38 +929,6 @@ public class SecurityOptionsDialog extends JDialog
   }
 
   /**
-   * Checks the self-signed certificate parameters.
-   * @return the error messages found while checking self-signed certificate
-   * parameters.
-   */
-  private ArrayList<String> checkSelfSigned()
-  {
-    ArrayList<String> errorMsgs = new ArrayList<String>();
-
-    if (rbUseSelfSignedCertificate.isSelected() &&
-        (cbEnableSSL.isSelected() || cbEnableStartTLS.isSelected()))
-    {
-      String name = tfSelfSignedName.getText();
-      if ((name != null) && (name.length() > 0))
-      {
-        /* TODO: We might try to do something to check if the user provided a
-         * valid host name, but we cannot guarantee that the check will be valid
-         * AND we might want to allow the user to use a common name for the
-         * certificate that is not the host name.
-         */
-      }
-      else
-      {
-        errorMsgs.add(getMsg("no-self-signed-cert-name-provided"));
-      }
-    }
-
-    setValidLater(lSelfSignedName, errorMsgs.size() == 0);
-
-    return errorMsgs;
-  }
-
-  /**
    * Checks the existing keystore parameters.
    * @return the error messages found while checking existing keystore
    * parameters.
@@ -1045,7 +977,6 @@ public class SecurityOptionsDialog extends JDialog
 
       if (pathValid && pwdValid)
       {
-        // TODO: put the password in a temporary file to do the checks.
         try
         {
           CertificateManager certManager;

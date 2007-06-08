@@ -58,6 +58,9 @@ public class QuickSetupLog {
       logger.setUseParentHandlers(false); // disable logging to console
       logger.addHandler(fileHandler);
       logger.log(Level.INFO, getInitialLogRecord());
+      logger = Logger.getLogger("org.opends.admin.ads");
+      logger.setUseParentHandlers(false); // disable logging to console
+      logger.addHandler(fileHandler);
     }
   }
 

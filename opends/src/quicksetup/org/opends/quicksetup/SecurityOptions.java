@@ -65,8 +65,6 @@ public class SecurityOptions
   }
 
   private CertificateType certificateType;
-
-  private String selfSignedCertificateName;
   private String keyStorePath;
   private String keyStorePassword;
   private String aliasToUse;
@@ -93,19 +91,17 @@ public class SecurityOptions
   /**
    * Creates a new instance of a SecurityOptions using a self-signed
    * certificate.
-   * @param name the name of the certificate (the CN value).
    * @param enableSSL whether SSL is enabled or not.
    * @param enableStartTLS whether Start TLS is enabled or not.
    * @param sslPort the value of the LDAPS port.
    * @return a new instance of a SecurityOptions using a self-signed
    * certificate.
    */
-  public static SecurityOptions createSelfSignedCertificateOptions(String name,
+  public static SecurityOptions createSelfSignedCertificateOptions(
       boolean enableSSL, boolean enableStartTLS, int sslPort)
   {
     SecurityOptions ops = new SecurityOptions();
     ops.setCertificateType(CertificateType.SELF_SIGNED_CERTIFICATE);
-    ops.setSelfSignedCertificateName(name);
     updateCertificateOptions(ops, enableSSL, enableStartTLS, sslPort, null);
     return ops;
   }
@@ -270,24 +266,6 @@ public class SecurityOptions
   }
 
   /**
-   * Returns the self-signed certificate name.
-   * @return the self-signed certificate name.
-   */
-  public String getSelfSignedCertificateName()
-  {
-    return selfSignedCertificateName;
-  }
-
-  /**
-   * Sets the self-signed certificate name.
-   * @param selfSignedCertificateName the new self-signed certificate name.
-   */
-  private void setSelfSignedCertificateName(String selfSignedCertificateName)
-  {
-    this.selfSignedCertificateName = selfSignedCertificateName;
-  }
-
-  /**
    * Updates the provided certificate options object with some parameters.
    * @param ops the SecurityOptions object to be updated.
    * @param enableSSL whether to enable SSL or not.
@@ -325,15 +303,6 @@ public class SecurityOptions
   void setSslPort(int sslPort)
   {
     this.sslPort = sslPort;
-  }
-
-  /**
-   * Sets the Self-Signed certificate name (the CN).
-   * @param selfSignedCertificateName the new Self-Signed certificate name.
-   */
-  void setCertificateUserName(String selfSignedCertificateName)
-  {
-    this.selfSignedCertificateName = selfSignedCertificateName;
   }
 
   /**

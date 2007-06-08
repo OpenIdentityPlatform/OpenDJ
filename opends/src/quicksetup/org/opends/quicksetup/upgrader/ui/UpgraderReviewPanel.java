@@ -88,7 +88,7 @@ public class UpgraderReviewPanel extends ReviewPanel {
   public Object getFieldValue(FieldName fieldName) {
     Object value = null;
     if (fieldName == FieldName.SERVER_START) {
-      value = getCheckBox().isSelected();
+      value = getBottomComponent().isSelected();
     }
     return value;
   }
@@ -230,7 +230,7 @@ public class UpgraderReviewPanel extends ReviewPanel {
   /**
    * {@inheritDoc}
    */
-  protected JCheckBox getCheckBox()
+  protected JCheckBox getBottomComponent()
   {
     if (checkBox == null)
     {

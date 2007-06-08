@@ -835,17 +835,7 @@ public class ConfigFromLDAP
   private String getFirstValue(SearchResult entry, String attrName)
   throws NamingException
   {
-    String v = null;
-    Attributes attrs = entry.getAttributes();
-    if (attrs != null)
-    {
-      Attribute attr = attrs.get(attrName);
-      if ((attr != null) && (attr.size() > 0))
-      {
-        v = (String)attr.get();
-      }
-    }
-    return v;
+    return Utils.getFirstValue(entry, attrName);
   }
 
   private Set<String> getValues(SearchResult entry, String attrName)

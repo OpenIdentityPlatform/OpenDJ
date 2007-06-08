@@ -29,26 +29,67 @@ package org.opends.quicksetup.installer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.ManagedObjectNotFoundException;
+import org.opends.server.admin.client.ManagementContext;
+import org.opends.server.admin.client.ldap.LDAPManagementContext;
+import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
+import org.opends.server.admin.std.client.*;
+import org.opends.server.admin.std.meta.*;
+import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.messages.CoreMessages;
+import org.opends.server.messages.ReplicationMessages;
+import org.opends.server.tools.ConfigureDS;
+import org.opends.server.tools.ConfigureWindowsService;
+import org.opends.server.tools.ImportLDIF;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.util.LDIFException;
+import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.StaticUtils;
 
 /**
  * This is the only class that uses classes in org.opends.server (excluding the
- * case of org.opends.server.util.DynamicConstants and
- * org.opends.server.util.SetupUtils which are already included in
- * quicksetup.jar).
+ * case of DynamicConstants, SetupUtils, OperatingSystem and CertificateManager
+ * which are already included in quicksetup.jar).
  *
- * Important note: do not include references to the classes in package
- * org.opends.server in the import. These classes must be loaded during
- * Runtime.
+ * Important note: do not include references to this class until OpenDS.jar has
+ * been loaded. These classes must be loaded during Runtime.
  * The code is written in a way that when we execute the code that uses these
  * classes the required jar files are already loaded. However these jar files
  * are not necessarily loaded when we create this class.
  */
 public class InstallerHelper implements JnlpProperties {
+  private static final Logger LOG = Logger.getLogger(
+      InstallerHelper.class.getName());
+
+  private static final int MAX_ID_VALUE = Short.MAX_VALUE;
+  private static final String DOMAIN_BASE_NAME = "domain ";
 
   /**
    * Invokes the method ConfigureDS.configMain with the provided parameters.
@@ -58,7 +99,7 @@ public class InstallerHelper implements JnlpProperties {
    * @see org.opends.server.tools.ConfigureDS#configMain(String[]).
    */
   public int invokeConfigureServer(String[] args) throws ApplicationException {
-    return org.opends.server.tools.ConfigureDS.configMain(args);
+    return ConfigureDS.configMain(args);
   }
 
   /**
@@ -69,7 +110,7 @@ public class InstallerHelper implements JnlpProperties {
    * @see org.opends.server.tools.ImportLDIF#mainImportLDIF(String[]).
    */
   public int invokeImportLDIF(String[] args) throws ApplicationException {
-    return org.opends.server.tools.ImportLDIF.mainImportLDIF(args);
+    return ImportLDIF.mainImportLDIF(args);
   }
 
   /**
@@ -78,8 +119,7 @@ public class InstallerHelper implements JnlpProperties {
    */
   public String getStartedId()
   {
-    return String.valueOf(org.opends.server.messages.CoreMessages.
-        MSGID_DIRECTORY_SERVER_STARTED);
+    return String.valueOf(CoreMessages.MSGID_DIRECTORY_SERVER_STARTED);
   }
 
   /**
@@ -87,18 +127,16 @@ public class InstallerHelper implements JnlpProperties {
    * @throws ApplicationException if something goes wrong.
    */
   public void enableWindowsService() throws ApplicationException {
-    int code = org.opends.server.tools.ConfigureWindowsService.enableService(
-    System.out, System.err);
+    int code = ConfigureWindowsService.enableService(System.out, System.err);
 
-    String errorMessage = ResourceProvider.getInstance().getMsg(
-    "error-enabling-windows-service");
+    String errorMessage = getMsg("error-enabling-windows-service");
 
     switch (code) {
       case
-      org.opends.server.tools.ConfigureWindowsService.SERVICE_ENABLE_SUCCESS:
+        ConfigureWindowsService.SERVICE_ENABLE_SUCCESS:
         break;
       case
-      org.opends.server.tools.ConfigureWindowsService.SERVICE_ALREADY_ENABLED:
+        ConfigureWindowsService.SERVICE_ALREADY_ENABLED:
         break;
       default:
         throw new ApplicationException(
@@ -141,26 +179,21 @@ public class InstallerHelper implements JnlpProperties {
 
     try
     {
-      org.opends.server.types.LDIFExportConfig exportConfig =
-          new org.opends.server.types.LDIFExportConfig(ldifFile
-              .getAbsolutePath(),
-              org.opends.server.types.ExistingFileBehavior.OVERWRITE);
+      LDIFExportConfig exportConfig = new LDIFExportConfig(
+          ldifFile.getAbsolutePath(), ExistingFileBehavior.OVERWRITE);
 
-      org.opends.server.util.LDIFWriter writer =
-          new org.opends.server.util.LDIFWriter(exportConfig);
+      LDIFWriter writer = new LDIFWriter(exportConfig);
 
-      org.opends.server.types.DN dn =
-        org.opends.server.types.DN.decode(baseDn);
-      org.opends.server.types.Entry entry =
-          org.opends.server.util.StaticUtils.createEntry(dn);
+      DN dn = DN.decode(baseDn);
+      Entry entry = StaticUtils.createEntry(dn);
 
       writer.writeEntry(entry);
       writer.close();
-    } catch (org.opends.server.types.DirectoryException de) {
+    } catch (DirectoryException de) {
       throw new ApplicationException(
               ApplicationException.Type.CONFIGURATION_ERROR,
               getThrowableMsg("error-importing-ldif", null, de), de);
-    } catch (org.opends.server.util.LDIFException le) {
+    } catch (LDIFException le) {
       throw new ApplicationException(
               ApplicationException.Type.CONFIGURATION_ERROR,
               getThrowableMsg("error-importing-ldif", null, le), le);
@@ -175,4 +208,357 @@ public class InstallerHelper implements JnlpProperties {
     }
     return ldifFile;
   }
+
+  /**
+   * Configures the replication on a given server.
+   * @param remoteCtx the conection to the server where we want to configure
+   * the replication.
+   * @param dns the suffix base dns for which we want to configure the
+   * replication.
+   * @param replicationServers a Map where the key value is the base dn and
+   * the value is the list of replication servers for that base dn (or domain).
+   * @param replicationPort the replicationPort of the server that is being
+   * configured (it might not exist and the user specified it in the setup).
+   * @param serverDisplay the server display.
+   * @param usedReplicationServerIds the list of replication server ids that
+   * are already used.
+   * @param usedServerIds the list of server ids (domain ids) that
+   * are already used.
+   * @throws ApplicationException if something goes wrong.
+   */
+  public void configureReplication(InitialLdapContext remoteCtx,
+      Set<String> dns, Map<String,Set<String>> replicationServers,
+      int replicationPort, String serverDisplay,
+      Set<Integer> usedReplicationServerIds, Set<Integer> usedServerIds)
+  throws ApplicationException
+  {
+    try
+    {
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(
+          JNDIDirContextAdaptor.adapt(remoteCtx));
+      RootCfgClient root = mCtx.getRootConfiguration();
+
+      /*
+       * Configure Synchronization plugin.
+       */
+      MultimasterSynchronizationProviderCfgClient sync = null;
+      try
+      {
+        sync = (MultimasterSynchronizationProviderCfgClient)
+        root.getSynchronizationProvider("Multimaster Synchronization");
+      }
+      catch (ManagedObjectNotFoundException monfe)
+      {
+        // It does not exist.
+      }
+      if (sync == null)
+      {
+        MultimasterSynchronizationProviderCfgDefn provider =
+          MultimasterSynchronizationProviderCfgDefn.getInstance();
+        sync = root.createSynchronizationProvider(provider,
+            "Multimaster Synchronization",
+            new ArrayList<DefaultBehaviorException>());
+        sync.setJavaImplementationClass(
+            "org.opends.server.replication.plugin.MultimasterReplication");
+      }
+      sync.setEnabled(Boolean.TRUE);
+      sync.commit();
+
+      /*
+       * Configure the replication server.
+       */
+      ReplicationServerCfgClient replicationServer = null;
+
+      if (!sync.hasReplicationServer())
+      {
+        int id = getReplicationId(usedReplicationServerIds);
+        usedReplicationServerIds.add(id);
+        replicationServer = sync.createReplicationServer(
+            ReplicationServerCfgDefn.getInstance(),
+            new ArrayList<DefaultBehaviorException>());
+        replicationServer.setReplicationServerId(id);
+        replicationServer.setReplicationPort(replicationPort);
+      }
+      else
+      {
+        replicationServer = sync.getReplicationServer();
+        usedReplicationServerIds.add(
+            replicationServer.getReplicationServerId());
+      }
+
+      Set<String> servers = replicationServer.getReplicationServer();
+      if (servers == null)
+      {
+        servers = new HashSet<String>();
+      }
+      for (Set<String> rs : replicationServers.values())
+      {
+        servers.addAll(rs);
+      }
+
+      replicationServer.setReplicationServer(servers);
+
+      replicationServer.commit();
+
+      /*
+       * Create the domains
+       */
+      String[] domainNames = sync.listMultimasterDomains();
+      if (domainNames == null)
+      {
+        domainNames = new String[]{};
+      }
+      MultimasterDomainCfgClient[] domains =
+        new MultimasterDomainCfgClient[domainNames.length];
+      for (int i=0; i<domains.length; i++)
+      {
+        domains[i] = sync.getMultimasterDomain(domainNames[i]);
+      }
+      for (String dn : dns)
+      {
+        MultimasterDomainCfgClient domain = null;
+        for (int i=0; i<domains.length && (domain == null); i++)
+        {
+          if (Utils.areDnsEqual(dn,
+              domains[i].getReplicationDN().toString()))
+          {
+            domain = domains[i];
+          }
+        }
+        if (domain == null)
+        {
+          int domainId = getReplicationId(usedServerIds);
+          usedServerIds.add(domainId);
+          String domainName = getDomainName(domainNames, domainId);
+          domain = sync.createMultimasterDomain(
+              MultimasterDomainCfgDefn.getInstance(), domainName,
+              new ArrayList<DefaultBehaviorException>());
+          domain.setServerId(domainId);
+          domain.setReplicationDN(DN.decode(dn));
+        }
+        domain.setReplicationServer(replicationServers.get(dn));
+        usedServerIds.add(domain.getServerId());
+
+        domain.commit();
+      }
+    }
+    catch (Throwable t)
+    {
+      String errorMessage = getMsg("error-configuring-remote-generic",
+          serverDisplay, t.toString());
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR, errorMessage, t);
+    }
+  }
+
+  /**
+   * For the given state provided by a Task tells if the task is done or not.
+   * @param sState the String representing the task state.
+   * @return <CODE>true</CODE> if the task is done and <CODE>false</CODE>
+   * otherwise.
+   */
+  public boolean isDone(String sState)
+  {
+    TaskState state = TaskState.fromString(sState);
+    return TaskState.isDone(state);
+  }
+
+  /**
+   * For the given state provided by a Task tells if the task is successful or
+   * not.
+   * @param sState the String representing the task state.
+   * @return <CODE>true</CODE> if the task is successful and <CODE>false</CODE>
+   * otherwise.
+   */
+  public boolean isSuccessful(String sState)
+  {
+    TaskState state = TaskState.fromString(sState);
+    return TaskState.isSuccessful(state);
+  }
+
+  /**
+   * For the given state provided by a Task tells if the task is complete with
+   * errors or not.
+   * @param sState the String representing the task state.
+   * @return <CODE>true</CODE> if the task is complete with errors and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isCompletedWithErrors(String sState)
+  {
+    TaskState state = TaskState.fromString(sState);
+    return state == TaskState.COMPLETED_WITH_ERRORS;
+  }
+
+  /**
+   * For the given state provided by a Task tells if the task is stopped by
+   * error or not.
+   * @param sState the String representing the task state.
+   * @return <CODE>true</CODE> if the task is stopped by error and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isStoppedByError(String sState)
+  {
+    TaskState state = TaskState.fromString(sState);
+    return state == TaskState.STOPPED_BY_ERROR;
+  }
+
+  /**
+   * Tells whether the provided log message corresponds to a peers not found
+   * error during the initialization of a replica or not.
+   * @param logMsg the log message.
+   * @return <CODE>true</CODE> if the log message corresponds to a peers not
+   * found error during initialization and <CODE>false</CODE> otherwise.
+   */
+  public boolean isPeersNotFoundError(String logMsg)
+  {
+    return logMsg.indexOf(
+        "="+ReplicationMessages.MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN) != -1;
+  }
+  private void addConfigEntry(ConfigFileHandler configFileHandler, DN dn,
+      String[] ocs, String[] attributeNames, String[][] attributeValues)
+  throws DirectoryException
+  {
+    HashMap<ObjectClass,String> objectClasses =
+      new HashMap<ObjectClass,String>();
+    HashMap<AttributeType,List<Attribute>> userAttributes =
+      new HashMap<AttributeType,List<Attribute>>();
+    HashMap<AttributeType,List<Attribute>> operationalAttributes =
+      new HashMap<AttributeType,List<Attribute>>();
+
+    for (int j=0; j<ocs.length; j++)
+    {
+      String ocName = ocs[j];
+      ObjectClass objectClass = DirectoryServer.getObjectClass(ocName);
+      if (objectClass == null)
+      {
+        objectClass = DirectoryServer.getDefaultObjectClass(ocName);
+      }
+      objectClasses.put(objectClass, ocName);
+    }
+    for (int j=0; j<attributeNames.length; j++)
+    {
+      String attrName = attributeNames[j];
+      AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+      if (attrType == null)
+      {
+        attrType = DirectoryServer.getDefaultAttributeType(attrName);
+      }
+      String[] attrValues = attributeValues[j];
+      LinkedHashSet<AttributeValue> valueSet =
+        new LinkedHashSet<AttributeValue>();
+      for (int k=0; k<attrValues.length; k++)
+      {
+        AttributeValue attributeValue = new AttributeValue(attrType,
+            attrValues[k]);
+        valueSet.add(attributeValue);
+      }
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>();
+      attrList.add(new Attribute(attrType, attrName, null, valueSet));
+      userAttributes.put(attrType, attrList);
+    }
+    Entry entry = new Entry(dn, objectClasses, userAttributes,
+        operationalAttributes);
+    configFileHandler.addEntry(entry, null);
+  }
+
+  private int getReplicationId(Set<Integer> usedIds)
+  {
+    Random r = new Random();
+    int id = 0;
+    while ((id == 0) || usedIds.contains(id))
+    {
+      id = r.nextInt(MAX_ID_VALUE);
+    }
+    return id;
+  }
+
+  private String getMsg(String key, String ... args)
+  {
+    return ResourceProvider.getInstance().getMsg(key, args);
+  }
+
+  private String getDomainName(String[] existingDomains, int newDomainId)
+  {
+    String domainName = DOMAIN_BASE_NAME+newDomainId;
+    boolean nameExists = true;
+    int j = 0;
+    while (nameExists)
+    {
+      boolean found = false;
+      for (int i=0; i<existingDomains.length && !found; i++)
+      {
+        found = existingDomains[i].equalsIgnoreCase(domainName);
+      }
+      if (found)
+      {
+        domainName = DOMAIN_BASE_NAME+newDomainId+"-"+j;
+      }
+      else
+      {
+        nameExists = false;
+      }
+      j++;
+    }
+    return domainName;
+  }
 }
+
+/**
+ * A class describing a replication domain.
+ *
+ */
+class DomainEntry
+{
+  private String name;
+  private int replicationId;
+  private String baseDn;
+  private Set<String> replicationServers;
+  /**
+   * The constructor of the domain entry.
+   * @param name the name of the domain.
+   * @param replicationId the replicationId of the domain.
+   * @param baseDn the base dn of the domain.
+   * @param replicationServers the list of replication servers for the domain.
+   */
+  public DomainEntry(String name, int replicationId, String baseDn,
+      Set<String> replicationServers)
+  {
+    this.name = name;
+    this.replicationId = replicationId;
+    this.baseDn = baseDn;
+    this.replicationServers = replicationServers;
+  }
+  /**
+   * Returns the base dn of the domain.
+   * @return the base dn of the domain.
+   */
+  public String getBaseDn()
+  {
+    return baseDn;
+  }
+  /**
+   * Returns the name of the domain.
+   * @return the name of the domain.
+   */
+  public String getName()
+  {
+    return name;
+  }
+  /**
+   * Returns the replication Id of the domain.
+   * @return the replication Id of the domain.
+   */
+  public int getReplicationId()
+  {
+    return replicationId;
+  }
+  /**
+   * Returns the list of replication servers of the domain.
+   * @return the list of replication servers of the domain.
+   */
+  public Set<String> getReplicationServers()
+  {
+    return replicationServers;
+  }
+}
+

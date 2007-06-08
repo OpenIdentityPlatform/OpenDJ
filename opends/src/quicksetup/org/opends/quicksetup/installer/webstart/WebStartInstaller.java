@@ -139,8 +139,6 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       configureServer();
       createData();
 
-      updateADS();
-
       if (Utils.isWindows())
       {
           notifyListeners(getTaskSeparator());
@@ -148,11 +146,40 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
           enableWindowsService();
       }
 
-      if (getUserData().getStartServer())
+      if (mustStart())
       {
         notifyListeners(getTaskSeparator());
         setStatus(InstallProgressStep.STARTING_SERVER);
         new ServerController(this).startServer();
+      }
+
+      if (mustConfigureReplication())
+      {
+        setStatus(InstallProgressStep.CONFIGURING_REPLICATION);
+        notifyListeners(getTaskSeparator());
+
+        configureReplication();
+      }
+
+      if (mustInitializeSuffixes())
+      {
+        notifyListeners(getTaskSeparator());
+        setStatus(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
+        initializeSuffixes();
+      }
+
+      if (mustCreateAds())
+      {
+        notifyListeners(getTaskSeparator());
+        setStatus(InstallProgressStep.CONFIGURING_ADS);
+        updateADS();
+      }
+
+      if (mustStop())
+      {
+        notifyListeners(getTaskSeparator());
+        setStatus(InstallProgressStep.STOPPING_SERVER);
+        new ServerController(this).stopServer();
       }
 
       setStatus(InstallProgressStep.FINISHED_SUCCESSFULLY);
@@ -160,17 +187,23 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
     } catch (ApplicationException ex)
     {
+      notifyListeners(getLineBreak());
+      notifyListenersOfLog();
       setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
       String html = getFormattedError(ex, true);
       notifyListeners(html);
+      LOG.log(Level.SEVERE, "Error installing.", ex);
     }
     catch (Throwable t)
     {
+      notifyListeners(getLineBreak());
+      notifyListenersOfLog();
       setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
           ApplicationException.Type.BUG, getThrowableMsg("bug-msg", t), t);
       String msg = getFormattedError(ex, true);
       notifyListeners(msg);
+      LOG.log(Level.SEVERE, "Error installing.", t);
     }
     System.setErr(origErr);
     System.setOut(origOut);
@@ -219,10 +252,13 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
     hmTime.put(InstallProgressStep.CONFIGURING_SERVER, 5);
     hmTime.put(InstallProgressStep.CREATING_BASE_ENTRY, 10);
     hmTime.put(InstallProgressStep.IMPORTING_LDIF, 20);
-    hmTime.put(InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED,
-        20);
+    hmTime.put(InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED, 20);
+    hmTime.put(InstallProgressStep.CONFIGURING_REPLICATION, 10);
     hmTime.put(InstallProgressStep.ENABLING_WINDOWS_SERVICE, 5);
     hmTime.put(InstallProgressStep.STARTING_SERVER, 10);
+    hmTime.put(InstallProgressStep.STOPPING_SERVER, 5);
+    hmTime.put(InstallProgressStep.CONFIGURING_ADS, 5);
+    hmTime.put(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES, 25);
 
     int totalTime = 0;
     ArrayList<InstallProgressStep> steps =
@@ -234,31 +270,60 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
     totalTime += hmTime.get(InstallProgressStep.CONFIGURING_SERVER);
     steps.add(InstallProgressStep.CONFIGURING_SERVER);
 
-    switch (getUserData().getNewSuffixOptions().getType())
+    if (createNotReplicatedSuffix())
     {
-    case CREATE_BASE_ENTRY:
-      steps.add(InstallProgressStep.CREATING_BASE_ENTRY);
-      totalTime += hmTime.get(InstallProgressStep.CREATING_BASE_ENTRY);
-      break;
-    case IMPORT_FROM_LDIF_FILE:
-      steps.add(InstallProgressStep.IMPORTING_LDIF);
-      totalTime += hmTime.get(InstallProgressStep.IMPORTING_LDIF);
-      break;
-    case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-      steps.add(InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED);
-      totalTime +=hmTime.get(
-              InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED);
-      break;
+      switch (getUserData().getNewSuffixOptions().getType())
+      {
+      case CREATE_BASE_ENTRY:
+        steps.add(InstallProgressStep.CREATING_BASE_ENTRY);
+        totalTime += hmTime.get(InstallProgressStep.CREATING_BASE_ENTRY);
+        break;
+      case IMPORT_FROM_LDIF_FILE:
+        steps.add(InstallProgressStep.IMPORTING_LDIF);
+        totalTime += hmTime.get(InstallProgressStep.IMPORTING_LDIF);
+        break;
+      case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+        steps.add(InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED);
+        totalTime +=hmTime.get(
+            InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED);
+        break;
+      }
     }
+
     if (Utils.isWindows())
     {
         totalTime += hmTime.get(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
         steps.add(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
     }
-    if (getUserData().getStartServer())
+    if (mustStart())
     {
       totalTime += hmTime.get(InstallProgressStep.STARTING_SERVER);
       steps.add(InstallProgressStep.STARTING_SERVER);
+    }
+
+    if (mustConfigureReplication())
+    {
+      steps.add(InstallProgressStep.CONFIGURING_REPLICATION);
+      totalTime += hmTime.get(InstallProgressStep.CONFIGURING_REPLICATION);
+    }
+
+    if (mustInitializeSuffixes())
+    {
+      totalTime += hmTime.get(
+          InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
+      steps.add(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
+    }
+
+    if (mustCreateAds())
+    {
+      totalTime += hmTime.get(InstallProgressStep.CONFIGURING_ADS);
+      steps.add(InstallProgressStep.CONFIGURING_ADS);
+    }
+
+    if (mustStop())
+    {
+      totalTime += hmTime.get(InstallProgressStep.STOPPING_SERVER);
+      steps.add(InstallProgressStep.STOPPING_SERVER);
     }
 
     int cumulatedTime = 0;

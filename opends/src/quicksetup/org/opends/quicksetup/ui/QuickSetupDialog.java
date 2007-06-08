@@ -302,7 +302,7 @@ public class QuickSetupDialog
     {
       public void run()
       {
-        // TODO: here we could have an animated gif.
+        displayWorkingProgressImage(true);
         setButtonEnabled(ButtonName.NEXT, false);
         setButtonEnabled(ButtonName.PREVIOUS, false);
         setButtonEnabled(ButtonName.FINISH, false);
@@ -325,7 +325,7 @@ public class QuickSetupDialog
     {
       public void run()
       {
-        // TO COMPLETE: here we could have an animated gif.
+        displayWorkingProgressImage(false);
         setButtonEnabled(ButtonName.NEXT, true);
         setButtonEnabled(ButtonName.PREVIOUS, true);
         setButtonEnabled(ButtonName.FINISH, true);
@@ -541,6 +541,15 @@ public class QuickSetupDialog
     for (ButtonActionListener li : buttonListeners)
     {
       li.buttonActionPerformed(be);
+    }
+  }
+
+  private void displayWorkingProgressImage(boolean display)
+  {
+    if (getFramePanel() instanceof FramePanel)
+    {
+      ((FramePanel)getFramePanel()).setProgressIcon(display ?
+          UIFactory.IconType.WAIT : UIFactory.IconType.NO_ICON);
     }
   }
 }
