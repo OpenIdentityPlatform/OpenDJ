@@ -36,7 +36,6 @@ import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextAccessLogPublisher;
 import org.opends.server.loggers.AccessLogger;
-import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.LDIFImportConfig;
@@ -82,6 +81,12 @@ public class InProcessServerController {
    * restart should happen instead.
    */
   static private boolean serverHasBeenStarted = false;
+
+  static private ErrorLogPublisher startupErrorPublisher;
+
+  static private AccessLogPublisher startupAccessPublisher;
+
+  static private DebugLogPublisher startupDebugPublisher;
 
   /**
    * Pushes messages published by the server loggers into OperationOutput.
@@ -486,29 +491,29 @@ public class InProcessServerController {
 
   static private void registerListenersForOuput() {
     try {
-      DebugLogPublisher startupDebugPublisher =
+      startupDebugPublisher =
               TextDebugLogPublisher.getStartupTextDebugPublisher(debugWriter);
-      DebugLogger.addDebugLogPublisher(
-              DN.decode("cn=QuickSetup,cn=Loggers,cn=config"),
-              startupDebugPublisher);
+      DebugLogger.addDebugLogPublisher(startupDebugPublisher);
 
-      ErrorLogPublisher startupErrorPublisher =
+      startupErrorPublisher =
               TextErrorLogPublisher.getStartupTextErrorPublisher(errorWriter);
-      ErrorLogger.addErrorLogPublisher(
-              DN.decode("cn=QuickSetup,cn=Loggers,cn=config"),
-              startupErrorPublisher);
+      ErrorLogger.addErrorLogPublisher(startupErrorPublisher);
 
-      AccessLogPublisher startupAccessPublisher =
+      startupAccessPublisher =
               TextAccessLogPublisher.getStartupTextAccessPublisher(
                       accessWriter, true);
-      AccessLogger.addAccessLogPublisher(
-              DN.decode("cn=QuickSetup,cn=Loggers,cn=config"),
-              startupAccessPublisher);
+      AccessLogger.addAccessLogPublisher(startupAccessPublisher);
 
     } catch (Exception e) {
       LOG.log(Level.INFO, "Error installing test log publishers: " +
               e.toString());
     }
+  }
+
+  static private void unregisterListenersForOutput() {
+    DebugLogger.removeDebugLogPublisher(startupDebugPublisher);
+    ErrorLogger.removeErrorLogPublisher(startupErrorPublisher);
+    AccessLogger.removeAccessLogPublisher(startupAccessPublisher);
   }
 
   static private String getMsg(String key, String... args) {

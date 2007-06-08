@@ -36,7 +36,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
-
+import org.opends.server.types.DN;
 
 
 /**
@@ -113,6 +113,14 @@ public abstract class ErrorLogPublisher
   public abstract void logError(ErrorLogCategory category,
                                 ErrorLogSeverity severity,
                                 String message, int errorID);
+
+  /**
+   * Gets the DN of the configuration entry for this error log
+   * publisher.
+   *
+   * @return The configuration entry DN.
+   */
+  public abstract DN getDN();
 
 }
 

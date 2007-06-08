@@ -28,7 +28,7 @@ package org.opends.server.loggers;
 
 
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.reflect.Method;
@@ -71,8 +71,8 @@ public class AccessLogger implements
 
   // The set of access loggers that have been registered with the server.  It
    // will initially be empty.
-   static ConcurrentHashMap<DN, AccessLogPublisher> accessPublishers =
-       new ConcurrentHashMap<DN, AccessLogPublisher>();
+   static CopyOnWriteArrayList<AccessLogPublisher> accessPublishers =
+       new CopyOnWriteArrayList<AccessLogPublisher>();
 
    // The singleton instance of this class for configuration purposes.
    static final AccessLogger instance = new AccessLogger();
@@ -91,30 +91,31 @@ public class AccessLogger implements
   /**
    * Add an access log publisher to the access logger.
    *
-   * @param dn The DN of the configuration entry for the publisher.
    * @param publisher The access log publisher to add.
    */
-  public synchronized static void addAccessLogPublisher(DN dn,
-                                                  AccessLogPublisher publisher)
+  public synchronized static void addAccessLogPublisher(
+      AccessLogPublisher publisher)
   {
-    accessPublishers.put(dn, publisher);
+    accessPublishers.add(publisher);
   }
 
   /**
    * Remove an access log publisher from the access logger.
    *
-   * @param dn The DN of the publisher to remove.
+   * @param publisher The access log publisher to remove.
    * @return The publisher that was removed or null if it was not found.
    */
-  public synchronized static AccessLogPublisher removeAccessLogPublisher(DN dn)
+  public synchronized static boolean removeAccessLogPublisher(
+      AccessLogPublisher publisher)
   {
-    AccessLogPublisher AccessLogPublisher = accessPublishers.get(dn);
-    if(AccessLogPublisher != null)
+    boolean removed = accessPublishers.remove(publisher);
+
+    if(removed)
     {
-      AccessLogPublisher.close();
+      publisher.close();
     }
 
-    return AccessLogPublisher;
+    return removed;
   }
 
   /**
@@ -122,7 +123,7 @@ public class AccessLogger implements
    */
   public synchronized static void removeAllAccessLogPublishers()
   {
-    for(AccessLogPublisher publisher : accessPublishers.values())
+    for(AccessLogPublisher publisher : accessPublishers)
     {
       publisher.close();
     }
@@ -153,7 +154,7 @@ public class AccessLogger implements
        {
          AccessLogPublisher AccessLogPublisher = getAccessPublisher(config);
 
-         addAccessLogPublisher(config.dn(), AccessLogPublisher);
+         addAccessLogPublisher(AccessLogPublisher);
        }
      }
    }
@@ -196,7 +197,7 @@ public class AccessLogger implements
        {
          AccessLogPublisher AccessLogPublisher = getAccessPublisher(config);
 
-         addAccessLogPublisher(config.dn(), AccessLogPublisher);
+         addAccessLogPublisher(AccessLogPublisher);
        }
        catch(ConfigException e)
        {
@@ -234,9 +235,18 @@ public class AccessLogger implements
      ArrayList<String> messages = new ArrayList<String>();
 
      DN dn = config.dn();
-     AccessLogPublisher AccessLogPublisher = accessPublishers.get(dn);
 
-     if(AccessLogPublisher == null)
+    AccessLogPublisher accessLogPublisher = null;
+    for(AccessLogPublisher publisher : accessPublishers)
+    {
+      if(publisher.getDN().equals(dn))
+      {
+        accessLogPublisher = publisher;
+        break;
+      }
+    }
+
+     if(accessLogPublisher == null)
      {
        if(config.isEnabled())
        {
@@ -254,7 +264,7 @@ public class AccessLogger implements
          // indicate that administrative action is required for that
          // change to take effect.
          String className = config.getJavaImplementationClass();
-         if(!className.equals(AccessLogPublisher.getClass().getName()))
+         if(!className.equals(accessLogPublisher.getClass().getName()))
          {
            adminActionRequired = true;
          }
@@ -262,7 +272,7 @@ public class AccessLogger implements
        else
        {
          // The publisher is being disabled so shut down and remove.
-         removeAccessLogPublisher(config.dn());
+         removeAccessLogPublisher(accessLogPublisher);
        }
      }
 
@@ -276,8 +286,18 @@ public class AccessLogger implements
                                                List<String> unacceptableReasons)
    {
      DN dn = config.dn();
-     AccessLogPublisher AccessLogPublisher = accessPublishers.get(dn);
-     return AccessLogPublisher != null;
+
+    AccessLogPublisher accessLogPublisher = null;
+    for(AccessLogPublisher publisher : accessPublishers)
+    {
+      if(publisher.getDN().equals(dn))
+      {
+        accessLogPublisher = publisher;
+        break;
+      }
+    }
+
+     return accessLogPublisher != null;
 
    }
 
@@ -285,16 +305,33 @@ public class AccessLogger implements
    * {@inheritDoc}
    */
    public ConfigChangeResult applyConfigurationDelete(
-       AccessLogPublisherCfg config)
-   {
-     // Default result code.
-     ResultCode resultCode = ResultCode.SUCCESS;
-     boolean adminActionRequired = false;
+      AccessLogPublisherCfg config)
+  {
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
 
-     removeAccessLogPublisher(config.dn());
+    AccessLogPublisher accessLogPublisher = null;
+    for(AccessLogPublisher publisher : accessPublishers)
+    {
+      if(publisher.getDN().equals(config.dn()))
+      {
+        accessLogPublisher = publisher;
+        break;
+      }
+    }
 
-     return new ConfigChangeResult(resultCode, adminActionRequired);
-   }
+    if(accessLogPublisher != null)
+    {
+      removeAccessLogPublisher(accessLogPublisher);
+    }
+    else
+    {
+      resultCode = ResultCode.NO_SUCH_OBJECT;
+    }
+
+    return new ConfigChangeResult(resultCode, adminActionRequired);
+  }
 
    private boolean isJavaClassAcceptable(AccessLogPublisherCfg config,
                                          List<String> unacceptableReasons)
@@ -390,7 +427,7 @@ public class AccessLogger implements
    */
   public static void logConnect(ClientConnection clientConnection)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logConnect(clientConnection);
     }
@@ -412,7 +449,7 @@ public class AccessLogger implements
                                    DisconnectReason disconnectReason,
                                    String message)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logDisconnect(clientConnection, disconnectReason, message);
     }
@@ -428,7 +465,7 @@ public class AccessLogger implements
    */
   public static void logAbandonRequest(AbandonOperation abandonOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logAbandonRequest(abandonOperation);
     }
@@ -445,7 +482,7 @@ public class AccessLogger implements
    */
   public static void logAbandonResult(AbandonOperation abandonOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logAbandonResult(abandonOperation);
     }
@@ -462,7 +499,7 @@ public class AccessLogger implements
    */
   public static void logAddRequest(AddOperation addOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logAddRequest(addOperation);
     }
@@ -479,7 +516,7 @@ public class AccessLogger implements
    */
   public static void logAddResponse(AddOperation addOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logAddResponse(addOperation);
     }
@@ -496,7 +533,7 @@ public class AccessLogger implements
    */
   public static void logBindRequest(BindOperation bindOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logBindRequest(bindOperation);
     }
@@ -513,7 +550,7 @@ public class AccessLogger implements
    */
   public static void logBindResponse(BindOperation bindOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logBindResponse(bindOperation);
     }
@@ -530,7 +567,7 @@ public class AccessLogger implements
    */
   public static void logCompareRequest(CompareOperation compareOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logCompareRequest(compareOperation);
     }
@@ -547,7 +584,7 @@ public class AccessLogger implements
    */
   public static void logCompareResponse(CompareOperation compareOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logCompareResponse(compareOperation);
     }
@@ -564,7 +601,7 @@ public class AccessLogger implements
    */
   public static void logDeleteRequest(DeleteOperation deleteOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logDeleteRequest(deleteOperation);
     }
@@ -581,7 +618,7 @@ public class AccessLogger implements
    */
   public static void logDeleteResponse(DeleteOperation deleteOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logDeleteResponse(deleteOperation);
     }
@@ -598,7 +635,7 @@ public class AccessLogger implements
    */
   public static void logExtendedRequest(ExtendedOperation extendedOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logExtendedRequest(extendedOperation);
     }
@@ -615,7 +652,7 @@ public class AccessLogger implements
    */
   public static void logExtendedResponse(ExtendedOperation extendedOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logExtendedResponse(extendedOperation);
     }
@@ -632,7 +669,7 @@ public class AccessLogger implements
    */
   public static void logModifyRequest(ModifyOperation modifyOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logModifyRequest(modifyOperation);
     }
@@ -649,7 +686,7 @@ public class AccessLogger implements
    */
   public static void logModifyResponse(ModifyOperation modifyOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logModifyResponse(modifyOperation);
     }
@@ -666,7 +703,7 @@ public class AccessLogger implements
    */
   public static void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logModifyDNRequest(modifyDNOperation);
     }
@@ -684,7 +721,7 @@ public class AccessLogger implements
    */
   public static void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logModifyDNResponse(modifyDNOperation);
     }
@@ -701,7 +738,7 @@ public class AccessLogger implements
    */
   public static void logSearchRequest(SearchOperation searchOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logSearchRequest(searchOperation);
     }
@@ -721,7 +758,7 @@ public class AccessLogger implements
   public static void logSearchResultEntry(SearchOperation searchOperation,
                                           SearchResultEntry searchEntry)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logSearchResultEntry(searchOperation, searchEntry);
     }
@@ -740,7 +777,7 @@ public class AccessLogger implements
   public static void logSearchResultReference(SearchOperation searchOperation,
                           SearchResultReference searchReference)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logSearchResultReference(searchOperation, searchReference);
     }
@@ -757,7 +794,7 @@ public class AccessLogger implements
    */
   public static void logSearchResultDone(SearchOperation searchOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logSearchResultDone(searchOperation);
     }
@@ -774,7 +811,7 @@ public class AccessLogger implements
    */
   public static void logUnbind(UnbindOperation unbindOperation)
   {
-    for (AccessLogPublisher publisher : accessPublishers.values())
+    for (AccessLogPublisher publisher : accessPublishers)
     {
       publisher.logUnbind(unbindOperation);
     }

@@ -28,6 +28,7 @@
 package org.opends.server.loggers.debug;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
@@ -81,10 +82,8 @@ public class DebugLogger implements
 
   // The set of debug loggers that have been registered with the server.  It
   // will initially be empty.
-  private static ConcurrentHashMap<DN,
-      DebugLogPublisher> debugPublishers =
-      new ConcurrentHashMap<DN,
-          DebugLogPublisher>();
+  private static CopyOnWriteArrayList<DebugLogPublisher> debugPublishers =
+      new CopyOnWriteArrayList<DebugLogPublisher>();
 
   // Trace methods will use this static boolean to determine if debug is
   // enabled so to not incur the cost of calling debugPublishers.isEmtpty().
@@ -96,13 +95,12 @@ public class DebugLogger implements
   /**
    * Add an debug log publisher to the debug logger.
    *
-   * @param dn The DN of the configuration entry for the publisher.
    * @param publisher The error log publisher to add.
    */
-  public synchronized static void addDebugLogPublisher(DN dn,
-                                                 DebugLogPublisher publisher)
+  public synchronized static void addDebugLogPublisher(
+      DebugLogPublisher publisher)
   {
-    debugPublishers.put(dn, publisher);
+    debugPublishers.add(publisher);
 
     updateTracerSettings();
 
@@ -112,16 +110,17 @@ public class DebugLogger implements
   /**
    * Remove an debug log publisher from the debug logger.
    *
-   * @param dn The DN of the publisher to remove.
+   * @param publisher The debug log publisher to remove.
    * @return The publisher that was removed or null if it was not found.
    */
-  public synchronized static DebugLogPublisher removeDebugLogPublisher(DN dn)
+  public synchronized static boolean removeDebugLogPublisher(
+      DebugLogPublisher publisher)
   {
-    DebugLogPublisher removed =  debugPublishers.remove(dn);
+    boolean removed = debugPublishers.remove(publisher);
 
-    if(removed != null)
+    if(removed)
     {
-      removed.close();
+      publisher.close();
     }
 
     updateTracerSettings();
@@ -139,7 +138,7 @@ public class DebugLogger implements
    */
   public synchronized static void removeAllDebugLogPublishers()
   {
-    for(DebugLogPublisher publisher : debugPublishers.values())
+    for(DebugLogPublisher publisher : debugPublishers)
     {
       publisher.close();
     }
@@ -174,7 +173,7 @@ public class DebugLogger implements
       {
         DebugLogPublisher debugLogPublisher = getDebugPublisher(config);
 
-        addDebugLogPublisher(config.dn(), debugLogPublisher);
+        addDebugLogPublisher(debugLogPublisher);
       }
     }
   }
@@ -218,7 +217,7 @@ public class DebugLogger implements
         DebugLogPublisher debugLogPublisher =
             getDebugPublisher(config);
 
-        addDebugLogPublisher(config.dn(), debugLogPublisher);
+        addDebugLogPublisher(debugLogPublisher);
       }
       catch(ConfigException e)
       {
@@ -248,7 +247,15 @@ public class DebugLogger implements
     ArrayList<String> messages = new ArrayList<String>();
 
     DN dn = config.dn();
-    DebugLogPublisher debugLogPublisher = debugPublishers.get(dn);
+
+    DebugLogPublisher debugLogPublisher = null;
+    for(DebugLogPublisher publisher : debugPublishers)
+    {
+      if(publisher.getDN().equals(dn))
+      {
+        debugLogPublisher = publisher;
+      }
+    }
 
     if(debugLogPublisher == null)
     {
@@ -276,7 +283,7 @@ public class DebugLogger implements
       else
       {
         // The publisher is being disabled so shut down and remove.
-        removeDebugLogPublisher(config.dn());
+        removeDebugLogPublisher(debugLogPublisher);
       }
     }
 
@@ -290,7 +297,16 @@ public class DebugLogger implements
                                                List<String> unacceptableReasons)
   {
     DN dn = config.dn();
-    DebugLogPublisher debugLogPublisher = debugPublishers.get(dn);
+
+    DebugLogPublisher debugLogPublisher = null;
+    for(DebugLogPublisher publisher : debugPublishers)
+    {
+      if(publisher.getDN().equals(dn))
+      {
+        debugLogPublisher = publisher;
+      }
+    }
+
     return debugLogPublisher != null;
 
   }
@@ -305,7 +321,23 @@ public class DebugLogger implements
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
 
-    DebugLogPublisher publisher = removeDebugLogPublisher(config.dn());
+    DebugLogPublisher debugLogPublisher = null;
+    for(DebugLogPublisher publisher : debugPublishers)
+    {
+      if(publisher.getDN().equals(config.dn()))
+      {
+        debugLogPublisher = publisher;
+      }
+    }
+
+    if(debugLogPublisher != null)
+    {
+      removeDebugLogPublisher(debugLogPublisher);
+    }
+    else
+    {
+      resultCode = ResultCode.NO_SUCH_OBJECT;
+    }
 
     return new ConfigChangeResult(resultCode, adminActionRequired);
   }
@@ -399,7 +431,7 @@ public class DebugLogger implements
   static void updateTracerSettings()
   {
     DebugLogPublisher[] publishers =
-        debugPublishers.values().toArray(new DebugLogPublisher[0]);
+        debugPublishers.toArray(new DebugLogPublisher[0]);
 
     for(DebugTracer tracer : classTracers.values())
     {
@@ -436,8 +468,7 @@ public class DebugLogger implements
   public static DebugTracer getTracer()
   {
     DebugTracer tracer =
-        new DebugTracer(debugPublishers.values().
-            toArray(new DebugLogPublisher[0]));
+        new DebugTracer(debugPublishers.toArray(new DebugLogPublisher[0]));
     classTracers.put(tracer.getTracedClassName(), tracer);
 
     return tracer;

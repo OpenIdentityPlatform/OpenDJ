@@ -43,7 +43,7 @@ import org.opends.server.loggers.LogLevel;
 import org.opends.server.loggers.debug.TraceSettings;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
-
+import org.opends.server.types.DN;
 
 
 /**
@@ -564,11 +564,17 @@ public abstract class DebugLogPublisher
                                             ProtocolElement element,
                                       StackTraceElement[] stackTrace);
 
-
-
   /**
    * Close this publisher.
    */
   public abstract void close();
+
+  /**
+   * Gets the DN of the configuration entry for this debug log
+   * publisher.
+   *
+   * @return The configuration entry DN.
+   */
+  public abstract DN getDN();
 }
 

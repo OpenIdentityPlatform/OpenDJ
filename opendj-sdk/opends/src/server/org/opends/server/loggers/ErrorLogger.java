@@ -28,7 +28,7 @@ package org.opends.server.loggers;
 
 
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.reflect.Method;
@@ -69,8 +69,8 @@ public class ErrorLogger implements
 
   // The set of error loggers that have been registered with the server. It
   // will initially be empty.
-  private static ConcurrentHashMap<DN, ErrorLogPublisher> errorPublishers =
-      new ConcurrentHashMap<DN, ErrorLogPublisher>();
+  private static CopyOnWriteArrayList<ErrorLogPublisher> errorPublishers =
+      new CopyOnWriteArrayList<ErrorLogPublisher>();
 
   // The singleton instance of this class for configuration purposes.
   private static final ErrorLogger instance = new ErrorLogger();
@@ -88,30 +88,31 @@ public class ErrorLogger implements
   /**
    * Add an error log publisher to the error logger.
    *
-   * @param dn The DN of the configuration entry for the publisher.
    * @param publisher The error log publisher to add.
    */
-  public synchronized static void addErrorLogPublisher(DN dn,
-                                                 ErrorLogPublisher publisher)
+  public synchronized static void addErrorLogPublisher(
+      ErrorLogPublisher publisher)
   {
-    errorPublishers.put(dn, publisher);
+    errorPublishers.add(publisher);
   }
 
   /**
    * Remove an error log publisher from the error logger.
    *
-   * @param dn The DN of the publisher to remove.
-   * @return The publisher that was removed or null if it was not found.
+   * @param publisher The error log publisher to remove.
+   * @return True if the error log publisher is removed or false otherwise.
    */
-  public synchronized static ErrorLogPublisher removeErrorLogPublisher(DN dn)
+  public synchronized static boolean removeErrorLogPublisher(
+      ErrorLogPublisher publisher)
   {
-    ErrorLogPublisher errorLogPublisher = errorPublishers.remove(dn);
-    if(errorLogPublisher != null)
+    boolean removed = errorPublishers.remove(publisher);
+
+    if(removed)
     {
-      errorLogPublisher.close();
+      publisher.close();
     }
 
-    return errorLogPublisher;
+    return removed;
   }
 
   /**
@@ -119,7 +120,7 @@ public class ErrorLogger implements
    */
   public synchronized static void removeAllErrorLogPublishers()
   {
-    for(ErrorLogPublisher publisher : errorPublishers.values())
+    for(ErrorLogPublisher publisher : errorPublishers)
     {
       publisher.close();
     }
@@ -150,7 +151,7 @@ public class ErrorLogger implements
       {
         ErrorLogPublisher errorLogPublisher = getErrorPublisher(config);
 
-        addErrorLogPublisher(config.dn(), errorLogPublisher);
+        addErrorLogPublisher(errorLogPublisher);
       }
     }
   }
@@ -193,7 +194,7 @@ public class ErrorLogger implements
       {
         ErrorLogPublisher errorLogPublisher = getErrorPublisher(config);
 
-        addErrorLogPublisher(config.dn(), errorLogPublisher);
+        addErrorLogPublisher(errorLogPublisher);
       }
       catch(ConfigException e)
       {
@@ -231,7 +232,16 @@ public class ErrorLogger implements
     ArrayList<String> messages = new ArrayList<String>();
 
     DN dn = config.dn();
-    ErrorLogPublisher errorLogPublisher = errorPublishers.get(dn);
+
+    ErrorLogPublisher errorLogPublisher = null;
+    for(ErrorLogPublisher publisher : errorPublishers)
+    {
+      if(publisher.getDN().equals(dn))
+      {
+        errorLogPublisher = publisher;
+        break;
+      }
+    }
 
     if(errorLogPublisher == null)
     {
@@ -259,7 +269,7 @@ public class ErrorLogger implements
       else
       {
         // The publisher is being disabled so shut down and remove.
-        removeErrorLogPublisher(config.dn());
+        removeErrorLogPublisher(errorLogPublisher);
       }
     }
 
@@ -273,9 +283,18 @@ public class ErrorLogger implements
                                                List<String> unacceptableReasons)
   {
     DN dn = config.dn();
-    ErrorLogPublisher errorLogPublisher = errorPublishers.get(dn);
-    return errorLogPublisher != null;
 
+    ErrorLogPublisher errorLogPublisher = null;
+    for(ErrorLogPublisher publisher : errorPublishers)
+    {
+      if(publisher.getDN().equals(dn))
+      {
+        errorLogPublisher = publisher;
+        break;
+      }
+    }
+
+    return errorLogPublisher != null;
   }
 
   /**
@@ -288,7 +307,24 @@ public class ErrorLogger implements
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
 
-    removeErrorLogPublisher(config.dn());
+    ErrorLogPublisher errorLogPublisher = null;
+    for(ErrorLogPublisher publisher : errorPublishers)
+    {
+      if(publisher.getDN().equals(config.dn()))
+      {
+        errorLogPublisher = publisher;
+        break;
+      }
+    }
+
+    if(errorLogPublisher != null)
+    {
+      removeErrorLogPublisher(errorLogPublisher);
+    }
+    else
+    {
+      resultCode = ResultCode.NO_SUCH_OBJECT;
+    }
 
     return new ConfigChangeResult(resultCode, adminActionRequired);
   }
@@ -392,7 +428,7 @@ public class ErrorLogger implements
   {
     String message = MessageHandler.getMessage(errorID);
 
-    for (ErrorLogPublisher publisher : errorPublishers.values())
+    for (ErrorLogPublisher publisher : errorPublishers)
     {
       publisher.logError(category, severity, message, errorID);
     }
@@ -418,7 +454,7 @@ public class ErrorLogger implements
   {
     String message = MessageHandler.getMessage(errorID, args);
 
-    for (ErrorLogPublisher publisher : errorPublishers.values())
+    for (ErrorLogPublisher publisher : errorPublishers)
     {
       publisher.logError(category, severity, message, errorID);
     }
@@ -441,7 +477,7 @@ public class ErrorLogger implements
                               ErrorLogSeverity severity, String message,
                               int errorID)
   {
-    for (ErrorLogPublisher publisher : errorPublishers.values())
+    for (ErrorLogPublisher publisher : errorPublishers)
     {
       publisher.logError(category, severity, message, errorID);
     }

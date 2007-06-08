@@ -327,22 +327,19 @@ public final class TestCaseUtils {
         TextDebugLogPublisher.getStartupTextDebugPublisher(
             TestListener.DEBUG_TEXT_WRITER);
     DebugLogger.removeAllDebugLogPublishers();
-    DebugLogger.addDebugLogPublisher(DN.decode("cn=Test Debug Publisher"),
-                                     startupDebugPublisher);
+    DebugLogger.addDebugLogPublisher(startupDebugPublisher);
 
     TextErrorLogPublisher startupErrorPublisher =
         TextErrorLogPublisher.getStartupTextErrorPublisher(
             TestListener.ERROR_TEXT_WRITER);
     ErrorLogger.removeAllErrorLogPublishers();
-    ErrorLogger.addErrorLogPublisher(DN.decode("cn=Test Error Publisher"),
-                                     startupErrorPublisher);
+    ErrorLogger.addErrorLogPublisher(startupErrorPublisher);
 
     TextAccessLogPublisher startupAccessPublisher =
         TextAccessLogPublisher.getStartupTextAccessPublisher(
             TestListener.ACCESS_TEXT_WRITER, false);
     AccessLogger.removeAllAccessLogPublishers();
-    AccessLogger.addAccessLogPublisher(DN.decode("cn=Test Access Publisher"),
-                                       startupAccessPublisher);
+    AccessLogger.addAccessLogPublisher(startupAccessPublisher);
     }
     catch(Exception e)
     {

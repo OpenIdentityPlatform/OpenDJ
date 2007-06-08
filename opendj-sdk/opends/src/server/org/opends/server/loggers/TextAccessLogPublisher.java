@@ -1400,5 +1400,20 @@ public class TextAccessLogPublisher
 
     writer.writeRecord(buffer.toString());
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getDN()
+  {
+    if(currentConfig != null)
+    {
+      return currentConfig.dn();
+    }
+    else
+    {
+      return null;
+    }
+  }
 }
 

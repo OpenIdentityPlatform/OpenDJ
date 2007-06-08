@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.opends.server.api.Backend;
+import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.CoreConfigManager;
@@ -84,7 +85,7 @@ public class ImportLDIF
    */
   public static final int LDIF_BUFFER_SIZE = 1048576;
 
-  private static DN publisherDN = null;
+  private static ErrorLogPublisher errorLogPublisher = null;
 
 
   /**
@@ -96,9 +97,9 @@ public class ImportLDIF
   {
     int retCode = mainImportLDIF(args);
 
-    if(publisherDN != null)
+    if(errorLogPublisher != null)
     {
-      ErrorLogger.removeErrorLogPublisher(publisherDN);
+      ErrorLogger.removeErrorLogPublisher(errorLogPublisher);
     }
 
     if(retCode != 0)
@@ -500,11 +501,10 @@ public class ImportLDIF
         // state of the import.
         try
         {
-          publisherDN = DN.decode("cn=Custom Logger for ImportLDIF");
-          ThreadFilterTextErrorLogPublisher publisher =
+          errorLogPublisher =
               new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
                                                     new TextWriter.STDOUT());
-          ErrorLogger.addErrorLogPublisher(publisherDN, publisher);
+          ErrorLogger.addErrorLogPublisher(errorLogPublisher);
 
         }
         catch(Exception e)

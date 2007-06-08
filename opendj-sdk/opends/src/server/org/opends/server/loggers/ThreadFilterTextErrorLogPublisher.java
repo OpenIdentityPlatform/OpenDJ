@@ -29,6 +29,7 @@ package org.opends.server.loggers;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.DN;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.api.ErrorLogPublisher;
@@ -97,5 +98,15 @@ public class ThreadFilterTextErrorLogPublisher
 
       this.writer.writeRecord(sb.toString());
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getDN()
+  {
+    // This class should only be used internally in the server and not be
+    // configurable via the admin framework.
+    return null;
   }
 }

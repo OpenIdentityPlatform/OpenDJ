@@ -64,7 +64,7 @@
             to shut down or operate in a significantly degraded state.
           </adm:synopsis>
         </adm:value>
-        <adm:value name="informational">
+        <adm:value name="info">
           <adm:synopsis>
             The error log severity that will be used for messages that
             provide information about significant events within the server
