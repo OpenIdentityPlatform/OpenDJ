@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.opends.server.api.Backend;
+import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.CoreConfigManager;
@@ -75,7 +76,7 @@ import org.opends.server.admin.std.server.BackendCfg;
  */
 public class ExportLDIF
 {
-  private static DN publisherDN = null;
+  private static ErrorLogPublisher errorLogPublisher = null;
   /**
    * The main method for ExportLDIF tool.
    *
@@ -86,9 +87,9 @@ public class ExportLDIF
   {
     int retCode = mainExportLDIF(args);
 
-    if(publisherDN != null)
+    if(errorLogPublisher != null)
     {
-      ErrorLogger.removeErrorLogPublisher(publisherDN);
+      ErrorLogger.removeErrorLogPublisher(errorLogPublisher);
     }
 
     if(retCode != 0)
@@ -434,11 +435,10 @@ public class ExportLDIF
       // of the export.
       try
       {
-        publisherDN = DN.decode("cn=Custom Logger for ExportLDIF");
-        ThreadFilterTextErrorLogPublisher publisher =
+        errorLogPublisher =
             new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
                                                   new TextWriter.STDOUT());
-        ErrorLogger.addErrorLogPublisher(publisherDN, publisher);
+        ErrorLogger.addErrorLogPublisher(errorLogPublisher);
 
       }
       catch(Exception e)

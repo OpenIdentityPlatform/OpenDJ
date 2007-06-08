@@ -640,8 +640,22 @@ public class TextErrorLogPublisher
           append(" msgID=").append(String.valueOf(errorID)).
           append(" msg=").append(message);
 
-      // FIXME - lookup the level based on the severity
       writer.writeRecord(sb.toString());
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getDN()
+  {
+    if(currentConfig != null)
+    {
+      return currentConfig.dn();
+    }
+    else
+    {
+      return null;
     }
   }
 }

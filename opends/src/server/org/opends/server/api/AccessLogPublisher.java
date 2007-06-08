@@ -31,11 +31,7 @@ package org.opends.server.api;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -388,5 +384,14 @@ public abstract class AccessLogPublisher
    *                          request.
    */
   public abstract void logUnbind(UnbindOperation unbindOperation);
+
+  /**
+   * Gets the DN of the configuration entry for this access log
+   * publisher.
+   *
+   * @return The configuration entry DN.
+   */
+  public abstract DN getDN();
+
 }
 

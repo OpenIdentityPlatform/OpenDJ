@@ -762,12 +762,12 @@ public class DirectoryServer
     startupErrorLogPublisher =
         TextErrorLogPublisher.getStartupTextErrorPublisher(
             new TextWriter.STDOUT());
-    addErrorLogPublisher(DN.NULL_DN, startupErrorLogPublisher);
+    addErrorLogPublisher(startupErrorLogPublisher);
 
     startupDebugLogPublisher =
         TextDebugLogPublisher.getStartupTextDebugPublisher(
             new TextWriter.STDOUT());
-    addDebugLogPublisher(DN.NULL_DN, startupDebugLogPublisher);
+    addDebugLogPublisher(startupDebugLogPublisher);
 
     // Create the MBean server that we will use for JMX interaction.
     initializeJMX();
@@ -1193,8 +1193,8 @@ public class DirectoryServer
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, msgID, message);
 
 
-      removeDebugLogPublisher(DN.NULL_DN);
-      removeErrorLogPublisher(DN.NULL_DN);
+      removeDebugLogPublisher(startupDebugLogPublisher);
+      removeErrorLogPublisher(startupErrorLogPublisher);
 
 
       // If a server.starting file exists, then remove it.

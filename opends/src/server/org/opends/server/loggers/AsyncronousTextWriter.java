@@ -32,6 +32,7 @@ import org.opends.server.core.DirectoryServer;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A Text Writer which writes log records asynchronously to
@@ -49,7 +50,7 @@ public class AsyncronousTextWriter
   private final LinkedBlockingQueue<String> queue;
 
   private String name;
-  private boolean stopRequested;
+  private AtomicBoolean stopRequested;
   private WriterThread writerThread;
 
   private boolean autoFlush;
@@ -72,7 +73,7 @@ public class AsyncronousTextWriter
 
     this.queue = new LinkedBlockingQueue<String>(capacity);
     this.writerThread = null;
-    this.stopRequested = false;
+    this.stopRequested = new AtomicBoolean(false);
 
     writerThread = new WriterThread();
     writerThread.start();
@@ -97,7 +98,7 @@ public class AsyncronousTextWriter
     public void run()
     {
       String message = null;
-      while (!isShuttingDown() || !queue.isEmpty()) {
+      while (!stopRequested.get() || !queue.isEmpty()) {
         try
         {
           message = queue.poll(10, TimeUnit.SECONDS);
@@ -124,28 +125,6 @@ public class AsyncronousTextWriter
     }
   }
 
-  // Method needs to be synchronized with _shutdown mutator, as we don't
-  // want shutdown to start after we check for it, but before we queue
-  // request.
-  private synchronized void writeAsynchronously(String record)
-  {
-    // If shutting down reject, otherwise publish (if we have a publisher!)
-    while (!isShuttingDown())
-    {
-      // Put request on queue for writer
-      try
-      {
-        queue.put(record);
-        break;
-      }
-      catch(InterruptedException e)
-      {
-        // We expect this to happen. Just ignore it and hopefully
-        // drop out in the next try.
-      }
-    }
-  }
-
   /**
    * Write the log record asyncronously.
    *
@@ -155,7 +134,20 @@ public class AsyncronousTextWriter
   {
     // No writer?  Off to the bit bucket.
     if (writer != null) {
-      writeAsynchronously(record);
+      while (!stopRequested.get())
+      {
+        // Put request on queue for writer
+        try
+        {
+          queue.put(record);
+          break;
+        }
+        catch(InterruptedException e)
+        {
+          // We expect this to happen. Just ignore it and hopefully
+          // drop out in the next try.
+        }
+      }
     }
   }
 
@@ -205,14 +197,6 @@ public class AsyncronousTextWriter
   }
 
   /**
-   * Queries whether the publisher is in shutdown mode.
-   */
-  private boolean isShuttingDown()
-  {
-    return stopRequested;
-  }
-
-  /**
    * {@inheritDoc}
    */
   public void shutdown()
@@ -227,7 +211,7 @@ public class AsyncronousTextWriter
    */
   public void shutdown(boolean shutdownWrapped)
   {
-    stopRequested = true;
+    stopRequested.set(true);
 
     // Wait for publisher thread to terminate
     while (writerThread != null && writerThread.isAlive()) {

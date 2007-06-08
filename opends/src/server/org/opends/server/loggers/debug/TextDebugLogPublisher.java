@@ -919,4 +919,19 @@ public class TextDebugLogPublisher
 
     return DebugMessageFormatter.format(format.toString(), args);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getDN()
+  {
+    if(currentConfig != null)
+    {
+      return currentConfig.dn();
+    }
+    else
+    {
+      return null;
+    }
+  }
 }

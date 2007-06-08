@@ -29,6 +29,7 @@ package org.opends.server.tools;
 
 
 import org.opends.server.api.Backend;
+import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.jeb.VerifyConfig;
 import org.opends.server.config.ConfigException;
@@ -70,7 +71,7 @@ import org.opends.server.admin.std.server.BackendCfg;
  */
 public class VerifyIndex
 {
-  private static DN publisherDN = null;
+  private static ErrorLogPublisher errorLogPublisher = null;
   /**
    * Processes the command-line arguments and invokes the verify process.
    *
@@ -80,9 +81,9 @@ public class VerifyIndex
   {
     int retCode = mainVerifyIndex(args);
 
-    if(publisherDN != null)
+    if(errorLogPublisher != null)
     {
-      ErrorLogger.removeErrorLogPublisher(publisherDN);
+      ErrorLogger.removeErrorLogPublisher(errorLogPublisher);
     }
 
     if(retCode != 0)
@@ -347,11 +348,10 @@ public class VerifyIndex
     // of the verify process.
     try
     {
-      publisherDN = DN.decode("cn=Custom Logger for VerifyIndex");
-      ThreadFilterTextErrorLogPublisher publisher =
+      errorLogPublisher =
           new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
                                                 new TextWriter.STDOUT());
-      ErrorLogger.addErrorLogPublisher(publisherDN, publisher);
+      ErrorLogger.addErrorLogPublisher(errorLogPublisher);
 
     }
     catch(Exception e)

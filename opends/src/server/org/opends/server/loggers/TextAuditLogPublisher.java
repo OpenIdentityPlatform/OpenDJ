@@ -819,16 +819,16 @@ public class TextAuditLogPublisher
    */
   private void encodeValue(ByteString str, StringBuilder buffer)
   {
-      byte[] byteVal = str.value();
-      if(StaticUtils.needsBase64Encoding(byteVal))
-      {
-        buffer.append(": ");
-        buffer.append(Base64.encode(byteVal));
-      } else
-      {
-        buffer.append(" ");
-        str.toString(buffer);
-      }
+    byte[] byteVal = str.value();
+    if(StaticUtils.needsBase64Encoding(byteVal))
+    {
+      buffer.append(": ");
+      buffer.append(Base64.encode(byteVal));
+    } else
+    {
+      buffer.append(" ");
+      str.toString(buffer);
+    }
   }
 
 
@@ -841,15 +841,30 @@ public class TextAuditLogPublisher
    */
   private void encodeValue(String str, StringBuilder buffer)
   {
-      if(StaticUtils.needsBase64Encoding(str))
-      {
-        buffer.append(": ");
-        buffer.append(Base64.encode(getBytes(str)));
-      } else
-      {
-        buffer.append(" ");
-        buffer.append(str);
-      }
+    if(StaticUtils.needsBase64Encoding(str))
+    {
+      buffer.append(": ");
+      buffer.append(Base64.encode(getBytes(str)));
+    } else
+    {
+      buffer.append(" ");
+      buffer.append(str);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public DN getDN()
+  {
+    if(currentConfig != null)
+    {
+      return currentConfig.dn();
+    }
+    else
+    {
+      return null;
+    }
   }
 }
 
