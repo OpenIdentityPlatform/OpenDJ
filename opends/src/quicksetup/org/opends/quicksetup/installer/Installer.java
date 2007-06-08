@@ -3176,7 +3176,9 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForReviewPanel(QuickSetup qs)
   {
     Boolean b = (Boolean) qs.getFieldValue(FieldName.SERVER_START);
-    getUserData().setStartServer(b.booleanValue());
+    getUserData().setStartServer(b);
+    b = (Boolean) qs.getFieldValue(FieldName.ENABLE_WINDOWS_SERVICE);
+    getUserData().setEnableWindowsService(b);
   }
 
   /**
