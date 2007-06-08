@@ -2208,7 +2208,7 @@ public abstract class Installer extends GuiApplication {
     // Check the host is not empty.
     // TODO: check that the host name is valid...
     String hostName = qs.getFieldStringValue(FieldName.HOST_NAME);
-    if ((hostName == null) || hostName.trim().isEmpty())
+    if ((hostName == null) || hostName.trim().length() == 0)
     {
       errorMsgs.add(getMsg("empty-host-name"));
       qs.displayFieldInvalid(FieldName.HOST_NAME, true);
