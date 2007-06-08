@@ -27,13 +27,15 @@
 
 package org.opends.admin.ads;
 
-import java.util.LinkedList;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
@@ -59,6 +61,8 @@ import javax.naming.ldap.Rdn;
  */
 public class ADSContext
 {
+  private static final Logger LOG =
+    Logger.getLogger(ADSContext.class.getName());
   /**
    * Enumeration containing the different server properties that are stored in
    * the ADS.
@@ -68,7 +72,7 @@ public class ADSContext
     /**
      * The ID used to identify the server.
      */
-    ID("cn"),
+    ID("id"),
     /**
      * The host name of the server.
      */
@@ -238,11 +242,6 @@ public class ADSContext
     ADMINISTRATOR_DN
   };
 
-  /**
-   * Character used to separate hostname from ipath in RDN.
-   */
-  public final static String HNP_SEPARATOR = "@";
-
   // The context used to retrieve information
   InitialLdapContext dirContext;
 
@@ -404,43 +403,6 @@ public class ADSContext
   }
 
   /**
-   * Returns the properties of a server for a given host name and installation
-   * path.
-   * @param hostname the host Name.
-   * @param ipath the installation path.
-   * @return the properties of a server for a given host name and installation
-   * path.
-   * @throws ADSContextException if something goes wrong.
-   */
-  public Map<ServerProperty, Object> lookupServerRegistry(String hostname,
-      String ipath) throws ADSContextException
-  {
-    LdapName dn = makeDNFromHostnameAndPath(hostname, ipath);
-    Map<ServerProperty, Object> result;
-    try
-    {
-      result = makePropertiesFromServerAttrs(hostname, ipath,
-          dirContext.getAttributes(dn));
-    }
-    catch (NameNotFoundException x)
-    {
-      result = null;
-    }
-    catch (NoPermissionException x)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
-    }
-    catch (NamingException x)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
-    }
-
-    return result;
-  }
-
-  /**
    * Returns the member list of a group of server.
    *
    * @param serverGroupId
@@ -531,7 +493,7 @@ public class ADSContext
       {
         SearchResult sr = (SearchResult)ne.next();
         Map<ServerProperty,Object> properties =
-          makePropertiesFromServerAttrs(sr.getName(), sr.getAttributes());
+          makePropertiesFromServerAttrs(sr.getAttributes());
         result.add(properties);
       }
     }
@@ -554,85 +516,6 @@ public class ADSContext
     return result;
   }
 
-  /**
-   * Returns a set of the server properties that are registered in the ADS and
-   * that contain the properties specified in serverProperties.
-   * @param serverProperties the properties that are used as search criteria.
-   * @return a set of the server properties that are registered in the ADS and
-   * that contain the properties specified in serverProperties.
-   * @throws ADSContextException if something goes wrong.
-   */
-  public Set<Map<ServerProperty, Object>> searchServerRegistry(
-      Map<ServerProperty, Object> serverProperties) throws ADSContextException
-  {
-    Set<Map<ServerProperty, Object>> result =
-      new HashSet<Map<ServerProperty, Object>>();
-    StringBuffer filter = new StringBuffer();
-
-    // Build the filter according the properties passed in serverProperties
-    int operandCount = 0;
-    if (serverProperties.containsKey(ServerProperty.HOST_NAME))
-    {
-      filter.append("(cn=");
-      filter.append(serverProperties.get(ServerProperty.HOST_NAME));
-      filter.append("*");
-      if (serverProperties.containsKey(ServerProperty.INSTANCE_PATH))
-      {
-        filter.append(HNP_SEPARATOR);
-        filter.append(serverProperties.get(ServerProperty.INSTANCE_PATH));
-      }
-      filter.append(")");
-      operandCount++;
-    }
-    if (serverProperties.containsKey(ServerProperty.LDAP_PORT))
-    {
-      filter.append("(");
-      filter.append(ServerProperty.LDAP_PORT);
-      filter.append("=");
-      filter.append(serverProperties.get(ServerProperty.LDAP_PORT));
-      filter.append(")");
-      operandCount++;
-    }
-    if (operandCount >= 2)
-    {
-      filter.insert(0, '(');
-      filter.append("&)");
-    }
-
-    // Search the ADS
-    try
-    {
-      NamingEnumeration ne;
-      SearchControls sc = new SearchControls();
-
-      sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      ne = dirContext.search(getServerContainerDN(), filter.toString(), sc);
-      while (ne.hasMore())
-      {
-        SearchResult sr = (SearchResult)ne.next();
-        Map<ServerProperty, Object> properties = makePropertiesFromServerAttrs(
-            sr.getName(), sr.getAttributes());
-        result.add(properties);
-      }
-    }
-    catch (NameNotFoundException x)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.BROKEN_INSTALL);
-    }
-    catch (NoPermissionException x)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
-    }
-    catch(NamingException x)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
-    }
-
-    return result;
-  }
 
   /**
    * Creates a Server Group in the ADS.
@@ -648,8 +531,10 @@ public class ADSContext
     BasicAttributes attrs = makeAttrsFromServerGroupProperties(
         serverGroupProperties);
     // Add the objectclass attribute value
-    attrs.put("objectclass", "top");
-    attrs.put("objectclass", "groupOfUniqueNames");
+    Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top");
+    oc.add("groupOfUniqueNames");
+    attrs.put(oc);
     try
     {
       DirContext ctx = dirContext.createSubcontext(dn, attrs);
@@ -678,7 +563,6 @@ public class ADSContext
       Map<ServerGroupProperty, Object> serverGroupProperties)
   throws ADSContextException
   {
-
     LdapName dn = nameFromDN("cn=" + Rdn.escapeValue(groupID) + "," +
         getServerGroupContainerDN());
     try
@@ -849,7 +733,7 @@ public class ADSContext
 
         Map<AdministratorProperty, Object> properties =
           makePropertiesFromAdministratorAttrs(
-              sr.getName(), sr.getAttributes());
+              getRdn(sr.getName()), sr.getAttributes());
 
         result.add(properties);
       }
@@ -890,8 +774,8 @@ public class ADSContext
     createAdministratorContainerEntry();
     createContainerEntry(getServerContainerDN());
     createContainerEntry(getServerGroupContainerDN());
+    //setupACIOnServer(getDirContext(), true);
   }
-
 
   /**
    * Removes the administration data.
@@ -900,6 +784,7 @@ public class ADSContext
   public void removeAdminData() throws ADSContextException
   {
     removeAdministrationSuffix();
+    //setupACIOnServer(getDirContext(), false);
   }
 
 
@@ -1055,8 +940,8 @@ public class ADSContext
    * otherwise.
    * @throws ADSContextException if the ACIs could not be set up.
    */
-  public static boolean setupACIOnServer(LdapContext dirCtx,
-      boolean enable) throws ADSContextException
+  private boolean setupACIOnServer(LdapContext dirCtx, boolean enable)
+  throws ADSContextException
   {
     boolean result;
     Attributes currentAttrs;
@@ -1065,12 +950,14 @@ public class ADSContext
 
     try
     {
-      // Get the ACI value on the root entry
-      currentAttrs = dirCtx.getAttributes("", new String[] { "aci" });
-      currentAttr = currentAttrs.get("aci");
+      // Get the ACI value on the global ACI
+      String accessControlDn = "cn=Access Control Handler,cn=config";
+      currentAttrs = dirCtx.getAttributes(accessControlDn,
+          new String[] { "ds-cfg-global-aci" });
+      currentAttr = currentAttrs.get("ds-cfg-global-aci");
 
       // Check what ACIs values must be added or removed
-      newAttr = new BasicAttribute("aci");
+      newAttr = new BasicAttribute("ds-cfg-global-aci");
       modItem = null;
       if (enable)
       {
@@ -1103,10 +990,11 @@ public class ADSContext
         }
       }
 
-      // Update the ACI values on the root entry
+      // Update the ACI values on the access control entry
       if (modItem != null)
       {
-        dirCtx.modifyAttributes("", new ModificationItem[] { modItem});
+        dirCtx.modifyAttributes(accessControlDn,
+            new ModificationItem[] { modItem});
         result = true;
       }
       else
@@ -1139,7 +1027,22 @@ public class ADSContext
   private static LdapName makeDNFromHostnameAndPath(String hostname,
       String ipath) throws ADSContextException
   {
-    String cnValue = Rdn.escapeValue(hostname + HNP_SEPARATOR + ipath);
+    String cnValue = Rdn.escapeValue(hostname + "@" + ipath);
+    return nameFromDN("cn=" + cnValue + "," + getServerContainerDN());
+  }
+
+  /**
+   * This method returns the DN of the entry that corresponds to the given host
+   * name port representation.
+   * @param hostnameport the host name and port.
+   * @return the DN of the entry that corresponds to the given host name and
+   * port.
+   * @throws ADSContextException if something goes wrong.
+   */
+  private static LdapName makeDNFromHostnamePort(String hostnamePort)
+  throws ADSContextException
+  {
+    String cnValue = Rdn.escapeValue(hostnamePort);
     return nameFromDN("cn=" + cnValue + "," + getServerContainerDN());
   }
 
@@ -1178,8 +1081,16 @@ public class ADSContext
       Map<ServerProperty, Object> serverProperties) throws ADSContextException
   {
     String hostname = getHostname(serverProperties);
-    String ipath = getInstallPath(serverProperties);
-    return makeDNFromHostnameAndPath(hostname, ipath);
+    try
+    {
+      String ipath = getInstallPath(serverProperties);
+      return makeDNFromHostnameAndPath(hostname, ipath);
+    }
+    catch (ADSContextException ace)
+    {
+      ServerDescriptor s = ServerDescriptor.createStandalone(serverProperties);
+      return makeDNFromHostnamePort(s.getHostPort(true));
+    }
   }
 
   /**
@@ -1213,9 +1124,30 @@ public class ADSContext
   {
     BasicAttributes attrs = new BasicAttributes();
     String adminPassword = getAdministratorPassword(adminProperties);
-    attrs.put("objectclass", "person");
+    Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top");
+    oc.add("person");
+    attrs.put(oc);
     attrs.put("sn", "admin");
     attrs.put("userPassword", adminPassword);
+    Attribute privilege = new BasicAttribute("ds-privilege-name");
+    privilege.add("bypass-acl");
+    privilege.add("modify-acl");
+    privilege.add("config-read");
+    privilege.add("config-write");
+    privilege.add("ldif-import");
+    privilege.add("ldif-export");
+    privilege.add("backend-backup");
+    privilege.add("backend-restore");
+    privilege.add("server-shutdown");
+    privilege.add("server-restart");
+    privilege.add("disconnect-client");
+    privilege.add("cancel-request");
+    privilege.add("password-reset");
+    privilege.add("update-schema");
+    privilege.add("privilege-change");
+    privilege.add("unindexed-search");
+    attrs.put(privilege);
     return attrs;
   }
 
@@ -1241,7 +1173,12 @@ public class ADSContext
       }
     }
     // Add the objectclass attribute value
-    result.put("objectclass", "extensibleobject");
+    // TODO: use another structural objectclass
+    Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top");
+    oc.add("ds-cfg-branch");
+    oc.add("extensibleobject");
+    result.put(oc);
     return result;
   }
 
@@ -1258,12 +1195,6 @@ public class ADSContext
 
     switch(property)
     {
-    case HOST_NAME:
-      result = null;
-      break;
-    case INSTANCE_PATH:
-      result = null;
-      break;
     case GROUPS:
       result = new BasicAttribute(ServerProperty.GROUPS.getAttributeName());
       Iterator groupIterator = ((Set)value).iterator();
@@ -1441,26 +1372,28 @@ public class ADSContext
         }
         if (prop == null)
         {
-          throw new ADSContextException(
-              ADSContextException.ErrorType.ERROR_UNEXPECTED);
-        }
-
-        if (attr.size() >= 1 && MULTIVALUED_SERVER_PROPERTIES.contains(prop))
-        {
-          Set<String> set = new HashSet<String>();
-          NamingEnumeration ae = attr.getAll();
-          while (ae.hasMore())
-          {
-            set.add((String)ae.next());
-          }
-          value = set;
+          // Do not handle it
         }
         else
         {
-          value = attr.get(0);
-        }
 
-        result.put(prop, value);
+          if (attr.size() >= 1 && MULTIVALUED_SERVER_PROPERTIES.contains(prop))
+          {
+            Set<String> set = new HashSet<String>();
+            NamingEnumeration ae = attr.getAll();
+            while (ae.hasMore())
+            {
+              set.add((String)ae.next());
+            }
+            value = set;
+          }
+          else
+          {
+            value = attr.get(0);
+          }
+
+          result.put(prop, value);
+        }
       }
     }
     catch(NamingException x)
@@ -1468,75 +1401,6 @@ public class ADSContext
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
-    return result;
-  }
-
-  /**
-   * Returns the properties of a server group for an RDN and some LDAP
-   * attributes.
-   * @param rdnName the RDN.
-   * @param attrs the LDAP attributes.
-   * @return the properties of a server group for an RDN and some LDAP
-   * attributes.
-   * @throws ADSContextException if something goes wrong.
-   */
-  Map<ServerProperty, Object> makePropertiesFromServerAttrs(String rdnName,
-      Attributes attrs) throws ADSContextException
-  {
-    String hostName, ipath;
-    LdapName nameObj;
-
-    nameObj = nameFromDN(rdnName);
-
-    //
-    // Extract the hostname and ipath from the dn
-    //
-    Rdn rdnObj = nameObj.getRdn(nameObj.size() - 1);
-    String hostNamePath = (String)Rdn.unescapeValue((String)rdnObj.getValue());
-    int sepIndex = hostNamePath.indexOf(HNP_SEPARATOR);
-    if (sepIndex != -1)
-    {
-      hostName = hostNamePath.substring(0, sepIndex);
-      ipath = hostNamePath.substring(sepIndex+1, hostNamePath.length());
-    }
-    else
-    { // Emergency logic...
-      hostName = hostNamePath;
-      ipath = "undefined";
-    }
-
-    //
-    // Delegate...
-    //
-    return makePropertiesFromServerAttrs(hostName, ipath, attrs);
-  }
-
-  /**
-   * Returns the properties of a server for some host name, installation path
-   * and LDAP attributes.
-   * @param hostName the host name.
-   * @param ipath the installation path.
-   * @param attrs the LDAP attributes.
-   * @return the properties of a server for the given host name, installation
-   * path and LDAP attributes.
-   * @throws ADSContextException if something goes wrong.
-   */
-  Map<ServerProperty, Object> makePropertiesFromServerAttrs(String hostName,
-      String ipath, Attributes attrs) throws ADSContextException
-  {
-    Map<ServerProperty, Object> result = new HashMap<ServerProperty, Object>();
-
-    //
-    // Put hostname and ipath
-    //
-    result.put(ServerProperty.HOST_NAME, hostName);
-    result.put(ServerProperty.INSTANCE_PATH, ipath);
-
-    //
-    // Get other properties from the attributes
-    //
-    result.putAll(makePropertiesFromServerAttrs(attrs));
-
     return result;
   }
 
@@ -1556,14 +1420,16 @@ public class ADSContext
   {
     Map<AdministratorProperty, Object> result =
       new HashMap<AdministratorProperty, Object>();
-    String dn = rdn + "," + getAdministratorContainerDN();
+    LdapName nameObj;
+    nameObj = nameFromDN(rdn);
+    String dn = nameObj + "," + getAdministratorContainerDN();
     result.put(AdministratorProperty.ADMINISTRATOR_DN, dn);
 
     try
     {
-      NamingEnumeration ne = attrs.getAll();
+      NamingEnumeration<? extends Attribute> ne = attrs.getAll();
       while (ne.hasMore()) {
-        Attribute attr = (Attribute)ne.next();
+        Attribute attr = ne.next();
         String attrID = attr.getID();
         Object value = null;
 
@@ -1727,10 +1593,37 @@ public class ADSContext
     }
     catch (InvalidNameException x)
     {
+      LOG.log(Level.SEVERE, "Error parsing dn "+dn, x);
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     return result;
+  }
+
+  /**
+   * Returns the String rdn for the given search result name.
+   * @return the String rdn for the given search result name.
+   * @throws ADSContextException if a valid String rdn could not be retrieved
+   * for the given result name.
+   */
+  private static String getRdn(String rdnName) throws ADSContextException
+  {
+    CompositeName nameObj;
+    String rdn;
+    //
+    // Transform the JNDI name into a RDN string
+    //
+    try {
+      nameObj = new CompositeName(rdnName);
+      rdn = nameObj.get(0);
+    }
+    catch (InvalidNameException x)
+    {
+      LOG.log(Level.SEVERE, "Error parsing rdn "+rdnName, x);
+      throw new ADSContextException(
+          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
+    return rdn;
   }
 
   /**
@@ -1777,10 +1670,10 @@ public class ADSContext
   private void createContainerEntry(String dn) throws ADSContextException
   {
     BasicAttributes attrs = new BasicAttributes();
-
-    attrs.put("objectclass", "top");
-    attrs.put("objectclass", "ds-cfg-branch");
-    // attrs.put("objectclass", "extensibleobject");
+    Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top");
+    oc.add("ds-cfg-branch");
+    attrs.put(oc);
     createEntry(dn, attrs);
   }
 
@@ -1792,8 +1685,9 @@ public class ADSContext
   {
     BasicAttributes attrs = new BasicAttributes();
 
-    attrs.put("objectclass", "groupOfUniqueNames");
-    attrs.put("objectclass", "groupofurls");
+    Attribute oc = new BasicAttribute("objectclass");
+    oc.add("groupofurls");
+    attrs.put(oc);
     attrs.put("memberURL", "ldap:///" + getAdministratorContainerDN() +
         "??one?(objectclass=*)");
     attrs.put("description", "Group of identities which have full access.");
@@ -1809,9 +1703,10 @@ public class ADSContext
   {
     BasicAttributes attrs = new BasicAttributes();
 
-    attrs.put("objectclass", "top");
-    attrs.put("objectclass", "ds-cfg-branch");
-    attrs.put("aci", getTopContainerACI());
+    Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top");
+    oc.add("ds-cfg-branch");
+    attrs.put(oc);
     createEntry(getAdministrationSuffixDN(), attrs);
   }
 
@@ -1859,7 +1754,8 @@ public class ADSContext
   throws ADSContextException
   {
     ADSContextHelper helper = new ADSContextHelper();
-    helper.createAdministrationSuffix(getDirContext(), getBackendName());
+    helper.createAdministrationSuffix(getDirContext(), getBackendName(),
+        "db", "importAdminTemp");
   }
 
   /**
@@ -1874,7 +1770,7 @@ public class ADSContext
 
   private static String getBackendName()
   {
-    return "userRoot";
+    return "adminRoot";
   }
 
   /**
@@ -1884,6 +1780,7 @@ public class ADSContext
   private static String getAdminACI1()
   {
     return
+    "(target=\"ldap:///cn=config\")"+
     "(targetattr = \"*\") " +
     "(version 3.0; " +
     "acl \"Enable full access for Global Administrators.\"; " +
@@ -1900,37 +1797,12 @@ public class ADSContext
   private static String getAdminACI2()
   {
     return
-    "(targetattr = \"aci\") (targetscope = \"base\") " +
+    "(target=\"ldap:///cn=Access Control Handler,cn=config\")"+
+    "(targetattr = \"ds-cfg-global-aci\") (targetscope = \"base\") " +
     "(version 3.0; " +
-    "acl \"Enable root ACI modification by Global Administrators.\"; "+
+    "acl \"Enable global ACI modification by Global Administrators.\"; "+
     "allow (all)(userdn = \"ldap:///" +
     getAdministratorDN("*") +
     "\");)";
-  }
-
-  private static void addToLines(LdapName dn, BasicAttributes attrs,
-      LinkedList<String> lines) throws ADSContextException
-  {
-    lines.add("dn: "+dn.toString());
-    NamingEnumeration<String> ids = attrs.getIDs();
-    while (ids.hasMoreElements())
-    {
-      String attrID = ids.nextElement();
-      Attribute attr = attrs.get(attrID);
-      try
-      {
-        NamingEnumeration values = attr.getAll();
-        while (values.hasMoreElements())
-        {
-          lines.add(attrID+": "+values.nextElement());
-        }
-      }
-      catch (NamingException ne)
-      {
-        // This should not happen
-        throw new ADSContextException(
-            ADSContextException.ErrorType.ERROR_UNEXPECTED, ne);
-      }
-    }
   }
 }

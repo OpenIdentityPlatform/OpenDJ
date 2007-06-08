@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.naming.AuthenticationException;
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
 import javax.naming.ldap.InitialLdapContext;
@@ -148,6 +149,31 @@ public class ServerLoader extends Thread
                 TopologyCacheException.Type.NOT_GLOBAL_ADMINISTRATOR, npe,
                 trustManager, getLastLdapUrl());
       }
+      else
+      {
+        lastException =
+          new TopologyCacheException(
+              TopologyCacheException.Type.NO_PERMISSIONS, npe,
+              trustManager, getLastLdapUrl());
+      }
+    }
+    catch (AuthenticationException ae)
+    {
+      LOG.log(Level.WARNING,
+          "Authentication exception: "+getLastLdapUrl(), ae);
+      if (!isAdministratorDn())
+      {
+        lastException = new TopologyCacheException(
+                TopologyCacheException.Type.NOT_GLOBAL_ADMINISTRATOR, ae,
+                trustManager, getLastLdapUrl());
+      }
+      else
+      {
+        lastException =
+          new TopologyCacheException(
+              TopologyCacheException.Type.GENERIC_READING_SERVER, ae,
+              trustManager, getLastLdapUrl());
+      }
     }
     catch (NamingException ne)
     {
@@ -174,6 +200,7 @@ public class ServerLoader extends Thread
       {
         LOG.log(Level.WARNING,
             "Generic error reading server: "+getLastLdapUrl(), t);
+        LOG.log(Level.WARNING, "server Properties: "+serverProperties);
         lastException =
             new TopologyCacheException(TopologyCacheException.Type.BUG, t);
       }
@@ -338,7 +365,7 @@ public class ServerLoader extends Thread
       LdapName theDn = new LdapName(dn);
       LdapName containerDn =
         new LdapName(ADSContext.getAdministratorContainerDN());
-      isAdministratorDn = theDn.endsWith(containerDn);
+      isAdministratorDn = theDn.startsWith(containerDn);
     }
     catch (Throwable t)
     {

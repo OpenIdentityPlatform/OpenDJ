@@ -223,12 +223,15 @@ public class ServerDescriptor
           ServerProperty.LDAP_ENABLED);
       ArrayList p = (ArrayList)serverProperties.get(
           ServerProperty.LDAP_PORT);
-      for (int i=0; i<s.size(); i++)
+      if (s != null)
       {
-        if (Boolean.TRUE.equals(s.get(i)))
+        for (int i=0; i<s.size(); i++)
         {
-          port = (Integer)p.get(i);
-          break;
+          if (Boolean.TRUE.equals(s.get(i)))
+          {
+            port = (Integer)p.get(i);
+            break;
+          }
         }
       }
       if (securePreferred)
@@ -236,12 +239,15 @@ public class ServerDescriptor
         s = (ArrayList)serverProperties.get(
             ServerProperty.LDAPS_ENABLED);
         p = (ArrayList)serverProperties.get(ServerProperty.LDAPS_PORT);
-        for (int i=0; i<s.size(); i++)
+        if (s != null)
         {
-          if (Boolean.TRUE.equals(s.get(i)))
+          for (int i=0; i<s.size(); i++)
           {
-            port = (Integer)p.get(i);
-            break;
+            if (Boolean.TRUE.equals(s.get(i)))
+            {
+              port = (Integer)p.get(i);
+              break;
+            }
           }
         }
       }
@@ -269,7 +275,7 @@ public class ServerDescriptor
       {
       }
     }
-    return host + "." + port;
+    return host + ":" + port;
   }
 
   /**
@@ -340,6 +346,65 @@ public class ServerDescriptor
   public void setLastException(TopologyCacheException lastException)
   {
     this.lastException = lastException;
+  }
+
+  /**
+   * This methods updates the ADS properties (the ones that were read from
+   * the ADS) with the contents of the server properties (the ones that were
+   * read directly from the server).
+   */
+  public void updateAdsPropertiesWithServerProperties()
+  {
+    adsProperties.put(ADSContext.ServerProperty.HOST_NAME, getHostName());
+    ServerProperty[][] sProps =
+    {
+        {ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT},
+        {ServerProperty.LDAPS_ENABLED, ServerProperty.LDAPS_PORT},
+        {ServerProperty.JMX_ENABLED, ServerProperty.JMX_PORT},
+        {ServerProperty.JMXS_ENABLED, ServerProperty.JMXS_PORT}
+    };
+    ADSContext.ServerProperty[][] adsProps =
+    {
+        {ADSContext.ServerProperty.LDAP_ENABLED,
+          ADSContext.ServerProperty.LDAP_PORT},
+        {ADSContext.ServerProperty.LDAPS_ENABLED,
+          ADSContext.ServerProperty.LDAPS_PORT},
+        {ADSContext.ServerProperty.JMX_ENABLED,
+          ADSContext.ServerProperty.JMX_PORT},
+        {ADSContext.ServerProperty.JMXS_ENABLED,
+          ADSContext.ServerProperty.JMXS_PORT}
+    };
+
+    for (int i=0; i<sProps.length; i++)
+    {
+      ArrayList s = (ArrayList)serverProperties.get(sProps[i][0]);
+      ArrayList p = (ArrayList)serverProperties.get(sProps[i][1]);
+      if (s != null)
+      {
+        int port = -1;
+        for (int j=0; j<s.size(); i++)
+        {
+          if (Boolean.TRUE.equals(s.get(j)))
+          {
+            port = (Integer)p.get(j);
+            break;
+          }
+        }
+        if (port == -1)
+        {
+          adsProperties.put(adsProps[i][0], "false");
+          if (p.size() > 0)
+          {
+            port = (Integer)p.iterator().next();
+          }
+        }
+        else
+        {
+          adsProperties.put(adsProps[i][0], "true");
+        }
+        adsProperties.put(adsProps[i][1], String.valueOf(port));
+      }
+    }
   }
 
   /**
@@ -522,17 +587,18 @@ public class ServerDescriptor
 
         int nEntries = getEntryCount(ctx, id);
 
+        Set<ReplicaDescriptor> replicas = desc.getReplicas();
         for (String baseDn : baseDns)
         {
           SuffixDescriptor suffix = new SuffixDescriptor();
           suffix.setDN(baseDn);
           ReplicaDescriptor replica = new ReplicaDescriptor();
           replica.setServer(desc);
-          Set<ReplicaDescriptor> replicas = new HashSet<ReplicaDescriptor>();
           replicas.add(replica);
-          suffix.setReplicas(replicas);
+          HashSet<ReplicaDescriptor> r = new HashSet<ReplicaDescriptor>();
+          r.add(replica);
+          suffix.setReplicas(r);
           replica.setSuffix(suffix);
-          desc.setReplicas(replicas);
           if (baseDns.size() == 1)
           {
             replica.setEntries(nEntries);
@@ -543,6 +609,7 @@ public class ServerDescriptor
             replica.setEntries(-1);
           }
         }
+        desc.setReplicas(replicas);
       }
     }
   }
