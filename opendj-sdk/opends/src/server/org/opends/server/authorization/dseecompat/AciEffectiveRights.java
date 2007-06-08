@@ -27,14 +27,14 @@
 
 package org.opends.server.authorization.dseecompat;
 
-import org.opends.server.types.*;
-import org.opends.server.core.DirectoryServer;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.*;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This class implements the dseecompat geteffectiverights evaluation.
@@ -212,13 +212,24 @@ public class AciEffectiveRights {
       else if(a.equalsIgnoreCase(aclRightsInfoAttrStr))
         attrMask |= ACL_RIGHTS_INFO;
       else {
-        AttributeType attrType;
-        if((attrType = DirectoryServer.getAttributeType(a)) == null)
-          attrType = DirectoryServer.getDefaultAttributeType(a);
-        nonRightsAttrs.add(attrType);
+          //Check for shorthands for user attributes "*" or operational "+".
+          if(a.equals("*")) {
+              //Add objectclass.
+              AttributeType ocType =
+                      DirectoryServer.getObjectClassAttributeType();
+              nonRightsAttrs.add(ocType);
+              nonRightsAttrs.addAll(e.getUserAttributes().keySet());
+          } else if (a.equals("+"))
+              nonRightsAttrs.addAll(e.getOperationalAttributes().keySet());
+          else {
+              AttributeType attrType;
+              if((attrType = DirectoryServer.getAttributeType(a)) == null)
+                  attrType = DirectoryServer.getDefaultAttributeType(a);
+              nonRightsAttrs.add(attrType);
+          }
       }
     }
-    //If the special geteffectiverights attributes were not found or
+      //If the special geteffectiverights attributes were not found or
     //the user does not have both bypass-acl privs and is not allowed to
     //perform rights evalation -- return the entry unchanged.
     if(attrMask == ACI_NULL ||
