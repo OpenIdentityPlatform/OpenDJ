@@ -238,12 +238,6 @@ public class BackendImpl
       }
     }
 
-    // Log a warning that we have failed to checksum this db environment.
-    int msgID = MSGID_JEB_BACKEND_CHECKSUM_FAIL;
-    String message = getMessage(msgID, cfg.getBackendId());
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_WARNING,
-        message, msgID);
-
     return 0;
   }
 

@@ -305,27 +305,14 @@ public class FileSystemEntryCache
       // Log an error message.
       logError(ErrorLogCategory.CONFIGURATION,
           ErrorLogSeverity.SEVERE_ERROR,
-          MSGID_FSCACHE_INVALID_HOME,
-          String.valueOf(configEntryDN), stackTraceToSingleLineString(e),
-          cacheHome, DEFAULT_FSCACHE_HOME);
+          MSGID_FSCACHE_HOMELESS,
+          String.valueOf(configEntryDN), stackTraceToSingleLineString(e));
 
-      // User specified home is no good, reset to default.
-      cacheHome = DEFAULT_FSCACHE_HOME;
-
-      // Try again.
-      try {
-        checkAndSetupCacheHome(cacheHome);
-      } catch (Exception e2) {
-        // Not having any home for the cache db environment at this point is a
-        // fatal error as we are unable to continue any further without it.
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
-
-        int msgID = MSGID_FSCACHE_HOMELESS;
-        String message = getMessage(msgID, stackTraceToSingleLineString(e2));
-        throw new InitializationException(msgID, message, e2);
-      }
+      // Not having any home directory for the cache db environment is a
+      // fatal error as we are unable to continue any further without it.
+      int msgID = MSGID_FSCACHE_HOMELESS;
+      String message = getMessage(msgID, stackTraceToSingleLineString(e));
+      throw new InitializationException(msgID, message, e);
     }
 
     // Open JE environment and cache database.
@@ -2268,7 +2255,7 @@ public class FileSystemEntryCache
             throw new Exception();
           }
         } catch(Exception e) {
-          // Log an warning that the permissions were not set.
+          // Log a warning that the permissions were not set.
           int msgID = MSGID_FSCACHE_SET_PERMISSIONS_FAILED;
           String message = getMessage(msgID, cacheHome);
           logError(ErrorLogCategory.EXTENSIONS, ErrorLogSeverity.SEVERE_WARNING,
