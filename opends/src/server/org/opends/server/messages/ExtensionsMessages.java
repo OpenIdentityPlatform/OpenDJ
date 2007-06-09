@@ -5142,29 +5142,19 @@ public class ExtensionsMessages
       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 492;
 
   /**
-   * The message ID for the message that will be used if entry cache home
-   * either cannot be created or exist but already in use by another instance
-   * This takes four arguments, which are the DN of the configuration entry,
-   * the cache-home attribute value of the configuration entry, default cache
-   * home value and a string representation of the exception that was caught.
-   */
-  public static final int MSGID_FSCACHE_INVALID_HOME =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 493;
-
-  /**
    * The message ID for the message that will be used if a fatal error occurs
    * while trying to setup the cache db environment home.  This takes one
    * argument which is a string representation of the exception that was caught.
    */
   public static final int MSGID_FSCACHE_HOMELESS =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_FATAL_ERROR | 494;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_FATAL_ERROR | 493;
 
   /**
    * The message ID of an error indicating that the file permissions for the
    * file system entry cache database directory were not set.
    */
   public static final int MSGID_FSCACHE_SET_PERMISSIONS_FAILED =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_WARNING | 495;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_WARNING | 494;
 
   /**
    * The message ID for the message that will be used if recorded offline state
@@ -5172,7 +5162,7 @@ public class ExtensionsMessages
    * argument which is the backend ID.
    */
   public static final int MSGID_FSCACHE_OFFLINE_STATE_FAIL =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_WARNING | 496;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_WARNING | 495;
 
   /**
    * The message ID for the message that will be used to report the cache
@@ -5181,7 +5171,7 @@ public class ExtensionsMessages
    * restored.
    */
   public static final int MSGID_FSCACHE_RESTORE_PROGRESS_REPORT =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 497;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 496;
 
   /**
    * The message ID for the message that will be used to report the cache
@@ -5190,7 +5180,7 @@ public class ExtensionsMessages
    * preserved.
    */
   public static final int MSGID_FSCACHE_SAVE_PROGRESS_REPORT =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 498;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 497;
 
   /**
    * The message ID for the message that will be used if an error occurs while
@@ -5198,7 +5188,7 @@ public class ExtensionsMessages
    * cache. Takes no arguments.
    */
   public static final int MSGID_FSCACHE_INDEX_NOT_FOUND =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 499;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_INFORMATIONAL | 498;
 
   /**
    * The message ID for the message that will be used if persistent cache index
@@ -5206,7 +5196,7 @@ public class ExtensionsMessages
    * can detect. Takes no arguments.
    */
   public static final int MSGID_FSCACHE_INDEX_IMPAIRED =
-       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 500;
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 499;
 
 
 
@@ -7461,15 +7451,10 @@ public class ExtensionsMessages
     registerMessage(MSGID_FSCACHE_CANNOT_INITIALIZE,
                     "A fatal error occurred while trying to initialize file " +
                     "system entry cache. This cache will be disabled now");
-    registerMessage(MSGID_FSCACHE_INVALID_HOME,
-                    "The file system entry cache home specified in entry %s " +
-                    "is invalid:  %s.  The configured location of %s cannot " +
-                    "be used so the server will attempt to use the default " +
-                    "location of %s");
     registerMessage(MSGID_FSCACHE_HOMELESS,
                     "A fatal error occurred while trying to setup file " +
                     "system entry cache home. No suitable path can be found " +
-                    "to host the cache home. This cache will be disabled now");
+                    "to host the cache home");
     registerMessage(MSGID_FSCACHE_SET_PERMISSIONS_FAILED,
                     "Unable to set file permissions for the file system " +
                     "entry cache backend database directory %s");
