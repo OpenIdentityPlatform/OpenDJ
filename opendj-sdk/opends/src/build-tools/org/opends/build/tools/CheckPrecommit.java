@@ -78,7 +78,7 @@ public class CheckPrecommit
 
 
   /**
-   * The name of the system property that may be used to prevent copyright date
+   * The name of the system property that may be used to prevent svn eol-style
    * problems from failing the build.
    */
   public static final String IGNORE_EOLSTYLE_ERRORS_PROPERTY =
@@ -200,7 +200,7 @@ public class CheckPrecommit
 
       System.err.println("Fix svn:eol-style problems before proceeding, or " +
                          "use '-D" + IGNORE_EOLSTYLE_ERRORS_PROPERTY +
-                         "=true' to ignore copyright warnings.");
+                         "=true' to ignore svn eol-style warnings.");
     }
 
     if (! copyrightProblemFiles.isEmpty())
