@@ -1,33 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:root-managed-object xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap">
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     The root configuration provides an entry point to the rest of the
     <adm:product-name />
@@ -47,6 +47,13 @@
         cn=connection handlers, cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+        <cli:default-property name="listen-port" />
+        <cli:default-property name="use-ssl" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="synchronization-provider">
     <adm:one-to-many />
@@ -54,6 +61,11 @@
       <ldap:rdn-sequence>
         cn=Synchronization Providers, cn=config
       </ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:relation name="access-control-handler">
@@ -63,6 +75,11 @@
         cn=Access Control Handler,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="identity-mapper">
     <adm:one-to-many />
@@ -70,6 +87,11 @@
       <ldap:rdn-sequence>
         cn=Identity Mappers,cn=config
       </ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:relation name="certificate-mapper">
@@ -79,6 +101,11 @@
         cn=Certificate Mappers,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="sasl-mechanism-handler">
     <adm:one-to-many />
@@ -86,6 +113,11 @@
       <ldap:rdn-sequence>
         cn=SASL Mechanisms,cn=config
       </ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:relation name="password-validator">
@@ -95,6 +127,11 @@
         cn=Password Validators,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="password-generator">
     <adm:one-to-many />
@@ -103,11 +140,22 @@
         cn=Password Generators,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="plugin">
     <adm:one-to-many />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Plugins,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+        <cli:default-property name="plugin-type" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:relation name="virtual-attribute">
@@ -117,6 +165,12 @@
         cn=Virtual Attributes,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+        <cli:default-property name="attribute-type" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="extended-operation-handler">
     <adm:one-to-many />
@@ -125,13 +179,21 @@
         cn=Extended Operations,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="entry-cache">
-  	<adm:one-to-one />
-  	<adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Entry Cache,cn=config
-      </ldap:rdn-sequence>
+    <adm:one-to-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Entry Cache,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:relation name="account-status-notification-handler">
@@ -141,6 +203,11 @@
         cn=Account Status Notification Handlers,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="password-storage-scheme">
     <adm:one-to-many />
@@ -149,22 +216,36 @@
         cn=Password Storage Schemes,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="backend">
     <adm:one-to-many />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Backends,cn=config
-      </ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=Backends,cn=config</ldap:rdn-sequence>
       <ldap:naming-attribute>ds-cfg-backend-id</ldap:naming-attribute>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="backend-enabled" />
+        <cli:default-property name="backend-base-dn" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:relation name="root-dse-backend">
     <adm:one-to-one />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Root DSE,cn=config
-      </ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=Root DSE,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+        <cli:default-property name="show-all-attributes" />
+        <cli:default-property name="subordinate-base-dn" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:relation name="password-policy">
@@ -174,13 +255,22 @@
         cn=Password Policies,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="password-attribute" />
+        <cli:default-property name="default-password-storage-scheme" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="log-publisher">
     <adm:one-to-many />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Loggers,cn=config
-      </ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=Loggers,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:relation name="log-rotation-policy">
@@ -190,6 +280,13 @@
         cn=Log Rotation Policies,cn=config
       </ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="file-size-limit" />
+        <cli:default-property name="rotation-interval" />
+        <cli:default-property name="time-of-day" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="log-retention-policy">
     <adm:one-to-many />
@@ -197,6 +294,13 @@
       <ldap:rdn-sequence>
         cn=Log Retention Policies,cn=config
       </ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="disk-space-used" />
+        <cli:default-property name="free-disk-space" />
+        <cli:default-property name="number-of-files" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:product-name>OpenDS Directory Server</adm:product-name>

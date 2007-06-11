@@ -213,6 +213,14 @@
       <param name="base-dir" expression="${src.dir}" />
     </xslt>
 
+    <!-- Compile the Directory Server extension configuration cli profile property files. -->
+    <xslt basedir="${src.dir}" destdir="${classes.dir}/admin/profiles/cli" style="${admin.dir}/cliMOProfile.xsl">
+      <include name="**/*Configuration.xml" />
+      <exclude name="org/opends/server/admin/std/*.xml" />
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
+      <param name="base-dir" expression="${src.dir}" />
+    </xslt>
+
     <!-- Compile the Directory Server extension configuration I18N message files. -->
     <xslt basedir="${src.dir}" destdir="${classes.dir}/admin/messages" style="${admin.dir}/messagesMO.xsl">
       <include name="**/*Configuration.xml" />
@@ -240,6 +248,7 @@
       <fileset dir="${src.dir}" includes="**/*.xml" />
       <schema namespace="http://www.opends.org/admin" file="${admin.dir}/admin.xsd" />
       <schema namespace="http://www.opends.org/admin-ldap" file="${admin.dir}/admin-ldap.xsd" />
+      <schema namespace="http://www.opends.org/admin-cli" file="${admin.dir}/admin-cli.xsd" />
     </schemavalidate>
   </target>
 </project>

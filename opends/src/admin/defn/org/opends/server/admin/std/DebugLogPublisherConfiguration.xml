@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <adm:managed-object name="debug-log-publisher"
   plural-name="debug-log-publishers"
-  package="org.opends.server.admin.std"
-  extends="log-publisher"
-  abstract="true"
-  xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap">
+  package="org.opends.server.admin.std" extends="log-publisher"
+  abstract="true" xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are reponsible for distributing debug log messages from the debug logger to
-    a destination.
+    are reponsible for distributing debug log messages from the debug
+    logger to a destination.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -21,12 +20,18 @@
   <adm:relation name="debug-target">
     <adm:one-to-many />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Debug Targets
-      </ldap:rdn-sequence>
-      <ldap:naming-attribute>
-        ds-cfg-debug-scope
-      </ldap:naming-attribute>
+      <ldap:rdn-sequence>cn=Debug Targets</ldap:rdn-sequence>
+      <ldap:naming-attribute>ds-cfg-debug-scope</ldap:naming-attribute>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation operand-name="TARGET" />
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="debug-level" />
+        <cli:default-property name="debug-category" />
+        <cli:default-property name="debug-scope" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:property name="java-implementation-class" mandatory="true">
@@ -51,34 +56,36 @@
   </adm:property>
   <adm:property name="default-debug-level" mandatory="true">
     <adm:synopsis>
-      The lowest severity level of debug messages to log when none of the
-      defined targets match the message.
+      The lowest severity level of debug messages to log when none of
+      the defined targets match the message.
     </adm:synopsis>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="disabled">
-          <adm:synopsis>
-            No messages will be logged.
-          </adm:synopsis>
+          <adm:synopsis>No messages will be logged.</adm:synopsis>
         </adm:value>
         <adm:value name="error">
           <adm:synopsis>
-            Messages with severity level of ERROR or higher will be logged.
+            Messages with severity level of ERROR or higher will be
+            logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="warning">
           <adm:synopsis>
-            Messages with severity level of WARNING or higher will be logged.
+            Messages with severity level of WARNING or higher will be
+            logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="info">
           <adm:synopsis>
-            Messages with severity level of INFO or higher will be logged.
+            Messages with severity level of INFO or higher will be
+            logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="verbose">
           <adm:synopsis>
-            Messages with severity level of VERBOSE or higher will be logged.
+            Messages with severity level of VERBOSE or higher will be
+            logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="all">
@@ -97,8 +104,8 @@
   </adm:property>
   <adm:property name="default-debug-category" multi-valued="true">
     <adm:synopsis>
-      The category(ies) of debug messages to log when none of the defined
-      targets match the message.
+      The category(ies) of debug messages to log when none of the
+      defined targets match the message.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -110,49 +117,31 @@
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="caught">
-          <adm:synopsis>
-            Exception caught.
-          </adm:synopsis>
+          <adm:synopsis>Exception caught.</adm:synopsis>
         </adm:value>
         <adm:value name="constructor">
-          <adm:synopsis>
-            Constructor entry.
-          </adm:synopsis>
+          <adm:synopsis>Constructor entry.</adm:synopsis>
         </adm:value>
         <adm:value name="data">
-          <adm:synopsis>
-            Raw data dump.
-          </adm:synopsis>
+          <adm:synopsis>Raw data dump.</adm:synopsis>
         </adm:value>
         <adm:value name="database-access">
-          <adm:synopsis>
-            Access to a backend database.
-          </adm:synopsis>
+          <adm:synopsis>Access to a backend database.</adm:synopsis>
         </adm:value>
         <adm:value name="enter">
-          <adm:synopsis>
-            Method entry.
-          </adm:synopsis>
+          <adm:synopsis>Method entry.</adm:synopsis>
         </adm:value>
         <adm:value name="exit">
-          <adm:synopsis>
-            Method exit.
-          </adm:synopsis>
+          <adm:synopsis>Method exit.</adm:synopsis>
         </adm:value>
         <adm:value name="message">
-          <adm:synopsis>
-            Arbitrary debug message.
-          </adm:synopsis>
+          <adm:synopsis>Arbitrary debug message.</adm:synopsis>
         </adm:value>
         <adm:value name="protocol">
-          <adm:synopsis>
-            Protocol element dump.
-          </adm:synopsis>
+          <adm:synopsis>Protocol element dump.</adm:synopsis>
         </adm:value>
         <adm:value name="thrown">
-          <adm:synopsis>
-            Exception throw from method.
-          </adm:synopsis>
+          <adm:synopsis>Exception throw from method.</adm:synopsis>
         </adm:value>
       </adm:enumeration>
     </adm:syntax>
@@ -165,14 +154,12 @@
   </adm:property>
   <adm:property name="default-omit-method-entry-arguments">
     <adm:synopsis>
-      Property to indicate whether to include method arguments in debug messages
-      logged by default.
+      Property to indicate whether to include method arguments in debug
+      messages logged by default.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          false
-        </adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -181,20 +168,20 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.347</ldap:oid>
-        <ldap:name>ds-cfg-default-omit-method-entry-arguments</ldap:name>
+        <ldap:name>
+          ds-cfg-default-omit-method-entry-arguments
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
   <adm:property name="default-omit-method-return-value">
     <adm:synopsis>
-      Property to indicate whether to include the return value in debug messages
-      logged by default.
+      Property to indicate whether to include the return value in debug
+      messages logged by default.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          false
-        </adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -214,9 +201,7 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          false
-        </adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -231,14 +216,12 @@
   </adm:property>
   <adm:property name="default-throwable-stack-frames">
     <adm:synopsis>
-      Property to indicate the number of stack frames to include in the stack
-      trace for method entry and exception thrown messages.
+      Property to indicate the number of stack frames to include in the
+      stack trace for method entry and exception thrown messages.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          0
-        </adm:value>
+        <adm:value>0</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
