@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
-package org.opends.admin.ads;
+package org.opends.server.admin.client.cli;
 
 import static org.opends.server.messages.AdminMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -41,8 +41,10 @@ import java.util.Set;
 import javax.naming.ldap.Rdn;
 
 
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
-import org.opends.admin.ads.DsServiceCliReturnCode.ReturnCode;
+import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
@@ -219,6 +221,15 @@ public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
    */
   private HashMap<ServerGroupProperty, String> attributeDisplayName;
 
+  /**
+   * Get the display attribute name for a given attribute.
+   * @param prop The server prperty
+   * @return the display attribute name for a given attribute
+   */
+  public String getAttributeDisplayName(ServerGroupProperty prop)
+  {
+    return attributeDisplayName.get(prop);
+  }
   /**
    * {@inheritDoc}
    */

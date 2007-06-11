@@ -78,6 +78,7 @@
   <property name="quicksetup.classes.dir"
             location="${build.dir}/quicksetup/classes"                />
   <property name="ads.src.dir" location="src/ads"       />
+  <property name="ads.class.dir" location="${classes.dir}/org/opends/admin/ads"/>
 
   <!-- Properties for use with the Status Panel.                      -->
   <property name="statuspanel.src.dir" location="src/statuspanel"       />
@@ -428,7 +429,7 @@
        description="Compile the Directory Server source files.">
     <mkdir dir="${classes.dir}" />
 
-    <javac srcdir="${src.dir}:${admin.src.dir}" destdir="${classes.dir}"
+    <javac srcdir="${src.dir}:${admin.src.dir}:${ads.src.dir}" destdir="${classes.dir}"
          excludes="**/package-info.java"
          debug="on" debuglevel="${build.debuglevel}" source="1.5" target="1.5"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
@@ -709,6 +710,7 @@
     <mkdir dir="${pdir}/locks"           />
     <mkdir dir="${pdir}/logs"            />
 
+    <delete dir="${ads.class.dir}"       />
     <jar jarfile="${pdir}/lib/OpenDS.jar"
          basedir="${classes.dir}" compress="true" index="true" />
 
@@ -908,10 +910,12 @@
 
         <dirset dir="${classes.dir}" />
         <dirset dir="${dsml.classes.dir}" />
+        <dirset dir="${quicksetup.classes.dir}" />
       </classpath>
 
       <packageset dir="${src.dir}" />
       <packageset dir="${admin.src.dir}" />
+      <packageset dir="${ads.src.dir}" />
       <packageset dir="${dsml.src.dir}" />
     </javadoc>
   </target>
@@ -929,6 +933,10 @@
 
     <path id="run.classpath">
       <pathelement location="${classes.dir}" />
+    </path>
+
+    <path id="quickSetup.classpath">
+       <pathelement location="${quicksetup.classes.dir}" />
     </path>
   </target>
 
@@ -968,6 +976,7 @@
         </fileset>
 
         <path refid="run.classpath" />
+        <path refid="quickSetup.classpath" />
       </classpath>
     </javac>
 
@@ -1276,6 +1285,7 @@
       <classpath>
         <pathelement location="${coverage.instr.dir}" />
         <pathelement location="${classes.dir}" />
+        <pathelement location="${quicksetup.classes.dir}" />
         <pathelement location="${unittest.classes.dir}" />
 
         <path refid="run.classpath" />

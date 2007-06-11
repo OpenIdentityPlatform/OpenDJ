@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
-package org.opends.admin.ads;
+package org.opends.server.admin.client.cli;
 
 import static org.opends.server.messages.AdminMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -33,7 +33,10 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.admin.ads.DsServiceCliReturnCode.ReturnCode;
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ADSContextException;
+import org.opends.admin.ads.ADSContextHelper;
+import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
