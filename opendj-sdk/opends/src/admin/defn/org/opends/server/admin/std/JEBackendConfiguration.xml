@@ -389,6 +389,7 @@
       <adm:string>
         <adm:pattern>
           <adm:regex>7[0-7][0-7]</adm:regex>
+          <adm:usage>MODE</adm:usage>
           <adm:synopsis>
             Any octal value between 700 and 777 (the owner must always have
             read, write, and execute permissions on the directory).

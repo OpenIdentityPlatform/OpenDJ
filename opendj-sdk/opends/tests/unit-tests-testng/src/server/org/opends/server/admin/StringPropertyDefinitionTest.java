@@ -102,7 +102,7 @@ public class StringPropertyDefinitionTest {
     StringPropertyDefinition.Builder builder = StringPropertyDefinition
         .createBuilder(RootCfgDefn.getInstance(), "test-property");
     builder.setCaseInsensitive(isCaseInsensitive);
-    builder.setPattern(pattern);
+    builder.setPattern(pattern, "STRING");
     return builder.getInstance();
   }
 }

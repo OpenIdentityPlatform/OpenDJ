@@ -1275,6 +1275,16 @@
                       </xsd:documentation>
                     </xsd:annotation>
                   </xsd:element>
+                  <xsd:element name="usage" type="xsd:string">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        The usage string which should be displayed in
+                        help relating to this string based property. For
+                        example, a pattern which is used to match a
+                        host/port string could have the usage HOST:PORT.
+                      </xsd:documentation>
+                    </xsd:annotation>
+                  </xsd:element>
                   <xsd:element name="synopsis"
                     type="tns:rich-description-type">
                     <xsd:annotation>
