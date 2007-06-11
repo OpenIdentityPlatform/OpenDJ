@@ -1504,6 +1504,12 @@
       <param name="base-dir" expression="${admin.defn.dir}" />
     </xslt>
 
+    <!-- Generate CLI profile for core administration components. -->
+    <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/profiles/cli" includes="**/*Configuration.xml" style="${admin.rules.dir}/cliMOProfile.xsl">
+      <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
+      <param name="base-dir" expression="${admin.defn.dir}" />
+    </xslt>
+
     <!-- Generate I18N messages for core administration components. -->
     <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/messages" includes="**/*Configuration.xml" style="${admin.rules.dir}/messagesMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
@@ -1537,6 +1543,7 @@
       <fileset dir="${admin.defn.dir}" includes="**/*.xml" />
       <schema namespace="http://www.opends.org/admin" file="${admin.rules.dir}/admin.xsd"/>
       <schema namespace="http://www.opends.org/admin-ldap" file="${admin.rules.dir}/admin-ldap.xsd"/>
+      <schema namespace="http://www.opends.org/admin-cli" file="${admin.rules.dir}/admin-cli.xsd"/>
     </schemavalidate>
   </target>
 

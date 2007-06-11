@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://www.opends.org/admin-cli"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified" xmlns:adm="http://www.opends.org/admin"
+  xmlns:tns="http://www.opends.org/admin-cli">
+  <xsd:import namespace="http://www.opends.org/admin"
+    schemaLocation="admin.xsd" />
+  <xsd:annotation>
+    <xsd:documentation>
+      This schema defines the elements and attributes of the "cli"
+      profile. This profile provides the ability to annotate managed
+      object definitions, properties, and relations with additional
+      information which the CLI can use to provide a better user
+      experience.
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="relation">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines CLI annotations for use with relation definitions.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="default-property" minOccurs="0"
+          maxOccurs="unbounded">
+          <xsd:annotation>
+            <xsd:documentation>
+              The name of a property in the referenced managed object
+              (or one of its sub-types) which will be displayed by
+              default in list-xxx sub-commands.
+            </xsd:documentation>
+          </xsd:annotation>
+          <xsd:complexType>
+            <xsd:attribute name="name" type="adm:name-type"
+              use="required">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The name of a property in the referenced managed
+                  object (or one of its sub-types) which will be
+                  displayed by default in list-xxx sub-commands.
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:attribute>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="operand-name" default="NAME">
+        <xsd:annotation>
+          <xsd:documentation>
+            The operand name which should be used in command line usage
+            to represent the name of the managed object associated with
+            a one-to-many relation. For example, DB_NAME could be used
+            to represent the name of a back-end. When the operand name
+            is not specified for a relation, NAME is used by default. It
+            is recommended that all one-to-many relations not defined in
+            the root configuration override this default.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:token">
+            <xsd:pattern value="[A-Z][A-Z0-9_]*" />
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:attribute>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

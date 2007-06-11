@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="multimaster-synchronization-provider"
   plural-name="multimaster-synchronization-providers"
   package="org.opends.server.admin.std"
   extends="synchronization-provider"
   xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap" abstract="false">
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  xmlns:cli="http://www.opends.org/admin-cli" abstract="false">
   <adm:synopsis>
     The
     <adm:user-friendly-name />
@@ -50,11 +50,28 @@
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=domains</ldap:rdn-sequence>
     </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation operand-name="DOMAIN" />
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="server-id" />
+        <cli:default-property name="replication-server" />
+        <cli:default-property name="replication-dn" />
+      </cli:relation>
+    </adm:profile>
   </adm:relation>
   <adm:relation name="replication-server">
     <adm:one-to-zero-or-one />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=replication server</ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="replication-server-id" />
+        <cli:default-property name="replication-port" />
+        <cli:default-property name="replication-server" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:property-override name="java-implementation-class">
