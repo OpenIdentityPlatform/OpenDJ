@@ -64,6 +64,15 @@ class directory_server_information:
   def getServerBuildId(self,string):
     return string.replace("Build ","")
 
+  def getServerOSName(self,string):
+    return string[0:string.find(' ')].strip()
+
+  def getServerArch(self,string):
+    return string[string.rfind(' ') +1:len(string)].strip()
+
+  def getServerJavaMajorMinor(self,string):
+    return string[0:string.rfind('.')]
+
   def getServerValueFromString(self,string):
     return string[string.find(':') +1:len(string)].strip()
 

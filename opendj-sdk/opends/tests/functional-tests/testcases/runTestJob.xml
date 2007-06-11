@@ -36,7 +36,6 @@
 
       <script>
         STAXLogMessage = 1
-        logdir='%s' % TMPDIR
       </script>
       
       <job name="'Job: %s %s' % (STAF_REMOTE_HOSTNAME,TEST_OS_STRING) " monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
@@ -63,11 +62,14 @@
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/stafcmd.xml' % (TESTS_FUNCTIONS_DIR)" />
         
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/utils.xml' % (TESTS_FUNCTIONS_DIR)" />        
+        
       <!-- Get Directory Server Variables -->
       <call function="'GetVar'">
         { 'location'  : STAF_REMOTE_HOSTNAME,
           'type'      : 'shared',
-          'variable'  : 'ServerInfo' }
+          'variable'  : 'Job%s_ServerInfo' % STAXSubJobID }
       </call>
 
       <if expr="RC != 0">
@@ -75,7 +77,7 @@
           STAFResult='{}'
         </script>
       </if>
-      
+            
       <!-- Build the Servers Information Dictionary -->
       <script> 
                     
@@ -163,10 +165,42 @@
         </sequence>
       </else>
       </if>
- 
+
+      <!-- Get logsDir Variable -->
+      <call function="'GetVar'">
+        { 'location'  : STAF_REMOTE_HOSTNAME,
+          'type'      : 'shared',
+          'variable'  : 'Job%s_LogsDir' % STAXSubJobID }
+      </call>
+
+      <if expr="RC == 0">
+        <script>
+          logsDir=STAFResult
+        </script>
+      <else>
+        <sequence>
+          <message>
+            'Unable to retrieve LogsDir variable, RC=%s,Result=%s.' % (RC,STAFResult)
+          </message>          
+          <script>
+            logsDir='%s' % TMPDIR
+          </script>
+        </sequence>
+      </else>
+      </if>
+
+      <script>
+        logsReportDir='%s/reports' % logsDir
+      </script>
+
+      <call function="'createFolder'">
+        { 'location'   : STAF_LOCAL_HOSTNAME, 
+          'foldername' : logsReportDir }
+      </call>
+                   
       <!-- Write Text File for results -->
       <script>
-          textfile= '%s/results.txt' % logdir
+          textfile= '%s/results.txt' % logsReportDir
           txtfh=open(textfile,'w')
       </script>
       
@@ -189,9 +223,9 @@
       <!-- Write XML File for results -->
       <script>
         import re 
-        xmlfile= '%s/results.xml' % logdir
+        xmlfile= '%s/results.xml' % logsReportDir
         xmlfh=open(xmlfile,'w') 
-        errorfile= '%s/results.errors' % logdir
+        errorfile= '%s/results.errors' % logsReportDir
         errorfh=open(errorfile,'w')
       </script>
 
@@ -390,7 +424,7 @@
       <!-- Transform Report XML into HTML -->
       <script>
         xslfile= '%s/xsl/gen-alltests-report.xsl' % TESTS_SHARED_DIR
-        htmlfile= '%s/results.html' % logdir
+        htmlfile= '%s/results.html' % logsReportDir
       </script>
       
       <message>
