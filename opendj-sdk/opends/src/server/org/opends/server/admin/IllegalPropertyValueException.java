@@ -76,9 +76,13 @@ public class IllegalPropertyValueException extends PropertyException {
    */
   @Override
   public String getMessage() {
-    return "The value \"" + String.valueOf(value)
-        + "\" is not a valid value for the property \""
-        + getPropertyDefinition().getName() + "\"";
+    String msg = "The value \"%s\" is not a valid value for the "
+        + "property \"%s\", which must have the following syntax: %s";
+    PropertyDefinition<?> pd = getPropertyDefinition();
+    PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(
+        true);
+    return String.format(msg, String.valueOf(value), pd.getName(), builder
+        .getUsage(pd));
   }
 
 }
