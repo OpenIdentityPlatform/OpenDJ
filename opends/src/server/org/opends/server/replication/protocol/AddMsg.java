@@ -57,8 +57,8 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 public class AddMsg extends UpdateMessage
 {
   private static final long serialVersionUID = -4905520652801395185L;
-  private final byte[] encodedAttributes;
-  private final String parentUniqueId;
+  private byte[] encodedAttributes;
+  private String parentUniqueId;
 
   /**
    * Creates a new AddMessage.
@@ -262,5 +262,33 @@ public class AddMsg extends UpdateMessage
   public String toString()
   {
     return ("ADD " + getDn() + " " + getChangeNumber());
+  }
+
+  /**
+   * Add the specified attribute/attribute value in the entry contained
+   * in this AddMsg.
+   *
+   * @param name  The name of the attribute to add.
+   * @param value The value of the attribute to add.
+   * @throws ASN1Exception When this Msg is not valid.
+   */
+  public void addAttribute(String name, String value)
+         throws ASN1Exception
+  {
+    RawAttribute newAttr = new LDAPAttribute(name, value);
+    ArrayList<ASN1Element> elems;
+    elems = ASN1Element.decodeElements(encodedAttributes);
+    elems.add(newAttr.encode());
+    encodedAttributes = ASN1Element.encodeValue(elems);
+  }
+
+  /**
+   * Set the parent unique id of this add msg.
+   *
+   * @param uid the parent unique id.
+   */
+  public void setParentUid(String uid)
+  {
+    parentUniqueId = uid;
   }
 }

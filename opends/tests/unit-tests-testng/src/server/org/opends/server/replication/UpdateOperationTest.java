@@ -41,6 +41,7 @@ import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.ReplicationBroker;
+import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.HeartbeatThread;
@@ -87,6 +88,15 @@ public class UpdateOperationTest extends ReplicationTestCase
    */
   protected Entry personEntry;
   private int replServerPort;
+  private String domain1uid;
+  private String domain2uid;
+  private String domain3uid;
+  private String domain1dn;
+  private String domain2dn;
+  private String domain3dn;
+  private Entry domain1;
+  private Entry domain2;
+  private Entry domain3;
 
   /**
    * Set up the environment for performing the tests in this Class.
@@ -111,16 +121,9 @@ public class UpdateOperationTest extends ReplicationTestCase
     topEntries[1] = "dn: ou=People,dc=example,dc=com\n" + "objectClass: top\n"
         + "objectClass: organizationalUnit\n"
         + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
-    Entry entry;
     for (String entryStr : topEntries)
     {
-      entry = TestCaseUtils.entryFromLdifString(entryStr);
-      AddOperation addOp = new AddOperation(connection,
-          InternalClientConnection.nextOperationID(), InternalClientConnection
-              .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
-          entry.getUserAttributes(), entry.getOperationalAttributes());
-      addOp.setInternalOperation(true);
-      addOp.run();
+      addEntry(TestCaseUtils.entryFromLdifString(entryStr));
     }
 
     baseUUID = getEntryUUID(DN.decode("ou=People,dc=example,dc=com"));
@@ -216,8 +219,50 @@ public class UpdateOperationTest extends ReplicationTestCase
       + "entryUUID: "+ user1entrysecondUUID + "\n";
     personWithSecondUniqueID =
       TestCaseUtils.entryFromLdifString(entryWithSecondUUID);
+    
+    
+    domain1dn = "dc=domain1,ou=People,dc=example,dc=com";
+    domain2dn = "dc=domain2,dc=domain1,ou=People,dc=example,dc=com";
+    domain3dn = "dc=domain3,dc=domain1,ou=People,dc=example,dc=com";
+    domain1 = TestCaseUtils.entryFromLdifString(
+        "dn:" + domain1dn + "\n" 
+        + "objectClass:domain\n"
+        + "dc:domain1");
+    domain2 = TestCaseUtils.entryFromLdifString(
+        "dn:" + domain2dn + "\n" 
+        + "objectClass:domain\n"
+        + "dc:domain2");
+    domain3 = TestCaseUtils.entryFromLdifString(
+        "dn:" + domain3dn + "\n" 
+        + "objectClass:domain\n"
+        + "dc:domain3");
 
     configureReplication();
+  }
+
+  /**
+   * Add an entry in the datatbase
+   *
+   */
+  private void addEntry(Entry entry) throws Exception
+  {
+    AddOperation addOp = new AddOperation(connection,
+        InternalClientConnection.nextOperationID(), InternalClientConnection
+            .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
+        entry.getUserAttributes(), entry.getOperationalAttributes());
+    addOp.setInternalOperation(true);
+    addOp.run();
+    assertNotNull(getEntry(entry.getDN(), 1000, true));
+  }
+  
+  /**
+   * Delete an entry in the datatbase
+   *
+   */
+  private void delEntry(DN dn) throws Exception
+  {
+    connection.processDelete(dn);
+    assertNull(getEntry(dn, 1000, true));
   }
 
   /**
@@ -454,7 +499,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     // Simulate the ordering t2:replace:B followed by t1:add:A that
     updateMonitorCount(baseDn, monitorAttr);
-    
+
     // Replay a replace of a value B at time t2 on a second server.
     Attribute attr = new Attribute(attrType.getNormalizedPrimaryName(), "B");
     Modification mod = new Modification(ModificationType.REPLACE, attr);
@@ -484,7 +529,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     // the value should be the last (time t2) value added
     assertEquals(attrValue1, "B");
     assertEquals(getMonitorDelta(), 1);
-    
+
     // Simulate the ordering t2:delete:displayname followed by
     // t1:replace:displayname
     // A change on a first server.
@@ -495,7 +540,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     // Simulate the ordering t2:delete:displayname followed by t1:replace:A
     updateMonitorCount(baseDn, monitorAttr);
-    
+
     // Replay an delete of attribute displayname at time t2 on a second server.
     attr = new Attribute(attrType);
     mod = new Modification(ModificationType.DELETE, attr);
@@ -521,9 +566,9 @@ public class UpdateOperationTest extends ReplicationTestCase
     attrs = entry.getAttribute(attrType);
 
     // there should not be a value (delete at time t1)
-    assertNull(attrs);    
+    assertNull(attrs);
     assertEquals(getMonitorDelta(), 1);
-    
+
     broker.stop();
   }
 
@@ -545,7 +590,8 @@ public class UpdateOperationTest extends ReplicationTestCase
         "Starting replication test : namingConflicts" , 1);
 
     final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
-    String monitorAttr = "resolved-naming-conflicts";
+    String resolvedMonitorAttr = "resolved-naming-conflicts";
+    String unresolvedMonitorAttr = "unresolved-naming-conflicts";
 
     /*
      * Open a session to the replicationServer using the ReplicationServer broker API.
@@ -588,7 +634,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(),
         DN.decode("cn=something,ou=People,dc=example,dc=com"), mods,
         user1entryUUID);
-    updateMonitorCount(baseDn, monitorAttr);
+    updateMonitorCount(baseDn, resolvedMonitorAttr);
     broker.publish(modMsg);
 
     // check that the modify has been applied as if the entry had been renamed.
@@ -596,7 +642,7 @@ public class UpdateOperationTest extends ReplicationTestCase
                            "telephonenumber", "01 02 45", 10000, true);
     if (found == false)
      fail("The modification has not been correctly replayed.");
-    assertEquals(getMonitorDelta(), 1);    
+    assertEquals(getMonitorDelta(), 1);
 
     /*
      * Test that the conflict resolution code is able to detect
@@ -626,7 +672,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     mods = generatemods("telephonenumber", "02 01 03 05");
     modMsg = new ModifyMsg(gen.newChangeNumber(),
         DN.decode(user1dn), mods, "10000000-9abc-def0-1234-1234567890ab");
-    updateMonitorCount(baseDn, monitorAttr);
+    updateMonitorCount(baseDn, resolvedMonitorAttr);
     broker.publish(modMsg);
 
     // check that the modify has not been applied
@@ -649,7 +695,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     DeleteMsg delMsg =
       new DeleteMsg("cn=anotherdn,ou=People,dc=example,dc=com",
           gen.newChangeNumber(), user1entryUUID);
-    updateMonitorCount(baseDn, monitorAttr);
+    updateMonitorCount(baseDn, resolvedMonitorAttr);
     broker.publish(delMsg);
 
     // check that the delete operation has been applied
@@ -684,7 +730,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         user1entrysecondUUID, baseUUID,
         personWithSecondUniqueID.getObjectClassAttribute(),
         personWithSecondUniqueID.getAttributes(), new ArrayList<Attribute>());
-    updateMonitorCount(baseDn, monitorAttr);
+    updateMonitorCount(baseDn, unresolvedMonitorAttr);
     broker.publish(addMsg);
 
     //  Check that the entry has been renamed and created in the local DS.
@@ -693,7 +739,8 @@ public class UpdateOperationTest extends ReplicationTestCase
         10000, true);
     assertNotNull(resultEntry,
         "The ADD replication message was not applied");
-    assertEquals(getMonitorDelta(), 1);    
+    assertEquals(getMonitorDelta(), 1);
+    assertConflictAttribute(resultEntry);
 
     //  delete the entries to clean the database.
     delMsg =
@@ -722,7 +769,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),
         personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
-    updateMonitorCount(baseDn, monitorAttr);
+    updateMonitorCount(baseDn, resolvedMonitorAttr);
     broker.publish(addMsg);
 
     //  Check that the entry has been renamed and created in the local DS.
@@ -744,7 +791,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     delMsg =
       new DeleteMsg("uid=new person,ou=People,dc=example,dc=com",
           gen.newChangeNumber(), "11111111-9abc-def0-1234-1234567890ab");
-    updateMonitorCount(baseDn, monitorAttr);
+    updateMonitorCount(baseDn, resolvedMonitorAttr);
     broker.publish(delMsg);
     resultEntry = getEntry(
           DN.decode("uid=new person,ou=People,dc=example,dc=com"), 10000, true);
@@ -769,7 +816,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         user1entryUUID, baseUUID, false,
         "uid=wrong, ou=people,dc=example,dc=com",
         "uid=newrdn");
-    updateMonitorCount(baseDn, monitorAttr);
+    updateMonitorCount(baseDn, resolvedMonitorAttr);
     broker.publish(modDnMsg);
 
     resultEntry = getEntry(
@@ -787,7 +834,7 @@ public class UpdateOperationTest extends ReplicationTestCase
      modDnMsg = new ModifyDNMsg(
         "uid=wrong,ou=People,dc=example,dc=com", gen.newChangeNumber(),
         user1entryUUID, baseUUID, false, null, "uid=reallynewrdn");
-    updateMonitorCount(baseDn, monitorAttr);
+    updateMonitorCount(baseDn, resolvedMonitorAttr);
     broker.publish(modDnMsg);
 
     resultEntry = getEntry(
@@ -810,7 +857,6 @@ public class UpdateOperationTest extends ReplicationTestCase
         baseUUID,
         personWithSecondUniqueID.getObjectClassAttribute(),
         personWithSecondUniqueID.getAttributes(), new ArrayList<Attribute>());
-    updateMonitorCount(baseDn, monitorAttr);
     broker.publish(addMsg);
 
     //  check that the second entry has been added
@@ -818,23 +864,21 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     // check that the add operation has been applied
     assertNotNull(resultEntry, "The add operation was not replayed");
-    assertEquals(getMonitorDelta(), 1);
 
     // try to rename the first entry
     modDnMsg = new ModifyDNMsg(user1dn, gen.newChangeNumber(),
                                user1entrysecondUUID, baseUUID, false,
                                baseDn.toString(), "uid=reallynewrdn");
-    updateMonitorCount(baseDn, monitorAttr);
+    updateMonitorCount(baseDn, unresolvedMonitorAttr);
     broker.publish(modDnMsg);
 
    // check that the second entry has been renamed
     resultEntry = getEntry(
         DN.decode("entryUUID = " + user1entrysecondUUID + "+uid=reallynewrdn," +
             "ou=People,dc=example,dc=com"), 10000, true);
-
-    // check that the delete operation has been applied
     assertNotNull(resultEntry, "The modifyDN was not or incorrectly replayed");
     assertEquals(getMonitorDelta(), 1);
+    assertConflictAttribute(resultEntry);
 
     // delete the entries to clean the database
     delMsg =
@@ -940,7 +984,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
 
     // - publish msg
-    updateMonitorCount(baseDn, monitorAttr);
+    updateMonitorCount(baseDn, resolvedMonitorAttr);
     broker.publish(addMsg);
 
     // - check that the Dn has been changed to baseDn2
@@ -955,9 +999,95 @@ public class UpdateOperationTest extends ReplicationTestCase
         "The ADD replication message was NOT applied under ou=baseDn2,"+baseDn);
     entryList.add(resultEntry.getDN());
     assertEquals(getMonitorDelta(), 1);
+    
+    //
+    // Check that when a delete is conflicting with Add of some entries
+    // below the deleted entries, the child entry that have been added
+    // before the deleted is replayed gets renamed correctly.
+    //
+    
+    // add domain1 entry with 2 childs domain2 and domain3
+    addEntry(domain1);
+    domain1uid = getEntryUUID(DN.decode(domain1dn));
+    addEntry(domain2);
+    domain2uid = getEntryUUID(DN.decode(domain2dn));
+    addEntry(domain3);
+    domain3uid = getEntryUUID(DN.decode(domain3dn));
+    DN conflictDomain2dn = DN.decode(
+        "entryUUID = " + domain2uid + "+dc=domain2,ou=people,dc=example,dc=com");
+    DN conflictDomain3dn = DN.decode(
+        "entryUUID = " + domain3uid + "+dc=domain3,ou=people,dc=example,dc=com");
+ 
+    updateMonitorCount(baseDn, unresolvedMonitorAttr);
+    
+    // delete domain1
+    delMsg = new DeleteMsg(domain1dn, gen.newChangeNumber(), domain1uid);
+    broker.publish(delMsg);
 
+    // check that the domain1 has correctly been deleted
+    assertNull(getEntry(DN.decode(domain1dn), 10000, false),
+        "The DELETE replication message was not replayed");
+    
+    // check that domain2 and domain3 have been renamed
+    assertNotNull(getEntry(conflictDomain2dn, 1000, true),
+        "The conflicting entries were not created");
+    assertNotNull(getEntry(conflictDomain3dn, 1000, true),
+        "The conflicting entries were not created");
 
+    // check that the 2 conflicting entries have been correctly marked
+    assertTrue(checkEntryHasAttribute(conflictDomain2dn,
+        ReplicationDomain.DS_SYNC_CONFLICT, domain1dn, 1000, true));
+    assertTrue(checkEntryHasAttribute(conflictDomain3dn,
+        ReplicationDomain.DS_SYNC_CONFLICT, domain1dn, 1000, true));
+    
+    // check that unresolved conflict count has been incremented
+    assertEquals(getMonitorDelta(), 1);
+    
+    // delete the resulting entries for the next test
+    delEntry(conflictDomain2dn);
+    delEntry(conflictDomain3dn);
+    
+    //
+    // Check that when an entry is added on one master below an entry
+    // that is currently deleted on another master, the replay of the
+    // add on the second master cause the added entry to be renamed
+    //
+    addMsg = new AddMsg(gen.newChangeNumber(), domain2dn, domain2uid,
+        domain1uid,
+        domain2.getObjectClassAttribute(),
+        domain2.getAttributes(), new ArrayList<Attribute>());
+    broker.publish(addMsg);
+    
+    // check that conflict entry was created
+    assertNotNull(getEntry(conflictDomain2dn, 1000, true),
+      "The conflicting entries were not created");
+    
+    // check that the entry have been correctly marked as conflicting.
+    assertTrue(checkEntryHasAttribute(conflictDomain2dn,
+        ReplicationDomain.DS_SYNC_CONFLICT, domain2dn, 1000, true));
+    
+    // check that unresolved conflict count has been incremented
+    assertEquals(getMonitorDelta(), 1);
+    
     broker.stop();
+  }
+
+  /**
+   * Check that the given entry does contain the attribute that mark the
+   * entry as conflicting.
+   *
+   * @param entry The entry that needs to be asserted.
+   *
+   * @return A boolean indicating if the entry is correctly marked.
+   */
+  private boolean assertConflictAttribute(Entry entry)
+  {
+    List<Attribute> attrs = entry.getAttribute("ds-sync-confict");
+
+    if (attrs == null)
+      return false;
+    else
+      return true;
   }
 
   @DataProvider(name="assured")

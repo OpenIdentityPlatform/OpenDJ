@@ -75,6 +75,7 @@ import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.AckMessage;
 import org.opends.server.replication.protocol.AddContext;
+import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteContext;
 import org.opends.server.replication.protocol.DoneMessage;
 import org.opends.server.replication.protocol.EntryMessage;
@@ -91,6 +92,9 @@ import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.tasks.InitializeTargetTask;
 import org.opends.server.tasks.InitializeTask;
 import org.opends.server.tasks.TaskUtils;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
@@ -102,6 +106,7 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
@@ -121,6 +126,13 @@ import org.opends.server.types.SynchronizationProviderResult;
 public class ReplicationDomain extends DirectoryThread
        implements ConfigurationChangeListener<MultimasterDomainCfg>
 {
+  /**
+   * The attribute used to mark conflicting entries.
+   * The value of this attribute should be the dn that this entry was
+   * supposed to have when it was marked as conflicting.
+   */
+  public static final String DS_SYNC_CONFLICT = "ds-sync-conflict";
+
   /**
    * The tracer object for the debug logger.
    */
@@ -1117,10 +1129,11 @@ public class ReplicationDomain extends DirectoryThread
           else if (op instanceof AddOperation)
           {
             AddOperation newOp = (AddOperation) op;
+            AddMsg addMsg = (AddMsg) msg;
             dependency = pendingChanges.checkDependencies(newOp);
             if (!dependency)
             {
-              done = solveNamingConflict(newOp, msg);
+              done = solveNamingConflict(newOp, addMsg);
             }
           }
           else if (op instanceof ModifyDNOperation)
@@ -1164,10 +1177,6 @@ public class ReplicationDomain extends DirectoryThread
         numUnresolvedNamingConflicts.incrementAndGet();
 
         updateError(changeNumber);
-      }
-      else
-      {
-        numResolvedNamingConflicts.incrementAndGet();
       }
     }
     catch (ASN1Exception e)
@@ -1353,26 +1362,38 @@ public class ReplicationDomain extends DirectoryThread
     if (result == ResultCode.NO_SUCH_OBJECT)
     {
       /*
-       * This error may happen the operation is a modification but
-       * the entry had been renamed on a different master in the same time.
+       * The operation is a modification but
+       * the entry has been renamed on a different master in the same time.
        * search if the entry has been renamed, and return the new dn
        * of the entry.
        */
       DN newdn = findEntryDN(entryUid);
       if (newdn != null)
       {
+        // There is an entry with the same unique id as this modify operation
+        // replay the modify using the current dn of this entry.
         msg.setDn(newdn.toString());
+        numResolvedNamingConflicts.incrementAndGet();
         return false;
       }
       else
+      {
+        // This entry does not exist anymore.
+        // It has probably been deleted, stop the processing of this operation
+        numResolvedNamingConflicts.incrementAndGet();
         return true;
+      }
     }
-
-    // TODO log a message for the repair tool.
-    return true;
+    else
+    {
+      // The other type of errors can not be caused by naming conflicts.
+      // TODO log a message for the repair tool.
+      return true;
+    }
   }
 
- /** Solve a conflict detected when replaying a delete operation.
+ /**
+  * Solve a conflict detected when replaying a delete operation.
   *
   * @param op The operation that triggered the conflict detection.
   * @param msg The operation that triggered the conflict detection.
@@ -1399,6 +1420,7 @@ public class ReplicationDomain extends DirectoryThread
         * has already done the job.
         * In any case, there is is nothing more to do.
         */
+       numResolvedNamingConflicts.incrementAndGet();
        return true;
      }
      else
@@ -1407,6 +1429,7 @@ public class ReplicationDomain extends DirectoryThread
         * This entry has been renamed, replay the delete using its new DN.
         */
        msg.setDn(currentDn.toString());
+       numResolvedNamingConflicts.incrementAndGet();
        return false;
      }
    }
@@ -1415,15 +1438,127 @@ public class ReplicationDomain extends DirectoryThread
      /*
       * This may happen when we replay a DELETE done on a master
       * but children of this entry have been added on another master.
+      *
+      * Rename all the children by adding entryuuid in dn and delete this entry.
+      *
+      * The action taken here must be consistent with the actions
+      * done in the solveNamingConflict(AddOperation) method
+      * when we are adding an entry whose parent entry has already been deleted.
       */
-
-     /*
-      * TODO : either delete all the childs or rename the child below
-      * the top suffix by adding entryuuid in dn and delete this entry.
-      */
+     findAndRenameChild(entryUid, op.getEntryDN(), op);
+     numUnresolvedNamingConflicts.incrementAndGet();
+     return false;
    }
-   return true;
+   else
+   {
+     // The other type of errors can not be caused by naming conflicts.
+     // TODO log a message for the repair tool.
+     return true;
+   }
  }
+
+  /**
+ * Solve a conflict detected when replaying a Modify DN operation.
+ *
+ * @param op The operation that triggered the conflict detection.
+ * @param msg The operation that triggered the conflict detection.
+ * @return true if the process is completed, false if it must continue.
+ * @throws Exception When the operation is not valid.
+ */
+private boolean solveNamingConflict(ModifyDNOperation op,
+    UpdateMessage msg) throws Exception
+{
+  ResultCode result = op.getResultCode();
+  ModifyDnContext ctx = (ModifyDnContext) op.getAttachment(SYNCHROCONTEXT);
+  String entryUid = ctx.getEntryUid();
+  String newSuperiorID = ctx.getNewParentId();
+
+  /*
+   * four possible cases :
+   * - the modified entry has been renamed
+   * - the new parent has been renamed
+   * - the operation is replayed for the second time.
+   * - the entry has been deleted
+   * action :
+   *  - change the target dn and the new parent dn and
+   *        restart the operation,
+   *  - don't do anything if the operation is replayed.
+   */
+
+  // Construct the new DN to use for the entry.
+  DN entryDN = op.getEntryDN();
+  DN newSuperior = findEntryDN(newSuperiorID);
+  RDN newRDN = op.getNewRDN();
+  DN parentDN;
+
+  if (newSuperior == null)
+  {
+    parentDN = entryDN.getParent();
+  }
+  else
+  {
+    parentDN = newSuperior;
+  }
+
+  if ((parentDN == null) || parentDN.isNullDN())
+  {
+    /* this should never happen
+     * can't solve any conflict in this case.
+     */
+    throw new Exception("operation parameters are invalid");
+  }
+
+  DN newDN = parentDN.concat(newRDN);
+
+  // get the current DN of this entry in the database.
+  DN currentDN = findEntryDN(entryUid);
+
+  // if the newDN and the current DN match then the operation
+  // is a no-op (this was probably a second replay)
+  // don't do anything.
+  if (newDN.equals(currentDN))
+  {
+    numResolvedNamingConflicts.incrementAndGet();
+    return true;
+  }
+
+  if ((result == ResultCode.NO_SUCH_OBJECT) ||
+      (result == ResultCode.OBJECTCLASS_VIOLATION))
+  {
+    /*
+     * The entry or it's new parent has not been found
+     * reconstruct the operation with the DN we just built
+     */
+    ModifyDNMsg modifyDnMsg = (ModifyDNMsg) msg;
+    msg.setDn(currentDN.toString());
+    modifyDnMsg.setNewSuperior(newSuperior.toString());
+    numResolvedNamingConflicts.incrementAndGet();
+    return false;
+  }
+  else if (result == ResultCode.ENTRY_ALREADY_EXISTS)
+  {
+    /*
+     * This may happen when two modifyDn operation
+     * are done on different servers but with the same target DN
+     * add the conflict object class to the entry
+     * and rename it using its entryuuid.
+     */
+    ModifyDNMsg modifyDnMsg = (ModifyDNMsg) msg;
+    markConflictEntry(op, op.getEntryDN(), newDN);
+    modifyDnMsg.setNewRDN(generateConflictRDN(entryUid,
+                          modifyDnMsg.getNewRDN()));
+    modifyDnMsg.setNewSuperior(newSuperior.toString());
+    numUnresolvedNamingConflicts.incrementAndGet();
+    return false;
+  }
+  else
+  {
+    // The other type of errors can not be caused by naming conflicts.
+    // TODO log a message for the repair tool.
+    return true;
+  }
+}
+
 
   /**
    * Solve a conflict detected when replaying a ADD operation.
@@ -1434,7 +1569,7 @@ public class ReplicationDomain extends DirectoryThread
    * @throws Exception When the operation is not valid.
    */
   private boolean solveNamingConflict(AddOperation op,
-      UpdateMessage msg) throws Exception
+      AddMsg msg) throws Exception
   {
     ResultCode result = op.getResultCode();
     AddContext ctx = (AddContext) op.getAttachment(SYNCHROCONTEXT);
@@ -1451,7 +1586,7 @@ public class ReplicationDomain extends DirectoryThread
       {
         /*
          * This entry is the base dn of the backend.
-         * It is quite weird that the operation result be NO_SUCH_OBJECT.
+         * It is quite surprising that the operation result be NO_SUCH_OBJECT.
          * There is nothing more we can do except TODO log a
          * message for the repair tool to look at this problem.
          */
@@ -1461,15 +1596,28 @@ public class ReplicationDomain extends DirectoryThread
       if (parentDn == null)
       {
         /*
-         * The parent has been deleted, so this entry should not
-         * exist don't do the ADD.
+         * The parent has been deleted
+         * rename the entry as a conflicting entry.
+         * The action taken here must be consistent with the actions
+         * done when in the solveNamingConflict(DeleteOperation) method
+         * when we are deleting an entry that have some child entries.
          */
-        return true;
+        addConflict(msg);
+
+        msg.setDn(generateConflictRDN(entryUid,
+                    op.getEntryDN().getRDN().toString()) + ","
+                    + baseDN);
+        // reset the parent uid so that the check done is the handleConflict
+        // phase does not fail.
+        msg.setParentUid(null);
+        numUnresolvedNamingConflicts.incrementAndGet();
+        return false;
       }
       else
       {
         RDN entryRdn = DN.decode(msg.getDn()).getRDN();
         msg.setDn(entryRdn + "," + parentDn);
+        numResolvedNamingConflicts.incrementAndGet();
         return false;
       }
     }
@@ -1491,132 +1639,158 @@ public class ReplicationDomain extends DirectoryThread
       }
       else
       {
-        addConflict(op);
-        msg.setDn(generateConflictDn(entryUid, msg.getDn()));
+        addConflict(msg);
+        msg.setDn(generateConflictRDN(entryUid, msg.getDn()));
+        numUnresolvedNamingConflicts.incrementAndGet();
         return false;
       }
     }
-    return true;
-  }
-
-  /**
-   * Solve a conflict detected when replaying a Modify DN operation.
-   *
-   * @param op The operation that triggered the conflict detection.
-   * @param msg The operation that triggered the conflict detection.
-   * @return true if the process is completed, false if it must continue.
-   * @throws Exception When the operation is not valid.
-   */
-  private boolean solveNamingConflict(ModifyDNOperation op,
-      UpdateMessage msg) throws Exception
-  {
-    ResultCode result = op.getResultCode();
-    ModifyDnContext ctx = (ModifyDnContext) op.getAttachment(SYNCHROCONTEXT);
-    String entryUid = ctx.getEntryUid();
-    String newSuperiorID = ctx.getNewParentId();
-
-    /*
-     * four possible cases :
-     * - the modified entry has been renamed
-     * - the new parent has been renamed
-     * - the operation is replayed for the second time.
-     * - the entry has been deleted
-     * action :
-     *  - change the target dn and the new parent dn and
-     *        restart the operation,
-     *  - don't do anything if the operation is replayed.
-     */
-
-    // Construct the new DN to use for the entry.
-    DN entryDN = op.getEntryDN();
-    DN newSuperior = findEntryDN(newSuperiorID);
-    RDN newRDN = op.getNewRDN();
-    DN parentDN;
-
-    if (newSuperior == null)
-    {
-      parentDN = entryDN.getParent();
-    }
     else
     {
-      parentDN = newSuperior;
-    }
-
-    if ((parentDN == null) || parentDN.isNullDN())
-    {
-      /* this should never happen
-       * can't solve any conflict in this case.
-       */
-      throw new Exception("operation parameters are invalid");
-    }
-
-    DN newDN = parentDN.concat(newRDN);
-
-    // get the current DN of this entry in the database.
-    DN currentDN = findEntryDN(entryUid);
-
-    // if the newDN and the current DN match then the operation
-    // is a no-op (this was probably a second replay)
-    // don't do anything.
-    if (newDN.equals(currentDN))
-    {
+      // The other type of errors can not be caused by naming conflicts.
+      // TODO log a message for the repair tool.
       return true;
     }
-
-    if ((result == ResultCode.NO_SUCH_OBJECT) ||
-        (result == ResultCode.OBJECTCLASS_VIOLATION))
-    {
-      /*
-       * The entry or it's new parent has not been found
-       * reconstruct the operation with the DN we just built
-       */
-      ModifyDNMsg modifyDnMsg = (ModifyDNMsg) msg;
-      msg.setDn(currentDN.toString());
-      modifyDnMsg.setNewSuperior(newSuperior.toString());
-      numUnresolvedNamingConflicts.incrementAndGet();
-      return false;
-    }
-    else if (result == ResultCode.ENTRY_ALREADY_EXISTS)
-    {
-      /*
-       * This may happen when two modifyDn operation
-       * are done on different servers but with the same target DN
-       * add the conflict object class to the entry
-       * and rename it using its entryuuid.
-       */
-      ModifyDNMsg modifyDnMsg = (ModifyDNMsg) msg;
-      generateAddConflictOp(op);
-      modifyDnMsg.setNewRDN(generateConflictDn(entryUid,
-                            modifyDnMsg.getNewRDN()));
-      modifyDnMsg.setNewSuperior(newSuperior.toString());
-      numUnresolvedNamingConflicts.incrementAndGet();
-      return false;
-    }
-    return true;
   }
 
   /**
-   * Generate a modification to add the conflict ObjectClass to an entry
+   * Find all the entries below the provided DN and rename them
+   * so that they stay below the baseDn of this replicationDomain and
+   * use the conflicting name and attribute.
+   *
+   * @param entryUid   The unique ID of the entry whose child must be renamed.
+   * @param entryDN    The DN of the entry whose child must be renamed.
+   * @param conflictOp The Operation that generated the conflict.
+   */
+  private void findAndRenameChild(
+      String entryUid, DN entryDN, Operation conflictOp)
+  {
+    // Find an rename child entries.
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    try
+    {
+      LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
+      attrs.add(ENTRYUIDNAME);
+
+      SearchFilter ALLMATCH;
+      ALLMATCH = SearchFilter.createFilterFromString("(objectClass=*)");
+      InternalSearchOperation op =
+          conn.processSearch(entryDN, SearchScope.SINGLE_LEVEL,
+              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, ALLMATCH,
+              attrs);
+
+      if (op.getResultCode() == ResultCode.SUCCESS)
+      {
+        LinkedList<SearchResultEntry> entries = op.getSearchEntries();
+        if (entries != null)
+        {
+          for (SearchResultEntry entry : entries)
+          {
+            markConflictEntry(conflictOp, entry.getDN(), entryDN);
+            renameConflictEntry(conflictOp, entry.getDN(),
+                                Historical.getEntryUuid(entry));
+          }
+        }
+      }
+      else
+      {
+        int    msgID   = MSGID_CANNOT_RENAME_CONFLICT_ENTRY;
+        String message = getMessage(msgID) + entryDN + " " + conflictOp + " "
+                         + op.getResultCode();
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+            message, msgID);
+        // TODO : log error and information for the REPAIR tool.
+      }
+    } catch (DirectoryException e)
+    {
+      int    msgID   = MSGID_EXCEPTION_RENAME_CONFLICT_ENTRY;
+      String message = getMessage(msgID) + entryDN + " " + conflictOp + " " + e;
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+          message, msgID);
+      // TODO log errror and information for the REPAIR tool.
+    }
+  }
+
+
+  /**
+   * Rename an entry that was conflicting so that it stays below the
+   * baseDN of the replicationDomain.
+   *
+   * @param conflictOp The Operation that caused the conflict.
+   * @param dn         The DN of the entry to be renamed.
+   * @param uid        The uniqueID of the entry to be renamed.
+   */
+  private void renameConflictEntry(Operation conflictOp, DN dn, String uid)
+  {
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    ModifyDNOperation newOp = conn.processModifyDN(
+        dn, generateDeleteConflictDn(uid, dn),false, baseDN);
+
+    if (newOp.getResultCode() != ResultCode.SUCCESS)
+    {
+      int    msgID   = MSGID_CANNOT_RENAME_CONFLICT_ENTRY;
+      String message = getMessage(msgID) + dn + " " + conflictOp + " "
+                       + newOp.getResultCode();
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+          message, msgID);
+      /*
+       * TODO : REPAIR should log information for the repair tool.
+       */
+    }
+  }
+
+
+  /**
+   * Generate a modification to add the conflict attribute to an entry
    * whose Dn is now conflicting with another entry.
    *
-   * @param op The operation causing the conflict.
+   * @param op        The operation causing the conflict.
+   * @param currentDN The current DN of the operation to mark as conflicting.
+   * @param conflictDN     The newDn on which the conflict happened.
    */
-  private void generateAddConflictOp(ModifyDNOperation op)
+  private void markConflictEntry(Operation op, DN currentDN, DN conflictDN)
   {
-    // TODO
+    // create new internal modify operation and run it.
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    AttributeType attrType =
+      DirectoryServer.getAttributeType(DS_SYNC_CONFLICT, true);
+    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    values.add(new AttributeValue(attrType, conflictDN.toString()));
+    Attribute attr = new Attribute(attrType, DS_SYNC_CONFLICT, values);
+    List<Modification> mods = new ArrayList<Modification>();
+    Modification mod = new Modification(ModificationType.REPLACE, attr);
+    mods.add(mod);
+    ModifyOperation newOp = conn.processModify(currentDN, mods);
+    if (newOp.getResultCode() != ResultCode.SUCCESS)
+    {
+      int    msgID   = MSGID_CANNOT_ADD_CONFLICT_ATTRIBUTE;
+      String message = getMessage(msgID) + op + " " + newOp.getResultCode();
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+          message, msgID);
+      /*
+       * TODO : REPAIR should log information for the repair tool.
+       */
+    }
   }
 
   /**
    * Add the conflict object class to an entry that could
    * not be added because it is conflicting with another entry.
    *
-   * @param addOp The conflicting Add Operation.
+   * @param addOp          The conflicting Add Operation.
+   *
+   * @throws ASN1Exception When an encoding error happenned manipulating the
+   *                       msg.
    */
-  private void addConflict(AddOperation addOp)
+  private void addConflict(AddMsg msg) throws ASN1Exception
   {
-    /*
-     * TODO
-     */
+    msg.addAttribute(DS_SYNC_CONFLICT, msg.getDn());
   }
 
   /**
@@ -1624,12 +1798,36 @@ public class ReplicationDomain extends DirectoryThread
    *
    * @param entryUid The unique identifier of the entry involved in the
    * conflict.
-   * @param dn Original dn.
-   * @return The generated Dn for a conflicting entry.
+   * @param rdn Original rdn.
+   * @return The generated RDN for a conflicting entry.
    */
-  private String generateConflictDn(String entryUid, String dn)
+  private String generateConflictRDN(String entryUid, String rdn)
   {
-    return "entryuuid=" + entryUid + "+" + dn;
+    return "entryuuid=" + entryUid + "+" + rdn;
+  }
+
+  /**
+   * Generate the RDN to use for a conflicting entry whose father was deleted.
+   *
+   * @param entryUid The unique identifier of the entry involved in the
+   *                 conflict.
+   * @param dn       The original DN of the entry.
+   *
+   * @return The generated RDN for a conflicting entry.
+   * @throws DirectoryException
+   */
+  private RDN generateDeleteConflictDn(String entryUid, DN dn)
+  {
+    String newRDN =  "entryuuid=" + entryUid + "+" + dn.getRDN();
+    RDN rdn = null;
+    try
+    {
+      rdn = RDN.decode(newRDN);
+    } catch (DirectoryException e)
+    {
+      // cannot happen
+    }
+    return rdn;
   }
 
   /**
