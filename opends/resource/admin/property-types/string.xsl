@@ -44,7 +44,8 @@
     <xsl:if test="adm:pattern/adm:regex">
       <xsl:value-of
         select="concat('      builder.setPattern(&quot;',
-                       normalize-space(adm:pattern/adm:regex), '&quot;);&#xa;')" />
+                       normalize-space(adm:pattern/adm:regex), '&quot;, &quot;',
+                       normalize-space(adm:pattern/adm:usage), '&quot;);&#xa;')" />
     </xsl:if>
   </xsl:template>
 </xsl:stylesheet>

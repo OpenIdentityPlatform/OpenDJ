@@ -28,6 +28,7 @@
           <adm:regex>
             ^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*(#[A-Za-z][A-Za-z0-9_]*)?$
           </adm:regex>
+          <adm:usage>JAVA_NAME</adm:usage>
           <adm:synopsis>
             A fully-qualified OpenDS Java package, class, or method name.
           </adm:synopsis>

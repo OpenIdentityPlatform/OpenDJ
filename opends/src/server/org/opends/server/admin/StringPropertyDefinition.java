@@ -45,15 +45,6 @@ import java.util.regex.PatternSyntaxException;
  */
 public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
-  // Flag indicating whether values of this property are
-  // case-insensitive.
-  private final boolean isCaseInsensitive;
-
-  // Optional pattern which values of this property must match.
-  private final Pattern pattern;
-
-
-
   /**
    * An interface for incrementally constructing string property
    * definitions.
@@ -67,6 +58,10 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
 
     // Optional pattern which values of this property must match.
     private Pattern pattern = null;
+
+    // Pattern usage which provides a user-friendly summary of the
+    // pattern if present.
+    private String patternUsage = null;
 
 
 
@@ -99,16 +94,23 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
      * @param pattern
      *          The regular expression pattern string, or
      *          <code>null</code> if there is no pattern.
+     * @param patternUsage
+     *          A user-friendly usage string representing the pattern
+     *          which can be used in error messages and help (e.g. for
+     *          patterns which match a host/port combination, the
+     *          usage string "HOST:PORT" would be appropriate).
      * @throws PatternSyntaxException
      *           If the provided regular expression pattern has an
      *           invalid syntax.
      */
-    public final void setPattern(String pattern)
+    public final void setPattern(String pattern, String patternUsage)
         throws PatternSyntaxException {
       if (pattern == null) {
         this.pattern = null;
+        this.patternUsage = null;
       } else {
         this.pattern = Pattern.compile(pattern);
+        this.patternUsage = patternUsage;
       }
     }
 
@@ -123,7 +125,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
         EnumSet<PropertyOption> options,
         DefaultBehaviorProvider<String> defaultBehavior) {
       return new StringPropertyDefinition(d, propertyName, options,
-          defaultBehavior, isCaseInsensitive, pattern);
+          defaultBehavior, isCaseInsensitive, pattern, patternUsage);
     }
 
   }
@@ -140,22 +142,72 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
    *          The property name.
    * @return Returns the new string property definition builder.
    */
-  public static Builder createBuilder(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+  public static Builder createBuilder(AbstractManagedObjectDefinition<?, ?> d,
+      String propertyName) {
     return new Builder(d, propertyName);
   }
+
+  // Flag indicating whether values of this property are
+  // case-insensitive.
+  private final boolean isCaseInsensitive;
+
+  // Optional pattern which values of this property must match.
+  private final Pattern pattern;
+
+  // Pattern usage which provides a user-friendly summary of the
+  // pattern if present.
+  private final String patternUsage;
 
 
 
   // Private constructor.
-  private StringPropertyDefinition(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-      EnumSet<PropertyOption> options,
+  private StringPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d,
+      String propertyName, EnumSet<PropertyOption> options,
       DefaultBehaviorProvider<String> defaultBehavior,
-      boolean isCaseInsensitive, Pattern pattern) {
+      boolean isCaseInsensitive, Pattern pattern, String patternUsage) {
     super(d, String.class, propertyName, options, defaultBehavior);
     this.isCaseInsensitive = isCaseInsensitive;
     this.pattern = pattern;
+    this.patternUsage = patternUsage;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
+    return v.visitString(this, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
+    return v.visitString(this, value, p);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String decodeValue(String value)
+      throws IllegalPropertyValueStringException {
+    ensureNotNull(value);
+
+    try {
+      validateValue(value);
+    } catch (IllegalPropertyValueException e) {
+      throw new IllegalPropertyValueStringException(this, value);
+    }
+
+    return value;
   }
 
 
@@ -208,11 +260,26 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
     String property = "property." + getName()
         + ".syntax.string.pattern.synopsis";
     try {
-      return resource.getMessage(getManagedObjectDefinition(),
-          property, locale);
+      return resource
+          .getMessage(getManagedObjectDefinition(), property, locale);
     } catch (MissingResourceException e) {
       return null;
     }
+  }
+
+
+
+  /**
+   * Gets a user-friendly usage string representing the pattern which
+   * can be used in error messages and help (e.g. for patterns which
+   * match a host/port combination, the usage string "HOST:PORT" would
+   * be appropriate).
+   *
+   * @return Returns the user-friendly pattern usage string, or
+   *         <code>null</code> if there is no pattern.
+   */
+  public String getPatternUsage() {
+    return patternUsage;
   }
 
 
@@ -250,8 +317,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
    * {@inheritDoc}
    */
   @Override
-  public void validateValue(String value)
-      throws IllegalPropertyValueException {
+  public void validateValue(String value) throws IllegalPropertyValueException {
     ensureNotNull(value);
 
     if (pattern != null) {
@@ -260,44 +326,5 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
         throw new IllegalPropertyValueException(this, value);
       }
     }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String decodeValue(String value)
-      throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
-
-    try {
-      validateValue(value);
-    } catch (IllegalPropertyValueException e) {
-      throw new IllegalPropertyValueStringException(this, value);
-    }
-
-    return value;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
-    return v.visitString(this, p);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
-    return v.visitString(this, value, p);
   }
 }

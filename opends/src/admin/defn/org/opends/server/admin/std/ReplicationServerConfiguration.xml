@@ -65,6 +65,7 @@
       <adm:string>
         <adm:pattern>
           <adm:regex>.+:[0-9]+</adm:regex>
+          <adm:usage>HOST:PORT</adm:usage>
           <adm:synopsis>
             A hostname, followed by a ":" followed by a port number.
           </adm:synopsis>

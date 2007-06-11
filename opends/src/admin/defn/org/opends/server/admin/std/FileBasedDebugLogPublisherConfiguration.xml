@@ -89,6 +89,7 @@
           <adm:regex>
             ^([0-7][0-7][0-7])$
           </adm:regex>
+          <adm:usage>MODE</adm:usage>
           <adm:synopsis>
             An valid UNIX mode string. The mode string must contain three
             digits between zero and seven.
