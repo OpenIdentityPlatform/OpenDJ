@@ -401,6 +401,24 @@ public class ReplicationMessages {
   public static final int MSGID_BAD_HISTORICAL =
     CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 56;
 
+  /**
+   * Could not add the conflict attribute to an entry after a conflict was
+   * deteceted.
+   */
+  public static final int MSGID_CANNOT_ADD_CONFLICT_ATTRIBUTE =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 57;
+
+  /**
+   * Could not rename a conflicting entry.
+   */
+  public static final int MSGID_CANNOT_RENAME_CONFLICT_ENTRY =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 58;
+
+  /**
+   * Eception durin rename of a conflicting entry.
+   */
+  public static final int MSGID_EXCEPTION_RENAME_CONFLICT_ENTRY =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 59;
 
   /**
    * Register the messages from this class in the core server.
@@ -550,5 +568,12 @@ public class ReplicationMessages {
     registerMessage(MSGID_BAD_HISTORICAL,
         "Entry %s was containing some unknown historical information,"
         + " This may cause some inconsistency for this entry");
+    registerMessage(MSGID_CANNOT_ADD_CONFLICT_ATTRIBUTE,
+        "A conflict was detected but the conflict information could not be" +
+        "added. Operation : ");
+    registerMessage(MSGID_CANNOT_RENAME_CONFLICT_ENTRY,
+        "An error happened trying the rename a conflicting entry : ");
+    registerMessage(MSGID_EXCEPTION_RENAME_CONFLICT_ENTRY,
+        "An Exception happened when trying the rename a conflicting entry : ");
   }
 }
