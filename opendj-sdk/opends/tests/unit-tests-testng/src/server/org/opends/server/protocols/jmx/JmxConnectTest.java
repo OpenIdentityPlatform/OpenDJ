@@ -122,7 +122,7 @@ public class JmxConnectTest extends JmxTestCase {
    * accepted when the given credentials are OK and refused when the
    * credentials are invalid.
    */
-  @Test(enabled = true, dataProvider = "simpleConnect")
+  @Test(enabled = false, dataProvider = "simpleConnect")
   public void simpleConnect(String user, String password,
       boolean expectedResult) throws Exception {
     OpendsJmxConnector connector = connect(user, password,
@@ -186,7 +186,7 @@ public class JmxConnectTest extends JmxTestCase {
   /**
    * Test setting some config attribute through jmx.
    */
-  @Test(enabled = true)
+  @Test(enabled = false)
   public void simpleSet() throws Exception {
     OpendsJmxConnector connector = connect("cn=directory manager",
         "password", TestCaseUtils.getServerJmxPort());
@@ -371,7 +371,7 @@ public class JmxConnectTest extends JmxTestCase {
    * accepted when the given credentials are OK and refused when the
    * credentials are invalid.
    */
-  @Test(enabled = true)
+  @Test(enabled = false)
   public void sslConnect() throws Exception {
     // Enable SSL by setting ds-cfg-use-ssl boolean and the
     // certificate alias using ds-cfg-ssl-cert-nickname attribute.
