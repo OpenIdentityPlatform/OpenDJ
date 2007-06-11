@@ -559,7 +559,7 @@
         FormattedTestgroup=FormattedTestcase.group(ThisGroupName)         
         FormattedTestsuite=FormattedTestcase.suite(ThisSuiteName)
              
-        TestLogDir= '%s/%s' % (LogDir,FormattedTestgroup)
+        TestLogDir= '%s/%s' % (logsTestsDir,FormattedTestgroup)
         TestLogFile='%s/%s' % (TestLogDir,FormattedTestsuite) 
       </script>
                   

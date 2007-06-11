@@ -121,7 +121,6 @@
       <!-- XXXX this needs some cleanup XXXX -->
       <script>
         STAXLogMessage = 1 
-        LogDir='%s' % TMPDIR
         SRCFILE = '%s/%s' % (ZIPPATH,ZIPNAME) 
         DSTFILE = '%s/%s' % (TMPDIR,ZIPNAME)
         OPENDS_BINPATH ='%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) 
@@ -208,7 +207,7 @@
         <call function="'SetVar'">
           { 'location'  : STAF_REMOTE_HOSTNAME,
             'type'      : 'shared',
-            'variable'  : 'ServerInfo=%s' % DSInfoServersDict }
+            'variable'  : 'Job%s_ServerInfo=%s' % (STAXJobID,DSInfoServersDict) }
         </call>
 
         <if expr="RC != 0">
@@ -256,7 +255,40 @@
     </try>
         
   </function>
-	
+
+  <function name="SetLogsDir">
+    <function-prolog>
+      This function sets the directory to which logs are written  
+    </function-prolog>
+
+    <sequence>
+    
+      <script>
+        logsDate=strftime("%Y%m%d-%H:%M:%S",localtime())
+        logsArch=DSInfo.getServerArch(DSInfo.ServerDict['system os'])
+        logsOSName=DSInfo.getServerOSName(DSInfo.ServerDict['system os'])
+        logsOS='%s-%s' % (logsOSName,logsArch)
+        logsJvm=DSInfo.getServerJavaMajorMinor(DSInfo.ServerDict['java version'])
+        logsDir='%s/%s/%s-jvm%s' % (LOGS_ROOT,logsDate,logsOS,logsJvm)
+        logsTestsDir='%s/testlogs' % logsDir
+        logsReportDir='%s/reports' % logsDir
+        logsSUTDir='%s/sutlogs' % logsDir
+        logsTmpDir='%s/tmp' % logsDir
+      </script>
+
+      <message>
+        'Tests logs output set to %s' % logsDir
+      </message>
+      
+      <call function="'SetVar'">
+        { 'location'  : STAF_REMOTE_HOSTNAME,
+          'type'      : 'shared',
+          'variable'  : 'Job%s_LogsDir=%s' % (STAXJobID,logsDir) }
+      </call>
+                    
+    </sequence>
+        
+  </function>	
 	
   <function name="loadEnvironment">
     <function-prolog>
@@ -275,13 +307,11 @@
 	  <call function="'importPythonLibraries'"/>
 		
 	  <call function="'initialiseGlobalVariables'"/>
-		  		
-<!--
-      <call function="'prepareInstanceCreation'"></call>						  		
--->					
 		
       <call function="'GetDirectoryServerInformation'"/>
-      						
+
+      <call function="'SetLogsDir'"/>
+            						
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }

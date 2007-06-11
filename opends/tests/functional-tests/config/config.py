@@ -29,5 +29,7 @@ DIRECTORY_INSTANCE_BE       = 'userRoot'
 STAGED_DATA_DIR             = '%s/functional-tests/shared/data' % DIRECTORY_INSTANCE_DIR
 LOCAL_DATA_DIR		    = '%s/functional-tests/shared/data' % TMPDIR
 JAVA_HOME                   = '/usr/jdk/jdk1.5.0_01'
+LOGS_ROOT                   = '%s' % TMPDIR
+LOGS_URI                    = ''
 SEND_MAIL_AFTER_TEST_RUN    = 'FALSE'
 SEND_MAIL_TO                = ' '
