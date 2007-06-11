@@ -29,11 +29,10 @@ package org.opends.server.admin;
 
 
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.RootCfgDefn;
-import org.opends.server.backends.jeb.RootContainer;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.testng.annotations.BeforeClass;
@@ -96,6 +95,21 @@ public class AttributeTypePropertyDefinitionTest {
     AttributeTypePropertyDefinition d = createPropertyDefinition();
     AttributeType expected = DirectoryServer.getAttributeType(value);
     assertEquals(d.decodeValue(value), expected);
+  }
+
+
+
+  /**
+   * Tests encodeValue()
+   *
+   * @param value
+   *          to decode/encode
+   */
+  @Test(dataProvider = "testDecodeValueLegalData")
+  public void testEncodeValue(String value) {
+    AttributeTypePropertyDefinition.setCheckSchema(true);
+    AttributeTypePropertyDefinition d = createPropertyDefinition();
+    assertEquals(d.encodeValue(d.decodeValue(value)), value);
   }
 
 
