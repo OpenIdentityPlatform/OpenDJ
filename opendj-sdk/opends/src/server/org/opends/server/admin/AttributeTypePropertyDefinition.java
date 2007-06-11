@@ -197,6 +197,17 @@ public final class AttributeTypePropertyDefinition extends
    * {@inheritDoc}
    */
   @Override
+  public String encodeValue(AttributeType value)
+      throws IllegalPropertyValueException {
+    return value.getNameOrOID();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void validateValue(AttributeType value)
       throws IllegalPropertyValueException {
     ensureNotNull(value);
