@@ -27,12 +27,11 @@
 
 package org.opends.admin.ads;
 
-import org.opends.admin.ads.DsServiceCliReturnCode.ReturnCode;
 
 
 /**
  * This is the exception that is thrown in ADSContext.
- * @see ADSContext.
+ * @see org.opends.admin.ads.ADSContext
  *
  */
 public class ADSContextException extends Exception {
@@ -50,83 +49,64 @@ public class ADSContextException extends Exception {
     /**
      * The host name is missing.
      */
-    MISSING_HOSTNAME(ReturnCode.MISSING_HOSTNAME),
+    MISSING_HOSTNAME(),
     /**
      * The host name is not valid.
      */
-    NOVALID_HOSTNAME(ReturnCode.NOVALID_HOSTNAME),
+    NOVALID_HOSTNAME(),
     /**
      * The installation path is missing.
      */
-    MISSING_IPATH(ReturnCode.MISSING_IPATH),
+    MISSING_IPATH(),
     /**
      * The installation path is not valid.
      */
-    NOVALID_IPATH(ReturnCode.NOVALID_IPATH),
+    NOVALID_IPATH(),
     /**
      * An access permission error.
      */
-    ACCESS_PERMISSION(ReturnCode.ACCESS_PERMISSION),
+    ACCESS_PERMISSION(),
     /**
      * The entity is already registered.
      */
-    ALREADY_REGISTERED(ReturnCode.ALREADY_REGISTERED),
+    ALREADY_REGISTERED(),
     /**
      * The installation is broken.
      */
-    BROKEN_INSTALL(ReturnCode.BROKEN_INSTALL),
+    BROKEN_INSTALL(),
     /**
      * The entity is not yet registered.
      */
-    NOT_YET_REGISTERED(ReturnCode.NOT_YET_REGISTERED),
+    NOT_YET_REGISTERED(),
     /**
      * The port is missing.
      */
-    MISSING_PORT(ReturnCode.MISSING_PORT),
+    MISSING_PORT(),
     /**
      * The port is not valid.
      */
-    NOVALID_PORT(ReturnCode.NOVALID_PORT),
+    NOVALID_PORT(),
     /**
      * The name is missing.
      */
-    MISSING_NAME(ReturnCode.MISSING_NAME),
+    MISSING_NAME(),
     /**
      * The administration UID is missing.
      */
-    MISSING_ADMIN_UID(ReturnCode.MISSING_ADMIN_UID),
+    MISSING_ADMIN_UID(),
     /**
      * The administrator password is missing.
      */
-    MISSING_ADMIN_PASSWORD(ReturnCode.MISSING_ADMIN_PASSWORD),
+    MISSING_ADMIN_PASSWORD(),
     /**
      * There is already a backend with the name of the ADS backend but not
      * of the expected type.
      */
-    UNEXPECTED_ADS_BACKEND_TYPE(ReturnCode.BROKEN_INSTALL),
+    UNEXPECTED_ADS_BACKEND_TYPE(),
     /**
      * Unexpected error (potential bug).
      */
-    ERROR_UNEXPECTED(ReturnCode.ERROR_UNEXPECTED);
-
-    // The corresponding return code.
-    private final ReturnCode returnCode;
-
-    // Private constructor.
-    private ErrorType(ReturnCode returnCode)
-    {
-      this.returnCode = returnCode;
-    }
-
-    /**
-     * Get the corresponding return code.
-     *
-     * @return The corresponding return code.
-     */
-    public ReturnCode getReturnCode()
-    {
-      return returnCode;
-    }
+    ERROR_UNEXPECTED();
   };
 
   ErrorType error;

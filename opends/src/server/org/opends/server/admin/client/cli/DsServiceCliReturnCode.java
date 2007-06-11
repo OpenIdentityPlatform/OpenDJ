@@ -24,14 +24,18 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
-package org.opends.admin.ads;
+package org.opends.server.admin.client.cli;
 
 import static org.opends.server.messages.AdminMessages.*;
+
+import java.util.HashMap;
+
+import org.opends.admin.ads.ADSContextException.ErrorType;
 
 /**
  * This class is handling server group CLI.
  */
-public class DsServiceCliReturnCode
+public final class DsServiceCliReturnCode
 {
   /**
    *
@@ -168,4 +172,73 @@ public class DsServiceCliReturnCode
     }
   };
 
+  /**
+   * Indicate whenever the association between ADS errors and return
+   * has been done.
+   */
+  private static boolean initialized = false ;
+
+  // Prevent instantiation.
+  private void DsServiceCliReturnCode()
+  {
+    // Do nothing.
+  }
+
+  /**
+   * The association map between ADS Error and Return code.
+   */
+  private static HashMap<ErrorType, ReturnCode> adsErrorToReturnCode =
+    new HashMap<ErrorType, ReturnCode>();
+
+  /**
+   * Associates a set of ADS errors to return code.
+   */
+  private  static void registerAdsError()
+  {
+    adsErrorToReturnCode.put(ErrorType.MISSING_HOSTNAME,
+        ReturnCode.MISSING_HOSTNAME);
+    adsErrorToReturnCode.put(ErrorType.NOVALID_HOSTNAME,
+        ReturnCode.NOVALID_HOSTNAME);
+    adsErrorToReturnCode.put(ErrorType.MISSING_IPATH,
+        ReturnCode.MISSING_IPATH);
+    adsErrorToReturnCode.put(ErrorType.NOVALID_IPATH,
+        ReturnCode.NOVALID_IPATH);
+    adsErrorToReturnCode.put(ErrorType.ACCESS_PERMISSION,
+        ReturnCode.ACCESS_PERMISSION);
+    adsErrorToReturnCode.put(ErrorType.ALREADY_REGISTERED,
+        ReturnCode.ALREADY_REGISTERED);
+    adsErrorToReturnCode.put(ErrorType.BROKEN_INSTALL,
+        ReturnCode.BROKEN_INSTALL);
+    adsErrorToReturnCode.put(ErrorType.UNEXPECTED_ADS_BACKEND_TYPE,
+        ReturnCode.BROKEN_INSTALL);
+    adsErrorToReturnCode.put(ErrorType.NOT_YET_REGISTERED,
+        ReturnCode.NOT_YET_REGISTERED);
+    adsErrorToReturnCode.put(ErrorType.MISSING_PORT,
+        ReturnCode.MISSING_PORT);
+    adsErrorToReturnCode.put(ErrorType.NOVALID_PORT,
+        ReturnCode.NOVALID_PORT);
+    adsErrorToReturnCode.put(ErrorType.MISSING_NAME,
+        ReturnCode.MISSING_NAME);
+    adsErrorToReturnCode.put(ErrorType.MISSING_ADMIN_UID,
+        ReturnCode.MISSING_ADMIN_UID);
+    adsErrorToReturnCode.put(ErrorType.MISSING_ADMIN_PASSWORD,
+        ReturnCode.MISSING_ADMIN_PASSWORD);
+    adsErrorToReturnCode.put(ErrorType.ERROR_UNEXPECTED,
+        ReturnCode.ERROR_UNEXPECTED);
+  }
+
+  /**
+   * Get ReturnCode from an ADS error.
+   * @param error The ADS error
+   * @return the ReturnCode associated to the ADS error.
+   */
+  public static ReturnCode getReturncodeFromAdsError(ErrorType error)
+  {
+    if (! initialized)
+    {
+      registerAdsError();
+      initialized = true ;
+    }
+    return adsErrorToReturnCode.get(error);
+  }
 }

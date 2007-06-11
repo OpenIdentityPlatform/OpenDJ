@@ -99,7 +99,14 @@ public class TrustedSocketFactory extends SSLSocketFactory
   // SocketFactory implementation
   //
   /**
-   * {@inheritDoc}
+   * Returns the default SSL socket factory. The default
+   * implementation can be changed by setting the value of the
+   * "ssl.SocketFactory.provider" security property (in the Java
+   * security properties file) to the desired class. If SSL has not
+   * been configured properly for this virtual machine, the factory
+   * will be inoperative (reporting instantiation exceptions).
+   *
+   * @return the default SocketFactory
    */
   public static synchronized SocketFactory getDefault()
   {

@@ -24,11 +24,13 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
- package org.opends.admin.ads;
+ package org.opends.server.admin.client.cli;
 
 import java.io.OutputStream;
 
-import org.opends.admin.ads.DsServiceCliReturnCode.ReturnCode;
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ADSContextException;
+import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
@@ -82,5 +84,4 @@ public interface DsServiceCliSubCommandGroup
   public ReturnCode performSubCommand(ADSContext adsContext,
       SubCommand subCmd, OutputStream outStream, OutputStream errStream)
       throws ADSContextException;
-
 }

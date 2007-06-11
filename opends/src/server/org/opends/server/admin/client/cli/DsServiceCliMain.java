@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
-package org.opends.admin.ads;
+package org.opends.server.admin.client.cli;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -32,17 +32,19 @@ import java.io.PrintStream;
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 
+import static org.opends.server.admin.client.cli.DsServiceCliReturnCode.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.AdminMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.admin.ads.DsServiceCliReturnCode.*;
 
 
 /**
@@ -54,7 +56,7 @@ public class DsServiceCliMain
    * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
-      "org.opends.admin.ads.DsServiceCliMain";
+      "org.opends.server.admin.client.cli.DsServiceCliMain";
 
   // The print stream to use for standard error.
   private PrintStream err;
@@ -236,7 +238,12 @@ public class DsServiceCliMain
     catch (ADSContextException e)
     {
       adsException = e;
-      returnCode = e.error.getReturnCode();
+      returnCode = DsServiceCliReturnCode.getReturncodeFromAdsError(e
+          .getError());
+      if (returnCode == null)
+      {
+        returnCode = ReturnCode.ERROR_UNEXPECTED;
+      }
     }
 
     // deconnection
