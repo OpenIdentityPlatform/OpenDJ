@@ -338,16 +338,18 @@ public abstract class Launcher {
   }
 
   private void preExit(CliApplication cliApp) {
-    UserData ud = cliApp.getUserData();
-    if (ud != null && !ud.isSilent()) {
+    if (cliApp != null) {
+      UserData ud = cliApp.getUserData();
+      if (ud != null && !ud.isSilent()) {
 
-      // Add an extra space systematically
-      System.out.println();
+        // Add an extra space systematically
+        System.out.println();
 
-      File logFile = QuickSetupLog.getLogFile();
-      if (logFile != null) {
-        System.out.println(getMsg("general-see-for-details",
-              QuickSetupLog.getLogFile().getPath()));
+        File logFile = QuickSetupLog.getLogFile();
+        if (logFile != null) {
+          System.out.println(getMsg("general-see-for-details",
+                QuickSetupLog.getLogFile().getPath()));
+        }
       }
     }
   }
