@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "stax.dtd">
+<!DOCTYPE stax SYSTEM "../../stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -2530,7 +2530,7 @@
     </sequence>
   </function>
   
-	<!-- Modify an attribut -->
+	<!-- Modify an attribute -->
   <function name="modifyAnAttribute">
     <function-prolog>
       This function modifies an entry in the Directory Server
@@ -2585,16 +2585,16 @@
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
 			
-      <function-arg-def name="attributToBeModified" type="required">
+      <function-arg-def name="attributeToBeModified" type="required">
         <function-arg-description>
-          Attribut to modify
+          Attribute to modify
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 		
-	   <function-arg-def name="newAttributValue" type="required">
+	   <function-arg-def name="newAttributeValue" type="required">
         <function-arg-description>
-          New Attribut Value
+          New Attribute Value
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
@@ -2629,11 +2629,11 @@
         if DNToBeModified:
           STAFCmdParamsList.append('-d "%s"' % DNToBeModified)
 
-        if attributToBeModified:
-          STAFCmdParamsList.append('-a "%s"' % attributToBeModified)
+        if attributeToBeModified:
+          STAFCmdParamsList.append('-a "%s"' % attributeToBeModified)
 
-        if newAttributValue:
-          STAFCmdParamsList.append('-v "%s"' % newAttributValue)		  		  		  		  
+        if newAttributeValue:
+          STAFCmdParamsList.append('-v "%s"' % newAttributeValue)		  		  		  		  
 
         if changetype:
           STAFCmdParamsList.append('-t "%s"' % changetype)		  		
@@ -2667,5 +2667,126 @@
   </function>
 
 	
+	<!-- Add a New entry-->
+  <function name="addAnEntry">
+    <function-prolog>
+      This function modifies an entry in the Directory Server
+    </function-prolog>
+    <function-map-args>
+ 
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+		<function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+		
+      <function-arg-def name="dsInstancePort" type="required">
+         <function-arg-description>
+          Directory server port number
+        </function-arg-description>		  
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+		     
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+		
+	   <function-arg-def name="DNToAdd" type="required">
+        <function-arg-description>
+          DN to modify
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+			
+      <function-arg-def name="attributesToAdd" type="required" >
+        <function-arg-description>
+          Attributes to add
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+	
+    </function-map-args>
+    <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+      
+		
+      <!-- Build the Command -->
+      
+        STAFCmdParamsList=[]
+        STAFCmdParams=''	
+        STAFCmd=''			  	
+		</script>
+		  
+     <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'"/>
+
+	<iterate var="anAttributeToAdd" in="attributesToAdd">
+	<script>
+        STAFCmdParamsList.append('-v "%s"' % anAttributeToAdd)
+	</script>
+	</iterate>
+                  		
+      <script>
+ 
+        if DNToAdd:
+          STAFCmdParamsList.append('-d "%s"' % DNToAdd)
+
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+		  		 
+        STAFCmd='addAnEntry' 
+     </script>
+    
+
+      <process name="'Add a new  entry'">
+        <location>'%s' % location</location>
+        <command>'java'</command>
+        <workdir>'%s' % TESTS_JAVA_DIR</workdir>
+		  <parms>'%s %s' % (STAFCmd,STAFCmdParams)</parms>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+ 
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+          
+    </sequence>
+    
+  </function>
+  
+  
   
 </stax>
