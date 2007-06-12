@@ -1,0 +1,149 @@
+/*
+ * Copyright (c) 1998. Sun Microsystems, Inc. All Rights Reserved.
+ *
+ * "@(#)addAnewEntry.java	1.2	98/04/22 SMI"
+ */
+
+import java.util.Properties;
+import java.lang.*;
+import java.util.Hashtable;
+import	 javax.naming.Context;
+import	 javax.naming.NamingException;
+import	 javax.naming.directory.Attribute;
+import	 javax.naming.directory.Attributes;
+import	 javax.naming.ldap.LdapContext;
+import	 javax.naming.ldap.InitialLdapContext;
+import  javax.naming.CompositeName;
+import	 javax.naming.directory.BasicAttribute;
+import	 javax.naming.directory.BasicAttributes;
+import  javax.naming.*;
+import  javax.naming.directory.ModificationItem;
+import  java.util.HashSet;
+import  java.util.StringTokenizer;
+import java.util.Iterator;
+
+/**
+  *  add a new   entry
+  *  input : 
+  *    -D : principal
+  *    -w : credential
+  *    -p : ldapport
+  *    -h : ldaphost
+  *    -d : dn to add
+  *    -v : attribut name:attribut value
+  *        : this option is multi valued
+  */
+
+public class addAnEntry {
+
+    public static void main(String[] args) {
+
+     String hostname=null;
+     String ldapPort=null;
+     String principal=null;
+     String credential=null;
+     String dnToAdd=null;
+     String attributeToAdd=null;
+
+     
+     int ind1;
+     String attributeName;
+     String attributeValue;
+     
+     Attributes attributes = new BasicAttributes(); 
+     HashSet attributeSet = new HashSet(); 
+
+     for (int k=0; k< args.length; k++) {
+    	 String opt1 = args[k]; 
+    	 String val1 = args[k+1];
+    	 
+    	 if (opt1.equals("-h")) {
+    		 hostname = val1;
+    	 }
+    	 if (opt1.equals("-p")) {
+    		 ldapPort = val1;
+    	 }
+    	 if (opt1.equals("-D")) {
+    		 principal = val1;
+    	 }
+    	 if (opt1.equals("-w")) {
+    		 credential = val1;
+    	 }
+    	 if (opt1.equals("-d")) {
+    		 dnToAdd = val1;
+    	 }
+    	 if (opt1.equals("-v")) {
+    		attributeToAdd = val1;
+    		 
+   		 	ind1= val1.indexOf (":");
+
+   		 	attributeName=val1.substring (0,ind1);
+   		 	attributeValue=val1.substring (ind1+1);
+
+   		 	BasicAttribute attrToComplete = null;
+   		 
+   		 	Iterator it = attributeSet.iterator();
+   		 	while (attrToComplete == null && it.hasNext()) {
+   		 		BasicAttribute attr = (BasicAttribute) it.next();
+   		 		if ((attr.getID()).equalsIgnoreCase(attributeName)) {
+   		 			attrToComplete = attr;
+   		 		}
+   		 	}
+   		 	
+   		 	if (attrToComplete == null) {
+   		 		attrToComplete = new BasicAttribute(attributeName);
+   		 		attributeSet.add(attrToComplete);
+   		 	}
+   		 	attrToComplete.add(attributeValue);
+    	 }
+    	 k++;
+     } 
+      
+     
+     Iterator it2 = attributeSet.iterator();
+     while (it2.hasNext()) {
+		 BasicAttribute attr = (BasicAttribute)it2.next();
+		 attributes.put(attr);
+	 }
+     
+    String provider = "ldap://"  + hostname + ":" + ldapPort  + "/";
+ 
+    Hashtable envLdap  = new Hashtable();
+    
+	envLdap.put("java.naming.factory.initial", "com.sun.jndi.ldap.LdapCtxFactory");
+	envLdap.put(Context.SECURITY_AUTHENTICATION, "simple");
+	envLdap.put(Context.SECURITY_PRINCIPAL,  principal);
+	envLdap.put(Context.SECURITY_CREDENTIALS, credential);
+	envLdap.put(Context.PROVIDER_URL, provider);
+
+	LdapContext ctx;
+	
+	try {
+		
+		CompositeName entryDN = new CompositeName (dnToAdd);
+	    System.out.println("Add a new  entry " + entryDN); 
+		
+		// connect to server
+		ctx = new InitialLdapContext(envLdap, null);	
+
+        ctx.createSubcontext(entryDN, attributes);
+
+        ctx.close();
+        
+
+	} catch (CommunicationException e1) {
+		String error = e1.getMessage();
+
+        System.out.println(" Catch exception : " + e1.getMessage());
+        System.exit(1);
+	} catch (NamingException e2) {
+		 // resultCode = ; 
+        System.out.println(" Catch exception : " + e2.getMessage());
+        System.exit(1);
+    } catch (Exception e3) {
+
+            System.out.println(" Catch exception : " + e3.getMessage());
+            System.exit(1);
+	}
+}
+}
