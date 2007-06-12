@@ -202,6 +202,12 @@ public class DsServiceCliMain
       return ReturnCode.SUCCESSFUL.getReturnCode();
     }
 
+    if (argParser.getSubCommand() == null)
+    {
+      err.println(argParser.getUsage());
+      return ReturnCode.ERROR_PARSING_ARGS.getReturnCode();
+    }
+
     // Get connection parameters
     String host = argParser.getHostName() ;
     String port = argParser.getPort() ;
