@@ -87,7 +87,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeAdded'   : '%s/aci/aci_modify_rdn/aci_startup_modrdn_tests.ldif' % STAGED_DATA_DIR }
+                    'entryToBeAdded'   : '%s/aci/aci_modify_rdn/aci_startup_modrdn_tests.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -129,7 +129,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci1.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -141,7 +141,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -157,7 +157,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry1.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry1.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -218,7 +218,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry1a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry1a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -234,7 +234,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -250,7 +250,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -294,7 +294,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci2.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -306,7 +306,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -322,7 +322,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry2.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry2.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -383,7 +383,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry2a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry2a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -399,7 +399,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore2.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore2.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -415,7 +415,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -431,7 +431,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -474,7 +474,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci3.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -486,7 +486,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -502,7 +502,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry3.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry3.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -563,7 +563,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry3a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry3a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -579,7 +579,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -595,7 +595,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -636,7 +636,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci4.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -648,7 +648,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -664,7 +664,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry4.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry4.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -680,7 +680,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry4a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry4a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -696,7 +696,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -712,7 +712,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -756,7 +756,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci5.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -768,7 +768,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -784,7 +784,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry5.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry5.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -845,7 +845,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry5a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry5a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -861,7 +861,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore2.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore2.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -877,7 +877,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -893,7 +893,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -933,7 +933,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci6.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -945,7 +945,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -961,7 +961,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry6.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry6.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -977,7 +977,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry6a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry6a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -993,7 +993,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1009,7 +1009,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -1053,7 +1053,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci7.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1065,7 +1065,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1081,7 +1081,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry7.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry7.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1142,7 +1142,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry7.1.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry7.1.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -1158,7 +1158,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry7a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry7a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -1174,7 +1174,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1190,7 +1190,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -1236,7 +1236,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci8.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1248,7 +1248,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1264,7 +1264,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry8.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry8.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1325,7 +1325,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry8a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry8a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -1341,7 +1341,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore3.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore3.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -1357,7 +1357,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/replace_modrdn_aci8.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/replace_modrdn_aci8.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1373,7 +1373,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore3.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore3.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1389,7 +1389,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1405,7 +1405,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -1446,7 +1446,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci9.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1458,7 +1458,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1474,7 +1474,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry9.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry9.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -1490,7 +1490,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry9a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry9a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -1506,7 +1506,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1522,7 +1522,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -1566,7 +1566,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci10.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1578,7 +1578,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1594,7 +1594,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry10.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry10.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1655,7 +1655,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry10a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry10a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -1671,7 +1671,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1687,7 +1687,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -1730,7 +1730,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci11.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1742,7 +1742,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1758,7 +1758,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry11.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry11.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -1774,7 +1774,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry11a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry11a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -1790,7 +1790,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1806,7 +1806,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -1850,7 +1850,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci21.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -1862,7 +1862,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -1878,7 +1878,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry21.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry21.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1939,7 +1939,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry21a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry21a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -1955,7 +1955,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore3.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore3.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1971,7 +1971,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -1987,7 +1987,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">
@@ -2033,7 +2033,7 @@
                           
                 <script>
                     curr_aci_ldif_file = 'add_modrdn_aci22.ldif'
-                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (LOCAL_DATA_DIR,curr_aci_ldif_file));
+                    curr_aci=retrieve_aci('%s/aci/aci_modify_rdn/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
         
                 <message>
@@ -2045,7 +2045,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (STAGED_DATA_DIR,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
                 </call>
     
                 <if expr="RC != 0">
@@ -2061,7 +2061,7 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry22.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry22.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -2122,7 +2122,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry22a.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry22a.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -2138,7 +2138,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore4.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore4.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 50">
@@ -2154,7 +2154,7 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/replace_modrdn_aci22.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/replace_modrdn_aci22.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -2170,7 +2170,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore4.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore4.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -2186,7 +2186,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/del_aci.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">
@@ -2202,7 +2202,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
                 </call>
     
                 <call function="'checktestRC'">

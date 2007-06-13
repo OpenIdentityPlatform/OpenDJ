@@ -65,7 +65,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd5.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd5.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -333,7 +333,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_add_realm2.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/sasl/admin_add_realm2.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -415,7 +415,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd6.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd6.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">

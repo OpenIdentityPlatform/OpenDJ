@@ -81,7 +81,7 @@
     
               <call function="'ImportLdifWithScript'">
                 { 'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsLdifFile'  : '%s/backends/Example.ldif' % STAGED_DATA_DIR }
+                  'dsLdifFile'  : '%s/backends/Example.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checktestRC'">
@@ -120,7 +120,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Example.ldif' % logsRemoteDataDir,
                   'backEnd'     : 'nonDefault' }
               </call>
     
@@ -159,7 +159,7 @@
 
               <call function="'ImportLdifWithScript'">
                 { 'location'        : STAF_REMOTE_HOSTNAME,
-                  'dsLdifFile'      : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
+                  'dsLdifFile'      : '%s/backends/Include.ldif' % logsRemoteDataDir,
                   'dsIncludeBranch' : 'dc=com' }
               </call>
     
@@ -198,7 +198,7 @@
               <call function="'testCase_Preamble'"/>
                   
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
                   'extraParams' : '-b "dc=com" -b "dc=example,dc=com"'
                 }
               </call>
@@ -238,7 +238,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
                   'extraParams' : '-B "ou=Departed,ou=People,dc=example,dc=com"'
                 }
               </call>
@@ -281,7 +281,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
                   'extraParams' : '-B "ou=Departed,ou=People,dc=example,dc=com"'
                 }
               </call>
@@ -324,7 +324,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
                   'extraParams' : '-b dc=com -B "ou=Departed,ou=People,dc=example,dc=com"'
                 }
               </call>
@@ -367,7 +367,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
                   'extraParams' : '-i dc'
                 }
               </call>
@@ -407,7 +407,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
                   'extraParams' : '-i dc -i cn -i ou -i sn'
                 }
               </call>
@@ -448,7 +448,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
                   'extraParams' : '-e userpassword'
                 }
               </call>
@@ -488,7 +488,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
                   'extraParams' : '-e userpassword -e mail -e roomnumber'
                 }
               </call>
@@ -528,7 +528,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Example.ldif' % logsRemoteDataDir,
                   'extraParams' : '-i dc -i cn -i ou -i sn -b "dc=com" -b "dc=example,dc=com" -b "ou=People,dc=example,dc=com" -B "ou=Departed,ou=People,dc=example,dc=com"'
                 }
               </call>
@@ -571,7 +571,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
                   'extraParams' : '-I "objectclass=*'
                 }
               </call>
@@ -612,7 +612,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
                   'extraParams' : '-E "objectclass=person"'
                 }
               </call>
@@ -655,7 +655,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
                   'extraParams' : '-I "objectclass=domain" -I "objectclass=organizationalunit"'
                 }
               </call>
@@ -698,7 +698,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
                   'extraParams' : '-E "objectclass=person" -E "objectclass=organizationalunit"'
                 }
               </call>
@@ -738,7 +738,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Include.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Include.ldif' % logsRemoteDataDir,
                   'extraParams' : '-I "|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)"'
                 }
               </call>
@@ -779,7 +779,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
                   'extraParams' : '-E "&amp;(objectclass=person)(ou=Departed)"'
                 }
               </call>
@@ -819,7 +819,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Exclude.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Exclude.ldif' % logsRemoteDataDir,
                   'extraParams' : '-E "&amp;(objectclass=person)(ou=Departed)" -b "dc=com" -e userpassword'
                 }
               </call>
@@ -859,7 +859,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Append.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Append.ldif' % logsRemoteDataDir,
                   'extraParams' : '-a'
                 }
               </call>
@@ -900,7 +900,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Append.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Append.ldif' % logsRemoteDataDir,
                   'extraParams' : '-a -r'
                 }
               </call>
@@ -941,7 +941,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif.gz' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Example.ldif.gz' % logsRemoteDataDir,
                   'extraParams' : '-c'
                 }
               </call>
@@ -982,7 +982,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Example.ldif' % logsRemoteDataDir,
                   'extraParams' : '-y'
                 }
               </call>
@@ -1042,7 +1042,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Example.ldif' % logsRemoteDataDir,
                   'extraParams' : '-R %s/rejects.txt' % TMPDIR
                 }
               </call>
@@ -1083,7 +1083,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Example.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Example.ldif' % logsRemoteDataDir,
                   'extraParams' : '-R %s/rejects.txt -O' % TMPDIR
                 }
               </call>
@@ -1124,7 +1124,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Schema.ldif' % STAGED_DATA_DIR,
+                { 'ldifFile'    : '%s/backends/Schema.ldif' % logsRemoteDataDir,
                   'extraParams' : '-S'
                 }
               </call>
@@ -1165,7 +1165,7 @@
               <call function="'testCase_Preamble'"/>
     
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/Schema.ldif' % STAGED_DATA_DIR }
+                { 'ldifFile'    : '%s/backends/Schema.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checktestRC'">

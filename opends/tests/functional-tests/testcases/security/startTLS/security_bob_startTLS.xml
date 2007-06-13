@@ -46,7 +46,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/startTLS/starttls_startup.ldif' % STAGED_DATA_DIR,
+                'entryToBeAdded'   : '%s/security/startTLS/starttls_startup.ldif' % logsRemoteDataDir,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -73,7 +73,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/add/bin_a1_tls_in.ldif' % STAGED_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/startTLS/add/bin_a1_tls_in.ldif' % logsRemoteDataDir ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -100,7 +100,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/mod/bin_a1_tls_mod.ldif' % STAGED_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/startTLS/mod/bin_a1_tls_mod.ldif' % logsRemoteDataDir ,
                 'extraParams'      : '-q -X' }
             </call>
 
@@ -127,7 +127,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/startTLS/del/bin_a1_tls_out.ldif' % STAGED_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/startTLS/del/bin_a1_tls_out.ldif' % logsRemoteDataDir ,
                 'extraParams'      : '-q -X' }
             </call>
 

@@ -102,7 +102,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/schema_start.ldif' % STAGED_DATA_DIR }
+                  'entryToBeAdded'   : '%s/schema/ldifs/schema_start.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checkRC'">

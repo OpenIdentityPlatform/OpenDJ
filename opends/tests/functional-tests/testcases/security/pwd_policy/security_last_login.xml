@@ -73,7 +73,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -139,7 +139,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -155,7 +155,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-format.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-format.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -221,7 +221,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -305,7 +305,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -380,7 +380,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -472,7 +472,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -518,7 +518,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -570,7 +570,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -662,7 +662,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -762,7 +762,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -836,7 +836,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -870,7 +870,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -915,7 +915,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -931,7 +931,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1005,7 +1005,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-format.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-format.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1039,7 +1039,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1084,7 +1084,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-format.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-format.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1100,7 +1100,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1192,7 +1192,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1267,7 +1267,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1359,7 +1359,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1405,7 +1405,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login2.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login2.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1449,7 +1449,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1523,7 +1523,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-format.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-format.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1557,7 +1557,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1591,7 +1591,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login3.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login3.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1635,7 +1635,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -1651,7 +1651,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">

@@ -64,7 +64,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_enable_pwd_length_validator.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/admin_enable_pwd_length_validator.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -90,7 +90,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'oranges' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 53">
@@ -136,7 +136,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_change_min_pwd_length.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/admin_change_min_pwd_length.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -162,7 +162,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'oranges' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short2.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short2.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 53">
@@ -208,7 +208,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'oranges' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -253,7 +253,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_min_pwd_length.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_min_pwd_length.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -296,7 +296,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_change_max_pwd_length.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/admin_change_max_pwd_length.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -322,7 +322,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'grape' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 53">
@@ -368,7 +368,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'grape' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long2.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long2.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -413,7 +413,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_max_pwd_length.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_max_pwd_length.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -430,7 +430,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'grapefruit' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">

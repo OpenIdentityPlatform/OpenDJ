@@ -65,7 +65,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_change_CLEAR.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_storage/admin_change_CLEAR.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -107,7 +107,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jwalker,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'dogleg' ,
-                'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_CLEAR.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_CLEAR.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -228,7 +228,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">

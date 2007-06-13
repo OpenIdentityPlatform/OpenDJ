@@ -72,7 +72,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/account_activation/admin_deactivate_account.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/account_activation/admin_deactivate_account.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -123,7 +123,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/account_activation/admin_reactivate_account.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/account_activation/admin_reactivate_account.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">

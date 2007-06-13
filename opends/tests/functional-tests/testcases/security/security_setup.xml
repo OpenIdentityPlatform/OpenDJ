@@ -54,7 +54,27 @@
                   { 'returncode' : RC ,
                     'result'     : STAXResult }
               </call>
-      
+
+              <!-- Dynamically create ldif files for staging -->
+              <!-- Modify SSL port to a user-defined value -->
+              <message>
+                  'Create locally the security ldif file'
+              </message>
+              
+              <script>
+                write_ldaps_ldif_file('%s/security' % (logsLocalDataDir), '%s' % (DIRECTORY_INSTANCE_SSL_PORT));
+              </script>
+
+              <message>
+                  'Copy the security ldif file (ldaps_port.ldif) to %s' % (dsHost)
+              </message>
+              <call function="'copyFile'">
+                { 'location'   : STAF_LOCAL_HOSTNAME,
+                  'srcfile'    : '%s/security/ldaps_port.ldif' % (logsLocalDataDir),
+                  'destfile'   : '%s/security/ldaps_port.ldif' % (logsRemoteDataDir),
+                  'remotehost' : dsHost }
+              </call>
+                      
             </sequence>      
           <!--- End Block Create DS Topology -->	
           </block>				  				  

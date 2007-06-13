@@ -67,7 +67,7 @@
                         'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                         'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                         'taskID'         : '3',
-                        'backupDir'       : '%s/backends/' % STAGED_DATA_DIR
+                        'backupDir'       : '%s/backends/' % logsRemoteDataDir
                       }
                     </call>
           

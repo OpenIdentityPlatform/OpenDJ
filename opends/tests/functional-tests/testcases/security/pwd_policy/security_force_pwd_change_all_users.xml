@@ -64,7 +64,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_exp_pwd_no_warning.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_exp_pwd_no_warning.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -80,7 +80,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_force_pwd_by_time.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_force_pwd_by_time.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -131,7 +131,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_exp_pwd_no_warning.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_exp_pwd_no_warning.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -185,7 +185,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_by_time.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_by_time.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">

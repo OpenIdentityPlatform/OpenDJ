@@ -46,7 +46,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/sales_pwd_policy.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/pwd_policy/sales_pwd_policy.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -72,7 +72,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/add_sales_person.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/pwd_policy/add_sales_person.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -126,7 +126,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_cnt_sales.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_cnt_sales.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -222,7 +222,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/rm_sales_pwd_policy.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/rm_sales_pwd_policy.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">

@@ -50,7 +50,7 @@
           <call function="'replication_setup'" />
 
           <script>
-            server1DataDir = '%s/functional-tests/shared/data' % server1.getDir()
+            server1DataDir = '%s/%s' % (server1.getDir(),relativeDataDir)
           </script>
           
           <!--- Test Case : Total Update -->          

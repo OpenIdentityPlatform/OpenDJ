@@ -46,7 +46,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/bind_no_pwd/bind_no_pwd_startup.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/bind_no_pwd/bind_no_pwd_startup.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">

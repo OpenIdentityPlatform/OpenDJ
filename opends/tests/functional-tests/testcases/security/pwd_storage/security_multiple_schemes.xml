@@ -65,7 +65,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_add_BASE64.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_storage/admin_add_BASE64.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -202,7 +202,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'oranges' ,
-                'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_mult_schemes.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_mult_schemes.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -330,7 +330,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'manyoranges' ,
-                'entryToBeModified'   : '%s/security/pwd_storage/user_add_pwd.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_storage/user_add_pwd.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -367,7 +367,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">

@@ -120,7 +120,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit.ldif' % STAGED_DATA_DIR }
+                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checktestRC'">
@@ -169,7 +169,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit2.ldif' % STAGED_DATA_DIR }
+                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit2.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checktestRC'">
@@ -217,7 +217,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit3.ldif' % STAGED_DATA_DIR }
+                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit3.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checktestRC'">
@@ -292,7 +292,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit4.ldif' % STAGED_DATA_DIR }
+                  'entryToBeAdded'   : '%s/core/ldifs/mod_searchsizelimit4.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checktestRC'">

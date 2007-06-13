@@ -107,7 +107,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/aci/aci_startup.ldif' % STAGED_DATA_DIR }
+                  'entryToBeAdded'   : '%s/aci/aci_startup.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checkRC'">
@@ -124,7 +124,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_target/aci_handler.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s/aci/aci_target/aci_handler.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checkRC'">

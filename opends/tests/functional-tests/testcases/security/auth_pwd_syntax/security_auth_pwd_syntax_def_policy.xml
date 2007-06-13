@@ -64,7 +64,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/auth_pwd_syntax/admin_mod_def_policy.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/auth_pwd_syntax/admin_mod_def_policy.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -108,7 +108,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_def_users.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_def_users.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -185,7 +185,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/auth_pwd_syntax/admin_mod_def_policy2.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/auth_pwd_syntax/admin_mod_def_policy2.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">

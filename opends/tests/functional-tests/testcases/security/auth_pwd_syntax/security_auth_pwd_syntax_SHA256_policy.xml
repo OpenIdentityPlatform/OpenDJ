@@ -65,7 +65,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_policy.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_policy.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -105,7 +105,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_users.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_users.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -180,7 +180,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_user1.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_user1.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 65">
@@ -238,7 +238,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_user2.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_user2.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 21">
@@ -312,7 +312,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_del_new_policy.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_del_new_policy.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">

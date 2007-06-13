@@ -72,7 +72,7 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeModified'   : '%s/security/account_activation/admin_expire_account.ldif' % STAGED_DATA_DIR }
+              'entryToBeModified'   : '%s/security/account_activation/admin_expire_account.ldif' % logsRemoteDataDir }
           </call>
 
           <call function="'checktestRC'">
@@ -122,7 +122,7 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeModified'   : '%s/security/account_activation/admin_expire_account_future.ldif' % STAGED_DATA_DIR }
+              'entryToBeModified'   : '%s/security/account_activation/admin_expire_account_future.ldif' % logsRemoteDataDir }
           </call>
 
           <call function="'checktestRC'">
@@ -172,7 +172,7 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeModified'   : '%s/security/account_activation/admin_unexpire_account.ldif' % STAGED_DATA_DIR }
+              'entryToBeModified'   : '%s/security/account_activation/admin_unexpire_account.ldif' % logsRemoteDataDir }
           </call>
 
           <if expr="RC != 0">

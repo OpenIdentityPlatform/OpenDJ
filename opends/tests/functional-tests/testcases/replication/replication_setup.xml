@@ -60,7 +60,7 @@
             client = _topologyServerList[0]
             clientHost = client.getHostname()
             clientPath = '%s/%s' % (client.getDir(),OPENDSNAME)
-            clientDataDir = '%s/functional-tests/shared/data' % client.getDir()
+            clientDataDir = '%s/%s' % (client.getDir(),relativeDataDir)
              
             server1 = _topologyServerList[0]
             server2 = _topologyServerList[1]          

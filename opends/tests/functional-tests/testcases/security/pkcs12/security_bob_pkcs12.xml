@@ -66,7 +66,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pkcs12/pkcs12_startup.ldif' % STAGED_DATA_DIR,
+                'entryToBeAdded'   : '%s/security/pkcs12/pkcs12_startup.ldif' % logsRemoteDataDir,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -105,7 +105,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pkcs12/modrdn/a1_modrdn.ldif' % STAGED_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/pkcs12/modrdn/a1_modrdn.ldif' % logsRemoteDataDir ,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -144,7 +144,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pkcs12/add/bin_a1_in.ldif' % STAGED_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/pkcs12/add/bin_a1_in.ldif' % logsRemoteDataDir ,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -183,7 +183,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pkcs12/mod/bin_a1_mod.ldif' % STAGED_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/pkcs12/mod/bin_a1_mod.ldif' % logsRemoteDataDir ,
                 'extraParams'      : '-Z -X' }
             </call>
 
@@ -222,7 +222,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pkcs12/del/bin_a1_out.ldif' % STAGED_DATA_DIR ,
+                'entryToBeModified'   : '%s/security/pkcs12/del/bin_a1_out.ldif' % logsRemoteDataDir ,
                 'extraParams'      : '-Z -X' }
             </call>
 
