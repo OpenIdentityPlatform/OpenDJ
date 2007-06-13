@@ -2276,6 +2276,7 @@
                                           Entry is returned only for steps 1 and 5
                                           and only with the specified attribute.
           -->
+          <!--
           <testcase name="'ACI: Proxy Auth: Directory Manager as proxy'">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -2562,7 +2563,8 @@
   
             </sequence>
           </testcase>
-  
+          -->
+          
           <!---
               Place test-specific test information here.
               The tag, TestMarker, must be the same as the tag, TestSuiteName.
