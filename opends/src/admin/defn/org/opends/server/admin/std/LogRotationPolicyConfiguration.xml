@@ -10,6 +10,7 @@
     <adm:user-friendly-plural-name /> are used to specify when log files should
     be rotated.
   </adm:synopsis>
+  <adm:tag name="logging"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.106</ldap:oid>

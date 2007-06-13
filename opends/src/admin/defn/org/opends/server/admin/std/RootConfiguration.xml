@@ -304,4 +304,22 @@
     </adm:profile>
   </adm:relation>
   <adm:product-name>OpenDS Directory Server</adm:product-name>
+  <adm:tag-definition name="logging">
+    <adm:synopsis>Logging</adm:synopsis>
+  </adm:tag-definition>
+  <adm:tag-definition name="identity">
+    <adm:synopsis>User management</adm:synopsis>
+  </adm:tag-definition>
+  <adm:tag-definition name="replication">
+    <adm:synopsis>Replication</adm:synopsis>
+  </adm:tag-definition>
+  <adm:tag-definition name="database">
+    <adm:synopsis>Caching and back-ends</adm:synopsis>
+  </adm:tag-definition>
+  <adm:tag-definition name="security">
+    <adm:synopsis>Authentication and authorization</adm:synopsis>
+  </adm:tag-definition>
+  <adm:tag-definition name="core">
+    <adm:synopsis>Core server</adm:synopsis>
+  </adm:tag-definition>
 </adm:root-managed-object>

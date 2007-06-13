@@ -37,6 +37,7 @@
     including accepting the connections, reading requests, and sending
     responses.
   </adm:synopsis>
+  <adm:tag name="core"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.13</ldap:oid>

@@ -35,6 +35,7 @@
     <adm:user-friendly-plural-name />
     are responsible for the processing associated with SASL bind operations.
   </adm:synopsis>
+  <adm:tag name="security"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.43</ldap:oid>

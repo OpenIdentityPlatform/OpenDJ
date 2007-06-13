@@ -75,6 +75,31 @@
           </xsd:documentation>
         </xsd:annotation>
       </xsd:element>
+      <xsd:element name="tag" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            The name of a tag defined in the root configuration
+            definition. Tags can be used to group related managed object
+            definitions together. For example, all managed objects that
+            are associated with password management might be tagged with
+            "password" (assuming that there is a "password" tag defined
+            in the root configuration). Tags are inherited by derived
+            managed object definitions.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:attribute name="name" type="tns:name-type"
+            use="required">
+            <xsd:annotation>
+              <xsd:documentation>
+                The name of the referenced tag. There must be an
+                accompanying tag definition in the root configuration
+                definition.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+        </xsd:complexType>
+      </xsd:element>
       <xsd:element name="profile" type="tns:profile-type" minOccurs="0"
         maxOccurs="unbounded">
         <xsd:annotation>
@@ -1418,6 +1443,65 @@
                   <xsd:whiteSpace value="collapse" />
                 </xsd:restriction>
               </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="tag-definition" minOccurs="0"
+              maxOccurs="unbounded">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Defines a tag which can be used to group related types
+                  of managed object. Administration tools can take
+                  advantage of managed object tags to make it easier for
+                  users to discover related components.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="synopsis">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        A brief description of this tag. The description
+                        should describe, preferably in one sentence, the
+                        types of managed object that this tag applies
+                        to. The synopsis should be suitable for use in
+                        applications such as tool-tips, CLI help, and
+                        the summary description in Javadoc. It is
+                        possible to embed rich content including XHTML
+                        markup (this will only be used where supported).
+                      </xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType mixed="true">
+                      <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <xsd:any
+                          namespace="http://www.w3.org/1999/xhtml"
+                          processContents="lax" />
+                        <xsd:element name="product-name">
+                          <xsd:annotation>
+                            <xsd:documentation>
+                              The name of the product associated with
+                              this definition.
+                            </xsd:documentation>
+                          </xsd:annotation>
+                          <xsd:complexType />
+                        </xsd:element>
+                      </xsd:choice>
+                    </xsd:complexType>
+                  </xsd:element>
+                </xsd:sequence>
+                <xsd:attribute name="name" type="tns:name-type"
+                  use="required">
+                  <xsd:annotation>
+                    <xsd:documentation>
+                      The name of this tag. The name should describe as
+                      concisely as possible the purpose of this tag and
+                      should be suitable for use in Java method names
+                      (e.g. getters and setters). The property name
+                      should be a string comprising of short lower-case
+                      words joined with hyphens "-". For example,
+                      "security".
+                    </xsd:documentation>
+                  </xsd:annotation>
+                </xsd:attribute>
+              </xsd:complexType>
             </xsd:element>
           </xsd:sequence>
           <xsd:attribute name="name" type="tns:name-type"

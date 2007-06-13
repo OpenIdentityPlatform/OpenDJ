@@ -33,10 +33,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Set;
 
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 
@@ -81,6 +83,9 @@ public abstract class AbstractManagedObjectDefinition
   // object definition including inherited relation definitions.
   private final Map<String, RelationDefinition<?, ?>> allRelationDefinitions;
 
+  // The set of tags associated with this managed object.
+  private final Set<Tag> allTags;
+
   // The set of managed object definitions which inherit from this definition.
   private final Map<String,
     AbstractManagedObjectDefinition<? extends C, ? extends S>> children;
@@ -105,6 +110,7 @@ public abstract class AbstractManagedObjectDefinition
     this.allPropertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
     this.allRelationDefinitions =
       new HashMap<String, RelationDefinition<?, ?>>();
+    this.allTags = new HashSet<Tag>();
     this.children = new HashMap<String,
         AbstractManagedObjectDefinition<? extends C, ? extends S>>();
 
@@ -119,6 +125,8 @@ public abstract class AbstractManagedObjectDefinition
       for (RelationDefinition<?, ?> rd : parent.getAllRelationDefinitions()) {
         allRelationDefinitions.put(rd.getName(), rd);
       }
+
+      // Tag inheritance is performed during preprocessing.
     }
   }
 
@@ -175,6 +183,19 @@ public abstract class AbstractManagedObjectDefinition
   public final Collection<RelationDefinition<?, ?>>
       getAllRelationDefinitions() {
     return Collections.unmodifiableCollection(allRelationDefinitions.values());
+  }
+
+
+
+  /**
+   * Get all the tags associated with this type of managed object. The
+   * returned collection will contain inherited tags.
+   *
+   * @return Returns an unmodifiable collection containing all the
+   *         tags associated with this type of managed object.
+   */
+  public final Collection<Tag> getAllTags() {
+    return Collections.unmodifiableCollection(allTags);
   }
 
 
@@ -492,6 +513,21 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
+   * Determines whether or not this managed object definition has the
+   * specified tag.
+   *
+   * @param t
+   *          The tag definition.
+   * @return Returns <code>true</code> if this managed object
+   *         definition has the specified tag.
+   */
+  public final boolean hasTag(Tag t) {
+    return allTags.contains(t);
+  }
+
+
+
+  /**
    * Determines whether or not this managed object definition is a
    * sub-type of the provided managed object definition. This managed
    * object definition is a sub-type of the provided managed object
@@ -533,42 +569,6 @@ public abstract class AbstractManagedObjectDefinition
    */
   public final boolean isParentOf(AbstractManagedObjectDefinition<?, ?> d) {
     return d.isChildOf(this);
-  }
-
-
-
-  /**
-   * Register a property definition with the managed object definition,
-   * overriding any existing property definition with the same name.
-   * <p>
-   * This method <b>must not</b> be called by applications.
-   *
-   * @param d
-   *          The property definition to be registered.
-   */
-  protected final void registerPropertyDefinition(PropertyDefinition d) {
-    String name = d.getName();
-
-    propertyDefinitions.put(name, d);
-    allPropertyDefinitions.put(name, d);
-  }
-
-
-
-  /**
-   * Register a relation definition with the managed object definition,
-   * overriding any existing relation definition with the same name.
-   * <p>
-   * This method <b>must not</b> be called by applications.
-   *
-   * @param d
-   *          The relation definition to be registered.
-   */
-  protected final void registerRelationDefinition(RelationDefinition d) {
-    String name = d.getName();
-
-    relationDefinitions.put(name, d);
-    allRelationDefinitions.put(name, d);
   }
 
 
@@ -628,6 +628,56 @@ public abstract class AbstractManagedObjectDefinition
    */
   public final void toString(StringBuilder builder) {
     builder.append(getName());
+  }
+
+
+
+  /**
+   * Register a property definition with the managed object definition,
+   * overriding any existing property definition with the same name.
+   * <p>
+   * This method <b>must not</b> be called by applications.
+   *
+   * @param d
+   *          The property definition to be registered.
+   */
+  protected final void registerPropertyDefinition(PropertyDefinition d) {
+    String name = d.getName();
+
+    propertyDefinitions.put(name, d);
+    allPropertyDefinitions.put(name, d);
+  }
+
+
+
+  /**
+   * Register a relation definition with the managed object definition,
+   * overriding any existing relation definition with the same name.
+   * <p>
+   * This method <b>must not</b> be called by applications.
+   *
+   * @param d
+   *          The relation definition to be registered.
+   */
+  protected final void registerRelationDefinition(RelationDefinition d) {
+    String name = d.getName();
+
+    relationDefinitions.put(name, d);
+    allRelationDefinitions.put(name, d);
+  }
+
+
+
+  /**
+   * Register a tag with the managed object definition.
+   * <p>
+   * This method <b>must not</b> be called by applications.
+   *
+   * @param t
+   *          The tag to be registered.
+   */
+  protected final void registerTag(Tag t) {
+    allTags.add(t);
   }
 
 

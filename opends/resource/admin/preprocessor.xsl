@@ -166,8 +166,25 @@
         Pre-process this managed object's elements.
       -->
       <xsl:apply-templates
-        select="adm:TODO|adm:synopsis|adm:description|adm:profile"
+        select="adm:TODO|adm:synopsis|adm:description"
         mode="pre-process">
+        <xsl:with-param name="moname" select="@name" />
+        <xsl:with-param name="mopackage" select="@package" />
+        <xsl:with-param name="hierarchy" select="$hierarchy" />
+      </xsl:apply-templates>
+      <!--
+        Copy all inherited tags plus locally defined tags.
+      -->
+      <xsl:copy-of select="$hierarchy/adm:managed-object/adm:tag" />
+      <xsl:apply-templates select="adm:tag" mode="pre-process">
+        <xsl:with-param name="moname" select="@name" />
+        <xsl:with-param name="mopackage" select="@package" />
+        <xsl:with-param name="hierarchy" select="$hierarchy" />
+      </xsl:apply-templates>
+      <!--
+        Copy profile elements.
+      -->
+      <xsl:apply-templates select="adm:profile" mode="pre-process">
         <xsl:with-param name="moname" select="@name" />
         <xsl:with-param name="mopackage" select="@package" />
         <xsl:with-param name="hierarchy" select="$hierarchy" />
@@ -247,6 +264,68 @@
           select="'org.opends.server.admin.std'" />
       </xsl:apply-templates>
     </xsl:copy>
+  </xsl:template>
+  <!--
+    Pre-process a tag and validate it and by adding a "preprocessor"
+    profile which contains information about where the tag was defined.
+  -->
+  <xsl:template match="adm:tag" mode="pre-process">
+    <xsl:param name="mopackage" select="/.." />
+    <xsl:param name="moname" select="/.." />
+    <xsl:param name="hierarchy" />
+    <!--
+      Make sure that this tag is not duplicated.
+    -->
+    <xsl:variable name="name" select="@name" />
+    <xsl:if test="../adm:tag[@name=$name][2]">
+      <xsl:message terminate="yes">
+        <xsl:value-of
+          select="concat('Tag ', @name, ' is already defined in this managed object')" />
+      </xsl:message>
+    </xsl:if>
+    <!--
+      Make sure that this tag does not override an existing tag.
+    -->
+    <xsl:if test="$hierarchy/adm:managed-object/adm:tag[@name=$name]">
+      <xsl:message terminate="yes">
+        <xsl:value-of
+          select="concat('Tag ', @name, ' is already defined in a parent managed object')" />
+      </xsl:message>
+    </xsl:if>
+    <!--
+      Get the referenced package.
+    -->
+    <xsl:variable name="uri">
+      <xsl:call-template name="get-managed-object-uri">
+        <xsl:with-param name="package"
+          select="'org.opends.server.admin.std'" />
+        <xsl:with-param name="name" select="'root'" />
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:if test="not(document($uri)/adm:root-managed-object)">
+      <xsl:message terminate="yes">
+        <xsl:value-of
+          select="concat('Root managed object definition not found in ', $uri, '.')" />
+      </xsl:message>
+    </xsl:if>
+    <xsl:if
+      test="not(document($uri)/adm:root-managed-object/adm:tag-definition[@name=$name])">
+      <xsl:message terminate="yes">
+        <xsl:value-of
+          select="concat('Tag &quot;', $name,
+                           '&quot; not defined in root managed object definition.')" />
+      </xsl:message>
+    </xsl:if>
+    <!--
+      Copy the tag.
+    -->
+    <xsl:element name="adm:tag">
+      <xsl:copy-of select="@*" />
+      <xsl:apply-templates mode="pre-process">
+        <xsl:with-param name="moname" select="$moname" />
+        <xsl:with-param name="mopackage" select="$mopackage" />
+      </xsl:apply-templates>
+    </xsl:element>
   </xsl:template>
   <!--
     Pre-process a property definition by adding a "preprocessor" profile

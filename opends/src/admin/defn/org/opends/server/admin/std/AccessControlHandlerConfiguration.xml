@@ -35,6 +35,7 @@
     <adm:user-friendly-plural-name />
      manage the application-wide access-control.
   </adm:synopsis>
+  <adm:tag name="security"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.1</ldap:oid>

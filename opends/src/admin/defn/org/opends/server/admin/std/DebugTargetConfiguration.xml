@@ -8,6 +8,7 @@
     <adm:user-friendly-plural-name />
     define the types of messages logged by the debug logPublisher.
   </adm:synopsis>
+  <adm:tag name="logging"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.101</ldap:oid>
