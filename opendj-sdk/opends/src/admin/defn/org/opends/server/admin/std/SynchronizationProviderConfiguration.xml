@@ -36,6 +36,7 @@
     are responsible for handling Synchronization of the Directory Server
     datas with other OpenDS instances or other data repositories.
   </adm:synopsis>
+  <adm:tag name="replication"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.57</ldap:oid>

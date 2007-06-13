@@ -38,6 +38,7 @@
     establishment and termination, server startup and shutdown, and LDIF import
     and export.
   </adm:synopsis>
+  <adm:tag name="core"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.37</ldap:oid>

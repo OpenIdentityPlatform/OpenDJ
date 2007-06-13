@@ -36,6 +36,8 @@
     certificate and the entry for the user that corresponds to that
     certificate.
   </adm:synopsis>
+  <adm:tag name="security"/>
+  <adm:tag name="identity"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.12</ldap:oid>

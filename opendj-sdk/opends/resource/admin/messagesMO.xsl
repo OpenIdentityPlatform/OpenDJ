@@ -62,6 +62,16 @@
         select="concat('description=', normalize-space($this/adm:description), '&#xa;')" />
     </xsl:if>
     <!--
+      Process tag definitions if this is the root configuration.
+    -->
+    <xsl:if test="$this-is-root">
+      <xsl:for-each select="$this/adm:tag-definition">
+        <xsl:sort select="@name" />
+        <xsl:value-of
+          select="concat('tag.', @name, '.synopsis=', normalize-space(adm:synopsis), '&#xa;')" />
+      </xsl:for-each>
+    </xsl:if>
+    <!--
       Process each property definition.
     -->
     <xsl:for-each select="$this-all-properties">

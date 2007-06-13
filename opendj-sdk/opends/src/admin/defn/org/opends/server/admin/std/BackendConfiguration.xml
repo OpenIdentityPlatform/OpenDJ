@@ -39,6 +39,7 @@
     external system), or generated on the fly (e.g., calculated from other
     information that is available).
   </adm:synopsis>
+  <adm:tag name="database"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.5</ldap:oid>

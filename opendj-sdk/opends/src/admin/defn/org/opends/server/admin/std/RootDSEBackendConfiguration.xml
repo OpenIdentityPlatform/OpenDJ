@@ -38,6 +38,8 @@
     entry for base-level searches, and will simply redirect to other backends
     for operations in other scopes.
   </adm:description>
+  <adm:tag name="core"/>
+  <adm:tag name="database"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.42</ldap:oid>

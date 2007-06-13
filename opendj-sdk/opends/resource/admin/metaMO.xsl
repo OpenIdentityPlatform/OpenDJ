@@ -92,6 +92,21 @@
       <xsl:call-template name="generate-enumeration" />
     </xsl:for-each>
     <!--
+      Define application tags if this is the root configuration.
+    -->
+    <xsl:if test="$this-is-root">
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:value-of select="'  // Define managed object tags.&#xa;'"/>
+      <xsl:value-of select="'  static {&#xa;'"/>
+      <xsl:for-each select="$this/adm:tag-definition">
+        <xsl:sort select="@name" />
+        <xsl:value-of select="concat('    Tag.define(&quot;', @name, '&quot;);&#xa;')"/>
+      </xsl:for-each>
+      <xsl:value-of select="'  }&#xa;'"/>
+    </xsl:if>
+    <!--
       Generate declarations for properties defined or
       overridden by this managed object.
     -->
@@ -133,6 +148,21 @@
       <xsl:text>&#xa;</xsl:text>
       <xsl:call-template name="generate-relation-constructor" />
     </xsl:for-each>
+    <!--
+      Register any tags associated with this managed object definition.
+    -->
+    <xsl:if test="$this/adm:tag">
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:value-of select="'  // Register the tags associated with this managed object definition.&#xa;'"/>
+      <xsl:value-of select="'  static {&#xa;'"/>
+      <xsl:for-each select="$this/adm:tag">
+        <xsl:sort select="@name" />
+        <xsl:value-of select="concat('    INSTANCE.registerTag(Tag.valueOf(&quot;', @name, '&quot;));&#xa;')"/>
+      </xsl:for-each>
+      <xsl:value-of select="'  }&#xa;'"/>
+    </xsl:if>
     <!--
       Configuration definition singleton getter.
     -->
@@ -603,7 +633,8 @@
       </xsl:message>
     </xsl:if>
     <xsl:choose>
-      <xsl:when test="not(adm:default-behavior) or adm:default-behavior/adm:undefined">
+      <xsl:when
+        test="not(adm:default-behavior) or adm:default-behavior/adm:undefined">
         <xsl:value-of
           select="concat('      builder.setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider&lt;', $value-type,'&gt;());&#xa;')" />
       </xsl:when>
@@ -1590,6 +1621,9 @@
                                        @hidden='true' or
                                        @mandatory='true']">
           <import>org.opends.server.admin.PropertyOption</import>
+        </xsl:if>
+        <xsl:if test="$this/adm:tag-definition or $this/adm:tag">
+          <import>org.opends.server.admin.Tag</import>
         </xsl:if>
         <xsl:if
           test="$this-local-properties[adm:default-behavior/adm:undefined or not(adm:default-behavior)]">

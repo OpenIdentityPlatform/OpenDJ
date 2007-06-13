@@ -36,6 +36,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     are responsible for dynamically generating attribute values that appear in
     entries but are not persistently stored in the backend.
   </adm:synopsis>
+  <adm:tag name="core"/>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.91</ldap:oid>
