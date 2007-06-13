@@ -48,10 +48,6 @@ import java.util.Set;
  * <p>
  * Implementations <b>must</b> take care to implement the various
  * comparison methods.
- * <p>
- * Implementations of this interface must be serializable. This is
- * required so that management applications can query property
- * meta-information remotely.
  *
  * @param <T>
  *          The data-type of values of the property.
