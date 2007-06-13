@@ -2683,6 +2683,7 @@
                                             Also, for step 1, the entryLevel and attributeLevel permissions
                                             are returned.
             -->
+            <!--
             <testcase name="'ACI: Effective Rights: targetattr with not equal and search,read - aclRightsInfo'">
               <sequence>
                 <call function="'testCase_Preamble'"/>
@@ -2916,6 +2917,7 @@
     
               </sequence>
             </testcase>
+            -->
             
           <!---
                 Place test-specific test information here.
