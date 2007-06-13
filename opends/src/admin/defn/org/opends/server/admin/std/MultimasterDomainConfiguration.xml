@@ -87,7 +87,7 @@
       <adm:none />
     </adm:requires-admin-action>
     <adm:syntax>
-      <adm:integer></adm:integer>
+      <adm:integer lower-limit="1" upper-limit="65535"></adm:integer>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
