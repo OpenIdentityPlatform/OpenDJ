@@ -70,7 +70,7 @@
             </message>
             <call function="'backup'">
               { 
-                'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR
+                'backupDir'       : '%s/backends/backup1' % logsRemoteDataDir
               }
             </call>
     
@@ -117,7 +117,7 @@
                                 
                 <call function="'restore'">
                   { 
-                    'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR
+                    'backupDir'       : '%s/backends/backup1' % logsRemoteDataDir
                   }
                 </call>
       
@@ -190,7 +190,7 @@
                                 
                 <call function="'backup'">
                   { 
-                    'backupDir'       : '%s/restore.compressed' % STAGED_DATA_DIR
+                    'backupDir'       : '%s/restore.compressed' % logsRemoteDataDir
                   }
                 </call>
       

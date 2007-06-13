@@ -102,7 +102,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/core_start.ldif' % STAGED_DATA_DIR }
+                  'entryToBeAdded'   : '%s/core/ldifs/core_start.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checkRC'">
@@ -121,7 +121,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/core/ldifs/core_test_1K.ldif' % STAGED_DATA_DIR }
+                  'entryToBeAdded'   : '%s/core/ldifs/core_test_1K.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checkRC'">

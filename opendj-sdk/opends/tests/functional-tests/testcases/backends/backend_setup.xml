@@ -84,7 +84,7 @@
                 'Backend: Backend Setup for Export, Backup, and Restore Tests'
               </message>
               <call function="'importLdif'">
-                { 'ldifFile'    : '%s/backends/backend_start.ldif' % STAGED_DATA_DIR }
+                { 'ldifFile'    : '%s/backends/backend_start.ldif' % logsRemoteDataDir }
               </call>
     
               <call function="'checkRC'">

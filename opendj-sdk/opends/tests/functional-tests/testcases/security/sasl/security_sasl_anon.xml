@@ -64,7 +64,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_enable_sasl_anon.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/sasl/admin_enable_sasl_anon.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -142,7 +142,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_disable_sasl_anon.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/sasl/admin_disable_sasl_anon.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">

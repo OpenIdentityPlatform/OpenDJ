@@ -111,7 +111,7 @@
                       'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                       'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                       'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                      'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema1.ldif' % STAGED_DATA_DIR }
+                      'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema1.ldif' % logsRemoteDataDir }
                   </call>
               
                   <if expr="RC != 0">
@@ -173,7 +173,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/schema/ldifs/updateSchema.ldif' % STAGED_DATA_DIR }
+                  'entryToBeModified'   : '%s/schema/ldifs/updateSchema.ldif' % logsRemoteDataDir }
               </call>
   
               <if expr="RC != 0">
@@ -189,7 +189,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema2.ldif' % STAGED_DATA_DIR }
+                  'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema2.ldif' % logsRemoteDataDir }
               </call>
               
               <if expr="RC != 0">
@@ -252,7 +252,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/schema/ldifs/updateSchema2.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/schema/ldifs/updateSchema2.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -268,7 +268,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema4.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema4.ldif' % logsRemoteDataDir }
             </call>
                 
             <call function="'checktestRC'">
@@ -328,7 +328,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/schema/ldifs/updateSchema3.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/schema/ldifs/updateSchema3.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -344,7 +344,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema3.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema3.ldif' % logsRemoteDataDir }
             </call>
                 
             <call function="'checktestRC'">

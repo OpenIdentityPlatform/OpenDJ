@@ -36,10 +36,6 @@
       <block name="'replication'">
 
         <sequence>
-
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-            file="'%s/environment.xml' % (TESTS_FUNCTIONS_DIR)" />
-          <call function="'loadEnvironment'" />
       			
           <script>
             CurrentTestPath={}

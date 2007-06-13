@@ -47,7 +47,7 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % STAGED_DATA_DIR }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -72,7 +72,7 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % STAGED_DATA_DIR }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -97,7 +97,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/bind_no_pwd/enable_bind_no_pwd.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/bind_no_pwd/enable_bind_no_pwd.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -122,7 +122,7 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % STAGED_DATA_DIR }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -147,7 +147,7 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % STAGED_DATA_DIR }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -172,7 +172,7 @@
                 'dsInstanceDn'     : 'uid=tmason, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % STAGED_DATA_DIR }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -197,7 +197,7 @@
                 'dsInstanceDn'     : 'uid=Anybody, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % STAGED_DATA_DIR }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -221,7 +221,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/bind_no_pwd/disable_bind_no_pwd.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/bind_no_pwd/disable_bind_no_pwd.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -238,7 +238,7 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % STAGED_DATA_DIR }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">

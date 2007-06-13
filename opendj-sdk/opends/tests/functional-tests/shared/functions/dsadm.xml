@@ -1038,8 +1038,9 @@
       <!-- Local variables -->
       <script>
         myLocation=location
-        taskLdif='%s/../functional-tests/shared/data/import-task.ldif' % dsPath
-        tmpTaskLdif='%s/import-task.ldif' % TMP_DATA_DIR
+        taskLdifFile='import-task.ldif'
+        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>
       
@@ -1514,8 +1515,9 @@
       <!-- Local variables -->
       <script>
         myLocation=location
-        taskLdif='%s/../functional-tests/shared/data/export-task.ldif' % dsPath
-        tmpTaskLdif='%s/export-task.ldif' % TMP_DATA_DIR
+        taskLdifFile='export-task.ldif'
+        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>
       
@@ -1776,8 +1778,9 @@
     
        <script>
         myLocation=location
-        taskLdif='%s/../functional-tests/shared/data/backup-task.ldif' % dsPath
-        tmpTaskLdif='%s/backup-task.ldif' % TMP_DATA_DIR
+        taskLdifFile='backup-task.ldif'
+        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>
       
@@ -1986,8 +1989,9 @@
     
        <script>
         myLocation=location
-        taskLdif='%s/../functional-tests/shared/data/restore-task.ldif' % dsPath
-        tmpTaskLdif='%s/restore-task.ldif' % TMP_DATA_DIR
+        taskLdifFile='restore-task.ldif'
+        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>    
 
@@ -2113,8 +2117,9 @@
 
          <script>
           myLocation=location
-          taskLdif='%s/../functional-tests/shared/data/schema-task.ldif' % dsPath
-          tmpTaskLdif='%s/schema-task.ldif' % TMP_DATA_DIR
+          taskLdifFile='schema.ldif'
+          taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
+          tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
           taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
         </script>
         
@@ -2155,7 +2160,7 @@
         <message>'Copy schema update ldif file.'</message>
         <call function="'copyFile'">
           { 'location'   : myLocation,
-            'srcfile'    : '%s/schema/ldifs/%s' % (STAGED_DATA_DIR,ldifFile),
+            'srcfile'    : '%s/schema/ldifs/%s' % (logsRemoteDataDir,ldifFile),
             'destfile'   : '%s/%s/config/schema/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,ldifFile),
             'remotehost' : myLocation }
         </call>
@@ -2252,9 +2257,9 @@
       <script>
         myLocation=location
         myPath=dsPath
-        myDataFolder='shared/data/replication'
-        taskLdif='%s/../functional-tests/shared/data/totalupdate-task.ldif' % dsPath
-        tmpTaskLdif='%s/totalupdate-task.ldif' % TMP_DATA_DIR
+        taskLdifFile='totalupdate-task.ldif'
+        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
         taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
       </script>
       

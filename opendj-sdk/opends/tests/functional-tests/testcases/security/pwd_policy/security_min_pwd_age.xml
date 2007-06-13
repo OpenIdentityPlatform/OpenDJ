@@ -73,7 +73,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_min_pwd_age.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_min_pwd_age.ldif' % logsRemoteDataDir }
             </call>
 
             <!--- User Change Password -->
@@ -86,7 +86,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'gosling' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd4.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd4.ldif' % logsRemoteDataDir }
             </call>
 
             <!--- User Search With Password -->
@@ -128,7 +128,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_min_pwd_age.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_min_pwd_age.ldif' % logsRemoteDataDir }
             </call>
 
             <!--- User Change Password -->
@@ -141,7 +141,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'gosling' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd4.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd4.ldif' % logsRemoteDataDir }
             </call>
 
             <!--- User Search With Password -->
@@ -174,7 +174,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=dmiller,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newgosling' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_reset_pwd4.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_reset_pwd4.ldif' % logsRemoteDataDir }
             </call>
 
             <!--- User Search With Password -->

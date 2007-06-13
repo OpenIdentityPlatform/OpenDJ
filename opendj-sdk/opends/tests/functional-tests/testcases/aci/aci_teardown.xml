@@ -89,7 +89,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_disable.ldif' % STAGED_DATA_DIR }
+                    'entryToBeModified'   : '%s/aci/aci_disable.ldif' % logsRemoteDataDir }
                 </call>
     
                 <if expr="RC != 0">

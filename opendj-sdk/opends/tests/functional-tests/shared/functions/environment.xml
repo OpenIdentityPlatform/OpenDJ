@@ -118,11 +118,9 @@
         { 'hostname' : STAF_REMOTE_HOSTNAME }
       </call>
 
-      <!-- XXXX this needs some cleanup XXXX -->
+      <!-- fixMe: this needs some cleanup -->
       <script>
         STAXLogMessage = 1 
-        SRCFILE = '%s/%s' % (ZIPPATH,ZIPNAME) 
-        DSTFILE = '%s/%s' % (TMPDIR,ZIPNAME)
         OPENDS_BINPATH ='%s/%s/bin' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) 
         OSName= STAXResult
         winPattern=re.compile('win', re.IGNORECASE)
@@ -273,7 +271,12 @@
         logsTestsDir='%s/testlogs' % logsDir
         logsReportDir='%s/reports' % logsDir
         logsSUTDir='%s/sutlogs' % logsDir
-        logsTmpDir='%s/tmp' % logsDir
+        logsTestDataDir='%s/testdata' % logsDir
+        logsTempDir='%s/temp' % logsDir
+
+        relativeDataDir='shared/data'
+        logsLocalDataDir='%s/%s' % (logsTestDataDir,relativeDataDir)
+        logsRemoteDataDir='%s/%s' % (DIRECTORY_INSTANCE_DIR,relativeDataDir)     
       </script>
 
       <message>
@@ -285,7 +288,38 @@
           'type'      : 'shared',
           'variable'  : 'Job%s_LogsDir=%s' % (STAXJobID,logsDir) }
       </call>
-                    
+
+      <!-- Create folders -->
+      <message>'Create folder %s' % logsReportDir</message>      
+      <call function="'createFolder'">
+        { 'location' : STAF_LOCAL_HOSTNAME, 
+          'foldername' : '%s' % logsReportDir }
+      </call> 
+
+      <message>'Create folder %s' % logsTempDir</message>            
+      <call function="'createFolder'">
+        { 'location' : STAF_LOCAL_HOSTNAME, 
+          'foldername' : '%s' % logsTempDir }
+      </call>   
+
+      <message>'Create folder %s' % logsSUTDir</message>
+      <call function="'createFolder'">
+        { 'location' : STAF_LOCAL_HOSTNAME, 
+          'foldername' : '%s' % logsSUTDir }
+      </call>   
+
+      <message>'Create folder %s' % logsTestsDir</message>
+      <call function="'createFolder'">
+        { 'location' : STAF_LOCAL_HOSTNAME, 
+          'foldername' : '%s' % logsTestsDir }
+      </call>   
+      
+      <message>'Create folder %s' % logsTestDataDir</message>
+      <call function="'createFolder'">
+        { 'location' : STAF_LOCAL_HOSTNAME, 
+          'foldername' : '%s' % logsTestDataDir }
+      </call>
+                                            
     </sequence>
         
   </function>	

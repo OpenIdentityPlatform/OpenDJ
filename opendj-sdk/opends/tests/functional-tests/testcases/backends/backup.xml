@@ -87,7 +87,7 @@
               </message>
               <call function="'backup'">
                 { 
-                  'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR
+                  'backupDir'       : '%s/backends/backup1' % logsRemoteDataDir
                 }
               </call>
     
@@ -124,7 +124,7 @@
               </message>
               <call function="'backup'">
                 { 
-                  'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR,
+                  'backupDir'       : '%s/backends/backup1' % logsRemoteDataDir,
                   'extraParams' : '-i'
                 }
               </call>
@@ -162,7 +162,7 @@
               </message>
               <call function="'backup'">
                 { 
-                  'backupDir'       : '%s/backends/backup2' % STAGED_DATA_DIR,
+                  'backupDir'       : '%s/backends/backup2' % logsRemoteDataDir,
                   'extraParams' : '-I 20070714142807Z'
                 }
               </call>
@@ -200,7 +200,7 @@
               </message>
               <call function="'backup'">
                 { 
-                  'backupDir'       : '%s/backends/backup2' % STAGED_DATA_DIR,
+                  'backupDir'       : '%s/backends/backup2' % logsRemoteDataDir,
                   'extraParams' : '-B 20070714142807Z -i'
                 }
               </call>
@@ -238,7 +238,7 @@
               </message>
               <call function="'backup'">
                 { 
-                  'backupDir'       : '%s/backends/backup1' % STAGED_DATA_DIR,
+                  'backupDir'       : '%s/backends/backup1' % logsRemoteDataDir,
                   'extraParams' : '-c'
                 }
               </call>

@@ -115,7 +115,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_default.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_default.ldif' % logsRemoteDataDir,
                         'backEnd'        : '%s' % DIRECTORY_INSTANCE_BE
                       }
                     </call>
@@ -126,7 +126,7 @@
                     </call>
                          
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_default.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_default.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -195,7 +195,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_schema.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_schema.ldif' % logsRemoteDataDir,
                         'backEnd'        : 'schema'
                       }
                     </call>
@@ -206,7 +206,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_schema.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_schema.ldif' % logsRemoteDataDir,
                         'backEnd'     : 'schema',
                         'dsPath'      : '%s/server2/%s' % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
                       }
@@ -245,7 +245,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_IncludeBranch.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_IncludeBranch.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-b "dc=com"'
                       }
                     </call>
@@ -256,7 +256,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_IncludeBranch.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_IncludeBranch.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -326,7 +326,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_IncludeBranches.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_IncludeBranches.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-b "dc=com" -b "dc=example,dc=com"'
                       }
                     </call>
@@ -337,7 +337,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_IncludeBranches.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_IncludeBranches.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -407,7 +407,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_ExcludeBranch.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_ExcludeBranch.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-B "dc=example,dc=com"'
                       }
                     </call>
@@ -418,7 +418,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_ExcludeBranch.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_ExcludeBranch.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -490,7 +490,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_ExcludeBranches.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_ExcludeBranches.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-B "ou=People,dc=example,dc=com" -B "dc=example,dc=com"'
                       }
                     </call>
@@ -501,7 +501,7 @@
                     </call>
                                           
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_ExcludeBranches.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_ExcludeBranches.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -571,7 +571,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_MixBranches.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_MixBranches.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-b "dc=com" -B "ou=People,dc=example,dc=com"'
                       }
                     </call>
@@ -582,7 +582,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_MixBranches.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_MixBranches.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -652,7 +652,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_IncludeAttr.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_IncludeAttr.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-i dc'
                       }
                     </call>
@@ -663,7 +663,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_IncludeAttr.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_IncludeAttr.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -732,7 +732,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_IncludeAttrs.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_IncludeAttrs.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-i dc -i cn -i ou -i sn -i uid'
                       }
                     </call>
@@ -743,7 +743,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_IncludeAttrs.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_IncludeAttrs.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -814,7 +814,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_ExcludeAttr.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_ExcludeAttr.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-e userpassword'
                       }
                     </call>
@@ -825,7 +825,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_ExcludeAttr.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_ExcludeAttr.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -894,7 +894,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_ExcludeAttrs.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_ExcludeAttrs.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-e userpassword -e mail -e roomnumber'
                       }
                     </call>
@@ -905,7 +905,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_ExcludeAttrs.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_ExcludeAttrs.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -976,7 +976,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_FractionalMix.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_FractionalMix.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-i dc -i cn -i ou -i sn -i uid -b "dc=com" -b "dc=example,dc=com" -b "ou=People,dc=example,dc=com" -B "ou=Departed,ou=People,dc=example,dc=com"'
                       }
                     </call>
@@ -987,7 +987,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_FractionalMix.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_FractionalMix.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -1058,7 +1058,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_FilteredInclude.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_FilteredInclude.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-I "objectclass=*"'
                       }
                     </call>
@@ -1069,7 +1069,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_FilteredInclude.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_FilteredInclude.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -1139,7 +1139,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_FilteredIncludes.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_FilteredIncludes.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-I "objectclass=domain" -I "objectclass=organizationalunit"'
                       }
                     </call>
@@ -1150,7 +1150,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_FilteredIncludes.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_FilteredIncludes.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -1221,7 +1221,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_FilteredExclude.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_FilteredExclude.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-E "objectclass=person"'
                       }
                     </call>
@@ -1232,7 +1232,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_FilteredExclude.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_FilteredExclude.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -1304,7 +1304,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_FilteredExcludes.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_FilteredExcludes.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-E "objectclass=person" -E "objectclass=organizationalunit"'
                       }
                     </call>
@@ -1315,7 +1315,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_FilteredExcludes.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_FilteredExcludes.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -1387,7 +1387,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_FilteredIncludes.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_FilteredIncludes.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-I "objectclass=domain" -I "objectclass=organizationalunit"'
                       }
                     </call>
@@ -1398,7 +1398,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_FilteredIncludes.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_FilteredIncludes.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -1470,7 +1470,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_FilteredComplexIncludes.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_FilteredComplexIncludes.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-I "|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)"'
                       }
                     </call>
@@ -1481,7 +1481,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_FilteredComplexIncludes.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_FilteredComplexIncludes.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -1551,7 +1551,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_FilteredComplexExcludes.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_FilteredComplexExcludes.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-E "&amp;(objectclass=person)(ou=Departed)"'
                       }
                     </call>
@@ -1562,7 +1562,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_FilteredComplexExcludes.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_FilteredComplexExcludes.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -1632,7 +1632,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_FilteredMix.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_FilteredMix.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-E "&amp;(objectclass=person)(ou=Departed)" -b "dc=com" -e userpassword'
                       }
                     </call>
@@ -1643,7 +1643,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -1713,7 +1713,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/Export_FilteredMix.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/Export_FilteredMix.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-a'
                       }
                     </call>
@@ -1724,7 +1724,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     
@@ -1794,7 +1794,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/ExportCompressed.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/ExportCompressed.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-c'
                       }
                     </call>
@@ -1805,7 +1805,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'       : '%s/backends/ExportCompressed.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'       : '%s/backends/ExportCompressed.ldif' % logsRemoteDataDir,
                         'dsPath'         : '%s/%s' % (DsInstanceDir, OPENDSNAME),
                         'extraParams'    : '-c'}
                     </call>
@@ -1876,7 +1876,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/ExportEncrypted.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/ExportEncrypted.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-y'
                       }
                     </call>
@@ -1887,7 +1887,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/ExportEncrypted.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/ExportEncrypted.ldif' % logsRemoteDataDir,
                         'extraParams' : '-y',
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
@@ -1969,7 +1969,7 @@
                     </message>
                     <call function="'exportLdif'">
                       { 
-                        'ldifFile'       : '%s/backends/ExportWrapCol.ldif' % STAGED_DATA_DIR,
+                        'ldifFile'       : '%s/backends/ExportWrapCol.ldif' % logsRemoteDataDir,
                         'extraParams'    : '-w 25'
                       }
                     </call>
@@ -1980,7 +1980,7 @@
                     </call>
                     
                     <call function="'importLdif'">
-                      { 'ldifFile'    : '%s/backends/ExportWrapCol.ldif' % STAGED_DATA_DIR,
+                      { 'ldifFile'    : '%s/backends/ExportWrapCol.ldif' % logsRemoteDataDir,
                         'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
                     </call>
     

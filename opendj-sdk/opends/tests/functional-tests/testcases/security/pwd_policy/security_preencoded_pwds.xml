@@ -73,7 +73,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 19">
@@ -114,7 +114,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_preencoded_pwds.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_preencoded_pwds.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -141,7 +141,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -181,7 +181,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_preencoded_pwds.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_preencoded_pwds.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">

@@ -94,7 +94,7 @@
                         'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                         'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                         'taskID'         : '1',
-                        'ldifFile'       : '%s/backends/ExportTasks1.ldif' % STAGED_DATA_DIR
+                        'ldifFile'       : '%s/backends/ExportTasks1.ldif' % logsRemoteDataDir
                       }
                     </call>
           

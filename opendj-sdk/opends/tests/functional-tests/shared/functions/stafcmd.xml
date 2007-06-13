@@ -544,13 +544,13 @@
       </function-arg-def>
       <function-arg-def name="type" type="required">
         <function-arg-description>
-          Name of file to be deleted
+          Type of string to be resolved
         </function-arg-description>
         <function-arg-property name="type" value="variable"/>
       </function-arg-def>       
       <function-arg-def name="string" type="required">
         <function-arg-description>
-          Name of file to be deleted
+          Name of string to be resolved
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def> 
@@ -569,5 +569,46 @@
     </sequence>
 
   </function>
-      
+
+  <function name="GetEntry">
+
+    <function-prolog>
+        Retrieves an attribute of a file system entry
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="entry" type="required">
+        <function-arg-description>
+          Name of entry to retrieve attributes
+        </function-arg-description>
+        <function-arg-property name="type" value="variable"/>
+      </function-arg-def>       
+      <function-arg-def name="attribute" type="required">
+        <function-arg-description>
+          Type of attributes to be retrieved
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+    </function-map-args>
+
+    <sequence>
+
+      <message>'Retrieve attribute %s for %s.' % (attribute,entry)</message>
+
+      <stafcmd name="'STAF Command: Get Entries Attributes'">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>'GET ENTRY %s %s' % (entry,attribute)</request>
+      </stafcmd>
+
+    </sequence>
+
+  </function>
+        
 </stax>

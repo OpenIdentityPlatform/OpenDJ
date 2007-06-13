@@ -62,7 +62,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_force_pwd_add.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_force_pwd_add.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -86,7 +86,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry1.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry1.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -129,7 +129,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mcat,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_force_pwd.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_force_pwd.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -171,7 +171,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_add.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_add.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -187,7 +187,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry2.ldif' % STAGED_DATA_DIR }
+                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry2.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -245,7 +245,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_force_pwd_reset.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_force_pwd_reset.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -269,7 +269,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -320,7 +320,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_add_attr.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_add_attr.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 49">
@@ -362,7 +362,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_del_attr.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_del_attr.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 49">
@@ -456,7 +456,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'adminpizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd3.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd3.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -516,7 +516,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_max_reset_age_long.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_max_reset_age_long.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -540,7 +540,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd4.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd4.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -564,7 +564,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'adminlongpizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd7.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd7.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -606,7 +606,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_max_reset_age_short.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_max_reset_age_short.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -630,7 +630,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd5.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd5.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
@@ -662,7 +662,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'adminshortpizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd8.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd8.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 49">
@@ -705,7 +705,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_max_reset_age.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_max_reset_age.ldif' % logsRemoteDataDir }
             </call>
 
             <if expr="RC != 0">
@@ -721,7 +721,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_reset.ldif' % STAGED_DATA_DIR }
+                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_reset.ldif' % logsRemoteDataDir }
             </call>
 
             <call function="'checktestRC'">
