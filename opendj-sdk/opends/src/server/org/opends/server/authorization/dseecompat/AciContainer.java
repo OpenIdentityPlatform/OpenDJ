@@ -280,20 +280,12 @@ implements AciTargetMatchContext, AciEvalContext {
             this.authzid=getEffectiveRightsControl.getAuthzDN();
           this.specificAttrs=getEffectiveRightsControl.getAttributes();
         }
-        //If an ACI evaluated because of an Targetattr="*", then the
+        //If the ACI evaluated because of an Targetattr="*", then the
         //AciHandler.maySend method signaled this via adding this attachment
         //string.
-        String allUserAttrs=
-                  (String)operation.getAttachment(ALL_USER_ATTRS_MATCHED);
-        if(allUserAttrs != null)
-          evalAllAttributes |= ACI_USER_ATTR_STAR_MATCHED;
-        //If an ACI evaluated because of an Targetattr="+", then the
-        //AciHandler.maySend method signaled this via adding this attachment
-        //string.
-        String allOpAttrs=(String)operation.getAttachment(ALL_OP_ATTRS_MATCHED);
-        if(allOpAttrs != null)
-          evalAllAttributes |= ACI_OP_ATTR_PLUS_MATCHED;
-
+        String allAttrs=(String)operation.getAttachment(ALL_ATTRS_MATCHED);
+        if(allAttrs != null)
+          evalAllAttributes = ACI_ATTR_STAR_MATCHED;
         //The AciHandler.maySend method also adds the full attribute version of
         //the resource entry in this attachment.
         fullEntry=(Entry)operation.getAttachment(ALL_ATTRS_RESOURCE_ENTRY);
@@ -831,74 +823,43 @@ implements AciTargetMatchContext, AciEvalContext {
   /**
    * {@inheritDoc}
    */
-  public  void setEvalUserAttributes(int v) {
+  public  void setACIEvalAttributesRule(int v) {
     if(operation instanceof SearchOperation && (rights == ACI_READ)) {
-      if(v == ACI_FOUND_USER_ATTR_RULE) {
-        evalAllAttributes |= ACI_FOUND_USER_ATTR_RULE;
-        evalAllAttributes &= ~ACI_USER_ATTR_STAR_MATCHED;
+      if(v == ACI_FOUND_ATTR_RULE) {
+        evalAllAttributes |= ACI_FOUND_ATTR_RULE;
+        evalAllAttributes &= ~ACI_ATTR_STAR_MATCHED;
       } else
-        evalAllAttributes |= ACI_USER_ATTR_STAR_MATCHED;
-    }
-  }
-
-     /**
-   * {@inheritDoc}
-   */
-  public  void setEvalOpAttributes(int v) {
-    if(operation instanceof SearchOperation && (rights == ACI_READ)) {
-      if(v == ACI_FOUND_OP_ATTR_RULE) {
-        evalAllAttributes |= ACI_FOUND_OP_ATTR_RULE;
-        evalAllAttributes &= ~ACI_OP_ATTR_PLUS_MATCHED;
-      } else
-        evalAllAttributes |= ACI_OP_ATTR_PLUS_MATCHED;
+        evalAllAttributes |= Aci.ACI_ATTR_STAR_MATCHED;
     }
   }
 
   /**
    * {@inheritDoc}
    */
-  public boolean hasEvalUserAttributes() {
-    return (evalAllAttributes & ACI_FOUND_USER_ATTR_RULE) ==
-            ACI_FOUND_USER_ATTR_RULE;
+  public boolean hasACIEvalAttributes() {
+    return (evalAllAttributes & ACI_FOUND_ATTR_RULE) == ACI_FOUND_ATTR_RULE;
+  }
+
+
+  /**
+   * Return true if the evaluating ACI either contained a targetattr all
+   * attributes rule matched only.
+   *
+   * @return  True if the above condition was seen.
+   **/
+  public boolean hasACIAllAttributes() {
+    return (evalAllAttributes & ACI_ATTR_STAR_MATCHED) == ACI_ATTR_STAR_MATCHED;
   }
 
   /**
    * {@inheritDoc}
    */
-  public boolean hasEvalOpAttributes() {
-    return (evalAllAttributes & ACI_FOUND_OP_ATTR_RULE) ==
-            ACI_FOUND_OP_ATTR_RULE;
-  }
-
-  /**
-   * Return true if the evaluating ACI contained a targetattr all
-   * user attributes rule match.
-   *
-   * @return  True if the above condition was seen.
-   **/
-  public boolean hasAllUserAttributes() {
-    return (evalAllAttributes & ACI_USER_ATTR_STAR_MATCHED) ==
-            ACI_USER_ATTR_STAR_MATCHED;
-  }
-
-  /**
-   * Return true if the evaluating ACI contained a targetattr all
-   * operational attributes rule match.
-   *
-   * @return  True if the above condition was seen.
-   **/
-    public boolean hasAllOpAttributes() {
-    return (evalAllAttributes & ACI_OP_ATTR_PLUS_MATCHED) ==
-            ACI_OP_ATTR_PLUS_MATCHED;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void clearEvalAttributes(int v) {
+  public void clearACIEvalAttributesRule(int v) {
     if(v == 0)
       evalAllAttributes=0;
     else
       evalAllAttributes &= ~v;
   }
+
+
 }
