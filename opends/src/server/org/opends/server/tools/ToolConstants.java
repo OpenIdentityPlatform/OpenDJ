@@ -382,7 +382,7 @@ public class ToolConstants
    * The value for the long option keyStorePasswordFile .
    */
   public static final String OPTION_LONG_TRUSTSTORE_PWD_FILE =
-    "TrustStorePasswordFile ";
+    "TrustStorePasswordFile";
 
   /**
    * The placeholder value of keyStorePasswordFile that will be
