@@ -213,6 +213,17 @@ public class Installation {
   public static final String LDIF_DIFF = "ldif-diff";
 
   /**
+   * Directories required to be present for this installation
+   * to be considered valid.
+   */
+  public static final String[] REQUIRED_DIRECTORIES =
+    new String[] {
+                CONFIG_PATH_RELATIVE,
+                DATABASES_PATH_RELATIVE,
+                LIBRARIES_PATH_RELATIVE
+    };
+
+  /**
    * Performs validation on the specified file to make sure that it is
    * an actual OpenDS installation.
    * @param rootDirectory File directory candidate
@@ -236,13 +247,7 @@ public class Installation {
       String[] children = rootDirectory.list();
       if (children != null) {
         Set<String> childrenSet = new HashSet<String>(Arrays.asList(children));
-        String[] dirsToCheck = new String[] {
-                CONFIG_PATH_RELATIVE,
-                DATABASES_PATH_RELATIVE,
-                LIBRARIES_PATH_RELATIVE,
-                // perhaps we should check more
-        };
-        for (String dir : dirsToCheck) {
+        for (String dir : REQUIRED_DIRECTORIES) {
           if (!childrenSet.contains(dir)) {
             failureReason = getMsg("error-install-root-dir-no-dir",
                     Utils.getPath(rootDirectory), dir);

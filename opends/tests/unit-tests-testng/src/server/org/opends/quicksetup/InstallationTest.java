@@ -28,279 +28,352 @@
 package org.opends.quicksetup;
 
 import org.testng.annotations.*;
+import static org.testng.Assert.*;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Installation Tester.
- *
  */
-@Test(groups = { "slow" })
-public class InstallationTest extends QuickSetupTestCase
-{
-    Installation installation;
+@Test(groups = {"slow"})
+public class InstallationTest extends QuickSetupTestCase {
+  Installation installation;
 
-    @BeforeClass
-    public void setUp() throws Exception {
-      Utils.extractServer();
-      installation = new Installation(Utils.getQuickSetupTestServerRootDir());
+  @BeforeClass
+  public void setUp() throws Exception {
+    Utils.extractServer();
+    installation = new Installation(Utils.getQuickSetupTestServerRootDir());
+  }
+
+  /**
+   * Tests to make sure installation is valid.
+   */
+  @Test
+  public void testValidateRootDirectory() {
+    Installation.validateRootDirectory(Utils.getQuickSetupTestServerRootDir());
+  }
+
+  /**
+   * Tests that installation root directory is available.
+   */
+  @Test
+  public void testGetRootDirectory() {
+    assertNotNull(installation.getRootDirectory());
+  }
+
+  /**
+   * Tests that the installation root directory can be set.
+   */
+  @Test
+  public void testSetRootDirectory() {
+    File root = installation.getRootDirectory();
+    installation.setRootDirectory(root);
+  }
+
+  /**
+   * Tests that the installation root is valid.
+   */
+  @Test
+  public void testIsValid() {
+    assertTrue(installation.isValid());
+  }
+
+  /**
+   * Tests that an installation directory missing required directories
+   * is considered invalid.
+   */
+  @Test
+  public void testIsValid2() {
+    assertTrue(installation.isValid());
+    File x = new File(installation.getRootDirectory(), "x");
+    for (String reqDirName : Installation.REQUIRED_DIRECTORIES) {
+      File reqDir = new File(installation.getRootDirectory(), reqDirName);
+      try {
+        assertTrue(reqDir.renameTo(x));
+        assertFalse(installation.isValid());
+        assertNotNull(installation.getInvalidityReason());
+      } finally {
+        x.renameTo(reqDir);
+      }
     }
+  }
 
-    @Test
-    public void testValidateRootDirectory()
-    {
-      Installation.validateRootDirectory(Utils.getQuickSetupTestServerRootDir());
+  /**
+   * Tests the configuration is available.
+   */
+  @Test
+  public void testGetCurrentConfiguration() {
+    assertNotNull(installation.getCurrentConfiguration());
+  }
+
+  /**
+   * Tests the base configuration is available.
+   */
+  @Test
+  public void testGetBaseConfiguration() throws ApplicationException {
+    assertNotNull(installation.getBaseConfiguration());
+  }
+
+  /**
+   * Tests the status is available.
+   */
+  @Test
+  public void testGetStatus() {
+    assertNotNull(installation.getStatus());
+  }
+
+  /**
+   * Tests the lib directory is available.
+   */
+  @Test
+  public void testGetLibrariesDirectory() {
+    assertExistentFile(installation.getLibrariesDirectory());
+  }
+
+  /**
+   * Tests the schema concat file is available.
+   */
+  @Test
+  public void testGetSchemaConcatFile() {
+    assertNonexistentFile(installation.getSchemaConcatFile());
+  }
+
+  /**
+   * Tests the base schema file is available.
+   */
+  @Test
+  public void testGetBaseSchemaFile() throws ApplicationException {
+    assertExistentFile(installation.getBaseSchemaFile());
+  }
+
+  /**
+   * Tests the base config file is available.
+   */
+  @Test
+  public void testGetBaseConfigurationFile() throws ApplicationException {
+    assertExistentFile(installation.getBaseConfigurationFile());
+  }
+
+  /**
+   * Tests the SVN rev number is discernable.
+   */
+  @Test
+  public void testGetSvnRev() throws ApplicationException {
+    assertNotNull(installation.getSvnRev());
+  }
+
+  /**
+   * Tests the config file is available.
+   */
+  @Test
+  public void testGetCurrentConfigurationFile() {
+    assertExistentFile(installation.getCurrentConfigurationFile());
+  }
+
+  /**
+   * Tests the bin/bat directory is available and platform appropriate.
+   */
+  @Test
+  public void testGetBinariesDirectory() {
+    File binariesDir;
+    assertExistentFile(binariesDir = installation.getBinariesDirectory());
+    if (File.separator.equals("\\")) {
+      assertTrue(binariesDir.getName().endsWith(
+              Installation.WINDOWS_BINARIES_PATH_RELATIVE));
+    } else {
+      assertTrue(binariesDir.getName().endsWith(
+              Installation.UNIX_BINARIES_PATH_RELATIVE));
     }
+  }
 
-//
-//    @Test
-//    public void testGetRootDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetRootDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testSetRootDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testSetRootDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testIsValid()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testIsValid not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetInvalidityReason()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetInvalidityReason not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetCurrentConfiguration()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetCurrentConfiguration not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetBaseConfiguration()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetBaseConfiguration not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetStatus()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetStatus not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetLibrariesDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetLibrariesDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetSchemaConcatFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetSchemaConcatFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetBaseSchemaFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetBaseSchemaFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetBaseConfigurationFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetBaseConfigurationFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetSvnRev()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetSvnRev not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetCurrentConfigurationFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetCurrentConfigurationFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetBinariesDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetBinariesDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetDatabasesDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetDatabasesDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetBackupDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetBackupDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetConfigurationDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetConfigurationDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetLogsDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetLogsDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetLocksDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetLocksDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetTemporaryDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetTemporaryDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetHistoryDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetHistoryDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testCreateHistoryBackupDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testCreateHistoryBackupDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetHistoryLogFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetHistoryLogFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetConfigurationUpgradeDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetConfigurationUpgradeDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetTemporaryUpgradeDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetTemporaryUpgradeDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetCommandFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetCommandFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetServerStartCommandFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetServerStartCommandFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetServerStopCommandFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetServerStopCommandFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetLdifDirectory()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetLdifDirectory not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetQuicksetupJarFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetQuicksetupJarFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetOpenDSJarFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetOpenDSJarFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetUninstallBatFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetUninstallBatFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetStatusPanelCommandFile()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetStatusPanelCommandFile not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetBuildInformation()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetBuildInformation not implemented.";
-//    }
-//
-//    @Test
-//    public void testGetBuildInformation1()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testGetBuildInformation1 not implemented.";
-//    }
-//
-//    @Test
-//    public void testToString()
-//    {
-//        //TODO: Test goes here...
-//        assert false : "testToString not implemented.";
-//    }
+  /**
+   * Tests the db directory is available.
+   */
+  @Test
+  public void testGetDatabasesDirectory() {
+    assertExistentFile(installation.getDatabasesDirectory());
+  }
+
+  /**
+   * Tests the backup directory is available.
+   */
+  @Test
+  public void testGetBackupDirectory() {
+    assertExistentFile(installation.getBackupDirectory());
+  }
+
+  /**
+   * Tests the config directory is available.
+   */
+  @Test
+  public void testGetConfigurationDirectory() {
+    assertExistentFile(installation.getConfigurationDirectory());
+  }
+
+  /**
+   * Tests the logs directory is available.
+   */
+  @Test
+  public void testGetLogsDirectory() {
+    assertExistentFile(installation.getLogsDirectory());
+  }
+
+  /**
+   * Tests the locks directory is available.
+   */
+  @Test
+  public void testGetLocksDirectory() {
+    assertExistentFile(installation.getLocksDirectory());
+  }
+
+  /**
+   * Tests the tmp directory is available.
+   */
+  @Test
+  public void testGetTemporaryDirectory() {
+    assertNonexistentFile(installation.getTemporaryDirectory());
+  }
+
+  /**
+   * Tests the history directory is available.
+   */
+  @Test
+  public void testGetHistoryDirectory() {
+    assertExistentFile(installation.getHistoryDirectory());
+  }
+
+  /**
+   * Tests a historical backup directory can be created.
+   */
+  @Test
+  public void testCreateHistoryBackupDirectory() throws IOException {
+    assertExistentFile(installation.createHistoryBackupDirectory());
+    assertExistentFile(installation.getHistoryDirectory());
+    assertTrue(installation.getHistoryDirectory().exists());
+  }
+
+  /**
+   * Tests the history log file is available.
+   */
+  @Test
+  public void testGetHistoryLogFile() {
+    assertNonexistentFile(installation.getHistoryLogFile());
+  }
+
+  /**
+   * Tests the config upgrade directory is available.
+   */
+  @Test
+  public void testGetConfigurationUpgradeDirectory() {
+    assertExistentFile(installation.getConfigurationUpgradeDirectory());
+  }
+
+  /**
+   * Tests the tmp/upgrade directory is available.
+   */
+  @Test
+  public void testGetTemporaryUpgradeDirectory() {
+    assertNonexistentFile(installation.getTemporaryUpgradeDirectory());
+  }
+
+  /**
+   * Tests getting a command file works.
+   */
+  @Test
+  public void testGetCommandFile() {
+    assertExistentFile(installation.getCommandFile(
+            Installation.UNIX_START_FILE_NAME));
+  }
+
+  /**
+   * Tests the start server command is available.
+   */
+  @Test
+  public void testGetServerStartCommandFile() {
+    assertExistentFile(installation.getServerStartCommandFile());
+  }
+
+  /**
+   * Tests the stop server command is available.
+   */
+  @Test
+  public void testGetServerStopCommandFile() {
+    assertExistentFile(installation.getServerStopCommandFile());
+  }
+
+  /**
+   * Tests the ldif directory is available.
+   */
+  @Test
+  public void testGetLdifDirectory() {
+    assertExistentFile(installation.getLdifDirectory());
+  }
+
+  /**
+   * Tests the quicksetup jar is available.
+   */
+  @Test
+  public void testGetQuicksetupJarFile() {
+    assertExistentFile(installation.getQuicksetupJarFile());
+  }
+
+  /**
+   * Tests the OpenDS jar is available.
+   */
+  @Test
+  public void testGetOpenDSJarFile() {
+    assertExistentFile(installation.getOpenDSJarFile());
+  }
+
+  /**
+   * Tests the uninstall file is available.
+   */
+  @Test
+  public void testGetUninstallBatFile() {
+    assertExistentFile(installation.getUninstallBatFile());
+  }
+
+  /**
+   * Tests the status panel command file is available.
+   */
+  @Test
+  public void testGetStatusPanelCommandFile() {
+    assertExistentFile(installation.getStatusPanelCommandFile());
+  }
+
+  /**
+   * Tests the build information is discernable.
+   */
+  @Test
+  public void testGetBuildInformation() throws ApplicationException {
+    assertNotNull(installation.getBuildInformation());
+  }
+
+  /**
+   * Tests the build information is discernable.
+   */
+  @Test
+  public void testGetBuildInformation1() throws ApplicationException {
+    assertNotNull(installation.getBuildInformation(true));
+    assertNotNull(installation.getBuildInformation(false));
+  }
+
+  /**
+   * Test string representation is possible.
+   */
+  @Test
+  public void testToString() {
+    assertNotNull(installation.toString());
+  }
+
+  private void assertExistentFile(File f) {
+    assertNotNull(f);
+    assertTrue(f.exists());
+  }
+
+  private void assertNonexistentFile(File f) {
+    assertNotNull(f);
+  }
 
 }
