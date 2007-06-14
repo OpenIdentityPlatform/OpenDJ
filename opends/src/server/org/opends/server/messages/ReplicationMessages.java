@@ -415,10 +415,18 @@ public class ReplicationMessages {
     CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 58;
 
   /**
-   * Eception durin rename of a conflicting entry.
+   * Exception during rename of a conflicting entry.
    */
   public static final int MSGID_EXCEPTION_RENAME_CONFLICT_ENTRY =
     CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 59;
+
+  /**
+   * The JVM does not support UTF8. This is required to serialize
+   * the changes and store them in the database.
+   */
+  public static final int MSGID_CHANGELOG_UNSUPPORTED_UTF8_ENCODING =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 60;
+
 
   /**
    * Register the messages from this class in the core server.
@@ -575,5 +583,9 @@ public class ReplicationMessages {
         "An error happened trying the rename a conflicting entry : ");
     registerMessage(MSGID_EXCEPTION_RENAME_CONFLICT_ENTRY,
         "An Exception happened when trying the rename a conflicting entry : ");
+    registerMessage(MSGID_CHANGELOG_UNSUPPORTED_UTF8_ENCODING,
+        "The JVM does not support UTF-8. This is required to be able to "
+        + "encode the changes in the database. "
+        + "This replication server will now shutdown");
   }
 }

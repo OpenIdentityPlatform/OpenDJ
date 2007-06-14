@@ -74,8 +74,10 @@ public abstract class ReplicationMessage
    * MSG_TYPE_ERROR
    *
    * @return the byte[] representation of this message.
+   * @throws UnsupportedEncodingException  When the encoding of the message
+   *         failed because the UTF-8 encoding is not supported.
    */
-  public abstract byte[] getBytes();
+  public abstract byte[] getBytes() throws UnsupportedEncodingException;
 
 
   /**

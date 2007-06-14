@@ -108,20 +108,16 @@ public class ModifyMsg extends UpdateMessage
    * Get the byte array representation of this Message.
    *
    * @return The byte array representation of this Message.
+   *
+   * @throws UnsupportedEncodingException  When the encoding of the message
+   *         failed because the UTF-8 encoding is not supported.
    */
   @Override
-  public byte[] getBytes()
+  public byte[] getBytes() throws UnsupportedEncodingException
   {
     if (encodedMsg == null)
     {
-      try
-      {
-        encode();
-      } catch (UnsupportedEncodingException e)
-      {
-        // should never happens : TODO : log some error
-        return null;
-      }
+      encode();
     }
     return encodedMsg;
   }

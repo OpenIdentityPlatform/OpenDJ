@@ -125,6 +125,25 @@ public class ReplicationDB
       logError(ErrorLogCategory.SYNCHRONIZATION,
                ErrorLogSeverity.SEVERE_ERROR,
                message, msgID);
+      if (txn != null)
+      {
+        try
+        {
+          txn.abort();
+        } catch (DatabaseException e1)
+        {
+          // can't do much more. The ReplicationServer is shuting down.
+        }
+      }
+      replicationServer.shutdown();
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      int    msgID   = MSGID_CHANGELOG_UNSUPPORTED_UTF8_ENCODING;
+      String message = getMessage(msgID) + stackTraceToSingleLineString(e);
+      logError(ErrorLogCategory.SYNCHRONIZATION,
+          ErrorLogSeverity.SEVERE_ERROR,
+          message, msgID);
       replicationServer.shutdown();
       if (txn != null)
       {
@@ -136,6 +155,7 @@ public class ReplicationDB
           // can't do much more. The ReplicationServer is shuting down.
         }
       }
+      replicationServer.shutdown();
     }
   }
 

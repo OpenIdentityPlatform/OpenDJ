@@ -167,68 +167,64 @@ public class ModifyDNMsg extends UpdateMessage
    * Get the byte array representation of this Message.
    *
    * @return The byte array representation of this Message.
+   *
+   * @throws UnsupportedEncodingException  When the encoding of the message
+   *         failed because the UTF-8 encoding is not supported.
    */
   @Override
-  public byte[] getBytes()
+  public byte[] getBytes() throws UnsupportedEncodingException
   {
-    try
+    byte[] byteNewRdn = newRDN.getBytes("UTF-8");
+    byte[] byteNewSuperior = null;
+    byte[] byteNewSuperiorId = null;
+
+    // calculate the length necessary to encode the parameters
+    int length = byteNewRdn.length + 1 + 1;
+    if (newSuperior != null)
     {
-      byte[] byteNewRdn = newRDN.getBytes("UTF-8");
-      byte[] byteNewSuperior = null;
-      byte[] byteNewSuperiorId = null;
-
-      // calculate the length necessary to encode the parameters
-      int length = byteNewRdn.length + 1 + 1;
-      if (newSuperior != null)
-      {
-        byteNewSuperior = newSuperior.getBytes("UTF-8");
-        length += byteNewSuperior.length + 1;
-      }
-      else
-        length += 1;
-
-      if (newSuperiorId != null)
-      {
-        byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
-        length += byteNewSuperiorId.length + 1;
-      }
-      else
-        length += 1;
-
-      byte[] resultByteArray = encodeHeader(MSG_TYPE_MODIFYDN_REQUEST, length);
-      int pos = resultByteArray.length - length;
-
-      /* put the new RDN and a terminating 0 */
-      pos = addByteArray(byteNewRdn, resultByteArray, pos);
-
-      /* put the newsuperior and a terminating 0 */
-      if (newSuperior != null)
-      {
-        pos = addByteArray(byteNewSuperior, resultByteArray, pos);
-      }
-      else
-        resultByteArray[pos++] = 0;
-
-      /* put the newsuperiorId and a terminating 0 */
-      if (newSuperiorId != null)
-      {
-        pos = addByteArray(byteNewSuperiorId, resultByteArray, pos);
-      }
-      else
-        resultByteArray[pos++] = 0;
-
-      /* put the deleteoldrdn flag */
-      if (deleteOldRdn)
-        resultByteArray[pos++] = 1;
-      else
-        resultByteArray[pos++] = 0;
-
-      return resultByteArray;
-    } catch (UnsupportedEncodingException e)
-    {
-      // should never happen : TODO : log error
+      byteNewSuperior = newSuperior.getBytes("UTF-8");
+      length += byteNewSuperior.length + 1;
     }
-    return null;
+    else
+      length += 1;
+
+    if (newSuperiorId != null)
+    {
+      byteNewSuperiorId = newSuperiorId.getBytes("UTF-8");
+      length += byteNewSuperiorId.length + 1;
+    }
+    else
+      length += 1;
+
+    byte[] resultByteArray = encodeHeader(MSG_TYPE_MODIFYDN_REQUEST, length);
+    int pos = resultByteArray.length - length;
+
+    /* put the new RDN and a terminating 0 */
+    pos = addByteArray(byteNewRdn, resultByteArray, pos);
+
+    /* put the newsuperior and a terminating 0 */
+    if (newSuperior != null)
+    {
+      pos = addByteArray(byteNewSuperior, resultByteArray, pos);
+    }
+    else
+      resultByteArray[pos++] = 0;
+
+    /* put the newsuperiorId and a terminating 0 */
+    if (newSuperiorId != null)
+    {
+      pos = addByteArray(byteNewSuperiorId, resultByteArray, pos);
+    }
+    else
+      resultByteArray[pos++] = 0;
+
+    /* put the deleteoldrdn flag */
+    if (deleteOldRdn)
+      resultByteArray[pos++] = 1;
+    else
+      resultByteArray[pos++] = 0;
+
+    return resultByteArray;
   }
 
   /**

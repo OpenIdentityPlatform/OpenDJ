@@ -81,7 +81,6 @@ public class ChangeNumberGenerator
    */
   public ChangeNumber newChangeNumber()
   {
-    /* TODO : we probably don't need a time stamp with a 1 msec accuracy */
     long curTime = TimeThread.getTime();
 
     synchronized(this)

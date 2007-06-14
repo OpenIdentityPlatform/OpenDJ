@@ -103,18 +103,14 @@ public class DeleteMsg extends UpdateMessage
    * Get the byte array representation of this Message.
    *
    * @return The byte array representation of this Message.
+   *
+   * @throws UnsupportedEncodingException When the encoding of the message
+   *         failed because the UTF-8 encoding is not supported.
    */
   @Override
-  public byte[] getBytes()
+  public byte[] getBytes() throws UnsupportedEncodingException
   {
-    try
-    {
-      return encodeHeader(MSG_TYPE_DELETE_REQUEST, 0);
-    } catch (UnsupportedEncodingException e)
-    {
-      // should never happen : TODO : log error properly
-      return null;
-    }
+    return encodeHeader(MSG_TYPE_DELETE_REQUEST, 0);
   }
 
   /**
