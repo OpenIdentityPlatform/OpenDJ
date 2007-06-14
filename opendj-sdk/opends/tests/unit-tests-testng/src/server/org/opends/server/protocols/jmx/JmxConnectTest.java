@@ -37,7 +37,6 @@ import java.net.ServerSocket;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 import javax.management.Attribute;
@@ -51,27 +50,18 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
-import org.opends.server.api.ConnectionHandler;
-import org.opends.server.config.ConfigException;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.config.ConfigConstants.ATTR_LISTEN_PORT;
 import static org.testng.Assert.*;
 
 
@@ -81,23 +71,6 @@ import static org.testng.Assert.*;
  * JMX get and set - configuration change
  */
 public class JmxConnectTest extends JmxTestCase {
-
-  /**
-   * Set up the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
-  @BeforeClass
-  public void setUp() throws Exception {
-    // Make sure that the server is up and running.
-    TestCaseUtils.startServer();
-    synchronized (this) {
-      this.wait(500);
-    }
-  }
-
-
 
   /**
    * Build data for the simpleConnect test.
@@ -122,7 +95,7 @@ public class JmxConnectTest extends JmxTestCase {
    * accepted when the given credentials are OK and refused when the
    * credentials are invalid.
    */
-  @Test(enabled = false, dataProvider = "simpleConnect")
+  @Test(enabled = true, dataProvider = "simpleConnect")
   public void simpleConnect(String user, String password,
       boolean expectedResult) throws Exception {
     OpendsJmxConnector connector = connect(user, password,
@@ -186,7 +159,7 @@ public class JmxConnectTest extends JmxTestCase {
   /**
    * Test setting some config attribute through jmx.
    */
-  @Test(enabled = false)
+  @Test(enabled = true)
   public void simpleSet() throws Exception {
     OpendsJmxConnector connector = connect("cn=directory manager",
         "password", TestCaseUtils.getServerJmxPort());
@@ -371,7 +344,7 @@ public class JmxConnectTest extends JmxTestCase {
    * accepted when the given credentials are OK and refused when the
    * credentials are invalid.
    */
-  @Test(enabled = false)
+  @Test(enabled = true)
   public void sslConnect() throws Exception {
     // Enable SSL by setting ds-cfg-use-ssl boolean and the
     // certificate alias using ds-cfg-ssl-cert-nickname attribute.
@@ -450,42 +423,6 @@ public class JmxConnectTest extends JmxTestCase {
 
     assertEquals(configResult.getResultCode(), ResultCode.SUCCESS);
   }
-
-
-
-  /**
-   * Get a reference to the JMX connection handler.
-   * @throws an Exception is something went wrong.
-   */
-  private JmxConnectionHandler getJmxConnectionHandler() throws Exception {
-    List<ConnectionHandler> handlers = DirectoryServer
-        .getConnectionHandlers();
-    assertNotNull(handlers);
-    JmxConnectionHandler jmxConnectionHandler = null;
-    for (ConnectionHandler handler : handlers) {
-      if (handler instanceof JmxConnectionHandler) {
-        jmxConnectionHandler = (JmxConnectionHandler) handler;
-        break;
-      }
-    }
-    if (jmxConnectionHandler == null)
-    {
-      enableJmx();
-      synchronized (this) {
-        this.wait(500);
-      }
-      for (ConnectionHandler handler : handlers) {
-        if (handler instanceof JmxConnectionHandler) {
-          jmxConnectionHandler = (JmxConnectionHandler) handler;
-          break;
-        }
-      }
-    }
-    
-    return jmxConnectionHandler;
-  }
-
-
 
   /**
    * Connect to the JMX service.
@@ -648,26 +585,5 @@ public class JmxConnectTest extends JmxTestCase {
     Attribute attr = new Attribute(attributeName, value);
 
     mbsc.setAttribute(name, attr);
-  }
-  
-  /**
-   * Enable JMX with the port chosen in TestCaseUtils.
-   * @throws Exception if the handler cannot be enabled.
-   */
-  private void enableJmx() throws Exception
-  {
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    mods.add(new Modification(ModificationType.REPLACE,
-      new org.opends.server.types.Attribute("ds-cfg-connection-handler-enabled",
-              "true")));
-    ModifyOperation op = new ModifyOperation(conn, conn.nextOperationID(),
-      conn.nextMessageID(), new ArrayList<Control>(),
-      DN.decode(
-        "cn=JMX Connection Handler,cn=Connection Handlers,cn=config"),
-      mods);
-    op.run();
   }
 }

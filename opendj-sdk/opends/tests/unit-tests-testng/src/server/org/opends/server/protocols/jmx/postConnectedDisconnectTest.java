@@ -30,7 +30,6 @@ import java.util.HashMap;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.InvocationCounterPlugin;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
@@ -40,29 +39,11 @@ import static org.testng.Assert.*;
  */
 public class postConnectedDisconnectTest extends JmxTestCase
 {
-
-  /**
-   * Set up the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
-  @BeforeClass
-  public void setUp() throws Exception
-  {
-    // Make sure that the server is up and running.
-    TestCaseUtils.startServer();
-    synchronized (this)
-    {
-        this.wait(500);
-    }
-  }
-
   /**
    * Perform a simple connect.
    * @throws Exception If something wrong occurs.
    */
-  @Test(enabled = false, groups = {"slow"})
+  @Test(enabled = true, groups = {"slow"})
   public void checkPostconnectDisconnectPlugin() throws Exception
   {
     // Before the test, how many time postconnect and postdisconnect

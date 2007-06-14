@@ -26,7 +26,22 @@
  */
 package org.opends.server.protocols.jmx;
 
+import static org.testng.Assert.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.api.ConnectionHandler;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 /**
@@ -34,4 +49,92 @@ import org.testng.annotations.Test;
  */
 @Test(groups = { "precommit", "jmx" })
 public abstract class JmxTestCase extends DirectoryServerTestCase
-{}
+{
+  /**
+   * Set up the environment for performing the tests in this suite.
+   * 
+   * @throws Exception
+   *           If the environment could not be set up.
+   */
+  @BeforeClass
+  public void setUp() throws Exception
+  {
+    // Make sure that the server is up and running.
+    TestCaseUtils.startServer();
+    synchronized (this)
+    {
+      this.wait(500);
+    }
+    JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
+    if (jmxCtx == null)
+    {
+      throw new Exception("Unable to get a JMX connector");
+    }
+  }
+
+  /**
+   * Get a reference to the JMX connection handler.
+   * 
+   * @throws an
+   *           Exception is something went wrong.
+   */
+  protected JmxConnectionHandler getJmxConnectionHandler() throws Exception
+  {
+    List<ConnectionHandler> handlers = DirectoryServer
+        .getConnectionHandlers();
+    assertNotNull(handlers);
+    JmxConnectionHandler jmxConnectionHandler = null;
+    for (ConnectionHandler handler : handlers)
+    {
+      if (handler instanceof JmxConnectionHandler)
+      {
+        jmxConnectionHandler = (JmxConnectionHandler) handler;
+        break;
+      }
+    }
+    if (jmxConnectionHandler == null)
+    {
+      enableJmx();
+      synchronized (this)
+      {
+        this.wait(500);
+      }
+      for (ConnectionHandler handler : handlers)
+      {
+        if (handler instanceof JmxConnectionHandler)
+        {
+          jmxConnectionHandler = (JmxConnectionHandler) handler;
+          break;
+        }
+      }
+    }
+
+    return jmxConnectionHandler;
+  }
+
+  /**
+   * Enable JMX with the port chosen in TestCaseUtils.
+   * 
+   * @throws Exception
+   *           if the handler cannot be enabled.
+   */
+  private void enableJmx() throws Exception
+  {
+    ArrayList<Modification> mods = new ArrayList<Modification>();
+
+    InternalClientConnection conn = InternalClientConnection
+        .getRootConnection();
+    mods.add(new Modification(ModificationType.REPLACE,
+        new org.opends.server.types.Attribute(
+            "ds-cfg-connection-handler-enabled", "true")));
+    ModifyOperation op = new ModifyOperation(
+        conn,
+        conn.nextOperationID(),
+        conn.nextMessageID(),
+        new ArrayList<Control>(),
+        DN
+            .decode("cn=JMX Connection Handler,cn=Connection Handlers,cn=config"),
+        mods);
+    op.run();
+  }
+}
