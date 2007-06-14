@@ -26,6 +26,8 @@
  */
 package org.opends.server.replication.server;
 
+import java.io.UnsupportedEncodingException;
+
 import com.sleepycat.je.DatabaseEntry;
 
 import org.opends.server.replication.protocol.ReplicationMessage;
@@ -39,17 +41,25 @@ public class ReplicationData extends DatabaseEntry
 {
   /**
    * Creates a new ReplicationData object from an UpdateMessage.
+   *
    * @param change the UpdateMessage used to create the ReplicationData.
+   *
+   * @throws UnsupportedEncodingException When the encoding of the message
+   *         failed because the UTF-8 encoding is not supported.
    */
   public ReplicationData(UpdateMessage change)
+         throws UnsupportedEncodingException
   {
     this.setData(change.getBytes());
   }
 
   /**
    * Generate an UpdateMessage from its byte[] form.
+   *
    * @param data The DatabaseEntry used to generate the UpdateMessage.
-   * @return The generated change.
+   *
+   * @return     The generated change.
+   *
    * @throws Exception When the data was not a valid Update Message.
    */
   public static UpdateMessage generateChange(byte[] data)

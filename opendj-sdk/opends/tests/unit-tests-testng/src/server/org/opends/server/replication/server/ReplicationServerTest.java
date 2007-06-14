@@ -471,7 +471,8 @@ public class ReplicationServerTest extends ReplicationTestCase
         server.stop();
       for (int i =0; i< CLIENT_THREADS; i++)
       {
-        clientBroker[i].stop();
+        if (clientBroker[i] != null)
+          clientBroker[i].stop();
       }
     }
   }

@@ -31,6 +31,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -642,8 +643,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
   /**
    * Test PendingChange
+   * @throws UnsupportedEncodingException
    */
-  private void testPendingChange(ChangeNumber cn, Operation op, ReplicationMessage msg)
+  private void testPendingChange(
+      ChangeNumber cn, Operation op, ReplicationMessage msg)
+      throws UnsupportedEncodingException
   {
     if (! (msg instanceof UpdateMessage))
     {

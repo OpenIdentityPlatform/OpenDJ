@@ -211,48 +211,43 @@ public class AddMsg extends UpdateMessage
 
   /**
    * Get the byte[] representation of this Message.
+   *
    * @return the byte array representation of this Message.
+   *
+   * @throws UnsupportedEncodingException When the encoding of the message
+   *         failed because the UTF-8 encoding is not supported.
    */
   @Override
-  public byte[] getBytes()
+  public byte[] getBytes() throws UnsupportedEncodingException
   {
-    try
+    int length = encodedAttributes.length;
+    byte[] byteParentId = null;
+    if (parentUniqueId != null)
     {
-      int length = encodedAttributes.length;
-      byte[] byteParentId = null;
-      if (parentUniqueId != null)
-      {
-        byteParentId = parentUniqueId.getBytes("UTF-8");
-        length += byteParentId.length + 1;
-      }
-      else
-      {
-        length += 1;
-      }
-
-      /* encode the header in a byte[] large enough to also contain the mods */
-      byte [] resultByteArray = encodeHeader(MSG_TYPE_ADD_REQUEST, length);
-
-      int pos = resultByteArray.length - length;
-
-      if (byteParentId != null)
-        pos = addByteArray(byteParentId, resultByteArray, pos);
-      else
-        resultByteArray[pos++] = 0;
-
-      /* put the attributes */
-      for (int i=0; i<encodedAttributes.length; i++,pos++)
-      {
-        resultByteArray[pos] = encodedAttributes[i];
-      }
-      return resultByteArray;
-    } catch (UnsupportedEncodingException e)
-    {
-      // this can not happen as only UTF-8 is used and it is always
-      // going to be supported by the jvm
-      // TODO : should log an error
-      return null;
+      byteParentId = parentUniqueId.getBytes("UTF-8");
+      length += byteParentId.length + 1;
     }
+    else
+    {
+      length += 1;
+    }
+
+    /* encode the header in a byte[] large enough to also contain the mods */
+    byte [] resultByteArray = encodeHeader(MSG_TYPE_ADD_REQUEST, length);
+
+    int pos = resultByteArray.length - length;
+
+    if (byteParentId != null)
+      pos = addByteArray(byteParentId, resultByteArray, pos);
+    else
+      resultByteArray[pos++] = 0;
+
+    /* put the attributes */
+    for (int i=0; i<encodedAttributes.length; i++,pos++)
+    {
+      resultByteArray[pos] = encodedAttributes[i];
+    }
+    return resultByteArray;
   }
 
   /**
