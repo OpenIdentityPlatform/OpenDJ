@@ -865,6 +865,7 @@ public class SchemaConfigManager
       if (entry == null)
       {
         // The file was empty -- skip it.
+        reader.close();
         return new LinkedList<Modification>();
       }
     }
@@ -889,6 +890,32 @@ public class SchemaConfigManager
                  message, msgID);
         return null;
       }
+    }
+
+    // If there are any more entries in the file, then print a warning message.
+    try
+    {
+      Entry e = reader.readEntry(false);
+      if (e != null)
+      {
+        int    msgID   = MSGID_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE;
+        String message = getMessage(msgID, schemaFile, schemaDirPath);
+        logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+                 message, msgID);
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      int    msgID   = MSGID_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE;
+      String message = getMessage(msgID, schemaFile, schemaDirPath,
+                                  getExceptionMessage(e));
+      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
+               message, msgID);
     }
 
     try

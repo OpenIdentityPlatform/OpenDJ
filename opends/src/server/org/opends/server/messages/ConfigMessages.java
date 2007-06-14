@@ -6673,6 +6673,27 @@ public class ConfigMessages
 
 
 
+  /**
+   * The message ID for the message that will be used if a schema configuration
+   * file is found to have multiple entries.  This takes two arguments, which
+   * are the name of the schema file and the path to the schema directory.
+   */
+  public static final int MSGID_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 662;
+
+
+
+  /**
+   * The message ID for the message that will be used if a schema configuration
+   * file is found to have unparseable data after the first entry.  This takes
+   * three arguments, which are the name of the schema file, the path to the
+   * schema directory, and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 663;
+
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -7975,6 +7996,15 @@ public class ConfigMessages
                     "Schema configuration file %s in directory %s cannot be " +
                     "parsed because an unexpected error occurred while " +
                     "trying to read its contents as an LDIF entry:  %s");
+    registerMessage(MSGID_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE,
+                    "Schema configuration file %s in directory %s contains " +
+                    "more than one entry.  Only the first entry will be " +
+                    "examined, and the additional entries will be ignored");
+    registerMessage(MSGID_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE,
+                    "Schema configuration file %s in directory %s contains " +
+                    "additional data after the schema entry that cannot be " +
+                    "parsed by the LDIF reader:  %s.  The first entry will " +
+                    "be processed, but the remaining data will be ignored");
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE,
                     "Unable to parse an attribute type definition from " +
                     "schema configuration file %s:  %s");
