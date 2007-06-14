@@ -412,21 +412,8 @@ public class AciTargets {
             int rights=targetMatchCtx.getRights();
             boolean isFirstAttr=targetMatchCtx.isFirstAttribute();
             if((a != null) && (targets.getTargetAttr() != null))  {
-             ret=TargetAttr.isApplicable(a,targets.getTargetAttr());
-             targetMatchCtx.clearACIEvalAttributesRule(ACI_ATTR_STAR_MATCHED);
-             /*
-               If a explicitly defined targetattr's match rule has not
-               been seen (~ACI_FOUND_ATTR_RULE) and the current attribute type
-               is applicable because of a targetattr all attributes rule match,
-               set a flag to indicate this situation (ACI_ATTR_STAR_MATCHED).
-               Else the attributes is applicable because it is operational or
-               not a targetattr's all attribute match.
-              */
-             if(ret && targets.getTargetAttr().isAllAttributes() &&
-                !targetMatchCtx.hasACIEvalAttributes())
-               targetMatchCtx.setACIEvalAttributesRule(ACI_ATTR_STAR_MATCHED);
-              else
-                targetMatchCtx.setACIEvalAttributesRule(ACI_FOUND_ATTR_RULE);
+              ret=TargetAttr.isApplicable(a,targets.getTargetAttr());
+              setEvalAttributes(targetMatchCtx,targets,ret);
             } else if((a != null) || (targets.getTargetAttr() != null)) {
                 if((aci.hasRights(skipRights)) &&
                                                 (skipRightsHasRights(rights)))
@@ -562,5 +549,47 @@ public class AciTargets {
                 ret=!ret;
         }
         return ret;
+    }
+
+
+    /**
+     * The method is used to try and determine if a targetAttr expression that
+     * is applicable has a '*' (or '+' operational attributes) token or if it
+     * was applicable because of a specific attribute type declared in the
+     * targetattrs expression (i.e., targetattrs=cn).
+     *
+     *
+     * @param ctx  The ctx to check against.
+     * @param targets The targets part of the ACI.
+     * @param ret  The is true if the ACI has already been evaluated to be
+     *             applicable.
+     */
+    private static
+    void setEvalAttributes(AciTargetMatchContext ctx, AciTargets targets,
+                           boolean ret) {
+        ctx.clearEvalAttributes(ACI_USER_ATTR_STAR_MATCHED);
+        ctx.clearEvalAttributes(ACI_OP_ATTR_PLUS_MATCHED);
+        /*
+         If an applicable targetattr's match rule has not
+         been seen (~ACI_FOUND_OP_ATTR_RULE or ~ACI_FOUND_USER_ATTR_RULE) and
+         the current attribute type is applicable because of a targetattr all
+         user (or operational) attributes rule match,
+         set a flag to indicate this situation (ACI_USER_ATTR_STAR_MATCHED or
+         ACI_OP_ATTR_PLUS_MATCHED). This check also catches the following case
+         where the match was by a specific attribute type (either user or
+         operational) and the other attribute type has an all attribute token.
+         For example, the expression is: (targetattrs="cn || +) and the current
+         attribute type is cn.
+        */
+        if(ret && targets.getTargetAttr().isAllUserAttributes() &&
+                !ctx.hasEvalUserAttributes())
+          ctx.setEvalUserAttributes(ACI_USER_ATTR_STAR_MATCHED);
+        else
+          ctx.setEvalUserAttributes(ACI_FOUND_USER_ATTR_RULE);
+        if(ret && targets.getTargetAttr().isAllOpAttributes() &&
+                !ctx.hasEvalOpAttributes())
+          ctx.setEvalOpAttributes(ACI_OP_ATTR_PLUS_MATCHED);
+        else
+          ctx.setEvalOpAttributes(ACI_FOUND_OP_ATTR_RULE);
     }
 }

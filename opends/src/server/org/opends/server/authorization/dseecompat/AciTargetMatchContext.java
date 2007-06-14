@@ -168,38 +168,64 @@ public interface AciTargetMatchContext {
 
   /**
    * This method toggles a mask that indicates that access checking of
-   * individual non-operational attributes may or may not be skipped depending
-   * on if there is a single ACI containing a targetattr all attributes  rule
-   * (targetattr="*").
+   * individual user attributes may or may not be skipped depending
+   * on if there is a single ACI containing a targetattr all user
+   * attributes rule (targetattr="*").
    *
-   * The only case where individual non-operational attribute access checking
+   * The only case where individual user attribute access checking
    * can be skipped, is when a single ACI matched using a targetattr
-   * all attributes rule.
+   * all user attributes rule and the attribute type being check is not
+   * operational.
    *
    * @param v  The mask to this value.
    */
-  void setACIEvalAttributesRule(int v);
+  void setEvalUserAttributes(int v);
+
+  /**
+   * This method toggles a mask that indicates that access checking of
+   * individual operational attributes may or may not be skipped depending
+   * on if there is a single ACI containing a targetattr all operational
+   * attributes rule (targetattr="+").
+   *
+   * The only case where individual operational attribute access checking
+   * can be skipped, is when a single ACI matched using a targetattr
+   * all operational attributes rule and the attribute type being check is
+   * operational.
+   *
+   * @param v  The mask to this value.
+   */
+  void setEvalOpAttributes(int v);
 
   /**
    * Return true if the evaluating ACI either contained an explicitly defined
-   * attribute type in a targeattr target rule or both a targetattr all
-   * attributes rule matched and a explictly defined targetattr target rule
+   * user attribute type in a targeattr target rule or both a targetattr all
+   * user attributes rule matched and a explictly defined targetattr target rule
    * matched.
    *
    * @return  True if the above condition was seen.
    */
-    boolean hasACIEvalAttributes();
+    boolean hasEvalUserAttributes();
+
+  /**
+   * Return true if the evaluating ACI either contained an explicitly defined
+   * operational attribute type in a targeattr target rule or both a targetattr
+   * all operational attributes rule matched and a explictly defined targetattr
+   * target rule matched.
+   *
+   * @return  True if the above condition was seen.
+   */
+    boolean hasEvalOpAttributes();
 
 
   /**
    * Used to clear the mask used to detect if access checking needs to be
-   * performed on individual non-operational attributes types. The specified
+   * performed on individual attributes types. The specified
    * value is cleared from the mask or if the value equals 0 the mask is
    * completely cleared.
    *
    * @param v  The flag to clear or 0 to set the mask to 0.
    */
-    public void clearACIEvalAttributesRule(int v);
+    public void clearEvalAttributes(int v);
 }
 
 
