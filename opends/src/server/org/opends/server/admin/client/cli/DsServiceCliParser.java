@@ -92,6 +92,11 @@ public class DsServiceCliParser extends SubCommandArgumentParser
   private FileBasedArgument bindPasswordFileArg = null;
 
   /**
+   * The 'bindPassword' global argument.
+   */
+  private StringArgument bindPasswordArg = null;
+
+  /**
    * The 'verbose' global argument.
    */
   private BooleanArgument verboseArg = null;
@@ -190,6 +195,11 @@ public class DsServiceCliParser extends SubCommandArgumentParser
         "cn=Directory Manager", null, MSGID_DESCRIPTION_BINDDN);
     addGlobalArgument(bindDnArg);
 
+    bindPasswordArg = new StringArgument("bindPassword",
+        OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
+        OPTION_VALUE_BINDPWD, null, null, MSGID_DESCRIPTION_BINDPASSWORD);
+    addGlobalArgument(bindPasswordArg);
+
     bindPasswordFileArg = new FileBasedArgument("bindPasswordFile",
         OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_BINDPWD_FILE, false, false,
         OPTION_VALUE_BINDPWD_FILE, null, null,
@@ -272,6 +282,30 @@ public class DsServiceCliParser extends SubCommandArgumentParser
    */
   public String getBindPassword(String dn, PrintStream out, PrintStream err)
   {
+    if (bindPasswordArg.isPresent())
+    {
+      String bindPasswordValue = bindPasswordArg.getValue();
+      if(bindPasswordValue != null && bindPasswordValue.equals("-"))
+      {
+        // read the password from the stdin.
+        try
+        {
+          out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, dn));
+          char[] pwChars = PasswordReader.readPassword();
+          bindPasswordValue = new String(pwChars);
+        } catch(Exception ex)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+          }
+          err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+          return null;
+        }
+      }
+      return bindPasswordValue;
+    }
+    else
     if (bindPasswordFileArg.isPresent())
     {
       return bindPasswordFileArg.getValue();
@@ -348,4 +382,29 @@ public class DsServiceCliParser extends SubCommandArgumentParser
       return false ;
     }
   }
+
+  /**
+   * Indication if provided global options are validate.
+   *
+   * @param err the stream to be used to print error message.
+   *
+   * @return return code.
+   */
+  public int validateGlobalOption(PrintStream err)
+  {
+    ReturnCode returnCode = ReturnCode.SUCCESSFUL_NOP;
+
+    // Couldn't have at the same time bindPassword and bibdPasswordFile
+    if(bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent())
+    {
+      int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, bindPasswordArg.getLongIdentifier(),
+                                  bindPasswordFileArg.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return returnCode.CONFLICTING_ARGS.getReturnCode();
+    }
+
+    return ReturnCode.SUCCESSFUL_NOP.getReturnCode();
+  }
+
 }

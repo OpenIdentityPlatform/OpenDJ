@@ -27,6 +27,7 @@
 package org.opends.server.admin.client.cli;
 
 import static org.opends.server.messages.AdminMessages.*;
+import static org.opends.server.messages.ToolMessages.*;
 
 import java.util.HashMap;
 
@@ -136,7 +137,12 @@ public final class DsServiceCliReturnCode
     /**
      * Unexpected error (potential bug).
      */
-    ERROR_UNEXPECTED(17, MSGID_ADMIN_ERROR_UNEXPECTED);
+    ERROR_UNEXPECTED(17, MSGID_ADMIN_ERROR_UNEXPECTED),
+
+    /**
+     * Unexpected error (potential bug).
+     */
+    CONFLICTING_ARGS(18, MSGID_ADMIN_NO_MESSAGE);
 
     // The retunCodevalue of the value.
     private final int returnCode;

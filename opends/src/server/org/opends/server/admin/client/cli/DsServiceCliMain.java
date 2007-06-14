@@ -208,6 +208,14 @@ public class DsServiceCliMain
       return ReturnCode.ERROR_PARSING_ARGS.getReturnCode();
     }
 
+    // Validate args
+    int ret = argParser.validateGlobalOption(err);
+    if (ret != ReturnCode.SUCCESSFUL_NOP.getReturnCode())
+    {
+      return ret;
+    }
+
+
     // Get connection parameters
     String host = argParser.getHostName() ;
     String port = argParser.getPort() ;
