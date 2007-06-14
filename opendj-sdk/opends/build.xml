@@ -236,6 +236,10 @@
       <pathelement location="${classes.dir}" />
     </path>
 
+    <path id="quickSetup.classpath">
+       <pathelement location="${quicksetup.classes.dir}" />
+    </path>
+    
     <tstamp>
       <format property="timestamp" pattern="yyyyMMddHHmmss'Z'"
            timezone="UTC" />
@@ -454,7 +458,7 @@
 
 
 
-  <target name="weave" if="weave.enabled" depends="compile, prepweave">
+  <target name="weave" if="weave.enabled" depends="compilestatuspanel, prepweave">
     <echo message="  Weaving the source code with automatic AspectJ debug logging."/>
     <echo message="  Build with -DWEAVE_ENABLED=false to turn this off."/>
     <taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
@@ -477,7 +481,7 @@
 
 
   <!-- Compile the Quick Setup source files. -->
-  <target name="compilequicksetup" depends="buildtools,weave"
+  <target name="compilequicksetup" depends="buildtools,compile"
           description="Compile the Quick Setup source files.">
     <mkdir dir="${quicksetup.classes.dir}" />
     <javac srcdir="${ads.src.dir}" destdir="${quicksetup.classes.dir}"
@@ -813,6 +817,7 @@
       <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/setup,OpenDS-${VERSION_NUMBER_STRING}/uninstall,OpenDS-${VERSION_NUMBER_STRING}/upgrade"
            filemode="755" dirmode="755" />
     </zip>
+    <property name="package.built" value="true"/>
   </target>
 
 
@@ -994,15 +999,36 @@
       </not>
     </condition>
 
+    <!-- do not run tests dependent upon creation of the .zip file -->
     <condition property="test.packages" value="org.opends.server.*">
-      <not>
-        <or>
-          <isset property="test.packages" />
-          <isset property="test.classes" />
-          <isset property="test.methods" />
-        </or>
-      </not>
+      <and>
+        <not>
+          <or>
+            <isset property="test.packages" />
+            <isset property="test.classes" />
+            <isset property="test.methods" />
+          </or>
+        </not>
+        <not>
+          <equals arg1="${package.built}" arg2="true" />
+        </not>
+      </and>
     </condition>
+ 
+    <!-- run tests dependent upon creation of the .zip file -->
+    <condition property="test.packages" value="org.opends.server.*,org.opends.quicksetup.*">
+      <and>
+        <not>
+          <or>
+            <isset property="test.packages" />
+            <isset property="test.classes" />
+            <isset property="test.methods" />
+          </or>
+        </not>
+        <equals arg1="${package.built}" arg2="true" />
+      </and>
+    </condition>
+
 
     <condition property="test.classes" value="">
       <not>
@@ -1294,6 +1320,11 @@
 
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
+        </fileset>
+
+	<!-- Needed by quicksetup tests -->
+        <fileset dir="${build.dir}/build-tools">
+          <include name="build-tools.jar" />
         </fileset>
 
         <fileset dir="${testng.lib.dir}">
