@@ -362,11 +362,10 @@
 							  
       <!---   Copy staging data to remote host -->
       <message>
-        'Copy test data from %s on %s to %s on %s' % (logsTestDataDir,location,dsDir,dsHost)
+        'Copy %s/testdata.zip to %s on %s' % (logsTestDataDir,dsDir,dsHost)
       </message>
       <call function="'copyFile'">
-        { 'location'   : dsHost,
-          'srcfile'    : '%s/testdata.zip' % logsTempDir,
+        { 'srcfile'    : '%s/testdata.zip' % logsTempDir,
           'destfile'   : '%s/testdata.zip' % dsDir,
           'remotehost' : dsHost }
       </call>
