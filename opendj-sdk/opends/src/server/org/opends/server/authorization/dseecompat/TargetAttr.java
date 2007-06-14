@@ -45,9 +45,14 @@ public class TargetAttr {
     private EnumTargetOperator operator = EnumTargetOperator.EQUALITY;
 
     /*
-     * Flags that is set if all attributes pattern seen "*".
+     * Flags that is set if all user attributes pattern seen "*".
      */
-    private boolean allAttributes = false ;
+    private boolean allUserAttributes = false ;
+
+    /*
+     * Flags that is set if all operational attributes pattern seen "+".
+     */
+    private boolean allOpAttributes = false ;
 
     /*
      * HashSet of the attribute types parsed by the constructor.
@@ -73,18 +78,21 @@ public class TargetAttr {
      * @param operator The operation enumeration of the targetattr
      * expression (=, !=).
      * @param attrString A string representing the attributes specified in
-     * the targetattr expression (ie, dn || cn).
+     * the targetattr expression (ie, dn || +).
      * @throws AciException If the attrs string is invalid.
      */
     private TargetAttr(EnumTargetOperator operator, String attrString)
     throws AciException {
         this.operator = operator;
         if (attrString != null) {
-            if (Pattern.matches(ALL_ATTRS_WILD_CARD, attrString) ){
-                allAttributes = true ;
-            } else {
+            if (Pattern.matches(ALL_USER_ATTRS_WILD_CARD, attrString) )
+                allUserAttributes = true ;
+            else  if (Pattern.matches(ALL_OP_ATTRS_WILD_CARD, attrString) )
+                allOpAttributes = true ;
+            else {
                 if (Pattern.matches(ZERO_OR_MORE_WHITESPACE, attrString)){
-                    allAttributes = false;
+                    allUserAttributes = false;
+                    allOpAttributes=false;
                 } else {
                     if (Pattern.matches(attrListRegex, attrString)) {
                         // Remove the spaces in the attr string and
@@ -95,25 +103,9 @@ public class TargetAttr {
                          attrString.replaceAll(ZERO_OR_MORE_WHITESPACE, "");
                         String[] attributeArray=
                              separatorPattern.split(attrString);
-                        //Add each element of array to attributes HashSet
-                        //after converting it to AttributeType.
-                        arrayToAttributeTypes(attributeArray);
-                       //Must be either all operational attrs or all user attrs,
-                       //but not both.
-                        if(!opAttributes.isEmpty() && !attributes.isEmpty()) {
-                            int msgID =
-                             MSGID_ACI_TARGETATTR_INVALID_OP_USER_ATTR;
-                            String message = getMessage(msgID, attrString);
-                            throw new AciException(msgID, message);
-                        }
-                        //Inequality not allowed with operational attrs.
-                        if(!opAttributes.isEmpty() &&
-                            operator.equals(EnumTargetOperator.NOT_EQUALITY)) {
-                            int msgID =
-                               MSGID_ACI_TARGATTR_INVALID_OP_ATTR_INEQUALITY;
-                            String message = getMessage(msgID, attrString);
-                            throw new AciException(msgID, message);
-                        }
+                        //Add each element of array to appropriate HashSet
+                        //after conversion to AttributeType.
+                        arrayToAttributeTypes(attributeArray, attrString);
                     } else {
                       int msgID =
                          MSGID_ACI_SYNTAX_INVALID_TARGETATTRKEYWORD_EXPRESSION;
@@ -126,23 +118,47 @@ public class TargetAttr {
     }
 
     /**
-     * Converts each element of an array of attribute type strings
-     * to attribute types and adds them to either the attributes HashSet or
-     * the operational attributes HashSet if they are operational.
+     * Converts each element of an array of attribute strings
+     * to attribute types and adds them to either the user attributes HashSet or
+     * the operational attributes HashSet. Also, scan for the shorthand tokens
+     * "*" for all user attributes and "+" for all operational attributes.
+     *
      * @param attributeArray The array of attribute type strings.
+     * @param attrStr String used in error message if an Aci Exception
+     *                is thrown.
+     * @throws AciException If the one of the attribute checks fails.
      */
-    private void arrayToAttributeTypes(String[] attributeArray) {
+    private void arrayToAttributeTypes(String[] attributeArray, String attrStr)
+            throws AciException {
         for (int i=0, n=attributeArray.length; i < n; i++) {
             String attribute=attributeArray[i].toLowerCase();
-            AttributeType attributeType;
-            if((attributeType =
-                    DirectoryServer.getAttributeType(attribute)) == null)
-                attributeType =
-                        DirectoryServer.getDefaultAttributeType(attribute);
-          if(attributeType.isOperational())
-           opAttributes.add(attributeType);
-          else
-            attributes.add(attributeType);
+            if(attribute.equals("*")) {
+                if(!allUserAttributes)
+                    allUserAttributes=true;
+                else {
+                    int msgID = MSGID_ACI_TARGETATTR_INVALID_ATTR_TOKEN;
+                    String message = getMessage(msgID, attrStr);
+                    throw new AciException(msgID, message);
+                }
+            } else if(attribute.equals("+")) {
+                if(!allOpAttributes)
+                    allOpAttributes=true;
+                else {
+                    int msgID = MSGID_ACI_TARGETATTR_INVALID_ATTR_TOKEN;
+                    String message = getMessage(msgID, attrStr);
+                    throw new AciException(msgID, message);
+                }
+            } else {
+                AttributeType attributeType;
+                if((attributeType =
+                        DirectoryServer.getAttributeType(attribute)) == null)
+                    attributeType =
+                            DirectoryServer.getDefaultAttributeType(attribute);
+                if(attributeType.isOperational())
+                    opAttributes.add(attributeType);
+                else
+                    attributes.add(attributeType);
+            }
         }
     }
 
@@ -159,8 +175,18 @@ public class TargetAttr {
      * targetattr="*" or targetattr != "*".
      * @return True if all attributes was seen.
      */
-    public boolean isAllAttributes() {
-        return allAttributes;
+    public boolean isAllUserAttributes() {
+        return allUserAttributes;
+    }
+
+
+    /**
+     * This flag is set if the parsing code saw:
+     * targetattr="+" or targetattr != "+".
+     * @return True if all attributes was seen.
+     */
+    public boolean isAllOpAttributes() {
+        return allOpAttributes;
     }
 
     /**
@@ -195,67 +221,64 @@ public class TargetAttr {
     }
 
     /**
-     * Perform two checks to see if a specified attribute type is applicable.
-     * First, check the targetAttr's isAllAttributes() boolean. The
-     * isAllAttributes boolean is set true when the string:
+     * Performs test to see if the specified is applicable to the specified
+     * TargetAttr. First a check if the TargetAttr parsing code saw an
+     * expression like:
      *
-     *       targetattrs="*"
+     *  (targetattrs="+ || *), (targetattrs != "* || +)
      *
-     * is  seen when an ACI is parsed.  This boolean only applies to
-     * non-operational attribute types. If the attribute type being evaluated
-     * and the isAllAttributes is true, then the evaluation will return false
-     * because operational attributes must be explicity defined.
+     * where both shorthand tokens where parsed. IF so then the attribute type
+     * matches automatically (or not matches if NOT_EQUALITY).
      *
-     * If the isAllAttributes boolean is true (and the attribute is
-     * non-operational), the second check is skipped and the TargetAttr's
-     * operator is checked to see if the method should return false
-     * (NOT_EQUALITY) instead of true.
+     * If there isn't a match, then the method evalAttrType is called to further
+     * evaluate the attribute type and targetAttr combination.
      *
-     * If the isAllAttributes boolean is false, then the attribute type is
-     * checked to see if it is operational. If it is, then the operational
-     * HashSet is searched to see if it contains the operational attribute
-     * type. If it is found then true is returned, else false is returned
-     * if it isn't found. The NOT_EQUALITY operator is invalid for operational
-     * attribute types and is not checked.
-     *
-     * If the attribute is not operational,  then the TargeAttr's user
-     * attribute type HashSet is searched to see if it contains the
-     * specified attribute type. That result could be negated depending
-     * on if the TargetAttr's operator is NOT_EQUALITY.
      *
      * @param a The attribute type to evaluate.
      * @param targetAttr The ACI's TargetAttr class to evaluate against.
      * @return The boolean result of the above tests and application
      * TargetAttr's operator value applied to the test result.
      */
+
     public static boolean isApplicable(AttributeType a,
                                        TargetAttr targetAttr) {
-      boolean ret;
-      if(targetAttr.isAllAttributes()) {
-        //If it is an operational attribute, then access is denied for all
-        //attributes wild-card. Operational attributes must be
-        // explicitly defined and cannot be negated.
-        if(a.isOperational()) {
-          ret=false;
+        boolean ret;
+        if(targetAttr.isAllUserAttributes() && targetAttr.isAllOpAttributes()) {
+            ret =
+              !targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY);
         } else
-          ret =
-             !targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY);
-      }  else {
-        ret=false;
-          HashSet<AttributeType> attributes=targetAttr.getAttributes();
-          HashSet<AttributeType> opAttributes=targetAttr.getOpAttributes();
-           //Check if the attribute is operational, if so check the
-           //operation HashSet.
-           if(a.isOperational()) {
-             if(opAttributes.contains(a))
-               ret=true;
-         } else {
-            if(attributes.contains(a))
-              ret=true;
-            if(targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY))
-              ret = !ret;
-          }
-       }
-      return ret;
+            ret=evalAttrType(a, targetAttr);
+
+        return ret;
+    }
+
+    /**
+     * First check is to see if the attribute type is operational. If so then
+     * a match is true if the allOpAttributes boolean is true or if the
+     * attribute type is found in the operational attributes HashSet.
+     *
+     * Second check is similar to above, except the user attributes boolean
+     * and HashSet is examined. Both results can be negated if the expression
+     * operator is NOT_EQUALITT).
+     *
+     * @param a The attribute type to evaluate.
+     * @param targetAttr The targetAttr to apply to the attribute type.
+     * @return True if the attribute type is applicable to the targetAttr.
+     */
+    private static
+    boolean evalAttrType(AttributeType a, TargetAttr targetAttr) {
+        boolean ret=false;
+        if(a.isOperational()) {
+            if(targetAttr.isAllOpAttributes() ||
+                    targetAttr.opAttributes.contains(a))
+                ret=true;
+        } else {
+            if(targetAttr.isAllUserAttributes() ||
+                    targetAttr.attributes.contains(a))
+                ret=true;
+        }
+        if(targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY))
+            ret = !ret;
+        return ret;
     }
 }
