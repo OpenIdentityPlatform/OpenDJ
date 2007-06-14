@@ -98,10 +98,16 @@ public class AciHandler extends AccessControlHandler {
     public static String ALL_ATTRS_RESOURCE_ENTRY = "allAttrsResourceEntry";
 
     /**
-     * String used to indicate that the evaluating ACI had a all attributes
+     * String used to indicate that the evaluating ACI had a all user attributes
      * targetattr match (targetattr="*").
      */
-     public static String ALL_ATTRS_MATCHED = "allAttrsMatched";
+     public static String ALL_USER_ATTRS_MATCHED = "allUserAttrsMatched";
+
+    /**
+     * String used to indicate that the evaluating ACI had a all operational
+     * attributes targetattr match (targetattr="+").
+     */
+     public static String ALL_OP_ATTRS_MATCHED = "allOpAttrsMatched";
 
     /**
      * This constructor instantiates the ACI handler class that performs the
@@ -603,17 +609,18 @@ public class AciHandler extends AccessControlHandler {
      */
     private SearchResultEntry
     accessAllowedAttrs(AciLDAPOperationContainer container) {
-      Entry e=container.getResourceEntry();
-      List<AttributeType> typeList=getAllAttrs(e);
-      for(AttributeType attrType : typeList) {
-        if(container.hasACIAllAttributes() && !attrType.isOperational())
-          continue;
-        container.setCurrentAttributeType(attrType);
-        if(!accessAllowed(container)) {
-          e.removeAttribute(attrType);
+        Entry e=container.getResourceEntry();
+        List<AttributeType> typeList=getAllAttrs(e);
+        for(AttributeType attrType : typeList) {
+            if(container.hasAllUserAttributes() && !attrType.isOperational())
+                continue;
+            if(container.hasAllOpAttributes() && attrType.isOperational())
+                continue;
+            container.setCurrentAttributeType(attrType);
+            if(!accessAllowed(container))
+                e.removeAttribute(attrType);
         }
-      }
-      return container.getSearchResultEntry();
+        return container.getSearchResultEntry();
     }
 
     /**
@@ -916,12 +923,16 @@ public class AciHandler extends AccessControlHandler {
             ret=false;
           }
           if (ret) {
-              operationContainer.clearACIEvalAttributesRule(ACI_NULL);
+              operationContainer.clearEvalAttributes(ACI_NULL);
               operationContainer.setRights(ACI_READ);
               ret=accessAllowedEntry(operationContainer);
             if(ret) {
-              if(!operationContainer.hasACIEvalAttributes())
-                operation.setAttachment(ALL_ATTRS_MATCHED, ALL_ATTRS_MATCHED);
+              if(!operationContainer.hasEvalUserAttributes())
+                operation.setAttachment(ALL_USER_ATTRS_MATCHED,
+                        ALL_USER_ATTRS_MATCHED);
+              if(!operationContainer.hasEvalOpAttributes())
+                operation.setAttachment(ALL_OP_ATTRS_MATCHED,
+                        ALL_OP_ATTRS_MATCHED);
             }
           }
       }

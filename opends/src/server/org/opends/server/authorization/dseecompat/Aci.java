@@ -110,11 +110,12 @@ public class Aci  {
     /**
      * Regular expression that graciously matches an attribute type name. Must
      * begin with an ASCII letter or digit, and contain only ASCII letters,
-     * digit characters, hyphens, semi-colons and underscores.
-     * They are case insensitive.
+     * digit characters, hyphens, semi-colons and underscores. It also allows
+     * the special shorthand characters "*" for all user attributes and "+" for
+     * all operational attributes.
      */
     public  static final String ATTR_NAME =
-              "((?i)[a-z\\d]{1}[[a-z]\\d-_.;]*(?-i))";
+              "((?i)[a-z\\d]{1}[[a-z]\\d-_.;]*(?-i)|\\*{1}|\\+{1})";
 
     /**
       * Regular expression matching a LDAP URL.
@@ -150,8 +151,16 @@ public class Aci  {
     /**
      * Regular expression the matches "*".
      */
-    public static final String ALL_ATTRS_WILD_CARD = ZERO_OR_MORE_WHITESPACE +
-                                           "\\*" + ZERO_OR_MORE_WHITESPACE;
+    public static final String ALL_USER_ATTRS_WILD_CARD =
+            ZERO_OR_MORE_WHITESPACE +
+                    "\\*" + ZERO_OR_MORE_WHITESPACE;
+
+    /**
+     * Regular expression the matches "+".
+     */
+    public static final String ALL_OP_ATTRS_WILD_CARD =
+            ZERO_OR_MORE_WHITESPACE +
+                    "\\+" + ZERO_OR_MORE_WHITESPACE;
 
     /**
      * ACI_ADD is used to set the container rights for a LDAP add operation.
@@ -265,15 +274,38 @@ public class Aci  {
      * evaluation if the flag is ACI_ATTR_STAR_MATCHED (all attributes match)
      * and the attribute type is not operational.
      */
-    public static final int ACI_ATTR_STAR_MATCHED = 0x0008;
+    public static final int ACI_USER_ATTR_STAR_MATCHED = 0x0008;
 
     /**
-     * ACI_FOUND_ATTR_RULE is the flag set when the evaluation reason of a
+     * ACI_FOUND_USER_ATTR_RULE is the flag set when the evaluation reason of a
      * AciHandler.maysend ACI_READ access evaluation was the result of an
-     * ACI targetattr specific attribute expression
-     * (targetattr="some attribute type") target match.
+     * ACI targetattr specific user attribute expression
+     * (targetattr="some user attribute type") target match.
      */
-    public static final int ACI_FOUND_ATTR_RULE = 0x0010;
+    public static final int ACI_FOUND_USER_ATTR_RULE = 0x0010;
+
+    /**
+     * ACI_OP_ATTR_PLUS_MATCHED is the flag set when the evaluation reason of a
+     * AciHandler.maysend ACI_READ access evaluation was the result of an
+     * ACI targetattr all operational attributes expression (targetattr="+")
+     * target match. For this flag to be set, there must be only one
+     * ACI matching.
+     *
+     * This flag and ACI_FOUND_OP_ATTR_RULE are used in the
+     * AciHandler.filterEntry.accessAllowedAttrs method to skip access
+     * evaluation if the flag is ACI_OP_ATTR_PLUS_MATCHED (all operational
+     * attributes match) and the attribute type is operational.
+     */
+
+    public static final int ACI_OP_ATTR_PLUS_MATCHED = 0x0004;
+
+    /**
+     * ACI_FOUND_OP_ATTR_RULE is the flag set when the evaluation reason of a
+     * AciHandler.maysend ACI_READ access evaluation was the result of an
+     * ACI targetattr specific operational attribute expression
+     * (targetattr="some operational attribute type") target match.
+     */
+    public static final int ACI_FOUND_OP_ATTR_RULE = 0x0020;
 
     /**
      * ACI_NULL is used to set the container rights to all zeros. Used

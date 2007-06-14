@@ -740,22 +740,15 @@ public class AciMessages {
   public static final int MSGID_ACI_NOT_VALID_DN =
        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 73;
 
-    /**
-   * The message ID for the message that will be used if a targetattr
-   * keyword expression contains both operational and user attribute
-   * types. This takes one argument, which is the targetattr expression string.
-   */
-  public static final int MSGID_ACI_TARGETATTR_INVALID_OP_USER_ATTR =
-       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 74;
-
   /**
    * The message ID for the message that will be used if a targetattr
-   * keyword expression performs both an inequality operation using
-   * operational attribute types. This takes one argument, which is the
-   * targetattr expression string.
+   * keyword expression contains an error when a each token in an targetattr
+   * expression was parsed. This takes one argument, which is the expression
+   * string that caused the error.
    */
-  public static final int MSGID_ACI_TARGATTR_INVALID_OP_ATTR_INEQUALITY =
-       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 75;
+  public static final int MSGID_ACI_TARGETATTR_INVALID_ATTR_TOKEN =
+          CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 74;
+
 
   /**
    * The message ID for the message that will be used if a roledn
@@ -763,7 +756,7 @@ public class AciMessages {
    * This takes one argument, which is the roledn expression string.
    */
   public static final int MSGID_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED =
-       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 76;
+       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 75;
 
    /**
    * The message ID for the message that will be used if there are ACI decode
@@ -772,7 +765,7 @@ public class AciMessages {
    * exception.
    */
   public static final int MSGID_ACI_SERVER_DECODE_FAILED =
-       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 77;
+       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 76;
 
 
    /**
@@ -781,7 +774,7 @@ public class AciMessages {
    * causing the server is being put in lockdown mode. The takes no arguments.
    */
   public static final int MSGID_ACI_ENTER_LOCKDOWN_MODE =
-       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 78;
+       CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 77;
 
 
     /**
@@ -1206,17 +1199,11 @@ public class AciMessages {
           "Selfwrite check skipped because an attribute \"%s\" with a " +
           "distinguished name syntax was not a valid DN");
 
-      registerMessage(MSGID_ACI_TARGETATTR_INVALID_OP_USER_ATTR,
+      registerMessage(MSGID_ACI_TARGETATTR_INVALID_ATTR_TOKEN,
               "The provided Access Control Instruction (ACI) " +
               "targetattr expression value \"%s\" is invalid because" +
-              " the expression contains both operational attribute types" +
-              " and user attribute types");
+              " the expression contains invalid or duplicate tokens");
 
-      registerMessage(MSGID_ACI_TARGATTR_INVALID_OP_ATTR_INEQUALITY,
-              "The provided Access Control Instruction (ACI) " +
-              "targetattr expression value \"%s\" is invalid because" +
-              " the expression performs an inequality operation using " +
-              "operational attribute types");
 
       registerMessage(MSGID_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED,
               "The provided Access Control Instruction (ACI) expression " +
