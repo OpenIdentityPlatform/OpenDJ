@@ -1612,6 +1612,37 @@ public class UtilityMessages
   public static final int MSGID_SUBCMD_OPTIONS =
     CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 151;
 
+  /**
+   * The message ID for the message that will be used as the usage
+   * prefix. This does not take any arguments.
+   */
+  public static final int MSGID_ARGPARSER_USAGE =
+    CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 152;
+
+  /**
+   * The message ID for the message that will be used as the heading
+   * for the table of sub-commands. This does not take any arguments.
+   */
+  public static final int MSGID_SUBCMDPARSER_SUBCMD_HEADING =
+    CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 153;
+
+  /**
+   * The message ID for the message that will be used as the reference
+   * to a --help-xxx argument which can be used to obtain usage
+   * information on a specific subset of sub-commands. This takes a
+   * single argument which is the name of the application.
+   */
+  public static final int MSGID_SUBCMDPARSER_SUBCMD_REFERENCE =
+    CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 154;
+
+  /**
+   * The message ID for the message that will be used as the heading
+   * for the table of global arguments. This does not take any
+   * arguments.
+   */
+  public static final int MSGID_SUBCMDPARSER_GLOBAL_HEADING =
+    CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 155;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -2149,6 +2180,14 @@ public class UtilityMessages
                     "See \"%s --help\"");
     registerMessage(MSGID_SUBCMD_OPTIONS,
                     "SubCommand Options:");
+    registerMessage(MSGID_ARGPARSER_USAGE,
+                    "Usage:");
+    registerMessage(MSGID_SUBCMDPARSER_SUBCMD_HEADING,
+                    "Available subcommands:");
+    registerMessage(MSGID_SUBCMDPARSER_SUBCMD_REFERENCE,
+                    "See \"%s --help-{category}\"");
+    registerMessage(MSGID_SUBCMDPARSER_GLOBAL_HEADING,
+                    "The accepted value for global options are:");
   }
 }
 

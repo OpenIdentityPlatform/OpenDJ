@@ -28,24 +28,27 @@ package org.opends.server.util.args;
 
 
 
+import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.messages.UtilityMessages.*;
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.opends.server.core.DirectoryServer;
-
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.messages.UtilityMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
 
 
 
@@ -64,6 +67,10 @@ public class SubCommandArgumentParser
 {
   // The argument that will be used to trigger the display of usage information.
   private Argument usageArgument;
+
+  // The arguments that will be used to trigger the display of usage
+  // information for groups of sub-commands.
+  private Map<Argument, Collection<SubCommand>> usageGroupArguments;
 
   // The set of unnamed trailing arguments that were provided for this parser.
   private ArrayList<String> trailingArguments;
@@ -135,17 +142,18 @@ public class SubCommandArgumentParser
     this.toolDescription            = toolDescription;
     this.longArgumentsCaseSensitive = longArgumentsCaseSensitive;
 
-    trailingArguments  = new ArrayList<String>();
-    globalArgumentList = new LinkedList<Argument>();
-    globalArgumentMap  = new HashMap<String,Argument>();
-    globalShortIDMap   = new HashMap<Character,Argument>();
-    globalLongIDMap    = new HashMap<String,Argument>();
-    subCommands        = new TreeMap<String,SubCommand>();
-    usageOrVersionDisplayed     = false;
-    rawArguments       = null;
-    subCommand         = null;
-    usageArgument      = null;
-    usageOutputStream  = null;
+    trailingArguments   = new ArrayList<String>();
+    globalArgumentList  = new LinkedList<Argument>();
+    globalArgumentMap   = new HashMap<String,Argument>();
+    globalShortIDMap    = new HashMap<Character,Argument>();
+    globalLongIDMap     = new HashMap<String,Argument>();
+    usageGroupArguments = new HashMap<Argument, Collection<SubCommand>>();
+    subCommands         = new TreeMap<String,SubCommand>();
+    usageOrVersionDisplayed = false;
+    rawArguments        = null;
+    subCommand          = null;
+    usageArgument       = null;
+    usageOutputStream   = null;
   }
 
 
@@ -513,62 +521,67 @@ public class SubCommandArgumentParser
 
 
   /**
-   * Sets the provided argument as one which will automatically trigger the
-   * output of usage information if it is provided on the command line and no
-   * further argument validation will be performed.  Note that the caller will
-   * still need to add this argument to the parser with the
-   * <CODE>addArgument</CODE> method, and the argument should not be required
-   * and should not take a value.  Also, the caller will still need to check
-   * for the presence of the usage argument after calling
-   * <CODE>parseArguments</CODE> to know that no further processing will be
-   * required.
+   * Sets the provided argument as one which will automatically
+   * trigger the output of full usage information if it is provided on
+   * the command line and no further argument validation will be
+   * performed.
+   * <p>
+   * If sub-command groups are defined using the
+   * {@link #setUsageGroupArgument(Argument, Collection)} method, then
+   * this usage argument, when specified, will result in usage
+   * information being displayed which does not include information on
+   * sub-commands.
+   * <p>
+   * Note that the caller will still need to add this argument to the
+   * parser with the {@link #addGlobalArgument(Argument)} method, and
+   * the argument should not be required and should not take a value.
+   * Also, the caller will still need to check for the presence of the
+   * usage argument after calling {@link #parseArguments(String[])} to
+   * know that no further processing will be required.
    *
-   * @param  argument      The argument whose presence should automatically
-   *                       trigger the display of usage information.
+   * @param argument
+   *          The argument whose presence should automatically trigger
+   *          the display of full usage information.
+   * @param outputStream
+   *          The output stream to which the usage information should
+   *          be written.
    */
-  public void setUsageArgument(Argument argument)
-  {
-    usageArgument     = argument;
-    usageOutputStream = System.out;
-  }
-
-
-
-  /**
-   * Sets the provided argument as one which will automatically trigger the
-   * output of usage information if it is provided on the command line and no
-   * further argument validation will be performed.  Note that the caller will
-   * still need to add this argument to the parser with the
-   * <CODE>addArgument</CODE> method, and the argument should not be required
-   * and should not take a value.  Also, the caller will still need to check
-   * for the presence of the usage argument after calling
-   * <CODE>parseArguments</CODE> to know that no further processing will be
-   * required.
-   *
-   * @param  argument      The argument whose presence should automatically
-   *                       trigger the display of usage information.
-   * @param  outputStream  The output stream to which the usage information
-   *                       should be written.
-   */
-  public void setUsageArgument(Argument argument, OutputStream outputStream)
-  {
-    usageArgument     = argument;
+  public void setUsageArgument(Argument argument, OutputStream outputStream) {
+    usageArgument = argument;
     usageOutputStream = outputStream;
+
+    usageGroupArguments.put(argument, Collections.<SubCommand>emptySet());
   }
 
 
 
   /**
-   * Adds the provided subcommand to this argument parser.  This is only
-   * intended for use by the <CODE>SubCommand</CODE> constructor and does not
-   * do any validation of its own to ensure that there are no conflicts with the
-   * subcommand or any of its arguments.
+   * Sets the provided argument as one which will automatically
+   * trigger the output of partial usage information if it is provided
+   * on the command line and no further argument validation will be
+   * performed.
+   * <p>
+   * Partial usage information will include a usage synopsis, a
+   * summary of each of the sub-commands listed in the provided
+   * sub-commands collection, and a summary of the global options.
+   * <p>
+   * Note that the caller will still need to add this argument to the
+   * parser with the {@link #addGlobalArgument(Argument)} method, and
+   * the argument should not be required and should not take a value.
+   * Also, the caller will still need to check for the presence of the
+   * usage argument after calling {@link #parseArguments(String[])} to
+   * know that no further processing will be required.
    *
-   * @param  subCommand  The subcommand to add to this argument parser.
+   * @param argument
+   *          The argument whose presence should automatically trigger
+   *          the display of partial usage information.
+   * @param subCommands
+   *          The list of sub-commands which should have their usage
+   *          displayed.
    */
-  void addSubCommand(SubCommand subCommand)
-  {
-    subCommands.put(toLowerCase(subCommand.getName()), subCommand);
+  public void setUsageGroupArgument(Argument argument,
+      Collection<SubCommand> subCommands) {
+    usageGroupArguments.put(argument, subCommands);
   }
 
 
@@ -803,14 +816,13 @@ public class SubCommandArgumentParser
 
         a.setPresent(true);
 
-        // If this is the usage argument, then immediately stop and print
+        // If this is a usage argument, then immediately stop and print
         // usage information.
-        if ((usageArgument != null) &&
-            usageArgument.getName().equals(a.getName()))
+        if (usageGroupArguments.containsKey(a))
         {
           try
           {
-            getUsage(usageOutputStream);
+            getUsage(a, usageOutputStream);
           } catch (Exception e) {}
 
           return;
@@ -1021,12 +1033,11 @@ public class SubCommandArgumentParser
 
         // If this is the usage argument, then immediately stop and print
         // usage information.
-        if ((usageArgument != null) &&
-            usageArgument.getName().equals(a.getName()))
+        if (usageGroupArguments.containsKey(a))
         {
           try
           {
-            getUsage(usageOutputStream);
+            getUsage(a, usageOutputStream);
           } catch (Exception e) {}
 
           return;
@@ -1122,12 +1133,11 @@ public class SubCommandArgumentParser
 
                 // If this is the usage argument, then immediately stop and
                 // print usage information.
-                if ((usageArgument != null) &&
-                    usageArgument.getName().equals(b.getName()))
+                if (usageGroupArguments.containsKey(b))
                 {
                   try
                   {
-                    getUsage(usageOutputStream);
+                    getUsage(b, usageOutputStream);
                   } catch (Exception e) {}
 
                   return;
@@ -1276,199 +1286,6 @@ public class SubCommandArgumentParser
 
 
   /**
-   * Appends complete usage information to the provided buffer.  It will include
-   * information about global options as well as all subcommand-specific
-   * options.  The output will be somewhat compressed in that it will not
-   * include any of the descriptions for any of the arguments.
-   *
-   * @param  buffer  The buffer to which the usage information should be
-   *                 appended.
-   */
-  public void getFullUsage(StringBuilder buffer)
-  {
-    usageOrVersionDisplayed = true;
-    if ((toolDescription != null) && (toolDescription.length() > 0))
-    {
-      buffer.append(wrapText(toolDescription, 79));
-      buffer.append(EOL);
-    }
-
-    String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-    if ((scriptName == null) || (scriptName.length() == 0))
-    {
-      buffer.append("Usage:  java ");
-      buffer.append(mainClassName);
-    }
-    else
-    {
-      buffer.append("Usage:  ");
-      buffer.append(scriptName);
-    }
-
-    buffer.append(" {subcommand} {options}");
-    buffer.append(EOL);
-    buffer.append(EOL);
-
-    buffer.append("Available subcommands:");
-    buffer.append(EOL);
-    int indentNb = 0;
-    for (SubCommand sc : subCommands.values())
-    {
-      if (sc.isHidden())
-      {
-        continue;
-      }
-      if (sc.getName().length() > indentNb )
-      {
-        indentNb = sc.getName().length();
-      }
-    }
-    indentNb++;
-    for (SubCommand sc : subCommands.values())
-    {
-      if (sc.isHidden())
-      {
-        continue;
-      }
-      buffer.append("    " + sc.getName());
-      for (int i=0; i < indentNb - sc.getName().length() ; i++)
-      {
-        buffer.append(" ");
-      }
-      buffer.append(sc.getDescription());
-      buffer.append(EOL);
-    }
-    buffer.append(EOL);
-
-    buffer.append("The accepted value for global options are:");
-    buffer.append(EOL);
-
-    // --version is a builtin option
-    boolean dashVAccepted = true;
-    if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
-    {
-      dashVAccepted = false;
-    }
-    else
-    {
-      for (SubCommand subCmd : subCommands.values())
-      {
-        if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION) != null)
-        {
-          dashVAccepted = false;
-          break;
-        }
-      }
-    }
-    if (dashVAccepted)
-    {
-      buffer.append("-" + OPTION_SHORT_PRODUCT_VERSION + ", ");
-    }
-    buffer.append("--" + OPTION_LONG_PRODUCT_VERSION);
-    buffer.append(EOL);
-    buffer.append("    ");
-    buffer.append( getMessage(MSGID_DESCRIPTION_PRODUCT_VERSION));
-    buffer.append(EOL);
-    Argument helpArgument = null ;
-    for (Argument a : globalArgumentList)
-    {
-      if (a.isHidden())
-      {
-        continue;
-      }
-
-      // Help argument should be printed at the end
-      if ((usageArgument != null) ? usageArgument.getName().equals(a.getName())
-          : false)
-      {
-        helpArgument = a ;
-        continue ;
-      }
-
-      printArgumentUsage(a, buffer);
-    }
-    if (helpArgument != null)
-    {
-      printArgumentUsage(helpArgument, buffer);
-    }
-    else
-    {
-      buffer.append("-?");
-    }
-    buffer.append(EOL);
-  }
-
-
-/**
- * Appends argument usage information to the provided buffer.
- *
- * @param a The argument to handle.
- * @param buffer
- *          The buffer to which the usage information should be
- *          appended.
- */
-  private void printArgumentUsage(Argument a, StringBuilder buffer)
-  {
-    String value;
-    if (a.needsValue())
-    {
-      String valuePlaceholder = a.getValuePlaceholder();
-      if (valuePlaceholder == null)
-      {
-        value = " {value}";
-      }
-      else
-      {
-        value = " " + valuePlaceholder;
-      }
-    }
-    else
-    {
-      value = "";
-    }
-
-    Character shortIDChar = a.getShortIdentifier();
-    boolean isHelpArg = (usageArgument != null) ? usageArgument.getName()
-        .equals(a.getName()) : false;
-    if (shortIDChar != null)
-    {
-      if (isHelpArg)
-      {
-        buffer.append("-?, ");
-      }
-      buffer.append("-");
-      buffer.append(shortIDChar);
-
-      String longIDString = a.getLongIdentifier();
-      if (longIDString != null)
-      {
-        buffer.append(", --");
-        buffer.append(longIDString);
-      }
-      buffer.append(value);
-    }
-    else
-    {
-      String longIDString = a.getLongIdentifier();
-      if (longIDString != null)
-      {
-        if (isHelpArg)
-        {
-          buffer.append("-?, ");
-        }
-        buffer.append("--");
-        buffer.append(longIDString);
-        buffer.append(value);
-      }
-    }
-
-    buffer.append(EOL);
-    indentAndWrap("    ", a.getDescription(), buffer);
-  }
-
-
-
-  /**
    * Appends usage information for the specified subcommand to the provided
    * buffer.
    *
@@ -1481,19 +1298,13 @@ public class SubCommandArgumentParser
   {
     usageOrVersionDisplayed = true;
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-    String printName;
     if ((scriptName == null) || (scriptName.length() == 0))
     {
-      buffer.append("Usage:  java ");
-      buffer.append(mainClassName);
-      printName = "java " + mainClassName;
+      scriptName = "java " + mainClassName;
     }
-    else
-    {
-      buffer.append("Usage:  ");
-      buffer.append(scriptName);
-      printName = scriptName;
-    }
+    buffer.append(getMessage(MSGID_ARGPARSER_USAGE));
+    buffer.append("  ");
+    buffer.append(scriptName);
 
     buffer.append(" ");
     buffer.append(subCommand.getName());
@@ -1512,7 +1323,7 @@ public class SubCommandArgumentParser
       buffer.append(getMessage(MSGID_GLOBAL_OPTIONS));
       buffer.append(EOL);
       buffer.append("    ");
-      buffer.append(getMessage(MSGID_GLOBAL_OPTIONS_REFERENCE, printName));
+      buffer.append(getMessage(MSGID_GLOBAL_OPTIONS_REFERENCE, scriptName));
       buffer.append(EOL);
     }
 
@@ -1539,7 +1350,7 @@ public class SubCommandArgumentParser
       {
         int currentLength = buffer.length();
 
-        if (usageArgument.getName().equals(a.getName()))
+        if (a.equals(usageArgument))
         {
           buffer.append("-?, ");
         }
@@ -1584,7 +1395,7 @@ public class SubCommandArgumentParser
       {
         if (longID != null)
         {
-          if (usageArgument.getName().equals(a.getName()))
+          if (a.equals(usageArgument))
           {
             buffer.append("-?, ");
           }
@@ -1671,12 +1482,16 @@ public class SubCommandArgumentParser
   {
     StringBuilder buffer = new StringBuilder();
 
-    if (subCommand == null)
-    {
-      getFullUsage(buffer);
-    }
-    else
-    {
+    if (subCommand == null) {
+      if (usageGroupArguments.size() > 1) {
+        // We have sub-command groups, so don't display any
+        // sub-commands by default.
+        getFullUsage(Collections.<SubCommand> emptySet(), buffer);
+      } else {
+        // No grouping, so display all sub-commands.
+        getFullUsage(subCommands.values(), buffer);
+      }
+    } else {
       getSubCommandUsage(buffer, subCommand);
     }
 
@@ -1686,40 +1501,11 @@ public class SubCommandArgumentParser
 
 
   /**
-   * Writes usage information based on the defined arguments to the provided
-   * output stream.
+   * Retrieves the set of unnamed trailing arguments that were
+   * provided on the command line.
    *
-   * @param  outputStream  The output stream to which the usage information
-   *                       should be written.
-   *
-   * @throws  IOException  If a problem occurs while attempting to write the
-   *                       usage information to the provided output stream.
-   */
-  public void getUsage(OutputStream outputStream)
-         throws IOException
-  {
-    StringBuilder buffer = new StringBuilder();
-
-    if (subCommand == null)
-    {
-      getFullUsage(buffer);
-    }
-    else
-    {
-      getSubCommandUsage(buffer, subCommand);
-    }
-
-    outputStream.write(getBytes(buffer.toString()));
-  }
-
-
-
-  /**
-   * Retrieves the set of unnamed trailing arguments that were provided on the
-   * command line.
-   *
-   * @return  The set of unnamed trailing arguments that were provided on the
-   *          command line.
+   * @return The set of unnamed trailing arguments that were provided
+   *         on the command line.
    */
   public ArrayList<String> getTrailingArguments()
   {
@@ -1742,12 +1528,242 @@ public class SubCommandArgumentParser
   }
 
 
+
+  /**
+   * Adds the provided subcommand to this argument parser.  This is only
+   * intended for use by the <CODE>SubCommand</CODE> constructor and does not
+   * do any validation of its own to ensure that there are no conflicts with the
+   * subcommand or any of its arguments.
+   *
+   * @param  subCommand  The subcommand to add to this argument parser.
+   */
+  void addSubCommand(SubCommand subCommand)
+  {
+    subCommands.put(toLowerCase(subCommand.getName()), subCommand);
+  }
+
+
+
+  // Get usage for a specific usage argument.
+  private void getUsage(Argument a, OutputStream outputStream)
+      throws IOException {
+    StringBuilder buffer = new StringBuilder();
+
+    if (a.equals(usageArgument) && subCommand != null) {
+      getSubCommandUsage(buffer, subCommand);
+    } else if (a.equals(usageArgument) && usageGroupArguments.size() <= 1) {
+      getFullUsage(subCommands.values(), buffer);
+    } else {
+      getFullUsage(usageGroupArguments.get(a), buffer);
+    }
+
+    outputStream.write(getBytes(buffer.toString()));
+  }
+
+
+
+  // Get default usage.
+  private void getUsage(OutputStream outputStream)
+      throws IOException {
+    outputStream.write(getBytes(getUsage()));
+  }
+
+
+
+  // Appends complete usage information for the specified set of
+  // sub-commands.
+  private void getFullUsage(Collection<SubCommand> c, StringBuilder buffer) {
+    usageOrVersionDisplayed = true;
+    if ((toolDescription != null) && (toolDescription.length() > 0))
+    {
+      buffer.append(wrapText(toolDescription, 79));
+      buffer.append(EOL);
+    }
+
+    String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+    if ((scriptName == null) || (scriptName.length() == 0))
+    {
+      scriptName = "java " + mainClassName;
+    }
+    buffer.append(getMessage(MSGID_ARGPARSER_USAGE));
+    buffer.append("  ");
+    buffer.append(scriptName);
+
+    buffer.append(" {subcommand} {options}");
+
+    buffer.append(EOL);
+    buffer.append(EOL);
+
+    buffer.append(getMessage(MSGID_SUBCMDPARSER_SUBCMD_HEADING));
+    buffer.append(EOL);
+
+    if (c.isEmpty()) {
+      buffer.append("    ");
+      buffer.append(getMessage(MSGID_SUBCMDPARSER_SUBCMD_REFERENCE,
+          scriptName));
+      buffer.append(EOL);
+    } else {
+      int indentNb = 0;
+      for (SubCommand sc : c) {
+        if (sc.isHidden()) {
+          continue;
+        }
+        if (sc.getName().length() > indentNb) {
+          indentNb = sc.getName().length();
+        }
+      }
+      indentNb++;
+      for (SubCommand sc : c) {
+        if (sc.isHidden()) {
+          continue;
+        }
+        buffer.append("    " + sc.getName());
+        for (int i = 0; i < indentNb - sc.getName().length(); i++) {
+          buffer.append(" ");
+        }
+        buffer.append(sc.getDescription());
+        buffer.append(EOL);
+      }
+    }
+
+    buffer.append(EOL);
+    buffer.append(getMessage(MSGID_SUBCMDPARSER_GLOBAL_HEADING));
+    buffer.append(EOL);
+
+    // --version is a builtin option
+    boolean dashVAccepted = true;
+    if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
+    {
+      dashVAccepted = false;
+    }
+    else
+    {
+      for (SubCommand subCmd : subCommands.values())
+      {
+        if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION) != null)
+        {
+          dashVAccepted = false;
+          break;
+        }
+      }
+    }
+    if (dashVAccepted)
+    {
+      buffer.append("-" + OPTION_SHORT_PRODUCT_VERSION + ", ");
+    }
+    buffer.append("--" + OPTION_LONG_PRODUCT_VERSION);
+    buffer.append(EOL);
+    buffer.append("    ");
+    buffer.append( getMessage(MSGID_DESCRIPTION_PRODUCT_VERSION));
+    buffer.append(EOL);
+
+    // Display non-usage arguments.
+    for (Argument a : globalArgumentList) {
+      if (a.isHidden()) {
+        continue;
+      }
+
+      if (!usageGroupArguments.containsKey(a)) {
+        printArgumentUsage(a, buffer);
+      }
+    }
+
+    // Display usage arguments (except the default one).
+    for (Argument a : globalArgumentList) {
+      if (a.isHidden()) {
+        continue;
+      }
+
+      if (usageGroupArguments.containsKey(a)) {
+        if (!a.equals(usageArgument)) {
+          printArgumentUsage(a, buffer);
+        }
+      }
+    }
+
+    // Finally print default usage argument.
+    if (usageArgument != null) {
+      printArgumentUsage(usageArgument, buffer);
+    } else {
+      buffer.append("-?");
+    }
+    buffer.append(EOL);
+  }
+
+
+
+  /**
+   * Appends argument usage information to the provided buffer.
+   *
+   * @param a
+   *          The argument to handle.
+   * @param buffer
+   *          The buffer to which the usage information should be
+   *          appended.
+   */
+  private void printArgumentUsage(Argument a, StringBuilder buffer) {
+    String value;
+    if (a.needsValue())
+    {
+      String valuePlaceholder = a.getValuePlaceholder();
+      if (valuePlaceholder == null)
+      {
+        value = " {value}";
+      }
+      else
+      {
+        value = " " + valuePlaceholder;
+      }
+    }
+    else
+    {
+      value = "";
+    }
+
+    Character shortIDChar = a.getShortIdentifier();
+    if (shortIDChar != null)
+    {
+      if (a.equals(usageArgument))
+      {
+        buffer.append("-?, ");
+      }
+      buffer.append("-");
+      buffer.append(shortIDChar);
+
+      String longIDString = a.getLongIdentifier();
+      if (longIDString != null)
+      {
+        buffer.append(", --");
+        buffer.append(longIDString);
+      }
+      buffer.append(value);
+    }
+    else
+    {
+      String longIDString = a.getLongIdentifier();
+      if (longIDString != null)
+      {
+        if (a.equals(usageArgument))
+        {
+          buffer.append("-?, ");
+        }
+        buffer.append("--");
+        buffer.append(longIDString);
+        buffer.append(value);
+      }
+    }
+
+    buffer.append(EOL);
+    indentAndWrap("    ", a.getDescription(), buffer);
+  }
+
+
+
   /**
    * Write one or more lines with the description of the argument.  We will
    * indent the description five characters and try our best to wrap at or
    * before column 79 so it will be friendly to 80-column displays.
    */
-
   private void indentAndWrap(String indent, String text, StringBuilder buffer)
   {
     int actualSize = 80 - indent.length();
