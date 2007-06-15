@@ -88,7 +88,9 @@ public class modifyAnAttribute {
     	 }
     	 k++;
      }
-    
+ 
+    newAttributeValue=newAttributeValue.replaceAll("QUOT","\\\"");
+   
     String provider = "ldap://"  + hostname + ":" + ldapPort  + "/";
 
     Hashtable envLdap  = new Hashtable();
