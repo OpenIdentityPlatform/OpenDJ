@@ -29,11 +29,12 @@ package org.opends.server.admin;
 
 import static org.testng.Assert.*;
 
-import org.opends.server.admin.std.meta.RootCfgDefn;
-import org.testng.annotations.*;
-
-import java.util.EnumSet;
 import java.util.List;
+
+import org.opends.server.admin.std.meta.RootCfgDefn;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * ClassPropertyDefinition Tester.
@@ -79,10 +80,7 @@ public class ClassPropertyDefinitionTest {
             ClassPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
                 "test-property");
     localBuilder.addInstanceOf(className);
-    ClassPropertyDefinition cpd = localBuilder.buildInstance(
-        RootCfgDefn.getInstance(), "test-property",
-            EnumSet.noneOf(PropertyOption.class),
-            new UndefinedDefaultBehaviorProvider<String>());
+    ClassPropertyDefinition cpd = localBuilder.getInstance();
     List<String> instances = cpd.getInstanceOfInterface();
     assertTrue(instances.contains(className));
   }
@@ -111,10 +109,7 @@ public class ClassPropertyDefinitionTest {
             ClassPropertyDefinition.createBuilder(
                 RootCfgDefn.getInstance(), "test-property");
     localBuilder.addInstanceOf(className);
-    ClassPropertyDefinition cpd = localBuilder.buildInstance(
-        RootCfgDefn.getInstance(), "test-property",
-            EnumSet.noneOf(PropertyOption.class),
-            new UndefinedDefaultBehaviorProvider<String>());
+    ClassPropertyDefinition cpd = localBuilder.getInstance();
     List<String> instances = cpd.getInstanceOfInterface();
     assertTrue(instances.contains(className));
   }
@@ -147,10 +142,7 @@ public class ClassPropertyDefinitionTest {
             ClassPropertyDefinition.createBuilder(
                 RootCfgDefn.getInstance(), "test-property");
     localBuilder.addInstanceOf(interfaceName);
-    ClassPropertyDefinition cpd = localBuilder.buildInstance(
-        RootCfgDefn.getInstance(), "test-property",
-            EnumSet.noneOf(PropertyOption.class),
-            new UndefinedDefaultBehaviorProvider<String>());
+    ClassPropertyDefinition cpd = localBuilder.getInstance();
     Class clazz = cpd.loadClass(loadClassName, instanceOfClass);
     assertEquals(clazz, expectedClass);
   }
@@ -184,10 +176,7 @@ public class ClassPropertyDefinitionTest {
             ClassPropertyDefinition.createBuilder(
                 RootCfgDefn.getInstance(), "test-property");
     localBuilder.addInstanceOf(interfaceName);
-    ClassPropertyDefinition cpd = localBuilder.buildInstance(
-        RootCfgDefn.getInstance(), "test-property",
-            EnumSet.noneOf(PropertyOption.class),
-            new UndefinedDefaultBehaviorProvider<String>());
+    ClassPropertyDefinition cpd = localBuilder.getInstance();
     Class clazz = cpd.loadClass(loadClassName, instanceOfClass);
     assertEquals(clazz, String.class);
   }

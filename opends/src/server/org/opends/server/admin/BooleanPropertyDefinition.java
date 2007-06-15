@@ -90,9 +90,10 @@ public final class BooleanPropertyDefinition extends
     protected BooleanPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<Boolean> defaultBehavior) {
       return new BooleanPropertyDefinition(d, propertyName, options,
-          defaultBehavior);
+          adminAction, defaultBehavior);
     }
 
   }
@@ -120,8 +121,10 @@ public final class BooleanPropertyDefinition extends
   private BooleanPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<Boolean> defaultBehavior) {
-    super(d, Boolean.class, propertyName, options, defaultBehavior);
+    super(d, Boolean.class, propertyName, options, adminAction,
+        defaultBehavior);
   }
 
 

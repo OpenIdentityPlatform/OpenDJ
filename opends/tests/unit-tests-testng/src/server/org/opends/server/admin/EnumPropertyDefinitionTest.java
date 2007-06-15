@@ -30,9 +30,9 @@ package org.opends.server.admin;
 import static org.testng.Assert.*;
 
 import org.opends.server.admin.std.meta.RootCfgDefn;
-import org.testng.annotations.*;
-
-import java.util.EnumSet;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * EnumPropertyDefinition Tester.
@@ -61,10 +61,7 @@ public class EnumPropertyDefinitionTest {
    */
   @Test
   public void testBuildInstance() {
-    EnumPropertyDefinition epd = builder.buildInstance(
-        RootCfgDefn.getInstance(), "test-property",
-            EnumSet.noneOf(PropertyOption.class),
-            new UndefinedDefaultBehaviorProvider<TestEnum>());
+    EnumPropertyDefinition epd = builder.getInstance();
     assertEquals(epd.getEnumClass(), TestEnum.class);
   }
 
@@ -77,9 +74,7 @@ public class EnumPropertyDefinitionTest {
     EnumPropertyDefinition.Builder<TestEnum> localBuilder =
             EnumPropertyDefinition.createBuilder(
                 RootCfgDefn.getInstance(), "test-property");
-    localBuilder.buildInstance(RootCfgDefn.getInstance(), "test-property",
-            EnumSet.noneOf(PropertyOption.class),
-            new UndefinedDefaultBehaviorProvider<TestEnum>());
+    localBuilder.getInstance();
   }
 
   /**
@@ -100,10 +95,7 @@ public class EnumPropertyDefinitionTest {
    */
   @Test(dataProvider = "decodeValueData")
   public void testDecodeValue(String value, TestEnum expectedValue) {
-    EnumPropertyDefinition epd = builder.buildInstance(
-        RootCfgDefn.getInstance(), "test-property",
-            EnumSet.noneOf(PropertyOption.class),
-            new UndefinedDefaultBehaviorProvider<TestEnum>());
+    EnumPropertyDefinition epd = builder.getInstance();
     assertEquals(epd.decodeValue(value), expectedValue);
   }
 
@@ -127,10 +119,7 @@ public class EnumPropertyDefinitionTest {
           expectedExceptions = {AssertionError.class,
                   IllegalPropertyValueStringException.class} )
   public void testDecodeValue2(String value) {
-    EnumPropertyDefinition epd = builder.buildInstance(
-        RootCfgDefn.getInstance(), "test-property",
-            EnumSet.noneOf(PropertyOption.class),
-            new UndefinedDefaultBehaviorProvider<TestEnum>());
+    EnumPropertyDefinition epd = builder.getInstance();
     epd.decodeValue(value);
   }
 
@@ -139,10 +128,7 @@ public class EnumPropertyDefinitionTest {
    */
   @Test
   public void testNormalizeValue() {
-    EnumPropertyDefinition<TestEnum> epd = builder.buildInstance(
-        RootCfgDefn.getInstance(), "test-property",
-            EnumSet.noneOf(PropertyOption.class),
-            new UndefinedDefaultBehaviorProvider<TestEnum>());
+    EnumPropertyDefinition<TestEnum> epd = builder.getInstance();
     assertEquals(epd.normalizeValue(TestEnum.ONE), "one");
   }
 
@@ -151,10 +137,7 @@ public class EnumPropertyDefinitionTest {
    */
   @Test
   public void testValidateValue() {
-    EnumPropertyDefinition<TestEnum> epd = builder.buildInstance(
-        RootCfgDefn.getInstance(), "test-property",
-            EnumSet.noneOf(PropertyOption.class),
-            new UndefinedDefaultBehaviorProvider<TestEnum>());
+    EnumPropertyDefinition<TestEnum> epd = builder.getInstance();
     epd.validateValue(TestEnum.ONE);
   }
 

@@ -60,12 +60,5 @@ public enum PropertyOption {
    * Use this option to identify properties which are for monitoring
    * purposes only and are generated automatically by the server..
    */
-  MONITORING,
-
-  /**
-   * Use this option to identify properties which, when modified, will
-   * require some additiona administrator action in order for the
-   * changes to take effect.
-   */
-  REQUIRES_ADMIN_ACTION
+  MONITORING;
 }

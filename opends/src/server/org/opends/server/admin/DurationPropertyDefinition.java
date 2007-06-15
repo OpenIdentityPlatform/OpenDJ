@@ -354,10 +354,11 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
     protected DurationPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<Long> defaultBehavior) {
       return new DurationPropertyDefinition(d, propertyName, options,
-          defaultBehavior, baseUnit, maximumUnit, lowerLimit, upperLimit,
-          allowUnlimited);
+          adminAction, defaultBehavior, baseUnit, maximumUnit, lowerLimit,
+          upperLimit, allowUnlimited);
     }
   }
 
@@ -383,10 +384,11 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
   // Private constructor.
   private DurationPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d,
       String propertyName, EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<Long> defaultBehavior, DurationUnit baseUnit,
       DurationUnit maximumUnit, Long lowerLimit, Long upperLimit,
       boolean allowUnlimited) {
-    super(d, Long.class, propertyName, options, defaultBehavior);
+    super(d, Long.class, propertyName, options, adminAction, defaultBehavior);
     this.baseUnit = baseUnit;
     this.maximumUnit = maximumUnit;
     this.lowerLimit = lowerLimit;

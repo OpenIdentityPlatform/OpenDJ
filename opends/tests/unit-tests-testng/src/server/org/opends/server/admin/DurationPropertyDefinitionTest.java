@@ -30,9 +30,8 @@ package org.opends.server.admin;
 import static org.testng.Assert.*;
 
 import org.opends.server.admin.std.meta.RootCfgDefn;
-import org.testng.annotations.*;
-
-import java.util.EnumSet;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * DurationPropertyDefinition Tester.
@@ -487,9 +486,8 @@ public class DurationPropertyDefinitionTest {
   }
 
   private DurationPropertyDefinition buildTestDefinition(DurationPropertyDefinition.Builder builder) {
-    return builder.buildInstance(RootCfgDefn.getInstance(), "test-prop",
-            EnumSet.noneOf(PropertyOption.class),
-            new DefinedDefaultBehaviorProvider<Long>("0"));
+    builder.setDefaultBehaviorProvider(new DefinedDefaultBehaviorProvider<Long>("0"));
+    return builder.getInstance();
   }
 
 }

@@ -196,8 +196,9 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
     protected SizePropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<Long> defaultBehavior) {
-      return new SizePropertyDefinition(d, propertyName, options,
+      return new SizePropertyDefinition(d, propertyName, options, adminAction,
           defaultBehavior, lowerLimit, upperLimit, allowUnlimited);
     }
 
@@ -226,9 +227,11 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
   private SizePropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<Long> defaultBehavior, Long lowerLimit,
       Long upperLimit, boolean allowUnlimited) {
-    super(d, Long.class, propertyName, options, defaultBehavior);
+    super(d, Long.class, propertyName, options, adminAction,
+        defaultBehavior);
     this.lowerLimit = lowerLimit;
     this.upperLimit = upperLimit;
     this.allowUnlimited = allowUnlimited;
