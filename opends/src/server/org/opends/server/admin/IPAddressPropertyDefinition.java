@@ -141,7 +141,19 @@ public final class IPAddressPropertyDefinition extends
   @Override
   public String encodeValue(InetAddress value)
       throws IllegalPropertyValueException {
-    return value.getHostName();
+    // We should return the host name if it is available, or the IP
+    // address if not.
+
+    // Unforunately, there is no InetAddress method for doing this, so
+    // we have to resort to hacking at the toString() encoding.
+    String s = value.toString();
+    int i = s.indexOf('/');
+    if (i > 0) {
+      // Host address is before the forward slash.
+      return s.substring(0, i);
+    } else {
+      return value.getHostAddress();
+    }
   }
 
 
