@@ -238,7 +238,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the history directory is available.
    */
-  @Test
+  @Test(enabled=false)
   public void testGetHistoryDirectory() {
     assertExistentFile(installation.getHistoryDirectory());
   }
