@@ -39,7 +39,6 @@ import javax.swing.SwingUtilities;
 
 import org.opends.server.core.DirectoryServer;
 
-import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.BackgroundTask;
@@ -579,7 +578,7 @@ StatusPanelButtonListener
         boolean running = false;
         for (int i=0; i<5 && !running; i++)
         {
-          running = CurrentInstallStatus.isServerRunning();
+          running = Installation.getLocal().getStatus().isServerRunning();
         }
 
         if (!running)
@@ -696,7 +695,8 @@ StatusPanelButtonListener
           int nTries = 10;
           for (int i=0; i<nTries && !stopped; i++)
           {
-            stopped = !CurrentInstallStatus.isServerRunning();
+            stopped = !Installation.getLocal().getStatus()
+                    .isServerRunning();
             if (!stopped)
             {
               String msg =

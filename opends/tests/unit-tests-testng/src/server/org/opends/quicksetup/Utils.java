@@ -28,11 +28,16 @@
 package org.opends.quicksetup;
 
 import org.opends.quicksetup.util.ZipExtractor;
+import org.opends.quicksetup.util.ServerController;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.types.OperatingSystem;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.PrintStream;
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  *
@@ -45,10 +50,70 @@ public class Utils {
   public static final String PROPERTY_BUILD_ROOT =
           "org.opends.server.BuildRoot";
 
-  static public void extractServer()
-          throws FileNotFoundException, ApplicationException {
-    ZipExtractor extractor = new ZipExtractor(getInstallPackageFile());
-    extractor.extract(getQuickSetupTestServerRootDir());
+  public static final String DIRECTORY_MANAGER_PASSWORD = "password";
+
+  public static Integer ldapPort;
+
+  public static Integer jmxPort;
+
+  private static boolean initialized;
+
+  static public void initServer()
+          throws IOException, ApplicationException, InterruptedException {
+    File qsServerRoot = getQuickSetupTestServerRootDir();
+    if (!initialized) {
+      if (qsServerRoot.exists()) {
+        stopServer();
+        if (!qsServerRoot.delete()) {
+          throw new IllegalStateException("cannot delete stale installation");
+        }
+      }
+      ZipExtractor extractor = new ZipExtractor(getInstallPackageFile());
+      extractor.extract(qsServerRoot);
+      setupServer();
+      initialized = true;
+    }
+  }
+
+  static public Installation getInstallation() {
+    return new Installation(Utils.getQuickSetupTestServerRootDir());
+  }
+
+  static private void setupServer() throws IOException, InterruptedException {
+    ServerSocket ldapSocket = TestCaseUtils.bindFreePort();
+    ldapPort = ldapSocket.getLocalPort();
+    ldapSocket.close();
+
+    ServerSocket jmxSocket = TestCaseUtils.bindFreePort();
+    jmxPort = jmxSocket.getLocalPort();
+    jmxSocket.close();
+
+    List<String> args = new ArrayList<String>();
+    File root = getQuickSetupTestServerRootDir();
+    if (OperatingSystem.isUNIXBased(
+            OperatingSystem.forName(System.getProperty("os.name")))) {
+      args.add(new File(root, "setup").getPath());
+    } else {
+      args.add(new File(root, "setup.bat").getPath());
+    }
+    args.add("--cli");
+    args.add("-s");
+    args.add("-p");
+    args.add(Integer.toString(ldapPort));
+    args.add("-x");
+    args.add(Integer.toString(jmxPort));
+    args.add("-w");
+    args.add(DIRECTORY_MANAGER_PASSWORD);
+    ProcessBuilder pb = new ProcessBuilder(args);
+    Process p = pb.start();
+    if (p.waitFor() != 0) {
+      throw new IllegalStateException("setup server failed");
+    }
+  }
+
+  static public void stopServer() throws ApplicationException {
+    ServerController controller = new ServerController(getInstallation());
+    controller.stopServer();
   }
 
   static public File getInstallPackageFile() throws FileNotFoundException {

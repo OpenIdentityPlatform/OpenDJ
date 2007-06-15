@@ -40,8 +40,8 @@ import java.util.TreeSet;
 
 import javax.swing.table.TableModel;
 
-import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.util.Utils;
 
 import org.opends.server.core.DirectoryServer;
@@ -52,8 +52,6 @@ import org.opends.statuspanel.ui.ListenersTableModel;
 
 import static org.opends.server.tools.ToolConstants.*;
 import org.opends.server.util.PasswordReader;
-import static org.opends.server.messages.ToolMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
 
 /**
  * The class used to provide some CLI interface to display status.
@@ -90,6 +88,7 @@ class StatusCli
    */
   public static void main(String[] args)
   {
+    QuickSetupLog.disableConsoleLogging();
     StatusCli cli = new StatusCli(args);
     System.exit(cli.run());
   }
@@ -274,7 +273,8 @@ class StatusCli
     }
     else
     {
-      boolean isServerRunning = CurrentInstallStatus.isServerRunning();
+      boolean isServerRunning =
+              Installation.getLocal().getStatus().isServerRunning();
       /* This is required to retrieve the ldap url to be used by the
        * ConfigFromLDAP class.
        */
@@ -397,7 +397,7 @@ class StatusCli
     ServerStatusDescriptor desc = new ServerStatusDescriptor();
     desc.setAuthenticated((dn != null) && (pwd != null));
 
-    if (CurrentInstallStatus.isServerRunning())
+    if (Installation.getLocal().getStatus().isServerRunning())
     {
       desc.setStatus(ServerStatusDescriptor.ServerStatus.STARTED);
     }

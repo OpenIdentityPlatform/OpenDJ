@@ -33,6 +33,10 @@ import org.opends.quicksetup.util.Utils;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.io.IOException;
 
 /**
  * The class used to provide some CLI interface in the uninstall.
@@ -45,6 +49,9 @@ import java.util.Set;
  *
  */
 class UninstallCliHelper extends CliApplicationHelper {
+
+  static private final Logger LOG =
+          Logger.getLogger(UninstallCliHelper.class.getName());
 
   static private String FORMAT_KEY = "cli-uninstall-confirm-prompt";
 
@@ -83,8 +90,23 @@ class UninstallCliHelper extends CliApplicationHelper {
     /* Step 2: If this is not a silent install ask for confirmation to delete
      * the different parts of the installation
      */
-    Set<String> outsideDbs = getOutsideDbs(installStatus);
-    Set<String> outsideLogs = getOutsideLogs(installStatus);
+    Set<String> outsideDbs;
+    Set<String> outsideLogs;
+    Configuration config =
+            Installation.getLocal().getCurrentConfiguration();
+    try {
+      outsideDbs = config.getOutsideDbs();
+    } catch (IOException ioe) {
+      outsideDbs = Collections.emptySet();
+      LOG.log(Level.INFO, "error determining outside databases", ioe);
+    }
+
+    try {
+      outsideLogs = config.getOutsideLogs();
+    } catch (IOException ioe) {
+      outsideLogs = Collections.emptySet();
+      LOG.log(Level.INFO, "error determining outside logs", ioe);
+    }
 
     if (silentUninstall)
     {
@@ -118,30 +140,6 @@ class UninstallCliHelper extends CliApplicationHelper {
     }
 
     return userData;
-  }
-
-  /**
-   * Returns a Set of relative paths containing the db paths outside the
-   * installation.
-   * @param installStatus the Current Install Status object.
-   * @return a Set of relative paths containing the db paths outside the
-   * installation.
-   */
-  private Set<String> getOutsideDbs(CurrentInstallStatus installStatus)
-  {
-    return Utils.getOutsideDbs(installStatus);
-  }
-
-  /**
-   * Returns a Set of relative paths containing the log paths outside the
-   * installation.
-   * @param installStatus the Current Install Status object.
-   * @return a Set of relative paths containing the log paths outside the
-   * installation.
-   */
-  private Set<String> getOutsideLogs(CurrentInstallStatus installStatus)
-  {
-    return Utils.getOutsideLogs(installStatus);
   }
 
   /**
@@ -325,8 +323,8 @@ class UninstallCliHelper extends CliApplicationHelper {
   throws UserDataException
   {
     boolean cancelled = false;
-
-    if (CurrentInstallStatus.isServerRunning())
+    Status status = Installation.getLocal().getStatus();
+    if (status.isServerRunning())
     {
         if (!silentUninstall)
         {
@@ -337,7 +335,7 @@ class UninstallCliHelper extends CliApplicationHelper {
         if (!cancelled)
         {
             /* During all the confirmations, the server might be stopped. */
-            userData.setStopServer(CurrentInstallStatus.isServerRunning());
+            userData.setStopServer(status.isServerRunning());
         }
     }
     else

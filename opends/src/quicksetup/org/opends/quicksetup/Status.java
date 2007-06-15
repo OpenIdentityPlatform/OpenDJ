@@ -27,6 +27,10 @@
 
 package org.opends.quicksetup;
 
+import org.opends.server.util.ServerConstants;
+import org.opends.server.core.LockFileManager;
+import org.opends.quicksetup.util.Utils;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -90,28 +94,37 @@ public class Status {
    * NOTE: this method is to be called only when the OpenDS.jar class has
    * already been loaded as it uses classes in that jar.
    *
+   * LIMITATIONS:
+   * If the locks directory does not exist the mechanism fails if the server is
+   * stopped.  However if the server.lock does not exist AND the server is not
+   * running the mechanism should work most of the times (see failing case 3).
+   *
+   * The cases where this mechanism does not work are:
+   *
+   * 1. The user deletes/renames the locks directory.
+   * 2. The user deletes/renames the server.lock file AND the server is running.
+   * 3. The server is not running but the user that is running the code does not
+   * have file system access rights.
+   * 4. The server is not running and another process has a lock on the file.
    * @return <CODE>true</CODE> if the server is running and <CODE>false</CODE>
-   *         otherwise.
-   * @throws java.io.IOException if there was a problem reading required
-   * configuration information
+   * otherwise.
    */
-  public boolean isServerRunning() throws IOException {
+  public boolean isServerRunning() {
     boolean isServerRunning;
     if (!lockPathInitialized) {
-      File lockDirectory = installation.getLocksDirectory();
+      File locksDir = installation.getLocksDirectory();
 
       System.setProperty(
-              org.opends.server.util.ServerConstants.PROPERTY_LOCK_DIRECTORY,
-              lockDirectory.getCanonicalPath());
+              ServerConstants.PROPERTY_LOCK_DIRECTORY,
+              Utils.getPath(locksDir));
       lockPathInitialized = true;
     }
-    String lockFile =
-            org.opends.server.core.LockFileManager.getServerLockFileName();
+    String lockFile = LockFileManager.getServerLockFileName();
     StringBuilder failureReason = new StringBuilder();
     try {
-      if (org.opends.server.core.LockFileManager.acquireExclusiveLock(lockFile,
+      if (LockFileManager.acquireExclusiveLock(lockFile,
               failureReason)) {
-        org.opends.server.core.LockFileManager.releaseLock(lockFile,
+        LockFileManager.releaseLock(lockFile,
                 failureReason);
         isServerRunning = false;
       } else {
@@ -119,8 +132,8 @@ public class Status {
       }
     }
     catch (Throwable t) {
-      // Assume that if we cannot acquire the lock file the server is
-      // running.
+      // Assume that if we cannot acquire the lock file the
+      // server is running.
       isServerRunning = true;
     }
     return isServerRunning;

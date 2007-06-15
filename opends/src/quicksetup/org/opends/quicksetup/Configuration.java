@@ -27,27 +27,37 @@
 
 package org.opends.quicksetup;
 
+import org.opends.quicksetup.util.Utils;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.logging.Logger;
 
 /**
  * Represents the contents of an OpenDS configuration file.
  */
 public class Configuration {
 
-  private String contents = null;
+  static private final Logger LOG =
+          Logger.getLogger(Configuration.class.getName());
 
+  private String contents = null;
+  private Installation install = null;
   private File file = null;
 
   /**
    * Create a Configuration from a file.
+   * @param install of which this configuration is part
    * @param file config.ldif file
    */
-  public Configuration(File file) {
+  public Configuration(Installation install, File file) {
+    if (install == null) {
+      throw new NullPointerException("config file cannot be null");
+    }
     if (file == null) {
       throw new NullPointerException("config file cannot be null");
     } else if (
@@ -56,6 +66,7 @@ public class Configuration {
             !file.getName().startsWith("config.ldif")) {
       throw new IllegalArgumentException("file must be a config.ldif file");
     }
+    this.install = install;
     this.file = file;
   }
 
@@ -110,18 +121,18 @@ public class Configuration {
 
   private int getPort(String portAttr) throws IOException {
     int port = -1;
-
-    int index = getContents().indexOf("cn=ldap connection handler");
+    String contents = getContents();
+    int index = contents.indexOf("cn=ldap connection handler");
 
     if (index != -1) {
       String attrWithPoints = portAttr + ":";
-      int index1 = getContents().indexOf(attrWithPoints, index);
+      int index1 = contents.indexOf(attrWithPoints, index);
       if (index1 != -1) {
         int index2 =
-                getContents().indexOf(Constants.LINE_SEPARATOR, index1);
+                contents.indexOf(Constants.LINE_SEPARATOR, index1);
         if (index2 != -1) {
           String sPort =
-                  getContents().substring(attrWithPoints.length() +
+                  contents.substring(attrWithPoints.length() +
                           index1,
                           index2).trim();
           try {
@@ -160,12 +171,59 @@ public class Configuration {
   }
 
   /**
+   * Returns a Set of relative paths containing the log paths outside the
+   * installation.
+   * @return a Set of relative paths containing the log paths outside the
+   * installation.
+   * @throws IOException if there is trouble reading the config file
+   */
+  public Set<String> getOutsideLogs()
+          throws IOException
+  {
+    return getOutsidePaths(getLogPaths());
+  }
+
+  /**
+   * Returns a Set of relative paths containing the db paths outside the
+   * installation.
+   * @return a Set of relative paths containing the db paths outside the
+   * installation.
+   * @throws IOException if there is trouble reading the config file
+   */
+  public Set<String> getOutsideDbs()
+          throws IOException
+  {
+    return getOutsidePaths(getDatabasePaths());
+  }
+
+  private Set<String> getOutsidePaths(Set<String> paths) {
+    Set<String> outsidePaths = new HashSet<String>();
+    for (String path : paths) {
+      File fullDbPath;
+
+      // Assume that if the path starts with a file separator
+      // that it is an absolute path.  Otherwise its a relative
+      // path.
+      if (path.startsWith(File.separator)) {
+        fullDbPath = new File(path);
+      } else {
+        fullDbPath = new File(install.getRootDirectory(), path);
+      }
+
+      if (!Utils.isDescendant(fullDbPath, install.getRootDirectory())) {
+        outsidePaths.add(Utils.getPath(fullDbPath));
+      }
+    }
+    return outsidePaths;
+  }
+
+  /**
    * Provides the contents of the config.ldif file in a String.
    *
    * @return a String representing the contents of the config.ldif file.
    * @throws IOException if there was a problem reading the file
    */
-  private String getContents() throws IOException {
+  public String getContents() throws IOException {
     if (contents == null) {
       load();
     }
@@ -173,11 +231,24 @@ public class Configuration {
   }
 
   /**
+   * Returns the list of paths where the databases are installed as they appear
+   * in the configuration file.
+   *
+   * @return the list of paths where the databases are installed as they appear
+   * in the configuration file.
+   * @throws IOException if there is a problem reading the config file.
+   */
+  public Set<String> getDatabasePaths() throws IOException {
+    return getConfigurationValues("ds-cfg-backend-directory");
+  }
+
+
+  /**
    * Loads the contents of the configuration file into memory.
    * @throws IOException if there were problems loading the file
    */
   public void load() throws IOException {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     FileReader reader = new FileReader(file);
     BufferedReader in = new BufferedReader(reader);
     String line;
@@ -194,16 +265,17 @@ public class Configuration {
   {
     Set<String> set = new HashSet<String>();
     attrName += ":";
-    int index1 = getContents().indexOf(attrName);
+    String contents = getContents();
+    int index1 = contents.indexOf(attrName);
     while (index1 != -1) {
-      int index2 = getContents().indexOf(Constants.LINE_SEPARATOR, index1);
+      int index2 = contents.indexOf(Constants.LINE_SEPARATOR, index1);
       String value;
       if (index2 > (index1 + attrName.length())) {
-        value = getContents().substring(attrName.length() + index1,
+        value = contents.substring(attrName.length() + index1,
                 index2).trim();
-      } else if (getContents().length() > (index1 + attrName.length())) {
+      } else if (contents.length() > (index1 + attrName.length())) {
         // Assume end of file
-        value = getContents().substring(
+        value = contents.substring(
                 attrName.length() + index1).trim();
       } else {
         value = null;
@@ -213,7 +285,7 @@ public class Configuration {
         set.add(value);
       }
 
-      index1 = getContents().indexOf(attrName,
+      index1 = contents.indexOf(attrName,
               index1 + attrName.length());
     }
     return set;

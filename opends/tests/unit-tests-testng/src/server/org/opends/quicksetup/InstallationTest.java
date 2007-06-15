@@ -38,12 +38,12 @@ import java.io.IOException;
  */
 @Test(groups = {"slow"})
 public class InstallationTest extends QuickSetupTestCase {
+
   Installation installation;
 
   @BeforeClass
   public void setUp() throws Exception {
-    Utils.extractServer();
-    installation = new Installation(Utils.getQuickSetupTestServerRootDir());
+    installation = Utils.getInstallation();
   }
 
   /**

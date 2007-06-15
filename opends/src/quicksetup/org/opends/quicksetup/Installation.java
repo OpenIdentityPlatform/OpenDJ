@@ -263,6 +263,29 @@ public class Installation {
     }
   }
 
+  static private Installation local;
+
+  /**
+   * Obtains the installation by reading the classpath of the running
+   * JVM to determine the location of the jars and determine the
+   * installation root.
+   * @return Installation obtained by reading the classpath
+   */
+  static public Installation getLocal() {
+    if (local == null) {
+
+      // This allows testing of configuration components when the OpenDS.jar
+      // in the classpath does not necessarily point to the server's
+      String installRoot = System.getProperty("org.opends.quicksetup.Root");
+
+      if (installRoot == null) {
+        installRoot = Utils.getInstallPathFromClasspath();
+      }
+      local = new Installation(installRoot);
+    }
+    return local;
+  }
+
   static private final Logger LOG =
           Logger.getLogger(Installation.class.getName());
 
@@ -369,7 +392,7 @@ public class Installation {
    */
   public Configuration getCurrentConfiguration() {
     if (configuration == null) {
-      configuration = new Configuration(getCurrentConfigurationFile());
+      configuration = new Configuration(this, getCurrentConfigurationFile());
     }
     return configuration;
   }
@@ -384,7 +407,7 @@ public class Installation {
    */
   public Configuration getBaseConfiguration() throws ApplicationException {
     if (baseConfiguration == null) {
-      baseConfiguration = new Configuration(getBaseConfigurationFile());
+      baseConfiguration = new Configuration(this, getBaseConfigurationFile());
     }
     return baseConfiguration;
   }

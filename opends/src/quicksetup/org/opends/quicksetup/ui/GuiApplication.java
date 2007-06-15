@@ -36,7 +36,6 @@ import org.opends.quicksetup.webstart.WebStartDownloader;
 
 import javax.swing.*;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
 import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.LinkedHashSet;
@@ -492,6 +491,7 @@ public abstract class GuiApplication extends Application {
           Thread.sleep(300);
         } catch (Exception ex)
         {
+          // do nothing;
         }
       }
     }
@@ -526,13 +526,8 @@ public abstract class GuiApplication extends Application {
       }
       InProcessServerController ipsc =
               new InProcessServerController(getInstallation());
-      ipsc.disableConnectionHandlers(true);
+      InProcessServerController.disableConnectionHandlers(true);
       ipsc.startServer();
-    } catch (IOException e) {
-      String msg = getMsg("error-determining-server-state");
-      LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-          msg, e);
     } catch (Throwable t) {
       String msg = getMsg("error-starting-server-with-no-connection-handlers",
           (t.getMessage() == null) ? t.toString() : t.getMessage());

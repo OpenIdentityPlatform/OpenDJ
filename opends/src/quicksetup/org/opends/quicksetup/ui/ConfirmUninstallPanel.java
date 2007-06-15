@@ -28,6 +28,8 @@
 package org.opends.quicksetup.ui;
 
 import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.Configuration;
 import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
@@ -36,6 +38,9 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.io.IOException;
 
 /**
  * This is the panel displayed when the user is uninstalling Open DS.  It is
@@ -45,6 +50,9 @@ import java.util.Set;
  */
 public class ConfirmUninstallPanel extends QuickSetupStepPanel
 {
+  private static final Logger LOG =
+          Logger.getLogger(ConfirmUninstallPanel.class.getName());
+
   private static final long serialVersionUID = 81730510134697056L;
 
   private CurrentInstallStatus installStatus;
@@ -202,8 +210,20 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
 
     panel.add(p, gbc);
 
-    outsideDbs = Utils.getOutsideDbs(installStatus);
-    outsideLogs = Utils.getOutsideLogs(installStatus);
+    Installation installation = Installation.getLocal();
+    Configuration config = installation.getCurrentConfiguration();
+    try {
+      outsideDbs = config.getOutsideDbs();
+    } catch (IOException ioe) {
+      LOG.log(Level.INFO, "Unable to determin outside databases", ioe);
+    }
+
+    try {
+      outsideLogs = config.getOutsideLogs();
+    } catch (IOException ioe) {
+      LOG.log(Level.INFO, "Unable to determin outside logs", ioe);
+    }
+
 
     gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
     gbc.fill = GridBagConstraints.HORIZONTAL;

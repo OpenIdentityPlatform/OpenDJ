@@ -31,6 +31,8 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.AfterSuite;
 import org.opends.server.TestCaseUtils;
 
+import java.io.IOException;
+
 /**
  *
  */
@@ -41,8 +43,16 @@ public class QuickSetupTestCase {
     TestCaseUtils.suppressOutput();
   }
 
+  @BeforeSuite
+  public final void initServer()
+          throws IOException, ApplicationException, InterruptedException
+  {
+    Utils.initServer();
+  }
+
   @AfterSuite
-  public final void shutdownServer() {
+  public final void shutdownServer() throws ApplicationException {
+    Utils.stopServer();
     TestCaseUtils.unsupressOutput();
   }  
 
