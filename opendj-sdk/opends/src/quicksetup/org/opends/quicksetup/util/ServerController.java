@@ -161,8 +161,7 @@ public class ServerController {
             boolean stopped = false;
 
             for (int i = 0; i < nTries && !stopped; i++) {
-              stopped = !CurrentInstallStatus.isServerRunning(
-                      installation.getLocksDirectory());
+              installation.getStatus().isServerRunning();
               if (!stopped) {
                 if (application != null) {
                   String msg =

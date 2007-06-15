@@ -35,6 +35,9 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.io.IOException;
 
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
@@ -48,7 +51,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 
-import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.BackgroundTask;
@@ -61,11 +64,13 @@ import org.opends.quicksetup.util.Utils;
  */
 public class DirectoryManagerAuthenticationDialog extends JDialog
 {
+  private static final Logger LOG =
+          Logger.getLogger(
+                  DirectoryManagerAuthenticationDialog.class.getName());
+
   private static final long serialVersionUID = 9049409381101152000L;
 
   private JFrame parent;
-
-  private CurrentInstallStatus installStatus;
 
   private JLabel lDn;
   private JLabel lPwd;
@@ -83,16 +88,13 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
   /**
    * Constructor of the DirectoryManagerAuthenticationDialog.
    * @param parent the parent frame for this dialog.
-   * @param installStatus the object describing the current installation
    * status.
    */
-  public DirectoryManagerAuthenticationDialog(JFrame parent,
-      CurrentInstallStatus installStatus)
+  public DirectoryManagerAuthenticationDialog(JFrame parent)
   {
     super(parent);
     setTitle(getMsg("shutdown-directory-manager-dialog-title"));
     this.parent = parent;
-    this.installStatus = installStatus;
     getContentPane().add(createPanel());
   }
 
@@ -312,8 +314,14 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
   private String getProposedDirectoryManagerDn()
   {
     String dn;
-    Set<String> dns = installStatus.getDirectoryManagerDns();
-    if (dns.size() > 0)
+    Set<String> dns = null;
+    try {
+      dns = Installation.getLocal().getCurrentConfiguration().
+              getDirectoryManagerDns();
+    } catch (IOException ioe) {
+      LOG.log(Level.INFO, "error obtaining dirmanager DNs", ioe);
+    }
+    if (dns != null && dns.size() > 0)
     {
       dn = dns.iterator().next();
     }
@@ -340,8 +348,12 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
         Boolean isServerRunning = Boolean.TRUE;
         try
         {
+          String installPath = Utils.getInstallPathFromClasspath();
+          Installation installation = new Installation(installPath);
+          int port = installation.getCurrentConfiguration().getPort();
+          String ldapUrl = "ldap://localhost:"+port;
           InitialLdapContext ctx =
-            Utils.createLdapContext(installStatus.getLdapUrl(), tfDn.getText(),
+            Utils.createLdapContext(ldapUrl, tfDn.getText(),
               tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null);
 
           /*
@@ -357,7 +369,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
 
         } catch (NamingException ne)
         {
-          if (CurrentInstallStatus.isServerRunning())
+          if (Installation.getLocal().getStatus().isServerRunning())
           {
             throw ne;
           }
@@ -394,11 +406,17 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
             else
             {
               boolean found = false;
-              Iterator<String> it =
-                installStatus.getDirectoryManagerDns().iterator();
-              while (it.hasNext() && !found)
-              {
-                found = Utils.areDnsEqual(dn, it.next());
+              try {
+                Set<String> dns;
+                dns = Installation.getLocal().getCurrentConfiguration()
+                        .getDirectoryManagerDns();
+                Iterator<String> it = dns.iterator();
+                while (it.hasNext() && !found)
+                {
+                  found = Utils.areDnsEqual(dn, it.next());
+                }
+              } catch (IOException ioe) {
+                LOG.log(Level.INFO, "error obtaining dirmanager DNs", ioe);
               }
               if (!found)
               {
@@ -517,8 +535,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
     {
       // UIFactory.initialize();
       DirectoryManagerAuthenticationDialog dlg =
-          new DirectoryManagerAuthenticationDialog(new JFrame(),
-              new CurrentInstallStatus());
+          new DirectoryManagerAuthenticationDialog(new JFrame());
       dlg.packAndShow();
     } catch (Exception ex)
     {

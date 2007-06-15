@@ -30,7 +30,7 @@ package org.opends.statuspanel;
 import java.io.File;
 import java.util.HashSet;
 
-import org.opends.quicksetup.CurrentInstallStatus;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
 import org.opends.statuspanel.event.ServerStatusChangeEvent;
 import org.opends.statuspanel.event.ServerStatusChangeListener;
@@ -151,6 +151,7 @@ public class ServerStatusPooler
     }
     catch (Throwable t)
     {
+      // do nothing;
     }
   }
 
@@ -300,7 +301,7 @@ public class ServerStatusPooler
     {
       desc.setStatus(ServerStatusDescriptor.ServerStatus.STOPPING);
     }
-    else if (CurrentInstallStatus.isServerRunning())
+    else if (Installation.getLocal().getStatus().isServerRunning())
     {
       desc.setStatus(ServerStatusDescriptor.ServerStatus.STARTED);
     }
@@ -412,10 +413,6 @@ public class ServerStatusPooler
     }
   }
 
-  /**
-   * The following three methods are just commodity methods to get localized
-   * messages.
-   */
   private String getMsg(String key)
   {
     return getI18n().getMsg(key);

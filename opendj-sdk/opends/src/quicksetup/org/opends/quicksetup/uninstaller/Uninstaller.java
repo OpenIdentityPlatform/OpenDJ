@@ -271,7 +271,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             throw new UserDataException(cStep,
                     getThrowableMsg("bug-msg", t));
           }
-          return CurrentInstallStatus.isServerRunning();
+          Status status = Installation.getLocal().getStatus();
+          return status.isServerRunning();
         }
 
         public void backgroundTaskCompleted(Object returnValue,
@@ -812,7 +813,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       // Just tell that the file/directory does not exist.
       String[] arg = {file.toString()};
       notifyListeners(getFormattedWarning(
-              getMsg("deleting-file-does-not-exist", arg)));
+              getMsg("progress-deleting-file-does-not-exist", arg)));
     }
   }
 

@@ -209,7 +209,6 @@ public class Utils
    */
   public static boolean isDescendant(String descendant, String path)
   {
-    boolean isDescendant = false;
     File f1;
     File f2;
 
@@ -230,16 +229,28 @@ public class Utils
     {
       f2 = new File(descendant);
     }
+    return isDescendant(f1, f2);
+  }
 
-    f2 = f2.getParentFile();
 
-    while ((f2 != null) && !isDescendant)
-    {
-      isDescendant = f1.equals(f2);
-
-      if (!isDescendant)
-      {
-        f2 = f2.getParentFile();
+  /**
+   * Returns <CODE>true</CODE> if the first provided path is under the second
+   * path in the file system.
+   * @param descendant the descendant candidate path.
+   * @param path the path.
+   * @return <CODE>true</CODE> if the first provided path is under the second
+   * path in the file system; <code>false</code> otherwise or if
+   * either of the files are null
+   */
+  public static boolean isDescendant(File descendant, File path) {
+    boolean isDescendant = false;
+    if (descendant != null && path != null) {
+      File parent = descendant.getParentFile();
+      while ((parent != null) && !isDescendant) {
+        isDescendant = path.equals(parent);
+        if (!isDescendant) {
+          parent = parent.getParentFile();
+        }
       }
     }
     return isDescendant;
@@ -885,7 +896,7 @@ public class Utils
    *
    * @see javax.naming.Context
    * @see javax.naming.ldap.InitialLdapContext
-   * @see TrustedSocketFactory
+   * @see org.opends.admin.ads.util.TrustedSocketFactory
    */
   public static InitialLdapContext createLdapsContext(String ldapsURL,
       String dn, String pwd, int timeout, Hashtable<String, String> env,
@@ -924,7 +935,7 @@ public class Utils
    * @see javax.naming.ldap.InitialLdapContext
    * @see javax.naming.ldap.StartTlsRequest
    * @see javax.naming.ldap.StartTlsResponse
-   * @see TrustedSocketFactory
+   * @see org.opends.admin.ads.util.TrustedSocketFactory
    */
 
   public static InitialLdapContext createStartTLSContext(String ldapsURL,
@@ -1086,55 +1097,6 @@ public class Utils
     JOptionPane.showMessageDialog(parent, wrapMsg(msg, 100), title,
         JOptionPane.INFORMATION_MESSAGE);
   }
-
-  /**
-   * Returns a Set of relative paths containing the db paths outside the
-   * installation.
-   * @param installStatus the Current Install Status object.
-   * @return a Set of relative paths containing the db paths outside the
-   * installation.
-   */
-  public static Set<String> getOutsideDbs(CurrentInstallStatus installStatus)
-  {
-    String installPath = getInstallPathFromClasspath();
-    Set<String> dbs = installStatus.getDatabasePaths();
-    Set<String> outsideDbs = new HashSet<String>();
-    for (String relativePath : dbs)
-    {
-      /* The db paths are relative */
-      String fullDbPath = getPath(installPath, relativePath);
-      if (!isDescendant(fullDbPath, installPath))
-      {
-        outsideDbs.add(fullDbPath);
-      }
-    }
-    return outsideDbs;
-  }
-
-  /**
-   * Returns a Set of relative paths containing the log paths outside the
-   * installation.
-   * @param installStatus the Current Install Status object.
-   * @return a Set of relative paths containing the log paths outside the
-   * installation.
-   */
-  public static Set<String> getOutsideLogs(CurrentInstallStatus installStatus)
-  {
-    String installPath = getInstallPathFromClasspath();
-    Set<String> logs = installStatus.getLogPaths();
-    Set<String> outsideLogs = new HashSet<String>();
-    for (String relativePath : logs)
-    {
-      /* The db paths are relative */
-      String fullDbPath = getPath(installPath, relativePath);
-      if (!isDescendant(fullDbPath, installPath))
-      {
-        outsideLogs.add(fullDbPath);
-      }
-    }
-    return outsideLogs;
-  }
-
 
   /**
 
