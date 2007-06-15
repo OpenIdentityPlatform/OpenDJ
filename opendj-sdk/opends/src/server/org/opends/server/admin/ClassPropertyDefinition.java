@@ -121,9 +121,10 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
     protected ClassPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d,
         String propertyName, EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<String> defaultBehavior) {
       return new ClassPropertyDefinition(d, propertyName, options,
-          defaultBehavior, instanceOfInterfaces);
+          adminAction, defaultBehavior, instanceOfInterfaces);
     }
 
   }
@@ -204,9 +205,10 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
   private ClassPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<String> defaultBehavior,
       List<String> instanceOfInterfaces) {
-    super(d, String.class, propertyName, options, defaultBehavior);
+    super(d, String.class, propertyName, options, adminAction, defaultBehavior);
 
     this.instanceOfInterfaces = Collections
         .unmodifiableList(new LinkedList<String>(instanceOfInterfaces));

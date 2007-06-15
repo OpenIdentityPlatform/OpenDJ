@@ -66,9 +66,10 @@ public final class AttributeTypePropertyDefinition extends
     protected AttributeTypePropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<AttributeType> defaultBehavior) {
       return new AttributeTypePropertyDefinition(d, propertyName,
-          options, defaultBehavior);
+          options, adminAction, defaultBehavior);
     }
   }
 
@@ -129,9 +130,10 @@ public final class AttributeTypePropertyDefinition extends
   private AttributeTypePropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<AttributeType> defaultBehavior) {
     super(d, AttributeType.class, propertyName, options,
-        defaultBehavior);
+        adminAction, defaultBehavior);
   }
 
 

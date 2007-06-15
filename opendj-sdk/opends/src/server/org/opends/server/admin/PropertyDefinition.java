@@ -67,6 +67,9 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
   protected abstract static class AbstractBuilder
       <T, D extends PropertyDefinition<T>> {
 
+    // The administrator action.
+    private AdministratorAction adminAction;
+
     // The default behavior provider.
     private DefaultBehaviorProvider<T> defaultBehavior;
 
@@ -95,6 +98,8 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
       this.definition = d;
       this.propertyName = propertyName;
       this.options = EnumSet.noneOf(PropertyOption.class);
+      this.adminAction = new AdministratorAction(AdministratorAction.Type.NONE,
+          d, propertyName);
       this.defaultBehavior = new UndefinedDefaultBehaviorProvider<T>();
     }
 
@@ -107,7 +112,21 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
      * @return The new property definition.
      */
     public final D getInstance() {
-      return buildInstance(definition, propertyName, options, defaultBehavior);
+      return buildInstance(definition, propertyName, options, adminAction,
+          defaultBehavior);
+    }
+
+
+
+    /**
+     * Set the administrator action.
+     *
+     * @param adminAction
+     *          The administrator action.
+     */
+    public final void setAdministratorAction(AdministratorAction adminAction) {
+      ensureNotNull(adminAction);
+      this.adminAction = adminAction;
     }
 
 
@@ -150,14 +169,20 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
      *          The property name.
      * @param options
      *          Options applicable to this definition.
+     * @param adminAction
+     *          The administrator action.
      * @param defaultBehavior
      *          The default behavior provider.
      * @return The new property definition.
      */
     protected abstract D buildInstance(AbstractManagedObjectDefinition<?, ?> d,
         String propertyName, EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<T> defaultBehavior);
   }
+
+  // The administrator action.
+  private final AdministratorAction adminAction;
 
   // The default behavior provider.
   private final DefaultBehaviorProvider<T> defaultBehavior;
@@ -188,19 +213,23 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    *          The property name.
    * @param options
    *          Options applicable to this definition.
+   * @param adminAction
+   *          The administrator action.
    * @param defaultBehavior
    *          The default behavior provider.
    */
   protected PropertyDefinition(AbstractManagedObjectDefinition<?, ?> d,
       Class<T> theClass, String propertyName, EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<T> defaultBehavior) {
     ensureNotNull(d, theClass, propertyName);
-    ensureNotNull(options, defaultBehavior);
+    ensureNotNull(options, adminAction, defaultBehavior);
 
     this.definition = d;
     this.theClass = theClass;
     this.propertyName = propertyName;
     this.options = EnumSet.copyOf(options);
+    this.adminAction = adminAction;
     this.defaultBehavior = defaultBehavior;
   }
 
@@ -398,6 +427,21 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
     } else {
       return false;
     }
+  }
+
+
+
+  /**
+   * Get the administrator action associated with this property
+   * definition. The administrator action describes any action which
+   * the administrator must perform in order for changes to this
+   * property to take effect.
+   *
+   * @return Returns the administrator action associated with this
+   *         property definition.
+   */
+  public final AdministratorAction getAdministratorAction() {
+    return adminAction;
   }
 
 

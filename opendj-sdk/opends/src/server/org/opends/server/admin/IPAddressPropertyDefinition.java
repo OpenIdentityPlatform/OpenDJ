@@ -65,9 +65,10 @@ public final class IPAddressPropertyDefinition extends
     protected IPAddressPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<InetAddress> defaultBehavior) {
       return new IPAddressPropertyDefinition(d, propertyName, options,
-          defaultBehavior);
+          adminAction, defaultBehavior);
     }
 
   }
@@ -95,8 +96,10 @@ public final class IPAddressPropertyDefinition extends
   private IPAddressPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<InetAddress> defaultBehavior) {
-    super(d, InetAddress.class, propertyName, options, defaultBehavior);
+    super(d, InetAddress.class, propertyName, options, adminAction,
+        defaultBehavior);
   }
 
 

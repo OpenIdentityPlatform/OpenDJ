@@ -95,6 +95,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
     protected EnumPropertyDefinition<E> buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<E> defaultBehavior) {
       // Make sure that the enumeration class has been defined.
       if (enumClass == null) {
@@ -102,7 +103,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
       }
 
       return new EnumPropertyDefinition<E>(d, propertyName, options,
-          defaultBehavior, enumClass);
+          adminAction, defaultBehavior, enumClass);
     }
   }
 
@@ -135,11 +136,11 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
 
 
   // Private constructor.
-  private EnumPropertyDefinition(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-      EnumSet<PropertyOption> options,
+  private EnumPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d,
+      String propertyName, EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<E> defaultBehavior, Class<E> enumClass) {
-    super(d, enumClass, propertyName, options, defaultBehavior);
+    super(d, enumClass, propertyName, options, adminAction, defaultBehavior);
     this.enumClass = enumClass;
 
     // Initialize the decoding map.

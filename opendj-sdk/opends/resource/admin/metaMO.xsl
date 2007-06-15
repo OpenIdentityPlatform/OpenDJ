@@ -98,13 +98,14 @@
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
-      <xsl:value-of select="'  // Define managed object tags.&#xa;'"/>
-      <xsl:value-of select="'  static {&#xa;'"/>
+      <xsl:value-of select="'  // Define managed object tags.&#xa;'" />
+      <xsl:value-of select="'  static {&#xa;'" />
       <xsl:for-each select="$this/adm:tag-definition">
         <xsl:sort select="@name" />
-        <xsl:value-of select="concat('    Tag.define(&quot;', @name, '&quot;);&#xa;')"/>
+        <xsl:value-of
+          select="concat('    Tag.define(&quot;', @name, '&quot;);&#xa;')" />
       </xsl:for-each>
-      <xsl:value-of select="'  }&#xa;'"/>
+      <xsl:value-of select="'  }&#xa;'" />
     </xsl:if>
     <!--
       Generate declarations for properties defined or
@@ -155,13 +156,15 @@
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
-      <xsl:value-of select="'  // Register the tags associated with this managed object definition.&#xa;'"/>
-      <xsl:value-of select="'  static {&#xa;'"/>
+      <xsl:value-of
+        select="'  // Register the tags associated with this managed object definition.&#xa;'" />
+      <xsl:value-of select="'  static {&#xa;'" />
       <xsl:for-each select="$this/adm:tag">
         <xsl:sort select="@name" />
-        <xsl:value-of select="concat('    INSTANCE.registerTag(Tag.valueOf(&quot;', @name, '&quot;));&#xa;')"/>
+        <xsl:value-of
+          select="concat('    INSTANCE.registerTag(Tag.valueOf(&quot;', @name, '&quot;));&#xa;')" />
       </xsl:for-each>
-      <xsl:value-of select="'  }&#xa;'"/>
+      <xsl:value-of select="'  }&#xa;'" />
     </xsl:if>
     <!--
       Configuration definition singleton getter.
@@ -611,11 +614,6 @@
       <xsl:value-of
         select="'      builder.setOption(PropertyOption.MONITORING);&#xa;'" />
     </xsl:if>
-    <xsl:if
-      test="adm:requires-admin-action/adm:server-restart|adm:requires-admin-action/adm:component-restart|adm:requires-admin-action/adm:other">
-      <xsl:value-of
-        select="'      builder.setOption(PropertyOption.REQUIRES_ADMIN_ACTION);&#xa;'" />
-    </xsl:if>
     <xsl:if test="@mandatory='true'">
       <xsl:value-of
         select="'      builder.setOption(PropertyOption.MANDATORY);&#xa;'" />
@@ -624,6 +622,21 @@
       <xsl:value-of
         select="'      builder.setOption(PropertyOption.HIDDEN);&#xa;'" />
     </xsl:if>
+    <xsl:variable name="action-type">
+      <xsl:choose>
+        <xsl:when test="adm:requires-admin-action">
+          <xsl:call-template name="name-to-java-constant">
+            <xsl:with-param name="value"
+              select="local-name(adm:requires-admin-action/*)" />
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="'NONE'" />
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:value-of
+      select="concat('      builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.', $action-type, ', INSTANCE, &quot;', @name, '&quot;));&#xa;')" />
     <xsl:if
       test="not(@mandatory='true') and not(adm:default-behavior)">
       <xsl:message terminate="yes">
@@ -1621,6 +1634,9 @@
                                        @hidden='true' or
                                        @mandatory='true']">
           <import>org.opends.server.admin.PropertyOption</import>
+        </xsl:if>
+        <xsl:if test="$this-local-properties">
+          <import>org.opends.server.admin.AdministratorAction</import>
         </xsl:if>
         <xsl:if test="$this/adm:tag-definition or $this/adm:tag">
           <import>org.opends.server.admin.Tag</import>

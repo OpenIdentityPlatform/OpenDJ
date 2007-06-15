@@ -27,14 +27,11 @@
 
 package org.opends.server.admin;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.*;
 
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import java.util.EnumSet;
 
 /**
  * SizePropertyDefinition Tester.
@@ -353,9 +350,8 @@ public class SizePropertyDefinitionTest {
   }
 
   private SizePropertyDefinition buildTestDefinition(SizePropertyDefinition.Builder builder) {
-    return builder.buildInstance(RootCfgDefn.getInstance(), "test-prop",
-            EnumSet.noneOf(PropertyOption.class),
-            new DefinedDefaultBehaviorProvider<Long>("0"));
+    builder.setDefaultBehaviorProvider(new DefinedDefaultBehaviorProvider<Long>("0"));
+    return builder.getInstance();
   }
 
 }

@@ -66,9 +66,10 @@ public final class IPAddressMaskPropertyDefinition extends
     protected IPAddressMaskPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d,
         String propertyName, EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<AddressMask> defaultBehavior) {
       return new IPAddressMaskPropertyDefinition(d, propertyName, options,
-          defaultBehavior);
+          adminAction, defaultBehavior);
     }
 
   }
@@ -96,8 +97,10 @@ public final class IPAddressMaskPropertyDefinition extends
   private IPAddressMaskPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<AddressMask> defaultBehavior) {
-    super(d, AddressMask.class, propertyName, options, defaultBehavior);
+    super(d, AddressMask.class, propertyName, options, adminAction,
+        defaultBehavior);
   }
 
 

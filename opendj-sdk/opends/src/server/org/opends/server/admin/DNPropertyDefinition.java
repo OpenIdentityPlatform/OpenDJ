@@ -115,9 +115,10 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
     protected DNPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<DN> defaultBehavior) {
       return new DNPropertyDefinition(d, propertyName, options,
-          defaultBehavior, baseDN);
+          adminAction, defaultBehavior, baseDN);
     }
   }
 
@@ -144,8 +145,9 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
   private DNPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<DN> defaultBehavior, DN baseDN) {
-    super(d, DN.class, propertyName, options, defaultBehavior);
+    super(d, DN.class, propertyName, options, adminAction, defaultBehavior);
     this.baseDN = baseDN;
   }
 

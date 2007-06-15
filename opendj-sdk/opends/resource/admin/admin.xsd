@@ -676,11 +676,29 @@
       <xsd:element name="none">
         <xsd:annotation>
           <xsd:documentation>
-            Used when no administrator action is required after
-            modifications to a property.
+            Used when modifications to a property take effect
+            immediately, and no additional administrator action is
+            required.
           </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexType />
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="synopsis"
+              type="tns:rich-description-type" minOccurs="0">
+              <xsd:annotation>
+                <xsd:documentation>
+                  An optional description which can be used to describe
+                  how changes to the modified property will take effect.
+                  If present, the synopsis should be suitable for use in
+                  applications such as tool-tips, CLI help, and the
+                  summary description in Javadoc. It is possible to
+                  embed rich content including XHTML markup (this will
+                  only be used where supported).
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
       </xsd:element>
       <xsd:element name="server-restart">
         <xsd:annotation>
@@ -689,7 +707,26 @@
             restart in order to take effect.
           </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexType />
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="synopsis"
+              type="tns:rich-description-type" minOccurs="0">
+              <xsd:annotation>
+                <xsd:documentation>
+                  An optional description of this required
+                  administrative action. The description should
+                  describe, preferably in one sentence, what additional
+                  administrator action is required when the server is
+                  restarted. If present, the synopsis should be suitable
+                  for use in applications such as tool-tips, CLI help,
+                  and the summary description in Javadoc. It is possible
+                  to embed rich content including XHTML markup (this
+                  will only be used where supported).
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
       </xsd:element>
       <xsd:element name="component-restart">
         <xsd:annotation>
@@ -699,7 +736,26 @@
             re-enabling the component).
           </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexType />
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="synopsis"
+              type="tns:rich-description-type" minOccurs="0">
+              <xsd:annotation>
+                <xsd:documentation>
+                  An optional description of this required
+                  administrative action. The description should
+                  describe, preferably in one sentence, what additional
+                  administrator action is required when the component is
+                  restarted. If present, the synopsis should be suitable
+                  for use in applications such as tool-tips, CLI help,
+                  and the summary description in Javadoc. It is possible
+                  to embed rich content including XHTML markup (this
+                  will only be used where supported).
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
       </xsd:element>
       <xsd:element name="other">
         <xsd:annotation>
@@ -725,18 +781,6 @@
                   summary description in Javadoc. It is possible to
                   embed rich content including XHTML markup (this will
                   only be used where supported).
-                </xsd:documentation>
-              </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="profile" type="tns:profile-type"
-              minOccurs="0" maxOccurs="unbounded">
-              <xsd:annotation>
-                <xsd:documentation>
-                  An annotation relating to this administrative action.
-                  Annotations can define additional information which
-                  cannot be directly represented using this XML schema.
-                  The additional information can relate to specific
-                  applications.
                 </xsd:documentation>
               </xsd:annotation>
             </xsd:element>

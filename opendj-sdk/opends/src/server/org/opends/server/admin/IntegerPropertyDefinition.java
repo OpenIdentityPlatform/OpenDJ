@@ -154,9 +154,10 @@ public final class IntegerPropertyDefinition extends
     protected IntegerPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<Integer> defaultBehavior) {
       return new IntegerPropertyDefinition(d, propertyName, options,
-          defaultBehavior, lowerLimit, upperLimit, allowUnlimited);
+          adminAction, defaultBehavior, lowerLimit, upperLimit, allowUnlimited);
     }
 
   }
@@ -184,9 +185,11 @@ public final class IntegerPropertyDefinition extends
   private IntegerPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<Integer> defaultBehavior, int lowerLimit,
       Integer upperLimit, boolean allowUnlimited) {
-    super(d, Integer.class, propertyName, options, defaultBehavior);
+    super(d, Integer.class, propertyName, options, adminAction,
+        defaultBehavior);
     this.lowerLimit = lowerLimit;
     this.upperLimit = upperLimit;
     this.allowUnlimited = allowUnlimited;

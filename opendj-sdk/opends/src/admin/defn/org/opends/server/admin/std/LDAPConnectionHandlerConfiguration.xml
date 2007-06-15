@@ -440,11 +440,15 @@
       Specifies the names of the SSL protocols that will be allowed for
       use in SSL or StartTLS communication.
     </adm:synopsis>
-    <adm:description>
-      Changes to this configuration attribute will take immediately but
-      will only impact new SSL/TLS-based sessions created after the
-      change.
-    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect immediately but will
+          only impact new SSL/TLS-based sessions created after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
@@ -469,11 +473,15 @@
       Specifies the names of the SSL cipher suites that will be allowed
       for use in SSL or StartTLS communication.
     </adm:synopsis>
-    <adm:description>
-      Changes to this configuration attribute will take immediately but
-      will only impact new SSL/TLS-based sessions created after the
-      change.
-    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect immediately but will
+          only impact new SSL/TLS-based sessions created after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>

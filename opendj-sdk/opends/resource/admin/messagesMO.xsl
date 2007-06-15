@@ -109,18 +109,11 @@
           select="concat('property.', normalize-space(@name), '.default-behavior.alias.synopsis=', normalize-space(adm:default-behavior/adm:alias/adm:synopsis), '&#xa;')" />
       </xsl:if>
       <!--
-        Process requires admin action (other) synopsis.
+        Process requires admin action synopsis if present.
       -->
-      <xsl:if test="adm:requires-admin-action/adm:other">
-        <xsl:if
-          test="not(adm:requires-admin-action/adm:other/adm:synopsis)">
-          <xsl:message terminate="yes">
-            <xsl:value-of
-              select="concat('No requires admin action (other) synopsis found for property ', @name, ' in managed object definition ', $this-name)" />
-          </xsl:message>
-        </xsl:if>
+      <xsl:if test="adm:requires-admin-action/*/adm:synopsis">
         <xsl:value-of
-          select="concat('property.', normalize-space(@name), '.requires-admin-action.other.synopsis=', normalize-space(adm:requires-admin-action/adm:other/adm:synopsis), '&#xa;')" />
+          select="concat('property.', normalize-space(@name), '.requires-admin-action.synopsis=', normalize-space(adm:requires-admin-action/*/adm:synopsis), '&#xa;')" />
       </xsl:if>
       <!--
         Process syntax related descriptions.

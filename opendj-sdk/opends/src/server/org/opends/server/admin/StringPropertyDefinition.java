@@ -123,9 +123,11 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
     protected StringPropertyDefinition buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options,
+        AdministratorAction adminAction,
         DefaultBehaviorProvider<String> defaultBehavior) {
       return new StringPropertyDefinition(d, propertyName, options,
-          defaultBehavior, isCaseInsensitive, pattern, patternUsage);
+          adminAction, defaultBehavior, isCaseInsensitive, pattern,
+          patternUsage);
     }
 
   }
@@ -163,9 +165,11 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
   // Private constructor.
   private StringPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d,
       String propertyName, EnumSet<PropertyOption> options,
+      AdministratorAction adminAction,
       DefaultBehaviorProvider<String> defaultBehavior,
       boolean isCaseInsensitive, Pattern pattern, String patternUsage) {
-    super(d, String.class, propertyName, options, defaultBehavior);
+    super(d, String.class, propertyName, options, adminAction,
+        defaultBehavior);
     this.isCaseInsensitive = isCaseInsensitive;
     this.pattern = pattern;
     this.patternUsage = patternUsage;
