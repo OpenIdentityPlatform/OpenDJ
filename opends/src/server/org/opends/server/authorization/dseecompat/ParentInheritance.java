@@ -31,11 +31,15 @@ import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import java.util.StringTokenizer;
+import java.util.LinkedHashSet;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.LDAPURL;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This class is used by USERDN and GROUPDN userattr types
@@ -74,6 +78,13 @@ public class ParentInheritance {
      * inheritance search.
      */
     private String attrTypeStr;
+
+    /*
+     * The base DN of a URL parsed from the rule. Used to make sure groupdn
+     * are under this suffix. Originally a way to search all nested groups
+     * under this suffix, so the behavior is slightly different.
+     */
+    private DN baseDN=null;
 
 
     /**
@@ -181,12 +192,35 @@ public class ParentInheritance {
                 }
             }
         } else {
-            if((this.attributeType =
-                DirectoryServer.getAttributeType(pattern)) == null)
-                this.attributeType =
-                    DirectoryServer.getDefaultAttributeType(pattern);
-            numLevels=1;
-            levels[0]=0;
+          attrTypeStr=pattern;
+          if(pattern.startsWith(NULL_LDAP_URL)) {
+            try {
+              LDAPURL url=LDAPURL.decode(pattern, true);
+              LinkedHashSet<String>attrs=url.getAttributes();
+              if(attrs.size() != 1) {
+                int msgID = MSGID_ACI_SYNTAX_INVALID_USERATTR_ATTR_URL;
+                String message = getMessage(msgID, pattern);
+                throw new AciException(msgID, pattern);
+              }
+              baseDN=url.getBaseDN();
+              if(baseDN.isNullDN()){
+                int msgID = MSGID_ACI_SYNTAX_INVALID_USERATTR_BASEDN_URL;
+                String message = getMessage(msgID, pattern);
+                throw new AciException(msgID, message);
+              }
+              attrTypeStr=attrs.iterator().next();
+            } catch (DirectoryException ex) {
+              int msgID = MSGID_ACI_SYNTAX_INVALID_USERATTR_URL;
+              String message = getMessage(msgID, ex.getErrorMessage());
+              throw new AciException(msgID, message);
+            }
+          }
+          if((this.attributeType =
+                  DirectoryServer.getAttributeType(attrTypeStr)) == null)
+            this.attributeType =
+                    DirectoryServer.getDefaultAttributeType(attrTypeStr);
+          numLevels=1;
+          levels[0]=0;
         }
     }
 
@@ -220,6 +254,15 @@ public class ParentInheritance {
      */
     public String getAttrTypeStr() {
         return attrTypeStr;
+    }
+
+  /**
+   * Return the DN that groupdn must be under.
+   *
+   * @return DN that groupdn must be under.
+   */
+  public DN getBaseDN() {
+      return baseDN;
     }
 }
 
