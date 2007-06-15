@@ -33,12 +33,21 @@ import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -50,6 +59,7 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
+
 
 /**
  * This class will parser CLI arguments.
@@ -100,6 +110,27 @@ public class DsServiceCliParser extends SubCommandArgumentParser
    * The 'verbose' global argument.
    */
   private BooleanArgument verboseArg = null;
+
+  /**
+   * The 'trustStore' global argument.
+   */
+  private StringArgument trustStorePathArg = null;
+
+  /**
+   * The 'trustStorePassword' global argument.
+   */
+  private StringArgument trustStorePasswordArg = null;
+
+  /**
+   * The 'trustStorePasswordFile' global argument.
+   */
+  private FileBasedArgument trustStorePasswordFileArg = null;
+
+  /**
+   * The Logger.
+   */
+  static private final Logger LOG =
+    Logger.getLogger(DsServiceCliParser.class.getName());
 
   /**
    * The diferent CLI group.
@@ -205,6 +236,24 @@ public class DsServiceCliParser extends SubCommandArgumentParser
         OPTION_VALUE_BINDPWD_FILE, null, null,
         MSGID_DESCRIPTION_BINDPASSWORDFILE);
     addGlobalArgument(bindPasswordFileArg);
+
+    trustStorePathArg = new StringArgument("trustStorePath",
+        OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
+        false, true, OPTION_VALUE_TRUSTSTOREPATH, null, null,
+        MSGID_DESCRIPTION_TRUSTSTOREPATH);
+    addGlobalArgument(trustStorePathArg);
+
+    trustStorePasswordArg = new StringArgument("trustStorePassword", null,
+        OPTION_LONG_TRUSTSTORE_PWD, false, false, true,
+        OPTION_VALUE_TRUSTSTORE_PWD, null, null,
+        MSGID_DESCRIPTION_TRUSTSTOREPASSWORD);
+    addGlobalArgument(trustStorePasswordArg);
+
+    trustStorePasswordFileArg = new FileBasedArgument("truststorepasswordfile",
+        OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
+        false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
+        MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE);
+    addGlobalArgument(trustStorePasswordFileArg);
 
     verboseArg = new BooleanArgument("verbose", 'v', "verbose",
         MSGID_DESCRIPTION_VERBOSE);
@@ -383,6 +432,84 @@ public class DsServiceCliParser extends SubCommandArgumentParser
     }
   }
 
+
+  /**
+   * Indicate if the SSL mode is required.
+   *
+   * @return True if SSL mode is required
+   */
+  public boolean useSSL()
+  {
+    if (useSSLArg.isPresent())
+    {
+      return true;
+    }
+    else
+    {
+      return false ;
+    }
+  }
+
+  /**
+   * Handle TrustStore.
+   *
+   * @return The trustStore manager to be used for the command.
+   */
+  public ApplicationTrustManager getTrustManager()
+  {
+    ApplicationTrustManager trustStore = null ;
+    KeyStore keyStore = null ;
+    if (trustStorePathArg.isPresent())
+    {
+      try
+      {
+        FileInputStream fos = new FileInputStream(trustStorePathArg.getValue());
+        String trustStorePasswordValue = null;
+        if (trustStorePasswordArg.isPresent())
+        {
+          trustStorePasswordValue = trustStorePasswordArg.getValue();
+        }
+        else if (trustStorePasswordFileArg.isPresent())
+        {
+          trustStorePasswordValue = trustStorePasswordFileArg.getValue();
+        }
+        keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(fos, trustStorePasswordValue.toCharArray());
+      }
+      catch (KeyStoreException e)
+      {
+        // Nothing to do: if this occurs we will systematically refuse the
+        // certificates.  Maybe we should avoid this and be strict, but we are
+        // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the keystore", e);
+      }
+      catch (NoSuchAlgorithmException e)
+      {
+        // Nothing to do: if this occurs we will systematically refuse the
+        // certificates.  Maybe we should avoid this and be strict, but we are
+        // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the keystore", e);
+      }
+      catch (CertificateException e)
+      {
+        // Nothing to do: if this occurs we will systematically refuse the
+        // certificates.  Maybe we should avoid this and be strict, but we are
+        // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the keystore", e);
+      }
+      catch (IOException e)
+      {
+        // Nothing to do: if this occurs we will systematically refuse the
+        // certificates.  Maybe we should avoid this and be strict, but we are
+        // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the keystore", e);
+      }
+    }
+    trustStore = new ApplicationTrustManager(keyStore);
+    trustStore.setHost(getHostName());
+    return trustStore ;
+  }
+
   /**
    * Indication if provided global options are validate.
    *
@@ -400,6 +527,18 @@ public class DsServiceCliParser extends SubCommandArgumentParser
       int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;
       String message = getMessage(msgID, bindPasswordArg.getLongIdentifier(),
                                   bindPasswordFileArg.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return returnCode.CONFLICTING_ARGS.getReturnCode();
+    }
+
+    // Couldn't have at the same time trustStorePasswordArg and
+    // trustStorePasswordFileArg
+    if (trustStorePasswordArg.isPresent()
+        && trustStorePasswordFileArg.isPresent())
+    {
+      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, trustStorePasswordArg
+          .getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return returnCode.CONFLICTING_ARGS.getReturnCode();
     }
