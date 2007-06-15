@@ -46,6 +46,19 @@ public class TargetAttrTestCase extends AciTestCase {
 
 
   private static final
+  String grpAttrAci = "(targetattr=\"*\")" +
+        "(version 3.0; acl \"user attr URL example\"; " +
+        "allow (search,read) " +
+        "userattr=\"ldap:///ou=People,o=test?manager#GROUPDN\";)";
+
+
+  private static final
+  String grp1AttrAci = "(targetattr=\"*\")" +
+        "(version 3.0; acl \"user attr1 URL example\"; " +
+        "allow (search,read) " +
+        "userattr=\"ldap:///ou=People1,o=test?manager#GROUPDN\";)";
+
+  private static final
   String starAciAttrs = "(targetattr=\"* || aci\")" +
           "(version 3.0;acl \"read/search all user, aci op\";" +
           "allow (search, read) " +
@@ -323,6 +336,32 @@ public class TargetAttrTestCase extends AciTestCase {
     deleteAttrFromEntry(user1, "aci");
   }
 
+  /**
+   * Test two scenerios with userattr LDAP URL and groupdn keyword.
+   *
+   * @throws Exception Exception If test result is unexpected.
+   */
+  @Test()
+  public void testTargetAttrGrpDN() throws Exception {
+    String aciLdif=makeAddAciLdif("aci", user1, grpAttrAci);
+    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String userResults =
+            LDAPSearchParams(user3, PWD, null, null, null,
+                    user1, filter, attrList);
+    Assert.assertFalse(userResults.equals(""));
+    HashMap<String, String> attrMap=getAttrMap(userResults);
+    Assert.assertTrue(attrMap.containsKey("l"));
+    Assert.assertTrue(attrMap.containsKey("sn"));
+    Assert.assertTrue(attrMap.containsKey("uid"));
+    deleteAttrFromEntry(user1, "aci");
+    String aciLdif1=makeAddAciLdif("aci", user1, grp1AttrAci);
+    modEntries(aciLdif1, DIR_MGR_DN, PWD);
+    String userResults1 =
+            LDAPSearchParams(user3, PWD, null, null, null,
+                    user1, filter, attrList);
+    //This search should return nothing since the URL has a bogus DN.
+    Assert.assertTrue(userResults1.equals(""));
+  }
 
   private void
   checkAttributeVal(HashMap<String, String> attrMap, String attr,

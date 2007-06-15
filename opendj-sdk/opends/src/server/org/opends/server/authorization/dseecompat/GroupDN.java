@@ -143,16 +143,22 @@ public class GroupDN implements KeywordBindRule {
      * @param evalCtx  The evaluation context to use in the evaluation.
      * @param attributeType The attribute type of the entry to use to get the
      * values for the groupd DNs.
+     * @param suffixDN The suffix that the groupDN must be under. If it's null,
+     *                 then the groupDN can be anywhere in the DIT.
      * @return Enumeration evaluation result.
      */
     public static EnumEvalResult evaluate (Entry e, AciEvalContext evalCtx,
-                                           AttributeType attributeType) {
+                                           AttributeType attributeType,
+                                           DN suffixDN) {
         EnumEvalResult matched= EnumEvalResult.FALSE;
         List<Attribute> attrs = e.getAttribute(attributeType);
         LinkedHashSet<AttributeValue> vals = attrs.get(0).getValues();
         for(AttributeValue v : vals) {
             try {
                 DN groupDN=DN.decode(v.getStringValue());
+                if(suffixDN != null &&
+                   !groupDN.isDescendantOf(suffixDN))
+                        continue;
                 Group group = groupManager.getGroupInstance(groupDN);
                 if((group != null) && (evalCtx.isMemberOf(group))) {
                     matched=EnumEvalResult.TRUE;

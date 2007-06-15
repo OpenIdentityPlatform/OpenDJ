@@ -778,6 +778,35 @@ public class AciMessages {
 
 
     /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse failed because a bind rule userattr LDAP URL failed
+     * to decode.  This takes one argument the message from the LDAP
+     * URL decode DirectoryException.
+     */
+    public static final int MSGID_ACI_SYNTAX_INVALID_USERATTR_URL =
+        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 78;
+
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse failed because a bind rule userattr LDAP URL contained
+     * a null base DN.  This takes one argument the ldap URL from the bind rule
+     * expression.
+     */
+    public static final int MSGID_ACI_SYNTAX_INVALID_USERATTR_BASEDN_URL =
+        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 79;
+
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse failed because a bind rule userattr LDAP URL attribute
+     * field either contained more than one attribute or the field was null.
+     * This takes one argument the ldap URL from the bind rule expression.
+     */
+    public static final int MSGID_ACI_SYNTAX_INVALID_USERATTR_ATTR_URL =
+        CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 80;
+
+    /**
      * Associates a set of generic messages with the message IDs defined in
      * this class.
      */
@@ -1220,5 +1249,23 @@ public class AciMessages {
                 "invalid ACIs rules were detected either when the server " +
                 "was started or during a backend initialization");
 
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_USERATTR_URL,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                "userattr expression value failed to URL decode for " +
+                "the following reason: %s");
+
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_USERATTR_BASEDN_URL,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                "userattr expression value failed to parse because the " +
+                "ldap URL \"%s\" contains an empty base DN");
+
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_USERATTR_ATTR_URL,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                "userattr expression value failed to parse because the " +
+                "attribute field of the ldap URL \"%s\" either contains more " +
+                "than one description or the field is empty");
     }
 }

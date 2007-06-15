@@ -323,6 +323,12 @@ public class UserAttr implements KeywordBindRule {
         int numLevels=parentInheritance.getNumLevels();
         int[] levels=parentInheritance.getLevels();
         AttributeType attrType=parentInheritance.getAttributeType();
+        DN baseDN=parentInheritance.getBaseDN();
+        if(baseDN != null) {
+            if (evalCtx.getResourceEntry().hasAttribute(attrType))
+                matched=GroupDN.evaluate(evalCtx.getResourceEntry(),
+                        evalCtx,attrType, baseDN);
+        } else {
         for(int i=0;((i < numLevels) && !stop); i++ ) {
             //The ROLEDN keyword will always enter this statement. The others
             //might. For the add operation, the resource itself (level 0)
@@ -332,9 +338,9 @@ public class UserAttr implements KeywordBindRule {
                     undefined=true;
                 } else if (evalCtx.getResourceEntry().hasAttribute(attrType)) {
                     matched =
-                        evalEntryAttr(evalCtx.getResourceEntry(),
-                                evalCtx,attrType);
-                   if(matched.equals(EnumEvalResult.TRUE))
+                            evalEntryAttr(evalCtx.getResourceEntry(),
+                                    evalCtx,attrType);
+                    if(matched.equals(EnumEvalResult.TRUE))
                         stop=true;
                 }
             } else {
@@ -362,7 +368,8 @@ public class UserAttr implements KeywordBindRule {
                 }
             }
         }
-        return matched.getRet(type, undefined);
+    }
+    return matched.getRet(type, undefined);
     }
 
     /**
@@ -405,7 +412,7 @@ public class UserAttr implements KeywordBindRule {
                 break;
             }
             case GROUPDN: {
-                result=GroupDN.evaluate(e, evalCtx, attributeType);
+                result=GroupDN.evaluate(e, evalCtx, attributeType, null);
                 break;
             }
         }
