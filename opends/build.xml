@@ -1157,7 +1157,7 @@
 
   <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
   <target name="testall"
-          depends="enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
+          depends="enableTestNGAssertions,prepdefaultalltest,package,testinit,runtests"
           description="Run all of the TestNG tests (including 'slow' ones) with assertions enabled.  See 'testwithcoverage' for properties you can set.">
   </target>
 
