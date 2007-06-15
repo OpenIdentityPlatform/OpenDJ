@@ -94,8 +94,9 @@ public class ApplicationTrustManager implements X509TrustManager
 
   /**
    * The default constructor.
+   * @param keystore The keystore to use for this trustmanager.
    */
-  public ApplicationTrustManager()
+  public ApplicationTrustManager(KeyStore keystore)
   {
     TrustManagerFactory tmf = null;
     String algo = "SunX509";
@@ -103,7 +104,7 @@ public class ApplicationTrustManager implements X509TrustManager
     try
     {
       tmf = TrustManagerFactory.getInstance(algo, provider);
-      tmf.init((KeyStore)null);
+      tmf.init(keystore);
       sunJSSEX509TrustManager =
         (X509TrustManager)(tmf.getTrustManagers())[0];
     }
@@ -294,7 +295,7 @@ public class ApplicationTrustManager implements X509TrustManager
    */
   public ApplicationTrustManager createCopy()
   {
-    ApplicationTrustManager copy = new ApplicationTrustManager();
+    ApplicationTrustManager copy = new ApplicationTrustManager(null);
     copy.lastRefusedAuthType = lastRefusedAuthType;
     copy.lastRefusedChain = lastRefusedChain;
     copy.lastRefusedCause = lastRefusedCause;

@@ -223,22 +223,42 @@ public class DsServiceCliMain
     String pwd  = argParser.getBindPassword(dn,out,err) ;
 
     // Try to connect
-    String ldapUrl = "ldap://"+host+":"+port;
-
-   InitialLdapContext ctx = null;
-   ReturnCode returnCode = ReturnCode.SUCCESSFUL ;
-    try
+    InitialLdapContext ctx = null;
+    ReturnCode returnCode = ReturnCode.SUCCESSFUL;
+    if (argParser.useSSL())
     {
-      ctx = ConnectionUtils.createLdapContext(ldapUrl, dn, pwd,
-          ConnectionUtils.getDefaultLDAPTimeout(), null);
+      String ldapsUrl = "ldaps://" + host + ":" + port;
+      try
+      {
+        ctx = ConnectionUtils.createLdapsContext(ldapsUrl,
+            dn, pwd, ConnectionUtils.getDefaultLDAPTimeout(), null,
+             argParser.getTrustManager());
+      }
+      catch (NamingException e)
+      {
+        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
+        String message = getMessage(msgID, host);
+
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
+      }
     }
-    catch (NamingException e)
+    else
     {
-      int    msgID   = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
-      String message = getMessage(msgID, host);
+      String ldapUrl = "ldap://" + host + ":" + port;
+      try
+      {
+        ctx = ConnectionUtils.createLdapContext(ldapUrl, dn, pwd,
+            ConnectionUtils.getDefaultLDAPTimeout(), null);
+      }
+      catch (NamingException e)
+      {
+        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
+        String message = getMessage(msgID, host);
 
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
+      }
     }
     ADSContext adsContext = new ADSContext(ctx);
 

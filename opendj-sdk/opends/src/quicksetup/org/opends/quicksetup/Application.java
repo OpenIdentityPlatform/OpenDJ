@@ -536,7 +536,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
   {
     if (trustManager == null)
     {
-      trustManager = new ApplicationTrustManager();
+      trustManager = new ApplicationTrustManager(null);
     }
     return trustManager;
   }
