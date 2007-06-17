@@ -38,23 +38,23 @@ import java.io.FileNotFoundException;
 /**
  * ServerController Tester.
  */
-@Test(groups = {"slow"})
+@Test(enabled=false, groups = {"slow"})
 public class ServerControllerTest extends QuickSetupTestCase {
   ServerController controller;
   Status status;
 
   @BeforeClass
   public void setUp() throws Exception {
-    Installation installation = Utils.getInstallation();
-    controller = new ServerController(installation);
-    status = installation.getStatus();
+//    Installation installation = Utils.getInstallation();
+//    controller = new ServerController(installation);
+//    status = installation.getStatus();
   }
 
   /**
    * Tests ability to stop the server.
    * @throws ApplicationException
    */
-  @Test
+  @Test(enabled=false)
   public void testStopServer() throws ApplicationException {
     if (!status.isServerRunning()) {
       controller.startServer();
@@ -68,7 +68,7 @@ public class ServerControllerTest extends QuickSetupTestCase {
    * Tests ability to start the server.
    * @throws ApplicationException
    */
-  @Test
+  @Test(enabled=false)
   public void testStartServer() throws ApplicationException {
     if (status.isServerRunning()) {
       controller.stopServer();
