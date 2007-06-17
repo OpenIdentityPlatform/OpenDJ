@@ -38,6 +38,7 @@ import java.io.IOException;
  */
 public class QuickSetupTestCase {
 
+/*
   @BeforeSuite
   public final void suppressOutput() {
     TestCaseUtils.suppressOutput();
@@ -55,5 +56,6 @@ public class QuickSetupTestCase {
     Utils.stopServer();
     TestCaseUtils.unsupressOutput();
   }  
+*/
 
 }
