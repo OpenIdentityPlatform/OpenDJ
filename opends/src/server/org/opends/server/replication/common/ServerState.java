@@ -151,6 +151,7 @@ public class ServerState implements Iterable<Short>
   {
     if (changeNumber == null)
       return false;
+
     synchronized(this)
     {
       Short id =  changeNumber.getServerId();
@@ -181,9 +182,9 @@ public class ServerState implements Iterable<Short>
   public Set<String> toStringSet()
   {
     HashSet<String> set = new HashSet<String>();
+
     synchronized (this)
     {
-
       for (Short key  : list.keySet())
       {
         ChangeNumber change = list.get(key);
@@ -204,6 +205,7 @@ public class ServerState implements Iterable<Short>
   public ArrayList<ASN1OctetString> toASN1ArrayList()
   {
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+
     synchronized (this)
     {
       for (Short id : list.keySet())
@@ -215,7 +217,7 @@ public class ServerState implements Iterable<Short>
     return values;
   }
   /**
-   * return the text representation of ServerState.
+   * Return the text representation of ServerState.
    * @return the text representation of ServerState
    */
   @Override
