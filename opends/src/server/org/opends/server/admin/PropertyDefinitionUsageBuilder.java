@@ -254,10 +254,26 @@ public final class PropertyDefinitionUsageBuilder {
 
       if (isDetailed) {
         if (d.getUpperLimit() != null) {
-          builder.append(" <= ");
-          SizeUnit unit = SizeUnit.getBestFitUnitExact(d.getUpperLimit());
-          builder
-              .append(numberFormat.format(unit.fromBytes(d.getUpperLimit())));
+          long upperLimit = d.getUpperLimit();
+          SizeUnit unit = SizeUnit.getBestFitUnitExact(upperLimit);
+
+          // Quite often an upper limit is some power of 2 minus 1. In those
+          // cases lets use a "less than" relation rather than a "less than
+          // or equal to" relation. This will result in a much more readable
+          // quantity.
+          if (unit == SizeUnit.BYTES && upperLimit < Long.MAX_VALUE) {
+            unit = SizeUnit.getBestFitUnitExact(upperLimit + 1);
+            if (unit != SizeUnit.BYTES) {
+              upperLimit += 1;
+              builder.append(" < ");
+            } else {
+              builder.append(" <= ");
+            }
+          } else {
+            builder.append(" <= ");
+          }
+
+          builder.append(numberFormat.format(unit.fromBytes(upperLimit)));
           builder.append(unit.getShortName());
         }
 
