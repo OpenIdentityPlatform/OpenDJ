@@ -400,20 +400,38 @@
           'unzipdir' : dsDir }
       </call>
 
+      <!-- fixMe: Windows Services are not enabled -->
+      <if expr="isWindows">
+
+        <script>
+          noWindowsService='true'
+        </script>
+             
+      <else>
+      
+        <script>
+          noWindowsService=''
+        </script>
+        
+      </else>
+      </if>
+
       <!--- Set up DS -->
       <message>
         'Set up DS on %s : %s/%s' % (dsHost,dsDir,OPENDSNAME)
       </message>
+      
       <call function="'SetUpDsWithScript'">
-        { 'location' : dsHost, 
-		  'dsPath' : '%s/%s' % (dsDir, OPENDSNAME),
-		  'dsPort'   : dsPort,
-          'dsJmxPort' : dsJmxPort,		  
-		  'dsBindDN' : dsBindDN,
-		  'dsBindPwd' : dsBindPwd,
-          'dsBaseDN' : dsBaseDN }
+        { 'location'  : dsHost, 
+          'dsPath'    : '%s/%s' % (dsDir, OPENDSNAME),
+          'dsPort'    : dsPort,
+          'dsJmxPort' : dsJmxPort,      
+          'dsBindDN'  : dsBindDN,
+          'dsBindPwd' : dsBindPwd,
+          'dsBaseDN'  : dsBaseDN,
+          'dsNoWindowsService' : noWindowsService }
       </call>
-		
+                		
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
