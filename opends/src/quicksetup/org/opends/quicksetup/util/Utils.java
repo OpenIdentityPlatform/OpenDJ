@@ -902,7 +902,7 @@ public class Utils
       String dn, String pwd, int timeout, Hashtable<String, String> env,
       TrustManager trustManager) throws NamingException {
     return ConnectionUtils.createLdapsContext(ldapsURL, dn, pwd, timeout, env,
-        trustManager);
+        trustManager, null);
   }
 
   /**

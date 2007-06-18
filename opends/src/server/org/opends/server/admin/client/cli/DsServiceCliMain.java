@@ -232,7 +232,7 @@ public class DsServiceCliMain
       {
         ctx = ConnectionUtils.createLdapsContext(ldapsUrl,
             dn, pwd, ConnectionUtils.getDefaultLDAPTimeout(), null,
-             argParser.getTrustManager());
+             argParser.getTrustManager(), argParser.getKeyManager());
       }
       catch (NamingException e)
       {

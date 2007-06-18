@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 import java.security.GeneralSecurityException;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.SSLKeyException;
@@ -52,29 +53,43 @@ public class TrustedSocketFactory extends SSLSocketFactory
     Logger.getLogger(TrustedSocketFactory.class.getName());
   private static Map<Thread, TrustManager> hmTrustManager =
     new HashMap<Thread, TrustManager>();
-  private static Map<TrustManager, SocketFactory> hmDefaultFactory =
+  private static Map<Thread, KeyManager> hmKeyManager =
+    new HashMap<Thread, KeyManager>();
+
+  private static Map<TrustManager, SocketFactory> hmDefaultFactoryTm =
     new HashMap<TrustManager, SocketFactory>();
+  private static Map<KeyManager, SocketFactory> hmDefaultFactoryKm =
+    new HashMap<KeyManager, SocketFactory>();
 
   private SSLSocketFactory innerFactory;
   private TrustManager trustManager;
+  private KeyManager   keyManager;
 
   /**
    * Constructor of the TrustedSocketFactory.
    * @param trustManager the trust manager to use.
+   * @param keyManager   the key manager to use.
    */
-  public TrustedSocketFactory(TrustManager trustManager)
+  public TrustedSocketFactory(TrustManager trustManager, KeyManager keyManager)
   {
     this.trustManager = trustManager;
+    this.keyManager   = keyManager;
   }
 
   /**
-   * Sets the provided trust manager for the operations in the current thread.
-   * @param trustManager the trust manager to use.
+   * Sets the provided trust and key manager for the operations in the
+   * current thread.
+   *
+   * @param trustManager
+   *          the trust manager to use.
+   * @param keyManager
+   *          the key manager to use.
    */
   public static synchronized void setCurrentThreadTrustManager(
-      TrustManager trustManager)
+      TrustManager trustManager, KeyManager keyManager)
   {
     setThreadTrustManager(trustManager, Thread.currentThread());
+    setThreadKeyManager  (keyManager, Thread.currentThread());
   }
 
   /**
@@ -87,11 +102,29 @@ public class TrustedSocketFactory extends SSLSocketFactory
   {
     TrustManager currentTrustManager = hmTrustManager.get(thread);
     if (currentTrustManager != null) {
-      hmDefaultFactory.remove(currentTrustManager);
+      hmDefaultFactoryTm.remove(currentTrustManager);
       hmTrustManager.remove(thread);
     }
     if (trustManager != null) {
       hmTrustManager.put(thread, trustManager);
+    }
+  }
+
+  /**
+   * Sets the provided key manager for the operations in the provided thread.
+   * @param keyManager the key manager to use.
+   * @param thread the thread where we want to use the provided key manager.
+   */
+  public static synchronized void setThreadKeyManager(
+      KeyManager keyManager, Thread thread)
+  {
+    KeyManager currentKeyManager = hmKeyManager.get(thread);
+    if (currentKeyManager != null) {
+      hmDefaultFactoryKm.remove(currentKeyManager);
+      hmKeyManager.remove(thread);
+    }
+    if (keyManager != null) {
+      hmKeyManager.put(thread, keyManager);
     }
   }
 
@@ -112,21 +145,63 @@ public class TrustedSocketFactory extends SSLSocketFactory
   {
     Thread currentThread = Thread.currentThread();
     TrustManager trustManager = hmTrustManager.get(currentThread);
+    KeyManager   keyManager   = hmKeyManager.get(currentThread);
     SocketFactory result;
 
     if (trustManager == null)
     {
       LOG.log(Level.SEVERE, "Can't find a trust manager associated to thread " +
           currentThread);
-      result = new TrustedSocketFactory(null);
+      if (keyManager == null)
+      {
+        LOG.log(Level.SEVERE, "Can't find a key manager associated to thread " +
+            currentThread);
+        result = new TrustedSocketFactory(null,null);
+      }
+      else
+      {
+        result = hmDefaultFactoryKm.get(keyManager);
+        if (result == null)
+        {
+          result = new TrustedSocketFactory(null,keyManager);
+          hmDefaultFactoryKm.put(keyManager, result);
+        }
+      }
     }
     else
     {
-      result = hmDefaultFactory.get(trustManager);
-      if (result == null)
+      if (keyManager == null)
       {
-        result = new TrustedSocketFactory(trustManager);
-        hmDefaultFactory.put(trustManager, result);
+        LOG.log(Level.SEVERE,
+            "Can't find a key manager associated to thread " + currentThread);
+        result = hmDefaultFactoryTm.get(trustManager);
+        if (result == null)
+        {
+          result = new TrustedSocketFactory(trustManager, null);
+          hmDefaultFactoryTm.put(trustManager, result);
+        }
+      }
+      else
+      {
+        SocketFactory tmsf = hmDefaultFactoryTm.get(trustManager);
+        SocketFactory kmsf = hmDefaultFactoryKm.get(keyManager);
+        if ( tmsf == null || kmsf == null)
+        {
+          result = new TrustedSocketFactory(trustManager, keyManager);
+          hmDefaultFactoryTm.put(trustManager, result);
+          hmDefaultFactoryKm.put(keyManager, result);
+        }
+        else
+        if ( !tmsf.equals(kmsf) )
+        {
+          result = new TrustedSocketFactory(trustManager, keyManager);
+          hmDefaultFactoryTm.put(trustManager, result);
+          hmDefaultFactoryKm.put(keyManager, result);
+        }
+        else
+        {
+          result = tmsf ;
+        }
       }
     }
 
@@ -216,18 +291,28 @@ public class TrustedSocketFactory extends SSLSocketFactory
     {
       String algorithm = "TLSv1";
       SSLKeyException xx;
+      KeyManager[] km = null;
+      TrustManager[] tm = null;
 
       try {
         SSLContext sslCtx = SSLContext.getInstance(algorithm);
         if (trustManager == null)
         {
           LOG.log(Level.SEVERE, "Warning : no trust for this factory");
-          sslCtx.init(null, null, null); // No certif -> no SSL connection
         }
-        else {
-          sslCtx.init(null, new TrustManager[] { trustManager }, null
-          );
+        else
+        {
+          tm = new TrustManager[] { trustManager };
         }
+        if (keyManager == null)
+        {
+          LOG.log(Level.SEVERE, "Warning : no key for this factory");
+        }
+        else
+        {
+          km = new KeyManager[] { keyManager };
+        }
+        sslCtx.init(km, tm, new java.security.SecureRandom() );
         innerFactory = sslCtx.getSocketFactory();
       }
       catch(GeneralSecurityException x) {
@@ -237,7 +322,6 @@ public class TrustedSocketFactory extends SSLSocketFactory
         throw xx;
       }
     }
-
     return innerFactory;
   }
 }
