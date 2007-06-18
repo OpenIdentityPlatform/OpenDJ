@@ -44,6 +44,7 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.StartTlsRequest;
 import javax.naming.ldap.StartTlsResponse;
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
 /**
@@ -150,7 +151,8 @@ public class ConnectionUtils
    * @param env           null or additional environment properties.
    * @param trustManager  null or the trust manager to be invoked during SSL
    * negociation.
-   *
+   * @param keyManager    null or the key manager to be invoked during SSL
+   * negociation.
    * @return the established connection with the given parameters.
    *
    * @throws NamingException the exception thrown when instantiating
@@ -162,7 +164,7 @@ public class ConnectionUtils
    */
   public static InitialLdapContext createLdapsContext(String ldapsURL,
       String dn, String pwd, int timeout, Hashtable<String, String> env,
-      TrustManager trustManager) throws NamingException {
+      TrustManager trustManager, KeyManager keyManager) throws NamingException {
     if (env != null)
     { // We clone 'env' so that we can modify it freely
       env = new Hashtable<String, String>(env);
@@ -195,11 +197,13 @@ public class ConnectionUtils
     final Object[] pair = new Object[] {null, null};
     final Hashtable fEnv = env;
     final TrustManager fTrustManager = trustManager;
+    final KeyManager   fKeyManage    = keyManager;
 
     Thread t = new Thread(new Runnable() {
       public void run() {
         try {
-          TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager);
+          TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager,
+              fKeyManage);
           pair[0] = new InitialLdapContext(fEnv, null);
 
         } catch (NamingException ne) {
@@ -292,7 +296,7 @@ public class ConnectionUtils
           tls.setHostnameVerifier(fVerifier);
           try
           {
-            tls.negotiate(new TrustedSocketFactory(fTrustManager));
+            tls.negotiate(new TrustedSocketFactory(fTrustManager,null));
           }
           catch(IOException x) {
             NamingException xx;
@@ -367,7 +371,9 @@ public class ConnectionUtils
       throw new IllegalStateException("Unexpected throwable.", t);
     }
     return canConnectAsAdministrativeUser;
-  }/**
+  }
+
+  /**
    * This is just a commodity method used to try to get an InitialLdapContext.
    * @param t the Thread to be used to create the InitialLdapContext.
    * @param pair an Object[] array that contains the InitialLdapContext and the

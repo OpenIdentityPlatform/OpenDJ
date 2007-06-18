@@ -47,6 +47,7 @@ import java.util.logging.Logger;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
+import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -125,6 +126,21 @@ public class DsServiceCliParser extends SubCommandArgumentParser
    * The 'trustStorePasswordFile' global argument.
    */
   private FileBasedArgument trustStorePasswordFileArg = null;
+
+  /**
+   * The 'keyStore' global argument.
+   */
+  private StringArgument keyStorePathArg = null;
+
+  /**
+   * The 'keyStorePassword' global argument.
+   */
+  private StringArgument keyStorePasswordArg = null;
+
+  /**
+   * The 'keyStorePasswordFile' global argument.
+   */
+  private FileBasedArgument keyStorePasswordFileArg = null;
 
   /**
    * The Logger.
@@ -254,6 +270,24 @@ public class DsServiceCliParser extends SubCommandArgumentParser
         false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
         MSGID_DESCRIPTION_TRUSTSTOREPASSWORD_FILE);
     addGlobalArgument(trustStorePasswordFileArg);
+
+    keyStorePathArg = new StringArgument("keyStorePath",
+        OPTION_SHORT_KEYSTOREPATH, OPTION_LONG_KEYSTOREPATH, false, false,
+        true, OPTION_VALUE_KEYSTOREPATH, null, null,
+        MSGID_DESCRIPTION_KEYSTOREPATH);
+    addGlobalArgument(keyStorePathArg);
+
+    keyStorePasswordArg = new StringArgument("keyStorePassword", null,
+        OPTION_LONG_KEYSTORE_PWD, false, false, true,
+        OPTION_VALUE_KEYSTORE_PWD, null, null,
+        MSGID_DESCRIPTION_KEYSTOREPASSWORD);
+    addGlobalArgument(keyStorePasswordArg);
+
+    keyStorePasswordFileArg = new FileBasedArgument("keystorepasswordfile",
+        OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
+        false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
+        MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
+    addGlobalArgument(keyStorePasswordFileArg);
 
     verboseArg = new BooleanArgument("verbose", 'v', "verbose",
         MSGID_DESCRIPTION_VERBOSE);
@@ -457,8 +491,8 @@ public class DsServiceCliParser extends SubCommandArgumentParser
    */
   public ApplicationTrustManager getTrustManager()
   {
-    ApplicationTrustManager trustStore = null ;
-    KeyStore keyStore = null ;
+    ApplicationTrustManager truststoreManager = null ;
+    KeyStore truststore = null ;
     if (trustStorePathArg.isPresent())
     {
       try
@@ -473,55 +507,120 @@ public class DsServiceCliParser extends SubCommandArgumentParser
         {
           trustStorePasswordValue = trustStorePasswordFileArg.getValue();
         }
-        keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        keyStore.load(fos, trustStorePasswordValue.toCharArray());
+        truststore = KeyStore.getInstance(KeyStore.getDefaultType());
+        truststore.load(fos, trustStorePasswordValue.toCharArray());
       }
       catch (KeyStoreException e)
       {
         // Nothing to do: if this occurs we will systematically refuse the
         // certificates.  Maybe we should avoid this and be strict, but we are
         // in a best effor mode.
-        LOG.log(Level.WARNING, "Error with the keystore", e);
+        LOG.log(Level.WARNING, "Error with the truststore", e);
       }
       catch (NoSuchAlgorithmException e)
       {
         // Nothing to do: if this occurs we will systematically refuse the
         // certificates.  Maybe we should avoid this and be strict, but we are
         // in a best effor mode.
-        LOG.log(Level.WARNING, "Error with the keystore", e);
+        LOG.log(Level.WARNING, "Error with the truststore", e);
       }
       catch (CertificateException e)
       {
         // Nothing to do: if this occurs we will systematically refuse the
         // certificates.  Maybe we should avoid this and be strict, but we are
         // in a best effor mode.
-        LOG.log(Level.WARNING, "Error with the keystore", e);
+        LOG.log(Level.WARNING, "Error with the truststore", e);
       }
       catch (IOException e)
       {
         // Nothing to do: if this occurs we will systematically refuse the
         // certificates.  Maybe we should avoid this and be strict, but we are
         // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the truststore", e);
+      }
+    }
+    truststoreManager = new ApplicationTrustManager(truststore);
+    truststoreManager.setHost(getHostName());
+    return truststoreManager;
+  }
+
+  /**
+   * Handle KeyStore.
+   *
+   * @return The keyStore manager to be used for the command.
+   */
+  public ApplicationKeyManager getKeyManager()
+  {
+    KeyStore keyStore = null;
+    String keyStorePasswordValue = null;
+    if (keyStorePathArg.isPresent())
+    {
+      try
+      {
+        FileInputStream fos = new FileInputStream(keyStorePathArg.getValue());
+        if (keyStorePasswordArg.isPresent())
+        {
+          keyStorePasswordValue = keyStorePasswordArg.getValue();
+        }
+        else if (keyStorePasswordFileArg.isPresent())
+        {
+          keyStorePasswordValue = keyStorePasswordFileArg.getValue();
+        }
+        keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(fos, keyStorePasswordValue.toCharArray());
+      }
+      catch (KeyStoreException e)
+      {
+        // Nothing to do: if this occurs we will systematically refuse
+        // the
+        // certificates. Maybe we should avoid this and be strict, but
+        // we are
+        // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the keystore", e);
+      }
+      catch (NoSuchAlgorithmException e)
+      {
+        // Nothing to do: if this occurs we will systematically refuse
+        // the
+        // certificates. Maybe we should avoid this and be strict, but
+        // we are
+        // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the keystore", e);
+      }
+      catch (CertificateException e)
+      {
+        // Nothing to do: if this occurs we will systematically refuse
+        // the
+        // certificates. Maybe we should avoid this and be strict, but
+        // we are
+        // in a best effor mode.
+        LOG.log(Level.WARNING, "Error with the keystore", e);
+      }
+      catch (IOException e)
+      {
+        // Nothing to do: if this occurs we will systematically refuse
+        // the
+        // certificates. Maybe we should avoid this and be strict, but
+        // we are
+        // in a best effor mode.
         LOG.log(Level.WARNING, "Error with the keystore", e);
       }
     }
-    trustStore = new ApplicationTrustManager(keyStore);
-    trustStore.setHost(getHostName());
-    return trustStore ;
+    return new ApplicationKeyManager(keyStore, keyStorePasswordValue
+        .toCharArray());
   }
 
   /**
    * Indication if provided global options are validate.
    *
    * @param err the stream to be used to print error message.
-   *
    * @return return code.
    */
   public int validateGlobalOption(PrintStream err)
   {
     ReturnCode returnCode = ReturnCode.SUCCESSFUL_NOP;
 
-    // Couldn't have at the same time bindPassword and bibdPasswordFile
+    // Couldn't have at the same time bindPassword and bindPasswordFile
     if(bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent())
     {
       int    msgID   = MSGID_TOOL_CONFLICTING_ARGS;

@@ -256,7 +256,7 @@ public class ServerLoader extends Thread
     else
     {
       ctx = ConnectionUtils.createLdapsContext(lastLdapUrl, dn, pwd,
-          ConnectionUtils.getDefaultLDAPTimeout(), null, trustManager);
+          ConnectionUtils.getDefaultLDAPTimeout(), null, trustManager, null);
     }
 
     return ctx;
