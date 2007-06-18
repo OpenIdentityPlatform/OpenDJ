@@ -67,7 +67,7 @@ public class AdminClientException extends AdminException {
    *          The cause.
    */
   public AdminClientException(Throwable cause) {
-    super(cause);
+    super(cause.getMessage(), cause);
   }
 
 
