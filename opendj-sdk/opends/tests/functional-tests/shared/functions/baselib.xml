@@ -96,7 +96,7 @@
           DSInfo.ServerDict['system name']= \
             DSInfo.getServerValueFromKey('System Name',DSInfo.SystemDict)
           
-          DSInfoServersDict[dsPath]=DSInfo.ServerDict
+          DSInfoServersDict[mypath]=DSInfo.ServerDict
         </script>
       
       </else>
