@@ -848,9 +848,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
         setCurrentProgressStep(
                 UpgradeProgressStep.UPGRADING_COMPONENTS);
         upgradeComponents();
+
+        // The config directory may contain files that are needed
+        // by the new installation (e.g. SSL config files and tasks)
+        File oldConfigDir =
+                new File(getFilesBackupDirectory(),
+                         Installation.CONFIG_PATH_RELATIVE);
+        File newConfigDir =
+                getInstallation().getConfigurationDirectory();
+        copyNonexistentFiles(oldConfigDir, newConfigDir);
+
         notifyListeners(formatter.getFormattedDone() +
                 formatter.getLineBreak());
-        LOG.log(Level.INFO, "componnet upgrade finished");
+        LOG.log(Level.INFO, "component upgrade finished");
       } catch (ApplicationException e) {
         notifyListeners(formatter.getFormattedError() +
                 formatter.getLineBreak());
@@ -1361,6 +1371,32 @@ public class Upgrader extends GuiApplication implements CliApplication {
     } catch (IOException e) {
       throw ApplicationException.createFileSystemException(
               getMsg("error-upgrading-components"), e);
+    }
+  }
+
+  /**
+   * Copies any files appearing in <code>source</code> and not appearing
+   * in <code>target</code> from <code>source</code> to
+   * <code>target</code>.
+   * @param source source directory
+   * @param target target directory
+   * @throws ApplicationException if there is a problem copying files
+   */
+  private void copyNonexistentFiles(File source, File target)
+          throws ApplicationException
+  {
+    if (source != null && target != null) {
+      String[] oldFileNames = source.list();
+      if (oldFileNames != null) {
+        FileManager fm = new FileManager();
+        for (String oldFileName : oldFileNames) {
+          File f = new File(target, oldFileName);
+          if (!f.exists()) {
+            File oldFile = new File(source, oldFileName);
+            fm.copy(oldFile, target);
+          }
+        }
+      }
     }
   }
 
