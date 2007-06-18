@@ -246,6 +246,7 @@ public final class PropertyDefinitionUsageBuilder {
       if (isDetailed && d.getLowerLimit() > 0) {
         SizeUnit unit = SizeUnit.getBestFitUnitExact(d.getLowerLimit());
         builder.append(numberFormat.format(unit.fromBytes(d.getLowerLimit())));
+        builder.append(' ');
         builder.append(unit.getShortName());
         builder.append(" <= ");
       }
@@ -274,6 +275,7 @@ public final class PropertyDefinitionUsageBuilder {
           }
 
           builder.append(numberFormat.format(unit.fromBytes(upperLimit)));
+          builder.append(' ');
           builder.append(unit.getShortName());
         }
 
