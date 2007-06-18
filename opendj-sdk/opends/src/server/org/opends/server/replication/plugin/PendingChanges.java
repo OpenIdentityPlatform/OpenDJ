@@ -28,28 +28,23 @@ package org.opends.server.replication.plugin;
 
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.protocol.ModifyDNMsg;
-import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.replication.protocol.UpdateMessage;
-import org.opends.server.types.DN;
 import org.opends.server.types.Operation;
 
 /**
- *
- * This class is use to store the list of operations currently
+ * This class is use to store the list of local operations currently
  * in progress and not yet committed in the database.
+ *
+ * It is used to make sure that operations are sent to the Replication
+ * Server in the order defined by their ChangeNumber.
+ * It is also used to update the ServerState at the appropriate time.
+ *
+ * On object of this class is instanciated for each ReplicationDomain.
  */
 public class PendingChanges
 {
@@ -58,14 +53,6 @@ public class PendingChanges
    */
   private SortedMap<ChangeNumber, PendingChange> pendingChanges =
     new TreeMap<ChangeNumber, PendingChange>();
-
-  /**
-   * A sorted set containing the list of PendingChanges that have
-   * not been replayed correctly because they are dependent on
-   * another change to be completed.
-   */
-  private SortedSet<PendingChange> dependentChanges =
-    new TreeSet<PendingChange>();
 
   /**
    * The ChangeNumberGenerator to use to create new unique ChangeNumbers
@@ -129,13 +116,10 @@ public class PendingChanges
    *
    * @param changeNumber The ChangeNumber of the update message that must be
    *                     set as committed.
-   * @param op           The Operation associated of the update when the
-   *                     update is a local update.
-   * @param msg          The message associated to the update when the update
-   *                     was received from a replication server.
+   * @param msg          The message associated to the update.
    */
   public synchronized void commit(ChangeNumber changeNumber,
-      Operation op, UpdateMessage msg)
+      UpdateMessage msg)
   {
     PendingChange curChange = pendingChanges.get(changeNumber);
     if (curChange == null)
@@ -144,10 +128,7 @@ public class PendingChanges
     }
     curChange.setCommitted(true);
 
-    if (op.isSynchronizationOperation())
-      curChange.setOp(op);
-    else
-      curChange.setMsg(msg);
+    curChange.setMsg(msg);
   }
 
   /**
@@ -186,21 +167,6 @@ public class PendingChanges
   }
 
   /**
-   * Add a new UpdateMessage that was received from the replication server
-   * to the pendingList.
-   *
-   * @param update The UpdateMessage that was received from the replication
-   *               server and that will be added to the pending list.
-   */
-  public synchronized void putRemoteUpdate(UpdateMessage update)
-  {
-    ChangeNumber changeNumber = update.getChangeNumber();
-    changeNumberGenerator.adjust(changeNumber);
-    pendingChanges.put(changeNumber, new PendingChange(changeNumber, null,
-                                                        update));
-  }
-
-  /**
    * Push all committed local changes to the replicationServer service.
    *
    * @return The number of pushed updates.
@@ -236,324 +202,5 @@ public class PendingChanges
       }
     }
     return numSentUpdates;
-  }
-
-  /**
-   * Get the first update in the list that have some dependencies cleared.
-   *
-   * @return The UpdateMessage to be handled.
-   */
-  public synchronized UpdateMessage getNextUpdate()
-  {
-    /*
-     * Parse the list of Update with dependencies and check if the dependencies
-     * are now cleared until an Update withour dependencies is found.
-     */
-    for (PendingChange change : dependentChanges)
-    {
-      if (change.dependenciesIsCovered(state))
-      {
-        dependentChanges.remove(change);
-        return change.getMsg();
-      }
-    }
-    return null;
-  }
-
-
-  /**
-   * Check if the given AddOperation has some dependencies on any
-   * currently running previous operation.
-   * Update the dependency list in the associated PendingChange if
-   * there are some dependencies.
-   * AddOperation depends on
-   *
-   * - DeleteOperation done on the same DN
-   * - ModifyDnOperation with the same target DN as the ADD DN
-   * - ModifyDnOperation with new DN equals to the ADD DN parent
-   * - AddOperation done on the parent DN of the ADD DN
-   *
-   * @param op The AddOperation to be checked.
-   *
-   * @return A boolean indicating if this operation has some dependencies.
-   */
-  public synchronized boolean checkDependencies(AddOperation op)
-  {
-    boolean hasDependencies = false;
-    DN targetDn = op.getEntryDN();
-    ChangeNumber changeNumber = OperationContext.getChangeNumber(op);
-    PendingChange change = pendingChanges.get(changeNumber);
-    if (change == null)
-      return false;
-
-    for (PendingChange pendingChange : pendingChanges.values())
-    {
-      if (pendingChange.getChangeNumber().older(changeNumber))
-      {
-        UpdateMessage pendingMsg = pendingChange.getMsg();
-        if (pendingMsg != null)
-        {
-          if (pendingMsg instanceof DeleteMsg)
-          {
-            /*
-             * Check is the operation to be run is a deleteOperation on the
-             * same DN.
-             */
-            if (pendingChange.getTargetDN().equals(targetDn))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-          }
-          else if (pendingMsg instanceof AddMsg)
-          {
-            /*
-             * Check if the operation to be run is an addOperation on a
-             * parent of the current AddOperation.
-             */
-            if (pendingChange.getTargetDN().isAncestorOf(targetDn))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-          }
-          else if (pendingMsg instanceof ModifyDNMsg)
-          {
-            /*
-             * Check if the operation to be run is ModifyDnOperation with
-             * the same target DN as the ADD DN
-             * or a ModifyDnOperation with new DN equals to the ADD DN parent
-             */
-            if (pendingChange.getTargetDN().equals(targetDn))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-            else
-            {
-              ModifyDNMsg pendingModDn = (ModifyDNMsg) pendingChange.getMsg();
-              if (pendingModDn.newDNIsParent(targetDn))
-              {
-                hasDependencies = true;
-                addDependency(change, pendingChange);
-              }
-            }
-          }
-        }
-      }
-    }
-    return hasDependencies;
-  }
-
-  /**
-   * Check if the given ModifyOperation has some dependencies on any
-   * currently running previous operation.
-   * Update the dependency list in the associated PendingChange if
-   * there are some dependencies.
-   *
-   * ModifyOperation depends on
-   * - AddOperation done on the same DN
-   *
-   * @param op The ModifyOperation to be checked.
-   *
-   * @return A boolean indicating if this operation has some dependencies.
-   */
-  public synchronized boolean checkDependencies(ModifyOperation op)
-  {
-    boolean hasDependencies = false;
-    DN targetDn = op.getEntryDN();
-    ChangeNumber changeNumber = OperationContext.getChangeNumber(op);
-    PendingChange change = pendingChanges.get(changeNumber);
-    if (change == null)
-      return false;
-
-    for (PendingChange pendingChange : pendingChanges.values())
-    {
-      if (pendingChange.getChangeNumber().older(changeNumber))
-      {
-        UpdateMessage pendingMsg = pendingChange.getMsg();
-        if (pendingMsg != null)
-        {
-          if (pendingMsg instanceof AddMsg)
-          {
-            /*
-             * Check if the operation to be run is an addOperation on a
-             * same DN.
-             */
-            if (pendingChange.getTargetDN().equals(targetDn))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-          }
-        }
-      }
-    }
-    return hasDependencies;
-  }
-
-  /**
-   * Mark the first pendingChange as dependent on the second PendingChange.
-   * @param dependentChange The PendingChange that depend on the second
-   *                        PendingChange.
-   * @param pendingChange   The PendingChange on which the first PendingChange
-   *                        is dependent.
-   */
-  private void addDependency(
-      PendingChange dependentChange, PendingChange pendingChange)
-  {
-    dependentChange.addDependency(pendingChange.getChangeNumber());
-    dependentChanges.add(dependentChange);
-  }
-
-  /**
-   * Check if the given ModifyDNMsg has some dependencies on any
-   * currently running previous operation.
-   * Update the dependency list in the associated PendingChange if
-   * there are some dependencies.
-   *
-   * Modify DN Operation depends on
-   * - AddOperation done on the same DN as the target DN of the MODDN operation
-   * - AddOperation done on the new parent of the MODDN  operation
-   * - DeleteOperation done on the new DN of the MODDN operation
-   * - ModifyDNOperation done from the new DN of the MODDN operation
-   *
-   * @param msg The ModifyDNMsg to be checked.
-   *
-   * @return A boolean indicating if this operation has some dependencies.
-   */
-  public synchronized boolean checkDependencies(ModifyDNMsg msg)
-  {
-    boolean hasDependencies = false;
-    ChangeNumber changeNumber = msg.getChangeNumber();
-    PendingChange change = pendingChanges.get(changeNumber);
-    if (change == null)
-      return false;
-
-    DN targetDn = change.getTargetDN();
-
-
-    for (PendingChange pendingChange : pendingChanges.values())
-    {
-      if (pendingChange.getChangeNumber().older(changeNumber))
-      {
-        UpdateMessage pendingMsg = pendingChange.getMsg();
-        if (pendingMsg != null)
-        {
-          if (pendingMsg instanceof DeleteMsg)
-          {
-            // Check if the target of the Delete is the same
-            // as the new DN of this ModifyDN
-            if (msg.newDNIsEqual(pendingChange.getTargetDN()))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-          }
-          else if (pendingMsg instanceof AddMsg)
-          {
-            // Check if the Add Operation was done on the new parent of
-            // the MODDN  operation
-            if (msg.newParentIsEqual(pendingChange.getTargetDN()))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-            // Check if the AddOperation was done on the same DN as the
-            // target DN of the MODDN operation
-            if (pendingChange.getTargetDN().equals(targetDn))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-          }
-          else if (pendingMsg instanceof ModifyDNMsg)
-          {
-            // Check if the ModifyDNOperation was done from the new DN of
-            // the MODDN operation
-            if (msg.newDNIsEqual(pendingChange.getTargetDN()))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-          }
-        }
-      }
-    }
-    return hasDependencies;
-  }
-
-  /**
-   * Check if the given DeleteOperation has some dependencies on any
-   * currently running previous operation.
-   * Update the dependency list in the associated PendingChange if
-   * there are some dependencies.
-   *
-   * DeleteOperation depends on
-   * - DeleteOperation done on children DN
-   * - ModifyDnOperation with target DN that are children of the DEL DN
-   * - AddOperation done on the same DN
-   *
-   *
-   * @param op The DeleteOperation to be checked.
-   *
-   * @return A boolean indicating if this operation has some dependencies.
-   */
-  public synchronized boolean checkDependencies(DeleteOperation op)
-  {
-    boolean hasDependencies = false;
-    DN targetDn = op.getEntryDN();
-    ChangeNumber changeNumber = OperationContext.getChangeNumber(op);
-    PendingChange change = pendingChanges.get(changeNumber);
-    if (change == null)
-      return false;
-
-    for (PendingChange pendingChange : pendingChanges.values())
-    {
-      if (pendingChange.getChangeNumber().older(changeNumber))
-      {
-        UpdateMessage pendingMsg = pendingChange.getMsg();
-        if (pendingMsg != null)
-        {
-          if (pendingMsg instanceof DeleteMsg)
-          {
-            /*
-             * Check if the operation to be run is a deleteOperation on a
-             * children of the current DeleteOperation.
-             */
-            if (pendingChange.getTargetDN().isDescendantOf(targetDn))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-          }
-          else if (pendingMsg instanceof AddMsg)
-          {
-            /*
-             * Check if the operation to be run is an addOperation on a
-             * parent of the current DeleteOperation.
-             */
-            if (pendingChange.getTargetDN().equals(targetDn))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-          }
-          else if (pendingMsg instanceof ModifyDNMsg)
-          {
-            /*
-             * Check if the operation to be run is an ModifyDNOperation
-             * on a children of the current DeleteOperation
-             */
-            if (pendingChange.getTargetDN().isDescendantOf(targetDn))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
-          }
-        }
-      }
-    }
-    return hasDependencies;
   }
 }
