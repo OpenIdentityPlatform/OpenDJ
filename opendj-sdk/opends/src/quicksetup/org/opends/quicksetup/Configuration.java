@@ -200,12 +200,9 @@ public class Configuration {
     Set<String> outsidePaths = new HashSet<String>();
     for (String path : paths) {
       File fullDbPath;
-
-      // Assume that if the path starts with a file separator
-      // that it is an absolute path.  Otherwise its a relative
-      // path.
-      if (path.startsWith(File.separator)) {
-        fullDbPath = new File(path);
+      File pathFile = new File(path);
+      if (pathFile.isAbsolute()) {
+        fullDbPath = pathFile;
       } else {
         fullDbPath = new File(install.getRootDirectory(), path);
       }
