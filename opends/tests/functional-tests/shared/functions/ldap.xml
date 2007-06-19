@@ -2643,6 +2643,9 @@
         STAFCmd='modifyAnAttribute' 
    
     </script>
+    <script>
+        newAttributeValue=newAttributeValue.replace('"','QUOT')
+    </script>
 
       <process name="'Modify An Attribut value'">
         <location>'%s' % location</location>
