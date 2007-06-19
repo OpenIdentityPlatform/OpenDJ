@@ -92,7 +92,7 @@ public class ApplicationKeyManager implements X509KeyManager
         if (kms[i] instanceof X509KeyManager)
         {
           sunJSSEX509KeyManager = (X509KeyManager) kms[i];
-          return;
+          break;
         }
       }
 
@@ -129,7 +129,14 @@ public class ApplicationKeyManager implements X509KeyManager
   public String chooseClientAlias(String[] keyType, Principal[] issuers,
       Socket socket)
   {
-    return sunJSSEX509KeyManager.chooseClientAlias(keyType, issuers, socket);
+    if (sunJSSEX509KeyManager != null)
+    {
+      return sunJSSEX509KeyManager.chooseClientAlias(keyType, issuers, socket);
+    }
+    else
+    {
+      return null ;
+    }
   }
 
   /**
@@ -138,7 +145,14 @@ public class ApplicationKeyManager implements X509KeyManager
   public String chooseServerAlias(String keyType, Principal[] issuers,
       Socket socket)
   {
-    return sunJSSEX509KeyManager.chooseServerAlias(keyType, issuers, socket);
+    if (sunJSSEX509KeyManager != null)
+    {
+      return sunJSSEX509KeyManager.chooseServerAlias(keyType, issuers, socket);
+    }
+    else
+    {
+      return null;
+    }
   }
 
   /**
@@ -146,7 +160,14 @@ public class ApplicationKeyManager implements X509KeyManager
    */
   public X509Certificate[] getCertificateChain(String alias)
   {
-    return sunJSSEX509KeyManager.getCertificateChain(alias);
+    if (sunJSSEX509KeyManager != null)
+    {
+      return sunJSSEX509KeyManager.getCertificateChain(alias);
+    }
+    else
+    {
+      return null;
+    }
   }
 
   /**
@@ -154,7 +175,14 @@ public class ApplicationKeyManager implements X509KeyManager
    */
   public String[] getClientAliases(String keyType, Principal[] issuers)
   {
-    return sunJSSEX509KeyManager.getClientAliases(keyType, issuers);
+    if (sunJSSEX509KeyManager != null)
+    {
+      return sunJSSEX509KeyManager.getClientAliases(keyType, issuers);
+    }
+    else
+    {
+      return null;
+    }
   }
 
   /**
@@ -162,7 +190,14 @@ public class ApplicationKeyManager implements X509KeyManager
    */
   public PrivateKey getPrivateKey(String alias)
   {
-    return sunJSSEX509KeyManager.getPrivateKey(alias);
+    if (sunJSSEX509KeyManager != null)
+    {
+      return sunJSSEX509KeyManager.getPrivateKey(alias);
+    }
+    else
+    {
+      return null;
+    }
   }
 
   /**
@@ -170,7 +205,13 @@ public class ApplicationKeyManager implements X509KeyManager
    */
   public String[] getServerAliases(String keyType, Principal[] issuers)
   {
-    return sunJSSEX509KeyManager.getServerAliases(keyType, issuers);
+    if (sunJSSEX509KeyManager != null)
+    {
+      return sunJSSEX509KeyManager.getServerAliases(keyType, issuers);
+    }
+    else
+    {
+      return null;
+    }
   }
-
 }
