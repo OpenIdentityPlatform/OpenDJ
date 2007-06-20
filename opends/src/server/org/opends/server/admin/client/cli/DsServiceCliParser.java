@@ -45,6 +45,8 @@ import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.net.ssl.KeyManager;
+
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.util.ApplicationKeyManager;
@@ -53,6 +55,7 @@ import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
+import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
@@ -81,6 +84,11 @@ public class DsServiceCliParser extends SubCommandArgumentParser
    * The 'useSSLArg' global argument.
    */
   private BooleanArgument useSSLArg = null;
+
+  /**
+   * The 'startTLSArg' global argument.
+   */
+  private BooleanArgument startTLSArg = null;
 
   /**
    * The 'hostName' global argument.
@@ -113,6 +121,11 @@ public class DsServiceCliParser extends SubCommandArgumentParser
   private BooleanArgument verboseArg = null;
 
   /**
+   * The 'trustAllArg' global argument.
+   */
+  private BooleanArgument trustAllArg = null;
+
+  /**
    * The 'trustStore' global argument.
    */
   private StringArgument trustStorePathArg = null;
@@ -141,6 +154,11 @@ public class DsServiceCliParser extends SubCommandArgumentParser
    * The 'keyStorePasswordFile' global argument.
    */
   private FileBasedArgument keyStorePasswordFileArg = null;
+
+  /**
+   * The 'keyStorePasswordFile' global argument.
+   */
+  private StringArgument certNicknameArg = null;
 
   /**
    * The Logger.
@@ -227,6 +245,11 @@ public class DsServiceCliParser extends SubCommandArgumentParser
         OPTION_LONG_USE_SSL, MSGID_DESCRIPTION_USE_SSL);
     addGlobalArgument(useSSLArg);
 
+    startTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
+        OPTION_LONG_START_TLS,
+        MSGID_DESCRIPTION_START_TLS);
+    addGlobalArgument(startTLSArg);
+
     hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
         OPTION_LONG_HOST, false, false, true, OPTION_VALUE_HOST, "localhost",
         null, MSGID_DESCRIPTION_HOST);
@@ -252,6 +275,10 @@ public class DsServiceCliParser extends SubCommandArgumentParser
         OPTION_VALUE_BINDPWD_FILE, null, null,
         MSGID_DESCRIPTION_BINDPASSWORDFILE);
     addGlobalArgument(bindPasswordFileArg);
+
+    trustAllArg = new BooleanArgument("trustAll", 'X', "trustAll",
+        MSGID_DESCRIPTION_TRUSTALL);
+    addGlobalArgument(trustAllArg);
 
     trustStorePathArg = new StringArgument("trustStorePath",
         OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
@@ -288,6 +315,11 @@ public class DsServiceCliParser extends SubCommandArgumentParser
         false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
         MSGID_DESCRIPTION_KEYSTOREPASSWORD_FILE);
     addGlobalArgument(keyStorePasswordFileArg);
+
+    certNicknameArg = new StringArgument("certnickname", 'N', "certNickname",
+        false, false, true, "{nickname}", null, null,
+        MSGID_DESCRIPTION_CERT_NICKNAME);
+    addGlobalArgument(certNicknameArg);
 
     verboseArg = new BooleanArgument("verbose", 'v', "verbose",
         MSGID_DESCRIPTION_VERBOSE);
@@ -485,6 +517,23 @@ public class DsServiceCliParser extends SubCommandArgumentParser
   }
 
   /**
+   * Indicate if the startTLS mode is required.
+   *
+   * @return True if startTLS mode is required
+   */
+  public boolean startTLS()
+  {
+    if (startTLSArg.isPresent())
+    {
+      return true;
+    }
+    else
+    {
+      return false ;
+    }
+  }
+
+  /**
    * Handle TrustStore.
    *
    * @return The trustStore manager to be used for the command.
@@ -493,6 +542,13 @@ public class DsServiceCliParser extends SubCommandArgumentParser
   {
     ApplicationTrustManager truststoreManager = null ;
     KeyStore truststore = null ;
+    if (trustAllArg.isPresent())
+    {
+      // Running a null TrustManager  will force createLdapsContext and
+      // createStartTLSContext to use a bindTrustManager.
+      return null ;
+    }
+    else
     if (trustStorePathArg.isPresent())
     {
       try
@@ -549,7 +605,7 @@ public class DsServiceCliParser extends SubCommandArgumentParser
    *
    * @return The keyStore manager to be used for the command.
    */
-  public ApplicationKeyManager getKeyManager()
+  public KeyManager getKeyManager()
   {
     KeyStore keyStore = null;
     String keyStorePasswordValue = null;
@@ -606,8 +662,17 @@ public class DsServiceCliParser extends SubCommandArgumentParser
         LOG.log(Level.WARNING, "Error with the keystore", e);
       }
     }
-    return new ApplicationKeyManager(keyStore, keyStorePasswordValue
-        .toCharArray());
+    ApplicationKeyManager akm = new ApplicationKeyManager(keyStore,
+        keyStorePasswordValue.toCharArray());
+    if (certNicknameArg.isPresent())
+    {
+      return new SelectableCertificateKeyManager(akm, certNicknameArg
+          .getValue());
+    }
+    else
+    {
+      return akm;
+    }
   }
 
   /**
@@ -630,6 +695,33 @@ public class DsServiceCliParser extends SubCommandArgumentParser
       return returnCode.CONFLICTING_ARGS.getReturnCode();
     }
 
+    // Couldn't have at the same time trustAll and
+    // trustStore related arg
+    if (trustAllArg.isPresent() && trustStorePathArg.isPresent())
+    {
+      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
+          trustStorePathArg.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return returnCode.CONFLICTING_ARGS.getReturnCode();
+    }
+    if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent())
+    {
+      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
+          trustStorePasswordArg.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return returnCode.CONFLICTING_ARGS.getReturnCode();
+    }
+    if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent())
+    {
+      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
+          trustStorePasswordFileArg.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return returnCode.CONFLICTING_ARGS.getReturnCode();
+    }
+
     // Couldn't have at the same time trustStorePasswordArg and
     // trustStorePasswordFileArg
     if (trustStorePasswordArg.isPresent()
@@ -638,6 +730,18 @@ public class DsServiceCliParser extends SubCommandArgumentParser
       int msgID = MSGID_TOOL_CONFLICTING_ARGS;
       String message = getMessage(msgID, trustStorePasswordArg
           .getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return returnCode.CONFLICTING_ARGS.getReturnCode();
+    }
+
+    // Couldn't have at the same time startTLSArg and
+    // useSSLArg
+    if (startTLSArg.isPresent()
+        && useSSLArg.isPresent())
+    {
+      int msgID = MSGID_TOOL_CONFLICTING_ARGS;
+      String message = getMessage(msgID, startTLSArg
+          .getLongIdentifier(), useSSLArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return returnCode.CONFLICTING_ARGS.getReturnCode();
     }

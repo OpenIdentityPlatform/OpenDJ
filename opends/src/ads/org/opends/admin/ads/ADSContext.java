@@ -762,12 +762,13 @@ public class ADSContext
    * The call to this method assumes that OpenDS.jar has already been loaded.
    * So this should not be called by the Java Web Start before being sure that
    * this jar is loaded.
+   * @param backendName the backend name which will handle admin inforamtion.
    * @throws ADSContextException if something goes wrong.
    */
-  public void createAdminData() throws ADSContextException
+  public void createAdminData(String backendName) throws ADSContextException
   {
     // Add the administration suffix
-    createAdministrationSuffix();
+    createAdministrationSuffix(backendName);
 
     // Create the DIT below the administration suffix
     createTopContainerEntry();
@@ -1748,13 +1749,19 @@ public class ADSContext
 
   /**
    * Creates the Administration Suffix.
+   * @param backendName TODO
    * @throws ADSContextException if something goes wrong.
    */
-  private void createAdministrationSuffix()
+  private void createAdministrationSuffix(String backendName)
   throws ADSContextException
   {
     ADSContextHelper helper = new ADSContextHelper();
-    helper.createAdministrationSuffix(getDirContext(), getBackendName(),
+    String ben = backendName ;
+    if (backendName == null)
+    {
+      ben = getBackendName() ;
+    }
+    helper.createAdministrationSuffix(getDirContext(), ben,
         "db", "importAdminTemp");
   }
 

@@ -233,11 +233,12 @@ public class ConnectionUtils
    * @param pwd           passed as Context.SECURITY_CREDENTIALS if not null.
    * @param timeout       passed as com.sun.jndi.ldap.connect.timeout if > 0.
    * @param env           null or additional environment properties.
-   * @param trustManager  null or the trust manager to be invoked during SSL.
+   * @param trustManager  null or the trust manager to be invoked during SSL
+   * negociation.
+   * @param keyManager    null or the key manager to be invoked during SSL
    * negociation.
    * @param verifier      null or the hostname verifier to be setup in the
    * StartTlsResponse.
-   *
    * @return the established connection with the given parameters.
    *
    * @throws NamingException the exception thrown when instantiating
@@ -252,7 +253,8 @@ public class ConnectionUtils
 
   public static InitialLdapContext createStartTLSContext(String ldapsURL,
       String dn, String pwd, int timeout, Hashtable<String, String> env,
-      TrustManager trustManager, HostnameVerifier verifier)
+      TrustManager trustManager, KeyManager keyManager,
+      HostnameVerifier verifier)
   throws NamingException
   {
     if (trustManager == null)
@@ -282,6 +284,7 @@ public class ConnectionUtils
     final String fDn = dn;
     final String fPwd = pwd;
     final TrustManager fTrustManager = trustManager;
+    final KeyManager fKeyManager     = keyManager;
     final HostnameVerifier fVerifier = verifier;
 
     Thread t = new Thread(new Runnable() {
@@ -296,7 +299,7 @@ public class ConnectionUtils
           tls.setHostnameVerifier(fVerifier);
           try
           {
-            tls.negotiate(new TrustedSocketFactory(fTrustManager,null));
+            tls.negotiate(new TrustedSocketFactory(fTrustManager,fKeyManager));
           }
           catch(IOException x) {
             NamingException xx;

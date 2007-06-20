@@ -244,6 +244,25 @@ public class DsServiceCliMain
       }
     }
     else
+    if (argParser.startTLS())
+    {
+      String ldapsUrl = "ldaps://" + host + ":" + port;
+      try
+      {
+        ctx = ConnectionUtils.createStartTLSContext(ldapsUrl, dn, pwd,
+            ConnectionUtils.getDefaultLDAPTimeout(), null, argParser
+                .getTrustManager(), argParser.getKeyManager(), null);
+      }
+      catch (NamingException e)
+      {
+        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
+        String message = getMessage(msgID, host);
+
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
+      }
+    }
+    else
     {
       String ldapUrl = "ldap://" + host + ":" + port;
       try

@@ -1606,7 +1606,7 @@ public abstract class Installer extends GuiApplication {
           notifyListeners(getFormattedWithPoints(
               getMsg("progress-creating-ads-on-remote", getHostDisplay(auth))));
 
-          adsContext.createAdminData();
+          adsContext.createAdminData(null);
           adsContext.createAdministrator(getAdministratorProperties());
           adsContext.registerServer(
               getRemoteServerProperties(auth.getHostName(),
@@ -3544,7 +3544,7 @@ public abstract class Installer extends GuiApplication {
     try
     {
       ADSContext adsContext = new ADSContext(ctx);
-      adsContext.createAdminData();
+      adsContext.createAdminData(null);
       adsContext.registerServer(getNewServerAdsProperties());
       if (getUserData().mustCreateAdministrator())
       {
