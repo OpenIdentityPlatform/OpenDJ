@@ -115,7 +115,7 @@ public class DsServiceCliAds implements DsServiceCliSubCommandGroup
   {
     // Create-ads subcommand
     createAdsSubCmd = new SubCommand(argParser, SubCommandNameEnum.CREATE_ADS
-        .toString(), true, 3, 3, OPERAND_BACKEND,
+        .toString(), true, 1, 1, OPERAND_BACKEND,
         MSGID_ADMIN_SUBCMD_CREATE_ADS_DESCRIPTION);
     createAdsSubCmd.setHidden(true);
 
@@ -147,12 +147,7 @@ public class DsServiceCliAds implements DsServiceCliSubCommandGroup
     if (subCmd.getName().equals(createAdsSubCmd.getName()))
     {
       String backendName = subCmd.getTrailingArguments().get(0);
-      String dbDirectory = subCmd.getTrailingArguments().get(1);
-      String importTempDirectory = subCmd.getTrailingArguments().get(2);
-      ADSContextHelper helper = new ADSContextHelper();
-      adsContext.createAdminData();
-      helper.createAdministrationSuffix(adsContext.getDirContext(),
-          backendName, dbDirectory, importTempDirectory);
+      adsContext.createAdminData(backendName);
       return ReturnCode.SUCCESSFUL;
     }
     else if (subCmd.getName().equals(deleteAdsSubCmd.getName()))

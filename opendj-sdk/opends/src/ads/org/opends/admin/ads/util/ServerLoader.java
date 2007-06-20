@@ -250,7 +250,7 @@ public class ServerLoader extends Thread
       {
         ctx = ConnectionUtils.createStartTLSContext(lastLdapUrl, dn, pwd,
             ConnectionUtils.getDefaultLDAPTimeout(), null, trustManager,
-            null);
+            null, null);
       }
     }
     else

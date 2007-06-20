@@ -944,7 +944,7 @@ public class Utils
   throws NamingException
   {
     return ConnectionUtils.createStartTLSContext(ldapsURL, dn, pwd, timeout,
-        env, trustManager, verifier);
+        env, trustManager, null, verifier);
   }
 
 
