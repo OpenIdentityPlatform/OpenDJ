@@ -1137,9 +1137,9 @@ public class ServerHandler extends MonitorProvider
                  " " + serverURL + " " + String.valueOf(serverId);
 
     if (serverIsLDAPserver)
-      return "LDAP Server " + str;
+      return "Remote LDAP Server " + str;
     else
-      return "Replication Server " + str;
+      return "Remote Replication Server " + str;
   }
 
   /**
