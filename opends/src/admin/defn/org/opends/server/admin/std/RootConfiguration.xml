@@ -307,7 +307,7 @@
   <adm:tag-definition name="logging">
     <adm:synopsis>Logging</adm:synopsis>
   </adm:tag-definition>
-  <adm:tag-definition name="identity">
+  <adm:tag-definition name="user-management">
     <adm:synopsis>User management</adm:synopsis>
   </adm:tag-definition>
   <adm:tag-definition name="replication">

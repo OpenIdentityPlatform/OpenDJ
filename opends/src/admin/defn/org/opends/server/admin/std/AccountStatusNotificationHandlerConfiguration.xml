@@ -42,7 +42,7 @@
     may be used to notify the user and/or administrators of the change.
   </adm:synopsis>
 
-  <adm:tag name="identity"/>
+  <adm:tag name="user-management"/>
 
   <adm:profile name="ldap">
     <ldap:object-class>
