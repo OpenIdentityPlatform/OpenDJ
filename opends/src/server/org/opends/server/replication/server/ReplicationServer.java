@@ -41,17 +41,22 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.ConfigurableComponent;
-import org.opends.server.api.DirectoryThread;
+import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.protocol.SocketSession;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
@@ -70,7 +75,7 @@ import com.sleepycat.je.DatabaseException;
  *
  * It is responsible for creating the replication server cache and managing it
  */
-public class ReplicationServer
+public class ReplicationServer extends MonitorProvider
   implements Runnable, ConfigurableComponent,
              ConfigurationChangeListener<ReplicationServerCfg>
 {
@@ -80,8 +85,6 @@ public class ReplicationServer
   private ServerSocket listenSocket;
   private Thread myListenThread;
   private Thread myConnectThread;
-
-  private boolean runListen = true;
 
   /* The list of replication servers configured by the administrator */
   private Collection<String> replicationServers;
@@ -115,8 +118,9 @@ public class ReplicationServer
   public ReplicationServer(ReplicationServerCfg configuration)
          throws ConfigException
   {
+    super("Replication Server" + configuration.getReplicationPort());
+
     shutdown = false;
-    runListen = true;
     replicationPort = configuration.getReplicationPort();
     replicationServerId = (short) configuration.getReplicationServerId();
     replicationServers = configuration.getReplicationServer();
@@ -148,6 +152,7 @@ public class ReplicationServer
     initialize(replicationServerId, replicationPort);
     configuration.addChangeListener(this);
     configDn = configuration.dn();
+    DirectoryServer.registerMonitorProvider(this);
   }
 
   /**
@@ -186,20 +191,6 @@ public class ReplicationServer
     return null;
   }
 
-  /**
-   * spawn the listen thread and the connect thread.
-   * Used a a workaround because there can be only one run method
-   */
-  public void run()
-  {
-    if (runListen)
-    {
-      runListen = false;
-      runListen();
-    }
-    else
-      runConnect();
-  }
 
   /**
    * The run method for the Listen thread.
@@ -208,7 +199,7 @@ public class ReplicationServer
    * and spawn further thread responsible for handling those connections
    */
 
-  private void runListen()
+  void runListen()
   {
     Socket newSocket = null;
     while (shutdown == false)
@@ -240,7 +231,7 @@ public class ReplicationServer
    * to all the other replication servers and if not attempts to
    * make the connection.
    */
-  private void runConnect()
+  void runConnect()
   {
     while (shutdown == false)
     {
@@ -368,9 +359,11 @@ public class ReplicationServer
       /*
        * create working threads
        */
-      myListenThread = new DirectoryThread(this, "Replication Server Listener");
+      myListenThread =
+        new ReplicationServerListenThread("Replication Server Listener", this);
       myListenThread.start();
-      myConnectThread = new DirectoryThread(this, "Replication Server Connect");
+      myConnectThread =
+        new ReplicationServerConnectThread("Replication Server Connect", this);
       myConnectThread.start();
 
     } catch (DatabaseException e)
@@ -407,7 +400,7 @@ public class ReplicationServer
    * @param baseDn The base Dn for which the ReplicationCache must be returned.
    * @return The ReplicationCache associated to the base DN given in parameter.
    */
-  public ReplicationCache getReplicationCache(DN baseDn)
+  ReplicationCache getReplicationCache(DN baseDn)
   {
     ReplicationCache replicationCache;
 
@@ -455,6 +448,7 @@ public class ReplicationServer
     }
 
     dbEnv.shutdown();
+    DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
   }
 
 
@@ -468,7 +462,7 @@ public class ReplicationServer
    *         DN given in parameter.
    * @throws DatabaseException in case of underlying database problem.
    */
-  public DbHandler newDbHandler(short id, DN baseDn) throws DatabaseException
+  DbHandler newDbHandler(short id, DN baseDn) throws DatabaseException
   {
     return new DbHandler(id, baseDn, this, dbEnv);
   }
@@ -480,7 +474,7 @@ public class ReplicationServer
    * @return  The time after which changes must be deleted from the
    *          persistent storage (in milliseconds).
    */
-  public long getTrimage()
+  long getTrimage()
   {
     return trimAge * 1000;
   }
@@ -535,4 +529,77 @@ public class ReplicationServer
   {
     return true;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void initializeMonitorProvider(ConfigEntry configEntry)
+  {
+    // Nothing to do for now
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getMonitorInstanceName()
+  {
+    return "Replication Server " + this.replicationPort + " "
+           + replicationServerId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long getUpdateInterval()
+  {
+    /* we don't wont to do polling on this monitor */
+    return 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void updateMonitorData()
+  {
+    // As long as getUpdateInterval() returns 0, this will never get called
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ArrayList<Attribute> getMonitorData()
+  {
+    /*
+     * publish the server id and the port number.
+     */
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    attributes.add(new Attribute("replication server id",
+        String.valueOf(serverId)));
+    attributes.add(new Attribute("replication server port",
+        String.valueOf(replicationPort)));
+
+    /*
+     * Add all the base DNs that are known by this replication server.
+     */
+    AttributeType baseType=
+      DirectoryServer.getAttributeType("base-dn", true);
+    LinkedHashSet<AttributeValue> baseValues =
+      new LinkedHashSet<AttributeValue>();
+    for (DN base : baseDNs.keySet())
+    {
+      baseValues.add(new AttributeValue(baseType, base. toString()));
+    }
+
+    Attribute bases = new Attribute(baseType, "base-dn", baseValues);
+    attributes.add(bases);
+
+    return attributes;
+  }
+
 }
