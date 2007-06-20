@@ -2180,7 +2180,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
   /**
    * Export the entries.
-   * @throws DirectoryException when an error occured
+   * @throws DirectoryException when an error occurred
    */
   protected void exportBackend() throws DirectoryException
   {
@@ -2334,7 +2334,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Sends lDIFEntry entry lines to the export target currently set.
    *
    * @param lDIFEntry The lines for the LDIF entry.
-   * @throws IOException when an error occured.
+   * @throws IOException when an error occurred.
    */
   public void sendEntryLines(String lDIFEntry) throws IOException
   {
@@ -2697,7 +2697,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    *
    * @param baseDN The baseDN of the domain to retrieve
    * @return The domain retrieved
-   * @throws DirectoryException When an error occured or no domain
+   * @throws DirectoryException When an error occurred or no domain
    * match the provided baseDN.
    */
   public static ReplicationDomain retrievesReplicationDomain(DN baseDN)

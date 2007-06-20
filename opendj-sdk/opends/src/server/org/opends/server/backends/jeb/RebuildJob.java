@@ -469,6 +469,27 @@ public class RebuildJob
         timer.scheduleAtFixedRate(progressTask, progressInterval,
                                   progressInterval);
 
+        entryContainer.exclusiveLock.lock();
+        try
+        {
+          for(IndexRebuildThread thread : waitingThreads)
+          {
+            thread.clearDatabase();
+          }
+        }
+        finally
+        {
+          if(!rebuildConfig.includesSystemIndex())
+          {
+            entryContainer.exclusiveLock.unlock();
+          }
+        }
+
+
+        if(!rebuildConfig.includesSystemIndex())
+        {
+          entryContainer.sharedLock.lock();
+        }
         try
         {
           while(!waitingThreads.isEmpty())
@@ -480,6 +501,14 @@ public class RebuildJob
         finally
         {
           timer.cancel();
+          if(rebuildConfig.includesSystemIndex())
+          {
+            entryContainer.exclusiveLock.unlock();
+          }
+          else
+          {
+            entryContainer.sharedLock.unlock();
+          }
         }
 
         long totalProcessed = 0;
@@ -528,7 +557,7 @@ public class RebuildJob
   /**
    * Dispatch a set of threads based on their dependency and ordering.
    */
-  private void dispatchThreads()
+  private void dispatchThreads() throws DatabaseException
   {
     for(IndexRebuildThread t : waitingThreads)
     {

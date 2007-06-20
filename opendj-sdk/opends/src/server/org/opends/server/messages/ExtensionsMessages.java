@@ -3964,7 +3964,7 @@ public class ExtensionsMessages
 
   /**
    * The message ID for the message that will be used if SASL DIGEST-MD5
-   * authentication fails because an error occured while trying to get the
+   * authentication fails because an error occurred while trying to get the
    * clear-text password value(s) from a user's entry.
    */
   public static final int MSGID_SASLDIGESTMD5_CANNOT_GET_REVERSIBLE_PASSWORDS =
@@ -3974,7 +3974,7 @@ public class ExtensionsMessages
 
   /**
    * The message ID for the message that will be used if SASL CRAM-MD5
-   * authentication fails because an error occured while trying to get the
+   * authentication fails because an error occurred while trying to get the
    * clear-text password value(s) from a user's entry.
    */
   public static final int MSGID_SASLCRAMMD5_CANNOT_GET_REVERSIBLE_PASSWORDS =
@@ -4046,7 +4046,7 @@ public class ExtensionsMessages
    * The message ID for the message that will be used if an error occurs while
    * attempting to retrieve an entry as a potential member of the static group.
    * This takes three arguments, which are the DN of the target entry, the DN of
-   * the static group entry, and a message explaining the problem that occured.
+   * the static group entry, and a message explaining the problem that occurred.
    */
   public static final int MSGID_STATICMEMBERS_CANNOT_GET_ENTRY =
        CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 384;
@@ -7465,11 +7465,11 @@ public class ExtensionsMessages
                     "Unable to retrieve an existing cache entry from the " +
                     "file system entry cache");
     registerMessage(MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_PCT,
-                    "Internal error occured while trying to set the entry " +
+                    "Internal error occurred while trying to set the entry " +
                     "cache backend internal cache size as percentage. The " +
                     "previous or default value will be used instead");
     registerMessage(MSGID_FSCACHE_CANNOT_SET_JE_MEMORY_SIZE,
-                    "Internal error occured while trying to set the entry " +
+                    "Internal error occurred while trying to set the entry " +
                     "cache backend internal cache size in bytes. The " +
                     "previous or default value will be used instead");
     registerMessage(MSGID_FSCACHE_OFFLINE_STATE_FAIL,

@@ -32,6 +32,8 @@ import java.io.File;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.Backend;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.admin.std.meta.JEBackendCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -47,6 +49,9 @@ import org.testng.annotations.AfterClass;
  * EntryContainer tester.
  */
 public class TestEntryContainer extends JebTestCase {
+  private  String beID="userRoot";
+  private BackendImpl be;
+
   private static final String ldifString = "dn: dc=com\n"
       + "objectClass: top\n" + "objectClass: domain\n" + "\n"
       + "dn: dc=example,dc=com\n" + "objectClass: top\n"
@@ -113,9 +118,6 @@ public class TestEntryContainer extends JebTestCase {
       + "cn;lang-en: Rodney Ogasawara\n"
       + "title;lang-en: Sales, Director\n" + "\n" + "";
 
-  private File tempDir;
-  private String homeDirName;
-
   private List<Entry> entryList;
 
   private long calculatedHighestID = 0;
@@ -132,9 +134,6 @@ public class TestEntryContainer extends JebTestCase {
     // sure the server is started.
     TestCaseUtils.startServer();
 
-    tempDir = TestCaseUtils.createTemporaryDirectory("jebtest");
-    homeDirName = tempDir.getAbsolutePath();
-
     // Create a set of entries
     entryList = TestCaseUtils.entriesFromLdifString(ldifString);
 
@@ -150,7 +149,7 @@ public class TestEntryContainer extends JebTestCase {
    */
   @AfterClass
   public void tearDown() throws Exception {
-    TestCaseUtils.deleteDirectory(tempDir);
+    TestCaseUtils.clearJEBackend(false, beID, "dc=example,dc=com");
   }
 
   /**
@@ -161,46 +160,29 @@ public class TestEntryContainer extends JebTestCase {
    */
   @Test()
   public void test1() throws Exception {
-    EnvManager.createHomeDir(homeDirName);
-    Entry configEntry = TestCaseUtils.makeEntry(
-         "dn: ds-cfg-backend-id=userRoot,cn=Backends,cn=config",
-              "objectClass: top",
-              "objectClass: ds-cfg-backend",
-              "objectClass: ds-cfg-je-backend",
-              "ds-cfg-backend-enabled: true",
-              "ds-cfg-backend-class: " +
-                   "org.opends.server.backends.jeb.BackendImpl",
-              "ds-cfg-backend-id: userRoot",
-              "ds-cfg-backend-writability-mode: enabled",
-              "ds-cfg-backend-base-dn: dc=com",
-              "ds-cfg-backend-directory:: " +
-                   Base64.encode(homeDirName.getBytes()),
-              "ds-cfg-backend-import-temp-directory: importTmp");
-    JEBackendCfg cfg = AdminTestCaseUtils.getConfiguration(
-         JEBackendCfgDefn.getInstance(), configEntry);
-    Config backendConfig = new Config();
-    backendConfig.initializeConfig(cfg);
-    RootContainer rootContainer = new RootContainer(backendConfig, null);
-    rootContainer.open(new File(homeDirName),
-                       new FilePermission(true, true, true),
-                       false, true, true, false, true, true);
-
+    TestCaseUtils.clearJEBackend(false, beID, null);
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    RootContainer rootContainer = be.getRootContainer();
     EntryContainer entryContainer =
-        rootContainer.openEntryContainer(DN.decode("dc=com"));
+        rootContainer.getEntryContainer(DN.decode("dc=example,dc=com"));
 
-    EntryID actualHighestID = entryContainer.getHighestEntryID();
-    assertTrue(actualHighestID.equals(new EntryID(0)));
+    entryContainer.sharedLock.lock();
+    try
+    {
+      EntryID actualHighestID = entryContainer.getHighestEntryID();
+      assertTrue(actualHighestID.equals(new EntryID(0)));
 
-    for (Entry entry : entryList) {
-      entryContainer.addEntry(entry, null);
-      Entry afterEntry = entryContainer.getEntry(entry.getDN());
-      assertTrue(afterEntry != null);
+      for (Entry entry : entryList) {
+        entryContainer.addEntry(entry, null);
+        Entry afterEntry = entryContainer.getEntry(entry.getDN());
+        assertTrue(afterEntry != null);
+      }
+      actualHighestID = entryContainer.getHighestEntryID();
+      assertTrue(actualHighestID.equals(new EntryID(calculatedHighestID)));
     }
-    actualHighestID = entryContainer.getHighestEntryID();
-    assertTrue(actualHighestID.equals(new EntryID(calculatedHighestID)));
-
-
-    rootContainer.close();
-    EnvManager.removeFiles(homeDirName);
+    finally
+    {
+      entryContainer.sharedLock.unlock();
+    }
   }
 }

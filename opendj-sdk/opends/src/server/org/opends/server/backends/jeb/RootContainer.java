@@ -49,10 +49,17 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
+import static org.opends.server.messages.ConfigMessages.
+    MSGID_CONFIG_BACKEND_MODE_INVALID;
+import static org.opends.server.messages.ConfigMessages.
+    MSGID_CONFIG_BACKEND_INSANE_MODE;
 import org.opends.server.api.Backend;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.config.ConfigException;
+import static org.opends.server.util.StaticUtils.getFileForPath;
+import org.opends.server.util.StaticUtils;
 
 /**
  * Wrapper class for the JE environment. Root container holds all the entry
@@ -76,7 +83,7 @@ public class RootContainer
   /**
    * The backend configuration.
    */
-  private Config config;
+  private JEBackendCfg config;
 
   /**
    * The backend to which this entry root container belongs.
@@ -106,29 +113,63 @@ public class RootContainer
    * @param backend A reference to the JE back end that is creating this
    *                root container.
    */
-  public RootContainer(Config config, Backend backend)
+  public RootContainer(Backend backend, JEBackendCfg config)
   {
     this.env = null;
     this.monitor = null;
     this.entryContainers = new ConcurrentHashMap<DN, EntryContainer>();
     this.backend = backend;
     this.config = config;
+
+    config.addJEChangeListener(this);
   }
 
   /**
-   * Helper method to apply database directory permissions and create a new
-   * JE environment.
+   * Opens the root container using the JE configuration object provided.
    *
-   * @param backendDirectory The environment home directory for JE.
-   * @param backendPermission The file permissions for the environment home
-   *                          directory.
    * @param envConfig The JE environment configuration.
    * @throws DatabaseException If an error occurs when creating the environment.
+   * @throws ConfigException If an configuration error occurs while creating
+   * the enviornment.
    */
-  private void open(File backendDirectory,
-                    FilePermission backendPermission,
-                    EnvironmentConfig envConfig) throws DatabaseException
+  public void open(EnvironmentConfig envConfig)
+      throws DatabaseException, ConfigException
   {
+    // Determine the backend database directory.
+    File backendDirectory = getFileForPath(config.getBackendDirectory());
+
+    //Make sure the directory is valid.
+    if (!backendDirectory.isDirectory())
+    {
+      int msgID = MSGID_JEB_DIRECTORY_INVALID;
+      String message = getMessage(msgID, backendDirectory.getPath());
+      throw new ConfigException(MSGID_JEB_DIRECTORY_INVALID, message);
+    }
+
+    FilePermission backendPermission;
+    try
+    {
+      backendPermission =
+          FilePermission.decodeUNIXMode(config.getBackendMode());
+    }
+    catch(Exception e)
+    {
+      int msgID = MSGID_CONFIG_BACKEND_MODE_INVALID;
+      String message = getMessage(msgID, config.dn().toString());
+      throw new ConfigException(msgID, message);
+    }
+
+    //Make sure the mode will allow the server itself access to
+    //the database
+    if(!backendPermission.isOwnerWritable() ||
+        !backendPermission.isOwnerReadable() ||
+        !backendPermission.isOwnerExecutable())
+    {
+      int msgID = MSGID_CONFIG_BACKEND_INSANE_MODE;
+      String message = getMessage(msgID);
+      throw new ConfigException(msgID, message);
+    }
+
     // Get the backend database backendDirectory permissions and apply
     if(FilePermission.canSetPermissions())
     {
@@ -164,79 +205,25 @@ public class RootContainer
           "config: %n%s", JEVersion.CURRENT_VERSION.toString(),
                           env.getConfig().toString());
 
-          // Get current size of heap in bytes
-    long heapSize = Runtime.getRuntime().totalMemory();
+      // Get current size of heap in bytes
+      long heapSize = Runtime.getRuntime().totalMemory();
 
-    // Get maximum size of heap in bytes. The heap cannot grow beyond this size.
-    // Any attempt will result in an OutOfMemoryException.
-    long heapMaxSize = Runtime.getRuntime().maxMemory();
+      // Get maximum size of heap in bytes. The heap cannot grow beyond this
+      // size.
+      // Any attempt will result in an OutOfMemoryException.
+      long heapMaxSize = Runtime.getRuntime().maxMemory();
 
-    // Get amount of free memory within the heap in bytes. This size will
+      // Get amount of free memory within the heap in bytes. This size will
       // increase
-    // after garbage collection and decrease as new objects are created.
-    long heapFreeSize = Runtime.getRuntime().freeMemory();
+      // after garbage collection and decrease as new objects are created.
+      long heapFreeSize = Runtime.getRuntime().freeMemory();
 
       TRACER.debugInfo("Current size of heap: %d bytes", heapSize);
       TRACER.debugInfo("Max size of heap: %d bytes", heapMaxSize);
       TRACER.debugInfo("Free memory in heap: %d bytes", heapFreeSize);
     }
-  }
 
-  /**
-   * Opens the root container.
-   *
-   * @throws DatabaseException If an error occurs when opening the container.
-   */
-  public void open() throws DatabaseException
-  {
-    open(config.getBackendDirectory(),
-         config.getBackendPermission(),
-         config.getEnvironmentConfig());
-  }
-
-  /**
-   * Opens the root container using the configuration parameters provided. Any
-   * configuration parameters provided will override the parameters in the
-   * JE configuration object.
-   *
-   * @param backendDirectory The environment home directory for JE.
-   * @param backendPermission he file permissions for the environment home
-   *                          directory.
-   * @param readOnly Open the container in read only mode.
-   * @param allowCreate Allow creating new entries in the container.
-   * @param transactional Use transactions on operations.
-   * @param txnNoSync Use asynchronous transactions.
-   * @param isLocking Create the environment with locking.
-   * @param runCheckPointer Start the checkpointer.
-   * @throws DatabaseException If an error occurs when openinng the container.
-   */
-  public void open(File backendDirectory,
-                   FilePermission backendPermission,
-                   boolean readOnly,
-                   boolean allowCreate,
-                   boolean transactional,
-                   boolean txnNoSync,
-                   boolean isLocking,
-                   boolean runCheckPointer) throws DatabaseException
-  {
-    EnvironmentConfig envConfig;
-    if(config.getEnvironmentConfig() != null)
-    {
-      envConfig = config.getEnvironmentConfig();
-    }
-    else
-    {
-      envConfig = new EnvironmentConfig();
-    }
-    envConfig.setReadOnly(readOnly);
-    envConfig.setAllowCreate(allowCreate);
-    envConfig.setTransactional(transactional);
-    envConfig.setTxnNoSync(txnNoSync);
-    envConfig.setConfigParam("je.env.isLocking", String.valueOf(isLocking));
-    envConfig.setConfigParam("je.env.runCheckpointer",
-                             String.valueOf(runCheckPointer));
-
-    open(backendDirectory, backendPermission, envConfig);
+    openEntryContainers(config.getBackendBaseDN());
   }
 
   /**
@@ -251,28 +238,22 @@ public class RootContainer
    * @return The opened entry container.
    * @throws DatabaseException If an error occurs while opening the entry
    *                           container.
+   * @throws ConfigException If an configuration error occurs while opening
+   *                         the entry container.
    */
-  public EntryContainer openEntryContainer(DN baseDN) throws DatabaseException
+  public EntryContainer openEntryContainer(DN baseDN)
+      throws DatabaseException, ConfigException
   {
     EntryContainer ec = new EntryContainer(baseDN, backend, config, env, this);
     EntryContainer ec1=this.entryContainers.get(baseDN);
+
     //If an entry container for this baseDN is already open we don't allow
     //another to be opened.
-      if (ec1 != null)
-          throw new DatabaseException("Entry container for baseDN " +
-                  baseDN.toString() + " already is open.");
-    if(env.getConfig().getReadOnly())
-    {
-      ec.openReadOnly();
-    }
-    else if(!env.getConfig().getTransactional())
-    {
-      ec.openNonTransactional(true);
-    }
-    else
-    {
-      ec.open();
-    }
+    if (ec1 != null)
+      throw new DatabaseException("Entry container for baseDN " +
+          baseDN.toString() + " already is open.");
+
+    ec.open();
     this.entryContainers.put(baseDN, ec);
 
     return ec;
@@ -284,8 +265,11 @@ public class RootContainer
    * @param baseDNs The base DNs of the entry containers to open.
    * @throws DatabaseException If an error occurs while opening the entry
    *                           container.
+   * @throws ConfigException if a configuration error occurs while opening the
+   *                         container.
    */
-  public void openEntryContainers(DN[] baseDNs) throws DatabaseException
+  private void openEntryContainers(Set<DN> baseDNs)
+      throws DatabaseException, ConfigException
   {
     EntryID id;
     EntryID highestID = null;
@@ -311,8 +295,17 @@ public class RootContainer
    */
   public void closeEntryContainer(DN baseDN) throws DatabaseException
   {
-    getEntryContainer(baseDN).close();
-    entryContainers.remove(baseDN);
+    EntryContainer ec = getEntryContainer(baseDN);
+    ec.exclusiveLock.lock();
+    try
+    {
+      ec.close();
+      entryContainers.remove(baseDN);
+    }
+    finally
+    {
+      ec.exclusiveLock.unlock();
+    }
   }
 
   /**
@@ -324,9 +317,19 @@ public class RootContainer
    */
   public void removeEntryContainer(DN baseDN) throws DatabaseException
   {
-    getEntryContainer(baseDN).close();
-    getEntryContainer(baseDN).removeContainer();
-    entryContainers.remove(baseDN);
+    EntryContainer ec = getEntryContainer(baseDN);
+    ec.exclusiveLock.lock();
+    try
+    {
+      ec.close();
+      ec.removeContainer();
+      entryContainers.remove(baseDN);
+    }
+    finally
+    {
+      ec.exclusiveLock.unlock();
+    }
+
   }
 
   /**
@@ -340,7 +343,7 @@ public class RootContainer
     if(monitor == null)
     {
       String monitorName = backend.getBackendID() + " Database Environment";
-      monitor = new DatabaseEnvironmentMonitor(monitorName, env);
+      monitor = new DatabaseEnvironmentMonitor(monitorName, this);
     }
 
     return monitor;
@@ -349,18 +352,27 @@ public class RootContainer
   /**
    * Preload the database cache. There is no preload if the configured preload
    * time limit is zero.
+   *
+   * @param timeLimit The time limit for the preload process.
    */
-  public void preload()
+  public void preload(long timeLimit)
   {
-    long timeLimit = config.getPreloadTimeLimit();
-
     if (timeLimit > 0)
     {
       // Get a list of all the databases used by the backend.
-      ArrayList<Database> dbList = new ArrayList<Database>();
+      ArrayList<DatabaseContainer> dbList =
+          new ArrayList<DatabaseContainer>();
       for (EntryContainer ec : entryContainers.values())
       {
-        ec.listDatabases(dbList);
+        ec.sharedLock.lock();
+        try
+        {
+          ec.listDatabases(dbList);
+        }
+        finally
+        {
+          ec.sharedLock.unlock();
+        }
       }
 
       // Sort the list in order of priority.
@@ -376,7 +388,7 @@ public class RootContainer
         PreloadConfig preloadConfig = new PreloadConfig();
         preloadConfig.setLoadLNs(true);
 
-        for (Database db : dbList)
+        for (DatabaseContainer db : dbList)
         {
           // Calculate the remaining time.
           long timeRemaining = timeEnd - System.currentTimeMillis();
@@ -390,7 +402,7 @@ public class RootContainer
 
           if(debugEnabled())
           {
-            TRACER.debugInfo("file=" + db.getDatabaseName() +
+            TRACER.debugInfo("file=" + db.getName() +
                       " LNs=" + preloadStats.getNLNsLoaded());
           }
 
@@ -487,11 +499,14 @@ public class RootContainer
   {
     for(DN baseDN : entryContainers.keySet())
     {
-      entryContainers.get(baseDN).close();
-      entryContainers.remove(baseDN);
+      closeEntryContainer(baseDN);
     }
 
-    if (env != null) env.close();
+    if (env != null)
+    {
+      env.close();
+      env = null;
+    }
   }
 
   /**
@@ -554,6 +569,38 @@ public class RootContainer
   }
 
   /**
+   * Get the environment lock stats of the JE environment used in this
+   * root container.
+   *
+   * @param statsConfig The configuration to use for the EnvironmentStats
+   *                    object.
+   * @return The environment status of the JE environment.
+   * @throws DatabaseException If an error occurs while retriving the stats
+   *                           object.
+   */
+  public LockStats getEnvironmentLockStats(StatsConfig statsConfig)
+      throws DatabaseException
+  {
+    return env.getLockStats(statsConfig);
+  }
+
+  /**
+   * Get the environment transaction stats of the JE environment used
+   * in this root container.
+   *
+   * @param statsConfig The configuration to use for the EnvironmentStats
+   *                    object.
+   * @return The environment status of the JE environment.
+   * @throws DatabaseException If an error occurs while retriving the stats
+   *                           object.
+   */
+  public TransactionStats getEnvironmentTransactionStats(
+      StatsConfig statsConfig) throws DatabaseException
+  {
+    return env.getTransactionStats(statsConfig);
+  }
+
+  /**
    * Get the environment config of the JE environment used in this root
    * container.
    *
@@ -564,6 +611,16 @@ public class RootContainer
   public EnvironmentConfig getEnvironmentConfig() throws DatabaseException
   {
     return env.getConfig();
+  }
+
+  /**
+   * Get the backend configuration used by this root container.
+   *
+   * @return The JE backend configuration used by this root container.
+   */
+  public JEBackendCfg getConfiguration()
+  {
+    return config;
   }
 
   /**
@@ -578,7 +635,15 @@ public class RootContainer
     long entryCount = 0;
     for(EntryContainer ec : this.entryContainers.values())
     {
-      entryCount += ec.getEntryCount();
+      ec.sharedLock.lock();
+      try
+      {
+        entryCount += ec.getEntryCount();
+      }
+      finally
+      {
+        ec.sharedLock.unlock();
+      }
     }
 
     return entryCount;
@@ -620,12 +685,45 @@ public class RootContainer
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-       JEBackendCfg cfg,
-       List<String> unacceptableReasons)
+      JEBackendCfg cfg,
+      List<String> unacceptableReasons)
   {
     boolean acceptable = true;
 
-    // This listener handles only the changes to JE properties.
+    File backendDirectory = getFileForPath(cfg.getBackendDirectory());
+    //Make sure the directory is valid.
+    if (!backendDirectory.isDirectory())
+    {
+      int msgID = MSGID_JEB_DIRECTORY_INVALID;
+      String message = getMessage(msgID, backendDirectory.getPath());
+      unacceptableReasons.add(message);
+      acceptable = false;
+    }
+
+    try
+    {
+      FilePermission newBackendPermission =
+          FilePermission.decodeUNIXMode(cfg.getBackendMode());
+
+      //Make sure the mode will allow the server itself access to
+      //the database
+      if(!newBackendPermission.isOwnerWritable() ||
+          !newBackendPermission.isOwnerReadable() ||
+          !newBackendPermission.isOwnerExecutable())
+      {
+        int msgID = MSGID_CONFIG_BACKEND_INSANE_MODE;
+        String message = getMessage(msgID);
+        unacceptableReasons.add(message);
+        acceptable = false;
+      }
+    }
+    catch(Exception e)
+    {
+      int msgID = MSGID_CONFIG_BACKEND_MODE_INVALID;
+      String message = getMessage(msgID, cfg.dn().toString());
+      unacceptableReasons.add(message);
+      acceptable = false;
+    }
 
     try
     {
@@ -653,50 +751,54 @@ public class RootContainer
 
     try
     {
-      // Check if any JE non-mutable properties were changed.
-      EnvironmentConfig oldEnvConfig = env.getConfig();
-      EnvironmentConfig newEnvConfig =
-           ConfigurableEnvironment.parseConfigEntry(cfg);
-      Map paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
-      for (Object o : paramsMap.values())
+      if(env != null)
       {
-        ConfigParam param = (ConfigParam) o;
-        if (!param.isMutable())
+        // Check if any JE non-mutable properties were changed.
+        EnvironmentConfig oldEnvConfig = env.getConfig();
+        EnvironmentConfig newEnvConfig =
+            ConfigurableEnvironment.parseConfigEntry(cfg);
+        Map paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
+        for (Object o : paramsMap.values())
         {
-          String oldValue = oldEnvConfig.getConfigParam(param.getName());
-          String newValue = newEnvConfig.getConfigParam(param.getName());
-          if (!oldValue.equalsIgnoreCase(newValue))
+          ConfigParam param = (ConfigParam) o;
+          if (!param.isMutable())
           {
-            adminActionRequired = true;
-            String configAttr = ConfigurableEnvironment.
-                 getAttributeForProperty(param.getName());
-            if (configAttr != null)
+            String oldValue = oldEnvConfig.getConfigParam(param.getName());
+            String newValue = newEnvConfig.getConfigParam(param.getName());
+            if (!oldValue.equalsIgnoreCase(newValue))
             {
-              int msgID = MSGID_JEB_CONFIG_ATTR_REQUIRES_RESTART;
-              messages.add(getMessage(msgID, configAttr));
-            }
-            if(debugEnabled())
-            {
-              TRACER.debugInfo("The change to the following property will " +
-                        "take effect when the backend is restarted: " +
-                        param.getName());
+              adminActionRequired = true;
+              String configAttr = ConfigurableEnvironment.
+                  getAttributeForProperty(param.getName());
+              if (configAttr != null)
+              {
+                int msgID = MSGID_JEB_CONFIG_ATTR_REQUIRES_RESTART;
+                messages.add(getMessage(msgID, configAttr));
+              }
+              if(debugEnabled())
+              {
+                TRACER.debugInfo("The change to the following property will " +
+                    "take effect when the backend is restarted: " +
+                    param.getName());
+              }
             }
           }
         }
-      }
 
-      // This takes care of changes to the JE environment for those
-      // properties that are mutable at runtime.
-      env.setMutableConfig(newEnvConfig);
+        // This takes care of changes to the JE environment for those
+        // properties that are mutable at runtime.
+        env.setMutableConfig(newEnvConfig);
 
-      if (debugEnabled())
-      {
-        TRACER.debugInfo(env.getConfig().toString());
+        if (debugEnabled())
+        {
+          TRACER.debugInfo(env.getConfig().toString());
+        }
       }
+      this.config = cfg;
     }
     catch (Exception e)
     {
-      messages.add(e.getMessage());
+      messages.add(StaticUtils.stackTraceToSingleLineString(e));
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    adminActionRequired,
                                    messages);

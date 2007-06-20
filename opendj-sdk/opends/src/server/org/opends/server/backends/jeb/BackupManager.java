@@ -151,23 +151,6 @@ public class BackupManager
   public void createBackup(JEBackendCfg cfg, BackupConfig backupConfig)
        throws DirectoryException
   {
-    // Parse our backend configuration.
-    Config config = new Config();
-    try
-    {
-      config.initializeConfig(cfg);
-    }
-    catch (ConfigException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
-    }
-
     // Get the properties to use for the backup.
     String          backupID        = backupConfig.getBackupID();
     BackupDirectory backupDir       = backupConfig.getBackupDirectory();
@@ -249,7 +232,7 @@ public class BackupManager
     // If this is an incremental, determine the base backup for this backup.
     HashSet<String> dependencies = new HashSet<String>();
     BackupInfo baseBackup = null;
-    File backendDir = config.getBackendDirectory();
+    File backendDir = getFileForPath(cfg.getBackendDirectory());
 /*
     FilenameFilter backupTagFilter = new FilenameFilter()
     {
@@ -764,26 +747,9 @@ public class BackupManager
 
     BackupInfo backupInfo = getBackupInfo(backupDir, backupID);
 
-    // Parse our backend configuration.
-    Config config = new Config();
-    try
-    {
-      config.initializeConfig(cfg);
-    }
-    catch (ConfigException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessage(),
-                                   e.getMessageID());
-    }
-
     // Create a restore directory with a different name to the backend
     // directory.
-    File currentDir = config.getBackendDirectory();
+    File currentDir = getFileForPath(cfg.getBackendDirectory());
     File restoreDir = new File(currentDir.getPath() + "-restore-" + backupID);
     if (!verifyOnly)
     {

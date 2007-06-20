@@ -1054,7 +1054,7 @@ public class JebMessages
        CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 133;
 
   /**
-   * The message ID used to indicate that an error occured in an index rebuild
+   * The message ID used to indicate that an error occurred in an index rebuild
    * thread and it is terminated. This message takes two arguments: the name
    * of the index rebuild thread that failed and the exception that caused
    * the failure.
@@ -1063,7 +1063,7 @@ public class JebMessages
       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 134;
 
   /**
-   * The message ID used to indicate that an error occured while inserting
+   * The message ID used to indicate that an error occurred while inserting
    * an entry into a database/index during the rebuild process. This message
    * takes two arguments: the name of the database/index being inserted into,
    * and the exception that caused the failure.
@@ -1156,6 +1156,56 @@ public class JebMessages
    */
   public static final int MSGID_JEB_UNABLE_SET_PERMISSIONS =
       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 146;
+
+   /**
+   * The message ID used to indicate a index entry limit has been
+   * exceeded and that the index needs to be rebuilt before the
+   * new entry limit is used.
+   */
+  public static final int MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_NOTICE | 148;
+
+  /**
+   * The message ID used to indicate the newly created index needs
+   * to be rebuilt before it will be used.
+   */
+  public static final int MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_NOTICE | 150;
+
+  /**
+   * The message ID used to indicate an index is corrupt and needs
+   * to be rebuilt before it will be used again.
+   */
+  public static final int MSGID_JEB_INDEX_CORRUPT_REQUIRES_REBUILD =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 151;
+
+  /**
+   * The message ID used to indicate an import process can not start
+   * while the backend is online.
+   */
+  public static final int MSGID_JEB_IMPORT_BACKEND_ONLINE =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 152;
+
+  /**
+   * The message ID used to indicate an error has occurred during the import
+   * process.
+   */
+  public static final int MSGID_JEB_IMPORT_THREAD_EXCEPTION =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 153;
+
+  /**
+   * The message ID used to indicate an error where there are no more worker
+   * threads to process the imported entries.
+   */
+  public static final int MSGID_JEB_IMPORT_NO_WORKER_THREADS =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 154;
+
+  /**
+   * The message ID used to indicate an error where the temp import directory
+   * can not be created.
+   */
+  public static final int MSGID_JEB_IMPORT_CREATE_TMPDIR_ERROR =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 155;
 
 
   /**
@@ -1441,7 +1491,7 @@ public class JebMessages
                     "This search operation has checked the maximum of %d " +
                     "entries for matches");
     registerMessage(MSGID_JEB_SET_PERMISSIONS_FAILED,
-                    "An error occured while setting file permissions for " +
+                    "An error occurred while setting file permissions for " +
                     "the backend database directory %s: %s");
     registerMessage(MSGID_JEB_GET_ENTRY_COUNT_FAILED,
                     "Unable to determine the total number of entries in the " +
@@ -1458,9 +1508,9 @@ public class JebMessages
                     "Rebuild complete. Processed %d records in %d seconds " +
                     "(average rate %.1f/sec)");
     registerMessage(MSGID_JEB_REBUILD_INDEX_FAILED,
-                    "An error occured while rebuilding index %s: %s");
+                    "An error occurred while rebuilding index %s: %s");
     registerMessage(MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED,
-                    "An error occured while inserting entry into the %s " +
+                    "An error occurred while inserting entry into the %s " +
                     "database/index: %s");
     registerMessage(MSGID_JEB_REBUILD_INDEX_CONFLICT,
                     "Another rebuild of index %s is already in progress");
@@ -1488,5 +1538,28 @@ public class JebMessages
     registerMessage(MSGID_JEB_UNABLE_SET_PERMISSIONS,
                     "This platform does not support setting file " +
                     "permissions %s to the database directory %s");
+    registerMessage(MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD,
+                    "Some index keys have already exceeded the previous " +
+                    "index entry limit in index %s. This index must be " +
+                    "rebuilt before it can use the new limit");
+    registerMessage(MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD,
+                    "Index %s is currently operating in a degraded read-only " +
+                    "state and must be rebuilt before it can used");
+    registerMessage(MSGID_JEB_INDEX_CORRUPT_REQUIRES_REBUILD,
+                    "An error occurred while reading from index %s. The " +
+                    "index seems to be corrupt and is now operating in " +
+                    "a degraded read-only state. The index must be rebuilt " +
+                    "before it can return to normal operation");
+    registerMessage(MSGID_JEB_IMPORT_BACKEND_ONLINE,
+                    "The backend must be disabled before the import process" +
+                    "can start");
+    registerMessage(MSGID_JEB_IMPORT_THREAD_EXCEPTION,
+                    "An error occurred in import thread %s: %s. The thread " +
+                    "can not continue");
+    registerMessage(MSGID_JEB_IMPORT_NO_WORKER_THREADS,
+                    "There are no more import worker threads to process the " +
+                    "imported entries");
+    registerMessage(MSGID_JEB_IMPORT_CREATE_TMPDIR_ERROR,
+                    "Unable to create the temporary directory %s");
   }
 }

@@ -28,23 +28,14 @@ package org.opends.server.backends.jeb;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.loggers.ErrorLogger;
 
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.CursorConfig;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.Transaction;
+import com.sleepycat.je.*;
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
+import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
+import static org.opends.server.messages.JebMessages.*;
 
 import java.util.*;
 
@@ -54,35 +45,12 @@ import java.util.*;
  * normalized form of an attribute value (or fragment of a value) appearing
  * in the entry.
  */
-public class Index
+public class Index extends DatabaseContainer
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
-
-
-  /**
-   * The database entryContainer holding this index database.
-   */
-  private EntryContainer entryContainer;
-
-  /**
-   * The JE database configuration.
-   */
-  private DatabaseConfig dbConfig;
-
-  /**
-   * The name of the database within the entryContainer.
-   */
-  private String name;
-
-  /**
-   * A cached per-thread JE database handle.
-   */
-  private ThreadLocal<Database> threadLocalDatabase =
-       new ThreadLocal<Database>();
 
   /**
    * The indexer object to construct index keys from LDAP attribute values.
@@ -111,65 +79,95 @@ public class Index
    */
   private int entryLimitExceededCount;
 
+  private State state;
+
+  /**
+   * A flag to indicate if this index should be trusted to be consistent
+   * with the entries database. If not trusted, we assume that existing
+   * entryIDSets for a key is still accurate. However, keys that do not
+   * exist are undefined instead of an empty entryIDSet. The following
+   * rules will be observed when the index is not trusted:
+   *
+   * - no entryIDs will be added to a non-existing key.
+   * - undefined entryIdSet will be returned whenever a key is not found.
+   */
+  private boolean trusted = false;
+
+  /**
+   * A flag to indicate if a rebuild process is running on this index.
+   * During the rebuild process, we assume that no entryIDSets are
+   * accurate and return an undefined set on all read operations.
+   * However all write opeations will succeed. The rebuildRunning
+   * flag overrides all behaviours of the trusted flag.
+   */
+  private boolean rebuildRunning = false;
+
   /**
    * Create a new index object.
-   * @param entryContainer The database entryContainer holding this index.
    * @param name The name of the index database within the entryContainer.
    * @param indexer The indexer object to construct index keys from LDAP
    * attribute values.
+   * @param state The state database to persist index state info.
    * @param indexEntryLimit The configured limit on the number of entry IDs
    * that may be indexed by one key.
    * @param cursorEntryLimit The configured limit on the number of entry IDs
-   * that may be retrieved by cursoring through an index.
+   * @param env The JE Environemnt
+   * @param entryContainer The database entryContainer holding this index.
+   * @throws DatabaseException If an error occurs in the JE database.
    */
-  public Index(EntryContainer entryContainer, String name, Indexer indexer,
-               int indexEntryLimit, int cursorEntryLimit)
+  public Index(String name, Indexer indexer, State state,
+        int indexEntryLimit, int cursorEntryLimit, Environment env,
+        EntryContainer entryContainer)
+      throws DatabaseException
   {
-    this.entryContainer = entryContainer;
-    this.name = name;
+    super(name, env, entryContainer);
     this.indexer = indexer;
     this.comparator = indexer.getComparator();
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;
-  }
 
-  /**
-   * Open this index database.
-   * @param dbConfig The requested JE database configuration.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public void open(DatabaseConfig dbConfig) throws DatabaseException
-  {
-    this.dbConfig = dbConfig.cloneConfig();
+    DatabaseConfig dbNodupsConfig = new DatabaseConfig();
+
+    if(env.getConfig().getReadOnly())
+    {
+      dbNodupsConfig.setReadOnly(true);
+      dbNodupsConfig.setAllowCreate(false);
+      dbNodupsConfig.setTransactional(false);
+    }
+    else if(!env.getConfig().getTransactional())
+    {
+      dbNodupsConfig.setAllowCreate(true);
+      dbNodupsConfig.setTransactional(false);
+      dbNodupsConfig.setDeferredWrite(true);
+    }
+    else
+    {
+      dbNodupsConfig.setAllowCreate(true);
+      dbNodupsConfig.setTransactional(true);
+    }
+
+    this.dbConfig = dbNodupsConfig;
     this.dbConfig.setOverrideBtreeComparator(true);
     this.dbConfig.setBtreeComparator(comparator.getClass());
-    getDatabase();
-  }
 
-  /**
-   * Get a handle to the database. It returns a per-thread handle to avoid
-   * any thread contention on the database handle. The entryContainer is
-   * responsible for closing all handles.
-   *
-   * @return A database handle.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public Database getDatabase() throws DatabaseException
-  {
-    Database database = threadLocalDatabase.get();
-    if (database == null)
+    this.state = state;
+
+    this.trusted = state.getIndexTrustState(null, this);
+    if(!trusted && entryContainer.getEntryCount() <= 0)
     {
-      database = entryContainer.openDatabase(dbConfig, name);
-      threadLocalDatabase.set(database);
-
-      if(debugEnabled())
-      {
-        TRACER.debugInfo("JE Index database %s opened with %d records.",
-                  database.getDatabaseName(), database.count());
-      }
+      // If there are no entries in the entry container then there
+      // is no reason why this index can't be upgraded to trusted.
+      setTrusted(null, true);
     }
-    return database;
+
+    // Issue warning if this index is not trusted
+    if(!trusted)
+    {
+      int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
+      ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                           ErrorLogSeverity.NOTICE, msgID, name);
+    }
+
   }
 
   /**
@@ -179,7 +177,7 @@ public class Index
    * @param key         The index key.
    * @param entryID     The entry ID.
    * @return True if the entry ID is inserted or ignored because the entry limit
-   *         count is exceeded. False if it alreadly exists in the entry ID set
+   *         count is exceeded. False if it already exists in the entry ID set
    *         for the given key.
    * @throws DatabaseException If an error occurs in the JE database.
    */
@@ -192,7 +190,7 @@ public class Index
     DatabaseEntry data = new DatabaseEntry();
     boolean success = true;
 
-    status = EntryContainer.read(getDatabase(), txn, key, data, lockMode);
+    status = read(txn, key, data, lockMode);
 
     if (status == OperationStatus.SUCCESS)
     {
@@ -204,6 +202,17 @@ public class Index
         {
           entryIDList = new EntryIDSet();
           entryLimitExceededCount++;
+
+          if(debugEnabled())
+          {
+            StringBuilder builder = new StringBuilder();
+            StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+            TRACER.debugInfo("Index entry exceeded in index %s. " +
+                "Limit: %d. ID list size: %d.\nKey:",
+                             name, indexEntryLimit, entryIDList.size(),
+                             builder);
+
+          }
         }
         else
         {
@@ -215,12 +224,15 @@ public class Index
 
         byte[] after = entryIDList.toDatabase();
         data.setData(after);
-        EntryContainer.put(getDatabase(), txn, key, data);
+        put(txn, key, data);
       }
     }
     else
     {
-      EntryContainer.put(getDatabase(), txn, key, entryIDData);
+      if(rebuildRunning || trusted)
+      {
+        put(txn, key, entryIDData);
+      }
     }
 
     return success;
@@ -241,38 +253,80 @@ public class Index
     LockMode lockMode = LockMode.RMW;
     DatabaseEntry data = new DatabaseEntry();
 
-    status = EntryContainer.read(getDatabase(), txn, key, data, lockMode);
+    status = read(txn, key, data, lockMode);
 
     if (status == OperationStatus.SUCCESS)
     {
       EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
       if (entryIDList.isDefined())
       {
-        if (!entryIDList.remove(entryID))
+        // Ignore failures if rebuild is running since the entry ID is
+        // probably already removed.
+        if (!entryIDList.remove(entryID) && !rebuildRunning)
         {
-          // This shouldn't happen!
-          // TODO notify the database needs to be checked
+          // Invalidate the key by setting it undefined
+          byte[] after = new EntryIDSet().toDatabase();
+          data.setData(after);
+          put(txn, key, data);
+
+          if(trusted)
+          {
+            setTrusted(txn, false);
+
+            if(debugEnabled())
+            {
+              StringBuilder builder = new StringBuilder();
+              StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+              TRACER.debugError("The expected entry ID does not exist in " +
+                  "the entry ID list for index %s.\nKey:%s",
+                                name, builder.toString());
+            }
+
+            int msgID = MSGID_JEB_INDEX_CORRUPT_REQUIRES_REBUILD;
+            ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                                 ErrorLogSeverity.SEVERE_ERROR,
+                                 msgID, name);
+          }
         }
         else
         {
           byte[] after = entryIDList.toDatabase();
           if (after == null)
           {
-            // No more IDs, so remove the key
-            EntryContainer.delete(getDatabase(), txn, key);
+            // No more IDs, so remove the key. If index is not
+            // trusted then this will cause all subsequent reads
+            // for this key to return undefined set.
+            delete(txn, key);
           }
           else
           {
             data.setData(after);
-            EntryContainer.put(getDatabase(), txn, key, data);
+            put(txn, key, data);
           }
         }
       }
     }
     else
     {
-      // This shouldn't happen!
-      // TODO notify the database needs to be checked
+      // Ignore failures if rebuild is running since a empty entryIDset
+      // will probably not be rebuilt.
+      if(trusted && !rebuildRunning)
+      {
+        setTrusted(txn, false);
+
+        if(debugEnabled())
+        {
+          StringBuilder builder = new StringBuilder();
+          StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+          TRACER.debugError("The expected key does not exist in the " +
+              "index %s.\nKey:%s", name, builder.toString());
+        }
+
+        int msgID = MSGID_JEB_INDEX_CORRUPT_REQUIRES_REBUILD;
+        ErrorLogger.logError(ErrorLogCategory.BACKEND,
+                             ErrorLogSeverity.SEVERE_ERROR,
+                             msgID, name);
+      }
     }
   }
 
@@ -291,11 +345,16 @@ public class Index
                                     EntryID entryID)
        throws DatabaseException
   {
+    if(rebuildRunning)
+    {
+      return ConditionResult.UNDEFINED;
+    }
+
     OperationStatus status;
     LockMode lockMode = LockMode.DEFAULT;
     DatabaseEntry data = new DatabaseEntry();
 
-    status = EntryContainer.read(getDatabase(), txn, key, data, lockMode);
+    status = read(txn, key, data, lockMode);
     if (status == OperationStatus.SUCCESS)
     {
       EntryIDSet entryIDList =
@@ -316,7 +375,14 @@ public class Index
     }
     else
     {
-      return ConditionResult.FALSE;
+      if(trusted)
+      {
+        return ConditionResult.FALSE;
+      }
+      else
+      {
+        return ConditionResult.UNDEFINED;
+      }
     }
   }
 
@@ -331,14 +397,26 @@ public class Index
   public EntryIDSet readKey(DatabaseEntry key, Transaction txn,
                             LockMode lockMode)
   {
+    if(rebuildRunning)
+    {
+      return new EntryIDSet();
+    }
+
     try
     {
       OperationStatus status;
       DatabaseEntry data = new DatabaseEntry();
-      status = EntryContainer.read(getDatabase(), txn, key, data, lockMode);
+      status = read( txn, key, data, lockMode);
       if (status != OperationStatus.SUCCESS)
       {
-        return new EntryIDSet(key.getData(), null);
+        if(trusted)
+        {
+          return new EntryIDSet(key.getData(), null);
+        }
+        else
+        {
+          return new EntryIDSet();
+        }
       }
       return new EntryIDSet(key.getData(), data.getData());
     }
@@ -369,7 +447,7 @@ public class Index
     if (after == null)
     {
       // No more IDs, so remove the key.
-      EntryContainer.delete(getDatabase(), txn, key);
+      delete(txn, key);
     }
     else
     {
@@ -378,7 +456,7 @@ public class Index
         entryLimitExceededCount++;
       }
       data.setData(after);
-      EntryContainer.put(getDatabase(), txn, key, data);
+      put(txn, key, data);
     }
   }
 
@@ -409,6 +487,13 @@ public class Index
   {
     LockMode lockMode = LockMode.DEFAULT;
 
+    // If this index is not trusted, then just return an undefined
+    // id set.
+    if(rebuildRunning || !trusted)
+    {
+      return new EntryIDSet();
+    }
+
     try
     {
       // Total number of IDs found so far.
@@ -422,7 +507,7 @@ public class Index
       OperationStatus status;
       Cursor cursor;
 
-      cursor = getDatabase().openCursor(null, CursorConfig.READ_COMMITTED);
+      cursor = openCursor(null, CursorConfig.READ_COMMITTED);
 
       try
       {
@@ -511,91 +596,13 @@ public class Index
   }
 
   /**
-   * Get a string representation of this object.
-   * @return return A string representation of this object.
-   */
-  public String toString()
-  {
-    return name;
-  }
-
-  /**
-   * Open a cursor to the JE database holding this index.
-   * @param txn A JE database transaction to be associated with the cursor,
-   * or null if none is required.
-   * @param cursorConfig The requested JE cursor configuration.
-   * @return A new JE cursor.
-   * @throws DatabaseException If an error occurs while attempting to open
-   * the cursor.
-   */
-  public Cursor openCursor(Transaction txn, CursorConfig cursorConfig)
-       throws DatabaseException
-  {
-    return getDatabase().openCursor(txn, cursorConfig);
-  }
-
-  /**
-   * Removes all records from the database.
-   * @param txn A JE database transaction to be used during the clear operation
-   *            or null if not required. Using transactions increases the chance
-   *            of lock contention.
-   * @return The number of records removed.
-   * @throws DatabaseException If an error occurs while cleaning the database.
-   */
-  public long clear(Transaction txn) throws DatabaseException
-  {
-    long deletedCount = 0;
-    Cursor cursor = openCursor(txn, null);
-    try
-    {
-      if(debugEnabled())
-      {
-        TRACER.debugVerbose("%d existing records will be deleted from the " +
-            "database", getRecordCount());
-      }
-      DatabaseEntry data = new DatabaseEntry();
-      DatabaseEntry key = new DatabaseEntry();
-
-      OperationStatus status;
-
-      // Step forward until we deleted all records.
-      for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
-           status == OperationStatus.SUCCESS;
-           status = cursor.getNext(key, data, LockMode.DEFAULT))
-      {
-        cursor.delete();
-        deletedCount++;
-      }
-      if(debugEnabled())
-      {
-        TRACER.debugVerbose("%d records deleted", deletedCount);
-      }
-    }
-    catch(DatabaseException de)
-    {
-      if(debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-
-      throw de;
-    }
-    finally
-    {
-      cursor.close();
-    }
-
-    return deletedCount;
-  }
-
-  /**
    * Update the index for a new entry.
    *
    * @param txn A database transaction, or null if none is required.
    * @param entryID     The entry ID.
    * @param entry       The entry to be indexed.
    * @return True if all the indexType keys for the entry are added. False if
-   *         the entry ID alreadly exists for some keys.
+   *         the entry ID already exists for some keys.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
@@ -684,15 +691,55 @@ public class Index
   }
 
   /**
-   * Get the count of the number of entries stored.
+   * Set the index entry limit.
    *
-   * @return The number of entries stored.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
+   * @param indexEntryLimit The index entry limit to set.
+   * @return True if a rebuild is required or false otherwise.
    */
-  public long getRecordCount() throws DatabaseException
+  public boolean setIndexEntryLimit(int indexEntryLimit)
   {
-    return EntryContainer.count(getDatabase());
+    boolean rebuildRequired = false;
+    if(this.indexEntryLimit < indexEntryLimit &&
+        entryLimitExceededCount > 0 )
+    {
+      rebuildRequired = true;
+    }
+    this.indexEntryLimit = indexEntryLimit;
+
+    return rebuildRequired;
   }
 
+  /**
+   * Set the indexer.
+   *
+   * @param indexer The indexer to set
+   */
+  public void setIndexer(Indexer indexer)
+  {
+    this.indexer = indexer;
+  }
+
+  /**
+   * Set the index trust state.
+   * @param txn A database transaction, or null if none is required.
+   * @param trusted True if this index should be trusted or false
+   *                otherwise.
+   * @throws DatabaseException If an error occurs in the JE database.
+   */
+  public synchronized void setTrusted(Transaction txn, boolean trusted)
+      throws DatabaseException
+  {
+    this.trusted = trusted;
+    state.putIndexTrustState(txn, this, trusted);
+  }
+
+  /**
+   * Set the rebuild status of this index.
+   * @param rebuildRunning True if a rebuild process on this index
+   *                       is running or False otherwise.
+   */
+  public synchronized void setRebuildStatus(boolean rebuildRunning)
+  {
+    this.rebuildRunning = rebuildRunning;
+  }
 }

@@ -30,6 +30,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.admin.std.server.JEBackendCfg;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -53,7 +54,7 @@ public class ImportContext
   /**
    * The configuration of the destination backend.
    */
-  private Config config;
+  private JEBackendCfg config;
 
   /**
    * The requested LDIF import configuration.
@@ -159,7 +160,7 @@ public class ImportContext
    * Set the configuration of the destination backend.
    * @param config The destination backend configuration.
    */
-  public void setConfig(Config config)
+  public void setConfig(JEBackendCfg config)
   {
     this.config = config;
   }
@@ -168,7 +169,7 @@ public class ImportContext
    * Get the configuration of the destination backend.
    * @return The destination backend configuration.
    */
-  public Config getConfig()
+  public JEBackendCfg getConfig()
   {
     return config;
   }

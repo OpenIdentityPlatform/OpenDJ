@@ -28,14 +28,9 @@ package org.opends.server.backends.jeb;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import com.sleepycat.je.Transaction;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
+import org.opends.server.types.*;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -62,19 +57,26 @@ public class SubstringIndexer extends Indexer
        new AttributeIndex.KeyComparator();
 
   /**
-   * The attribute index configuration for which this instance will
+   * The attribute type for which this instance will
    * generate index keys.
    */
-  private IndexConfig indexConfig;
+  private AttributeType attributeType;
+
+  /**
+   * The substring length.
+   */
+  private int substrLength;
 
   /**
    * Create a new attribute substring indexer for the given index configuration.
-   * @param indexConfig The index configuration for which an indexer is
+   * @param attributeType The attribute type for which an indexer is
    * required.
+   * @param substringLength The decomposed substring length.
    */
-  public SubstringIndexer(IndexConfig indexConfig)
+  public SubstringIndexer(AttributeType attributeType, int substringLength)
   {
-    this.indexConfig = indexConfig;
+    this.attributeType = attributeType;
+    this.substrLength = substringLength;
   }
 
   /**
@@ -84,7 +86,7 @@ public class SubstringIndexer extends Indexer
    */
   public String toString()
   {
-    return indexConfig.getAttributeType().getNameOrOID() + ".substring";
+    return attributeType.getNameOrOID() + ".substring";
   }
 
   /**
@@ -110,7 +112,7 @@ public class SubstringIndexer extends Indexer
                        Set<ASN1OctetString> keys)
   {
     List<Attribute> attrList =
-         entry.getAttribute(indexConfig.getAttributeType());
+         entry.getAttribute(attributeType);
     if (attrList != null)
     {
       indexAttribute(attrList, keys);
@@ -135,11 +137,11 @@ public class SubstringIndexer extends Indexer
   {
     List<Attribute> attrList;
 
-    attrList = oldEntry.getAttribute(indexConfig.getAttributeType());
+    attrList = oldEntry.getAttribute(attributeType);
     Set<ASN1OctetString> oldSet = new HashSet<ASN1OctetString>();
     indexAttribute(attrList, oldSet);
 
-    attrList = newEntry.getAttribute(indexConfig.getAttributeType());
+    attrList = newEntry.getAttribute(attributeType);
     Set<ASN1OctetString> newSet = new HashSet<ASN1OctetString>();
     indexAttribute(attrList, newSet);
 
@@ -224,7 +226,6 @@ public class SubstringIndexer extends Indexer
    */
   private void substringKeys(byte[] value, Set<ASN1OctetString> set)
   {
-    int substrLength = indexConfig.getSubstringLength();
     byte[] keyBytes;
 
     // Example: The value is ABCDE and the substring length is 3.

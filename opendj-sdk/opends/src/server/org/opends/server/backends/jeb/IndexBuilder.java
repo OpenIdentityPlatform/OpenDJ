@@ -28,6 +28,7 @@ package org.opends.server.backends.jeb;
 
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Entry;
+import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Transaction;
@@ -139,8 +140,7 @@ public class IndexBuilder
     this.entryLimit = entryLimit;
     this.bufferSize = (int)bufferSize/100;
     long tid = Thread.currentThread().getId();
-    fileNamePrefix = importContext.getContainerName() + "_" +
-         indexer.toString() + "_" + tid + "_";
+    fileNamePrefix = index.getName() + "_" + tid + "_";
     replaceExisting =
          importContext.getLDIFImportConfig().appendToExistingData() &&
          importContext.getLDIFImportConfig().replaceExistingEntries();
@@ -156,7 +156,8 @@ public class IndexBuilder
   public void startProcessing()
   {
     // Clean up any work files left over from a previous run.
-    File tempDir = new File(importContext.getConfig().getImportTempDirectory());
+    File tempDir = getFileForPath(
+        importContext.getConfig().getBackendImportTempDirectory());
     File[] files = tempDir.listFiles(filter);
     if (files != null)
     {
@@ -314,7 +315,8 @@ public class IndexBuilder
     // Start a new file.
     fileNumber++;
     String fileName = fileNamePrefix + String.valueOf(fileNumber);
-    File file = new File(importContext.getConfig().getImportTempDirectory(),
+    File file = new File(getFileForPath(
+        importContext.getConfig().getBackendImportTempDirectory()),
                          fileName);
     BufferedOutputStream bufferedStream =
          new BufferedOutputStream(new FileOutputStream(file));

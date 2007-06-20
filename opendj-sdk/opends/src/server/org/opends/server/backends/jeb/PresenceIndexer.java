@@ -30,6 +30,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
+import org.opends.server.types.AttributeType;
 
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.DatabaseException;
@@ -52,19 +53,19 @@ public class PresenceIndexer extends Indexer
        new AttributeIndex.KeyComparator();
 
   /**
-   * The attribute index configuration for which this instance will
+   * The attribute type for which this instance will
    * generate index keys.
    */
-  private IndexConfig indexConfig;
+  private AttributeType attributeType;
 
   /**
    * Create a new attribute presence indexer.
-   * @param indexConfig The attribute index configuration for which the indexer
+   * @param attributeType The attribute type for which the indexer
    * is required.
    */
-  public PresenceIndexer(IndexConfig indexConfig)
+  public PresenceIndexer(AttributeType attributeType)
   {
-    this.indexConfig = indexConfig;
+    this.attributeType = attributeType;
   }
 
   /**
@@ -73,7 +74,7 @@ public class PresenceIndexer extends Indexer
    */
   public String toString()
   {
-    return indexConfig.getAttributeType().getNameOrOID() + ".presence";
+    return attributeType.getNameOrOID() + ".presence";
   }
 
   /**
@@ -102,7 +103,7 @@ public class PresenceIndexer extends Indexer
                        Set<ASN1OctetString> keys) throws DatabaseException
   {
     List<Attribute> attrList =
-         entry.getAttribute(indexConfig.getAttributeType());
+         entry.getAttribute(attributeType);
     if (attrList != null)
     {
       if (!attrList.isEmpty())
@@ -133,8 +134,8 @@ public class PresenceIndexer extends Indexer
   {
     List<Attribute> beforeList, afterList;
 
-    beforeList = oldEntry.getAttribute(indexConfig.getAttributeType());
-    afterList = newEntry.getAttribute(indexConfig.getAttributeType());
+    beforeList = oldEntry.getAttribute(attributeType);
+    afterList = newEntry.getAttribute(attributeType);
 
     if (beforeList == null || beforeList.isEmpty())
     {

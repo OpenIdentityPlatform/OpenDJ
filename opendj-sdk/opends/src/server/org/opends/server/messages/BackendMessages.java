@@ -3705,7 +3705,7 @@ public class BackendMessages
     registerMessage(MSGID_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED,
                     "An error occrred while attempting to write new " +
                     "versions of the server schema files:  %s.  A problem " +
-                    "also occured when attempting to restore the original " +
+                    "also occurred when attempting to restore the original " +
                     "schema configuration, so the server may be left in an " +
                     "inconsistent state and could require manual cleanup");
     registerMessage(MSGID_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE,

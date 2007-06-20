@@ -52,6 +52,17 @@
       <ldap:superior>ds-cfg-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:relation name="je-index">
+    <adm:one-to-many />
+     <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Index
+      </ldap:rdn-sequence>
+      <ldap:naming-attribute>
+        ds-cfg-index-attribute
+      </ldap:naming-attribute>
+    </adm:profile>
+  </adm:relation>
   <adm:property-override name="backend-class">
     <adm:default-behavior>
       <adm:defined>

@@ -108,7 +108,7 @@ public class IndexRebuildThread extends DirectoryThread
 
   /**
    * The number of entries that were skipped because they were not applicable
-   * for the indexType or because an error occured.
+   * for the indexType or because an error occurred.
    */
   long skippedEntries = 0;
 
@@ -144,8 +144,7 @@ public class IndexRebuildThread extends DirectoryThread
    */
   IndexRebuildThread(EntryContainer ec, Index index)
   {
-    super("Index Rebuild Thread " + ec.getContainerName() + "_" +
-        index.toString());
+    super("Index Rebuild Thread " + index.getName());
     this.ec = ec;
     this.indexType = IndexType.INDEX;
     this.index = index;
@@ -161,13 +160,80 @@ public class IndexRebuildThread extends DirectoryThread
    */
   IndexRebuildThread(EntryContainer ec, AttributeIndex index)
   {
-    super("Index Rebuild Thread " + ec.getContainerName() + "_" +
-        index.toString());
+    super("Index Rebuild Thread " + index.getName());
     this.ec = ec;
     this.indexType = IndexType.ATTRIBUTEINDEX;
     this.attrIndex = index;
     this.id2entry = ec.getID2Entry();
     this.indexName = ec.getContainerName() + "_" +  index.toString();
+  }
+
+  /**
+   * Clear the database and prep it for the rebuild.
+   *
+   * @throws DatabaseException if a JE databse error occurs while clearing
+   * the database being rebuilt.
+   */
+  public void clearDatabase() throws DatabaseException
+  {
+    if(indexType == null)
+    {
+      //TODO: throw error
+      if(debugEnabled())
+      {
+        TRACER.debugError("No index type specified. Rebuild process " +
+            "terminated.");
+      }
+
+      return;
+    }
+    if(indexType == IndexType.ATTRIBUTEINDEX && attrIndex == null)
+    {
+      //TODO: throw error
+      if(debugEnabled())
+      {
+        TRACER.debugError("No attribute index specified. Rebuild process " +
+            "terminated.");
+      }
+
+      return;
+    }
+
+    if(indexType == IndexType.INDEX && index == null)
+    {
+      //TODO: throw error
+      if(debugEnabled())
+      {
+        TRACER.debugError("No index specified. Rebuild process terminated.");
+      }
+
+      return;
+    }
+
+    switch(indexType)
+    {
+      case DN2ID :
+        ec.clearDatabase(null, ec.getDN2ID());
+        break;
+      case DN2URI :
+        ec.clearDatabase(null, ec.getDN2URI());
+        break;
+      case ID2CHILDREN :
+        ec.clearDatabase(null, ec.getID2Children());
+        ec.getID2Children().setRebuildStatus(true);
+        break;
+      case ID2SUBTREE :
+        ec.clearDatabase(null, ec.getID2Subtree());
+        ec.getID2Subtree().setRebuildStatus(true);
+        break;
+      case ATTRIBUTEINDEX :
+        ec.clearAttributeIndex(null, attrIndex);
+        attrIndex.setRebuildStatus(true);
+        break;
+      case INDEX :
+        ec.clearDatabase(null, index);
+        index.setRebuildStatus(true);
+    }
   }
 
   /**
@@ -252,7 +318,6 @@ public class IndexRebuildThread extends DirectoryThread
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
-
   }
 
   /**
@@ -263,17 +328,6 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildDN2ID() throws DatabaseException
   {
     DN2ID dn2id = ec.getDN2ID();
-    Transaction txn = ec.beginTransaction();
-    try
-    {
-      //Delete all records in the indexType databases.
-      //TODO: Should we do a transactional delete?
-      dn2id.clear(txn);
-    }
-    finally
-    {
-      EntryContainer.transactionCommit(txn);
-    }
 
     //Iterate through the id2entry database and insert associated dn2id
     //records.
@@ -303,7 +357,7 @@ public class IndexRebuildThread extends DirectoryThread
           }
           else
           {
-            // The entry ID alreadly exists in the database.
+            // The entry ID already exists in the database.
             // This could happen if some other process got to this entry
             // before we did. Since the backend should be offline, this
             // might be a problem.
@@ -351,17 +405,6 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildDN2URI() throws DatabaseException
   {
     DN2URI dn2uri = ec.getDN2URI();
-    Transaction txn = ec.beginTransaction();
-    try
-    {
-      //Delete all records in the indexType databases.
-      //TODO: Should we do a transactional delete?
-      dn2uri.clear(txn);
-    }
-    finally
-    {
-      EntryContainer.transactionCommit(txn);
-    }
 
     //Iterate through the id2entry database and insert associated dn2uri
     //records.
@@ -392,7 +435,7 @@ public class IndexRebuildThread extends DirectoryThread
           }
           else
           {
-            // The entry DN and URIs alreadly exists in the database.
+            // The entry DN and URIs already exists in the database.
             // This could happen if some other process got to this entry
             // before we did. Since the backend should be offline, this
             // might be a problem.
@@ -441,17 +484,6 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildID2Children() throws DatabaseException
   {
     Index id2children = ec.getID2Children();
-    Transaction txn = ec.beginTransaction();
-    try
-    {
-      //Delete all records in the indexType databases.
-      //TODO: Should we do a transactional delete?
-      id2children.clear(txn);
-    }
-    finally
-    {
-      EntryContainer.transactionCommit(txn);
-    }
 
     DN2ID dn2id = ec.getDN2ID();
     DN2URI dn2uri = ec.getDN2URI();
@@ -494,7 +526,7 @@ public class IndexRebuildThread extends DirectoryThread
               }
               else
               {
-                // The entry alreadly exists in the database.
+                // The entry already exists in the database.
                 // This could happen if some other process got to this entry
                 // before we did. Since the backend should be offline, this
                 // might be a problem.
@@ -538,6 +570,8 @@ public class IndexRebuildThread extends DirectoryThread
           }
         }
       }
+      id2children.setRebuildStatus(false);
+      id2children.setTrusted(null, true);
     }
     finally
     {
@@ -554,17 +588,6 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildID2Subtree() throws DatabaseException
   {
     Index id2subtree = ec.getID2Subtree();
-    Transaction txn = ec.beginTransaction();
-    try
-    {
-      //Delete all records in the indexType databases.
-      //TODO: Should we do a transactional delete?
-      id2subtree.clear(txn);
-    }
-    finally
-    {
-      EntryContainer.transactionCommit(txn);
-    }
 
     DN2ID dn2id = ec.getDN2ID();
     DN2URI dn2uri = ec.getDN2URI();
@@ -645,7 +668,7 @@ public class IndexRebuildThread extends DirectoryThread
             }
             else
             {
-              // The entry alreadly exists in the database.
+              // The entry already exists in the database.
               // This could happen if some other process got to this entry
               // before we did. Since the backend should be offline, this
               // might be a problem.
@@ -681,6 +704,8 @@ public class IndexRebuildThread extends DirectoryThread
           }
         }
       }
+      id2subtree.setRebuildStatus(false);
+      id2subtree.setTrusted(null, true);
     }
     finally
     {
@@ -697,17 +722,6 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildAttributeIndex(AttributeIndex index)
       throws DatabaseException
   {
-    Transaction txn = ec.beginTransaction();
-    try
-    {
-      //Delete all records in the indexType databases.
-      //TODO: Should we do a transactional delete?
-      index.clear(txn);
-    }
-    finally
-    {
-      EntryContainer.transactionCommit(txn);
-    }
 
     //Iterate through the id2entry database and insert associated indexType
     //records.
@@ -735,7 +749,7 @@ public class IndexRebuildThread extends DirectoryThread
           }
           else
           {
-            // The entry alreadly exists in one or more entry sets.
+            // The entry already exists in one or more entry sets.
             // This could happen if some other process got to this entry
             // before we did. Since the backend should be offline, this
             // might be a problem.
@@ -767,6 +781,8 @@ public class IndexRebuildThread extends DirectoryThread
           }
         }
       }
+      index.setRebuildStatus(false);
+      index.setTrusted(null, true);
     }
     finally
     {
@@ -783,17 +799,6 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildAttributeIndex(Index index)
       throws DatabaseException
   {
-    Transaction txn = ec.beginTransaction();
-    try
-    {
-      //Delete all records in the indexType databases.
-      //TODO: Should we do a transactional delete?
-      index.clear(txn);
-    }
-    finally
-    {
-      EntryContainer.transactionCommit(txn);
-    }
 
     //Iterate through the id2entry database and insert associated indexType
     //records.
@@ -821,7 +826,7 @@ public class IndexRebuildThread extends DirectoryThread
           }
           else
           {
-            // The entry alreadly exists in one or more entry sets.
+            // The entry already exists in one or more entry sets.
             // This could happen if some other process got to this entry
             // before we did. Since the backend should be offline, this
             // might be a problem.
@@ -853,6 +858,8 @@ public class IndexRebuildThread extends DirectoryThread
           }
         }
       }
+      index.setRebuildStatus(false);
+      index.setTrusted(null, true);
     }
     finally
     {
@@ -911,7 +918,7 @@ public class IndexRebuildThread extends DirectoryThread
 
   /**
    * Get the number of entries skipped because they were either not applicable
-   * or an error occured during the process.
+   * or an error occurred during the process.
    *
    * @return The number of entries skipped.
    */

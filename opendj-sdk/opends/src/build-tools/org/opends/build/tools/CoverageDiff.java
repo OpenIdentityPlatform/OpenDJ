@@ -171,7 +171,7 @@ public class CoverageDiff extends Task {
     }
     catch(IOException ie)
     {
-      System.out.println("WARNING: An error occured while loading EMMA " +
+      System.out.println("WARNING: An error occurred while loading EMMA " +
           "data. Report will not contain any coverage information.");
     }
 
@@ -181,7 +181,7 @@ public class CoverageDiff extends Task {
     }
     catch(IOException ie)
     {
-      System.out.println("ERROR: An error occured while processing diff output: " + ie.toString() + " Quitting...");
+      System.out.println("ERROR: An error occurred while processing diff output: " + ie.toString() + " Quitting...");
       return;
     }
     System.out.println("Coverage diff completed in " + (System.currentTimeMillis() - start) + " ms.");
@@ -512,7 +512,7 @@ public class CoverageDiff extends Task {
 
     if(workingCopyFlag == null || otherCopyFlag == null)
     {
-      throw new IOException("Error occured while parsing diff output");
+      throw new IOException("Error occurred while parsing diff output");
     }
     else
     {

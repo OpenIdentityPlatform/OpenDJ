@@ -26,28 +26,21 @@
  */
 package org.opends.server.backends.jeb;
 
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.CursorConfig;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.Transaction;
+import com.sleepycat.je.*;
 
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+
+import java.util.Comparator;
 
 /**
  * This class represents the DN database, or dn2id, which has one record
  * for each entry.  The key is the normalized entry DN and the value
  * is the entry ID.
  */
-public class DN2ID
+public class DN2ID extends DatabaseContainer
 {
   /**
    * The tracer object for the debug logger.
@@ -55,76 +48,46 @@ public class DN2ID
   private static final DebugTracer TRACER = getTracer();
 
   /**
-   * The database entryContainer.
+   * The key comparator used for the DN database.
    */
-  private EntryContainer entryContainer;
-
-  /**
-   * The JE database configuration.
-   */
-  private DatabaseConfig dbConfig;
-
-  /**
-   * The name of the database within the entryContainer.
-   */
-  private String name;
-
-  /**
-   * A cached per-thread JE database handle.
-   */
-  private ThreadLocal<Database> threadLocalDatabase =
-       new ThreadLocal<Database>();
+  private Comparator<byte[]> dn2idComparator;
 
   /**
    * Create a DN2ID instance for the DN database in a given entryContainer.
    *
+   * @param name The name of the DN database.
+   * @param env The JE environment.
    * @param entryContainer The entryContainer of the DN database.
-   * @param dbConfig The JE database configuration which will be used to
-   * open the database.
-   * @param name The name of the DN database ("dn2id").
-   */
-  public DN2ID(EntryContainer entryContainer, DatabaseConfig dbConfig,
-               String name)
-  {
-    this.entryContainer = entryContainer;
-    this.dbConfig = dbConfig.cloneConfig();
-    this.name = name;
-  }
-
-  /**
-   * Open the DN database.
-   *
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public void open() throws DatabaseException
+  DN2ID(String name, Environment env, EntryContainer entryContainer)
+      throws DatabaseException
   {
-    getDatabase();
-  }
+    super(name, env, entryContainer);
 
-  /**
-   * Get a handle to the database. It returns a per-thread handle to avoid
-   * any thread contention on the database handle. The entryContainer is
-   * responsible for closing all handles.
-   *
-   * @return A database handle.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  private Database getDatabase() throws DatabaseException
-  {
-    Database database = threadLocalDatabase.get();
-    if (database == null)
+    dn2idComparator = new EntryContainer.KeyReverseComparator();
+    DatabaseConfig dn2idConfig = new DatabaseConfig();
+
+    if(env.getConfig().getReadOnly())
     {
-      database = entryContainer.openDatabase(dbConfig, name);
-      threadLocalDatabase.set(database);
-
-      if(debugEnabled())
-      {
-        TRACER.debugInfo("JE DN2ID database %s opened with %d records.",
-                  database.getDatabaseName(), database.count());
-      }
+      dn2idConfig.setReadOnly(true);
+      dn2idConfig.setAllowCreate(false);
+      dn2idConfig.setTransactional(false);
     }
-    return database;
+    else if(!env.getConfig().getTransactional())
+    {
+      dn2idConfig.setAllowCreate(true);
+      dn2idConfig.setTransactional(false);
+      dn2idConfig.setDeferredWrite(true);
+    }
+    else
+    {
+      dn2idConfig.setAllowCreate(true);
+      dn2idConfig.setTransactional(true);
+    }
+
+    this.dbConfig = dn2idConfig;
+    this.dbConfig.setBtreeComparator(dn2idComparator.getClass());
   }
 
   /**
@@ -157,7 +120,7 @@ public class DN2ID
 
     OperationStatus status;
 
-    status = EntryContainer.insert(getDatabase(), txn, key, data);
+    status = insert(txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -184,7 +147,7 @@ public class DN2ID
     DatabaseEntry data = id.getDatabaseEntry();
 
     OperationStatus status;
-    status = EntryContainer.put(getDatabase(), txn, key, data);
+    status = put(txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -207,7 +170,7 @@ public class DN2ID
        throws DatabaseException
   {
     OperationStatus status;
-    status = EntryContainer.put(getDatabase(), txn, key, data);
+    status = put(txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -229,7 +192,7 @@ public class DN2ID
   {
     DatabaseEntry key = DNdata(dn);
 
-    OperationStatus status = EntryContainer.delete(getDatabase(), txn, key);
+    OperationStatus status = delete(txn, key);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -252,8 +215,7 @@ public class DN2ID
     DatabaseEntry data = new DatabaseEntry();
 
     OperationStatus status;
-    status = EntryContainer.read(getDatabase(), txn, key, data,
-                                 LockMode.DEFAULT);
+    status = read(txn, key, data, LockMode.DEFAULT);
     if (status != OperationStatus.SUCCESS)
     {
       return null;
@@ -262,93 +224,12 @@ public class DN2ID
   }
 
   /**
-   * Open a JE cursor on the DN database.
-   * @param txn A JE database transaction to be used by the cursor,
-   * or null if none.
-   * @param cursorConfig The JE cursor configuration.
-   * @return A JE cursor.
-   * @throws DatabaseException If an error occurs while attempting to open
-   * the cursor.
-   */
-  public Cursor openCursor(Transaction txn, CursorConfig cursorConfig)
-       throws DatabaseException
-  {
-    return getDatabase().openCursor(txn, cursorConfig);
-  }
-
-  /**
-   * Removes all records from the database.
-   * @param txn A JE database transaction to be used during the clear operation
-   *            or null if not required. Using transactions increases the chance
-   *            of lock contention.
-   * @return The number of records removed.
-   * @throws DatabaseException If an error occurs while cleaning the database.
-   */
-  public long clear(Transaction txn) throws DatabaseException
-  {
-    long deletedCount = 0;
-    Cursor cursor = openCursor(txn, null);
-    try
-    {
-      if(debugEnabled())
-      {
-        TRACER.debugVerbose("%d existing records will be deleted from the " +
-            "database", getRecordCount());
-      }
-      DatabaseEntry data = new DatabaseEntry();
-      DatabaseEntry key = new DatabaseEntry();
-
-      OperationStatus status;
-
-      // Step forward until we deleted all records.
-      for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
-           status == OperationStatus.SUCCESS;
-           status = cursor.getNext(key, data, LockMode.DEFAULT))
-      {
-        cursor.delete();
-        deletedCount++;
-      }
-      if(debugEnabled())
-      {
-        TRACER.debugVerbose("%d records deleted", deletedCount);
-      }
-    }
-    catch(DatabaseException de)
-    {
-      if(debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-
-      throw de;
-    }
-    finally
-    {
-      cursor.close();
-    }
-
-    return deletedCount;
-  }
-
-  /**
-   * Get the count of the number of entries stored.
+   * Gets the comparator for records stored in this database.
    *
-   * @return The number of entries stored.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
+   * @return The comparator for records stored in this database.
    */
-  public long getRecordCount() throws DatabaseException
+  public Comparator<byte[]> getComparator()
   {
-    return EntryContainer.count(getDatabase());
+    return dn2idComparator;
   }
-
-  /**
-   * Get a string representation of this object.
-   * @return return A string representation of this object.
-   */
-  public String toString()
-  {
-    return name;
-  }
-
 }

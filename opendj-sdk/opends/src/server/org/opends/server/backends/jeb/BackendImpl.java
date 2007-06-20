@@ -27,12 +27,13 @@
 package org.opends.server.backends.jeb;
 
 import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.util.Arrays;
@@ -41,6 +42,7 @@ import java.util.zip.Adler32;
 import java.util.zip.CheckedInputStream;
 
 import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.EnvironmentConfig;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
@@ -53,6 +55,8 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.Validator;
+import org.opends.server.util.StaticUtils;
+import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -71,8 +75,8 @@ import org.opends.server.admin.Configuration;
  * locally in a Sleepycat JE database.
  */
 public class BackendImpl
-     extends Backend
-     implements ConfigurationChangeListener<JEBackendCfg>
+    extends Backend
+    implements ConfigurationChangeListener<JEBackendCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -83,7 +87,6 @@ public class BackendImpl
   /**
    * The configuration of this JE backend.
    */
-  private Config config;
   private JEBackendCfg cfg;
 
   /**
@@ -105,7 +108,7 @@ public class BackendImpl
    * A list of monitor providers created for this backend instance.
    */
   private ArrayList<MonitorProvider> monitorProviders =
-       new ArrayList<MonitorProvider>();
+      new ArrayList<MonitorProvider>();
 
   /**
    * The controls supported by this backend.
@@ -193,20 +196,25 @@ public class BackendImpl
     }
   }
 
- /**
-  * This method will attempt to checksum the current JE db environment by
-  * computing the Adler-32 checksum on the latest JE log file available.
-  *
-  * @return  The checksum of JE db environment or zero if checksum failed.
-  */
+  /**
+   * This method will attempt to checksum the current JE db environment by
+   * computing the Adler-32 checksum on the latest JE log file available.
+   *
+   * @return  The checksum of JE db environment or zero if checksum failed.
+   */
   private long checksumDbEnv() {
 
-    List<File> jdbFiles =
-     Arrays.asList(config.getBackendDirectory().listFiles(new FilenameFilter() {
-      public boolean accept(File dir, String name) {
-        return name.endsWith(".jdb");
-      }
-    }));
+    File backendDirectory = getFileForPath(cfg.getBackendDirectory());
+    List<File> jdbFiles = new ArrayList<File>();
+    if(backendDirectory.isDirectory())
+    {
+      jdbFiles =
+          Arrays.asList(backendDirectory.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+              return name.endsWith(".jdb");
+            }
+          }));
+    }
 
     if ( !jdbFiles.isEmpty() ) {
       Collections.sort(jdbFiles, Collections.reverseOrder());
@@ -274,17 +282,12 @@ public class BackendImpl
    * {@inheritDoc}
    */
   public void configureBackend(Configuration cfg)
-       throws ConfigException
+      throws ConfigException
   {
     Validator.ensureNotNull(cfg);
     Validator.ensureTrue(cfg instanceof JEBackendCfg);
 
-    // Initialize a config object
-    Config config = new Config();
-    config.initializeConfig((JEBackendCfg)cfg);
-
     this.cfg = (JEBackendCfg)cfg;
-    this.config = config;
   }
 
 
@@ -293,46 +296,22 @@ public class BackendImpl
    * {@inheritDoc}
    */
   public void initializeBackend()
-       throws ConfigException, InitializationException
+      throws ConfigException, InitializationException
   {
     // Checksum this db environment and register its offline state id/checksum.
     DirectoryServer.registerOfflineBackendStateID(this.getBackendID(),
-      checksumDbEnv());
+                                                  checksumDbEnv());
 
-    // Open the database environment
-    try {
-      rootContainer = new RootContainer(config, this);
-      rootContainer.open();
-    }
-    catch (DatabaseException e)
+    if(rootContainer == null)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      String message = getMessage(MSGID_JEB_OPEN_ENV_FAIL,
-                                  e.getMessage());
-      throw new InitializationException(MSGID_JEB_OPEN_ENV_FAIL, message, e);
-    }
+      EnvironmentConfig envConfig =
+          ConfigurableEnvironment.parseConfigEntry(cfg);
 
-    try
-    {
-      rootContainer.openEntryContainers(config.getBaseDNs());
-    }
-    catch (DatabaseException databaseException)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, databaseException);
-      }
-      String message = getMessage(MSGID_JEB_OPEN_DATABASE_FAIL,
-                                  databaseException.getMessage());
-      throw new InitializationException(MSGID_JEB_OPEN_DATABASE_FAIL, message,
-                                        databaseException);
+      initializeRootContainer(envConfig);
     }
 
     // Preload the database cache.
-    rootContainer.preload();
+    rootContainer.preload(cfg.getBackendPreloadTimeLimit());
 
     try
     {
@@ -355,7 +334,7 @@ public class BackendImpl
                                         message, databaseException);
     }
 
-    for (DN dn : config.getBaseDNs())
+    for (DN dn : cfg.getBackendBaseDN())
     {
       try
       {
@@ -383,8 +362,6 @@ public class BackendImpl
 
     // Register this backend as a change listener.
     cfg.addJEChangeListener(this);
-    cfg.addJEChangeListener(config);
-    cfg.addJEChangeListener(rootContainer);
   }
 
   /**
@@ -399,8 +376,6 @@ public class BackendImpl
   public void finalizeBackend()
   {
     // Deregister as a change listener.
-    cfg.removeJEChangeListener(rootContainer);
-    cfg.removeJEChangeListener(config);
     cfg.removeJEChangeListener(this);
 
     // Deregister our base DNs.
@@ -589,7 +564,9 @@ public class BackendImpl
    */
   public DN[] getBaseDNs()
   {
-    return config.getBaseDNs();
+    Set<DN> dnSet = cfg.getBackendBaseDN();
+    DN[] baseDNs = new DN[dnSet.size()];
+    return dnSet.toArray(baseDNs);
   }
 
 
@@ -632,42 +609,41 @@ public class BackendImpl
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
     readerBegin();
+    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+    ec.sharedLock.lock();
+    Entry entry;
     try
     {
-      EntryContainer ec = rootContainer.getEntryContainer(entryDN);
-      Entry entry;
-      try
+      entry = ec.getEntry(entryDN);
+    }
+    catch (DatabaseException e)
+    {
+      if (debugEnabled())
       {
-        entry = ec.getEntry(entryDN);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (DatabaseException e)
+      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
+                                  e.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+    }
+    catch (JebException e)
+    {
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                    e.getMessage());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, MSGID_JEB_DATABASE_EXCEPTION);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (JebException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     e.getMessage(),
-                                     e.getMessageID());
-      }
-
-      return entry;
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   e.getMessage(),
+                                   e.getMessageID());
     }
     finally
     {
+      ec.sharedLock.unlock();
       readerEnd();
     }
+
+    return entry;
   }
 
 
@@ -685,42 +661,40 @@ public class BackendImpl
    *                            entry.
    */
   public void addEntry(Entry entry, AddOperation addOperation)
-       throws DirectoryException
+      throws DirectoryException
   {
     writerBegin();
+    DN entryDN = entry.getDN();
+    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+    ec.sharedLock.lock();
     try
     {
-      DN entryDN = entry.getDN();
-      EntryContainer ec = rootContainer.getEntryContainer(entryDN);
-
-      try
+      ec.addEntry(entry, addOperation);
+    }
+    catch (DatabaseException e)
+    {
+      if (debugEnabled())
       {
-        ec.addEntry(entry, addOperation);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (DatabaseException e)
+      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
+                                  e.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+    }
+    catch (JebException e)
+    {
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                    e.getMessage());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, MSGID_JEB_DATABASE_EXCEPTION);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (JebException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     e.getMessage(),
-                                     e.getMessageID());
-      }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   e.getMessage(),
+                                   e.getMessageID());
     }
     finally
     {
+      ec.sharedLock.unlock();
       writerEnd();
     }
   }
@@ -741,40 +715,40 @@ public class BackendImpl
    *                            entry.
    */
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
-       throws DirectoryException
+      throws DirectoryException
   {
     writerBegin();
+
+    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+    ec.sharedLock.lock();
     try
     {
-      EntryContainer ec = rootContainer.getEntryContainer(entryDN);
-      try
+      ec.deleteEntry(entryDN, deleteOperation);
+    }
+    catch (DatabaseException e)
+    {
+      if (debugEnabled())
       {
-        ec.deleteEntry(entryDN, deleteOperation);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (DatabaseException e)
+      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
+                                  e.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+    }
+    catch (JebException e)
+    {
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                    e.getMessage());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, MSGID_JEB_DATABASE_EXCEPTION);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (JebException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     e.getMessage(),
-                                     e.getMessageID());
-      }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   e.getMessage(),
+                                   e.getMessageID());
     }
     finally
     {
+      ec.sharedLock.unlock();
       writerEnd();
     }
   }
@@ -795,42 +769,42 @@ public class BackendImpl
    *                            entry.
    */
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
-       throws DirectoryException
+      throws DirectoryException
   {
     writerBegin();
+
+    DN entryDN = entry.getDN();
+    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
+    ec.sharedLock.lock();
+
     try
     {
-      DN entryDN = entry.getDN();
-      EntryContainer ec = rootContainer.getEntryContainer(entryDN);
-
-      try
+      ec.replaceEntry(entry, modifyOperation);
+    }
+    catch (DatabaseException e)
+    {
+      if (debugEnabled())
       {
-        ec.replaceEntry(entry, modifyOperation);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (DatabaseException e)
+      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
+                                  e.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+    }
+    catch (JebException e)
+    {
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                    e.getMessage());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, MSGID_JEB_DATABASE_EXCEPTION);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (JebException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     e.getMessage(),
-                                     e.getMessageID());
-      }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   e.getMessage(),
+                                   e.getMessageID());
     }
     finally
     {
+      ec.sharedLock.unlock();
       writerEnd();
     }
   }
@@ -857,24 +831,25 @@ public class BackendImpl
    */
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
-       throws DirectoryException, CancelledOperationException
+      throws DirectoryException, CancelledOperationException
   {
     writerBegin();
+    EntryContainer currentContainer = rootContainer.getEntryContainer(
+        currentDN);
+    EntryContainer container = rootContainer.getEntryContainer(entry.getDN());
+
+    if (currentContainer != container)
+    {
+      // FIXME: No reason why we cannot implement a move between containers
+      // since the containers share the same database environment.
+      int msgID = MSGID_JEB_FUNCTION_NOT_SUPPORTED;
+      String msg = getMessage(MSGID_JEB_FUNCTION_NOT_SUPPORTED);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                   msg, msgID);
+    }
     try
     {
-      EntryContainer currentContainer = rootContainer.getEntryContainer(
-          currentDN);
-      EntryContainer container = rootContainer.getEntryContainer(entry.getDN());
-
-      if (currentContainer != container)
-      {
-        // FIXME: No reason why we cannot implement a move between containers
-        // since the containers share the same database environment.
-        int msgID = MSGID_JEB_FUNCTION_NOT_SUPPORTED;
-        String msg = getMessage(MSGID_JEB_FUNCTION_NOT_SUPPORTED);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                     msg, msgID);
-      }
+      currentContainer.sharedLock.lock();
 
       currentContainer.renameEntry(currentDN, entry, modifyDNOperation);
     }
@@ -900,6 +875,7 @@ public class BackendImpl
     }
     finally
     {
+      currentContainer.sharedLock.unlock();
       writerEnd();
     }
   }
@@ -916,13 +892,15 @@ public class BackendImpl
    *          If a problem occurs while processing the search.
    */
   public void search(SearchOperation searchOperation)
-       throws DirectoryException
+      throws DirectoryException
   {
     readerBegin();
+    EntryContainer ec = rootContainer.getEntryContainer(
+        searchOperation.getBaseDN());
+    ec.sharedLock.lock();
+
     try
     {
-      EntryContainer ec = rootContainer.getEntryContainer(
-          searchOperation.getBaseDN());
       ec.search(searchOperation);
     }
     catch (DatabaseException e)
@@ -937,6 +915,7 @@ public class BackendImpl
     }
     finally
     {
+      ec.sharedLock.unlock();
       readerEnd();
     }
   }
@@ -947,7 +926,7 @@ public class BackendImpl
    * {@inheritDoc}
    */
   public void exportLDIF(LDIFExportConfig exportConfig)
-       throws DirectoryException
+      throws DirectoryException
   {
     // If the backend already has the root container open, we must use the same
     // underlying root container
@@ -955,15 +934,21 @@ public class BackendImpl
 
     try
     {
-      if (openRootContainer)
+      if(openRootContainer)
       {
-        // Open the database environment
-        rootContainer = new RootContainer(config, this);
-        rootContainer.open(config.getBackendDirectory(),
-                           config.getBackendPermission(),
-                           true, false, false, false, true, true);
-        rootContainer.openEntryContainers(config.getBaseDNs());
+        EnvironmentConfig envConfig =
+            ConfigurableEnvironment.parseConfigEntry(cfg);
+
+        envConfig.setReadOnly(true);
+        envConfig.setAllowCreate(false);
+        envConfig.setTransactional(false);
+        envConfig.setTxnNoSync(false);
+        envConfig.setConfigParam("je.env.isLocking", "true");
+        envConfig.setConfigParam("je.env.runCheckpointer", "true");
+
+        initializeRootContainer(envConfig);
       }
+
 
       ExportJob exportJob = new ExportJob(exportConfig);
       exportJob.exportLDIF(rootContainer);
@@ -1010,6 +995,26 @@ public class BackendImpl
                                    e.getMessage(),
                                    e.getMessageID());
     }
+    catch (InitializationException ie)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
+      }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   ie.getMessage(),
+                                   ie.getMessageID());
+    }
+    catch (ConfigException ce)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
+      }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   ce.getMessage(),
+                                   ce.getMessageID());
+    }
     finally
     {
       //If a root container was opened in this method as read only, close it
@@ -1038,12 +1043,63 @@ public class BackendImpl
    * {@inheritDoc}
    */
   public void importLDIF(LDIFImportConfig importConfig)
-       throws DirectoryException
+      throws DirectoryException
   {
+    // If the backend already has the root container open, we must use the same
+    // underlying root container
+    boolean openRootContainer = rootContainer == null;
+
+    // If the rootContainer is open, the backend is initialized by something
+    // else.
+    // We can't do import while the backend is online.
+    if(!openRootContainer)
+    {
+      String message = getMessage(MSGID_JEB_IMPORT_BACKEND_ONLINE);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, MSGID_JEB_IMPORT_BACKEND_ONLINE);
+    }
+
     try
     {
-      ImportJob importJob = new ImportJob(this, config, importConfig);
-      importJob.importLDIF();
+      EnvironmentConfig envConfig =
+          ConfigurableEnvironment.parseConfigEntry(cfg);
+      /**
+       envConfig.setConfigParam("je.env.runCleaner", "false");
+       envConfig.setConfigParam("je.log.numBuffers", "2");
+       envConfig.setConfigParam("je.log.bufferSize", "15000000");
+       envConfig.setConfigParam("je.log.totalBufferBytes", "30000000");
+       envConfig.setConfigParam("je.log.fileMax", "100000000");
+       **/
+
+      if (importConfig.appendToExistingData())
+      {
+        envConfig.setReadOnly(false);
+        envConfig.setAllowCreate(true);
+        envConfig.setTransactional(true);
+        envConfig.setTxnNoSync(true);
+        envConfig.setConfigParam("je.env.isLocking", "true");
+        envConfig.setConfigParam("je.env.runCheckpointer", "false");
+      }
+      else
+      {
+        // We have the writer lock on the environment, now delete the
+        // environment and re-open it. Only do this when we are
+        // importing to all the base DNs in the backend.
+
+        File backendDirectory = getFileForPath(cfg.getBackendDirectory());
+        EnvManager.removeFiles(backendDirectory.getPath());
+        envConfig.setReadOnly(false);
+        envConfig.setAllowCreate(true);
+        envConfig.setTransactional(false);
+        envConfig.setTxnNoSync(false);
+        envConfig.setConfigParam("je.env.isLocking", "false");
+        envConfig.setConfigParam("je.env.runCheckpointer", "false");
+      }
+
+      initializeRootContainer(envConfig);
+
+      ImportJob importJob = new ImportJob(importConfig);
+      importJob.importLDIF(rootContainer);
     }
     catch (IOException ioe)
     {
@@ -1077,6 +1133,48 @@ public class BackendImpl
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, MSGID_JEB_DATABASE_EXCEPTION);
     }
+    catch (InitializationException ie)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
+      }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   ie.getMessage(),
+                                   ie.getMessageID());
+    }
+    catch (ConfigException ce)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
+      }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   ce.getMessage(),
+                                   ce.getMessageID());
+    }
+    finally
+    {
+      // leave the backend in the same state.
+      try
+      {
+        rootContainer.close();
+        rootContainer = null;
+
+        // Sync the environment to disk.
+        int msgID = MSGID_JEB_IMPORT_CLOSING_DATABASE;
+        String message = getMessage(msgID);
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
+                 message, msgID);
+      }
+      catch (DatabaseException de)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
+      }
+    }
   }
 
 
@@ -1093,7 +1191,7 @@ public class BackendImpl
    * @throws DirectoryException If a Directory Server error occurs.
    */
   public void verifyBackend(VerifyConfig verifyConfig, Entry statEntry)
-       throws InitializationException, ConfigException, DirectoryException
+      throws InitializationException, ConfigException, DirectoryException
   {
     // If the backend already has the root container open, we must use the same
     // underlying root container
@@ -1101,17 +1199,22 @@ public class BackendImpl
 
     try
     {
-      if (openRootContainer)
+      if(openRootContainer)
       {
-        // Open the database environment
-        rootContainer = new RootContainer(config, this);
-        rootContainer.open(config.getBackendDirectory(),
-                           config.getBackendPermission(),
-                           true, false, false, false, true, true);
-        rootContainer.openEntryContainers(config.getBaseDNs());
+        EnvironmentConfig envConfig =
+            ConfigurableEnvironment.parseConfigEntry(cfg);
+
+        envConfig.setReadOnly(true);
+        envConfig.setAllowCreate(false);
+        envConfig.setTransactional(false);
+        envConfig.setTxnNoSync(false);
+        envConfig.setConfigParam("je.env.isLocking", "true");
+        envConfig.setConfigParam("je.env.runCheckpointer", "true");
+
+        initializeRootContainer(envConfig);
       }
 
-      VerifyJob verifyJob = new VerifyJob(config, verifyConfig);
+      VerifyJob verifyJob = new VerifyJob(verifyConfig);
       verifyJob.verifyBackend(rootContainer, statEntry);
     }
     catch (DatabaseException e)
@@ -1170,7 +1273,7 @@ public class BackendImpl
    * @throws DirectoryException If a Directory Server error occurs.
    */
   public void rebuildBackend(RebuildConfig rebuildConfig)
-       throws InitializationException, ConfigException, DirectoryException
+      throws InitializationException, ConfigException, DirectoryException
   {
     // If the backend already has the root container open, we must use the same
     // underlying root container
@@ -1191,10 +1294,10 @@ public class BackendImpl
     {
       if (openRootContainer)
       {
-        // Open the database environment
-        rootContainer = new RootContainer(config, this);
-        rootContainer.open();
-        rootContainer.openEntryContainers(config.getBaseDNs());
+        EnvironmentConfig envConfig =
+            ConfigurableEnvironment.parseConfigEntry(cfg);
+
+        initializeRootContainer(envConfig);
       }
 
       RebuildJob rebuildJob = new RebuildJob(rebuildConfig);
@@ -1249,10 +1352,10 @@ public class BackendImpl
    * {@inheritDoc}
    */
   public void createBackup(BackupConfig backupConfig)
-       throws DirectoryException
+      throws DirectoryException
   {
     BackupManager backupManager =
-         new BackupManager(getBackendID());
+        new BackupManager(getBackendID());
     backupManager.createBackup(cfg, backupConfig);
   }
 
@@ -1262,10 +1365,10 @@ public class BackendImpl
    * {@inheritDoc}
    */
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
-       throws DirectoryException
+      throws DirectoryException
   {
     BackupManager backupManager =
-         new BackupManager(getBackendID());
+        new BackupManager(getBackendID());
     backupManager.removeBackup(backupDirectory, backupID);
   }
 
@@ -1275,10 +1378,10 @@ public class BackendImpl
    * {@inheritDoc}
    */
   public void restoreBackup(RestoreConfig restoreConfig)
-       throws DirectoryException
+      throws DirectoryException
   {
     BackupManager backupManager =
-         new BackupManager(getBackendID());
+        new BackupManager(getBackendID());
     backupManager.restoreBackup(cfg, restoreConfig);
   }
 
@@ -1288,11 +1391,12 @@ public class BackendImpl
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-       JEBackendCfg cfg,
-       List<String> unacceptableReasons)
+      JEBackendCfg cfg,
+      List<String> unacceptableReasons)
   {
     // This listener handles only the changes to the base DNs.
     // The base DNs are checked by the backend config manager.
+
     return true;
   }
 
@@ -1301,74 +1405,73 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(JEBackendCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(JEBackendCfg newCfg)
   {
     ConfigChangeResult ccr;
     ResultCode resultCode = ResultCode.SUCCESS;
     ArrayList<String> messages = new ArrayList<String>();
 
+
     try
     {
-      DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
-      baseDNs = cfg.getBackendBaseDN().toArray(baseDNs);
-
-      // Check for changes to the base DNs.
-      for (DN baseDN : config.getBaseDNs())
+      if(rootContainer != null)
       {
-        boolean found = false;
-        for (DN dn : baseDNs)
-        {
-          if (dn.equals(baseDN))
-          {
-            found = true;
-          }
-        }
-        if (!found)
-        {
-          // The base DN was deleted.
-          // FIXME This is not thread-safe.
-          // Even though access to the entry container map is safe, there may be
-          // operation threads with a handle on the entry container being
-          // closed.
-          DirectoryServer.deregisterBaseDN(baseDN, false);
-          rootContainer.removeEntryContainer(baseDN);
-        }
-      }
+        DN[] baseDNs = new DN[newCfg.getBackendBaseDN().size()];
+        baseDNs = newCfg.getBackendBaseDN().toArray(baseDNs);
 
-      for (DN baseDN : baseDNs)
-      {
-        if (!rootContainer.getBaseDNs().contains(baseDN))
+        // Check for changes to the base DNs.
+        for (DN baseDN : cfg.getBackendBaseDN())
         {
-          try
+          boolean found = false;
+          for (DN dn : baseDNs)
           {
-            // The base DN was added.
-            rootContainer.openEntryContainer(baseDN);
-            DirectoryServer.registerBaseDN(baseDN, this, false, false);
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
+            if (dn.equals(baseDN))
             {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              found = true;
             }
+          }
+          if (!found)
+          {
+            // The base DN was deleted.
+            DirectoryServer.deregisterBaseDN(baseDN, false);
+            rootContainer.removeEntryContainer(baseDN);
+          }
+        }
 
-            resultCode = DirectoryServer.getServerErrorResultCode();
+        for (DN baseDN : baseDNs)
+        {
+          if (!rootContainer.getBaseDNs().contains(baseDN))
+          {
+            try
+            {
+              // The base DN was added.
+              rootContainer.openEntryContainer(baseDN);
+              DirectoryServer.registerBaseDN(baseDN, this, false, false);
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
 
-            int msgID   = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
-            messages.add(getMessage(msgID, String.valueOf(baseDN),
-                                    String.valueOf(e)));
-            ccr = new ConfigChangeResult(resultCode, false, messages);
-            return ccr;
+              resultCode = DirectoryServer.getServerErrorResultCode();
+
+              int msgID   = MSGID_BACKEND_CANNOT_REGISTER_BASEDN;
+              messages.add(getMessage(msgID, String.valueOf(baseDN),
+                                      String.valueOf(e)));
+              ccr = new ConfigChangeResult(resultCode, false, messages);
+              return ccr;
+            }
           }
         }
       }
-
       // Put the new configuration in place.
-      this.cfg = cfg;
+      this.cfg = newCfg;
     }
     catch (Exception e)
     {
-      messages.add(e.getMessage());
+      messages.add(StaticUtils.stackTraceToSingleLineString(e));
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    false, messages);
       return ccr;
@@ -1399,10 +1502,31 @@ public class BackendImpl
    * @throws  JebException     If an error occurs while removing the data.
    */
   public void clearBackend()
-       throws ConfigException, JebException
+      throws ConfigException, JebException
   {
-    EnvManager.removeFiles(config.getBackendDirectory().getPath());
+    // Determine the backend database directory.
+    File backendDirectory = getFileForPath(cfg.getBackendDirectory());
+    EnvManager.removeFiles(backendDirectory.getPath());
   }
 
-
+  private void initializeRootContainer(EnvironmentConfig envConfig)
+      throws ConfigException, InitializationException
+  {
+    // Open the database environment
+    try
+    {
+      rootContainer = new RootContainer(this, cfg);
+      rootContainer.open(envConfig);
+    }
+    catch (DatabaseException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      String message = getMessage(MSGID_JEB_OPEN_ENV_FAIL,
+                                  e.getMessage());
+      throw new InitializationException(MSGID_JEB_OPEN_ENV_FAIL, message, e);
+    }
+  }
 }

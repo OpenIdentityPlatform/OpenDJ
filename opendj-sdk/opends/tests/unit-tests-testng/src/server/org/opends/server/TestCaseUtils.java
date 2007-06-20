@@ -180,7 +180,7 @@ public final class TestCaseUtils {
     String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
                                 "config", "db", "db_verify", "ldif", "lib",
                                 "locks", "logs", "db_rebuild", "db_unindexed",
-                                "db_index_test" };
+                                "db_index_test", "db_import_test"};
     for (String s : subDirectories)
     {
       new File(testRoot, s).mkdir();

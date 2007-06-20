@@ -57,10 +57,10 @@ public class OrderingIndexer extends Indexer
 
 
   /**
-   * The attribute index configuration for which this instance will
+   * The attribute type for which this instance will
    * generate index keys.
    */
-  private IndexConfig indexConfig;
+  private AttributeType attributeType;
 
   /**
    * The attribute type ordering matching rule which is also the
@@ -71,13 +71,13 @@ public class OrderingIndexer extends Indexer
 
   /**
    * Create a new attribute ordering indexer for the given index configuration.
-   * @param indexConfig The index configuration for which an indexer is
+   * @param attributeType The attribute type for which an indexer is
    * required.
    */
-  public OrderingIndexer(IndexConfig indexConfig)
+  public OrderingIndexer(AttributeType attributeType)
   {
-    this.indexConfig = indexConfig;
-    orderingRule = indexConfig.getAttributeType().getOrderingMatchingRule();
+    this.attributeType = attributeType;
+    this.orderingRule = attributeType.getOrderingMatchingRule();
   }
 
   /**
@@ -87,7 +87,7 @@ public class OrderingIndexer extends Indexer
    */
   public String toString()
   {
-    return indexConfig.getAttributeType().getNameOrOID() + ".ordering";
+    return attributeType.getNameOrOID() + ".ordering";
   }
 
   /**
@@ -113,7 +113,7 @@ public class OrderingIndexer extends Indexer
                        Set<ASN1OctetString> keys)
   {
     List<Attribute> attrList =
-         entry.getAttribute(indexConfig.getAttributeType());
+         entry.getAttribute(attributeType);
     if (attrList != null)
     {
       indexAttribute(attrList, keys);
@@ -138,11 +138,11 @@ public class OrderingIndexer extends Indexer
   {
     List<Attribute> attrList;
 
-    attrList = oldEntry.getAttribute(indexConfig.getAttributeType());
+    attrList = oldEntry.getAttribute(attributeType);
     Set<ASN1OctetString> oldSet = new HashSet<ASN1OctetString>();
     indexAttribute(attrList, oldSet);
 
-    attrList = newEntry.getAttribute(indexConfig.getAttributeType());
+    attrList = newEntry.getAttribute(attributeType);
     Set<ASN1OctetString> newSet = new HashSet<ASN1OctetString>();
     indexAttribute(attrList, newSet);
 
@@ -181,7 +181,7 @@ public class OrderingIndexer extends Indexer
        throws DatabaseException
   {
     List<Attribute> beforeList;
-    beforeList = oldEntry.getAttribute(indexConfig.getAttributeType());
+    beforeList = oldEntry.getAttribute(attributeType);
 
     // Pick out the modifications that apply to this indexed attribute
 
@@ -203,7 +203,7 @@ public class OrderingIndexer extends Indexer
     {
       Attribute modAttr = mod.getAttribute();
       AttributeType modAttrType = modAttr.getAttributeType();
-      if (modAttrType.equals(indexConfig.getAttributeType()))
+      if (modAttrType.equals(attributeType))
       {
         switch (mod.getModificationType())
         {

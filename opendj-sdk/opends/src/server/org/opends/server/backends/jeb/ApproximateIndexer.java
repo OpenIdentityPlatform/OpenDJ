@@ -58,22 +58,21 @@ public class ApproximateIndexer extends Indexer
   private ApproximateMatchingRule approximateRule;
 
     /**
-   * The attribute index configuration for which this instance will
+   * The attribute type for which this instance will
    * generate index keys.
    */
-  private IndexConfig indexConfig;
+  private AttributeType attributeType;
 
   /**
    * Create a new attribute approximate indexer for the given index
    * configuration.
-   * @param indexConfig The index configuration for which an indexer is
+   * @param attributeType The attribute type for which an indexer is
    * required.
    */
-  public ApproximateIndexer(IndexConfig indexConfig)
+  public ApproximateIndexer(AttributeType attributeType)
   {
-    this.indexConfig = indexConfig;
-    approximateRule =
-        indexConfig.getAttributeType().getApproximateMatchingRule();
+    this.attributeType = attributeType;
+    this.approximateRule = attributeType.getApproximateMatchingRule();
   }
 
   /**
@@ -83,7 +82,7 @@ public class ApproximateIndexer extends Indexer
    */
   public String toString()
   {
-    return indexConfig.getAttributeType().getNameOrOID() + ".approximate";
+    return attributeType.getNameOrOID() + ".approximate";
   }
 
 
@@ -110,7 +109,7 @@ public class ApproximateIndexer extends Indexer
                        Set<ASN1OctetString> keys)
   {
     List<Attribute> attrList =
-         entry.getAttribute(indexConfig.getAttributeType());
+         entry.getAttribute(attributeType);
     if (attrList != null)
     {
       indexAttribute(attrList, keys);
@@ -135,11 +134,11 @@ public class ApproximateIndexer extends Indexer
   {
     List<Attribute> attrList;
 
-    attrList = oldEntry.getAttribute(indexConfig.getAttributeType());
+    attrList = oldEntry.getAttribute(attributeType);
     Set<ASN1OctetString> oldSet = new HashSet<ASN1OctetString>();
     indexAttribute(attrList, oldSet);
 
-    attrList = newEntry.getAttribute(indexConfig.getAttributeType());
+    attrList = newEntry.getAttribute(attributeType);
     Set<ASN1OctetString> newSet = new HashSet<ASN1OctetString>();
     indexAttribute(attrList, newSet);
 

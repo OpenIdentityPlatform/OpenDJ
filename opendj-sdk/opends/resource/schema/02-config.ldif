@@ -1279,6 +1279,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.379
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.380 NAME 'ds-sync-conflict'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   USAGE directoryOperation X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.382
+  NAME 'ds-cfg-index-substring-length'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
