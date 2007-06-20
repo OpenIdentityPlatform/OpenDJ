@@ -39,7 +39,7 @@ import static org.opends.server.messages.MessageHandler.*;
 public class LoggerMessages
 {
   /**
-   * The message ID for the message that will be used if an error occured
+   * The message ID for the message that will be used if an error occurred
    * while writing a log record.  This takes a two arguments, which
    * are the logger that encountered the error and  a string
    * representation of the exception that was caught.
@@ -50,7 +50,7 @@ public class LoggerMessages
 
 
   /**
-   * The message ID for the message that will be used if an error occured
+   * The message ID for the message that will be used if an error occurred
    * while opening a log file.  This takes a two arguments, which
    * are the logger that encountered the error and  a string
    * representation of the exception that was caught.
@@ -61,7 +61,7 @@ public class LoggerMessages
 
 
   /**
-   * The message ID for the message that will be used if an error occured
+   * The message ID for the message that will be used if an error occurred
    * while closing a log file.  This takes a two arguments, which
    * are the logger that encountered the error and  a string
    * representation of the exception that was caught.
@@ -72,7 +72,7 @@ public class LoggerMessages
 
 
   /**
-   * The message ID for the message that will be used if an error occured
+   * The message ID for the message that will be used if an error occurred
    * while flushing the writer buffer.  This takes a two arguments, which
    * are the logger that encountered the error and  a string
    * representation of the exception that was caught.
@@ -112,7 +112,7 @@ public class LoggerMessages
 
 
   /**
-   * The message ID for the message that will be used if an error occured
+   * The message ID for the message that will be used if an error occurred
    * while setting file permissions on a log file. This takes the name of the
    * file as the argument.
    */
@@ -138,15 +138,15 @@ public class LoggerMessages
   public static void registerMessages()
   {
     registerMessage(MSGID_LOGGER_ERROR_WRITING_RECORD,
-                    "Error occured while writing log record for logger " +
+                    "Error occurred while writing log record for logger " +
                     "%s: %s. Any further write errors will be ignored");
     registerMessage(MSGID_LOGGER_ERROR_OPENING_FILE,
-                    "Error occured while opening log file %s for logger %s: " +
+                    "Error occurred while opening log file %s for logger %s: " +
                     "%s");
     registerMessage(MSGID_LOGGER_ERROR_CLOSING_FILE,
-                    "Error occured while closing log file for logger %s: %s");
+                    "Error occurred while closing log file for logger %s: %s");
     registerMessage(MSGID_LOGGER_ERROR_FLUSHING_BUFFER,
-                    "Error occured while flushing writer buffer for " +
+                    "Error occurred while flushing writer buffer for " +
                     "logger %s: %s");
     registerMessage(MSGID_ERROR_LOGGER_INVALID_SEVERITY,
                     "Invalid error log severity \"%s\"");
@@ -155,7 +155,7 @@ public class LoggerMessages
     registerMessage(MSGID_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY,
                     "Invalid override of severity level \"%s\"");
     registerMessage(MSGID_LOGGER_SET_PERMISSION_FAILED,
-                    "Error occured while setting file permissions for the " +
+                    "Error occurred while setting file permissions for the " +
                     "log file %s: %s");
     registerMessage(MSGID_LOGGER_UNABLE_SET_PERMISSIONS,
                     "This platform does not support setting file " +

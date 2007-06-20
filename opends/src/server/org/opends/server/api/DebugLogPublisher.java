@@ -206,7 +206,7 @@ public abstract class DebugLogPublisher
 
 
   /**
-   * Determine whether a trace setting is alreadly defined for a
+   * Determine whether a trace setting is already defined for a
    * particular scope.
    *
    * @param  scope  The scope for which to make the determination.
@@ -510,7 +510,7 @@ public abstract class DebugLogPublisher
    * @param  key             The key to dump.
    * @param  data            The data to dump.
    * @param  stackTrace      The stack trace at the time the access
-   *                         occured or null if its not available.
+   *                         occurred or null if its not available.
    */
   public abstract void traceJEAccess(LogLevel level,
                                      TraceSettings settings,

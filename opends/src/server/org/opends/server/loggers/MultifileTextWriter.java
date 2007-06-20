@@ -563,7 +563,7 @@ public class MultifileTextWriter
   }
 
   /**
-   * Tries to rotate the log files. If the new log file alreadly exists, it
+   * Tries to rotate the log files. If the new log file already exists, it
    * tries to rename the file. On failure, all subsequent log write requests
    * will throw exceptions.
    */
@@ -660,9 +660,9 @@ public class MultifileTextWriter
   /**
    * Retrieves the last time a log file was rotated in this instance of
    * Directory Server. If a log rotation never
-   * occured, this value will be the time the server started.
+   * occurred, this value will be the time the server started.
    *
-   * @return The last time log rotation occured.
+   * @return The last time log rotation occurred.
    */
   public long getLastRotationTime()
   {
@@ -670,7 +670,7 @@ public class MultifileTextWriter
   }
 
   /**
-   * Retrieves the total number file rotations occured in this instance of the
+   * Retrieves the total number file rotations occurred in this instance of the
    * Directory Server.
    *
    * @return The total number of file rotations.

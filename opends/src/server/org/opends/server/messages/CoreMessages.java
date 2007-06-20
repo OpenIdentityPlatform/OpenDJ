@@ -8314,7 +8314,7 @@ public class CoreMessages
                     "An error occurred while trying to load class %s to use " +
                     "as the Directory Server work queue implementation:  %s");
     registerMessage(MSGID_WORKQ_CANNOT_INSTANTIATE,
-                    "An error occured while trying to create an instance " +
+                    "An error occurred while trying to create an instance " +
                     "of class %s to use as the Directory Server work queue:  " +
                     "%s");
     registerMessage(MSGID_BIND_MULTIPLE_USER_LOOKTHROUGH_LIMITS,

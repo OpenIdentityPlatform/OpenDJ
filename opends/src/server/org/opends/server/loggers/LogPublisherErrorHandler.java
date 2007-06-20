@@ -44,7 +44,7 @@ import java.io.File;
 public class LogPublisherErrorHandler
 {
   private DN publisherConfigDN;
-  private boolean writeErrorOccured = false;
+  private boolean writeErroroccurred = false;
 
   /**
    * Construct a new log publisher error handler for a log publisher
@@ -66,21 +66,21 @@ public class LogPublisherErrorHandler
    */
   public void handleWriteError(String record, Throwable ex)
   {
-    if(!writeErrorOccured)
+    if(!writeErroroccurred)
     {
       int msgID = MSGID_LOGGER_ERROR_WRITING_RECORD;
       String msg = getMessage(msgID, publisherConfigDN.toString(),
                               stackTraceToSingleLineString(ex));
       System.err.println(msg);
-      writeErrorOccured = true;
+      writeErroroccurred = true;
     }
   }
 
   /**
-   * Handle an exception which occured while trying to open a log
+   * Handle an exception which occurred while trying to open a log
    * file.
    * @param file - the file which was being opened.
-   * @param ex - the exception occured.
+   * @param ex - the exception occurred.
    */
   public void handleOpenError(File file, Throwable ex)
   {
@@ -92,9 +92,9 @@ public class LogPublisherErrorHandler
   }
 
   /**
-   * Handle an exception which occured while trying to close a log
+   * Handle an exception which occurred while trying to close a log
    * file.
-   * @param ex - the exception occured.
+   * @param ex - the exception occurred.
    */
   public void handleCloseError(Throwable ex)
   {
@@ -105,9 +105,9 @@ public class LogPublisherErrorHandler
   }
 
   /**
-   * Handle an exception which occured while trying to flush the
+   * Handle an exception which occurred while trying to flush the
    * writer buffer.
-   * @param ex - the exception occured.
+   * @param ex - the exception occurred.
    */
   public void handleFlushError(Throwable ex)
   {

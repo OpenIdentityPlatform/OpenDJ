@@ -609,7 +609,7 @@ public class Installation {
    * for backing up an installation during an upgrade.
    * @return File representing a new backup directory.  The directory
    * can be assumed to exist if this method returns cleanly.
-   * @throws IOException if an error occured creating the directory.
+   * @throws IOException if an error occurred creating the directory.
    */
   public File createHistoryBackupDirectory() throws IOException {
     File backupDirectory =

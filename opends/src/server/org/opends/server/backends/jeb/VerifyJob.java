@@ -61,7 +61,6 @@ import org.opends.server.util.ServerConstants;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -88,11 +87,6 @@ public class VerifyJob
    * The verify configuration.
    */
   private VerifyConfig verifyConfig;
-
-  /**
-   * The configuration of the JE backend.
-   */
-  private Config config;
 
   /**
    * The root container used for the verify job.
@@ -191,13 +185,11 @@ public class VerifyJob
   /**
    * Construct a VerifyJob.
    *
-   * @param config The backend configuration.
    * @param verifyConfig The verify configuration.
    */
-  public VerifyJob(Config config, VerifyConfig verifyConfig)
+  public VerifyJob(VerifyConfig verifyConfig)
   {
     this.verifyConfig = verifyConfig;
-    this.config = config;
   }
 
   /**
@@ -215,209 +207,214 @@ public class VerifyJob
     EntryContainer entryContainer =
         rootContainer.getEntryContainer(verifyConfig.getBaseDN());
 
-    ArrayList<String> completeList = verifyConfig.getCompleteList();
-    ArrayList<String> cleanList = verifyConfig.getCleanList();
+    entryContainer.sharedLock.lock();
+    try
+    {
+      ArrayList<String> completeList = verifyConfig.getCompleteList();
+      ArrayList<String> cleanList = verifyConfig.getCleanList();
 
-    boolean cleanMode = false;
-    if (completeList.isEmpty() && cleanList.isEmpty())
-    {
-      verifyDN2ID = true;
-      verifyID2Children = true;
-      verifyID2Subtree = true;
-      Map<AttributeType,IndexConfig> indexMap = config.getIndexConfigMap();
-      for (IndexConfig ic : indexMap.values())
+      boolean cleanMode = false;
+      if (completeList.isEmpty() && cleanList.isEmpty())
       {
-        AttributeIndex attrIndex =
-             entryContainer.getAttributeIndex(ic.getAttributeType());
-        attrIndexList.add(attrIndex);
-      }
-    }
-    else
-    {
-      ArrayList<String> list;
-      if (!completeList.isEmpty())
-      {
-        list = completeList;
+        verifyDN2ID = true;
+        verifyID2Children = true;
+        verifyID2Subtree = true;
+        attrIndexList.addAll(entryContainer.getAttributeIndexes());
       }
       else
       {
-        list = cleanList;
-        cleanMode = true;
-      }
-
-      for (String index : list)
-      {
-        String lowerName = index.toLowerCase();
-        if (lowerName.equals("dn2id"))
+        ArrayList<String> list;
+        if (!completeList.isEmpty())
         {
-          verifyDN2ID = true;
-        }
-        else if (lowerName.equals("id2children"))
-        {
-          verifyID2Children = true;
-        }
-        else if (lowerName.equals("id2subtree"))
-        {
-          verifyID2Subtree = true;
+          list = completeList;
         }
         else
         {
-          AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
-          if (attrType == null)
+          list = cleanList;
+          cleanMode = true;
+        }
+
+        for (String index : list)
+        {
+          String lowerName = index.toLowerCase();
+          if (lowerName.equals("dn2id"))
           {
-            int msgID = MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
-            String msg = getMessage(msgID, index);
-            throw new JebException(msgID, msg);
+            verifyDN2ID = true;
           }
-          AttributeIndex attrIndex = entryContainer.getAttributeIndex(attrType);
-          if (attrIndex == null)
+          else if (lowerName.equals("id2children"))
           {
-            int msgID = MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
-            String msg = getMessage(msgID, index);
-            throw new JebException(msgID, msg);
+            verifyID2Children = true;
           }
-          attrIndexList.add(attrIndex);
-        }
-      }
-    }
-
-    entryLimitMap =
-         new IdentityHashMap<Index,HashMap<ByteString,Long>>(
-              attrIndexList.size());
-
-    // We will be updating these files independently of the indexes
-    // so we need direct access to them rather than going through
-    // the entry entryContainer methods.
-    id2entry = entryContainer.getID2Entry();
-    dn2id = entryContainer.getDN2ID();
-    id2c = entryContainer.getID2Children();
-    id2s = entryContainer.getID2Subtree();
-
-    // Make a note of the time we started.
-    long startTime = System.currentTimeMillis();
-
-    // Start a timer for the progress report.
-    Timer timer = new Timer();
-    TimerTask progressTask = new ProgressTask();
-    timer.scheduleAtFixedRate(progressTask, progressInterval,
-            progressInterval);
-
-    // Iterate through the index keys.
-    try
-    {
-        if (cleanMode)
-        {
-            iterateIndex();
-        }
-        else
-        {
-            iterateID2Entry();
-        }
-    }
-    finally
-    {
-        timer.cancel();
-    }
-
-    long finishTime = System.currentTimeMillis();
-    long totalTime = (finishTime - startTime);
-
-    float rate = 0;
-    if (totalTime > 0)
-    {
-      rate = 1000f*keyCount / totalTime;
-    }
-
-    addStatEntry(statEntry, "verify-error-count",
-              String.valueOf(errorCount));
-    addStatEntry(statEntry, "verify-key-count",
-              String.valueOf(keyCount));
-    if (cleanMode)
-    {
-      int msgID = MSGID_JEB_VERIFY_CLEAN_FINAL_STATUS;
-      String message = getMessage(msgID, keyCount, errorCount,
-                                  totalTime/1000, rate);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
-
-      if (multiReferenceCount > 0)
-      {
-        float averageEntryReferences = 0;
-        if (keyCount > 0)
-        {
-          averageEntryReferences = (float)entryReferencesCount/keyCount;
-        }
-
-        msgID = MSGID_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT;
-        message = getMessage(msgID, multiReferenceCount);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
-        addStatEntry(statEntry, "verify-multiple-reference-count",
-                String.valueOf(multiReferenceCount));
-
-        msgID = MSGID_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT;
-        message = getMessage(msgID, entryLimitExceededCount);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
-        addStatEntry(statEntry, "verify-entry-limit-exceeded-count",
-                String.valueOf(entryLimitExceededCount));
-
-        msgID = MSGID_JEB_VERIFY_AVERAGE_REFERENCE_COUNT;
-        message = getMessage(msgID, averageEntryReferences);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
-        addStatEntry(statEntry, "verify-average-reference-count",
-                String.valueOf(averageEntryReferences));
-
-        msgID = MSGID_JEB_VERIFY_MAX_REFERENCE_COUNT;
-        message = getMessage(msgID, maxEntryPerValue);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
-        addStatEntry(statEntry, "verify-max-reference-count",
-                   String.valueOf(maxEntryPerValue));
-      }
-    }
-    else
-    {
-      int msgID = MSGID_JEB_VERIFY_FINAL_STATUS;
-      String message = getMessage(msgID, keyCount, errorCount,
-                                  totalTime/1000, rate);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
-      //TODO add entry-limit-stats to the statEntry
-      if (entryLimitMap.size() > 0)
-      {
-        msgID = MSGID_JEB_VERIFY_ENTRY_LIMIT_STATS_HEADER;
-        message = getMessage(msgID);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
-
-        for (Map.Entry<Index,HashMap<ByteString,Long>> mapEntry :
-             entryLimitMap.entrySet())
-        {
-          Index index = mapEntry.getKey();
-          Long[] values = mapEntry.getValue().values().toArray(new Long[0]);
-
-          // Calculate the median value for entry limit exceeded.
-          Arrays.sort(values);
-          long medianValue;
-          int x = values.length / 2;
-          if (values.length % 2 == 0)
+          else if (lowerName.equals("id2subtree"))
           {
-            medianValue = (values[x] + values[x-1]) / 2;
+            verifyID2Subtree = true;
           }
           else
           {
-            medianValue = values[x];
+            AttributeType attrType =
+                DirectoryServer.getAttributeType(lowerName);
+            if (attrType == null)
+            {
+              int msgID = MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
+              String msg = getMessage(msgID, index);
+              throw new JebException(msgID, msg);
+            }
+            AttributeIndex attrIndex =
+                entryContainer.getAttributeIndex(attrType);
+            if (attrIndex == null)
+            {
+              int msgID = MSGID_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
+              String msg = getMessage(msgID, index);
+              throw new JebException(msgID, msg);
+            }
+            attrIndexList.add(attrIndex);
           }
-
-          msgID = MSGID_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW;
-          message = getMessage(msgID, index.toString(), values.length,
-                               values[0], values[values.length-1], medianValue);
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                   message, msgID);
         }
       }
+
+      entryLimitMap =
+          new IdentityHashMap<Index,HashMap<ByteString,Long>>(
+              attrIndexList.size());
+
+      // We will be updating these files independently of the indexes
+      // so we need direct access to them rather than going through
+      // the entry entryContainer methods.
+      id2entry = entryContainer.getID2Entry();
+      dn2id = entryContainer.getDN2ID();
+      id2c = entryContainer.getID2Children();
+      id2s = entryContainer.getID2Subtree();
+
+      // Make a note of the time we started.
+      long startTime = System.currentTimeMillis();
+
+      // Start a timer for the progress report.
+      Timer timer = new Timer();
+      TimerTask progressTask = new ProgressTask();
+      timer.scheduleAtFixedRate(progressTask, progressInterval,
+                                progressInterval);
+
+      // Iterate through the index keys.
+      try
+      {
+        if (cleanMode)
+        {
+          iterateIndex();
+        }
+        else
+        {
+          iterateID2Entry();
+        }
+      }
+      finally
+      {
+        timer.cancel();
+      }
+
+      long finishTime = System.currentTimeMillis();
+      long totalTime = (finishTime - startTime);
+
+      float rate = 0;
+      if (totalTime > 0)
+      {
+        rate = 1000f*keyCount / totalTime;
+      }
+
+      addStatEntry(statEntry, "verify-error-count",
+                   String.valueOf(errorCount));
+      addStatEntry(statEntry, "verify-key-count",
+                   String.valueOf(keyCount));
+      if (cleanMode)
+      {
+        int msgID = MSGID_JEB_VERIFY_CLEAN_FINAL_STATUS;
+        String message = getMessage(msgID, keyCount, errorCount,
+                                    totalTime/1000, rate);
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
+                 message, msgID);
+
+        if (multiReferenceCount > 0)
+        {
+          float averageEntryReferences = 0;
+          if (keyCount > 0)
+          {
+            averageEntryReferences = (float)entryReferencesCount/keyCount;
+          }
+
+          msgID = MSGID_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT;
+          message = getMessage(msgID, multiReferenceCount);
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
+                   message, msgID);
+          addStatEntry(statEntry, "verify-multiple-reference-count",
+                       String.valueOf(multiReferenceCount));
+
+          msgID = MSGID_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT;
+          message = getMessage(msgID, entryLimitExceededCount);
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
+                   message, msgID);
+          addStatEntry(statEntry, "verify-entry-limit-exceeded-count",
+                       String.valueOf(entryLimitExceededCount));
+
+          msgID = MSGID_JEB_VERIFY_AVERAGE_REFERENCE_COUNT;
+          message = getMessage(msgID, averageEntryReferences);
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
+                   message, msgID);
+          addStatEntry(statEntry, "verify-average-reference-count",
+                       String.valueOf(averageEntryReferences));
+
+          msgID = MSGID_JEB_VERIFY_MAX_REFERENCE_COUNT;
+          message = getMessage(msgID, maxEntryPerValue);
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
+                   message, msgID);
+          addStatEntry(statEntry, "verify-max-reference-count",
+                       String.valueOf(maxEntryPerValue));
+        }
+      }
+      else
+      {
+        int msgID = MSGID_JEB_VERIFY_FINAL_STATUS;
+        String message = getMessage(msgID, keyCount, errorCount,
+                                    totalTime/1000, rate);
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
+                 message, msgID);
+        //TODO add entry-limit-stats to the statEntry
+        if (entryLimitMap.size() > 0)
+        {
+          msgID = MSGID_JEB_VERIFY_ENTRY_LIMIT_STATS_HEADER;
+          message = getMessage(msgID);
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
+                   message, msgID);
+
+          for (Map.Entry<Index,HashMap<ByteString,Long>> mapEntry :
+              entryLimitMap.entrySet())
+          {
+            Index index = mapEntry.getKey();
+            Long[] values = mapEntry.getValue().values().toArray(new Long[0]);
+
+            // Calculate the median value for entry limit exceeded.
+            Arrays.sort(values);
+            long medianValue;
+            int x = values.length / 2;
+            if (values.length % 2 == 0)
+            {
+              medianValue = (values[x] + values[x-1]) / 2;
+            }
+            else
+            {
+              medianValue = values[x];
+            }
+
+            msgID = MSGID_JEB_VERIFY_ENTRY_LIMIT_STATS_ROW;
+            message = getMessage(msgID, index.toString(), values.length,
+                                 values[0], values[values.length-1],
+                                 medianValue);
+            logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
+                     message, msgID);
+          }
+        }
+      }
+    }
+    finally
+    {
+      entryContainer.sharedLock.unlock();
     }
   }
 
@@ -1482,7 +1479,7 @@ public class VerifyJob
    * @param keyBytes The bytes of the key.
    * @return A string that may be logged or printed.
    */
-  public String keyDump(Index index, byte[] keyBytes)
+  private String keyDump(Index index, byte[] keyBytes)
   {
 /*
     String str;
@@ -1549,7 +1546,7 @@ public class VerifyJob
    * @param attrList The attribute to be checked.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void verifyAttribute(AttributeIndex attrIndex, EntryID entryID,
+  private void verifyAttribute(AttributeIndex attrIndex, EntryID entryID,
                               List<Attribute> attrList)
        throws DirectoryException
   {
@@ -1559,11 +1556,10 @@ public class VerifyJob
     Index substringIndex = attrIndex.substringIndex;
     Index orderingIndex = attrIndex.orderingIndex;
     Index approximateIndex = attrIndex.approximateIndex;
-    IndexConfig indexConfig = attrIndex.indexConfig;
     DatabaseEntry presenceKey = AttributeIndex.presenceKey;
 
     // Presence index.
-    if (!attrList.isEmpty() && indexConfig.isPresenceIndex())
+    if (!attrList.isEmpty() && presenceIndex != null)
     {
       try
       {
@@ -1608,7 +1604,7 @@ public class VerifyJob
           byte[] normalizedBytes = value.getNormalizedValue().value();
 
           // Equality index.
-          if (indexConfig.isEqualityIndex())
+          if (equalityIndex != null)
           {
             DatabaseEntry key = new DatabaseEntry(normalizedBytes);
             try
@@ -1645,7 +1641,7 @@ public class VerifyJob
           }
 
           // Substring index.
-          if (indexConfig.isSubstringIndex())
+          if (substringIndex != null)
           {
             Set<ByteString> keyBytesSet =
                  attrIndex.substringKeys(normalizedBytes);
@@ -1688,7 +1684,7 @@ public class VerifyJob
           }
 
           // Ordering index.
-          if (indexConfig.isOrderingIndex())
+          if (orderingIndex != null)
           {
             // Use the ordering matching rule to normalize the value.
             OrderingMatchingRule orderingRule =
@@ -1731,7 +1727,7 @@ public class VerifyJob
             }
           }
           // Approximate index.
-          if (indexConfig.isApproximateIndex())
+          if (approximateIndex != null)
           {
             // Use the approximate matching rule to normalize the value.
             ApproximateMatchingRule approximateRule =
@@ -1784,7 +1780,7 @@ public class VerifyJob
    * @param dn The DN.
    * @return The parent DN or null if the given DN is a base DN.
    */
-  public DN getParent(DN dn)
+  private DN getParent(DN dn)
   {
     if (dn.equals(verifyConfig.getBaseDN()))
     {

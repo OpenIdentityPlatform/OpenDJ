@@ -26,11 +26,8 @@
  */
 package org.opends.server.backends.jeb;
 
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseException;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 
 import java.util.Comparator;
 
@@ -38,7 +35,8 @@ import java.util.Comparator;
  * This comparator is used to sort databases in order of priority
  * for preloading into the cache.
  */
-public class DbPreloadComparator implements Comparator<Database>
+public class DbPreloadComparator
+    implements Comparator<DatabaseContainer>
 {
   /**
    * The tracer object for the debug logger.
@@ -52,30 +50,19 @@ public class DbPreloadComparator implements Comparator<Database>
    * @param database A handle to the database.
    * @return 1 for id2entry database, 2 for dn2id database, 3 for all others.
    */
-  static private int priority(Database database)
+  static private int priority(DatabaseContainer database)
   {
-    try
+    String name = database.getName();
+    if (name.endsWith(EntryContainer.ID2ENTRY_DATABASE_NAME))
     {
-      String name = database.getDatabaseName();
-      if (name.endsWith(EntryContainer.ID2ENTRY_DATABASE_NAME))
-      {
-        return 1;
-      }
-      else if (name.endsWith(EntryContainer.DN2ID_DATABASE_NAME))
-      {
-        return 2;
-      }
-      else
-      {
-        return 3;
-      }
+      return 1;
     }
-    catch (DatabaseException e)
+    else if (name.endsWith(EntryContainer.DN2ID_DATABASE_NAME))
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      return 2;
+    }
+    else
+    {
       return 3;
     }
   }
@@ -91,7 +78,7 @@ public class DbPreloadComparator implements Comparator<Database>
    *         first argument is less than, equal to, or greater than the
    *         second.
    **/
-  public int compare(Database database1, Database database2)
+  public int compare(DatabaseContainer database1, DatabaseContainer database2)
   {
     return priority(database1) - priority(database2);
   }

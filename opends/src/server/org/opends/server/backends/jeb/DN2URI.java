@@ -27,15 +27,7 @@
 package org.opends.server.backends.jeb;
 
 
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.CursorConfig;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.Transaction;
+import com.sleepycat.je.*;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
@@ -76,12 +68,17 @@ import static org.opends.server.messages.MessageHandler.getMessage;
  * order is the same as in the DN database so that all referrals in a subtree
  * can be retrieved by cursoring through a range of the records.
  */
-public class DN2URI
+public class DN2URI extends DatabaseContainer
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+  /**
+   * The key comparator used for the DN database.
+   */
+  private Comparator<byte[]> dn2uriComparator;
 
 
   /**
@@ -92,82 +89,45 @@ public class DN2URI
        DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
 
   /**
-   * The database entryContainer.
-   */
-  private EntryContainer entryContainer;
-
-  /**
-   * The JE database configuration.
-   */
-  private DatabaseConfig dbConfig;
-
-  /**
-   * The name of the database within the entryContainer.
-   */
-  private String name;
-
-  /**
-   * A custom btree key comparator for the JE database.
-   */
-  Comparator<byte[]> comparator = new EntryContainer.KeyReverseComparator();
-
-  /**
-   * A cached per-thread JE database handle.
-   */
-  private ThreadLocal<Database> threadLocalDatabase =
-       new ThreadLocal<Database>();
-
-  /**
    * Create a new object representing a referral database in a given
    * entryContainer.
    *
-   * @param entryContainer The entryContainer of the referral database.
-   * @param dbConfig The JE database configuration which will be used to
-   * open the database.
    * @param name The name of the referral database.
-   */
-  public DN2URI(EntryContainer entryContainer, DatabaseConfig dbConfig,
-                String name)
-  {
-    this.entryContainer = entryContainer;
-    this.dbConfig = dbConfig.cloneConfig();
-    this.name = name;
-  }
-
-  /**
-   * Open the referral database.
-   *
+   * @param env The JE environment.
+   * @param entryContainer The entryContainer of the DN database.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public void open() throws DatabaseException
+  DN2URI(String name, Environment env,
+        EntryContainer entryContainer)
+      throws DatabaseException
   {
-    getDatabase();
-  }
+    super(name, env, entryContainer);
 
-  /**
-   * Get a handle to the database. It returns a per-thread handle to avoid
-   * any thread contention on the database handle. The entryContainer is
-   * responsible for closing all handles.
-   *
-   * @return A database handle.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  private Database getDatabase() throws DatabaseException
-  {
-    Database database = threadLocalDatabase.get();
-    if (database == null)
+    dn2uriComparator = new EntryContainer.KeyReverseComparator();
+    DatabaseConfig dn2uriConfig = new DatabaseConfig();
+
+    if(env.getConfig().getReadOnly())
     {
-      database = entryContainer.openDatabase(dbConfig, name);
-      threadLocalDatabase.set(database);
-
-      if(debugEnabled())
-      {
-        TRACER.debugInfo("JE DN2URI database %s opened with %d records.",
-                  database.getDatabaseName(), database.count());
-      }
+      dn2uriConfig.setReadOnly(true);
+      dn2uriConfig.setSortedDuplicates(true);
+      dn2uriConfig.setAllowCreate(false);
+      dn2uriConfig.setTransactional(false);
     }
-    return database;
+    else if(!env.getConfig().getTransactional())
+    {
+      dn2uriConfig.setSortedDuplicates(true);
+      dn2uriConfig.setAllowCreate(true);
+      dn2uriConfig.setTransactional(false);
+      dn2uriConfig.setDeferredWrite(true);
+    }
+    else
+    {
+      dn2uriConfig.setSortedDuplicates(true);
+      dn2uriConfig.setAllowCreate(true);
+      dn2uriConfig.setTransactional(true);
+    }
+    this.dbConfig = dn2uriConfig;
+    this.dbConfig.setBtreeComparator(dn2uriComparator.getClass());
   }
 
   /**
@@ -191,7 +151,7 @@ public class DN2URI
 
     // The JE insert method does not permit duplicate keys so we must use the
     // put method.
-    status = EntryContainer.put(getDatabase(), txn, key, data);
+    status = put(txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -216,7 +176,7 @@ public class DN2URI
     DatabaseEntry key = new DatabaseEntry(normDN);
     OperationStatus status;
 
-    status = EntryContainer.delete(getDatabase(), txn, key);
+    status = delete(txn, key);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -243,7 +203,7 @@ public class DN2URI
     DatabaseEntry data = new DatabaseEntry(URIBytes);
     OperationStatus status;
 
-    Cursor cursor = getDatabase().openCursor(txn, cursorConfig);
+    Cursor cursor = openCursor(txn, cursorConfig);
     try
     {
       status = cursor.getSearchBoth(key, data, null);
@@ -398,75 +358,6 @@ public class DN2URI
   }
 
   /**
-   * Open a JE cursor on the DN database.
-   * @param txn A JE database transaction to be used by the cursor,
-   * or null if none.
-   * @param cursorConfig The JE cursor configuration.
-   * @return A JE cursor.
-   * @throws DatabaseException If an error occurs while attempting to open
-   * the cursor.
-   */
-  public Cursor openCursor(Transaction txn, CursorConfig cursorConfig)
-       throws DatabaseException
-  {
-    return getDatabase().openCursor(txn, cursorConfig);
-  }
-
-    /**
-   * Removes all records from the database.
-   * @param txn A JE database transaction to be used during the clear operation
-   *            or null if not required. Using transactions increases the chance
-   *            of lock contention.
-   * @return The number of records removed.
-   * @throws DatabaseException If an error occurs while cleaning the database.
-   */
-  public long clear(Transaction txn) throws DatabaseException
-  {
-    long deletedCount = 0;
-    Cursor cursor = openCursor(txn, null);
-    try
-    {
-      if(debugEnabled())
-      {
-        TRACER.debugVerbose("%d existing records will be deleted from the " +
-            "database", getRecordCount());
-      }
-      DatabaseEntry data = new DatabaseEntry();
-      DatabaseEntry key = new DatabaseEntry();
-
-      OperationStatus status;
-
-      // Step forward until we deleted all records.
-      for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
-           status == OperationStatus.SUCCESS;
-           status = cursor.getNext(key, data, LockMode.DEFAULT))
-      {
-        cursor.delete();
-        deletedCount++;
-      }
-      if(debugEnabled())
-      {
-        TRACER.debugVerbose("%d records deleted", deletedCount);
-      }
-    }
-    catch(DatabaseException de)
-    {
-      if(debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-
-      throw de;
-    }
-    finally
-    {
-      cursor.close();
-    }
-
-    return deletedCount;
-  }
-
-  /**
    * Checks whether the target of an operation is a referral entry and throws
    * a Directory referral exception if it is.
    * @param entry The target entry of the operation, or the base entry of a
@@ -593,7 +484,7 @@ public class DN2URI
 
     try
     {
-      Cursor cursor = getDatabase().openCursor(txn, cursorConfig);
+      Cursor cursor = openCursor(txn, cursorConfig);
       try
       {
         DatabaseEntry key = new DatabaseEntry();
@@ -684,7 +575,7 @@ public class DN2URI
 
     try
     {
-      Cursor cursor = getDatabase().openCursor(txn, cursorConfig);
+      Cursor cursor = openCursor(txn, cursorConfig);
       try
       {
         // Initialize the cursor very close to the starting value then
@@ -700,7 +591,7 @@ public class DN2URI
             end[0] = (byte) (end[0] + 1);
           }
 
-          int cmp = comparator.compare(key.getData(), end);
+          int cmp = dn2uriComparator.compare(key.getData(), end);
           if (cmp >= 0)
           {
             // We have gone past the ending value.
@@ -806,23 +697,12 @@ public class DN2URI
   }
 
   /**
-   * Get the count of the number of entries stored.
+   * Gets the comparator for records stored in this database.
    *
-   * @return The number of entries stored.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
+   * @return The comparator used for records stored in this database.
    */
-  public long getRecordCount() throws DatabaseException
+  public Comparator<byte[]> getComparator()
   {
-    return EntryContainer.count(getDatabase());
-  }
-
-  /**
-   * Get a string representation of this object.
-   * @return return A string representation of this object.
-   */
-  public String toString()
-  {
-    return name;
+    return dn2uriComparator;
   }
 }

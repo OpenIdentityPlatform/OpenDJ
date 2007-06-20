@@ -32,27 +32,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.Transaction;
+import com.sleepycat.je.*;
 
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
+import org.opends.server.admin.std.server.JEIndexCfg;
+import org.opends.server.admin.std.meta.JEIndexCfgDefn;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.config.ConfigException;
+import static org.opends.server.messages.JebMessages.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.util.StaticUtils;
 
 /**
  * Class representing an attribute index.
@@ -67,6 +64,7 @@ import org.opends.server.types.DebugLogLevel;
  * then we would not need a separate ordering index.
  */
 public class AttributeIndex
+    implements ConfigurationChangeListener<JEIndexCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -84,12 +82,14 @@ public class AttributeIndex
   /**
    * The entryContainer in which this attribute index resides.
    */
-  EntryContainer entryContainer;
+  private EntryContainer entryContainer;
+
+  private Environment env;
 
   /**
    * The attribute index configuration.
    */
-  IndexConfig indexConfig;
+  private JEIndexCfg indexConfig;
 
   /**
    * The index database for attribute equality.
@@ -116,107 +116,204 @@ public class AttributeIndex
    */
   Index approximateIndex = null;
 
+  private State state;
+
+  private int cursorEntryLimit = 100000;
+
+  private int backendIndexEntryLimit = 4000;
+
   /**
    * Create a new attribute index object.
    * @param entryContainer The entryContainer of this attribute index.
+   * @param state The state database to persist index state info.
+   * @param env The JE environment handle.
    * @param indexConfig The attribute index configuration.
+   * @param backendIndexEntryLimit The backend index entry limit to use
+   *        if none is specified for this attribute index.
+   * @throws DatabaseException if a JE database error occurs.
+   * @throws ConfigException if a configuration related error occurs.
    */
-  public AttributeIndex(EntryContainer entryContainer, IndexConfig indexConfig)
+  public AttributeIndex(JEIndexCfg indexConfig, State state,
+                        int backendIndexEntryLimit,
+                        Environment env,
+                        EntryContainer entryContainer)
+      throws DatabaseException, ConfigException
   {
     this.entryContainer = entryContainer;
+    this.env = env;
     this.indexConfig = indexConfig;
+    this.backendIndexEntryLimit = backendIndexEntryLimit;
+    this.state = state;
 
-    AttributeType attrType = indexConfig.getAttributeType();
+    AttributeType attrType = indexConfig.getIndexAttribute();
     String name = attrType.getNameOrOID();
+    int indexEntryLimit = backendIndexEntryLimit;
 
-    if (indexConfig.isEqualityIndex())
+    if(indexConfig.getIndexEntryLimit() != null)
     {
-      Indexer equalityIndexer = new EqualityIndexer(indexConfig);
-      this.equalityIndex = new Index(this.entryContainer, name + ".equality",
+      indexEntryLimit = indexConfig.getIndexEntryLimit();
+    }
+
+    if (indexConfig.getIndexType().contains(JEIndexCfgDefn.IndexType.EQUALITY))
+    {
+      if (attrType.getEqualityMatchingRule() == null)
+      {
+        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
+        String message = getMessage(messageID, attrType, "equality");
+        throw new ConfigException(messageID, message);
+      }
+
+      Indexer equalityIndexer = new EqualityIndexer(attrType);
+      this.equalityIndex = new Index(name + ".equality",
                                      equalityIndexer,
-                                     indexConfig.getEqualityEntryLimit(),
-                                     indexConfig.getCursorEntryLimit());
+                                     state,
+                                     indexEntryLimit,
+                                     cursorEntryLimit,
+                                     env,
+                                     entryContainer);
     }
 
-    if (indexConfig.isPresenceIndex())
+    if (indexConfig.getIndexType().contains(JEIndexCfgDefn.IndexType.PRESENCE))
     {
-      Indexer presenceIndexer = new PresenceIndexer(indexConfig);
-      this.presenceIndex = new Index(this.entryContainer, name + ".presence",
+      Indexer presenceIndexer = new PresenceIndexer(attrType);
+      this.presenceIndex = new Index(name + ".presence",
                                      presenceIndexer,
-                                     indexConfig.getPresenceEntryLimit(),
-                                     indexConfig.getCursorEntryLimit());
+                                     state,
+                                     indexEntryLimit,
+                                     cursorEntryLimit,
+                                     env,
+                                     entryContainer);
     }
 
-    if (indexConfig.isSubstringIndex())
+    if (indexConfig.getIndexType().contains(JEIndexCfgDefn.IndexType.SUBSTRING))
     {
-      Indexer substringIndexer = new SubstringIndexer(indexConfig);
-      this.substringIndex = new Index(this.entryContainer, name + ".substring",
+      if (attrType.getSubstringMatchingRule() == null)
+      {
+        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
+        String message = getMessage(messageID, attrType, "substring");
+        throw new ConfigException(messageID, message);
+      }
+
+      Indexer substringIndexer = new SubstringIndexer(attrType,
+                                         indexConfig.getIndexSubstringLength());
+      this.substringIndex = new Index(name + ".substring",
                                      substringIndexer,
-                                     indexConfig.getSubstringEntryLimit(),
-                                     indexConfig.getCursorEntryLimit());
+                                     state,
+                                     indexEntryLimit,
+                                     cursorEntryLimit,
+                                     env,
+                                     entryContainer);
     }
 
-    if (indexConfig.isOrderingIndex())
+    if (indexConfig.getIndexType().contains(JEIndexCfgDefn.IndexType.ORDERING))
     {
-      Indexer orderingIndexer = new OrderingIndexer(indexConfig);
-      this.orderingIndex = new Index(this.entryContainer, name + ".ordering",
+      if (attrType.getOrderingMatchingRule() == null)
+      {
+        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
+        String message = getMessage(messageID, attrType, "ordering");
+        throw new ConfigException(messageID, message);
+      }
+
+      Indexer orderingIndexer = new OrderingIndexer(attrType);
+      this.orderingIndex = new Index(name + ".ordering",
                                      orderingIndexer,
-                                     indexConfig.getEqualityEntryLimit(),
-                                     indexConfig.getCursorEntryLimit());
+                                     state,
+                                     indexEntryLimit,
+                                     cursorEntryLimit,
+                                     env,
+                                     entryContainer);
     }
-    if (indexConfig.isApproximateIndex())
+    if (indexConfig.getIndexType().contains(
+        JEIndexCfgDefn.IndexType.APPROXIMATE))
     {
-      Indexer approximateIndexer = new ApproximateIndexer(indexConfig);
-      this.approximateIndex = new Index(this.entryContainer,
-                                        name + ".approximate",
+      if (attrType.getApproximateMatchingRule() == null)
+      {
+        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
+        String message = getMessage(messageID, attrType, "approximate");
+        throw new ConfigException(messageID, message);
+      }
+
+      Indexer approximateIndexer = new ApproximateIndexer(attrType);
+      this.approximateIndex = new Index(name + ".approximate",
                                         approximateIndexer,
-                                        indexConfig.getEqualityEntryLimit(),
-                                        indexConfig.getCursorEntryLimit());
+                                        state,
+                                        indexEntryLimit,
+                                        cursorEntryLimit,
+                                        env,
+                                        entryContainer);
     }
+
+    this.indexConfig.addChangeListener(this);
   }
 
   /**
    * Open the attribute index.
    *
-   * @param dbConfig The JE Database Config that will be used to open
-   *                 underlying JE databases.
-   *
-   * @throws DatabaseException If an error occurs opening the underlying
-   *                           databases.
+   * @throws DatabaseException if a JE database error occurs while
+   * openning the index.
    */
-  public void open(DatabaseConfig dbConfig) throws DatabaseException
+  public void open() throws DatabaseException
   {
     if (equalityIndex != null)
     {
-      equalityIndex.open(dbConfig);
+      equalityIndex.open();
     }
 
     if (presenceIndex != null)
     {
-      presenceIndex.open(dbConfig);
+      presenceIndex.open();
     }
 
     if (substringIndex != null)
     {
-      substringIndex.open(dbConfig);
+      substringIndex.open();
     }
 
     if (orderingIndex != null)
     {
-      orderingIndex.open(dbConfig);
+      orderingIndex.open();
     }
 
     if (approximateIndex != null)
     {
-      approximateIndex.open(dbConfig);
+      approximateIndex.open();
     }
   }
 
   /**
    * Close the attribute index.
+   *
+   * @throws DatabaseException if a JE database error occurs while
+   * openning the index.
    */
-  public void close()
+  public void close() throws DatabaseException
   {
+    if (equalityIndex != null)
+    {
+      equalityIndex.close();
+    }
+
+    if (presenceIndex != null)
+    {
+      presenceIndex.close();
+    }
+
+    if (substringIndex != null)
+    {
+      substringIndex.close();
+    }
+
+    if (orderingIndex != null)
+    {
+      orderingIndex.close();
+    }
+
+    if (approximateIndex != null)
+    {
+      approximateIndex.close();
+    }
+
+    indexConfig.removeChangeListener(this);
     // The entryContainer is responsible for closing the JE databases.
   }
 
@@ -226,10 +323,18 @@ public class AttributeIndex
    */
   public AttributeType getAttributeType()
   {
-    return indexConfig.getAttributeType();
+    return indexConfig.getIndexAttribute();
   }
 
-  //TODO: Make all modify/add methods return success boolean
+  /**
+   * Get the JE index configuration used by this index.
+   * @return The configuration in effect.
+   */
+  public JEIndexCfg getConfiguration()
+  {
+    return indexConfig;
+  }
+
   /**
    * Update the attribute index for a new entry.
    *
@@ -237,7 +342,7 @@ public class AttributeIndex
    * @param entryID     The entry ID.
    * @param entry       The contents of the new entry.
    * @return True if all the index keys for the entry are added. False if the
-   *         entry ID alreadly exists for some keys.
+   *         entry ID already exists for some keys.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws JebException If an error occurs in the JE backend.
@@ -406,7 +511,7 @@ public class AttributeIndex
     // concurrent writers.
     Set<ByteString> set = new HashSet<ByteString>();
 
-    int substrLength = indexConfig.getSubstringLength();
+    int substrLength = indexConfig.getIndexSubstringLength();
     byte[] keyBytes;
 
     // Example: The value is ABCDE and the substring length is 3.
@@ -432,7 +537,7 @@ public class AttributeIndex
    */
   private EntryIDSet matchSubstring(byte[] bytes)
   {
-    int substrLength = indexConfig.getSubstringLength();
+    int substrLength = indexConfig.getIndexSubstringLength();
 
     // There are two cases, depending on whether the user-provided
     // substring is smaller than the configured index substring length or not.
@@ -555,7 +660,7 @@ public class AttributeIndex
    */
   public EntryIDSet evaluateEqualityFilter(SearchFilter equalityFilter)
   {
-    if (!indexConfig.isEqualityIndex())
+    if (equalityIndex == null)
     {
       return new EntryIDSet();
     }
@@ -589,7 +694,7 @@ public class AttributeIndex
    */
   public EntryIDSet evaluatePresenceFilter(SearchFilter filter)
   {
-    if (!indexConfig.isPresenceIndex())
+    if (presenceIndex == null)
     {
       return new EntryIDSet();
     }
@@ -607,7 +712,7 @@ public class AttributeIndex
    */
   public EntryIDSet evaluateGreaterOrEqualFilter(SearchFilter filter)
   {
-    if (!indexConfig.isOrderingIndex() || orderingIndex == null)
+    if (orderingIndex == null)
     {
       return new EntryIDSet();
     }
@@ -647,7 +752,7 @@ public class AttributeIndex
    */
   public EntryIDSet evaluateLessOrEqualFilter(SearchFilter filter)
   {
-    if (!indexConfig.isOrderingIndex() || orderingIndex == null)
+    if (orderingIndex == null)
     {
       return new EntryIDSet();
     }
@@ -698,7 +803,7 @@ public class AttributeIndex
       if (filter.getSubInitialElement() != null)
       {
         // Use the equality index for initial substrings if possible.
-        if (indexConfig.isEqualityIndex())
+        if (equalityIndex != null)
         {
           ByteString normValue =
                matchRule.normalizeSubstring(filter.getSubInitialElement());
@@ -719,7 +824,7 @@ public class AttributeIndex
         }
       }
 
-      if (!indexConfig.isSubstringIndex())
+      if (substringIndex == null)
       {
         return results;
       }
@@ -864,7 +969,7 @@ public class AttributeIndex
    */
   public EntryIDSet evaluateApproximateFilter(SearchFilter approximateFilter)
   {
-    if (!indexConfig.isApproximateIndex())
+    if (approximateIndex == null)
     {
       return new EntryIDSet();
     }
@@ -889,37 +994,6 @@ public class AttributeIndex
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       return new EntryIDSet();
-    }
-  }
-
-
-  /**
-   * Remove the index from disk. The index must not be open.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public void removeIndex() throws DatabaseException
-  {
-    AttributeType attrType = indexConfig.getAttributeType();
-    String name = attrType.getNameOrOID();
-    if (indexConfig.isEqualityIndex())
-    {
-      entryContainer.removeDatabase(name + ".equality");
-    }
-    if (indexConfig.isPresenceIndex())
-    {
-      entryContainer.removeDatabase(name + ".presence");
-    }
-    if (indexConfig.isSubstringIndex())
-    {
-      entryContainer.removeDatabase(name + ".substring");
-    }
-    if (indexConfig.isOrderingIndex())
-    {
-      entryContainer.removeDatabase(name + ".ordering");
-    }
-    if (indexConfig.isApproximateIndex())
-    {
-      entryContainer.removeDatabase(name + ".approximate");
     }
   }
 
@@ -963,41 +1037,36 @@ public class AttributeIndex
   }
 
   /**
-   * Removes all records related to this attribute index.
-   * @param txn A JE database transaction to be used during the clear operation
-   *            or null if not required. Using transactions increases the chance
-   *            of lock contention.
-   * @return The number of records removed.
-   * @throws DatabaseException If an error occurs while cleaning the database.
+   * Get a list of the databases opened by this attribute index.
+   * @param dbList A list of database containers.
    */
-  public long clear(Transaction txn) throws DatabaseException
+  public void listDatabases(List<DatabaseContainer> dbList)
   {
-    long deletedCount = 0;
-
     if (equalityIndex != null)
     {
-      deletedCount += equalityIndex.clear(txn);
+      dbList.add(equalityIndex);
     }
+
     if (presenceIndex != null)
     {
-      deletedCount += presenceIndex.clear(txn);
+      dbList.add(presenceIndex);
     }
+
     if (substringIndex != null)
     {
-      deletedCount += substringIndex.clear(txn);
+      dbList.add(substringIndex);
     }
+
     if (orderingIndex != null)
     {
-      deletedCount += orderingIndex.clear(txn);
+      dbList.add(orderingIndex);
     }
+
     if (approximateIndex != null)
     {
-      deletedCount += approximateIndex.clear(txn);
+      dbList.add(approximateIndex);
     }
-
-    return deletedCount;
   }
-
 
   /**
    * Get a string representation of this object.
@@ -1005,8 +1074,516 @@ public class AttributeIndex
    */
   public String toString()
   {
-    return indexConfig.getAttributeType().getNameOrOID();
+    return getName();
   }
 
+  /**
+   * Set the index entry limit used by the backend using this attribute index.
+   * This index will use the backend entry limit only if there is not one
+   * specified for this index.
+   *
+   * @param backendIndexEntryLimit The backend index entry limit.
+   * @return True if a rebuild is required or false otherwise.
+   */
+  public synchronized boolean setBackendIndexEntryLimit(
+      int backendIndexEntryLimit)
+  {
+    // Only update if there is no limit specified for this index.
+    boolean rebuildRequired = false;
+    if(indexConfig.getIndexEntryLimit() == null)
+    {
+      if(equalityIndex != null)
+      {
+        rebuildRequired |=
+            equalityIndex.setIndexEntryLimit(backendIndexEntryLimit);
+      }
 
+      if(presenceIndex != null)
+      {
+        rebuildRequired |=
+            presenceIndex.setIndexEntryLimit(backendIndexEntryLimit);
+      }
+
+      if(substringIndex != null)
+      {
+        rebuildRequired |=
+            substringIndex.setIndexEntryLimit(backendIndexEntryLimit);
+      }
+
+      if(orderingIndex != null)
+      {
+        rebuildRequired |=
+            orderingIndex.setIndexEntryLimit(backendIndexEntryLimit);
+      }
+
+      if(approximateIndex != null)
+      {
+        rebuildRequired |=
+            approximateIndex.setIndexEntryLimit(backendIndexEntryLimit);
+      }
+    }
+
+    this.backendIndexEntryLimit = backendIndexEntryLimit;
+
+    return rebuildRequired;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized boolean isConfigurationChangeAcceptable(
+      JEIndexCfg cfg,
+      List<String> unacceptableReasons)
+  {
+    AttributeType attrType = cfg.getIndexAttribute();
+
+    if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.EQUALITY))
+    {
+      if (equalityIndex == null && attrType.getEqualityMatchingRule() == null)
+      {
+        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
+        String message = getMessage(messageID, attrType, "equality");
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
+
+    if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.SUBSTRING))
+    {
+      if (substringIndex == null && attrType.getSubstringMatchingRule() == null)
+      {
+        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
+        String message = getMessage(messageID, attrType, "substring");
+        unacceptableReasons.add(message);
+        return false;
+      }
+
+    }
+
+    if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.ORDERING))
+    {
+      if (orderingIndex == null && attrType.getOrderingMatchingRule() == null)
+      {
+        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
+        String message = getMessage(messageID, attrType, "ordering");
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
+    if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.APPROXIMATE))
+    {
+      if (approximateIndex == null &&
+          attrType.getApproximateMatchingRule() == null)
+      {
+        int messageID = MSGID_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE;
+        String message = getMessage(messageID, attrType, "approximate");
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized ConfigChangeResult applyConfigurationChange(
+      JEIndexCfg cfg)
+  {
+    ConfigChangeResult ccr;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+    try
+    {
+      AttributeType attrType = cfg.getIndexAttribute();
+      String name = attrType.getNameOrOID();
+      int indexEntryLimit = backendIndexEntryLimit;
+
+      if(cfg.getIndexEntryLimit() != null)
+      {
+        indexEntryLimit = cfg.getIndexEntryLimit();
+      }
+
+      if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.EQUALITY))
+      {
+        if (equalityIndex == null)
+        {
+          // Adding equality index
+          Indexer equalityIndexer = new EqualityIndexer(attrType);
+          equalityIndex = new Index(name + ".equality",
+                                    equalityIndexer,
+                                    state,
+                                    indexEntryLimit,
+                                    cursorEntryLimit,
+                                    env,
+                                    entryContainer);
+          equalityIndex.open();
+
+          adminActionRequired = true;
+          int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
+          messages.add(getMessage(msgID, name + ".equality"));
+
+        }
+        else
+        {
+          // already exists. Just update index entry limit.
+          if(this.equalityIndex.setIndexEntryLimit(indexEntryLimit))
+          {
+
+            adminActionRequired = true;
+            int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
+            String message = getMessage(msgID, name + ".equality");
+            messages.add(message);
+            this.equalityIndex.setIndexEntryLimit(indexEntryLimit);
+          }
+        }
+      }
+      else
+      {
+        if (equalityIndex != null)
+        {
+          entryContainer.exclusiveLock.lock();
+          try
+          {
+            entryContainer.removeDatabase(equalityIndex);
+            equalityIndex = null;
+          }
+          catch(DatabaseException de)
+          {
+            messages.add(StaticUtils.stackTraceToSingleLineString(de));
+            ccr = new ConfigChangeResult(
+                DirectoryServer.getServerErrorResultCode(), false, messages);
+            return ccr;
+          }
+          finally
+          {
+            entryContainer.exclusiveLock.unlock();
+          }
+        }
+      }
+
+      if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.PRESENCE))
+      {
+        if(presenceIndex == null)
+        {
+          Indexer presenceIndexer = new PresenceIndexer(attrType);
+          presenceIndex = new Index(name + ".presence",
+                                    presenceIndexer,
+                                    state,
+                                    indexEntryLimit,
+                                    cursorEntryLimit,
+                                    env,
+                                    entryContainer);
+          presenceIndex.open();
+
+          adminActionRequired = true;
+          int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
+          messages.add(getMessage(msgID, name + ".presence"));
+        }
+        else
+        {
+          // already exists. Just update index entry limit.
+          if(this.presenceIndex.setIndexEntryLimit(indexEntryLimit))
+          {
+            adminActionRequired = true;
+            int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
+            String message = getMessage(msgID, name + ".presence");
+            messages.add(message);
+          }
+        }
+      }
+      else
+      {
+        if (presenceIndex != null)
+        {
+          entryContainer.exclusiveLock.lock();
+          try
+          {
+            entryContainer.removeDatabase(presenceIndex);
+            presenceIndex = null;
+          }
+          catch(DatabaseException de)
+          {
+            messages.add(StaticUtils.stackTraceToSingleLineString(de));
+            ccr = new ConfigChangeResult(
+                DirectoryServer.getServerErrorResultCode(), false, messages);
+            return ccr;
+          }
+          finally
+          {
+            entryContainer.exclusiveLock.unlock();
+          }
+        }
+      }
+
+      if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.SUBSTRING))
+      {
+        if(substringIndex == null)
+        {
+          Indexer substringIndexer = new SubstringIndexer(
+              attrType, cfg.getIndexSubstringLength());
+          substringIndex = new Index(name + ".substring",
+                                     substringIndexer,
+                                     state,
+                                     indexEntryLimit,
+                                     cursorEntryLimit,
+                                     env,
+                                     entryContainer);
+          substringIndex.open();
+
+          adminActionRequired = true;
+          int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
+          messages.add(getMessage(msgID, name + ".substring"));
+        }
+        else
+        {
+          // already exists. Just update index entry limit.
+          if(this.substringIndex.setIndexEntryLimit(indexEntryLimit))
+          {
+            adminActionRequired = true;
+            int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
+            String message = getMessage(msgID, name + ".substring");
+            messages.add(message);
+          }
+
+          if(indexConfig.getIndexSubstringLength() !=
+              cfg.getIndexSubstringLength())
+          {
+            Indexer substringIndexer = new SubstringIndexer(
+                attrType, cfg.getIndexSubstringLength());
+            this.substringIndex.setIndexer(substringIndexer);
+          }
+        }
+      }
+      else
+      {
+        if (substringIndex != null)
+        {
+          entryContainer.exclusiveLock.lock();
+          try
+          {
+            entryContainer.removeDatabase(substringIndex);
+            substringIndex = null;
+          }
+          catch(DatabaseException de)
+          {
+            messages.add(StaticUtils.stackTraceToSingleLineString(de));
+            ccr = new ConfigChangeResult(
+                DirectoryServer.getServerErrorResultCode(), false, messages);
+            return ccr;
+          }
+          finally
+          {
+            entryContainer.exclusiveLock.unlock();
+          }
+        }
+      }
+
+      if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.ORDERING))
+      {
+        if(orderingIndex == null)
+        {
+          Indexer orderingIndexer = new OrderingIndexer(attrType);
+          orderingIndex = new Index(name + ".ordering",
+                                    orderingIndexer,
+                                    state,
+                                    indexEntryLimit,
+                                    cursorEntryLimit,
+                                    env,
+                                    entryContainer);
+          orderingIndex.open();
+
+          adminActionRequired = true;
+          int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
+          messages.add(getMessage(msgID, name + ".ordering"));
+        }
+        else
+        {
+          // already exists. Just update index entry limit.
+          if(this.orderingIndex.setIndexEntryLimit(indexEntryLimit))
+          {
+            adminActionRequired = true;
+            int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
+            String message = getMessage(msgID, name + ".ordering");
+            messages.add(message);
+          }
+        }
+      }
+      else
+      {
+        if (orderingIndex != null)
+        {
+          entryContainer.exclusiveLock.lock();
+          try
+          {
+            entryContainer.removeDatabase(orderingIndex);
+            orderingIndex = null;
+          }
+          catch(DatabaseException de)
+          {
+            messages.add(StaticUtils.stackTraceToSingleLineString(de));
+            ccr = new ConfigChangeResult(
+                DirectoryServer.getServerErrorResultCode(), false, messages);
+            return ccr;
+          }
+          finally
+          {
+            entryContainer.exclusiveLock.unlock();
+          }
+        }
+      }
+
+      if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.APPROXIMATE))
+      {
+        if(approximateIndex == null)
+        {
+          Indexer approximateIndexer = new ApproximateIndexer(attrType);
+          approximateIndex = new Index(name + ".approximate",
+                                       approximateIndexer,
+                                       state,
+                                       indexEntryLimit,
+                                       cursorEntryLimit,
+                                       env,
+                                       entryContainer);
+          approximateIndex.open();
+
+          adminActionRequired = true;
+          int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
+          messages.add(getMessage(msgID, name + ".approximate"));
+        }
+        else
+        {
+          // already exists. Just update index entry limit.
+          if(this.approximateIndex.setIndexEntryLimit(indexEntryLimit))
+          {
+            adminActionRequired = true;
+            int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
+            String message = getMessage(msgID, name + ".approximate");
+            messages.add(message);
+          }
+        }
+      }
+      else
+      {
+        if (approximateIndex != null)
+        {
+          entryContainer.exclusiveLock.lock();
+          try
+          {
+            entryContainer.removeDatabase(approximateIndex);
+            approximateIndex = null;
+          }
+          catch(DatabaseException de)
+          {
+            messages.add(StaticUtils.stackTraceToSingleLineString(de));
+            ccr = new ConfigChangeResult(
+                DirectoryServer.getServerErrorResultCode(), false, messages);
+            return ccr;
+          }
+          finally
+          {
+            entryContainer.exclusiveLock.unlock();
+          }
+        }
+      }
+
+      indexConfig = cfg;
+
+      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
+                                    messages);
+    }
+    catch(Exception e)
+    {
+      messages.add(StaticUtils.stackTraceToSingleLineString(e));
+      ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                                   adminActionRequired,
+                                   messages);
+      return ccr;
+    }
+  }
+
+  /**
+   * Set the index trust state.
+   * @param txn A database transaction, or null if none is required.
+   * @param trusted True if this index should be trusted or false
+   *                otherwise.
+   * @throws DatabaseException If an error occurs in the JE database.
+   */
+  public synchronized void setTrusted(Transaction txn, boolean trusted)
+      throws DatabaseException
+  {
+    if (equalityIndex != null)
+    {
+      equalityIndex.setTrusted(txn, trusted);
+    }
+
+    if (presenceIndex != null)
+    {
+      presenceIndex.setTrusted(txn, trusted);
+    }
+
+    if (substringIndex != null)
+    {
+      substringIndex.setTrusted(txn, trusted);
+    }
+
+    if (orderingIndex != null)
+    {
+      orderingIndex.setTrusted(txn, trusted);
+    }
+
+    if (approximateIndex != null)
+    {
+      approximateIndex.setTrusted(txn, trusted);
+    }
+  }
+
+  /**
+   * Set the rebuild status of this index.
+   * @param rebuildRunning True if a rebuild process on this index
+   *                       is running or False otherwise.
+   */
+  public synchronized void setRebuildStatus(boolean rebuildRunning)
+  {
+    if (equalityIndex != null)
+    {
+      equalityIndex.setRebuildStatus(rebuildRunning);
+    }
+
+    if (presenceIndex != null)
+    {
+      presenceIndex.setRebuildStatus(rebuildRunning);
+    }
+
+    if (substringIndex != null)
+    {
+      substringIndex.setRebuildStatus(rebuildRunning);
+    }
+
+    if (orderingIndex != null)
+    {
+      orderingIndex.setRebuildStatus(rebuildRunning);
+    }
+
+    if (approximateIndex != null)
+    {
+      approximateIndex.setRebuildStatus(rebuildRunning);
+    }
+  }
+
+  /**
+   * Get the JE database name prefix for indexes in this attribute
+   * index.
+   *
+   * @return JE database name for this database container.
+   */
+  public String getName()
+  {
+    StringBuilder builder = new StringBuilder();
+    builder.append(entryContainer.getContainerName());
+    builder.append("_");
+    builder.append(indexConfig.getIndexAttribute().getNameOrOID());
+    return builder.toString();
+  }
 }

@@ -103,7 +103,7 @@ public class TimeLimitRotationPolicy implements
 
     if (debugEnabled())
     {
-      TRACER.debugInfo("Last rotation occured %ds ago. " +
+      TRACER.debugInfo("Last rotation occurred %ds ago. " +
           "Next rotation in %ds", currInterval / 1000,
                                    (timeInterval - currInterval)/1000);
     }

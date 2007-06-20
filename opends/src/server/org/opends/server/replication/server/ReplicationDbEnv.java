@@ -68,7 +68,7 @@ public class ReplicationDbEnv
    * @param path Path where the backing files must be created.
    * @param replicationServer the ReplicationServer that creates this
    *                          ReplicationDbEnv.
-   * @throws DatabaseException If a DatabaseException occured that prevented
+   * @throws DatabaseException If a DatabaseException occurred that prevented
    *                           the initialization to happen.
    * @throws ReplicationDBException If a replicationServer internal error caused
    *                              a failure of the replicationServer processing.

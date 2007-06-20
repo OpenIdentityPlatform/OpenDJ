@@ -53,6 +53,8 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.JebMessages.*;
+import org.opends.server.admin.std.server.JEBackendCfg;
+import static org.opends.server.util.StaticUtils.getFileForPath;
 
 /**
  * A thread to merge a set of intermediate files from an index builder
@@ -74,7 +76,7 @@ public class IndexMergeThread extends DirectoryThread
   /**
    * The configuration of the JE backend containing the index.
    */
-  Config config;
+  JEBackendCfg config;
 
   /**
    * The LDIF import configuration, which indicates whether we are
@@ -123,26 +125,24 @@ public class IndexMergeThread extends DirectoryThread
   {
     public boolean accept(File d, String name)
     {
-      return name.startsWith(indexName);
+      return name.startsWith(index.getName());
     }
   };
 
   /**
    * Create a new index merge thread.
-   * @param name The name of the index for use in file names and log messages.
    * @param config The configuration of the JE backend containing the index.
    * @param ldifImportConfig The LDIF import configuration, which indicates
    * whether we are appending to existing data.
    * @param index The index database to be written.
    * @param entryLimit The configured index entry limit.
    */
-  IndexMergeThread(String name, Config config,
+  IndexMergeThread(JEBackendCfg config,
                    LDIFImportConfig ldifImportConfig,
                    Index index, int entryLimit)
   {
-    super("Index Merge Thread " + name);
+    super("Index Merge Thread " + index.getName());
 
-    this.indexName = name;
     this.config = config;
     this.ldifImportConfig = ldifImportConfig;
     this.indexer = index.indexer;
@@ -188,20 +188,20 @@ public class IndexMergeThread extends DirectoryThread
          new TreeMap<ASN1OctetString, MergeValue>(comparator);
 
     // Open all the files.
-    File tempDir = new File(config.getImportTempDirectory());
+    File tempDir = getFileForPath(config.getBackendImportTempDirectory());
     File[] files = tempDir.listFiles(filter);
 
     if (files == null || files.length == 0)
     {
       int msgID = MSGID_JEB_INDEX_MERGE_NO_DATA;
-      String message = getMessage(msgID, indexName);
+      String message = getMessage(msgID, index.getName());
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
                message, msgID);
       return;
     }
 
     int msgID = MSGID_JEB_INDEX_MERGE_START;
-    String message = getMessage(msgID, files.length, indexName);
+    String message = getMessage(msgID, files.length, index.getName());
     logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
              message, msgID);
 
@@ -216,7 +216,6 @@ public class IndexMergeThread extends DirectoryThread
 
     try
     {
-      Database db = index.getDatabase();
 
       for (int i = 0; i < files.length; i++)
       {
@@ -249,7 +248,7 @@ public class IndexMergeThread extends DirectoryThread
             merged.clear();
             if (ldifImportConfig.appendToExistingData())
             {
-              if (db.get(txn, dbKey, dbData, LockMode.RMW) ==
+              if (index.read(txn, dbKey, dbData, LockMode.RMW) ==
                    OperationStatus.SUCCESS)
               {
                 if (dbData.getSize() == 0)
@@ -284,7 +283,7 @@ public class IndexMergeThread extends DirectoryThread
 
               dbData.setData(mergedBytes);
               dbData.setSize(merged.encodedSize());
-              db.put(txn, dbKey, dbData);
+              index.put(txn, dbKey, dbData);
             }
 
             LinkedList<byte[]> arrayList = arrayMap.get(keyBytes.length);
@@ -305,6 +304,11 @@ public class IndexMergeThread extends DirectoryThread
       }
       catch (NoSuchElementException e)
       {
+      }
+
+      if(replaceExisting)
+      {
+        index.setTrusted(txn, true);
       }
     }
     catch (Exception e)
@@ -340,7 +344,7 @@ public class IndexMergeThread extends DirectoryThread
     }
 
     msgID = MSGID_JEB_INDEX_MERGE_COMPLETE;
-    message = getMessage(msgID, indexName);
+    message = getMessage(msgID, index.getName());
     logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
              message, msgID);
   }

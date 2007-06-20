@@ -213,29 +213,37 @@ public class TestVerifyJob extends JebTestCase
   @Test()
   public void testCleanDN2ID() throws Exception {
     preTest(3);
-    //Add a junk DN and non-existent entry id to DN2ID index
-    DN testDN=DN.decode(junkDN);
-    EntryID id=new EntryID(45);
-    assertTrue(dn2id.insert(txn, testDN, id));
-    //Make two DN keys point at same entry.
-    testDN=DN.decode(junkDN1);
-    id=new EntryID(3);
-    assertTrue(dn2id.insert(txn, testDN, id));
-    //Add badDN key with bad entry id
-    DatabaseEntry key=
-         new DatabaseEntry(StaticUtils.getBytes(badDN));
-    DatabaseEntry data =
-         new EntryID(37).getDatabaseEntry();
-    assertTrue(dn2id.putRaw(txn, key, data));
-    //Add DN key with malformed entryID
-    key=new DatabaseEntry(StaticUtils.getBytes(junkDN2));
-    data= new DatabaseEntry(new byte[3]);
-    assertTrue(dn2id.putRaw(txn, key, data));
-    //Try to break JebFormat version
-    addID2EntryReturnKey(junkDN3, 20, true);
-    id=new EntryID(20);
-    assertTrue(dn2id.insert(txn, DN.decode(junkDN3), id));
-    performBECleanVerify("dn2id", 5);
+    eContainer.sharedLock.lock();
+    try
+    {
+      //Add a junk DN and non-existent entry id to DN2ID index
+      DN testDN=DN.decode(junkDN);
+      EntryID id=new EntryID(45);
+      assertTrue(dn2id.insert(txn, testDN, id));
+      //Make two DN keys point at same entry.
+      testDN=DN.decode(junkDN1);
+      id=new EntryID(3);
+      assertTrue(dn2id.insert(txn, testDN, id));
+      //Add badDN key with bad entry id
+      DatabaseEntry key=
+           new DatabaseEntry(StaticUtils.getBytes(badDN));
+      DatabaseEntry data =
+           new EntryID(37).getDatabaseEntry();
+      assertTrue(dn2id.putRaw(txn, key, data));
+      //Add DN key with malformed entryID
+      key=new DatabaseEntry(StaticUtils.getBytes(junkDN2));
+      data= new DatabaseEntry(new byte[3]);
+      assertTrue(dn2id.putRaw(txn, key, data));
+      //Try to break JebFormat version
+      addID2EntryReturnKey(junkDN3, 20, true);
+      id=new EntryID(20);
+      assertTrue(dn2id.insert(txn, DN.decode(junkDN3), id));
+      performBECleanVerify("dn2id", 5);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /**
@@ -246,30 +254,38 @@ public class TestVerifyJob extends JebTestCase
    */
   @Test() public void testCleanID2Children() throws Exception {
     preTest(3);
-    //Add malformed key
-    byte[] shortBytes = new byte[3];
-    DatabaseEntry key= new DatabaseEntry(shortBytes);
-    EntryIDSet idSet=new EntryIDSet();
-    id2child.writeKey(txn, key, idSet);
-    //Try to break JebFormat version of key entry
-    key=addID2EntryReturnKey(junkDN, 4, true);
-    idSet=new EntryIDSet(new byte[16], new byte[16]);
-    id2child.writeKey(txn, key, idSet);
-    //put invalid key -- no EntryID matches
-    key= new EntryID(45).getDatabaseEntry();
-    id2child.writeKey(txn, key, idSet);
-    //invalid ids in id list
-    key=addID2EntryReturnKey(junkDN1, 5, false);
-    byte[] idBytes=new byte[24];
-    //doesn't exist
-    idBytes[3] = (byte)0xff;
-    //not a child
-    idBytes[15] = (byte)1;
-    //bad jeb format
-    idBytes[23] = (byte) 0x04;
-    idSet=new EntryIDSet(null, idBytes);
-    id2child.writeKey(txn, key, idSet);
-    performBECleanVerify("id2children", 6);
+    eContainer.sharedLock.lock();
+    try
+    {
+      //Add malformed key
+      byte[] shortBytes = new byte[3];
+      DatabaseEntry key= new DatabaseEntry(shortBytes);
+      EntryIDSet idSet=new EntryIDSet();
+      id2child.writeKey(txn, key, idSet);
+      //Try to break JebFormat version of key entry
+      key=addID2EntryReturnKey(junkDN, 4, true);
+      idSet=new EntryIDSet(new byte[16], new byte[16]);
+      id2child.writeKey(txn, key, idSet);
+      //put invalid key -- no EntryID matches
+      key= new EntryID(45).getDatabaseEntry();
+      id2child.writeKey(txn, key, idSet);
+      //invalid ids in id list
+      key=addID2EntryReturnKey(junkDN1, 5, false);
+      byte[] idBytes=new byte[24];
+      //doesn't exist
+      idBytes[3] = (byte)0xff;
+      //not a child
+      idBytes[15] = (byte)1;
+      //bad jeb format
+      idBytes[23] = (byte) 0x04;
+      idSet=new EntryIDSet(null, idBytes);
+      id2child.writeKey(txn, key, idSet);
+      performBECleanVerify("id2children", 6);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /**
@@ -280,31 +296,39 @@ public class TestVerifyJob extends JebTestCase
    */
   @Test() public void testCleanID2Subtree() throws Exception {
     preTest(4);
-    //break key
-    byte[] shortBytes = new byte[3];
-    DatabaseEntry key= new DatabaseEntry(shortBytes);
-    EntryIDSet idSet=new EntryIDSet();
-    id2subtree.writeKey(txn, key, idSet);
-    //put invalid ids into entry 3 idlist
-    key= new EntryID(3).getDatabaseEntry();
-    byte[] idBytes=new byte[16];
-    //invalid id
-    idBytes[3] = (byte)0xff;
-    //non-subordinate
-    idBytes[15] = (byte)1;
-    idSet=new EntryIDSet(null, idBytes);
-    id2subtree.writeKey(txn, key, idSet);
-    //Try to break JebFormat version of key entry
-    key=addID2EntryReturnKey(junkDN, 4, true);
-    idBytes[3]=(byte) 0x04;
-    idBytes[15]=(byte)0x00;
-    EntryIDSet idSet1=new EntryIDSet(null, idBytes);
-    id2subtree.writeKey(txn, key, idSet1);
-    //put invalid key -- no EntryID matches
-    key= new EntryID(45).getDatabaseEntry();
-    idSet=new EntryIDSet(null, idBytes);
-    id2subtree.writeKey(txn, key, idSet);
-    performBECleanVerify("id2subtree", 7);
+    eContainer.sharedLock.lock();
+    try
+    {
+      //break key
+      byte[] shortBytes = new byte[3];
+      DatabaseEntry key= new DatabaseEntry(shortBytes);
+      EntryIDSet idSet=new EntryIDSet();
+      id2subtree.writeKey(txn, key, idSet);
+      //put invalid ids into entry 3 idlist
+      key= new EntryID(3).getDatabaseEntry();
+      byte[] idBytes=new byte[16];
+      //invalid id
+      idBytes[3] = (byte)0xff;
+      //non-subordinate
+      idBytes[15] = (byte)1;
+      idSet=new EntryIDSet(null, idBytes);
+      id2subtree.writeKey(txn, key, idSet);
+      //Try to break JebFormat version of key entry
+      key=addID2EntryReturnKey(junkDN, 4, true);
+      idBytes[3]=(byte) 0x04;
+      idBytes[15]=(byte)0x00;
+      EntryIDSet idSet1=new EntryIDSet(null, idBytes);
+      id2subtree.writeKey(txn, key, idSet1);
+      //put invalid key -- no EntryID matches
+      key= new EntryID(45).getDatabaseEntry();
+      idSet=new EntryIDSet(null, idBytes);
+      id2subtree.writeKey(txn, key, idSet);
+      performBECleanVerify("id2subtree", 7);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /**
@@ -314,35 +338,39 @@ public class TestVerifyJob extends JebTestCase
    * @throws Exception if the error count is not equal to 4.
    */
   @Test() public void testCleanAttrIndex() throws Exception {
-    String phoneType="telephoneNumber";
+    String phoneType="telephonenumber";
     preTest(3);
-    //Need to open a second database against this index
-    //so we can manipulate it. We can't get the index DB handle
-    //any other way.
-    DatabaseConfig config = new DatabaseConfig();
-    config.setAllowCreate(true);
-    config.setTransactional(true);
-    Database db=
-         eContainer.openDatabase(config, phoneType + ".equality");
-    //Add entry with bad JEB format Version
-    addID2EntryReturnKey(junkDN, 4, true);
-    //Add phone number with various bad id list entryIDs
-    byte[] subBytes = StaticUtils.getBytes("0009999999");
-    DatabaseEntry key= new DatabaseEntry(subBytes);
-    byte[] dataBytes=new byte[32];
-    //put duplicate ids in list
-    dataBytes[7] = (byte)1;
-    dataBytes[15] = (byte)1;
-    //put id that doesn't exist
-    dataBytes[23] = (byte)0xff;
-    //point to bad entry added above
-    dataBytes[31] = (byte) 0x04;
-    DatabaseEntry data= new DatabaseEntry(dataBytes);
-    OperationStatus status = EntryContainer.put(db, txn, key, data);
-    assertTrue(status == OperationStatus.SUCCESS);
-    //really 5 errors, but duplicate reference doesn't increment error
-    //count for some reason
-    performBECleanVerify(phoneType, 4);
+    eContainer.sharedLock.lock();
+    try
+    {
+      AttributeType attributeType =
+          DirectoryServer.getAttributeType(phoneType);
+      Index index =
+           eContainer.getAttributeIndex(attributeType).equalityIndex;
+      //Add entry with bad JEB format Version
+      addID2EntryReturnKey(junkDN, 4, true);
+      //Add phone number with various bad id list entryIDs
+      byte[] subBytes = StaticUtils.getBytes("0009999999");
+      DatabaseEntry key= new DatabaseEntry(subBytes);
+      byte[] dataBytes=new byte[32];
+      //put duplicate ids in list
+      dataBytes[7] = (byte)1;
+      dataBytes[15] = (byte)1;
+      //put id that doesn't exist
+      dataBytes[23] = (byte)0xff;
+      //point to bad entry added above
+      dataBytes[31] = (byte) 0x04;
+      DatabaseEntry data= new DatabaseEntry(dataBytes);
+      OperationStatus status = index.put(txn, key, data);
+      assertTrue(status == OperationStatus.SUCCESS);
+      //really 5 errors, but duplicate reference doesn't increment error
+      //count for some reason
+      performBECleanVerify(phoneType, 4);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /*
@@ -360,26 +388,34 @@ public class TestVerifyJob extends JebTestCase
    */
   @Test() public void testVerifyID2Entry() throws Exception {
     preTest(3);
-    //Add entry with short id
-    byte[] shortBytes = new byte[3];
-    DatabaseEntry key= new DatabaseEntry(shortBytes);
-    Entry testEntry=bldStatEntry(junkDN);
-    byte []entryBytes =
-         JebFormat.entryToDatabase(testEntry, new DataConfig());
-    DatabaseEntry data= new DatabaseEntry(entryBytes);
-    assertTrue(id2entry.putRaw(txn, key, data));
+    eContainer.sharedLock.lock();
+    try
+    {
+      //Add entry with short id
+      byte[] shortBytes = new byte[3];
+      DatabaseEntry key= new DatabaseEntry(shortBytes);
+      Entry testEntry=bldStatEntry(junkDN);
+      byte []entryBytes =
+           JebFormat.entryToDatabase(testEntry, new DataConfig());
+      DatabaseEntry data= new DatabaseEntry(entryBytes);
+      assertTrue(id2entry.putRaw(txn, key, data));
 
-    //add entry with ramdom bytes
-    DatabaseEntry key1= new EntryID(4).getDatabaseEntry();
-    byte []eBytes = new byte[459];
-    for(int i=0;i<459;i++) {
-      eBytes[i]=(byte) (i*2);
+      //add entry with ramdom bytes
+      DatabaseEntry key1= new EntryID(4).getDatabaseEntry();
+      byte []eBytes = new byte[459];
+      for(int i=0;i<459;i++) {
+        eBytes[i]=(byte) (i*2);
+      }
+      //set version correctly
+      eBytes[0]=0x01;
+      DatabaseEntry data1= new DatabaseEntry(eBytes);
+      assertTrue(id2entry.putRaw(txn, key1, data1));
+      performBECompleteVerify("telephoneNumber", 3);
     }
-    //set version correctly
-    eBytes[0]=0x01;
-    DatabaseEntry data1= new DatabaseEntry(eBytes);
-    assertTrue(id2entry.putRaw(txn, key1, data1));
-    performBECompleteVerify("telephoneNumber", 3);
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /**
@@ -391,21 +427,29 @@ public class TestVerifyJob extends JebTestCase
    */
   @Test() public void testVerifyDN2ID() throws Exception {
     preTest(9);
-    //add entry but no corresponding dn2id key
-    addID2EntryReturnKey(junkDN, 10, false);
-    //entry has dn2id key but its entryID -- don't need key
-    addID2EntryReturnKey(junkDN1, 11, false);
-    //insert key with bad entry id (45 instead of 10)
-    DN testDN=DN.decode(junkDN1);
-    EntryID id=new EntryID(45);
-    assertTrue(dn2id.insert(txn, testDN, id));
-    //entry has no parent in dn2id
-    addID2EntryReturnKey(noParentDN, 12, false);
-    //add the key/id
-    testDN=DN.decode(noParentDN);
-    id=new EntryID(12);
-    assertTrue(dn2id.insert(txn, testDN, id));
-    performBECompleteVerify("dn2id", 3);
+    eContainer.sharedLock.lock();
+    try
+    {
+      //add entry but no corresponding dn2id key
+      addID2EntryReturnKey(junkDN, 10, false);
+      //entry has dn2id key but its entryID -- don't need key
+      addID2EntryReturnKey(junkDN1, 11, false);
+      //insert key with bad entry id (45 instead of 10)
+      DN testDN=DN.decode(junkDN1);
+      EntryID id=new EntryID(45);
+      assertTrue(dn2id.insert(txn, testDN, id));
+      //entry has no parent in dn2id
+      addID2EntryReturnKey(noParentDN, 12, false);
+      //add the key/id
+      testDN=DN.decode(noParentDN);
+      id=new EntryID(12);
+      assertTrue(dn2id.insert(txn, testDN, id));
+      performBECompleteVerify("dn2id", 3);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /**
@@ -417,22 +461,30 @@ public class TestVerifyJob extends JebTestCase
    */
   @Test() public void testVerifyID2Children() throws Exception {
     preTest(9);
-    //Add dn with no parent
-    DatabaseEntry key=addID2EntryReturnKey(noParentDN, 10, false);
-    byte[] idBytes=new byte[16];
-    idBytes[7]=(byte) 0x0A;
-    EntryIDSet idSet=new EntryIDSet(null, idBytes);
-    id2child.writeKey(txn, key, idSet);
-    //Add child entry - don't worry about key
-    addID2EntryReturnKey(cDN, 11, false);
-    //Add its parent entry -- need the key
-    DatabaseEntry keyp=addID2EntryReturnKey(pDN, 12, false);
-    //add parent key/IDSet with bad IDset id
-    byte[] idBytesp=new byte[16];
-    idBytesp[7]=(byte) 0xFF;
-    EntryIDSet idSetp=new EntryIDSet(null, idBytesp);
-    id2child.writeKey(txn, keyp, idSetp);
-    performBECompleteVerify("id2children", 3);
+    eContainer.sharedLock.lock();
+    try
+    {
+      //Add dn with no parent
+      DatabaseEntry key=addID2EntryReturnKey(noParentDN, 10, false);
+      byte[] idBytes=new byte[16];
+      idBytes[7]=(byte) 0x0A;
+      EntryIDSet idSet=new EntryIDSet(null, idBytes);
+      id2child.writeKey(txn, key, idSet);
+      //Add child entry - don't worry about key
+      addID2EntryReturnKey(cDN, 11, false);
+      //Add its parent entry -- need the key
+      DatabaseEntry keyp=addID2EntryReturnKey(pDN, 12, false);
+      //add parent key/IDSet with bad IDset id
+      byte[] idBytesp=new byte[16];
+      idBytesp[7]=(byte) 0xFF;
+      EntryIDSet idSetp=new EntryIDSet(null, idBytesp);
+      id2child.writeKey(txn, keyp, idSetp);
+      performBECompleteVerify("id2children", 3);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /**
@@ -447,13 +499,21 @@ public class TestVerifyJob extends JebTestCase
    */
   @Test() public void testVerifyID2Children1() throws Exception {
     preTest(2);
-    //Add child entry - don't worry about key
-    addID2EntryReturnKey(pDN, 10, false);
-    //add parent key/IDSet with null keyset
-    EntryIDSet idSetp=new EntryIDSet();
-    DatabaseEntry key= new EntryID(2).getDatabaseEntry();
-    id2child.writeKey(txn, key, idSetp);
-    performBECompleteVerify("id2children", 0);
+    eContainer.sharedLock.lock();
+    try
+    {
+      //Add child entry - don't worry about key
+      addID2EntryReturnKey(pDN, 10, false);
+      //add parent key/IDSet with null keyset
+      EntryIDSet idSetp=new EntryIDSet();
+      DatabaseEntry key= new EntryID(2).getDatabaseEntry();
+      id2child.writeKey(txn, key, idSetp);
+      performBECompleteVerify("id2children", 0);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /**
@@ -466,9 +526,17 @@ public class TestVerifyJob extends JebTestCase
   @Test
   public void testVerifyID2Subtree() throws Exception {
     preTest(2);
-    //Add entry with no parent
-    addID2EntryReturnKey(noParentDN, 3, false);
-    performBECompleteVerify("id2subtree", 3);
+    eContainer.sharedLock.lock();
+    try
+    {
+      //Add entry with no parent
+      addID2EntryReturnKey(noParentDN, 3, false);
+      performBECompleteVerify("id2subtree", 3);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /**
@@ -483,13 +551,21 @@ public class TestVerifyJob extends JebTestCase
   @Test
   public void testVerifyID2Subtree1() throws Exception {
     preTest(2);
-    //Add child entry - don't worry about key
-    addID2EntryReturnKey(pDN, 3, false);
-    //add parent key/IDSet with null keyset
-    EntryIDSet idSet=new EntryIDSet();
-    DatabaseEntry key= new EntryID(2).getDatabaseEntry();
-    id2subtree.writeKey(txn, key, idSet);
-    performBECompleteVerify("id2subtree", 1);
+    eContainer.sharedLock.lock();
+    try
+    {
+      //Add child entry - don't worry about key
+      addID2EntryReturnKey(pDN, 3, false);
+      //add parent key/IDSet with null keyset
+      EntryIDSet idSet=new EntryIDSet();
+      DatabaseEntry key= new EntryID(2).getDatabaseEntry();
+      id2subtree.writeKey(txn, key, idSet);
+      performBECompleteVerify("id2subtree", 1);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /**
@@ -501,53 +577,58 @@ public class TestVerifyJob extends JebTestCase
   @Test() public void testVerifyAttribute() throws Exception {
     String mailType="mail";
     preTest(4);
-    //Need to open a second databases against this index
-    //so we can manipulate it.
-    DatabaseConfig config = new DatabaseConfig();
-    config.setAllowCreate(true);
-    config.setTransactional(true);
-    //Get db handles to each index.
-    Database dbEq=
-         eContainer.openDatabase(config, mailType + ".equality");
-    Database dbPres=
-         eContainer.openDatabase(config, mailType + ".presence");
-    Database dbSub=
-         eContainer.openDatabase(config, mailType + ".substring");
-    Database dbOr=
-         eContainer.openDatabase(config, mailType + ".ordering");
-    //Add invalid idlist ids to both equality and ordering indexes.
-    DatabaseEntry key=
-         new DatabaseEntry(StaticUtils.getBytes("user.0@example.com"));
-    byte[] dataBytes=new byte[16];
-    //put duplicate ids in list
-    dataBytes[7] = (byte)0xff;
-    dataBytes[15] = (byte)0xfe;
-    DatabaseEntry data= new DatabaseEntry(dataBytes);
-    OperationStatus status = EntryContainer.put(dbEq, txn, key, data);
-    assertTrue(status == OperationStatus.SUCCESS);
-    status = EntryContainer.put(dbOr, txn, key, data);
-    assertTrue(status == OperationStatus.SUCCESS);
-    //Add null idlist to both equality and ordering indexes.
-    key =
-         new DatabaseEntry(StaticUtils.getBytes("user.1@example.com"));
-    data= new DatabaseEntry(new EntryIDSet().toDatabase());
-    status = EntryContainer.put(dbEq, txn, key, data);
-    assertTrue(status == OperationStatus.SUCCESS);
-    status = EntryContainer.put(dbOr, txn, key, data);
-    assertTrue(status == OperationStatus.SUCCESS);
-    //Add invalid idlist ids to presence index.
-    key =
-         new DatabaseEntry(StaticUtils.getBytes("+"));
-    data = new DatabaseEntry(dataBytes);
-    status = EntryContainer.put(dbPres, txn, key, data);
-    assertTrue(status == OperationStatus.SUCCESS);
-    //Add invalid idlist ids to substring index.
-    key =
-         new DatabaseEntry(StaticUtils.getBytes("@examp"));
-    data = new DatabaseEntry(dataBytes);
-    status = EntryContainer.put(dbSub, txn, key, data);
-    assertTrue(status == OperationStatus.SUCCESS);
-    performBECompleteVerify(mailType, 6);
+    eContainer.sharedLock.lock();
+    try
+    {
+      AttributeType attributeType =
+          DirectoryServer.getAttributeType(mailType);
+      //Get db handles to each index.
+      Index eqIndex =
+          eContainer.getAttributeIndex(attributeType).equalityIndex;
+      Index presIndex =
+          eContainer.getAttributeIndex(attributeType).presenceIndex;
+      Index subIndex =
+          eContainer.getAttributeIndex(attributeType).substringIndex;
+      Index ordIndex =
+          eContainer.getAttributeIndex(attributeType).orderingIndex;
+      //Add invalid idlist ids to both equality and ordering indexes.
+      DatabaseEntry key=
+           new DatabaseEntry(StaticUtils.getBytes("user.0@example.com"));
+      byte[] dataBytes=new byte[16];
+      //put duplicate ids in list
+      dataBytes[7] = (byte)0xff;
+      dataBytes[15] = (byte)0xfe;
+      DatabaseEntry data= new DatabaseEntry(dataBytes);
+      OperationStatus status = eqIndex.put(txn, key, data);
+      assertTrue(status == OperationStatus.SUCCESS);
+      status = ordIndex.put(txn, key, data);
+      assertTrue(status == OperationStatus.SUCCESS);
+      //Add null idlist to both equality and ordering indexes.
+      key =
+           new DatabaseEntry(StaticUtils.getBytes("user.1@example.com"));
+      data= new DatabaseEntry(new EntryIDSet().toDatabase());
+      status = eqIndex.put(txn, key, data);
+      assertTrue(status == OperationStatus.SUCCESS);
+      status = ordIndex.put(txn, key, data);
+      assertTrue(status == OperationStatus.SUCCESS);
+      //Add invalid idlist ids to presence index.
+      key =
+           new DatabaseEntry(StaticUtils.getBytes("+"));
+      data = new DatabaseEntry(dataBytes);
+      status = presIndex.put(txn, key, data);
+      assertTrue(status == OperationStatus.SUCCESS);
+      //Add invalid idlist ids to substring index.
+      key =
+           new DatabaseEntry(StaticUtils.getBytes("@examp"));
+      data = new DatabaseEntry(dataBytes);
+      status = subIndex.put(txn, key, data);
+      assertTrue(status == OperationStatus.SUCCESS);
+      performBECompleteVerify(mailType, 6);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
   }
 
   /* Various tests not either clean or complete */

@@ -27,6 +27,7 @@
 package org.opends.server.backends.jeb;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.tasks.TaskUtils;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.admin.std.meta.JEBackendCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -51,33 +52,31 @@ import java.util.*;
 
 public class TestImportJob extends JebTestCase
 {
+  private  String beID="importRoot";
   private File tempDir;
   private String homeDirName;
-  private String importDirName;
-
-  private LDIFImportConfig ldifImportConfig;
-  private Config backendConfig;
 
   private DN[] baseDNs;
+  private BackendImpl be;
 
   private  String errorCount="verify-error-count";
 
-  private String top = "dn: dc=example,dc=com\n" +
+  private String top = "dn: dc=importtest,dc=com\n" +
       "objectclass: top\n" +
       "objectclass: domain\n" +
       "dc: example\n" +
       "\n" +
-      "dn: ou=People,dc=example,dc=com\n" +
+      "dn: ou=People,dc=importtest,dc=com\n" +
       "objectclass: top\n" +
       "objectclass: organizationalUnit\n" +
       "ou: People\n" +
       "\n" +
-      "dn: dc=example1,dc=com\n" +
+      "dn: dc=importtest1,dc=com\n" +
       "objectclass: top\n" +
       "objectclass: domain\n" +
       "dc: example1\n";
   private String entries1 =
-      "dn: uid=user.0,ou=People,dc=example,dc=com\n" +
+      "dn: uid=user.0,ou=People,dc=importtest,dc=com\n" +
       "objectClass: top\n" +
       "objectClass: person\n" +
       "objectClass: organizationalPerson\n" +
@@ -101,7 +100,7 @@ public class TestImportJob extends JebTestCase
       "postalAddress: Aaccf Amar$99262 Eleventh Street$Salem, NM  36530\n" +
       "description: This is the description for Aaccf Amar.\n" +
       "\n" +
-      "dn: uid=user.539,ou=People,dc=example,dc=com\n" +
+      "dn: uid=user.539,ou=People,dc=importtest,dc=com\n" +
       "objectClass: top\n" +
       "objectClass: person\n" +
       "objectClass: organizationalPerson\n" +
@@ -125,7 +124,7 @@ public class TestImportJob extends JebTestCase
       "postalAddress: Ardyth Bainton$81170 Taylor Street$Syracuse, WV  93507\n" +
       "description: This is the description for Ardyth Bainton.\n" +
       "\n" +
-      "dn: uid=user.446,dc=example1,dc=com\n" +
+      "dn: uid=user.446,dc=importtest1,dc=com\n" +
       "objectClass: top\n" +
       "objectClass: person\n" +
       "objectClass: organizationalPerson\n" +
@@ -149,7 +148,7 @@ public class TestImportJob extends JebTestCase
       "postalAddress: Annalee Avard$46168 Mill Street$Charleston, CO  60948\n" +
       "description: This is the description for Annalee Avard.\n" +
       "\n" +
-      "dn: uid=user.362,dc=example1,dc=com\n" +
+      "dn: uid=user.362,dc=importtest1,dc=com\n" +
       "objectClass: top\n" +
       "objectClass: person\n" +
       "objectClass: organizationalPerson\n" +
@@ -174,7 +173,7 @@ public class TestImportJob extends JebTestCase
       "description: This is the description for Andaree Asawa.\n";
 
   private String replacement1 =
-      "dn: uid=user.446,dc=example1,dc=com\n" +
+      "dn: uid=user.446,dc=importtest1,dc=com\n" +
       "objectClass: top\n" +
       "objectClass: person\n" +
       "objectClass: organizationalPerson\n" +
@@ -208,7 +207,6 @@ public class TestImportJob extends JebTestCase
 
     tempDir = TestCaseUtils.createTemporaryDirectory("jebimporttest");
     homeDirName = tempDir.getAbsolutePath();
-    importDirName = homeDirName + File.separator + "importTmp";
 
     EnvManager.createHomeDir(homeDirName);
 
@@ -233,56 +231,13 @@ public class TestImportJob extends JebTestCase
     writer.close();
     ldifFile.close();
 
-    Entry configEntry = TestCaseUtils.makeEntry(
-      "dn: ds-cfg-backend-id=userRoot,cn=Backends,cn=config",
-      "objectClass: top",
-      "objectClass: ds-cfg-backend",
-      "objectClass: ds-cfg-je-backend",
-      "ds-cfg-backend-base-dn: dc=example,dc=com",
-      "ds-cfg-backend-base-dn: dc=example1,dc=com",
-      "ds-cfg-backend-writability-mode: enabled",
-      "ds-cfg-backend-enabled: true",
-      "ds-cfg-backend-class: org.opends.server.backends.jeb.BackendImpl",
-      "ds-cfg-backend-id: userRoot",
-      "ds-cfg-backend-directory:: " + Base64.encode(homeDirName.getBytes()),
-      "ds-cfg-backend-import-temp-directory:: " + Base64.encode(importDirName.getBytes()));
-
-    ConfigEntry backendConfigEntry = new ConfigEntry(configEntry, null);
-    JEBackendCfg cfg = AdminTestCaseUtils.getConfiguration(
-         JEBackendCfgDefn.getInstance(), configEntry);
-
-    Entry indexEntry = TestCaseUtils.makeEntry(
-      "dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config\n" +
-      "objectClass: top\n" +
-      "objectClass: ds-cfg-branch\n" +
-      "cn: Index");
-
-    ConfigEntry indexConfigEntry = new ConfigEntry(indexEntry, backendConfigEntry);
-
-    Entry cnIndexEntry = TestCaseUtils.makeEntry(
-      "dn: ds-cfg-index-attribute=cn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config\n" +
-      "objectClass: top\n" +
-      "objectClass: ds-cfg-je-index\n" +
-      "ds-cfg-index-attribute: cn\n" +
-      "ds-cfg-index-type: presence\n" +
-      "ds-cfg-index-type: equality\n" +
-      "ds-cfg-index-type: substring\n" +
-      "ds-cfg-index-type: ordering");
-
-    ConfigEntry cnIndexConfigEntry = new ConfigEntry(cnIndexEntry, indexConfigEntry);
-
-    indexConfigEntry.addChild(cnIndexConfigEntry);
-    backendConfigEntry.addChild(indexConfigEntry);
-
 
     baseDNs = new DN[]
     {
-      DN.decode("dc=example,dc=com"),
-      DN.decode("dc=example1,dc=com")
+      DN.decode("dc=importtest,dc=com"),
+      DN.decode("dc=importtest1,dc=com")
     };
 
-    backendConfig = new Config();
-    backendConfig.initializeConfig(cfg);
   }
 
   @AfterClass
@@ -294,6 +249,7 @@ public class TestImportJob extends JebTestCase
   @Test
   public void testImportAll() throws Exception
   {
+    TestCaseUtils.clearJEBackend(false, beID, null);
     ArrayList<String> fileList = new ArrayList<String>();
     fileList.add(homeDirName + File.separator + "top.ldif");
     fileList.add(homeDirName + File.separator + "entries1.ldif");
@@ -305,55 +261,68 @@ public class TestImportJob extends JebTestCase
     importConfig.setValidateSchema(true);
     importConfig.writeRejectedEntries(rejectedEntries);
 
-    ImportJob importJob = new ImportJob(null, backendConfig, importConfig);
-    importJob.importLDIF();
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    TaskUtils.disableBackend(beID);
+    try
+    {
+      be.importLDIF(importConfig);
+    }
+    finally
+    {
+      TaskUtils.enableBackend(beID);
+    }
 
-    RootContainer rootContainer = new RootContainer(backendConfig, null);
-    rootContainer.open();
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    RootContainer rootContainer = be.getRootContainer();
     EntryContainer entryContainer;
 
     assertTrue(rejectedEntries.size() <= 0);
     for(DN baseDN : baseDNs)
     {
-      entryContainer = rootContainer.openEntryContainer(baseDN);
-
-
-      assertNotNull(entryContainer);
-
-      if(baseDN.toString().equals("dc=example,dc=com"))
+      entryContainer = rootContainer.getEntryContainer(baseDN);
+      entryContainer.sharedLock.lock();
+      try
       {
-        assertEquals(entryContainer.getEntryCount(), 4);
-        assertTrue(entryContainer.entryExists(baseDN));
-        assertTrue(entryContainer.entryExists(DN.decode("ou=People,dc=example,dc=com")));
-        assertTrue(entryContainer.entryExists(DN.decode("uid=user.0,ou=People,dc=example,dc=com")));
-        assertTrue(entryContainer.entryExists(DN.decode("uid=user.539,ou=People,dc=example,dc=com")));
+        assertNotNull(entryContainer);
 
-        VerifyConfig verifyConfig = new VerifyConfig();
-        verifyConfig.setBaseDN(baseDN);
+        if(baseDN.toString().equals("dc=importtest,dc=com"))
+        {
+          assertEquals(entryContainer.getEntryCount(), 4);
+          assertTrue(entryContainer.entryExists(baseDN));
+          assertTrue(entryContainer.entryExists(DN.decode("ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.0,ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.539,ou=People,dc=importtest,dc=com")));
 
-        VerifyJob verifyJob = new VerifyJob(backendConfig, verifyConfig);
-        Entry statEntry=bldStatEntry("");
-        verifyJob.verifyBackend(rootContainer, statEntry);
-        assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+          VerifyConfig verifyConfig = new VerifyConfig();
+          verifyConfig.setBaseDN(baseDN);
+
+          Entry statEntry=bldStatEntry("");
+          be=(BackendImpl) DirectoryServer.getBackend(beID);
+          be.verifyBackend(verifyConfig, statEntry);
+          assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+        }
+        else if(baseDN.toString().equals("dc=importtest1,dc=com"))
+        {
+          assertEquals(entryContainer.getEntryCount(), 3);
+          assertTrue(entryContainer.entryExists(baseDN));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.446,dc=importtest1,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.362,dc=importtest1,dc=com")));
+
+          VerifyConfig verifyConfig = new VerifyConfig();
+          verifyConfig.setBaseDN(baseDN);
+
+          Entry statEntry=bldStatEntry("");
+          be=(BackendImpl) DirectoryServer.getBackend(beID);
+          be.verifyBackend(verifyConfig, statEntry);
+          assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+        }
       }
-      else if(baseDN.toString().equals("dc=example1,dc=com"))
+      finally
       {
-        assertEquals(entryContainer.getEntryCount(), 3);
-        assertTrue(entryContainer.entryExists(baseDN));
-        assertTrue(entryContainer.entryExists(DN.decode("uid=user.446,dc=example1,dc=com")));
-        assertTrue(entryContainer.entryExists(DN.decode("uid=user.362,dc=example1,dc=com")));
+        entryContainer.sharedLock.unlock();
 
-        VerifyConfig verifyConfig = new VerifyConfig();
-        verifyConfig.setBaseDN(baseDN);
-
-        VerifyJob verifyJob = new VerifyJob(backendConfig, verifyConfig);
-        Entry statEntry=bldStatEntry("");
-        verifyJob.verifyBackend(rootContainer, statEntry);
-        assertEquals(getStatEntryCount(statEntry, errorCount), 0);
       }
     }
-
-    rootContainer.close();
   }
 
   @Test(dependsOnMethods = "testImportAll")
@@ -366,33 +335,47 @@ public class TestImportJob extends JebTestCase
     importConfig.setValidateSchema(true);
     importConfig.writeRejectedEntries(rejectedEntries);
 
-    ImportJob importJob = new ImportJob(null, backendConfig, importConfig);
-    importJob.importLDIF();
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    TaskUtils.disableBackend(beID);
+    try
+    {
+      be.importLDIF(importConfig);
+    }
+    finally
+    {
+      TaskUtils.enableBackend(beID);
+    }
 
-    RootContainer rootContainer = new RootContainer(backendConfig, null);
-    rootContainer.open();
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    RootContainer rootContainer = be.getRootContainer();
     EntryContainer entryContainer;
 
-    entryContainer = rootContainer.openEntryContainer(DN.decode("dc=example1,dc=com"));
+    entryContainer = rootContainer.getEntryContainer(DN.decode("dc=importtest1,dc=com"));
     assertNotNull(entryContainer);
 
-    assertTrue(rejectedEntries.size() <= 0);
-    Entry entry = entryContainer.getEntry(DN.decode("uid=user.446,dc=example1,dc=com"));
-    assertNotNull(entry);
+    entryContainer.sharedLock.lock();
+    try
+    {
+      assertTrue(rejectedEntries.size() <= 0);
+      Entry entry = entryContainer.getEntry(DN.decode("uid=user.446,dc=importtest1,dc=com"));
+      assertNotNull(entry);
 
-    AttributeType attribute = entry.getAttribute("cn").get(0).getAttributeType();
+      AttributeType attribute = entry.getAttribute("cn").get(0).getAttributeType();
 
-    assertTrue(entry.hasValue(attribute, null, new AttributeValue(attribute,"Annalee Bogard")));
+      assertTrue(entry.hasValue(attribute, null, new AttributeValue(attribute,"Annalee Bogard")));
 
-    VerifyConfig verifyConfig = new VerifyConfig();
-    verifyConfig.setBaseDN(DN.decode("dc=example1,dc=com"));
+      VerifyConfig verifyConfig = new VerifyConfig();
+      verifyConfig.setBaseDN(DN.decode("dc=importtest1,dc=com"));
 
-    VerifyJob verifyJob = new VerifyJob(backendConfig, verifyConfig);
-    Entry statEntry=bldStatEntry("");
-    verifyJob.verifyBackend(rootContainer, statEntry);
-    assertEquals(getStatEntryCount(statEntry, errorCount), 0);
-
-    rootContainer.close();
+      Entry statEntry=bldStatEntry("");
+      be=(BackendImpl) DirectoryServer.getBackend(beID);
+      be.verifyBackend(verifyConfig, statEntry);
+      assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+    }
+    finally
+    {
+      entryContainer.sharedLock.unlock();
+    }
   }
 
   @Test(dependsOnMethods = "testImportReplaceExisting")
@@ -405,10 +388,17 @@ public class TestImportJob extends JebTestCase
     importConfig.setValidateSchema(true);
     importConfig.writeRejectedEntries(rejectedEntries);
 
-    ImportJob importJob = new ImportJob(null, backendConfig, importConfig);
-    importJob.importLDIF();
-
-    assertTrue(rejectedEntries.toString().contains("uid=user.446,dc=example1,dc=com"));
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    TaskUtils.disableBackend(beID);
+    try
+    {
+      be.importLDIF(importConfig);
+    }
+    finally
+    {
+      TaskUtils.enableBackend(beID);
+    }
+    assertTrue(rejectedEntries.toString().contains("uid=user.446,dc=importtest1,dc=com"));
   }
 
   @Test(dependsOnMethods = "testImportReplaceExisting")
@@ -419,44 +409,66 @@ public class TestImportJob extends JebTestCase
     importConfig.setReplaceExistingEntries(false);
     importConfig.setValidateSchema(true);
 
-    ImportJob importJob = new ImportJob(null, backendConfig, importConfig);
-    importJob.importLDIF();
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    TaskUtils.disableBackend(beID);
+    try
+    {
+      be.importLDIF(importConfig);
+    }
+    finally
+    {
+      TaskUtils.enableBackend(beID);
+    }
 
     importConfig = new LDIFImportConfig(homeDirName + File.separator + "entries1.ldif");
     importConfig.setAppendToExistingData(true);
     importConfig.setReplaceExistingEntries(false);
     importConfig.setValidateSchema(true);
 
-    importJob = new ImportJob(null, backendConfig, importConfig);
-    importJob.importLDIF();
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    TaskUtils.disableBackend(beID);
+    try
+    {
+      be.importLDIF(importConfig);
+    }
+    finally
+    {
+      TaskUtils.enableBackend(beID);
+    }
 
-    RootContainer rootContainer = new RootContainer(backendConfig, null);
-    rootContainer.open();
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    RootContainer rootContainer = be.getRootContainer();
     EntryContainer entryContainer;
 
     for(DN baseDN : baseDNs)
     {
-      entryContainer = rootContainer.openEntryContainer(baseDN);
+      entryContainer = rootContainer.getEntryContainer(baseDN);
       assertNotNull(entryContainer);
-
-      if(baseDN.toString().equals("dc=example,dc=com"))
+      entryContainer.sharedLock.lock();
+      try
       {
-        assertEquals(entryContainer.getEntryCount(), 4);
-        assertTrue(entryContainer.entryExists(baseDN));
-        assertTrue(entryContainer.entryExists(DN.decode("ou=People,dc=example,dc=com")));
-        assertTrue(entryContainer.entryExists(DN.decode("uid=user.0,ou=People,dc=example,dc=com")));
-        assertTrue(entryContainer.entryExists(DN.decode("uid=user.539,ou=People,dc=example,dc=com")));
+        if(baseDN.toString().equals("dc=importtest,dc=com"))
+        {
+          assertEquals(entryContainer.getEntryCount(), 4);
+          assertTrue(entryContainer.entryExists(baseDN));
+          assertTrue(entryContainer.entryExists(DN.decode("ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.0,ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.539,ou=People,dc=importtest,dc=com")));
+        }
+        else if(baseDN.toString().equals("dc=importtest1,dc=com"))
+        {
+          assertEquals(entryContainer.getEntryCount(), 3);
+          assertTrue(entryContainer.entryExists(baseDN));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.446,dc=importtest1,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.362,dc=importtest1,dc=com")));
+        }
       }
-      else if(baseDN.toString().equals("dc=example1,dc=com"))
+      finally
       {
-        assertEquals(entryContainer.getEntryCount(), 3);
-        assertTrue(entryContainer.entryExists(baseDN));
-        assertTrue(entryContainer.entryExists(DN.decode("uid=user.446,dc=example1,dc=com")));
-        assertTrue(entryContainer.entryExists(DN.decode("uid=user.362,dc=example1,dc=com")));
+        entryContainer.sharedLock.unlock();
+        TaskUtils.enableBackend(beID);
       }
     }
-
-    rootContainer.close();
   }
 
   @Test(dependsOnMethods = "testImportAll")
@@ -469,10 +481,18 @@ public class TestImportJob extends JebTestCase
     importConfig.setValidateSchema(true);
     importConfig.writeRejectedEntries(rejectedEntries);
 
-    ImportJob importJob = new ImportJob(null, backendConfig, importConfig);
-    importJob.importLDIF();
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    TaskUtils.disableBackend(beID);
+    try
+    {
+      be.importLDIF(importConfig);
+    }
+    finally
+    {
+      TaskUtils.enableBackend(beID);
+    }
 
-    assertTrue(rejectedEntries.toString().contains("uid=user.446,dc=example1,dc=com"));
+    assertTrue(rejectedEntries.toString().contains("uid=user.446,dc=importtest1,dc=com"));
   }
 
       /**

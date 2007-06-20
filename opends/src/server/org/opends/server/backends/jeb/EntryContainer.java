@@ -48,20 +48,21 @@ import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
+import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.server.JEIndexCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.config.ConfigException;
 
 /**
  * Storage container for LDAP entries.  Each base DN of a JE backend is given
@@ -69,6 +70,9 @@ import static org.opends.server.util.ServerConstants.*;
  * the guts of the backend API methods for LDAP operations.
  */
 public class EntryContainer
+    implements ConfigurationChangeListener<JEBackendCfg>,
+    ConfigurationAddListener<JEIndexCfg>,
+    ConfigurationDeleteListener<JEIndexCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -102,6 +106,11 @@ public class EntryContainer
   public static final String REFERRAL_DATABASE_NAME = "referral";
 
   /**
+   * The name of the state database.
+   */
+  public static final String STATE_DATABASE_NAME = "state";
+
+  /**
    * The attribute used to return a search index debug string to the client.
    */
   public static final String ATTR_DEBUG_SEARCH_INDEX = "debugsearchindex";
@@ -124,13 +133,7 @@ public class EntryContainer
   /**
    * The backend configuration.
    */
-  private Config config;
-
-  /**
-   * A list of JE database handles opened through this entryContainer.
-   * They will be closed by the entryContainer.
-   */
-  private ArrayList<Database> databases;
+  private JEBackendCfg config;
 
   /**
    * The JE database environment.
@@ -143,19 +146,9 @@ public class EntryContainer
   private DN2ID dn2id;
 
   /**
-   * The key comparator used for the DN database.
-   */
-  private Comparator<byte[]> dn2idComparator;
-
-  /**
    * The entry database maps an entry ID (8 bytes) to a complete encoded entry.
    */
   private ID2Entry id2entry;
-
-  /**
-   * Compression and cryptographic options for the entry database.
-   */
-  private DataConfig entryDataConfig;
 
   /**
    * Index maps entry ID to an entry ID list containing its children.
@@ -173,9 +166,30 @@ public class EntryContainer
   private DN2URI dn2uri;
 
   /**
+   * The state database maps a config DN to config entries.
+   */
+  private State state;
+
+  /**
    * The set of attribute indexes.
    */
   private HashMap<AttributeType, AttributeIndex> attrIndexMap;
+
+  /**
+   * Cached value from config so they don't have to be retrieved per operation.
+   */
+  private int deadlockRetryLimit;
+
+  private int subtreeDeleteSizeLimit;
+
+  private int indexEntryLimit;
+
+  /**
+   * A read write lock to handle schema changes and bulk changes.
+   */
+  private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+  final Lock sharedLock = lock.readLock();
+  final Lock exclusiveLock = lock.writeLock();
 
   /**
    * Create a new entry entryContainer object.
@@ -188,215 +202,89 @@ public class EntryContainer
    * @param config The configuration of the JE backend.
    * @param env The JE environment to create this entryContainer in.
    * @param rootContainer The root container this entry container is in.
+   * @throws ConfigException if a configuration related error occurs.
    */
-  public EntryContainer(DN baseDN, Backend backend, Config config,
+  public EntryContainer(DN baseDN, Backend backend, JEBackendCfg config,
                         Environment env, RootContainer rootContainer)
+      throws ConfigException
   {
     this.backend = backend;
     this.baseDN = baseDN;
     this.config = config;
     this.env = env;
     this.rootContainer = rootContainer;
-
-    // Instantiate the list of database handles.
-    databases = new ArrayList<Database>();
-
-    // Instantiate indexes for id2children and id2subtree.
-    id2children = new Index(this, ID2CHILDREN_DATABASE_NAME,
-                            new ID2CIndexer(),
-                            config.getBackendIndexEntryLimit(),
-                            0);
-    id2subtree = new Index(this, ID2SUBTREE_DATABASE_NAME,
-                           new ID2SIndexer(),
-                           config.getBackendIndexEntryLimit(),
-                           0);
+    this.deadlockRetryLimit = config.getBackendDeadlockRetryLimit();
+    this.subtreeDeleteSizeLimit = config.getBackendSubtreeDeleteSizeLimit();
+    this.indexEntryLimit = config.getBackendIndexEntryLimit();
 
     // Instantiate the attribute indexes.
     attrIndexMap = new HashMap<AttributeType, AttributeIndex>();
-    if (config != null && config.getIndexConfigMap() != null)
-    {
-      for (IndexConfig indexConfig : config.getIndexConfigMap().values())
-      {
-        AttributeIndex index = new AttributeIndex(this, indexConfig);
-        attrIndexMap.put(indexConfig.getAttributeType(), index);
-      }
-    }
 
-    entryDataConfig = new DataConfig();
-    entryDataConfig.setCompressed(config.isEntriesCompressed());
+    config.addJEChangeListener(this);
+    config.addJEIndexAddListener(this);
+    config.addJEIndexDeleteListener(this);
   }
 
   /**
    * Opens the entryContainer for reading and writing.
    *
    * @throws DatabaseException If an error occurs in the JE database.
+   * @throws ConfigException if a configuration related error occurs.
    */
   public void open()
-       throws DatabaseException
+      throws DatabaseException, ConfigException
   {
-    // Use this database config, duplicates are not allowed.
-    DatabaseConfig dbNodupsConfig = new DatabaseConfig();
-    dbNodupsConfig.setAllowCreate(true);
-    dbNodupsConfig.setTransactional(true);
-
     try
     {
-      id2entry = new ID2Entry(this, dbNodupsConfig, entryDataConfig,
-                              ID2ENTRY_DATABASE_NAME);
+      DataConfig entryDataConfig = new DataConfig();
+      entryDataConfig.setCompressed(config.isBackendEntriesCompressed());
+
+      id2entry = new ID2Entry(ID2ENTRY_DATABASE_NAME, entryDataConfig,
+                              env, this);
       id2entry.open();
 
-      // Set the dn2id ordering so that we can iterate through a subtree.
-      dn2idComparator = new KeyReverseComparator();
-      DatabaseConfig dn2idConfig = new DatabaseConfig();
-      dn2idConfig.setAllowCreate(true);
-      dn2idConfig.setTransactional(true);
-      dn2idConfig.setBtreeComparator(dn2idComparator.getClass());
-      dn2id = new DN2ID(this, dn2idConfig, DN2ID_DATABASE_NAME);
+      dn2id = new DN2ID(DN2ID_DATABASE_NAME, env, this);
       dn2id.open();
 
-      id2children.open(dbNodupsConfig);
-      id2subtree.open(dbNodupsConfig);
+      state = new State(STATE_DATABASE_NAME, env, this);
+      state.open();
 
-      DatabaseConfig dn2uriConfig = new DatabaseConfig();
-      dn2uriConfig.setSortedDuplicates(true);
-      dn2uriConfig.setAllowCreate(true);
-      dn2uriConfig.setTransactional(true);
-      dn2uriConfig.setBtreeComparator(dn2idComparator.getClass());
-      dn2uri = new DN2URI(this, dn2uriConfig, REFERRAL_DATABASE_NAME);
+      id2children = new Index(ID2CHILDREN_DATABASE_NAME,
+                              new ID2CIndexer(), state,
+                              indexEntryLimit, 0,
+                              env,this);
+      id2children.open();
+      id2subtree = new Index(ID2SUBTREE_DATABASE_NAME,
+                             new ID2SIndexer(), state,
+                             indexEntryLimit, 0,
+                             env, this);
+      id2subtree.open();
+
+      dn2uri = new DN2URI(REFERRAL_DATABASE_NAME, env, this);
       dn2uri.open();
 
-      for (AttributeIndex index : attrIndexMap.values())
+      for (String idx : config.listJEIndexes())
       {
-        index.open(dbNodupsConfig);
+        JEIndexCfg indexCfg = config.getJEIndex(idx);
+
+        //TODO: When issue 1793 is fixed, use inherited default values in
+        //admin framework instead for the entry limit.
+        AttributeIndex index =
+            new AttributeIndex(indexCfg, state,
+                               indexEntryLimit,
+                               env, this);
+        index.open();
+        attrIndexMap.put(indexCfg.getIndexAttribute(), index);
       }
     }
-    catch (DatabaseException e)
+    catch (DatabaseException de)
     {
       if (debugEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
       close();
-      throw e;
-    }
-  }
-
-  /**
-   * Opens the entryContainer for reading and writing without transactions.
-   *
-   * @param  deferredWrite  Indicates whether to open the entryContainer using
-   *                        the deferred write mode.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public void openNonTransactional(boolean deferredWrite)
-       throws DatabaseException
-  {
-    // Use this database config, duplicates are not allowed.
-    DatabaseConfig dbNodupsConfig = new DatabaseConfig();
-    dbNodupsConfig.setAllowCreate(true);
-    dbNodupsConfig.setTransactional(false);
-    dbNodupsConfig.setDeferredWrite(deferredWrite);
-
-    try
-    {
-      id2entry = new ID2Entry(this, dbNodupsConfig, entryDataConfig,
-                              ID2ENTRY_DATABASE_NAME);
-      id2entry.open();
-
-      // Set the dn2id ordering so that we can iterate through a subtree.
-      dn2idComparator = new KeyReverseComparator();
-      DatabaseConfig dn2idConfig = new DatabaseConfig();
-      dn2idConfig.setAllowCreate(true);
-      dn2idConfig.setTransactional(false);
-      dn2idConfig.setBtreeComparator(dn2idComparator.getClass());
-      dn2idConfig.setDeferredWrite(deferredWrite);
-      dn2id = new DN2ID(this, dn2idConfig, DN2ID_DATABASE_NAME);
-      dn2id.open();
-
-      id2children.open(dbNodupsConfig);
-      id2subtree.open(dbNodupsConfig);
-
-      DatabaseConfig dn2uriConfig = new DatabaseConfig();
-      dn2uriConfig.setSortedDuplicates(true);
-      dn2uriConfig.setAllowCreate(true);
-      dn2uriConfig.setTransactional(false);
-      dn2uriConfig.setBtreeComparator(dn2idComparator.getClass());
-      dn2uriConfig.setDeferredWrite(deferredWrite);
-      dn2uri = new DN2URI(this, dn2uriConfig, REFERRAL_DATABASE_NAME);
-      dn2uri.open();
-
-      for (AttributeIndex index : attrIndexMap.values())
-      {
-        index.open(dbNodupsConfig);
-      }
-    }
-    catch (DatabaseException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      close();
-      throw e;
-    }
-  }
-
-  /**
-   * Opens the entryContainer for reading only.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public void openReadOnly()
-       throws DatabaseException
-  {
-    // Use this database config, duplicates are not allowed.
-    DatabaseConfig dbNodupsConfig = new DatabaseConfig();
-    dbNodupsConfig.setReadOnly(true);
-    dbNodupsConfig.setAllowCreate(false);
-    dbNodupsConfig.setTransactional(false);
-
-    try
-    {
-      id2entry = new ID2Entry(this, dbNodupsConfig, entryDataConfig,
-                              ID2ENTRY_DATABASE_NAME);
-      id2entry.open();
-
-      // Set the dn2id ordering so that we can iterate through a subtree.
-      dn2idComparator = new KeyReverseComparator();
-      DatabaseConfig dn2idConfig = new DatabaseConfig();
-      dn2idConfig.setReadOnly(true);
-      dn2idConfig.setAllowCreate(false);
-      dn2idConfig.setTransactional(false);
-      dn2idConfig.setBtreeComparator(dn2idComparator.getClass());
-      dn2id = new DN2ID(this, dn2idConfig, DN2ID_DATABASE_NAME);
-      dn2id.open();
-
-      id2children.open(dbNodupsConfig);
-      id2subtree.open(dbNodupsConfig);
-
-      DatabaseConfig dn2uriConfig = new DatabaseConfig();
-      dn2uriConfig.setReadOnly(true);
-      dn2uriConfig.setSortedDuplicates(true);
-      dn2uriConfig.setAllowCreate(false);
-      dn2uriConfig.setTransactional(false);
-      dn2uriConfig.setBtreeComparator(dn2idComparator.getClass());
-      dn2uri = new DN2URI(this, dn2uriConfig, REFERRAL_DATABASE_NAME);
-      dn2uri.open();
-
-      for (AttributeIndex index : attrIndexMap.values())
-      {
-        index.open(dbNodupsConfig);
-      }
-    }
-    catch (DatabaseException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      close();
-      throw e;
+      throw de;
     }
   }
 
@@ -406,23 +294,93 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void close()
-       throws DatabaseException
+      throws DatabaseException
   {
-    // Close each database handle that has been opened.
-    for (Database database : databases)
+    try
     {
-      if (database.getConfig().getDeferredWrite())
+      dn2id.close();
+    }
+    catch (DatabaseNotFoundException e)
+    {
+      if (debugEnabled())
       {
-        database.sync();
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-
-      database.close();
+    }
+    try
+    {
+      id2entry.close();
+    }
+    catch (DatabaseNotFoundException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+    try
+    {
+      id2children.close();
+    }
+    catch (DatabaseNotFoundException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+    try
+    {
+      id2subtree.close();
+    }
+    catch (DatabaseNotFoundException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+    try
+    {
+      state.close();
+    }
+    catch (DatabaseNotFoundException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+    try
+    {
+      dn2uri.close();
+    }
+    catch (DatabaseNotFoundException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
     }
 
     for (AttributeIndex index : attrIndexMap.values())
     {
-      index.close();
+      try
+      {
+        index.close();
+      }
+      catch (DatabaseNotFoundException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
     }
+
+    config.removeJEChangeListener(this);
+    config.removeJEIndexAddListener(this);
+    config.removeJEIndexDeleteListener(this);
   }
 
   /**
@@ -490,6 +448,17 @@ public class EntryContainer
   {
     return attrIndexMap.get(attrType);
   }
+
+  /**
+   * Retrieve all attribute indexes.
+   *
+   * @return All attribute indexes defined in this entry container.
+   */
+  public Collection<AttributeIndex> getAttributeIndexes()
+  {
+    return attrIndexMap.values();
+  }
+
 
   /**
    * Determine the highest entryID in the entryContainer.
@@ -1021,7 +990,7 @@ public class EntryContainer
               lookthroughLimit));
             return;
           }
-          int cmp = dn2idComparator.compare(key.getData(), end);
+          int cmp = dn2id.getComparator().compare(key.getData(), end);
           if (cmp >= 0)
           {
             // We have gone past the ending value.
@@ -1398,10 +1367,10 @@ public class EntryContainer
    * @throws JebException If an error occurs in the JE backend.
    */
   public void addEntry(Entry entry, AddOperation addOperation)
-       throws DatabaseException, DirectoryException, JebException
+      throws DatabaseException, DirectoryException, JebException
   {
     TransactedOperation operation =
-         new AddEntryTransaction(entry);
+        new AddEntryTransaction(entry);
 
     invokeTransactedOperation(operation);
   }
@@ -1418,11 +1387,11 @@ public class EntryContainer
    * @throws JebException If an error occurs in the JE backend.
    */
   private void invokeTransactedOperation(TransactedOperation operation)
-       throws DatabaseException, DirectoryException, JebException
+      throws DatabaseException, DirectoryException, JebException
   {
     // Attempt the operation under a transaction until it fails or completes.
     boolean completed = false;
-    int retryRemaining = config.getDeadlockRetryLimit();
+    int retryRemaining = deadlockRetryLimit;
     while (!completed)
     {
       // Start a transaction.
@@ -1506,7 +1475,7 @@ public class EntryContainer
      * @throws JebException If an error occurs in the JE backend.
      */
     public abstract void invokeOperation(Transaction txn)
-         throws DatabaseException, DirectoryException, JebException;
+        throws DatabaseException, DirectoryException, JebException;
 
     /**
      * This method is called after the transaction has successfully
@@ -1568,7 +1537,7 @@ public class EntryContainer
      * @throws JebException If an error occurs in the JE backend.
      */
     public void invokeOperation(Transaction txn)
-         throws DatabaseException, DirectoryException, JebException
+        throws DatabaseException, DirectoryException, JebException
     {
       // Check whether the entry already exists.
       if (dn2id.get(txn, entry.getDN()) != null)
@@ -1700,10 +1669,10 @@ public class EntryContainer
    * @throws JebException If an error occurs in the JE backend.
    */
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
-       throws DirectoryException, DatabaseException, JebException
+      throws DirectoryException, DatabaseException, JebException
   {
     DeleteEntryTransaction operation =
-         new DeleteEntryTransaction(entryDN, deleteOperation);
+        new DeleteEntryTransaction(entryDN, deleteOperation);
 
     invokeTransactedOperation(operation);
 
@@ -1712,9 +1681,9 @@ public class EntryContainer
       String message = getMessage(MSGID_JEB_SUBTREE_DELETE_SIZE_LIMIT_EXCEEDED,
                                   operation.getDeletedEntryCount());
       throw new DirectoryException(
-           ResultCode.ADMIN_LIMIT_EXCEEDED,
-           message,
-           MSGID_JEB_SUBTREE_DELETE_SIZE_LIMIT_EXCEEDED);
+          ResultCode.ADMIN_LIMIT_EXCEEDED,
+          message,
+          MSGID_JEB_SUBTREE_DELETE_SIZE_LIMIT_EXCEEDED);
     }
 
     String message = getMessage(MSGID_JEB_DELETED_ENTRY_COUNT,
@@ -1745,7 +1714,7 @@ public class EntryContainer
                           Transaction txn,
                           DN leafDN,
                           EntryID leafID)
-       throws DatabaseException, DirectoryException, JebException
+      throws DatabaseException, DirectoryException, JebException
   {
     // Check that the entry exists in id2entry and read its contents.
     Entry entry = id2entry.get(txn, leafID);
@@ -1859,7 +1828,7 @@ public class EntryContainer
                             BufferedIndex id2sBuffered,
                             Transaction txn,
                             DN leafDN)
-       throws DatabaseException, DirectoryException, JebException
+      throws DatabaseException, DirectoryException, JebException
   {
     // Read the entry ID from dn2id.
     EntryID leafID = dn2id.get(txn, leafDN);
@@ -2015,13 +1984,13 @@ public class EntryContainer
      * @throws JebException If an error occurs in the JE backend.
      */
     public void invokeOperation(Transaction txn)
-         throws DatabaseException, DirectoryException, JebException
+        throws DatabaseException, DirectoryException, JebException
     {
       // Check for referral entries above the target entry.
       dn2uri.targetEntryReferrals(entryDN, null);
 
       // Determine whether this is a subtree delete.
-      int adminSizeLimit = config.getSubtreeDeleteSizeLimit();
+      int adminSizeLimit = subtreeDeleteSizeLimit;
       boolean isSubtreeDelete = false;
       List<Control> controls = deleteOperation.getRequestControls();
       if (controls != null)
@@ -2077,7 +2046,7 @@ public class EntryContainer
 
         // Step back until the key is less than the beginning value
         while (status == OperationStatus.SUCCESS &&
-             dn2idComparator.compare(key.getData(), begin) >= 0)
+            dn2id.getComparator().compare(key.getData(), begin) >= 0)
         {
           status = cursor.getPrev(key, data, LockMode.DEFAULT);
         }
@@ -2085,7 +2054,7 @@ public class EntryContainer
         // Step back until we pass the ending value.
         while (status == OperationStatus.SUCCESS)
         {
-          int cmp = dn2idComparator.compare(key.getData(), end);
+          int cmp = dn2id.getComparator().compare(key.getData(), end);
           if (cmp < 0)
           {
             // We have gone past the ending value.
@@ -2196,7 +2165,7 @@ public class EntryContainer
    *                              determination.
    */
   public boolean entryExists(DN entryDN)
-         throws DirectoryException
+      throws DirectoryException
   {
     EntryCache entryCache = DirectoryServer.getEntryCache();
 
@@ -2241,7 +2210,7 @@ public class EntryContainer
    * @throws DatabaseException An error occurred during a database operation.
    */
   public Entry getEntry(DN entryDN)
-       throws JebException, DatabaseException, DirectoryException
+      throws JebException, DatabaseException, DirectoryException
   {
     EntryCache entryCache = DirectoryServer.getEntryCache();
     Entry entry = null;
@@ -2643,11 +2612,11 @@ public class EntryContainer
    */
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
-         throws DatabaseException, JebException, DirectoryException,
-                CancelledOperationException
+      throws DatabaseException, JebException, DirectoryException,
+      CancelledOperationException
   {
     TransactedOperation operation =
-         new RenameEntryTransaction(currentDN, entry, modifyDNOperation);
+        new RenameEntryTransaction(currentDN, entry, modifyDNOperation);
 
     invokeTransactedOperation(operation);
   }
@@ -2703,7 +2672,7 @@ public class EntryContainer
      * @param modifyDNOperation The Modify DN operation to be performed.
      */
     public RenameEntryTransaction(DN currentDN, Entry entry,
-                                   ModifyDNOperation modifyDNOperation)
+                                  ModifyDNOperation modifyDNOperation)
     {
       this.oldApexDN = currentDN;
       this.oldSuperiorDN = getParentWithinBase(currentDN);
@@ -2721,8 +2690,8 @@ public class EntryContainer
      * @throws JebException If an error occurs in the JE backend.
      */
     public void invokeOperation(Transaction txn) throws DatabaseException,
-                                                        DirectoryException,
-                                                        JebException
+        DirectoryException,
+        JebException
     {
       DN requestedNewSuperiorDN = null;
 
@@ -2810,7 +2779,7 @@ public class EntryContainer
        * downwards.
        */
       byte[] suffix = StaticUtils.getBytes("," +
-                                           oldApexDN.toNormalizedString());
+          oldApexDN.toNormalizedString());
 
       /*
        * Set the ending value to a value of equal length but slightly
@@ -2835,7 +2804,7 @@ public class EntryContainer
 
         // Step forward until the key is greater than the starting value.
         while (status == OperationStatus.SUCCESS &&
-             dn2idComparator.compare(key.getData(), begin) <= 0)
+            dn2id.getComparator().compare(key.getData(), begin) <= 0)
         {
           status = cursor.getNext(key, data, LockMode.RMW);
         }
@@ -2843,7 +2812,7 @@ public class EntryContainer
         // Step forward until we pass the ending value.
         while (status == OperationStatus.SUCCESS)
         {
-          int cmp = dn2idComparator.compare(key.getData(), end);
+          int cmp = dn2id.getComparator().compare(key.getData(), end);
           if (cmp >= 0)
           {
             // We have gone past the ending value.
@@ -2920,7 +2889,7 @@ public class EntryContainer
     private void moveApexEntry(Transaction txn,
                                EntryID oldID, EntryID newID,
                                Entry oldEntry, Entry newEntry)
-         throws JebException, DirectoryException, DatabaseException
+        throws JebException, DirectoryException, DatabaseException
     {
       DN oldDN = oldEntry.getDN();
       DN newDN = newEntry.getDN();
@@ -2975,7 +2944,7 @@ public class EntryContainer
       if (newParentDN != null)
       {
         EntryID parentID = dn2id.get(txn, newParentDN);
-        id2cBuffered.insertID(config.getBackendIndexEntryLimit(),
+        id2cBuffered.insertID(indexEntryLimit,
                               parentID.getDatabaseEntry().getData(),
                               newID);
       }
@@ -2993,7 +2962,7 @@ public class EntryContainer
       for (DN dn = newParentDN; dn != null; dn = getParentWithinBase(dn))
       {
         EntryID nodeID = dn2id.get(txn, dn);
-        id2sBuffered.insertID(config.getBackendIndexEntryLimit(),
+        id2sBuffered.insertID(indexEntryLimit,
                               nodeID.getDatabaseEntry().getData(), newID);
       }
 
@@ -3026,7 +2995,7 @@ public class EntryContainer
      */
     private void renameApexEntry(Transaction txn, EntryID entryID,
                                  Entry oldEntry, Entry newEntry)
-         throws DirectoryException, DatabaseException, JebException
+        throws DirectoryException, DatabaseException, JebException
     {
       DN oldDN = oldEntry.getDN();
       DN newDN = newEntry.getDN();
@@ -3089,7 +3058,7 @@ public class EntryContainer
     private void moveSubordinateEntry(Transaction txn,
                                       EntryID oldID, EntryID newID,
                                       Entry oldEntry, DN newDN)
-         throws JebException, DirectoryException, DatabaseException
+        throws JebException, DirectoryException, DatabaseException
     {
       DN oldDN = oldEntry.getDN();
       DN newParentDN = getParentWithinBase(newDN);
@@ -3143,7 +3112,7 @@ public class EntryContainer
         if (newParentDN != null)
         {
           EntryID parentID = dn2id.get(txn, newParentDN);
-          id2cBuffered.insertID(config.getBackendIndexEntryLimit(),
+          id2cBuffered.insertID(indexEntryLimit,
                                 parentID.getDatabaseEntry().getData(),
                                 newID);
         }
@@ -3163,7 +3132,7 @@ public class EntryContainer
         if (!newID.equals(oldID) || dn.isAncestorOf(newSuperiorDN))
         {
           EntryID nodeID = dn2id.get(txn, dn);
-          id2sBuffered.insertID(config.getBackendIndexEntryLimit(),
+          id2sBuffered.insertID(indexEntryLimit,
                                 nodeID.getDatabaseEntry().getData(), newID);
         }
       }
@@ -3188,8 +3157,8 @@ public class EntryContainer
      * @throws DatabaseException If an error occurs in the JE database.
      */
     private void renameSubordinateEntry(Transaction txn, EntryID entryID,
-                                 Entry oldEntry, DN newDN)
-         throws DirectoryException, DatabaseException
+                                        Entry oldEntry, DN newDN)
+        throws DirectoryException, DatabaseException
     {
       DN oldDN = oldEntry.getDN();
 
@@ -3324,7 +3293,7 @@ public class EntryContainer
    * @throws JebException If an error occurs in the JE backend.
    */
   private void indexInsertEntry(Transaction txn, Entry entry, EntryID entryID)
-       throws DatabaseException, DirectoryException, JebException
+      throws DatabaseException, DirectoryException, JebException
   {
     for (AttributeIndex index : attrIndexMap.values())
     {
@@ -3343,7 +3312,7 @@ public class EntryContainer
    * @throws JebException If an error occurs in the JE backend.
    */
   private void indexRemoveEntry(Transaction txn, Entry entry, EntryID entryID)
-       throws DatabaseException, DirectoryException, JebException
+      throws DatabaseException, DirectoryException, JebException
   {
     for (AttributeIndex index : attrIndexMap.values())
     {
@@ -3365,7 +3334,7 @@ public class EntryContainer
   private void indexModifications(Transaction txn, Entry oldEntry,
                                   Entry newEntry,
                                   EntryID entryID, List<Modification> mods)
-       throws DatabaseException
+      throws DatabaseException
   {
     // Process in index configuration order.
     for (AttributeIndex index : attrIndexMap.values())
@@ -3410,7 +3379,7 @@ public class EntryContainer
   {
     try
     {
-      removeDatabase(DN2ID_DATABASE_NAME);
+      removeDatabase(dn2id);
     }
     catch (DatabaseNotFoundException e)
     {
@@ -3421,7 +3390,7 @@ public class EntryContainer
     }
     try
     {
-      removeDatabase(ID2ENTRY_DATABASE_NAME);
+      removeDatabase(id2entry);
     }
     catch (DatabaseNotFoundException e)
     {
@@ -3432,7 +3401,7 @@ public class EntryContainer
     }
     try
     {
-      removeDatabase(ID2CHILDREN_DATABASE_NAME);
+      removeDatabase(id2children);
     }
     catch (DatabaseNotFoundException e)
     {
@@ -3443,7 +3412,18 @@ public class EntryContainer
     }
     try
     {
-      removeDatabase(ID2SUBTREE_DATABASE_NAME);
+      removeDatabase(id2subtree);
+    }
+    catch (DatabaseNotFoundException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+    try
+    {
+      removeDatabase(state);
     }
     catch (DatabaseNotFoundException e)
     {
@@ -3456,7 +3436,7 @@ public class EntryContainer
     {
       try
       {
-        index.removeIndex();
+        removeAttributeIndex(index);
       }
       catch (DatabaseNotFoundException e)
       {
@@ -3466,6 +3446,7 @@ public class EntryContainer
         }
       }
     }
+    attrIndexMap.clear();
   }
 
   /**
@@ -3486,33 +3467,20 @@ public class EntryContainer
   }
 
   /**
-   * Get a list of the databases opened by this entryContainer.  There will be
-   * only one handle in the list for each database, regardless of the number
-   * of handles open for a given database.
-   * @param dbList A list of JE database handles.
+   * Get a list of the databases opened by this entryContainer.
+   * @param dbList A list of database containers.
    */
-  public void listDatabases(List<Database> dbList)
+  public void listDatabases(List<DatabaseContainer> dbList)
   {
-    // There may be more than one handle open for a given database
-    // so we eliminate duplicates here.
-    HashSet<String> set = new HashSet<String>();
-    for (Database db : databases)
+    dbList.add(dn2id);
+    dbList.add(id2entry);
+    dbList.add(dn2uri);
+    dbList.add(id2children);
+    dbList.add(id2subtree);
+
+    for(AttributeIndex index : attrIndexMap.values())
     {
-      try
-      {
-        if (!set.contains(db.getDatabaseName()))
-        {
-          set.add(db.getDatabaseName());
-          dbList.add(db);
-        }
-      }
-      catch (DatabaseException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
+      index.listDatabases(dbList);
     }
   }
 
@@ -3556,72 +3524,6 @@ public class EntryContainer
   }
 
   /**
-   * Opens a JE database in this entryContainer. The resulting database handle
-   * must not be closed by the caller, as it will be closed by the
-   * entryContainer. If the provided database configuration is transactional,
-   * a transaction will be created and used to perform the open.
-   * <p>
-   * Note that a database can be opened multiple times and will result in
-   * multiple unique handles to the database.  This is used for example to
-   * give each server thread its own database handle to eliminate contention
-   * that could occur on a single handle.
-   *
-   * @param dbConfig The JE database configuration to be used to open the
-   * database.
-   * @param name     The short database name, to which the entryContainer name
-   *                 will be added.
-   * @return A new JE database handle.
-   * @throws DatabaseException If an error occurs while attempting to open the
-   * database.
-   */
-  public synchronized Database openDatabase(DatabaseConfig dbConfig,
-                                            String name)
-       throws DatabaseException
-  {
-    Database database;
-
-    StringBuilder builder = new StringBuilder();
-    buildDatabaseName(builder, name);
-    String fullName = builder.toString();
-
-    if (dbConfig.getTransactional())
-    {
-      // Open the database under a transaction.
-      Transaction txn = beginTransaction();
-      try
-      {
-        database = env.openDatabase(txn, fullName, dbConfig);
-        if (debugEnabled())
-        {
-          TRACER.debugVerbose("open db=%s txnid=%d",
-                              database.getDatabaseName(),
-                       txn.getId());
-        }
-        transactionCommit(txn);
-      }
-      catch (DatabaseException e)
-      {
-        transactionAbort(txn);
-        throw e;
-      }
-    }
-    else
-    {
-      database = env.openDatabase(null, fullName, dbConfig);
-      if (debugEnabled())
-      {
-        TRACER.debugVerbose("open db=%s txnid=none",
-                            database.getDatabaseName());
-      }
-    }
-
-    // Insert into the list of database handles.
-    databases.add(database);
-
-    return database;
-  }
-
-  /**
    * Begin a leaf transaction using the default configuration.
    * Provides assertion debug logging.
    * @return A JE transaction handle.
@@ -3629,7 +3531,7 @@ public class EntryContainer
    * a new transaction.
    */
   public Transaction beginTransaction()
-       throws DatabaseException
+      throws DatabaseException
   {
     Transaction parentTxn = null;
     TransactionConfig txnConfig = null;
@@ -3649,7 +3551,7 @@ public class EntryContainer
    * the transaction.
    */
   public static void transactionCommit(Transaction txn)
-       throws DatabaseException
+      throws DatabaseException
   {
     if (txn != null)
     {
@@ -3669,7 +3571,7 @@ public class EntryContainer
    * transaction.
    */
   public static void transactionAbort(Transaction txn)
-       throws DatabaseException
+      throws DatabaseException
   {
     if (txn != null)
     {
@@ -3682,205 +3584,59 @@ public class EntryContainer
   }
 
   /**
-   * Insert a record into a JE database, with optional debug logging. This is a
-   * simple wrapper around the JE Database.putNoOverwrite method.
-   * @param database The JE database handle.
-   * @param txn The JE transaction handle, or null if none.
-   * @param key The record key.
-   * @param data The record value.
-   * @return The operation status.
-   * @throws DatabaseException If an error occurs in the JE operation.
-   */
-  public static OperationStatus insert(Database database, Transaction txn,
-                                DatabaseEntry key, DatabaseEntry data)
-       throws DatabaseException
-  {
-    OperationStatus status = database.putNoOverwrite(txn, key, data);
-    if (debugEnabled())
-    {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key,
-                           data);
-    }
-    return status;
-  }
-
-  /**
-   * Insert a record into a JE database through a cursor, with optional debug
-   * logging. This is a simple wrapper around the JE Cursor.putNoOverwrite
-   * method.
-   * @param cursor The JE cursor handle.
-   * @param key The record key.
-   * @param data The record value.
-   * @return The operation status.
-   * @throws DatabaseException If an error occurs in the JE operation.
-   */
-  public static OperationStatus cursorInsert(Cursor cursor,
-                                             DatabaseEntry key,
-                                             DatabaseEntry data)
-       throws DatabaseException
-  {
-    OperationStatus status = cursor.putNoOverwrite(key, data);
-    if (debugEnabled())
-    {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status,
-                    cursor.getDatabase(), null, key, data);
-    }
-    return status;
-  }
-
-  /**
-   * Replace or insert a record into a JE database, with optional debug logging.
-   * This is a simple wrapper around the JE Database.put method.
-   * @param database The JE database handle.
-   * @param txn The JE transaction handle, or null if none.
-   * @param key The record key.
-   * @param data The record value.
-   * @return The operation status.
-   * @throws DatabaseException If an error occurs in the JE operation.
-   */
-  public static OperationStatus put(Database database, Transaction txn,
-                                    DatabaseEntry key, DatabaseEntry data)
-       throws DatabaseException
-  {
-    OperationStatus status = database.put(txn, key, data);
-    if (debugEnabled())
-    {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key,
-                           data);
-    }
-    return status;
-  }
-
-  /**
-   * Replace or insert a record into a JE database through a cursor, with
-   * optional debug logging. This is a simple wrapper around the JE Cursor.put
-   * method.
-   * @param cursor The JE cursor handle.
-   * @param key The record key.
-   * @param data The record value.
-   * @return The operation status.
-   * @throws DatabaseException If an error occurs in the JE operation.
-   */
-  public static OperationStatus cursorPut(Cursor cursor,
-                                          DatabaseEntry key,
-                                          DatabaseEntry data)
-       throws DatabaseException
-  {
-    OperationStatus status = cursor.put(key, data);
-    if (debugEnabled())
-    {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status,
-                    cursor.getDatabase(), null, key, data);
-    }
-    return status;
-  }
-
-  /**
-   * Read a record from a JE database, with optional debug logging. This is a
-   * simple wrapper around the JE Database.get method.
-   * @param database The JE database handle.
-   * @param txn The JE transaction handle, or null if none.
-   * @param key The key of the record to be read.
-   * @param data The record value returned as output. Its byte array does not
-   * need to be initialized by the caller.
-   * @param lockMode The JE locking mode to be used for the read.
-   * @return The operation status.
-   * @throws DatabaseException If an error occurs in the JE operation.
-   */
-  public static OperationStatus read(Database database, Transaction txn,
-                              DatabaseEntry key, DatabaseEntry data,
-                              LockMode lockMode)
-       throws DatabaseException
-  {
-    OperationStatus status = database.get(txn, key, data, lockMode);
-    if (debugEnabled())
-    {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key,
-                           data);
-    }
-    return status;
-  }
-
-  /**
-   * Read a record from a JE database through a cursor, with optional debug
-   * logging. This is a simple wrapper around the JE Cursor.getSearchKey method.
-   * @param cursor The JE cursor handle.
-   * @param key The key of the record to be read.
-   * @param data The record value returned as output. Its byte array does not
-   * need to be initialized by the caller.
-   * @param lockMode The JE locking mode to be used for the read.
-   * @return The operation status.
-   * @throws DatabaseException If an error occurs in the JE operation.
-   */
-  public static OperationStatus cursorRead(Cursor cursor,
-                                           DatabaseEntry key,
-                                           DatabaseEntry data,
-                                           LockMode lockMode)
-       throws DatabaseException
-  {
-    OperationStatus status = cursor.getSearchKey(key, data, lockMode);
-    if (debugEnabled())
-    {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status,
-                    cursor.getDatabase(), null, key, data);
-    }
-    return status;
-  }
-
-  /**
-   * Delete a record from a JE database, with optional debug logging. This is a
-   * simple wrapper around the JE Database.delete method.
-   * @param database The JE database handle.
-   * @param txn The JE transaction handle, or null if none.
-   * @param key The key of the record to be read.
-   * @return The operation status.
-   * @throws DatabaseException If an error occurs in the JE operation.
-   */
-  public static OperationStatus delete(Database database, Transaction txn,
-                                       DatabaseEntry key)
-       throws DatabaseException
-  {
-    OperationStatus status = database.delete(txn, key);
-    if (debugEnabled())
-    {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, status, database, txn, key,
-                           null);
-    }
-    return status;
-  }
-
-  /**
-   * Get the count of key/data pairs in the database in a JE database.
-   * This is a simple wrapper around the JE Database.count method.
-   * @param database the JE database handle.
-   * @return The count of key/data pairs in the database.
-   * @throws DatabaseException If an error occurs in the JE operation.
-   */
-  public static long count(Database database) throws DatabaseException
-  {
-    long count = database.count();
-    if (debugEnabled())
-    {
-      TRACER.debugJEAccess(DebugLogLevel.VERBOSE, OperationStatus.SUCCESS,
-                    database, null, null, null);
-    }
-    return count;
-  }
-
-  /**
    * Remove a database from disk.
    *
-   * @param name The short database name, to which the entryContainer name will
-   * be added.
+   * @param database The database container to remove.
    * @throws DatabaseException If an error occurs while attempting to delete the
    * database.
    */
-  public void removeDatabase(String name) throws DatabaseException
+  public void removeDatabase(DatabaseContainer database)
+      throws DatabaseException
   {
-    StringBuilder builder = new StringBuilder();
-    buildDatabaseName(builder, name);
-    String fullName = builder.toString();
-    env.removeDatabase(null, fullName);
+    database.close();
+    env.removeDatabase(null, database.getName());
+    if(database instanceof Index)
+    {
+      state.removeIndexTrustState(null, (Index)database);
+    }
+  }
+
+  /**
+   * Removes a attribute index from disk.
+   *
+   * @param index The attribute index to remove.
+   * @throws DatabaseException If an JE database error occurs while attempting
+   * to delete the index.
+   */
+  public void removeAttributeIndex(AttributeIndex index)
+      throws DatabaseException
+  {
+    index.close();
+    if(index.equalityIndex != null)
+    {
+      env.removeDatabase(null, index.equalityIndex.getName());
+      state.removeIndexTrustState(null, index.equalityIndex);
+    }
+    if(index.presenceIndex != null)
+    {
+      env.removeDatabase(null, index.presenceIndex.getName());
+      state.removeIndexTrustState(null, index.presenceIndex);
+    }
+    if(index.substringIndex != null)
+    {
+      env.removeDatabase(null, index.substringIndex.getName());
+      state.removeIndexTrustState(null, index.substringIndex);
+    }
+    if(index.orderingIndex != null)
+    {
+      env.removeDatabase(null, index.orderingIndex.getName());
+      state.removeIndexTrustState(null, index.orderingIndex);
+    }
+    if(index.approximateIndex != null)
+    {
+      env.removeDatabase(null, index.approximateIndex.getName());
+      state.removeIndexTrustState(null, index.approximateIndex);
+    }
   }
 
   /**
@@ -3934,4 +3690,235 @@ public class EntryContainer
     return dn.getParent();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized boolean isConfigurationChangeAcceptable(
+      JEBackendCfg cfg, List<String> unacceptableReasons)
+  {
+    // This is always true because only all config attributes used
+    // by the entry container should be validated by the admin framework.
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized ConfigChangeResult applyConfigurationChange(
+      JEBackendCfg cfg)
+  {
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    if(config.getBackendIndexEntryLimit() != cfg.getBackendIndexEntryLimit())
+    {
+      for(AttributeIndex index : attrIndexMap.values())
+      {
+        if(index.setBackendIndexEntryLimit(cfg.getBackendIndexEntryLimit()))
+        {
+          adminActionRequired = true;
+          int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
+          String message = getMessage(msgID,
+                                      index.getAttributeType().getNameOrOID());
+          messages.add(message);
+        }
+        index.setBackendIndexEntryLimit(cfg.getBackendIndexEntryLimit());
+      }
+
+      if(id2children.setIndexEntryLimit(cfg.getBackendIndexEntryLimit()))
+      {
+        adminActionRequired = true;
+        int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
+        String message = getMessage(msgID, id2children.getName());
+        messages.add(message);
+      }
+
+      if(id2subtree.setIndexEntryLimit(cfg.getBackendIndexEntryLimit()))
+      {
+        adminActionRequired = true;
+        int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
+        String message = getMessage(msgID, id2subtree.getName());
+        messages.add(message);
+      }
+    }
+
+    DataConfig entryDataConfig = new DataConfig();
+    entryDataConfig.setCompressed(cfg.isBackendEntriesCompressed());
+    id2entry.setDataConfig(entryDataConfig);
+
+    this.config = cfg;
+    this.deadlockRetryLimit = config.getBackendDeadlockRetryLimit();
+    this.subtreeDeleteSizeLimit = config.getBackendSubtreeDeleteSizeLimit();
+    this.indexEntryLimit = config.getBackendIndexEntryLimit();
+    return new ConfigChangeResult(ResultCode.SUCCESS,
+                                  adminActionRequired, messages);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized boolean isConfigurationAddAcceptable(
+      JEIndexCfg cfg, List<String> unacceptableReasons)
+  {
+    // TODO: validate more before returning true?
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized ConfigChangeResult applyConfigurationAdd(JEIndexCfg cfg)
+  {
+    ConfigChangeResult ccr;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    try
+    {
+      AttributeIndex index =
+          new AttributeIndex(cfg, state,
+                             indexEntryLimit,
+                             env, this);
+      index.open();
+      attrIndexMap.put(cfg.getIndexAttribute(), index);
+    }
+    catch(Exception e)
+    {
+      messages.add(StaticUtils.stackTraceToSingleLineString(e));
+      ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                                   adminActionRequired,
+                                   messages);
+      return ccr;
+    }
+
+    adminActionRequired = true;
+    int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
+    messages.add(getMessage(msgID, cfg.getIndexAttribute().getNameOrOID()));
+    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
+                                  messages);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized boolean isConfigurationDeleteAcceptable(
+      JEIndexCfg cfg, List<String> unacceptableReasons)
+  {
+    // TODO: validate more before returning true?
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized ConfigChangeResult applyConfigurationDelete(
+      JEIndexCfg cfg)
+  {
+    ConfigChangeResult ccr;
+    boolean adminActionRequired = false;
+    ArrayList<String> messages = new ArrayList<String>();
+
+    exclusiveLock.lock();
+    try
+    {
+      AttributeIndex index = attrIndexMap.get(cfg.getIndexAttribute());
+      removeAttributeIndex(index);
+      attrIndexMap.remove(cfg.getIndexAttribute());
+    }
+    catch(DatabaseException de)
+    {
+      messages.add(StaticUtils.stackTraceToSingleLineString(de));
+      ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                                   adminActionRequired,
+                                   messages);
+      return ccr;
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+
+    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
+                                  messages);
+  }
+
+  /**
+   * Get the environment config of the JE environment used in this entry
+   * container.
+   *
+   * @return The environment config of the JE environment.
+   * @throws DatabaseException If an error occurs while retriving the
+   *                           configuration object.
+   */
+  public EnvironmentConfig getEnvironmentConfig()
+      throws DatabaseException
+  {
+    return env.getConfig();
+  }
+
+  /**
+   * Clear the contents for a database from disk.
+   *
+   * @param txn A transaction object or null if its not required.
+   * @param database The database to clear.
+   * @return The number of records deleted.
+   * @throws DatabaseException if a JE database error occurs.
+   */
+  public long clearDatabase(Transaction txn, DatabaseContainer database)
+      throws DatabaseException
+  {
+    database.close();
+    long count = env.truncateDatabase(txn, database.getName(), true);
+    database.open();
+    if(debugEnabled())
+    {
+      TRACER.debugVerbose("Cleared %d existing records from the " +
+          "database %s", count, database.getName());
+    }
+    return count;
+  }
+
+  /**
+   * Clear the contents for a attribute index from disk.
+   *
+   * @param txn A transaction object or null if its not required.
+   * @param index The attribute index to clear.
+   * @return The number of records deleted.
+   * @throws DatabaseException if a JE database error occurs.
+   */
+  public long clearAttributeIndex(Transaction txn, AttributeIndex index)
+      throws DatabaseException
+  {
+    long count = 0;
+
+    index.close();
+    if(index.equalityIndex != null)
+    {
+      count += env.truncateDatabase(txn, index.equalityIndex.getName(), true);
+    }
+    if(index.presenceIndex != null)
+    {
+      count += env.truncateDatabase(txn, index.presenceIndex.getName(), true);
+    }
+    if(index.substringIndex != null)
+    {
+      count += env.truncateDatabase(txn, index.substringIndex.getName(), true);
+    }
+    if(index.orderingIndex != null)
+    {
+      count += env.truncateDatabase(txn, index.orderingIndex.getName(), true);
+    }
+    if(index.approximateIndex != null)
+    {
+      count += env.truncateDatabase(txn, index.approximateIndex.getName(),
+                                    true);
+    }
+    index.open();
+    if(debugEnabled())
+    {
+      TRACER.debugVerbose("Cleared %d existing records from the " +
+          "index %s", count, index.getAttributeType().getNameOrOID());
+    }
+    return count;
+  }
 }

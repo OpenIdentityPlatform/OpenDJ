@@ -31,15 +31,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.CursorConfig;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.Transaction;
+import com.sleepycat.je.*;
 
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -49,7 +41,7 @@ import org.opends.server.types.Entry;
  * the entry ID and the value is the entry contents.
  *
  */
-public class ID2Entry
+public class ID2Entry extends DatabaseContainer
 {
   /**
    * The tracer object for the debug logger.
@@ -57,83 +49,49 @@ public class ID2Entry
   private static final DebugTracer TRACER = getTracer();
 
   /**
-   * The database entryContainer.
-   */
-  private EntryContainer entryContainer;
-
-  /**
-   * The JE database configuration.
-   */
-  private DatabaseConfig dbConfig;
-
-  /**
    * Parameters for compression and encryption.
    */
   private DataConfig dataConfig;
 
   /**
-   * The name of the database within the entryContainer.
-   */
-  private String name;
-
-  /**
-   * A cached per-thread JE database handle.
-   */
-  private ThreadLocal<Database> threadLocalDatabase =
-       new ThreadLocal<Database>();
-
-  /**
    * Create a new ID2Entry object.
-   * @param entryContainer The entryContainer of the entry database.
-   * @param dbConfig The JE database configuration to be used to open the
-   * underlying JE database.
+   *
+   * @param name The name of the entry database.
    * @param dataConfig The desired compression and encryption options for data
    * stored in the entry database.
-   * @param name The name of the entry database.
+   * @param env The JE Environment.
+   * @param entryContainer The entryContainer of the entry database.
+   * @throws DatabaseException If an error occurs in the JE database.
+   *
    */
-  public ID2Entry(EntryContainer entryContainer, DatabaseConfig dbConfig,
-                  DataConfig dataConfig, String name)
+  ID2Entry(String name, DataConfig dataConfig,
+           Environment env, EntryContainer entryContainer)
+      throws DatabaseException
   {
-    this.entryContainer = entryContainer;
-    this.dbConfig = dbConfig.cloneConfig();
-    this.name = name;
+    super(name, env, entryContainer);
     this.dataConfig = dataConfig;
-  }
 
-  /**
-   * Open the entry database.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public void open() throws DatabaseException
-  {
-    getDatabase();
-  }
+    DatabaseConfig dbNodupsConfig = new DatabaseConfig();
 
-  /**
-   * Get a handle to the database. It returns a per-thread handle to avoid
-   * any thread contention on the database handle. The entryContainer is
-   * responsible for closing all handles.
-   *
-   * @return A database handle.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  private Database getDatabase() throws DatabaseException
-  {
-    Database database = threadLocalDatabase.get();
-    if (database == null)
+    if(env.getConfig().getReadOnly())
     {
-      database = entryContainer.openDatabase(dbConfig, name);
-      threadLocalDatabase.set(database);
-
-      if(debugEnabled())
-      {
-        TRACER.debugInfo("JE ID2Entry database %s opened with %d records.",
-                  database.getDatabaseName(), database.count());
-      }
+      dbNodupsConfig.setReadOnly(true);
+      dbNodupsConfig.setAllowCreate(false);
+      dbNodupsConfig.setTransactional(false);
     }
-    return database;
+    else if(!env.getConfig().getTransactional())
+    {
+      dbNodupsConfig.setAllowCreate(true);
+      dbNodupsConfig.setTransactional(false);
+      dbNodupsConfig.setDeferredWrite(true);
+    }
+    else
+    {
+      dbNodupsConfig.setAllowCreate(true);
+      dbNodupsConfig.setTransactional(true);
+    }
+
+    this.dbConfig = dbNodupsConfig;
   }
 
   /**
@@ -172,7 +130,7 @@ public class ID2Entry
     DatabaseEntry data = entryData(entry);
 
     OperationStatus status;
-    status = EntryContainer.insert(getDatabase(), txn, key, data);
+    status = insert(txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -198,7 +156,7 @@ public class ID2Entry
     DatabaseEntry data = entryData(entry);
 
     OperationStatus status;
-    status = EntryContainer.put(getDatabase(), txn, key, data);
+    status = put(txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -219,7 +177,7 @@ public class ID2Entry
        throws DatabaseException
   {
     OperationStatus status;
-    status = EntryContainer.put(getDatabase(), txn, key, data);
+    status = put(txn, key, data);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -240,7 +198,7 @@ public class ID2Entry
   {
     DatabaseEntry key = id.getDatabaseEntry();
 
-    OperationStatus status = EntryContainer.delete(getDatabase(), txn, key);
+    OperationStatus status = delete(txn, key);
     if (status != OperationStatus.SUCCESS)
     {
       return false;
@@ -264,7 +222,7 @@ public class ID2Entry
     DatabaseEntry data = new DatabaseEntry();
 
     OperationStatus status;
-    status = EntryContainer.read(getDatabase(), txn, key, data,
+    status = read(txn, key, data,
                                  LockMode.DEFAULT);
 
     if (status != OperationStatus.SUCCESS)
@@ -311,38 +269,14 @@ public class ID2Entry
   }
 
   /**
-   * Open a database cursor on the entry database.
+   * Set the desired compression and encryption options for data
+   * stored in the entry database.
    *
-   * @param txn The database transaction, or null if none.
-   * @param cursorConfig The JE cursor configuration.
-   * @return A new cursor.
-   * @throws DatabaseException If an error occurs in the JE database.
+   * @param dataConfig The desired compression and encryption options for data
+   * stored in the entry database.
    */
-  public Cursor openCursor(Transaction txn, CursorConfig cursorConfig)
-       throws DatabaseException
+  public void setDataConfig(DataConfig dataConfig)
   {
-    Database database = getDatabase();
-    return database.openCursor(txn, cursorConfig);
-  }
-
-  /**
-   * Get the count of the number of entries stored.
-   *
-   * @return The number of entries stored.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public long getRecordCount() throws DatabaseException
-  {
-    return EntryContainer.count(getDatabase());
-  }
-
-  /**
-   * Get a string representation of this object.
-   * @return return A string representation of this object.
-   */
-  public String toString()
-  {
-    return name;
+    this.dataConfig = dataConfig;
   }
 }

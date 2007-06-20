@@ -30,18 +30,13 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
 import com.sleepycat.je.Transaction;
-import com.sleepycat.je.DatabaseException;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.Map;
 import java.util.ArrayList;
-import java.io.IOException;
 
 /**
  * A thread to process import entries from a queue.  Multiple instances of
@@ -146,33 +141,30 @@ public class ImportThread extends DirectoryThread
   {
     Entry entry;
 
-    Map<AttributeType,IndexConfig>
-         indexConfigs = importContext.getConfig().getIndexConfigMap();
-
     // Figure out how many indexes there will be.
     int nIndexes = 0;
 
     nIndexes += 2; // For id2children and id2subtree.
 
-    for (IndexConfig indexConfig : indexConfigs.values())
+    for (AttributeIndex attrIndex : entryContainer.getAttributeIndexes())
     {
-      if (indexConfig.isEqualityIndex())
+      if (attrIndex.equalityIndex != null)
       {
         nIndexes++;
       }
-      if (indexConfig.isPresenceIndex())
+      if (attrIndex.presenceIndex != null)
       {
         nIndexes++;
       }
-      if (indexConfig.isSubstringIndex())
+      if (attrIndex.substringIndex != null)
       {
         nIndexes++;
       }
-      if (indexConfig.isOrderingIndex())
+      if (attrIndex.orderingIndex != null)
       {
         nIndexes++;
       }
-      if (indexConfig.isApproximateIndex())
+      if (attrIndex.approximateIndex != null)
       {
         nIndexes++;
       }
@@ -183,50 +175,55 @@ public class ImportThread extends DirectoryThread
     long indexBufferSize = importContext.getBufferSize() / nIndexes;
 
     // Create an index builder for each attribute index database.
-    for (IndexConfig indexConfig : indexConfigs.values())
+    for (AttributeIndex attrIndex : entryContainer.getAttributeIndexes())
     {
-      AttributeIndex attrIndex =
-           entryContainer.getAttributeIndex(indexConfig.getAttributeType());
-      if (indexConfig.isEqualityIndex())
+      int indexEntryLimit =
+          importContext.getConfig().getBackendIndexEntryLimit();
+      if(attrIndex.getConfiguration().getIndexEntryLimit() != null)
+      {
+        indexEntryLimit = attrIndex.getConfiguration().getIndexEntryLimit();
+      }
+
+      if (attrIndex.equalityIndex != null)
       {
         IndexBuilder indexBuilder =
              new IndexBuilder(importContext,
                               attrIndex.equalityIndex,
-                              indexConfig.getEqualityEntryLimit(),
+                              indexEntryLimit,
                               indexBufferSize);
         builders.add(indexBuilder);
       }
-      if (indexConfig.isPresenceIndex())
+      if (attrIndex.presenceIndex != null)
       {
         IndexBuilder indexBuilder =
              new IndexBuilder(importContext,
                               attrIndex.presenceIndex,
-                              indexConfig.getPresenceEntryLimit(),
+                              indexEntryLimit,
                               indexBufferSize);
         builders.add(indexBuilder);
       }
-      if (indexConfig.isSubstringIndex())
+      if (attrIndex.substringIndex != null)
       {
         IndexBuilder indexBuilder =
              new IndexBuilder(importContext,
                               attrIndex.substringIndex,
-                              indexConfig.getSubstringEntryLimit(),
+                              indexEntryLimit,
                               indexBufferSize);
         builders.add(indexBuilder);
       }
-      if (indexConfig.isOrderingIndex())
+      if (attrIndex.orderingIndex != null)
       {
         IndexBuilder indexBuilder =
              new IndexBuilder(importContext, attrIndex.orderingIndex,
-                              indexConfig.getEqualityEntryLimit(),
+                              indexEntryLimit,
                               indexBufferSize);
         builders.add(indexBuilder);
       }
-      if (indexConfig.isApproximateIndex())
+      if (attrIndex.approximateIndex != null)
       {
         IndexBuilder indexBuilder =
             new IndexBuilder(importContext, attrIndex.approximateIndex,
-                             indexConfig.getEqualityEntryLimit(),
+                             indexEntryLimit,
                              indexBufferSize);
         builders.add(indexBuilder);
       }
@@ -317,26 +314,14 @@ public class ImportThread extends DirectoryThread
       // Increment the entry count.
       importContext.incrEntryInsertCount(entryInsertCount);
     }
-    catch (DatabaseException e)
+    catch (Exception e)
     {
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-    }
-    catch (DirectoryException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    catch (IOException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+
+      throw new RuntimeException(e);
     }
   }
 }

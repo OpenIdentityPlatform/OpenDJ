@@ -145,7 +145,15 @@ public class ExportJob
     {
       for (EntryContainer exportContainer : exportContainers)
       {
-        exportContainer(exportContainer);
+        exportContainer.sharedLock.lock();
+        try
+        {
+          exportContainer(exportContainer);
+        }
+        finally
+        {
+          exportContainer.sharedLock.unlock();
+        }
       }
     }
     finally

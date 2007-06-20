@@ -40,9 +40,9 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.InitializationException;
+import org.opends.server.backends.jeb.RootContainer;
 
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentStats;
 import com.sleepycat.je.JEVersion;
 import com.sleepycat.je.LockStats;
@@ -73,23 +73,23 @@ public class DatabaseEnvironmentMonitor extends MonitorProvider
   private String name;
 
   /**
-   * The JE environment handle to be monitored.
+   * The root container to be monitored.
    */
-  private Environment environment;
+  private RootContainer rootContainer;
 
   /**
    * Creates a new database environment monitor.
    * @param name The monitor instance name.
-   * @param environment A JE environment handle for the database to be
+   * @param rootContainer A root container handle for the database to be
    * monitored.
    */
-  public DatabaseEnvironmentMonitor(String name, Environment environment)
+  public DatabaseEnvironmentMonitor(String name, RootContainer rootContainer)
   {
     super(name + " Monitor Provider");
 
 
     this.name = name;
-    this.environment = environment;
+    this.rootContainer = rootContainer;
   }
 
 
@@ -228,9 +228,10 @@ public class DatabaseEnvironmentMonitor extends MonitorProvider
 
     try
     {
-      environmentStats = environment.getStats(statsConfig);
-      lockStats = environment.getLockStats(statsConfig);
-      transactionStats = environment.getTransactionStats(statsConfig);
+      environmentStats = rootContainer.getEnvironmentStats(statsConfig);
+      lockStats = rootContainer.getEnvironmentLockStats(statsConfig);
+      transactionStats =
+          rootContainer.getEnvironmentTransactionStats(statsConfig);
     } catch (DatabaseException e)
     {
       if (debugEnabled())

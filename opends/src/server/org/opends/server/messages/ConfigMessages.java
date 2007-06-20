@@ -9550,7 +9550,7 @@ public class ConfigMessages
                     "Directory Server log retention policy from the " +
                     "information in configuration entry %s:  %s");
     registerMessage(MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER,
-                    "An error occured while attempting create a text writer " +
+                    "An error occurred while attempting create a text writer " +
                     "for a Directory Server logger from the information " +
                     "in configuration entry %s:  %s");
 

@@ -413,6 +413,30 @@ ds-cfg-index-type: substring
 ds-cfg-index-type: ordering
 ds-cfg-index-type: approximate
 
+dn: ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-je-backend
+ds-cfg-backend-enabled: true
+ds-cfg-backend-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-backend-id: importRoot
+ds-cfg-backend-writability-mode: enabled
+ds-cfg-backend-base-dn: dc=importtest, dc=com
+ds-cfg-backend-base-dn: dc=importtest1, dc=com
+ds-cfg-backend-directory: db_import_test
+ds-cfg-backend-mode: 700
+ds-cfg-backend-index-entry-limit: 10
+ds-cfg-backend-subtree-delete-size-limit: 100000
+ds-cfg-backend-preload-time-limit: 0 seconds
+ds-cfg-backend-import-temp-directory: importTmp
+ds-cfg-backend-import-buffer-size: 256 megabytes
+ds-cfg-backend-import-queue-size: 100
+ds-cfg-backend-import-pass-size: 0
+ds-cfg-backend-import-thread-count: 8
+ds-cfg-backend-entries-compressed: false
+ds-cfg-backend-deadlock-retry-limit: 10
+
 dn: ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
@@ -585,6 +609,7 @@ ds-cfg-index-attribute: givenName
 ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
 
 dn: ds-cfg-index-attribute=mail,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
@@ -595,6 +620,8 @@ ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
 ds-cfg-index-type: ordering
+ds-cfg-index-type: approximate
+ds-cfg-index-entry-limit: 1
 
 dn: ds-cfg-index-attribute=member,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add

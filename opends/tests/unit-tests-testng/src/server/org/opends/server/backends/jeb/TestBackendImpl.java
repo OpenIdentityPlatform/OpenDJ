@@ -30,7 +30,9 @@ import java.util.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.server.JEIndexCfg;
 import org.opends.server.admin.std.meta.JEBackendCfgDefn;
+import org.opends.server.admin.std.meta.JEIndexCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ModifyOperation;
@@ -735,8 +737,16 @@ public class TestBackendImpl extends JebTestCase {
 
     EntryContainer ec =
         backend.getRootContainer().getEntryContainer(DN.decode("dc=test1,dc=com"));
-    assertFalse(ec.entryExists(DN.decode("dc=test1,dc=com")));
-    assertFalse(ec.entryExists(DN.decode("uid=user.362,dc=test1,dc=com")));
+    ec.sharedLock.lock();
+    try
+    {
+      assertFalse(ec.entryExists(DN.decode("dc=test1,dc=com")));
+      assertFalse(ec.entryExists(DN.decode("uid=user.362,dc=test1,dc=com")));
+    }
+    finally
+    {
+      ec.sharedLock.unlock();
+    }
   }
 
   @Test(dependsOnMethods = {"testAdd", "testSearchIndex",
@@ -760,75 +770,84 @@ public class TestBackendImpl extends JebTestCase {
     EntryContainer ec =
         backend.getRootContainer().getEntryContainer(DN.decode("ou=People,dc=test,dc=com"));
 
-    entry = ec.getEntry(DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
-    entryID = ec.getDN2ID().get(null,
-        DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
+    ec.sharedLock.lock();
+    try
+    {
+      entry = ec.getEntry(DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
+      entryID = ec.getDN2ID().get(null,
+          DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
 
-    DeleteOperation delete = new DeleteOperation(conn,
-        conn.nextOperationID(),
-        conn.nextMessageID(),
-        noControls,
+      DeleteOperation delete = new DeleteOperation(conn,
+          conn.nextOperationID(),
+          conn.nextMessageID(),
+          noControls,
 
-        DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
-
-
-    backend.deleteEntry(DN.decode("uid=user.539,ou=People,dc=test,dc=com"),
-        delete);
-
-
-    assertFalse(ec.entryExists(DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
-    assertNull(ec.getDN2ID().get(null,
-        DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
-    assertFalse(ec.getDN2URI().delete(null,
-        DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
-
-    attribute = entries.get(0).getAttribute("cn").get(0).getAttributeType();
-    index = ec.getAttributeIndex(attribute);
+          DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
 
 
-    addKeys = new HashSet<ASN1OctetString>();
-    presenceIndexer = new PresenceIndexer(index.indexConfig);
-    presenceIndexer.indexEntry(null, entry, addKeys);
+      backend.deleteEntry(DN.decode("uid=user.539,ou=People,dc=test,dc=com"),
+          delete);
 
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
+
+      assertFalse(ec.entryExists(DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
+      assertNull(ec.getDN2ID().get(null,
+          DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
+      assertFalse(ec.getDN2URI().delete(null,
+          DN.decode("uid=user.539,ou=People,dc=test,dc=com")));
+
+      attribute = entries.get(0).getAttribute("cn").get(0).getAttributeType();
+      index = ec.getAttributeIndex(attribute);
+
+
+      addKeys = new HashSet<ASN1OctetString>();
+      presenceIndexer = new PresenceIndexer(index.getAttributeType());
+      presenceIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.presenceIndex.containsID(null, key, entryID),
+          ConditionResult.FALSE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      equalityIndexer = new EqualityIndexer(index.getAttributeType());
+      equalityIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.equalityIndex.containsID(null, key, entryID),
+          ConditionResult.FALSE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      substringIndexer = new SubstringIndexer(index.getAttributeType(),
+                   index.getConfiguration().getIndexSubstringLength());
+      substringIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.substringIndex.containsID(null, key, entryID),
+          ConditionResult.FALSE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      orderingIndexer = new OrderingIndexer(index.getAttributeType());
+      orderingIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.orderingIndex.containsID(null, key, entryID),
+          ConditionResult.FALSE);
     }
-    assertEquals(index.presenceIndex.containsID(null, key, entryID),
-        ConditionResult.FALSE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    equalityIndexer = new EqualityIndexer(index.indexConfig);
-    equalityIndexer.indexEntry(null, entry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
+    finally
+    {
+      ec.sharedLock.unlock();
     }
-    assertEquals(index.equalityIndex.containsID(null, key, entryID),
-        ConditionResult.FALSE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    substringIndexer = new SubstringIndexer(index.indexConfig);
-    substringIndexer.indexEntry(null, entry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.substringIndex.containsID(null, key, entryID),
-        ConditionResult.FALSE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    orderingIndexer = new OrderingIndexer(index.indexConfig);
-    orderingIndexer.indexEntry(null, entry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.orderingIndex.containsID(null, key, entryID),
-        ConditionResult.FALSE);
   }
 
   @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd", "testSearchIndex", "testSearchScope"})
@@ -848,98 +867,104 @@ public class TestBackendImpl extends JebTestCase {
 
     EntryContainer ec =
         backend.getRootContainer().getEntryContainer(DN.decode("dc=test,dc=com"));
-    entry = ec.getEntry(DN.decode("uid=user.0,ou=People,dc=test,dc=com"));
-    oldEntry = entries.get(0);
-    entryID = ec.getDN2ID().get(null,
-        DN.decode("uid=user.0,ou=People,dc=test,dc=com"));
+    ec.sharedLock.lock();
+    try
+    {
+      entry = ec.getEntry(DN.decode("uid=user.0,ou=People,dc=test,dc=com"));
+      oldEntry = entries.get(0);
+      entryID = ec.getDN2ID().get(null,
+          DN.decode("uid=user.0,ou=People,dc=test,dc=com"));
 
-    assertNotNull(entry);
-    LinkedHashSet<AttributeValue> values =
-        entry.getAttribute("cn").get(0).getValues();
-    for (AttributeValue value : values) {
-      assertEquals(value.getStringValue(), "Testing Test");
+      assertNotNull(entry);
+      LinkedHashSet<AttributeValue> values =
+          entry.getAttribute("cn").get(0).getValues();
+      for (AttributeValue value : values) {
+        assertEquals(value.getStringValue(), "Testing Test");
+      }
+      values = entry.getAttribute("sn").get(0).getValues();
+      for (AttributeValue value : values) {
+        assertEquals(value.getStringValue(), "Test");
+      }
+      values = entry.getAttribute("givenname").get(0).getValues();
+      for (AttributeValue value : values) {
+        assertEquals(value.getStringValue(), "Testing");
+      }
+      values = entry.getAttribute("employeenumber").get(0).getValues();
+      for (AttributeValue value : values) {
+        assertEquals(value.getStringValue(), "777");
+      }
+
+      attribute = entry.getAttribute("cn").get(0).getAttributeType();
+      index = ec.getAttributeIndex(attribute);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      orderingIndexer = new OrderingIndexer(index.getAttributeType());
+      orderingIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.orderingIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      orderingIndexer.indexEntry(null, oldEntry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.orderingIndex.containsID(null, key, entryID),
+                   ConditionResult.FALSE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      substringIndexer = new SubstringIndexer(index.getAttributeType(),
+                                              index.getConfiguration().getIndexSubstringLength());
+      substringIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.substringIndex.containsID(null, key, entryID),
+                   ConditionResult.TRUE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      substringIndexer.indexEntry(null, oldEntry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.substringIndex.containsID(null, key, entryID),
+                   ConditionResult.FALSE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      equalityIndexer = new EqualityIndexer(index.getAttributeType());
+      equalityIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.equalityIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      equalityIndexer.indexEntry(null, oldEntry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.equalityIndex.containsID(null, key, entryID),
+          ConditionResult.FALSE);
     }
-    values = entry.getAttribute("sn").get(0).getValues();
-    for (AttributeValue value : values) {
-      assertEquals(value.getStringValue(), "Test");
+    finally
+    {
+      ec.sharedLock.unlock();
     }
-    values = entry.getAttribute("givenname").get(0).getValues();
-    for (AttributeValue value : values) {
-      assertEquals(value.getStringValue(), "Testing");
-    }
-    values = entry.getAttribute("employeenumber").get(0).getValues();
-    for (AttributeValue value : values) {
-      assertEquals(value.getStringValue(), "777");
-    }
-
-    attribute = entry.getAttribute("cn").get(0).getAttributeType();
-    index = ec.getAttributeIndex(attribute);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    orderingIndexer = new OrderingIndexer(index.indexConfig);
-    orderingIndexer.indexEntry(null, entry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.orderingIndex.containsID(null, key, entryID),
-        ConditionResult.TRUE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    orderingIndexer = new OrderingIndexer(index.indexConfig);
-    orderingIndexer.indexEntry(null, oldEntry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.orderingIndex.containsID(null, key, entryID),
-        ConditionResult.FALSE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    substringIndexer = new SubstringIndexer(index.indexConfig);
-    substringIndexer.indexEntry(null, entry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.substringIndex.containsID(null, key, entryID),
-        ConditionResult.TRUE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    substringIndexer = new SubstringIndexer(index.indexConfig);
-    substringIndexer.indexEntry(null, oldEntry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.substringIndex.containsID(null, key, entryID),
-        ConditionResult.FALSE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    equalityIndexer = new EqualityIndexer(index.indexConfig);
-    equalityIndexer.indexEntry(null, entry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.equalityIndex.containsID(null, key, entryID),
-        ConditionResult.TRUE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    equalityIndexer = new EqualityIndexer(index.indexConfig);
-    equalityIndexer.indexEntry(null, oldEntry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.equalityIndex.containsID(null, key, entryID),
-        ConditionResult.FALSE);
 
   }
 
@@ -960,120 +985,128 @@ public class TestBackendImpl extends JebTestCase {
 
     EntryContainer ec =
         backend.getRootContainer().getEntryContainer(DN.decode("dc=test,dc=com"));
+    ec.sharedLock.lock();
+    try
+    {
+      ArrayList<Modification> modifications = new ArrayList<Modification>();
+      modifications.add(new Modification(ModificationType.ADD, new
+          Attribute("title", "debugger")));
+      modifications.add(new Modification(ModificationType.DELETE, new
+          Attribute("cn", "Aaren Atp")));
+      modifications.add(new Modification(ModificationType.ADD, new
+          Attribute("cn", "Aaren Rigor")));
+      modifications.add(new Modification(ModificationType.ADD, new
+          Attribute("cn", "Aarenister Rigor")));
+      modifications.add(new Modification(ModificationType.REPLACE, new
+          Attribute("employeenumber", "222")));
 
-    ArrayList<Modification> modifications = new ArrayList<Modification>();
-    modifications.add(new Modification(ModificationType.ADD, new
-        Attribute("title", "debugger")));
-    modifications.add(new Modification(ModificationType.DELETE, new
-        Attribute("cn", "Aaren Atp")));
-    modifications.add(new Modification(ModificationType.ADD, new
-        Attribute("cn", "Aaren Rigor")));
-    modifications.add(new Modification(ModificationType.ADD, new
-        Attribute("cn", "Aarenister Rigor")));
-    modifications.add(new Modification(ModificationType.REPLACE, new
-        Attribute("employeenumber", "222")));
+      newEntry = entries.get(1);
+      newEntry.applyModifications(modifications);
+      entry = ec.getEntry(DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
+      entryID = ec.getDN2ID().get(null, DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
 
-    newEntry = entries.get(1);
-    newEntry.applyModifications(modifications);
-    entry = ec.getEntry(DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
-    entryID = ec.getDN2ID().get(null, DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
-
-    assertNotNull(entryID);
+      assertNotNull(entryID);
 
 
-    attribute = newEntry.getAttribute("title").get(0).getAttributeType();
-    index = ec.getAttributeIndex(attribute);
+      attribute = newEntry.getAttribute("title").get(0).getAttributeType();
+      index = ec.getAttributeIndex(attribute);
 
-    //This current entry in the DB shouldn't be in the presence index.
-    addKeys = new HashSet<ASN1OctetString>();
-    addKeys.add(new ASN1OctetString(AttributeIndex.presenceKey.getData()));
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
+      //This current entry in the DB shouldn't be in the presence index.
+      addKeys = new HashSet<ASN1OctetString>();
+      addKeys.add(new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.presenceIndex.containsID(null, key, entryID),
+          ConditionResult.FALSE);
+
+      ArrayList<Control> noControls = new ArrayList<Control>(0);
+      InternalClientConnection conn =
+          InternalClientConnection.getRootConnection();
+
+      ModifyOperation modifyOp = new ModifyOperation(conn,
+          conn.nextOperationID(),
+          conn.nextMessageID(),
+          noControls,
+          DN.decode("uid=user.1,ou=People,dc=test,dc=com"),
+          modifications);
+
+
+      backend.replaceEntry(newEntry, modifyOp);
+
+      entry = ec.getEntry(DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
+
+      assertTrue(entry.getAttribute("title").contains(new
+          Attribute("title", "debugger")));
+
+      assertTrue(entry.getAttribute("cn").get(0).getValues().contains(
+          new AttributeValue(
+              entry.getAttribute("cn").get(0).getAttributeType(),
+              "Aaren Rigor")));
+      assertTrue(entry.getAttribute("cn").get(0).getValues().contains(
+          new AttributeValue(
+              entry.getAttribute("cn").get(0).getAttributeType(),
+              "Aarenister Rigor")));
+      assertFalse(entry.getAttribute("cn").get(0).getValues().contains(
+          new AttributeValue(
+              entry.getAttribute("cn").get(0).getAttributeType(),
+              "Aaren Atp")));
+
+      assertTrue(entry.getAttribute("employeenumber").contains(new
+          Attribute("employeenumber", "222")));
+      assertFalse(entry.getAttribute("employeenumber").contains(new
+          Attribute("employeenumber", "1")));
+
+      addKeys = new HashSet<ASN1OctetString>();
+      presenceIndexer = new PresenceIndexer(index.getAttributeType());
+      presenceIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.presenceIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      orderingIndexer = new OrderingIndexer(index.getAttributeType());
+      orderingIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.orderingIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      equalityIndexer = new EqualityIndexer(index.getAttributeType());
+      equalityIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.equalityIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
+
+      addKeys = new HashSet<ASN1OctetString>();
+      substringIndexer = new SubstringIndexer(index.getAttributeType(),
+                   index.getConfiguration().getIndexSubstringLength());
+      substringIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(index.substringIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
     }
-    assertEquals(index.presenceIndex.containsID(null, key, entryID),
-        ConditionResult.FALSE);
-
-    ArrayList<Control> noControls = new ArrayList<Control>(0);
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
-    ModifyOperation modifyOp = new ModifyOperation(conn,
-        conn.nextOperationID(),
-        conn.nextMessageID(),
-        noControls,
-        DN.decode("uid=user.1,ou=People,dc=test,dc=com"),
-        modifications);
-
-
-    backend.replaceEntry(newEntry, modifyOp);
-
-    entry = ec.getEntry(DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
-
-    assertTrue(entry.getAttribute("title").contains(new
-        Attribute("title", "debugger")));
-
-    assertTrue(entry.getAttribute("cn").get(0).getValues().contains(
-        new AttributeValue(
-            entry.getAttribute("cn").get(0).getAttributeType(),
-            "Aaren Rigor")));
-    assertTrue(entry.getAttribute("cn").get(0).getValues().contains(
-        new AttributeValue(
-            entry.getAttribute("cn").get(0).getAttributeType(),
-            "Aarenister Rigor")));
-    assertFalse(entry.getAttribute("cn").get(0).getValues().contains(
-        new AttributeValue(
-            entry.getAttribute("cn").get(0).getAttributeType(),
-            "Aaren Atp")));
-
-    assertTrue(entry.getAttribute("employeenumber").contains(new
-        Attribute("employeenumber", "222")));
-    assertFalse(entry.getAttribute("employeenumber").contains(new
-        Attribute("employeenumber", "1")));
-
-    addKeys = new HashSet<ASN1OctetString>();
-    presenceIndexer = new PresenceIndexer(index.indexConfig);
-    presenceIndexer.indexEntry(null, entry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
+    finally
+    {
+      ec.sharedLock.unlock();
     }
-    assertEquals(index.presenceIndex.containsID(null, key, entryID),
-        ConditionResult.TRUE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    orderingIndexer = new OrderingIndexer(index.indexConfig);
-    orderingIndexer.indexEntry(null, entry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.orderingIndex.containsID(null, key, entryID),
-        ConditionResult.TRUE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    equalityIndexer = new EqualityIndexer(index.indexConfig);
-    equalityIndexer.indexEntry(null, entry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.equalityIndex.containsID(null, key, entryID),
-        ConditionResult.TRUE);
-
-    addKeys = new HashSet<ASN1OctetString>();
-    substringIndexer = new SubstringIndexer(index.indexConfig);
-    substringIndexer.indexEntry(null, entry, addKeys);
-
-    key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys) {
-      key.setData(keyBytes.value());
-    }
-    assertEquals(index.substringIndex.containsID(null, key, entryID),
-        ConditionResult.TRUE);
 
   }
 
@@ -1081,21 +1114,29 @@ public class TestBackendImpl extends JebTestCase {
   public void testModifyDN() throws Exception {
     EntryContainer ec =
         backend.getRootContainer().getEntryContainer(DN.decode("dc=test,dc=com"));
-    Entry entry =
-        ec.getEntry(DN.decode("uid=user.2,ou=People,dc=test,dc=com"));
-    entry.setDN(DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com"));
+    ec.sharedLock.lock();
+    try
+    {
+      Entry entry =
+          ec.getEntry(DN.decode("uid=user.2,ou=People,dc=test,dc=com"));
+      entry.setDN(DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com"));
 
 
-    backend.renameEntry(DN.decode("uid=user.2,ou=People,dc=test,dc=com"),
-        entry, null);
+      backend.renameEntry(DN.decode("uid=user.2,ou=People,dc=test,dc=com"),
+          entry, null);
 
-    assertNotNull(backend.getEntry(DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com")));
-    assertNotNull(ec.getDN2ID().get(null, DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com")));
+      assertNotNull(backend.getEntry(DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com")));
+      assertNotNull(ec.getDN2ID().get(null, DN.decode("cn=Abbey Abbie,ou=People,dc=test,dc=com")));
 
 
-    assertNull(backend.getEntry(DN.decode("uid=user.2,ou=People,dc=test,dc=com")));
-    assertNull(ec.getDN2ID().get(null,
-        DN.decode("uid=user.2,ou=People,dc=test,dc=com")));
+      assertNull(backend.getEntry(DN.decode("uid=user.2,ou=People,dc=test,dc=com")));
+      assertNull(ec.getDN2ID().get(null,
+          DN.decode("uid=user.2,ou=People,dc=test,dc=com")));
+    }
+    finally
+    {
+      ec.sharedLock.unlock();
+    }
   }
 
   @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd", "testSearchIndex",
@@ -1108,39 +1149,46 @@ public class TestBackendImpl extends JebTestCase {
 
     EntryContainer ec =
         backend.getRootContainer().getEntryContainer(DN.decode("dc=test,dc=com"));
-    EntryID newSuperiorID = ec.getDN2ID().get(null, DN.decode("ou=JEB Testers,dc=test,dc=com"));
-    EntryID oldID = ec.getDN2ID().get(null,
-        DN.decode("ou=People,dc=test,dc=com"));
-    assertTrue(newSuperiorID.compareTo(oldID) > 0);
+    ec.sharedLock.lock();
+    try
+    {
+      EntryID newSuperiorID = ec.getDN2ID().get(null, DN.decode("ou=JEB Testers,dc=test,dc=com"));
+      EntryID oldID = ec.getDN2ID().get(null,
+          DN.decode("ou=People,dc=test,dc=com"));
+      assertTrue(newSuperiorID.compareTo(oldID) > 0);
 
-    ArrayList<Control> noControls = new ArrayList<Control>(0);
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+      ArrayList<Control> noControls = new ArrayList<Control>(0);
+      InternalClientConnection conn =
+          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDN = new ModifyDNOperation(conn,
-        conn.nextOperationID(),
-        conn.nextMessageID(),
-        noControls,
-        DN.decode("ou=People,dc=test,dc=com"),
-        RDN.decode("ou=Good People"),
-        false,
-        DN.decode("ou=JEB Testers,dc=test,dc=com"));
+      ModifyDNOperation modifyDN = new ModifyDNOperation(conn,
+          conn.nextOperationID(),
+          conn.nextMessageID(),
+          noControls,
+          DN.decode("ou=People,dc=test,dc=com"),
+          RDN.decode("ou=Good People"),
+          false,
+          DN.decode("ou=JEB Testers,dc=test,dc=com"));
 
-    modifyDN.run();
+      modifyDN.run();
 
-    assertNotNull(backend.getEntry(DN.decode("ou=Good People,ou=JEB Testers,dc=test,dc=com")));
-    EntryID newID = ec.getDN2ID().get(null, DN.decode("ou=Good People,ou=JEB Testers,dc=test,dc=com"));
-    assertNotNull(newID);
-    assertTrue(newID.compareTo(newSuperiorID) > 0);
-    assertNotNull(backend.getEntry(DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com")));
-    EntryID newSubordinateID = ec.getDN2ID().get(null,
-        DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com"));
-    assertTrue(newSubordinateID.compareTo(newID) > 0);
+      assertNotNull(backend.getEntry(DN.decode("ou=Good People,ou=JEB Testers,dc=test,dc=com")));
+      EntryID newID = ec.getDN2ID().get(null, DN.decode("ou=Good People,ou=JEB Testers,dc=test,dc=com"));
+      assertNotNull(newID);
+      assertTrue(newID.compareTo(newSuperiorID) > 0);
+      assertNotNull(backend.getEntry(DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com")));
+      EntryID newSubordinateID = ec.getDN2ID().get(null,
+          DN.decode("uid=user.0,ou=Good People,ou=JEB Testers,dc=test,dc=com"));
+      assertTrue(newSubordinateID.compareTo(newID) > 0);
 
-    assertNull(backend.getEntry(DN.decode("ou=People,dc=test,dc=com")));
-    assertNull(ec.getDN2ID().get(null,
-        DN.decode("ou=People,dc=test,dc=com")));
-
+      assertNull(backend.getEntry(DN.decode("ou=People,dc=test,dc=com")));
+      assertNull(ec.getDN2ID().get(null,
+          DN.decode("ou=People,dc=test,dc=com")));
+    }
+    finally
+    {
+      ec.sharedLock.unlock();
+    }
   }
 
   @Test(dependsOnMethods = {"testModifyDN",
@@ -1148,7 +1196,7 @@ public class TestBackendImpl extends JebTestCase {
       "testModifyEntry", "testModifyDN", "testDeleteSubtree",
       "testDeleteEntry", "testAddNoParent", "testAdd",
       "testSearchNotIndexed",
-      "testModifyDNNewSuperior"})
+      "testModifyDNNewSuperior", "testApplyIndexConfig"})
   public void testApplyConfig() throws Exception {
     Entry configEntry = TestCaseUtils.makeEntry(
         "dn: ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
@@ -1176,6 +1224,267 @@ public class TestBackendImpl extends JebTestCase {
 
     assertNotNull(rootContainer.getEntryContainer(DN.decode("dc=newsuffix,dc=com")));
   }
+
+  @Test(dependsOnMethods = {"testModifyDN",
+      "testSearchScope", "testSearchIndex", "testReplaceEntry",
+      "testModifyEntry", "testModifyDN", "testDeleteSubtree",
+      "testDeleteEntry", "testAddNoParent", "testAdd",
+      "testSearchNotIndexed",
+      "testModifyDNNewSuperior"})
+  public void testApplyIndexConfig() throws Exception {
+    Entry configEntry = TestCaseUtils.makeEntry(
+        "dn: ds-cfg-index-attribute=givenName,cn=Index," +
+            "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-je-index",
+        "ds-cfg-index-attribute: givenName",
+        "ds-cfg-index-type: approximate");
+
+    JEIndexCfg cfg = AdminTestCaseUtils.getConfiguration(
+        JEIndexCfgDefn.getInstance(), configEntry);
+
+    RootContainer rootContainer = backend.getRootContainer();
+    EntryContainer ec = rootContainer.getEntryContainer(DN.decode("dc=test,dc=com"));
+
+    AttributeIndex index =
+        ec.getAttributeIndex(DirectoryServer.getAttributeType("givenname"));
+    ConfigChangeResult ccr = index.applyConfigurationChange(cfg);
+    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
+    assertTrue(ccr.adminActionRequired());
+    assertFalse(ccr.getMessages().isEmpty());
+    assertNull(index.equalityIndex);
+    assertNull(index.presenceIndex);
+    assertNull(index.substringIndex);
+    assertNull(index.orderingIndex);
+    assertNotNull(index.approximateIndex);
+    ArrayList<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    ec.listDatabases(databases);
+    boolean eqfound = false;
+    boolean prfound = false;
+    boolean subfound = false;
+    boolean orfound = false;
+    boolean apfound = false;
+    for(DatabaseContainer dc : databases)
+    {
+      if(dc.getName().toLowerCase().contains("givenname.approximate"))
+      {
+        apfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.presence"))
+      {
+        prfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.substring"))
+      {
+        subfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.ordering"))
+      {
+        orfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.equality"))
+      {
+        eqfound = true;
+      }
+    }
+    assertFalse(eqfound);
+    assertFalse(prfound);
+    assertFalse(subfound);
+    assertFalse(orfound);
+    assertTrue(apfound);
+
+    InternalClientConnection conn =
+        InternalClientConnection.getRootConnection();
+    LinkedHashSet<String> attribs = new LinkedHashSet<String>();
+    attribs.add(ATTR_DEBUG_SEARCH_INDEX);
+
+    InternalSearchOperation search =
+        conn.processSearch(DN.decode("dc=test,dc=com"),
+
+                           SearchScope.SUBORDINATE_SUBTREE,
+
+                           DereferencePolicy.NEVER_DEREF_ALIASES,
+                           0,
+                           0,
+                           false,
+
+                           LDAPFilter.decode("(givenName~=Aaccf)").
+                               toSearchFilter(),
+                           attribs);
+
+    LinkedList<SearchResultEntry> result = search.getSearchEntries();
+
+    //No indexes should be used.
+    String debugString =
+        result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
+    assertTrue(debugString.contains("NOT-INDEXED"));
+
+    configEntry = TestCaseUtils.makeEntry(
+        "dn: ds-cfg-index-attribute=givenName,cn=Index," +
+            "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-je-index",
+        "ds-cfg-index-attribute: givenName",
+        "ds-cfg-index-type: equality",
+        "ds-cfg-index-type: presence",
+        "ds-cfg-index-type: ordering",
+        "ds-cfg-index-type: substring");
+
+    cfg = AdminTestCaseUtils.getConfiguration(
+        JEIndexCfgDefn.getInstance(), configEntry);
+
+    ccr = index.applyConfigurationChange(cfg);
+    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
+    assertTrue(ccr.adminActionRequired());
+    assertFalse(ccr.getMessages().isEmpty());
+    assertNotNull(index.equalityIndex);
+    assertNotNull(index.presenceIndex);
+    assertNotNull(index.substringIndex);
+    assertNotNull(index.orderingIndex);
+    assertNull(index.approximateIndex);
+    databases = new ArrayList<DatabaseContainer>();
+    ec.listDatabases(databases);
+    eqfound = false;
+    prfound = false;
+    subfound = false;
+    orfound = false;
+    apfound = false;
+    for(DatabaseContainer dc : databases)
+    {
+      if(dc.getName().toLowerCase().contains("givenname.approximate"))
+      {
+        apfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.presence"))
+      {
+        prfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.substring"))
+      {
+        subfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.ordering"))
+      {
+        orfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.equality"))
+      {
+        eqfound = true;
+      }
+    }
+    assertTrue(eqfound);
+    assertTrue(prfound);
+    assertTrue(subfound);
+    assertTrue(orfound);
+    assertFalse(apfound);
+
+    // Delete the entries attribute index.
+    ccr = ec.applyConfigurationDelete(cfg);
+    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
+    assertNull(ec.getAttributeIndex(
+        DirectoryServer.getAttributeType("givenname")));
+    databases = new ArrayList<DatabaseContainer>();
+    ec.listDatabases(databases);
+    for(DatabaseContainer dc : databases)
+    {
+      assertFalse(dc.getName().toLowerCase().contains("givenname"));
+    }
+
+    // Add it back
+    ccr = ec.applyConfigurationAdd(cfg);
+    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
+    assertTrue(ccr.adminActionRequired());
+    assertFalse(ccr.getMessages().isEmpty());
+    assertNotNull(ec.getAttributeIndex(
+        DirectoryServer.getAttributeType("givenname")));
+    databases = new ArrayList<DatabaseContainer>();
+    ec.listDatabases(databases);
+    eqfound = false;
+    prfound = false;
+    subfound = false;
+    orfound = false;
+    apfound = false;
+    for(DatabaseContainer dc : databases)
+    {
+      if(dc.getName().toLowerCase().contains("givenname.approximate"))
+      {
+        apfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.presence"))
+      {
+        prfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.substring"))
+      {
+        subfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.ordering"))
+      {
+        orfound = true;
+      }
+      if(dc.getName().toLowerCase().contains("givenname.equality"))
+      {
+        eqfound = true;
+      }
+    }
+    assertTrue(eqfound);
+    assertTrue(prfound);
+    assertTrue(subfound);
+    assertTrue(orfound);
+    assertFalse(apfound);
+
+    // Make sure changing the index entry limit on an index where the limit
+    // is already exceeded causes warnings.
+    configEntry = TestCaseUtils.makeEntry(
+        "dn: ds-cfg-index-attribute=mail,cn=Index," +
+            "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-je-index",
+        "ds-cfg-index-attribute: mail",
+        "ds-cfg-index-type: presence",
+        "ds-cfg-index-type: equality",
+        "ds-cfg-index-type: ordering",
+        "ds-cfg-index-type: substring",
+        "ds-cfg-index-type: approximate",
+        "ds-cfg-index-entry-limit: 30");
+
+    cfg = AdminTestCaseUtils.getConfiguration(
+        JEIndexCfgDefn.getInstance(), configEntry);
+
+    // Make sure removing a index entry limit for an index makes it use the
+    // backend wide setting.
+    index =
+        ec.getAttributeIndex(DirectoryServer.getAttributeType("mail"));
+    ccr = index.applyConfigurationChange(cfg);
+    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
+    assertTrue(ccr.adminActionRequired());
+    assertFalse(ccr.getMessages().isEmpty());
+
+    configEntry = TestCaseUtils.makeEntry(
+        "dn: ds-cfg-index-attribute=mail,cn=Index," +
+            "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-je-index",
+        "ds-cfg-index-attribute: mail",
+        "ds-cfg-index-type: presence",
+        "ds-cfg-index-type: equality",
+        "ds-cfg-index-type: ordering",
+        "ds-cfg-index-type: substring",
+        "ds-cfg-index-type: approximate");
+
+    cfg = AdminTestCaseUtils.getConfiguration(
+        JEIndexCfgDefn.getInstance(), configEntry);
+
+   index =
+        ec.getAttributeIndex(DirectoryServer.getAttributeType("mail"));
+    ccr = index.applyConfigurationChange(cfg);
+    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
+    assertFalse(ccr.adminActionRequired());
+    assertTrue(ccr.getMessages().isEmpty());
+
+  }
+
+
 
   @Test(dependsOnMethods = {"testDeleteEntry", "testSearchScope",
       "testSearchIndex"})

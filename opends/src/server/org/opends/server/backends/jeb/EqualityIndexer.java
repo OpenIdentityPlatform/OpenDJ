@@ -66,20 +66,20 @@ public class EqualityIndexer extends Indexer
        new AttributeIndex.KeyComparator();
 
   /**
-   * The attribute index configuration for which this instance will
+   * The attribute type for which this instance will
    * generate index keys.
    */
-  private IndexConfig indexConfig;
+  private AttributeType attributeType;
 
 
   /**
-   * Create a new attribute equality indexer for the given index configuration.
-   * @param indexConfig The index configuration for which an indexer is
+   * Create a new attribute equality indexer for the given attribute type.
+   * @param attributeType The attribute type for which an indexer is
    * required.
    */
-  public EqualityIndexer(IndexConfig indexConfig)
+  public EqualityIndexer(AttributeType attributeType)
   {
-    this.indexConfig = indexConfig;
+    this.attributeType = attributeType;
   }
 
   /**
@@ -89,7 +89,7 @@ public class EqualityIndexer extends Indexer
    */
   public String toString()
   {
-    return indexConfig.getAttributeType().getNameOrOID() + ".equality";
+    return attributeType.getNameOrOID() + ".equality";
   }
 
   /**
@@ -118,7 +118,7 @@ public class EqualityIndexer extends Indexer
                          Set<ASN1OctetString> keys) throws DatabaseException
   {
     List<Attribute> attrList =
-         entry.getAttribute(indexConfig.getAttributeType());
+         entry.getAttribute(attributeType);
     if (attrList != null)
     {
       indexAttribute(attrList, keys);
@@ -146,11 +146,11 @@ public class EqualityIndexer extends Indexer
   {
     List<Attribute> attrList;
 
-    attrList = oldEntry.getAttribute(indexConfig.getAttributeType());
+    attrList = oldEntry.getAttribute(attributeType);
     Set<ASN1OctetString> oldSet = new HashSet<ASN1OctetString>();
     indexAttribute(attrList, oldSet);
 
-    attrList = newEntry.getAttribute(indexConfig.getAttributeType());
+    attrList = newEntry.getAttribute(attributeType);
     Set<ASN1OctetString> newSet = new HashSet<ASN1OctetString>();
     indexAttribute(attrList, newSet);
 
@@ -198,8 +198,8 @@ public class EqualityIndexer extends Indexer
 
     List<Attribute> beforeList;
     List<Attribute> afterList;
-    beforeList = oldEntry.getAttribute(indexConfig.getAttributeType());
-    afterList = newEntry.getAttribute(indexConfig.getAttributeType());
+    beforeList = oldEntry.getAttribute(attributeType);
+    afterList = newEntry.getAttribute(attributeType);
 
     boolean hasOptions = false;
 
@@ -233,7 +233,7 @@ public class EqualityIndexer extends Indexer
     {
       Attribute modAttr = mod.getAttribute();
       AttributeType modAttrType = modAttr.getAttributeType();
-      if (modAttrType.equals(indexConfig.getAttributeType()))
+      if (modAttrType.equals(attributeType))
       {
         if (modAttr.hasOptions())
         {
