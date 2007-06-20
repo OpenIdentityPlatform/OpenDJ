@@ -2488,7 +2488,19 @@ public class ServerConstants
   /**
    * The column at which to wrap long lines of output in the command-line tools.
    */
-  public static final int MAX_LINE_WIDTH = 79;
+  public static final int MAX_LINE_WIDTH;
+  static {
+    int columns = 80;
+    try {
+      String s = System.getenv("COLUMNS");
+      if (s != null) {
+        columns = Integer.parseInt(s);
+      }
+    } catch (Exception e) {
+      // Do nothing.
+    }
+    MAX_LINE_WIDTH = columns - 1;
+  }
 
 
 
