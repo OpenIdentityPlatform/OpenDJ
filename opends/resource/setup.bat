@@ -60,6 +60,7 @@ goto end
 
 :setClassPath
 FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
+set CLASSPATH=%DIR_HOME%\classes;%CLASSPATH%
 
 set PATH=%SystemRoot%
 

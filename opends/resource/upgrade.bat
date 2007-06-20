@@ -68,6 +68,7 @@ if not %errorlevel% == 0 goto noValidJavaHome
 if EXIST "%INSTANCE_ROOT%\tmp\upgrade" rd "%INSTANCE_ROOT%\tmp\upgrade" /s /q
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
+set CLASSPATH=%DIR_HOME%\classes;%CLASSPATH%
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.BuildExtractor %*
 if not %errorlevel% == 0 goto end
 goto upgrader
