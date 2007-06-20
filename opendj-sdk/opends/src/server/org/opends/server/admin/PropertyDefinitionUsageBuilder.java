@@ -129,7 +129,7 @@ public final class PropertyDefinitionUsageBuilder {
         builder.append(" <= ");
       }
 
-      builder.append("DURATION(");
+      builder.append("DURATION (");
       builder.append(unit.getShortName());
       builder.append(')');
 
