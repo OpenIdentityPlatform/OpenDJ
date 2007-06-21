@@ -1485,7 +1485,7 @@
       </not>
     </condition>
 
-    <exec executable="${ant.home}/bin/${antcmd}">
+    <exec executable="${ant.home}/bin/${antcmd}" failonerror="true">
       <arg value="-buildfile" />
       <arg value="${ant.file}" />
       <arg value="-quiet" />
