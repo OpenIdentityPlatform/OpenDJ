@@ -37,12 +37,18 @@ import	 javax.naming.directory.BasicAttribute;
 import	 javax.naming.directory.BasicAttributes;
 import  javax.naming.*;
 import  javax.naming.directory.ModificationItem;
+import  java.util.HashSet;
+import  java.util.StringTokenizer;
+import java.util.Iterator;
 
 
 
 /**
   *  modify an entry with an attribute 
   *  the operation can be a replace, delete or a add new attribute
+  *  if expectedErrorCode is set, we compare it with the ldap error code returned in the exception
+  *  the function returns 0 if the code are equals
+  *  otherwise, returns 1 
   */
 
 public class modifyAnAttribute {
@@ -57,6 +63,20 @@ public class modifyAnAttribute {
      String dnToModify=null;
      String newAttributeValue=null;
      String changetype=null;
+     String errorCode=null;
+     String errorMessage=null;
+     String listAttributesToModify=null;
+     String expectedErrorCode="0";
+     
+     int ind1;
+     String attributeName;
+     String attributeValue;
+     Hashtable envLdap  = new Hashtable();
+ 	 LdapContext ctx;  
+     
+     Attributes attributes = new BasicAttributes(); 
+     HashSet attributeSet = new HashSet(); 
+
      
      for (int k=0; k< args.length; k++) {
     	 String opt1 = args[k]; 
@@ -86,14 +106,56 @@ public class modifyAnAttribute {
     	 if (opt1.equals("-t")) {
     		 changetype = val1;
     	 }
+    	 if (opt1.equals("-E")) {
+    		 expectedErrorCode = val1;
+    	 }
+       	 if (opt1.equals("-l")) {
+     		    listAttributesToModify = val1;
+     		 
+    		 	ind1= val1.indexOf (":");
+
+    		 	attributeName=val1.substring (0,ind1);
+    		 	attributeValue=val1.substring (ind1+1);
+
+    		 	BasicAttribute attrToComplete = null;
+    		 
+    		 	Iterator it = attributeSet.iterator();
+    		 	while (attrToComplete == null && it.hasNext()) {
+    		 		BasicAttribute attr = (BasicAttribute) it.next();
+    		 		if ((attr.getID()).equalsIgnoreCase(attributeName)) {
+    		 			attrToComplete = attr;
+    		 		}
+    		 	}
+    		 	
+    		 	if (attrToComplete == null) {
+    		 		attrToComplete = new BasicAttribute(attributeName);
+    		 		attributeSet.add(attrToComplete);
+    		 	}
+    		 	attributeValue=attributeValue.replaceAll("QUOT","\\\"");
+    		 	attrToComplete.add(attributeValue);
+     	 }
     	 k++;
      }
- 
-    newAttributeValue=newAttributeValue.replaceAll("QUOT","\\\"");
-   
+     
+     if ( attributeToModify != null && newAttributeValue != null ) {
+    	 
+    	    BasicAttribute attrToComplete = null;
+    	    
+    	    attrToComplete = new BasicAttribute(attributeToModify);
+	 		attributeSet.add(attrToComplete);
+	 		newAttributeValue=newAttributeValue.replaceAll("QUOT","\\\"");
+	 		attrToComplete.add(newAttributeValue);
+     }
+    
+     
+     Iterator it2 = attributeSet.iterator();
+     while (it2.hasNext()) {
+		 BasicAttribute attr = (BasicAttribute)it2.next();
+		 attributes.put(attr);
+	 } 
+     
     String provider = "ldap://"  + hostname + ":" + ldapPort  + "/";
 
-    Hashtable envLdap  = new Hashtable();
     
 	envLdap.put("java.naming.factory.initial", "com.sun.jndi.ldap.LdapCtxFactory");
 	envLdap.put(Context.SECURITY_AUTHENTICATION, "simple");
@@ -101,9 +163,9 @@ public class modifyAnAttribute {
 	envLdap.put(Context.SECURITY_CREDENTIALS, credential);
 	envLdap.put(Context.PROVIDER_URL, provider);
 
-	LdapContext ctx;
-	
+
 	try {
+
 		
 		CompositeName entryDN = new CompositeName (dnToModify);
 		System.out.println(changetype + " attribute " + attributeToModify + " for entry " + dnToModify);
@@ -111,36 +173,50 @@ public class modifyAnAttribute {
 		// connect to server
 		ctx = new InitialLdapContext(envLdap, null);
 		
-		Attributes attrs = new BasicAttributes(true);
-		Attribute attr = new BasicAttribute(attributeToModify);
-		attr.add(newAttributeValue);
-		attrs.put (attr);
-
 		// replace attribute
   		 if (changetype.equals("replace")) {
-  			ctx.modifyAttributes(entryDN, LdapContext.REPLACE_ATTRIBUTE , attrs);
+  			ctx.modifyAttributes(entryDN, LdapContext.REPLACE_ATTRIBUTE , attributes);
 		 }
 		 else if (changetype.equals("add")) { 
 			 // add attribute	
-			 ctx.modifyAttributes(entryDN, LdapContext.ADD_ATTRIBUTE , attrs);
+			 ctx.modifyAttributes(entryDN, LdapContext.ADD_ATTRIBUTE , attributes);
 		 }
 		 else if (changetype.equals("delete")) { 
 			 // add attribute
-			 ctx.modifyAttributes(entryDN, LdapContext.REMOVE_ATTRIBUTE , attrs);
+			 ctx.modifyAttributes(entryDN, LdapContext.REMOVE_ATTRIBUTE , attributes);
 		 }
 		
         ctx.close();
-
 	} catch (CommunicationException e1) {
-		String error = e1.getMessage();
-        System.out.println(" Catch exception : " + e1.getMessage());
-        System.exit(1);
+		errorMessage = e1.getMessage();
+
 	} catch (NamingException e2) {
-        System.out.println(" Catch exception : " + e2.getMessage());
-        System.exit(1);
+		errorMessage = e2.getMessage();
+
     } catch (Exception e3) {
-            System.out.println(" Catch exception : " + e3.getMessage());
-            System.exit(1);
+    	errorMessage= e3.getMessage();
 	}
+    // No error, the modify is success 
+    if ( errorMessage == null ) {
+    	errorCode="0";
+    } 
+    else {
+    	System.out.println (errorMessage);
+    	int ind=errorMessage.indexOf("-");
+    	errorCode=errorMessage.substring(18, ind-1);
+    }
+	// Compare the errorCode and the expected error Code
+    int diff=expectedErrorCode.compareTo(errorCode); 
+    
+    if (diff == 0 ){
+        // Got the expected error Code. The test is success
+    	System.exit(0);
+    }
+    else {
+    	System.out.println ("Error: modify request didn't return the expected error Code");
+    	System.out.println ("Expected " + expectedErrorCode + "; Got" + errorCode);
+    	System.exit(1);
+    }
+ 
 }
 }
