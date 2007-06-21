@@ -386,7 +386,7 @@ public void testSuAttrLevelParams3() throws Exception {
  private void
  checkAttributeLevel(HashMap<String, String> attrMap, String attr,
                      String reqRightsStr) throws Exception {
-   String attrType=attributeLevel + attr;
+   String attrType=attributeLevel.toLowerCase() + attr;
    String retRightsStr=attrMap.get(attrType);
    Assert.assertTrue(retRightsStr.equals(reqRightsStr));
  }
@@ -394,7 +394,7 @@ public void testSuAttrLevelParams3() throws Exception {
  private void
  checkEntryLevel(HashMap<String, String> attrMap, String reqRightsStr)
  throws Exception {
-    String retRightsStr=attrMap.get(entryLevel);
+    String retRightsStr=attrMap.get(entryLevel.toLowerCase());
     Assert.assertTrue(retRightsStr.equals(reqRightsStr));
  }
 }
