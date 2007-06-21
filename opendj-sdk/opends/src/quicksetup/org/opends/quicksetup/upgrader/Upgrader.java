@@ -55,7 +55,6 @@ import org.opends.quicksetup.util.ExternalTools;
 import org.opends.quicksetup.util.OperationOutput;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupDialog;
-import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.ProgressPanel;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.QuickSetup;
@@ -406,7 +405,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public int getExtraDialogHeight() {
-    return UIFactory.EXTRA_DIALOG_HEIGHT;
+    // Makes dialog height same as QuickSetup
+    return 177;
   }
 
   /**
