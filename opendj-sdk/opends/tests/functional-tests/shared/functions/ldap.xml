@@ -2578,26 +2578,33 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>          
 		
-	   <function-arg-def name="DNToBeModified" type="required">
+	   <function-arg-def name="DNToModify" type="required">
         <function-arg-description>
           DN to modify
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
 			
-      <function-arg-def name="attributeToBeModified" type="required">
+      <function-arg-def name="attributeName" type="optional">
         <function-arg-description>
           Attribute to modify
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 		
-	   <function-arg-def name="newAttributeValue" type="required">
+	   <function-arg-def name="newAttributeValue" type="optional">
         <function-arg-description>
           New Attribute Value
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      
+     <function-arg-def name="listAttributes" type="optional" default="' '">
+       <function-arg-description>
+         List of attributes name and value to modify. The format is name:value
+       </function-arg-description>
+       <function-arg-property name="type" value="string"/>       
+     </function-arg-def>
 		
     <function-arg-def name="changetype" type="required">
         <function-arg-description>
@@ -2605,6 +2612,13 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+	 
+    <function-arg-def name="expectedErrorCode" type="optional">
+		<function-arg-description>
+			Expected Error code. Default value is 0
+		</function-arg-description>
+		<function-arg-property name="type" value="string"/>
+	</function-arg-def>			
 	
     </function-map-args>
     <sequence>
@@ -2623,30 +2637,42 @@
 		  
      <!-- Set common ldap arguments -->      
       <call function="'_ldapCommonArgs'"/>
-      		
+
+      <if expr="listAttributes != ' '">
+      <iterate var="anAttributeToModify" in="listAttributes">
+          <script>
+            if anAttributeToModify:
+               anAttributeToModify=anAttributeToModify.replace('"','QUOT')
+               STAFCmdParamsList.append('-l "%s"' % anAttributeToModify)   
+          </script>
+      </iterate>   
+      </if>	  
+      <script>
+        if newAttributeValue:
+            newAttributeValue=newAttributeValue.replace('"','QUOT')
+      </script>				
       <script>
  
-        if DNToBeModified:
-          STAFCmdParamsList.append('-d "%s"' % DNToBeModified)
+        if DNToModify:
+          STAFCmdParamsList.append('-d "%s"' % DNToModify)
 
-        if attributeToBeModified:
-          STAFCmdParamsList.append('-a "%s"' % attributeToBeModified)
+        if attributeName:
+          STAFCmdParamsList.append('-a "%s"' % attributeName)
 
         if newAttributeValue:
           STAFCmdParamsList.append('-v "%s"' % newAttributeValue)		  		  		  		  
 
         if changetype:
-          STAFCmdParamsList.append('-t "%s"' % changetype)		  		
-		  
+          STAFCmdParamsList.append('-t "%s"' % changetype)
+		    
+        if expectedErrorCode:
+          STAFCmdParamsList.append('-E "%s"' % expectedErrorCode)
+		  		  
         STAFCmdParams=' '.join(STAFCmdParamsList)
 		  		 
         STAFCmd='modifyAnAttribute' 
    
     </script>
-    <script>
-        newAttributeValue=newAttributeValue.replace('"','QUOT')
-    </script>
-
       <process name="'Modify An Attribut value'">
         <location>'%s' % location</location>
         <command>'java'</command>
@@ -2726,7 +2752,7 @@
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
 			
-      <function-arg-def name="attributesToAdd" type="required" >
+      <function-arg-def name="listAttributes" type="required">
         <function-arg-description>
           Attributes to add
         </function-arg-description>
@@ -2751,7 +2777,7 @@
      <!-- Set common ldap arguments -->      
       <call function="'_ldapCommonArgs'"/>
 
-	<iterate var="anAttributeToAdd" in="attributesToAdd">
+	<iterate var="anAttributeToAdd" in="listAttributes">
 	<script>
         STAFCmdParamsList.append('-v "%s"' % anAttributeToAdd)
 	</script>
