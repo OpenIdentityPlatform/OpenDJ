@@ -32,6 +32,7 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 
 import java.util.*;
 import org.opends.server.types.*;
+import org.opends.server.core.DirectoryServer;
 
 /**
  * This class represents the userdn keyword in a bind rule.
@@ -250,6 +251,20 @@ public class UserDN implements KeywordBindRule {
                     DN dn = url.getBaseDN();
                     if (clientDN.equals(dn))
                         matched = EnumEvalResult.TRUE;
+                    else {
+                        //This code handles the case where a root dn entry does
+                        //not have bypass-acl privilege and the ACI bind rule
+                        //userdn DN possible is an alternate root DN.
+                        DN actualDN=DirectoryServer.getActualRootBindDN(dn);
+                        DN clientActualDN=
+                                DirectoryServer.getActualRootBindDN(clientDN);
+                        if(actualDN != null)
+                            dn=actualDN;
+                        if(clientActualDN != null)
+                            clientDN=clientActualDN;
+                        if(clientDN.equals(dn))
+                            matched=EnumEvalResult.TRUE;
+                    }
                 } catch (DirectoryException ex) {
                     //TODO add message
                 }

@@ -172,8 +172,8 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    */
   @Test()
   public void testAnonEntryLevelParams() throws Exception {
-    String aciLdif=makeAddAciLdif("aci", "ou=People,o=test", readSearchAnonAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAnonAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(DIR_MGR_DN, PWD, null, "dn:", null,
                     base, filter, "aclRights");
@@ -190,42 +190,42 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    */
   @Test()
   public void testSuEntryLevelParams() throws Exception {
-    String aciLdif=makeAddAciLdif("aci", "ou=People,o=test", aclRightsAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
-    aciLdif=makeAddAciLdif("aci", "ou=People,o=test", readSearchAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+    aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(superUser, PWD, null, "dn: " + superUser, null,
                     base, filter, "aclRights");
     Assert.assertFalse(userResults.equals(""));
     HashMap<String, String> attrMap=getAttrMap(userResults);
     checkEntryLevel(attrMap, rRights);
-    aciLdif=makeAddAciLdif("aci", "ou=People,o=test", addAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    aciLdif=makeAddLDIF("aci", "ou=People,o=test", addAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     userResults =
             LDAPSearchParams(superUser, PWD, null, "dn: " + superUser, null,
                     base, filter, "aclRights");
     Assert.assertFalse(userResults.equals(""));
     attrMap=getAttrMap(userResults);
     checkEntryLevel(attrMap, arRights);
-    aciLdif=makeAddAciLdif("aci", "ou=People,o=test", delAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    aciLdif=makeAddLDIF("aci", "ou=People,o=test", delAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     userResults =
             LDAPSearchParams(superUser, PWD, null, "dn: " + superUser, null,
                     base, filter, "aclRights");
     Assert.assertFalse(userResults.equals(""));
     attrMap=getAttrMap(userResults);
     checkEntryLevel(attrMap, adrRights);
-    aciLdif=makeAddAciLdif("aci", "ou=People,o=test", writeAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    aciLdif=makeAddLDIF("aci", "ou=People,o=test", writeAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     userResults =
             LDAPSearchParams(superUser, PWD, null, "dn: " + superUser, null,
                     base, filter, "aclRights");
     Assert.assertFalse(userResults.equals(""));
     attrMap=getAttrMap(userResults);
     checkEntryLevel(attrMap, adrwRights);
-    aciLdif=makeAddAciLdif("aci", "ou=People,o=test", proxyAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    aciLdif=makeAddLDIF("aci", "ou=People,o=test", proxyAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     userResults =
             LDAPSearchParams(superUser, PWD, null, "dn: " + superUser, null,
                     base, filter, "aclRights");
@@ -242,42 +242,42 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    */
   @Test()
    public void testSuEntryLevelCtrl() throws Exception {
-     String aciLdif=makeAddAciLdif("aci", "ou=People,o=test", aclRightsAci);
-     modEntries(aciLdif, DIR_MGR_DN, PWD);
-     aciLdif=makeAddAciLdif("aci", "ou=People,o=test", readSearchAci);
-     modEntries(aciLdif, DIR_MGR_DN, PWD);
+     String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci);
+     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+     aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAci);
+     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
      String userResults =
             LDAPSearchCtrl(superUser, PWD, null, OID_GET_EFFECTIVE_RIGHTS,
                     base, filter, "aclRights");
      Assert.assertFalse(userResults.equals(""));
      HashMap<String, String> attrMap=getAttrMap(userResults);
      checkEntryLevel(attrMap, rRights);
-     aciLdif=makeAddAciLdif("aci", "ou=People,o=test", addAci);
-     modEntries(aciLdif, DIR_MGR_DN, PWD);
+     aciLdif=makeAddLDIF("aci", "ou=People,o=test", addAci);
+     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
      userResults =
             LDAPSearchCtrl(superUser, PWD, null, OID_GET_EFFECTIVE_RIGHTS,
                     base, filter, "aclRights");
      Assert.assertFalse(userResults.equals(""));
      attrMap=getAttrMap(userResults);
      checkEntryLevel(attrMap, arRights);
-     aciLdif=makeAddAciLdif("aci", "ou=People,o=test", delAci);
-     modEntries(aciLdif, DIR_MGR_DN, PWD);
+     aciLdif=makeAddLDIF("aci", "ou=People,o=test", delAci);
+     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
      userResults =
             LDAPSearchCtrl(superUser, PWD, null, OID_GET_EFFECTIVE_RIGHTS,
                     base, filter, "aclRights");
      Assert.assertFalse(userResults.equals(""));
      attrMap=getAttrMap(userResults);
      checkEntryLevel(attrMap, adrRights);
-     aciLdif=makeAddAciLdif("aci", "ou=People,o=test", writeAci);
-     modEntries(aciLdif, DIR_MGR_DN, PWD);
+     aciLdif=makeAddLDIF("aci", "ou=People,o=test", writeAci);
+     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
      userResults =
             LDAPSearchCtrl(superUser, PWD, null, OID_GET_EFFECTIVE_RIGHTS,
                     base, filter, "aclRights");
      Assert.assertFalse(userResults.equals(""));
      attrMap=getAttrMap(userResults);
      checkEntryLevel(attrMap, adrwRights);
-     aciLdif=makeAddAciLdif("aci", "ou=People,o=test", proxyAci);
-     modEntries(aciLdif, DIR_MGR_DN, PWD);
+     aciLdif=makeAddLDIF("aci", "ou=People,o=test", proxyAci);
+     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
      userResults =
              LDAPSearchCtrl(superUser, PWD, null, OID_GET_EFFECTIVE_RIGHTS,
                      base, filter, "aclRights");
@@ -311,12 +311,12 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    */
   @Test()
   public void testSuAttrLevelParams() throws Exception {
-    String aciLdif=makeAddAciLdif("aci", "ou=People,o=test", aclRightsAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
-    aciLdif=makeAddAciLdif("aci", "ou=People,o=test", readSearchAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
-    aciLdif=makeAddAciLdif("aci", "ou=People,o=test", writeMailAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+    aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+    aciLdif=makeAddLDIF("aci", "ou=People,o=test", writeMailAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(superUser, PWD, null, "dn: " + superUser, null,
                     base, filter, "aclRights mail description");
@@ -337,16 +337,16 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
  */
 @Test()
 public void testSuAttrLevelParams2() throws Exception {
-  String aciLdif=makeAddAciLdif("aci", "ou=People,o=test", aclRightsAci);
-  modEntries(aciLdif, DIR_MGR_DN, PWD);
-  aciLdif=makeAddAciLdif("aci", "ou=People,o=test", readSearchAci);
-  modEntries(aciLdif, DIR_MGR_DN, PWD);
-  aciLdif=makeAddAciLdif("aci", "ou=People,o=test", writeMailAci);
-  modEntries(aciLdif, DIR_MGR_DN, PWD);
-  aciLdif=makeAddAciLdif("aci", "ou=People,o=test", faxTargAttrAci);
-  modEntries(aciLdif, DIR_MGR_DN, PWD);
-  aciLdif=makeAddAciLdif("aci", "ou=People,o=test", pagerTargAttrAci);
-  modEntries(aciLdif, DIR_MGR_DN, PWD);
+  String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci);
+  LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+  aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAci);
+  LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+  aciLdif=makeAddLDIF("aci", "ou=People,o=test", writeMailAci);
+  LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+  aciLdif=makeAddLDIF("aci", "ou=People,o=test", faxTargAttrAci);
+  LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+  aciLdif=makeAddLDIF("aci", "ou=People,o=test", pagerTargAttrAci);
+  LDIFModify(aciLdif, DIR_MGR_DN, PWD);
   String userResults =
           LDAPSearchParams(superUser, PWD, null, "dn: " + superUser, attrList,
                   base, filter, "aclRights mail description");
@@ -369,12 +369,12 @@ public void testSuAttrLevelParams2() throws Exception {
  */
 @Test()
 public void testSuAttrLevelParams3() throws Exception {
-  String aciLdif=makeAddAciLdif("aci", "ou=People,o=test", aclRightsAci);
-  modEntries(aciLdif, DIR_MGR_DN, PWD);
-  aciLdif=makeAddAciLdif("aci", "ou=People,o=test", readSearchAci);
-  modEntries(aciLdif, DIR_MGR_DN, PWD);
-  aciLdif=makeAddAciLdif("aci", "ou=People,o=test", selfWriteAci);
-  modEntries(aciLdif, DIR_MGR_DN, PWD);
+  String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci);
+  LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+  aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAci);
+  LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+  aciLdif=makeAddLDIF("aci", "ou=People,o=test", selfWriteAci);
+  LDIFModify(aciLdif, DIR_MGR_DN, PWD);
   String userResults =
           LDAPSearchParams(superUser, PWD, null, "dn: " + user1, memberAttrList,
                   base, filter, "aclRights");
