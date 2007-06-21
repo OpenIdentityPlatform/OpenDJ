@@ -848,16 +848,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
         setCurrentProgressStep(
                 UpgradeProgressStep.UPGRADING_COMPONENTS);
         upgradeComponents();
-
-        // The config directory may contain files that are needed
-        // by the new installation (e.g. SSL config files and tasks)
-        File oldConfigDir =
-                new File(getFilesBackupDirectory(),
-                         Installation.CONFIG_PATH_RELATIVE);
-        File newConfigDir =
-                getInstallation().getConfigurationDirectory();
-        copyNonexistentFiles(oldConfigDir, newConfigDir);
-
+        updateConfigDirectory();
         notifyListeners(formatter.getFormattedDone() +
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "component upgrade finished");
@@ -1291,6 +1282,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 getInstallation()).modify(configDiff);
 
       }
+    } catch (ApplicationException ae) {
+      throw ae;
     } catch (Exception e) {
       String msg = getMsg("error-applying-custom-config");
       LOG.log(Level.INFO, msg, e);
@@ -1306,6 +1299,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
         new InProcessServerController(
                 getInstallation()).modify(schemaDiff);
       }
+    } catch (ApplicationException ae) {
+      throw ae;
     } catch (Exception e) {
       String msg = getMsg("error-applying-custom-schema");
       LOG.log(Level.INFO, msg, e);
@@ -1374,30 +1369,18 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
   }
 
-  /**
-   * Copies any files appearing in <code>source</code> and not appearing
-   * in <code>target</code> from <code>source</code> to
-   * <code>target</code>.
-   * @param source source directory
-   * @param target target directory
-   * @throws ApplicationException if there is a problem copying files
-   */
-  private void copyNonexistentFiles(File source, File target)
-          throws ApplicationException
+  private void updateConfigDirectory()
+          throws IOException,ApplicationException
   {
-    if (source != null && target != null) {
-      String[] oldFileNames = source.list();
-      if (oldFileNames != null) {
-        FileManager fm = new FileManager();
-        for (String oldFileName : oldFileNames) {
-          File f = new File(target, oldFileName);
-          if (!f.exists()) {
-            File oldFile = new File(source, oldFileName);
-            fm.copy(oldFile, target);
-          }
-        }
-      }
-    }
+    // The config directory may contain files that are needed
+    // by the new installation (e.g. SSL config files and tasks)
+    File oldConfigDir =
+            new File(getFilesBackupDirectory(),
+                     Installation.CONFIG_PATH_RELATIVE);
+    File newConfigDir =
+            getInstallation().getConfigurationDirectory();
+    FileManager fm = new FileManager();
+    fm.synchronize(oldConfigDir, newConfigDir);
   }
 
   private boolean calculateConfigCustomizations() throws ApplicationException {
@@ -1411,6 +1394,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
           ldifDiff(getInstallation().getBaseConfigurationFile(),
                   getInstallation().getCurrentConfigurationFile(),
                   getCustomConfigDiffFile());
+        } catch (ApplicationException ae) {
+          throw ae;
         } catch (Exception e) {
           throw ApplicationException.createFileSystemException(
                   getMsg("error-determining-custom-config"), e);
@@ -1454,6 +1439,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
         ldifDiff(getInstallation().getBaseSchemaFile(),
                 getInstallation().getSchemaConcatFile(),
                 getCustomSchemaDiffFile());
+      } catch (ApplicationException ae) {
+        throw ae;
       } catch (Exception e) {
         throw ApplicationException.createFileSystemException(
                 getMsg("error-determining-custom-schema"), e);
@@ -1475,6 +1462,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
         //fm.copyRecursively(f, filesBackupDirectory,
         fm.move(f, filesBackupDirectory, filter);
       }
+    } catch (ApplicationException ae) {
+      throw ae;
     } catch (Exception e) {
       throw new ApplicationException(
               ApplicationException.Type.FILE_SYSTEM_ERROR,
@@ -1496,6 +1485,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 null);
 
       }
+    } catch (ApplicationException ae) {
+      throw ae;
     } catch (Exception e) {
       throw new ApplicationException(
               ApplicationException.Type.TOOL_ERROR,
@@ -1541,7 +1532,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
               writeInitialHistoricalRecord(fromVersion, toVersion);
 
       insureUpgradability();
-
+    } catch (ApplicationException ae) {
+      throw ae;
     } catch (Exception e) {
       throw new ApplicationException(
               ApplicationException.Type.FILE_SYSTEM_ERROR,
@@ -1572,6 +1564,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     try {
       newVersion = getStagedInstallation().getBuildInformation();
+    } catch (ApplicationException ae) {
+      throw ae;
     } catch (Exception e) {
       LOG.log(Level.INFO, "error getting build information for " +
               "staged installation", e);
@@ -1741,7 +1735,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     if (this.currentVersion == null) {
       try {
         currentVersion = getInstallation().getBuildInformation();
-      } catch (ApplicationException e) {
+      } catch (Exception e) {
         LOG.log(Level.INFO, "error trying to determine current version", e);
       }
     }

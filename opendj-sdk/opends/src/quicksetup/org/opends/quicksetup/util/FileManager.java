@@ -87,6 +87,43 @@ public class FileManager {
   }
 
   /**
+   * Recursively copies any files or directories appearing in
+   * <code>source</code> or a subdirectory of <code>source</code>
+   * to the corresponding directory under <code>target</code>.  Files
+   * in under <code>source</code> are not copied to <code>target</code>
+   * if a file by the same name already exists in <code>target</code>.
+   *
+   * @param source source directory
+   * @param target target directory
+   * @throws ApplicationException if there is a problem copying files
+   */
+  public void synchronize(File source, File target)
+          throws ApplicationException
+  {
+    if (source != null && target != null) {
+      String[] sourceFileNames = source.list();
+      if (sourceFileNames != null) {
+        for (String sourceFileName : sourceFileNames) {
+          File sourceFile = new File(source, sourceFileName);
+          copyRecursively(sourceFile, target, null, false);
+        }
+      }
+    }
+  }
+
+  /**
+   * Move a file.
+   * @param object File to move
+   * @param newParent File representing new parent directory
+   * @throws ApplicationException if something goes wrong
+   */
+  public void move(File object, File newParent)
+          throws ApplicationException
+  {
+    move(object, newParent, null);
+  }
+
+  /**
    * Move a file.
    * @param object File to move
    * @param newParent File representing new parent directory
@@ -101,6 +138,17 @@ public class FileManager {
     if (filter == null || filter.accept(object)) {
       new MoveOperation(object, newParent).apply();
     }
+  }
+
+  /**
+   * Deletes a single file or directory.
+   * @param object File to delete
+   * @throws ApplicationException if something goes wrong
+   */
+  public void delete(File object)
+          throws ApplicationException
+  {
+    delete(object, null);
   }
 
   /**
@@ -364,7 +412,7 @@ public class FileManager {
 
               if (destination.exists()) {
                 // TODO:  set the file's permissions.  This is made easier in
-                // Java 1.6 but until then use the Utils methods
+                // Java 1.6 but until then use the TestUtilities methods
                 if (Utils.isUnix()) {
                   String permissions =
                           Utils.getFileSystemPermissions(objectFile);
