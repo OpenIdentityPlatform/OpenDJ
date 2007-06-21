@@ -327,7 +327,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
         String[] a=s.split(": ");
         if(a.length != 2)
           break;
-        attrMap.put(a[0],a[1]);
+        attrMap.put(a[0].toLowerCase(),a[1]);
       }
     } catch (IOException e) {
       Assert.assertEquals(0, 1,  e.getMessage());
