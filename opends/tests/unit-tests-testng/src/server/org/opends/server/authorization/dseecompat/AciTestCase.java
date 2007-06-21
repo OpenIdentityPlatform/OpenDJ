@@ -134,7 +134,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     return oStream.toString();
   }
 
-  protected void modEntries(String ldif, String bindDn, String bindPassword)
+  protected void LDIFModify(String ldif, String bindDn, String bindPassword)
           throws Exception {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
@@ -165,10 +165,22 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "dn: "  + dn,
             "changetype: modify",
             "delete: " + attr));
-    modEntries(ldif.toString(), DIR_MGR_DN, PWD);
+    LDIFModify(ldif.toString(), DIR_MGR_DN, PWD);
   }
 
-  protected static String makeAddAciLdif(String attr, String dn, String... acis) {
+  protected static String makeDelLDIF(String attr, String dn, String... acis) {
+    StringBuilder ldif = new StringBuilder();
+    ldif.append("dn: ").append(dn).append(EOL);
+    ldif.append("changetype: modify").append(EOL);
+    ldif.append("delete: ").append(attr).append(EOL);
+    for(String aci : acis)
+      ldif.append(attr).append(":").append(aci).append(EOL);
+    ldif.append(EOL);
+    return ldif.toString();
+  }
+
+
+  protected static String makeAddLDIF(String attr, String dn, String... acis) {
     StringBuilder ldif = new StringBuilder();
     ldif.append("dn: ").append(dn).append(EOL);
     ldif.append("changetype: modify").append(EOL);
@@ -193,6 +205,29 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     }
     return tempFile;
   }
+
+
+  protected void addRootEntry() throws Exception {
+    TestCaseUtils.addEntries(
+      "dn: cn=Admin Root,cn=Root DNs,cn=config",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "objectClass: ds-cfg-root-dn",
+      "cn: Admin Root",
+      "givenName: Administrator",
+      "sn: Admin",
+      "uid: admin.root",
+      "userPassword: password",
+      "ds-privilege-name: -bypass-acl",
+      "ds-cfg-alternate-bind-dn: cn=root",
+      "ds-cfg-alternate-bind-dn: cn=admin",
+      "ds-cfg-alternate-bind-dn: cn=admin root"
+    );
+
+  }
+
 
   protected void addEntries() throws Exception {
     TestCaseUtils.initializeTestBackend(true);
@@ -273,7 +308,8 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "description: user.3 description",
             "cn: User 3",
             "l: Austin",
-            "userPassword: password");
+            "userPassword: password",
+            "ds-privilege-name: proxied-auth");
   }
 
   protected HashMap<String, String>

@@ -132,8 +132,8 @@ public class TargetAttrTestCase extends AciTestCase {
    */
   @Test()
   public void testTargetAttrUserAttr() throws Exception {
-    String aciLdif=makeAddAciLdif("aci", user1, userAttrAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String aciLdif=makeAddLDIF("aci", user1, userAttrAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, attrList);
@@ -150,8 +150,8 @@ public class TargetAttrTestCase extends AciTestCase {
     checkAttributeVal(attrMap1, "sn", "1");
     checkAttributeVal(attrMap1, "uid", "user.1");
     deleteAttrFromEntry(user1, "aci");
-    String aciLdif2=makeAddAciLdif("aci", user1, userAttrAci1);
-    modEntries(aciLdif2, DIR_MGR_DN, PWD);
+    String aciLdif2=makeAddLDIF("aci", user1, userAttrAci1);
+    LDIFModify(aciLdif2, DIR_MGR_DN, PWD);
     String userResults2 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, attrList);
@@ -171,8 +171,8 @@ public class TargetAttrTestCase extends AciTestCase {
   @Test()
   public void testTargetAttrOpAttr() throws Exception {
     //Add aci that only allows non-operational attributes search/read.
-    String aciLdif=makeAddAciLdif("aci", user1, nonOpAttrAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String aciLdif=makeAddLDIF("aci", user1, nonOpAttrAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
@@ -186,8 +186,8 @@ public class TargetAttrTestCase extends AciTestCase {
     deleteAttrFromEntry(user1, "aci");
     //Add aci that allows both non-operational attributes and the operational
     //attribute "aci" search/read.
-    String aciLdif1=makeAddAciLdif("aci", user1, nonOpAttrAci, opAttrAci);
-    modEntries(aciLdif1, DIR_MGR_DN, PWD);
+    String aciLdif1=makeAddLDIF("aci", user1, nonOpAttrAci, opAttrAci);
+    LDIFModify(aciLdif1, DIR_MGR_DN, PWD);
     String userResults1 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
@@ -199,8 +199,8 @@ public class TargetAttrTestCase extends AciTestCase {
     Assert.assertTrue(attrMap1.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
     //Add ACI that only allows only aci operational attribute search/read.
-    String aciLdif2=makeAddAciLdif("aci", user1, opAttrAci);
-    modEntries(aciLdif2, DIR_MGR_DN, PWD);
+    String aciLdif2=makeAddLDIF("aci", user1, opAttrAci);
+    LDIFModify(aciLdif2, DIR_MGR_DN, PWD);
     String userResults2 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, aciFilter, opAttrList);
@@ -223,8 +223,8 @@ public class TargetAttrTestCase extends AciTestCase {
   @Test()
   public void testTargetAttrAllAttr() throws Exception {
     //Add aci with: (targetattr = "+ || *")
-    String aciLdif=makeAddAciLdif("aci", user1, allAttrs);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String aciLdif=makeAddLDIF("aci", user1, allAttrs);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
@@ -247,8 +247,8 @@ public class TargetAttrTestCase extends AciTestCase {
   @Test()
   public void testTargetAttrOpPlusAttr() throws Exception {
     //Add aci with: (targetattr = "objectclass|| +")
-    String aciLdif=makeAddAciLdif("aci", user1, ocOpAttrs);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String aciLdif=makeAddLDIF("aci", user1, ocOpAttrs);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
@@ -271,8 +271,8 @@ public class TargetAttrTestCase extends AciTestCase {
   @Test()
   public void testTargetAttrUserStarAttr() throws Exception {
     //Add aci with: (targetattr = "*|| aci")
-    String aciLdif=makeAddAciLdif("aci", user1, starAciAttrs);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String aciLdif=makeAddLDIF("aci", user1, starAciAttrs);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
@@ -296,8 +296,8 @@ public class TargetAttrTestCase extends AciTestCase {
   public void testTargetAttrSrchShorthand() throws Exception {
     //Aci: (targetattrs="sn || uid || +) and search with an
     //operational attr (aci).
-    String aciLdif=makeAddAciLdif("aci", user1, OpSrchAttrs);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String aciLdif=makeAddLDIF("aci", user1, OpSrchAttrs);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, aciFilter, opAttrList);
@@ -309,8 +309,8 @@ public class TargetAttrTestCase extends AciTestCase {
     Assert.assertTrue(attrMap.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
     //Add two ACIs, one with '+' and the other with '*'.
-    String aciLdif1=makeAddAciLdif("aci", user1, allOpAttrAci1, userAttrAci);
-    modEntries(aciLdif1, DIR_MGR_DN, PWD);
+    String aciLdif1=makeAddLDIF("aci", user1, allOpAttrAci1, userAttrAci);
+    LDIFModify(aciLdif1, DIR_MGR_DN, PWD);
     String userResults1 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, aciFilter, opAttrList);
@@ -322,8 +322,8 @@ public class TargetAttrTestCase extends AciTestCase {
     Assert.assertTrue(attrMap1.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
         //Add two ACIs, one with '+' and the other with '*'.
-    String aciLdif2=makeAddAciLdif("aci", user1, notAllOpAttrAci1, userAttrAci);
-    modEntries(aciLdif2, DIR_MGR_DN, PWD);
+    String aciLdif2=makeAddLDIF("aci", user1, notAllOpAttrAci1, userAttrAci);
+    LDIFModify(aciLdif2, DIR_MGR_DN, PWD);
     String userResults2 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, opAttrList);
@@ -343,8 +343,8 @@ public class TargetAttrTestCase extends AciTestCase {
    */
   @Test()
   public void testTargetAttrGrpDN() throws Exception {
-    String aciLdif=makeAddAciLdif("aci", user1, grpAttrAci);
-    modEntries(aciLdif, DIR_MGR_DN, PWD);
+    String aciLdif=makeAddLDIF("aci", user1, grpAttrAci);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, attrList);
@@ -354,8 +354,8 @@ public class TargetAttrTestCase extends AciTestCase {
     Assert.assertTrue(attrMap.containsKey("sn"));
     Assert.assertTrue(attrMap.containsKey("uid"));
     deleteAttrFromEntry(user1, "aci");
-    String aciLdif1=makeAddAciLdif("aci", user1, grp1AttrAci);
-    modEntries(aciLdif1, DIR_MGR_DN, PWD);
+    String aciLdif1=makeAddLDIF("aci", user1, grp1AttrAci);
+    LDIFModify(aciLdif1, DIR_MGR_DN, PWD);
     String userResults1 =
             LDAPSearchParams(user3, PWD, null, null, null,
                     user1, filter, attrList);
