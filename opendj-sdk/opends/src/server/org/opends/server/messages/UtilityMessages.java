@@ -1643,6 +1643,13 @@ public class UtilityMessages
   public static final int MSGID_SUBCMDPARSER_GLOBAL_HEADING =
     CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 155;
 
+  /**
+   * The message ID for the message that will be used as the description of the
+   * Global option reference.  This does take one argument.
+   */
+  public static final int MSGID_GLOBAL_HELP_REFERENCE =
+    CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 156;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -2188,6 +2195,8 @@ public class UtilityMessages
                     "See \"%s --help-{category}\"");
     registerMessage(MSGID_SUBCMDPARSER_GLOBAL_HEADING,
                     "The accepted value for global options are:");
+    registerMessage(MSGID_GLOBAL_HELP_REFERENCE,
+                    "See \"%s --help\" to get more usage help");
   }
 }
 

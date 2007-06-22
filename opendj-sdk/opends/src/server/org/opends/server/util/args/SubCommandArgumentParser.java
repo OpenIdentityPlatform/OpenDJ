@@ -1486,15 +1486,37 @@ public class SubCommandArgumentParser
       if (usageGroupArguments.size() > 1) {
         // We have sub-command groups, so don't display any
         // sub-commands by default.
-        getFullUsage(Collections.<SubCommand> emptySet(), buffer);
+        getFullUsage(Collections.<SubCommand> emptySet(), true, buffer);
       } else {
         // No grouping, so display all sub-commands.
-        getFullUsage(subCommands.values(), buffer);
+        getFullUsage(subCommands.values(), true, buffer);
       }
     } else {
       getSubCommandUsage(buffer, subCommand);
     }
 
+    return buffer.toString();
+  }
+
+
+
+  /**
+   * Retrieves a string describing how the user can get more help.
+   *
+   * @return A string describing how the user can get more help.
+   */
+  public String getHelpUsageReference()
+  {
+    usageOrVersionDisplayed = true;
+    String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+    if ((scriptName == null) || (scriptName.length() == 0))
+    {
+      scriptName = "java " + mainClassName;
+    }
+
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(getMessage(MSGID_GLOBAL_HELP_REFERENCE, scriptName));
+    buffer.append(EOL);
     return buffer.toString();
   }
 
@@ -1552,9 +1574,15 @@ public class SubCommandArgumentParser
     if (a.equals(usageArgument) && subCommand != null) {
       getSubCommandUsage(buffer, subCommand);
     } else if (a.equals(usageArgument) && usageGroupArguments.size() <= 1) {
-      getFullUsage(subCommands.values(), buffer);
+      // No groups - so display all sub-commands.
+      getFullUsage(subCommands.values(), true, buffer);
+    } else if (a.equals(usageArgument)) {
+      // Using groups - so display all sub-commands group help.
+      getFullUsage(Collections.<SubCommand> emptySet(), true, buffer);
     } else {
-      getFullUsage(usageGroupArguments.get(a), buffer);
+      // Requested help on specific group - don't display global
+      // options.
+      getFullUsage(usageGroupArguments.get(a), false, buffer);
     }
 
     outputStream.write(getBytes(buffer.toString()));
@@ -1572,7 +1600,8 @@ public class SubCommandArgumentParser
 
   // Appends complete usage information for the specified set of
   // sub-commands.
-  private void getFullUsage(Collection<SubCommand> c, StringBuilder buffer) {
+  private void getFullUsage(Collection<SubCommand> c,
+      boolean showGlobalOptions, StringBuilder buffer) {
     usageOrVersionDisplayed = true;
     if ((toolDescription != null) && (toolDescription.length() > 0))
     {
@@ -1598,10 +1627,18 @@ public class SubCommandArgumentParser
     buffer.append(EOL);
 
     if (c.isEmpty()) {
-      buffer.append("    ");
-      buffer.append(getMessage(MSGID_SUBCMDPARSER_SUBCMD_REFERENCE,
-          scriptName));
-      buffer.append(EOL);
+      // Display usage arguments (except the default one).
+      for (Argument a : globalArgumentList) {
+        if (a.isHidden()) {
+          continue;
+        }
+
+        if (usageGroupArguments.containsKey(a)) {
+          if (!a.equals(usageArgument)) {
+            printArgumentUsage(a, buffer);
+          }
+        }
+      }
     } else {
       int indentNb = 0;
       for (SubCommand sc : c) {
@@ -1627,67 +1664,57 @@ public class SubCommandArgumentParser
     }
 
     buffer.append(EOL);
-    buffer.append(getMessage(MSGID_SUBCMDPARSER_GLOBAL_HEADING));
-    buffer.append(EOL);
 
-    // --version is a builtin option
-    boolean dashVAccepted = true;
-    if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
-    {
-      dashVAccepted = false;
-    }
-    else
-    {
-      for (SubCommand subCmd : subCommands.values())
+    if (showGlobalOptions) {
+      buffer.append(getMessage(MSGID_SUBCMDPARSER_GLOBAL_HEADING));
+      buffer.append(EOL);
+
+      // --version is a builtin option
+      boolean dashVAccepted = true;
+      if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
       {
-        if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION) != null)
+        dashVAccepted = false;
+      }
+      else
+      {
+        for (SubCommand subCmd : subCommands.values())
         {
-          dashVAccepted = false;
-          break;
+          if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION) != null)
+          {
+            dashVAccepted = false;
+            break;
+          }
         }
       }
-    }
-    if (dashVAccepted)
-    {
-      buffer.append("-" + OPTION_SHORT_PRODUCT_VERSION + ", ");
-    }
-    buffer.append("--" + OPTION_LONG_PRODUCT_VERSION);
-    buffer.append(EOL);
-    buffer.append("    ");
-    buffer.append( getMessage(MSGID_DESCRIPTION_PRODUCT_VERSION));
-    buffer.append(EOL);
-
-    // Display non-usage arguments.
-    for (Argument a : globalArgumentList) {
-      if (a.isHidden()) {
-        continue;
+      if (dashVAccepted)
+      {
+        buffer.append("-" + OPTION_SHORT_PRODUCT_VERSION + ", ");
       }
+      buffer.append("--" + OPTION_LONG_PRODUCT_VERSION);
+      buffer.append(EOL);
+      buffer.append("    ");
+      buffer.append( getMessage(MSGID_DESCRIPTION_PRODUCT_VERSION));
+      buffer.append(EOL);
 
-      if (!usageGroupArguments.containsKey(a)) {
-        printArgumentUsage(a, buffer);
-      }
-    }
+      // Display non-usage arguments.
+      for (Argument a : globalArgumentList) {
+        if (a.isHidden()) {
+          continue;
+        }
 
-    // Display usage arguments (except the default one).
-    for (Argument a : globalArgumentList) {
-      if (a.isHidden()) {
-        continue;
-      }
-
-      if (usageGroupArguments.containsKey(a)) {
-        if (!a.equals(usageArgument)) {
+        if (!usageGroupArguments.containsKey(a)) {
           printArgumentUsage(a, buffer);
         }
       }
-    }
 
-    // Finally print default usage argument.
-    if (usageArgument != null) {
-      printArgumentUsage(usageArgument, buffer);
-    } else {
-      buffer.append("-?");
+      // Finally print default usage argument.
+      if (usageArgument != null) {
+        printArgumentUsage(usageArgument, buffer);
+      } else {
+        buffer.append("-?");
+      }
+      buffer.append(EOL);
     }
-    buffer.append(EOL);
   }
 
 
