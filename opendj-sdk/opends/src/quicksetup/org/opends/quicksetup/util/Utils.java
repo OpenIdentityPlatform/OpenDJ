@@ -205,40 +205,6 @@ public class Utils
    * @param descendant the descendant candidate path.
    * @param path the path.
    * @return <CODE>true</CODE> if the first provided path is under the second
-   * path in the file system.
-   */
-  public static boolean isDescendant(String descendant, String path)
-  {
-    File f1;
-    File f2;
-
-    try
-    {
-      f1 = (new File(path)).getCanonicalFile();
-    }
-    catch (IOException ioe)
-    {
-      f1 = new File(path);
-    }
-
-    try
-    {
-      f2 = (new File(descendant)).getCanonicalFile();
-    }
-    catch (IOException ioe)
-    {
-      f2 = new File(descendant);
-    }
-    return isDescendant(f1, f2);
-  }
-
-
-  /**
-   * Returns <CODE>true</CODE> if the first provided path is under the second
-   * path in the file system.
-   * @param descendant the descendant candidate path.
-   * @param path the path.
-   * @return <CODE>true</CODE> if the first provided path is under the second
    * path in the file system; <code>false</code> otherwise or if
    * either of the files are null
    */

@@ -868,8 +868,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   }
 
   private boolean equalsOrDescendant(File file, File directory) {
-    return file.equals(directory) ||
-            Utils.isDescendant(file.toString(), directory.toString());
+    return file.equals(directory) || Utils.isDescendant(file, directory);
   }
 
   /**
@@ -882,7 +881,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     File quicksetupFile = installation.getQuicksetupJarFile();
     File openDSFile = installation.getOpenDSJarFile();
     File librariesFile = installation.getLibrariesDirectory();
-
+    File activationFile = new File(librariesFile, "activation.jar");
+    File aspectRuntimeFile = new File(librariesFile, "aspectjrt.jar");
     File uninstallBatFile = installation.getUninstallBatFile();
 
     File installationPath = installation.getRootDirectory();
