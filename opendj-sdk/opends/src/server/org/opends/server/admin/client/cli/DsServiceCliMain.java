@@ -86,7 +86,7 @@ public class DsServiceCliMain
 
   public static void main(String[] args)
   {
-    int retCode = mainCLI(args, System.out, System.err);
+    int retCode = mainCLI(args, true, System.out, System.err);
 
     if(retCode != 0)
     {
@@ -105,7 +105,7 @@ public class DsServiceCliMain
 
   public static int mainCLI(String[] args)
   {
-    return mainCLI(args, System.out, System.err);
+    return mainCLI(args, true, System.out, System.err);
   }
 
   /**
@@ -114,18 +114,18 @@ public class DsServiceCliMain
    *
    * @param  args              The command-line arguments provided to this
    *                           program.
+   * @param initializeServer   Indicates whether to initialize the server.
    * @param  outStream         The output stream to use for standard output, or
    *                           <CODE>null</CODE> if standard output is not
    *                           needed.
    * @param  errStream         The output stream to use for standard error, or
    *                           <CODE>null</CODE> if standard error is not
    *                           needed.
-   *
    * @return The error code.
    */
 
-  public static int mainCLI(String[] args, OutputStream outStream,
-      OutputStream errStream)
+  public static int mainCLI(String[] args, boolean initializeServer,
+      OutputStream outStream, OutputStream errStream)
   {
     PrintStream out;
     if (outStream == null)
@@ -148,7 +148,7 @@ public class DsServiceCliMain
     }
 
     DsServiceCliMain dsServiceCli = new DsServiceCliMain(out, err);
-    return dsServiceCli.execute(args);
+    return dsServiceCli.execute(args,initializeServer);
   }
 
   /**
@@ -157,10 +157,11 @@ public class DsServiceCliMain
    *
    * @param  args              The command-line arguments provided to this
    *                           program.
+   * @param  initializeServer  Indicates whether to initialize the server.
    *
    * @return The error code.
    */
-  public int execute(String[] args)
+  public int execute(String[] args, boolean initializeServer)
   {
     // Create the command-line argument parser for use with this
     // program.
@@ -281,7 +282,13 @@ public class DsServiceCliMain
     }
     ADSContext adsContext = new ADSContext(ctx);
 
-    DirectoryServer.bootstrapClient();
+    // Should we initialize the server in client mode?
+    if (initializeServer)
+    {
+      // Bootstrap and initialize directory data structures.
+      DirectoryServer.bootstrapClient();
+    }
+
     // perform the subCommand
     ADSContextException adsException = null ;
     try
