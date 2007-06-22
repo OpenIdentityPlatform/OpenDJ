@@ -554,17 +554,32 @@ public class DsServiceCliParser extends SubCommandArgumentParser
       try
       {
         FileInputStream fos = new FileInputStream(trustStorePathArg.getValue());
-        String trustStorePasswordValue = null;
+        String trustStorePasswordStringValue = null;
+        char[] trustStorePasswordValue = null;
         if (trustStorePasswordArg.isPresent())
         {
-          trustStorePasswordValue = trustStorePasswordArg.getValue();
+          trustStorePasswordStringValue = trustStorePasswordArg.getValue();
         }
         else if (trustStorePasswordFileArg.isPresent())
         {
-          trustStorePasswordValue = trustStorePasswordFileArg.getValue();
+          trustStorePasswordStringValue = trustStorePasswordFileArg.getValue();
         }
+
+        if (trustStorePasswordStringValue !=  null)
+        {
+          trustStorePasswordStringValue = System
+              .getProperty("javax.net.ssl.trustStorePassword");
+        }
+
+
+        if (trustStorePasswordStringValue !=  null)
+        {
+          trustStorePasswordValue = trustStorePasswordStringValue.toCharArray();
+        }
+
         truststore = KeyStore.getInstance(KeyStore.getDefaultType());
-        truststore.load(fos, trustStorePasswordValue.toCharArray());
+        truststore.load(fos, trustStorePasswordValue);
+        fos.close();
       }
       catch (KeyStoreException e)
       {
@@ -596,7 +611,6 @@ public class DsServiceCliParser extends SubCommandArgumentParser
       }
     }
     truststoreManager = new ApplicationTrustManager(truststore);
-    truststoreManager.setHost(getHostName());
     return truststoreManager;
   }
 
@@ -661,17 +675,21 @@ public class DsServiceCliParser extends SubCommandArgumentParser
         // in a best effor mode.
         LOG.log(Level.WARNING, "Error with the keystore", e);
       }
-    }
-    ApplicationKeyManager akm = new ApplicationKeyManager(keyStore,
-        keyStorePasswordValue.toCharArray());
-    if (certNicknameArg.isPresent())
-    {
-      return new SelectableCertificateKeyManager(akm, certNicknameArg
-          .getValue());
+      ApplicationKeyManager akm = new ApplicationKeyManager(keyStore,
+          keyStorePasswordValue.toCharArray());
+      if (certNicknameArg.isPresent())
+      {
+        return new SelectableCertificateKeyManager(akm, certNicknameArg
+            .getValue());
+      }
+      else
+      {
+        return akm;
+      }
     }
     else
     {
-      return akm;
+      return null;
     }
   }
 
