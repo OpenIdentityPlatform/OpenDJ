@@ -28,12 +28,12 @@ package org.opends.server.messages;
 
 
 
-import org.opends.server.extensions.ConfigFileHandler;
-
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
+
+import org.opends.server.extensions.ConfigFileHandler;
 
 
 
@@ -7067,38 +7067,964 @@ public class ToolMessages
   public static final int MSGID_LDIFIMPORT_CANNOT_READ_FILE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 887;
 
-/**
-  * The message ID for the message that will be used as the description of the
-  * geteffectiverights control authzid argument.  This does not take any
-  * arguments.
-  */
- public static final int MSGID_DESCRIPTION_EFFECTIVERIGHTS_USER =
-      CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 888;
 
 
- /**
-  * The message ID for the message that will be used as the description of the
-  * geteffectiverights control specific attribute list argument.  This does
-  * not take any arguments.
-  */
- public static final int MSGID_DESCRIPTION_EFFECTIVERIGHTS_ATTR =
-      CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 889;
+  /**
+   * The message ID for the message that will be used as the description of the
+   * geteffectiverights control authzid argument.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_DESCRIPTION_EFFECTIVERIGHTS_USER =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 888;
 
 
- /**
-  * The message ID for the message that will be used as the description of the
-  * geteffectiverights authzid when it does not start with the required string
-  * "dn:". This takes a single argument, which is the authzid string.
-  */
- public static final int MSGID_EFFECTIVERIGHTS_INVALID_AUTHZID =
-      CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 890;
 
- /**
-  * The message ID for the message that will be used as the description of the
-  * version argument.  This does not take any arguments.
-  */
- public static final int MSGID_DESCRIPTION_PRODUCT_VERSION =
-      CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 891;
+  /**
+   * The message ID for the message that will be used as the description of the
+   * geteffectiverights control specific attribute list argument.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_EFFECTIVERIGHTS_ATTR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 889;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * geteffectiverights authzid when it does not start with the required string
+   * "dn:". This takes a single argument, which is the authzid string.
+   */
+  public static final int MSGID_EFFECTIVERIGHTS_INVALID_AUTHZID =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_MILD_ERROR | 890;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * version argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_PRODUCT_VERSION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 891;
+
+
+
+  /**
+   * The message ID for the message that will be used if dscfg cannot
+   * read the LDAP bind password. This takes a single argument, which
+   * is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_DSCFG_ERROR_CANNOT_READ_LDAP_BIND_PASSWORD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1000;
+
+
+
+  /**
+   * The message ID for the message that will be used if dscfg cannot
+   * bind to the directory server. This takes a single argument, which
+   * is the bind DN.
+   */
+  public static final int MSGID_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1001;
+
+
+
+  /**
+   * The message ID for the message that will be used if dscfg cannot
+   * connect to the directory server. This takes a two arguments,
+   * which are the host and port.
+   */
+  public static final int MSGID_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1002;
+
+
+
+  /**
+   * The message ID for the message that will be used if dscfg cannot
+   * bind to the directory server because it does not allow simple
+   * authentication. This does not take any arguments.
+   */
+  public static final int MSGID_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1003;
+
+
+
+  /**
+   * The message ID for the message that will be used to describe a
+   * dscfg create-xxx sub-command. This takes a single argument, which
+   * is the type of component that can be created.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_SUBCMD_CREATE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1004;
+
+
+
+  /**
+   * The message ID for the message that will be used to describe a
+   * dscfg delete-xxx sub-command. This takes a single argument, which
+   * is the type of component that can be delete.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_SUBCMD_DELETE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1005;
+
+
+
+  /**
+   * The message ID for the message that will be used to describe a
+   * dscfg list-xxx sub-command. This takes a single argument, which
+   * is the type of component that can be list.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_SUBCMD_LIST =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1006;
+
+
+
+  /**
+   * The message ID for the message that will be used to describe a
+   * dscfg get-xxx-prop sub-command. This takes a single argument, which
+   * is the type of component that can be queried.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_SUBCMD_GETPROP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1007;
+
+
+
+  /**
+   * The message ID for the message that will be used to describe a
+   * dscfg set-xxx-prop sub-command. This takes a single argument, which
+   * is the type of component that can be modified.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_SUBCMD_SETPROP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1008;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user fails
+   * to specify a sub-command. No message arguments are required.
+   */
+  public static final int MSGID_DSCFG_ERROR_MISSING_SUBCOMMAND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1009;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the create-xxx type argument when it is mandatory.
+   * This takes a single argument which is the user friendly name for
+   * the type of managed objects being created.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_TYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1010;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * fails to provide an admistrator password. This takes a single
+   * argument which is the name of the administrator.
+   */
+  public static final int MSGID_DSCFG_ERROR_NO_PASSWORD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1011;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts to access a property which is not part of the associated
+   * managed object. This takes two arguments which are the name of
+   * the invalid property and the user friendly plural name of the
+   * associated managed object.
+   */
+  public static final int MSGID_DSCFG_ERROR_PROPERTY_UNRECOGNIZED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1012;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts to set a property using a value which is invalid
+   * according to the property's definition. This takes four arguments
+   * which are the invalid value, the user friendly name of the
+   * associated managed object, the name of the property, and the
+   * property's syntax.
+   */
+  public static final int MSGID_DSCFG_ERROR_PROPERTY_INVALID_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1013;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts to modify a read-only property. This takes two arguments
+   * which are the user friendly name of the associated managed
+   * object, and the name of the property.
+   */
+  public static final int MSGID_DSCFG_ERROR_PROPERTY_READ_ONLY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1014;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * fails to specify a value for a mandatory property. This takes two
+   * arguments which are the user friendly name of the associated
+   * managed object, and the name of the property.
+   */
+  public static final int MSGID_DSCFG_ERROR_PROPERTY_MANDATORY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1015;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts to specify more than one value for a single-valued
+   * property. This takes two arguments which are the user friendly
+   * name of the associated managed object, and the name of the
+   * property.
+   */
+  public static final int MSGID_DSCFG_ERROR_PROPERTY_SINGLE_VALUED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1016;
+
+
+
+  /**
+   * The message ID for the message that will be used to describe the
+   * dscfg help-properties sub-command. This does not take any
+   * arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_SUBCMD_HELPPROP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1017;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * heading of the managed object type column in tables.
+   */
+  public static final int MSGID_DSCFG_HEADING_MANAGED_OBJECT_NAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1018;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * heading of the property name column in tables.
+   */
+  public static final int MSGID_DSCFG_HEADING_PROPERTY_NAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1019;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * heading of the property value column in tables.
+   */
+  public static final int MSGID_DSCFG_HEADING_PROPERTY_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1020;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * heading of the property syntax column in tables.
+   */
+  public static final int MSGID_DSCFG_HEADING_PROPERTY_SYNTAX =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1021;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * heading of the property options column in tables.
+   */
+  public static final int MSGID_DSCFG_HEADING_PROPERTY_OPTIONS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1022;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * heading of the property default column in tables.
+   */
+  public static final int MSGID_DSCFG_HEADING_PROPERTY_DEFAULT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1023;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * heading of the property description column in tables.
+   */
+  public static final int MSGID_DSCFG_HEADING_PROPERTY_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1024;
+
+
+
+  /**
+   * The message ID for the message that will be used when a
+   * property's syntax usage is too big to be displayed.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_PROPERTY_SYNTAX_HELP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1025;
+
+
+
+  /**
+   * The message ID for the message that will be used when a parent
+   * managed object cannot be retrieved due to a definition decoding
+   * problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_PARENT_DDE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1026;
+
+
+
+  /**
+   * The message ID for the message that will be used when a parent
+   * managed object cannot be retrieved due to a managed object
+   * decoding problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_PARENT_MODE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1027;
+
+
+
+  /**
+   * The message ID for the message that will be used when a parent
+   * managed object cannot be found.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_PARENT_MONFE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1028;
+
+
+
+  /**
+   * The message ID for the message that will be used when a parent
+   * managed object cannot be retrieved due to an authorization problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_PARENT_AUTHZ =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1029;
+
+
+
+  /**
+   * The message ID for the message that will be used when a parent
+   * managed object cannot be retrieved due to a communications error.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_PARENT_CE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1030;
+
+
+
+  /**
+   * The message ID for the message that will be used when a parent
+   * managed object cannot be retrieved due to conflicting concurrent
+   * modification by another client.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_PARENT_CME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1031;
+
+
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object cannot be created because one or more of its
+   * mandatory properties are missing.
+   */
+  public static final int MSGID_DSCFG_ERROR_CREATE_MMPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1032;
+
+
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object cannot be created because there is already a
+   * managed object with the same name.
+   */
+  public static final int MSGID_DSCFG_ERROR_CREATE_MOAEE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1033;
+
+
+
+  /**
+   * The message ID for the message that will be used when a managed
+   * object cannot be created due to an authorization problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_CREATE_AUTHZ =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1034;
+
+
+
+  /**
+   * The message ID for the message that will be used when a managed
+   * object cannot be created due to a communications error.
+   */
+  public static final int MSGID_DSCFG_ERROR_CREATE_CE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1035;
+
+
+
+  /**
+   * The message ID for the message that will be used when a
+   * managed object cannot be created due to conflicting concurrent
+   * modification by another client.
+   */
+  public static final int MSGID_DSCFG_ERROR_CREATE_CME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1036;
+
+
+
+  /**
+   * The message ID for the message that will be used when the server
+   * prevents a managed object from being created due to some
+   * server-side constraint that has not been satisfied.
+   */
+  public static final int MSGID_DSCFG_ERROR_CREATE_ORE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1037;
+
+
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object cannot be deleted because it could not be found.
+   */
+  public static final int MSGID_DSCFG_ERROR_DELETE_MONFE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1038;
+
+
+
+  /**
+   * The message ID for the message that will be used when a managed
+   * object cannot be deleted due to an authorization problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_DELETE_AUTHZ =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1039;
+
+
+
+  /**
+   * The message ID for the message that will be used when the server
+   * prevents a managed object from being deleted due to some
+   * server-side constraint that has not been satisfied.
+   */
+  public static final int MSGID_DSCFG_ERROR_DELETE_ORE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1040;
+
+
+
+  /**
+   * The message ID for the message that will be used when a managed
+   * object cannot be deleted due to a communications error.
+   */
+  public static final int MSGID_DSCFG_ERROR_DELETE_CE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1041;
+
+
+
+  /**
+   * The message ID for the message that will be used when a
+   * managed object cannot be deleted due to conflicting concurrent
+   * modification by another client.
+   */
+  public static final int MSGID_DSCFG_ERROR_DELETE_CME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1042;
+
+
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object cannot be retrieved due to a definition decoding
+   * problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_CHILD_DDE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1043;
+
+
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object cannot be retrieved due to a managed object
+   * decoding problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_CHILD_MODE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1044;
+
+
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object cannot be found.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_CHILD_MONFE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1045;
+
+
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object cannot be retrieved due to an authorization problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_CHILD_AUTHZ =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1046;
+
+
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object cannot be retrieved due to a communications error.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_CHILD_CE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1047;
+
+
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object cannot be retrieved due to conflicting concurrent
+   * modification by another client.
+   */
+  public static final int MSGID_DSCFG_ERROR_GET_CHILD_CME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1048;
+
+
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object cannot be modified because it could not be found.
+   */
+  public static final int MSGID_DSCFG_ERROR_MODIFY_MONFE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1049;
+
+
+
+  /**
+   * The message ID for the message that will be used when a managed
+   * object cannot be modified due to an authorization problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_MODIFY_AUTHZ =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1050;
+
+
+
+  /**
+   * The message ID for the message that will be used when a managed
+   * object cannot be modified due to a communications error.
+   */
+  public static final int MSGID_DSCFG_ERROR_MODIFY_CE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1051;
+
+
+
+  /**
+   * The message ID for the message that will be used when a
+   * managed object cannot be modified due to conflicting concurrent
+   * modification by another client.
+   */
+  public static final int MSGID_DSCFG_ERROR_MODIFY_CME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1052;
+
+
+
+  /**
+   * The message ID for the message that will be used when the server
+   * prevents a managed object from being modified due to some
+   * server-side constraint that has not been satisfied.
+   */
+  public static final int MSGID_DSCFG_ERROR_MODIFY_ORE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1053;
+
+
+
+  /**
+   * The message ID for the message that will be used when an optional
+   * child managed object cannot be listed due to a definition
+   * decoding problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_LIST_DDE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1054;
+
+
+
+  /**
+   * The message ID for the message that will be used when an optional
+   * child managed object cannot be listed due to a managed object
+   * decoding problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_LIST_MODE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1055;
+
+
+
+  /**
+   * The message ID for the message that will be used when an optional
+   * child managed object cannot be listed because it does not exist.
+   */
+  public static final int MSGID_DSCFG_ERROR_LIST_MONFE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1056;
+
+
+
+  /**
+   * The message ID for the message that will be used when managed
+   * objects cannot be listed due to an authorization problem.
+   */
+  public static final int MSGID_DSCFG_ERROR_LIST_AUTHZ =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1057;
+
+
+
+  /**
+   * The message ID for the message that will be used when managed
+   * object cannot be listed due to a communications error.
+   */
+  public static final int MSGID_DSCFG_ERROR_LIST_CE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1058;
+
+
+
+  /**
+   * The message ID for the message that will be used when
+   * managed object cannot be listed due to conflicting concurrent
+   * modification by another client.
+   */
+  public static final int MSGID_DSCFG_ERROR_LIST_CME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1059;
+
+
+
+  /**
+   * The message ID for the message that will be used if a property
+   * value(s) cannot be determined due to some unknown reason. This
+   * takes three arguments which are the user friendly name of the
+   * associated managed object, the name of the property, and the
+   * cause.
+   */
+  public static final int MSGID_DSCFG_ERROR_PROPERTY_UNKNOWN_ERROR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1060;
+
+
+  /**
+   * The message ID for the message that will be used if a property's
+   * default values cannot be determined. This takes three arguments
+   * which are the user friendly name of the associated managed
+   * object, the name of the property, and the cause.
+   */
+  public static final int MSGID_DSCFG_ERROR_PROPERTY_DEFAULT_BEHAVIOR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1061;
+
+
+  /**
+   * The message ID for the message that will be used if a property's
+   * inherited default values cannot be determined. This takes two
+   * arguments which are the user friendly name of the associated
+   * managed object, and the name of the property.
+   */
+  public static final int
+    MSGID_DSCFG_ERROR_PROPERTY_INHERITED_DEFAULT_BEHAVIOR =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1062;
+
+
+  /**
+   * The message ID for the message that will be used if a property
+   * argument did not contain a name/value separator. This takes a
+   * single arguments which is the invalid property value argument.
+   */
+  public static final int MSGID_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1063;
+
+
+  /**
+   * The message ID for the message that will be used if a property
+   * argument did not contain a property name. This takes a single
+   * arguments which is the invalid property value argument.
+   */
+  public static final int MSGID_DSCFG_ERROR_NO_NAME_IN_PROPERTY_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1064;
+
+
+  /**
+   * The message ID for the message that will be used if a property
+   * argument did not contain a property value. This takes a single
+   * arguments which is the invalid property value argument.
+   */
+  public static final int MSGID_DSCFG_ERROR_NO_VALUE_IN_PROPERTY_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1065;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts to create a managed object but specifies an unknown type
+   * name. This takes three arguments which are the invalid argument,
+   * the user friendly name of the managed object, and the supported types.
+   */
+  public static final int MSGID_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1066;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * requests help for a managed object but specifies an unknown type
+   * name. This takes a single argument which is the invalid argument.
+   */
+  public static final int MSGID_DSCFG_ERROR_TYPE_UNRECOGNIZED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1067;
+
+
+  /**
+   * The message ID for the message that will be used if a property
+   * modification did not contain a name/value separator. This takes a
+   * single arguments which is the invalid property value argument.
+   */
+  public static final int MSGID_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_MOD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1068;
+
+
+  /**
+   * The message ID for the message that will be used if a property
+   * modification did not contain a property name. This takes a single
+   * arguments which is the invalid property value argument.
+   */
+  public static final int MSGID_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1069;
+
+
+  /**
+   * The message ID for the message that will be used if a property
+   * modification did not contain a property value. This takes a
+   * single arguments which is the invalid property value argument.
+   */
+  public static final int MSGID_DSCFG_ERROR_NO_VALUE_IN_PROPERTY_MOD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1070;
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is
+   * made to apply incompatible property modifications. This takes a
+   * single arguments which is the invalid property value argument.
+   */
+  public static final int MSGID_DSCFG_ERROR_INCOMPATIBLE_PROPERTY_MOD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1071;
+
+
+
+  /**
+   * The message ID for the message that will be used if a managed
+   * object is retrieved whilst processing a sub-command but the
+   * retrieved object is not the correct type of object required in
+   * order to perform the operation. This takes two arguments which
+   * are the relation definition user friendly name and the user
+   * friendly name of the definition of the object that was retrieved.
+   */
+  public static final int MSGID_DSCFG_ERROR_WRONG_MANAGED_OBJECT_TYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1072;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the create-xxx type argument when it is optional.
+   * This takes two arguments which are the user friendly name for the
+   * type of managed objects being created and the default value.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_TYPE_DEFAULT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1073;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the get-xxx-prop record argument. This takes no
+   * arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_RECORD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1074;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * quiet argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_QUIET =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1075;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * script-friendly argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_SCRIPT_FRIENDLY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1076;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * interactive argument.  This does not take any arguments.
+   */
+  public static final int MSGID_DESCRIPTION_INTERACTIVE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1077;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the unit-time argument. This takes no arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_UNIT_TIME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1078;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the unit-size argument. This takes no arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_UNIT_SIZE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1079;
+
+
+
+  /**
+   * The message ID for the message that will be used when the user
+   * provides an invalid parameter to the unit-time argument. This
+   * takes a single argument which is the invalid parameter.
+   */
+  public static final int MSGID_DSCFG_ERROR_TIME_UNIT_UNRECOGNIZED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1080;
+
+
+
+  /**
+   * The message ID for the message that will be used when the user
+   * provides an invalid parameter to the unit-size argument. This
+   * takes a single argument which is the invalid parameter.
+   */
+  public static final int MSGID_DSCFG_ERROR_SIZE_UNIT_UNRECOGNIZED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1081;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * heading of the managed object type column in list tables.
+   */
+  public static final int MSGID_DSCFG_HEADING_MANAGED_OBJECT_TYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1082;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of a --help-xxx argument. This takes a single
+   * argument which is the synopsis of the group.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1083;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of a --help-all argument. This does not take any
+   * arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_ALL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1084;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of a --help argument. This does not take any
+   * arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1085;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the a naming argument. This takes a single
+   * argument which is the user friendly name for the type of managed
+   * objects being named.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_NAME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1086;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the property name argument. This does not take any
+   * arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_PROP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1087;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the property value argument. This does not take
+   * any arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_PROP_VAL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1088;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the add property value argument. This does not
+   * take any arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_ADD_PROP_VAL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1089;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the remove property value argument. This does not
+   * take any arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_REMOVE_PROP_VAL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1090;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the reset property argument. This does not take
+   * any arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_RESET_PROP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1091;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the list-properties type argument. This does not
+   * take any arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_HELP_TYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1092;
+
+
+
+  /**
+   * The message ID for the message that will be used if dscfg cannot
+   * read the LDAP bind password interactively.
+   */
+  public static final int MSGID_DSCFG_ERROR_BIND_PASSWORD_NONINTERACTIVE =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1093;
+
 
 
   /**
@@ -7468,6 +8394,12 @@ public class ToolMessages
                     "# You have %d grace logins remaining");
     registerMessage(MSGID_DESCRIPTION_VERBOSE,
                     "Use verbose mode");
+    registerMessage(MSGID_DESCRIPTION_QUIET,
+                    "Use quiet mode");
+    registerMessage(MSGID_DESCRIPTION_INTERACTIVE,
+                    "Use interactive mode");
+    registerMessage(MSGID_DESCRIPTION_SCRIPT_FRIENDLY,
+                    "Use script-friendly mode");
     registerMessage(MSGID_DESCRIPTION_KEYSTOREPATH,
                     "Certificate keystore path");
     registerMessage(MSGID_DESCRIPTION_TRUSTSTOREPATH,
@@ -9327,7 +10259,7 @@ public class ToolMessages
     registerMessage(MSGID_LDIFIMPORT_CANNOT_READ_FILE,
                     "The specified LDIF file %s cannot be read");
 
-   registerMessage(MSGID_DESCRIPTION_EFFECTIVERIGHTS_USER,
+    registerMessage(MSGID_DESCRIPTION_EFFECTIVERIGHTS_USER,
                     "Use geteffectiverights control with the provided " +
                     "authzid");
 
@@ -9335,13 +10267,373 @@ public class ToolMessages
                     "Specifies geteffectiverights control specific " +
                     "attribute list");
 
-   registerMessage(MSGID_EFFECTIVERIGHTS_INVALID_AUTHZID,
+    registerMessage(MSGID_EFFECTIVERIGHTS_INVALID_AUTHZID,
                     "The authorization ID \"%s\" contained in the " +
-                     "geteffectiverights control is invalid because it does" +
-                     " not start with \"dn:\" to indicate a user DN");
+                    "geteffectiverights control is invalid because it does" +
+                    " not start with \"dn:\" to indicate a user DN");
 
-   registerMessage(MSGID_DESCRIPTION_PRODUCT_VERSION,
+    registerMessage(MSGID_DESCRIPTION_PRODUCT_VERSION,
                    "Display Directory Server version information");
+
+    registerMessage(MSGID_DSCFG_ERROR_CANNOT_READ_LDAP_BIND_PASSWORD,
+                    "The LDAP bind password could not be read due to the" +
+                    " following error: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_BIND_PASSWORD_NONINTERACTIVE,
+                    "The LDAP bind password was not specified and " +
+                    "cannot be read interactively");
+
+    registerMessage(MSGID_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT,
+                    "Unable to connect to the server at %s on port %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED,
+                    "Unable to authenticate to the server as %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED,
+                    "Unable to authenticate using simple authentication");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_SUBCMD_CREATE,
+                    "Creates %s");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_SUBCMD_DELETE,
+                    "Deletes %s");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_SUBCMD_LIST,
+                    "Lists existing %s");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_SUBCMD_GETPROP,
+                    "Shows %s properties");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_SUBCMD_SETPROP,
+                    "Modifies %s properties");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_SUBCMD_HELPPROP,
+                    "Describes managed objects and their properties");
+
+    registerMessage(MSGID_DSCFG_ERROR_MISSING_SUBCOMMAND,
+                    "A sub-command must be specified");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_NAME,
+                    "The name of the %s");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_HELP_TYPE,
+                    "The type(s) of components whose properties should be " +
+                    "described");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_TYPE,
+                    "The type of %s which should be created. The value " +
+                    "for TYPE can be one of: %s");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_TYPE_DEFAULT,
+                    "The type of %s which should be created (Default: %s). " +
+                    "The value for TYPE can be one of: %s");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_PROP,
+                    "The name of a property to be displayed");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_PROP_VAL,
+                    "Assigns a value to a property where PROP is the name of " +
+                    "the property and VAL is the single value to be " +
+                    "assigned. Specify the same property multiple times " +
+                    "in order to assign more than one value to it");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_REMOVE_PROP_VAL,
+                    "Removes a single value from a property where PROP is " +
+                    "the name of the property and VAL is the single value " +
+                    "to be removed");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_ADD_PROP_VAL,
+                    "Adds a single value to a property where PROP is " +
+                    "the name of the property and VAL is the single value " +
+                    "to be added");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_RESET_PROP,
+                    "Resets a property back to its default values where PROP " +
+                    "is the name of the property to be reset");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_RECORD,
+                    "Modifies the display output to show one property " +
+                    "value per line");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_UNIT_TIME,
+                    "Display time data using the specified unit. The value " +
+                    "for UNIT can be one of ms, s, m, h, d, or w " +
+                    "(milliseconds, seconds, minutes, hours, days, or weeks)");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_UNIT_SIZE,
+                    "Display size data using the specified unit. The value " +
+                    "for UNIT can be one of b, kb, mb, gb, or tb (bytes, " +
+                    "kilobytes, megabytes, gigabytes, or terabytes)");
+
+    registerMessage(MSGID_DSCFG_ERROR_TIME_UNIT_UNRECOGNIZED,
+                    "The time unit \"%s\" is invalid. The valid time units " +
+                    "are ms, s, m, h, d, or w (milliseconds, seconds, " +
+                    "minutes, hours, days, or weeks)");
+
+    registerMessage(MSGID_DSCFG_ERROR_SIZE_UNIT_UNRECOGNIZED,
+                    "The size unit \"%s\" is invalid. The valid size units " +
+                    "are b, kb, mb, gb, or tb (bytes, kilobytes, " +
+                    "megabytes, gigabytes, or terabytes)");
+
+    registerMessage(MSGID_DSCFG_ERROR_NO_PASSWORD,
+                    "No password was specified for administrator \"%s\"");
+
+    registerMessage(MSGID_DSCFG_ERROR_PROPERTY_UNRECOGNIZED,
+                    "The property \"%s\" is not a recognized property of %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_PROPERTY_INVALID_VALUE,
+                    "The value \"%s\" is not a valid value for the %s " +
+                    "property \"%s\" which has the following syntax: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_PROPERTY_READ_ONLY,
+                    "The %s property \"%s\" is read-only and cannot " +
+                    "be modified");
+
+    registerMessage(MSGID_DSCFG_ERROR_PROPERTY_MANDATORY,
+                    "The %s property \"%s\" is mandatory and must " +
+                    "be specified");
+
+    registerMessage(MSGID_DSCFG_ERROR_PROPERTY_SINGLE_VALUED,
+                    "It is not possible to specify multiple values for the " +
+                    "%s property \"%s\" as it is single-valued");
+
+    registerMessage(MSGID_DSCFG_ERROR_PROPERTY_UNKNOWN_ERROR,
+                    "The value(s) of the %s property \"%s\" could not be " +
+                    "determined due to an unknown error: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_PROPERTY_DEFAULT_BEHAVIOR,
+                    "The default value(s) of the %s property \"%s\" could " +
+                    "not be determined due to the following reason: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_PROPERTY_INHERITED_DEFAULT_BEHAVIOR,
+                    "The inherited default value(s) of the %s property " +
+                    "\"%s\" could not be determined");
+
+    registerMessage(MSGID_DSCFG_HEADING_MANAGED_OBJECT_NAME,
+                    "Component");
+
+    registerMessage(MSGID_DSCFG_HEADING_MANAGED_OBJECT_TYPE,
+                    "Type");
+
+    registerMessage(MSGID_DSCFG_HEADING_PROPERTY_NAME,
+                    "Property");
+
+    registerMessage(MSGID_DSCFG_HEADING_PROPERTY_VALUE,
+                    "Value(s)");
+
+    registerMessage(MSGID_DSCFG_HEADING_PROPERTY_SYNTAX,
+                    "Syntax");
+
+    registerMessage(MSGID_DSCFG_HEADING_PROPERTY_OPTIONS,
+                    "Options");
+
+    registerMessage(MSGID_DSCFG_HEADING_PROPERTY_DEFAULT,
+                    "Default");
+
+    registerMessage(MSGID_DSCFG_HEADING_PROPERTY_DESCRIPTION,
+                    "Description");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_PROPERTY_SYNTAX_HELP,
+                    "See detailed help");
+
+    registerMessage(MSGID_DSCFG_ERROR_CREATE_MOAEE,
+                    "The %s could not be created because there is " +
+                    "already an existing one with the same name");
+
+    registerMessage(MSGID_DSCFG_ERROR_CREATE_MMPE,
+                    "The %s could not be created because the " +
+                    "following mandatory properties must be defined: %s");
+
+
+    registerMessage(MSGID_DSCFG_ERROR_CREATE_AUTHZ,
+                    "The %s could not be created because you do " +
+                    "not have the correct authorization");
+
+    registerMessage(MSGID_DSCFG_ERROR_CREATE_CE,
+                    "The %s could not be created due to a " +
+                    "communications problem: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_CREATE_CME,
+                    "The %s could not be created because another " +
+                    "client is currently making conflicting configuration " +
+                    "changes");
+
+    registerMessage(MSGID_DSCFG_ERROR_CREATE_ORE,
+                    "The server prevented the %s from being created " +
+                    "because of the following reason: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_DELETE_MONFE,
+                    "The %s could not be deleted because it does not exist");
+
+
+    registerMessage(MSGID_DSCFG_ERROR_DELETE_AUTHZ,
+                    "The %s could not be deleted because you do " +
+                    "not have the correct authorization");
+
+    registerMessage(MSGID_DSCFG_ERROR_DELETE_ORE,
+                    "The server prevented the %s from being deleted " +
+                    "because of the following reason: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_DELETE_CE,
+                    "The %s could not be deleted due to a " +
+                    "communications problem: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_DELETE_CME,
+                    "The %s could not be deleted because another " +
+                    "client is currently making conflicting configuration " +
+                    "changes");
+
+    registerMessage(MSGID_DSCFG_ERROR_LIST_DDE,
+                    "The %s could not be retrieved because its type could " +
+                    "not be determined. This is probably due to the %s " +
+                    "having an invalid LDAP entry. Check that the %s " +
+                    "object classes are correct");
+
+    registerMessage(MSGID_DSCFG_ERROR_LIST_MODE,
+                    "The %s could not be retrieved because of the " +
+                    "reasons listed below:");
+
+    registerMessage(MSGID_DSCFG_ERROR_LIST_MONFE,
+                    "The %s does not exist");
+
+    registerMessage(MSGID_DSCFG_ERROR_LIST_AUTHZ,
+                    "The %s could not be listed because you do " +
+                    "not have the correct authorization");
+
+    registerMessage(MSGID_DSCFG_ERROR_LIST_CE,
+                    "The %s could not be listed due to a " +
+                    "communications problem: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_LIST_CME,
+                    "The %s could not be listed because another " +
+                    "client is currently making conflicting configuration " +
+                    "changes");
+
+    registerMessage(MSGID_DSCFG_ERROR_MODIFY_MONFE,
+                    "The %s could not be modified because it does not exist");
+
+    registerMessage(MSGID_DSCFG_ERROR_MODIFY_AUTHZ,
+                    "The %s could not be modified because you do " +
+                    "not have the correct authorization");
+
+    registerMessage(MSGID_DSCFG_ERROR_MODIFY_CE,
+                    "The %s could not be modified due to a " +
+                    "communications problem: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_MODIFY_CME,
+                    "The %s could not be modified because another " +
+                    "client is currently making conflicting configuration " +
+                    "changes");
+
+    registerMessage(MSGID_DSCFG_ERROR_MODIFY_ORE,
+                    "The server prevented the %s from being modified " +
+                    "because of the following reason: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_CHILD_DDE,
+                    "The %s could not be retrieved because its type could " +
+                    "not be determined. This is probably due to the %s " +
+                    "having an invalid LDAP entry. Check that the %s " +
+                    "object classes are correct");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_CHILD_MODE,
+                    "The %s could not be retrieved because of the " +
+                    "reasons listed below:");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_CHILD_MONFE,
+                    "The %s does not exist");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_CHILD_AUTHZ,
+                    "The %s could not be accessed because you do " +
+                    "not have the correct authorization");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_CHILD_CE,
+                    "The %s could not be accessed due to a " +
+                    "communications problem: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_CHILD_CME,
+                    "The %s could not be accessed because another " +
+                    "client is currently making conflicting configuration " +
+                    "changes");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_PARENT_DDE,
+                    "The parent %s could not be retrieved because its " +
+                    "type could not be determined. This is probably due " +
+                    "to the %s having an invalid LDAP entry. Check that " +
+                    "the %s has the correct object classes");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_PARENT_MODE,
+                    "The parent %s could not be retrieved because of the " +
+                    "reasons listed below:");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_PARENT_MONFE,
+                    "The parent %s does not exist");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_PARENT_AUTHZ,
+                    "The parent %s could not be retrieved because you do " +
+                    "not have the correct authorization");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_PARENT_CE,
+                    "The parent %s could not be retrieved due to a " +
+                    "communications problem: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_GET_PARENT_CME,
+                    "The parent %s could not be retrieved because another " +
+                    "client is currently making conflicting configuration " +
+                    "changes");
+
+    registerMessage(MSGID_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_VALUE,
+                    "The property argument \"%s\" does not contain a " +
+                    "name/value separator. The argument should have the " +
+                    "following syntax: property:value");
+
+    registerMessage(MSGID_DSCFG_ERROR_NO_NAME_IN_PROPERTY_VALUE,
+                    "The property argument \"%s\" does not contain a " +
+                    "property name. The argument should have the " +
+                    "following syntax: property:value");
+
+    registerMessage(MSGID_DSCFG_ERROR_NO_VALUE_IN_PROPERTY_VALUE,
+                    "The property argument \"%s\" does not contain a " +
+                    "property value. The argument should have the " +
+                    "following syntax: property:value");
+
+    registerMessage(MSGID_DSCFG_ERROR_NO_SEPARATOR_IN_PROPERTY_MOD,
+                    "The property modification \"%s\" does not contain a " +
+                    "name/value separator. The argument should have the " +
+                    "following syntax: property[+|-]:value");
+
+    registerMessage(MSGID_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD,
+                    "The property modification \"%s\" does not contain a " +
+                    "property name. The argument should have the " +
+                    "following syntax: property[+|-]:value");
+
+    registerMessage(MSGID_DSCFG_ERROR_NO_VALUE_IN_PROPERTY_MOD,
+                    "The property modification \"%s\" does not contain a " +
+                    "property value. The argument should have the " +
+                    "following syntax: property[+|-]:value");
+
+    registerMessage(MSGID_DSCFG_ERROR_INCOMPATIBLE_PROPERTY_MOD,
+                    "The property modification \"%s\" is incompatible" +
+                    " with a previous modification to the same property");
+
+    registerMessage(MSGID_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED,
+                    "The sub-type \"%s\" is not a recognized type of %s. " +
+                    "It should be one of: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_TYPE_UNRECOGNIZED,
+                    "\"%s\" is not a recognized type of managed object");
+
+    registerMessage(MSGID_DSCFG_ERROR_WRONG_MANAGED_OBJECT_TYPE,
+                    "The %s could not be retrieved because it was the " +
+                    "wrong type of managed object: %s ");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE,
+                    "Display subcommands relating to %s");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_ALL,
+                    "Display all subcommands");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY,
+                    "Display summary usage information");
   }
 }
 
