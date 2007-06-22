@@ -161,7 +161,7 @@ public class ServerController {
             boolean stopped = false;
 
             for (int i = 0; i < nTries && !stopped; i++) {
-              installation.getStatus().isServerRunning();
+              stopped = !installation.getStatus().isServerRunning();
               if (!stopped) {
                 if (application != null) {
                   String msg =
@@ -178,6 +178,8 @@ public class ServerController {
                 catch (Exception ex) {
 
                 }
+              } else {
+                break;
               }
             }
             if (!stopped) {
