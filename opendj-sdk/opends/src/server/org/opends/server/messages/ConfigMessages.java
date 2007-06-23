@@ -6694,6 +6694,46 @@ public class ConfigMessages
 
 
 
+  /**
+   * The message ID for the message that will be used if a plugin order
+   * definition contains an empty element (i.e., two consecutive commas).  This
+   * takes a single argument, which is the name of the plugin type.
+   */
+  public static final int MSGID_CONFIG_PLUGIN_EMPTY_ELEMENT_IN_ORDER =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 664;
+
+
+
+  /**
+   * The message ID for the message that will be used if a plugin order
+   * definition contains multiple wildcard characters.  This takes a single
+   * argument, which is the name of the plugin type.
+   */
+  public static final int MSGID_CONFIG_PLUGIN_MULTIPLE_WILDCARDS_IN_ORDER =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 665;
+
+
+
+  /**
+   * The message ID for the message that will be used if a plugin is listed
+   * multiple times in the plugin order.  This takes two arguments, which are
+   * the plugin type and the plugin name.
+   */
+  public static final int MSGID_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 666;
+
+
+
+  /**
+   * The message ID for the message that will be used if a plugin order does
+   * not contain a wildcard.  This takes a single argument, which is the name of
+   * the plugin type.
+   */
+  public static final int MSGID_CONFIG_PLUGIN_ORDER_NO_WILDCARD =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 667;
+
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -8265,6 +8305,27 @@ public class ConfigMessages
                     "instance of class %s as a Directory Server plugin using " +
                     "the information in configuration entry %s:  %s.  This " +
                     "plugin will be disabled");
+    registerMessage(MSGID_CONFIG_PLUGIN_EMPTY_ELEMENT_IN_ORDER,
+                    "The plugin order definition for plugins of type %s " +
+                    "contains an empty element.  This may cause the plugin " +
+                    "order to be evaluated incorrectly");
+    registerMessage(MSGID_CONFIG_PLUGIN_MULTIPLE_WILDCARDS_IN_ORDER,
+                    "The plugin order definition for plugins of type %s " +
+                    "contains multiple wildcard characters.  All plugin " +
+                    "definitions should contain exactly one wildcard element " +
+                    "to indicate where unmatched plugins should be included " +
+                    "in the order, and including multiple wildcards may " +
+                    "cause the plugin order to be evaluated incorrectly");
+    registerMessage(MSGID_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES,
+                    "The plugin order definition for plugins of type %s " +
+                    "includes multiple references to the '%s' plugin.  This " +
+                    "may cause the plugin order to be evaluated incorrectly");
+    registerMessage(MSGID_CONFIG_PLUGIN_ORDER_NO_WILDCARD,
+                    "The plugin order definition for plugins of type %s " +
+                    "does not include a wildcard element to indicate where " +
+                    "unmatched plugins should be included in the order.  The " +
+                    "server will default to invoking all unnamed plugins " +
+                    "after set of named plugins");
     registerMessage(MSGID_CONFIG_PLUGIN_CLASS_ACTION_REQUIRED,
                     "The requested change in the plugin class name from %s " +
                     "to %s in configuration entry %s cannot be dynamically " +

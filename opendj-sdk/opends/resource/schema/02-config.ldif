@@ -1283,6 +1283,180 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.382
   NAME 'ds-cfg-index-substring-length'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.384 NAME 'ds-cfg-plugin-order-startup'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.385 NAME 'ds-cfg-plugin-order-shutdown'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.386
+  NAME 'ds-cfg-plugin-order-post-connect' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.387
+  NAME 'ds-cfg-plugin-order-post-disconnect'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.388
+  NAME 'ds-cfg-plugin-order-ldif-import' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.389
+  NAME 'ds-cfg-plugin-order-ldif-export' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.390
+  NAME 'ds-cfg-plugin-order-pre-parse-abandon'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.391
+  NAME 'ds-cfg-plugin-order-pre-parse-add' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.392
+  NAME 'ds-cfg-plugin-order-pre-parse-bind'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.393
+  NAME 'ds-cfg-plugin-order-pre-parse-compare'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.394
+  NAME 'ds-cfg-plugin-order-pre-parse-delete'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.395
+  NAME 'ds-cfg-plugin-order-pre-parse-extended'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.396
+  NAME 'ds-cfg-plugin-order-pre-parse-modify'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.397
+  NAME 'ds-cfg-plugin-order-pre-parse-modify-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.398
+  NAME 'ds-cfg-plugin-order-pre-parse-search'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.399
+  NAME 'ds-cfg-plugin-order-pre-parse-unbind'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.400
+  NAME 'ds-cfg-plugin-order-pre-operation-add'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.401
+  NAME 'ds-cfg-plugin-order-pre-operation-bind'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.402
+  NAME 'ds-cfg-plugin-order-pre-operation-compare'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.403
+  NAME 'ds-cfg-plugin-order-pre-operation-delete'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.404
+  NAME 'ds-cfg-plugin-order-pre-operation-extended'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.405
+  NAME 'ds-cfg-plugin-order-pre-operation-modify'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.406
+  NAME 'ds-cfg-plugin-order-pre-operation-modify-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.407
+  NAME 'ds-cfg-plugin-order-pre-operation-search'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.408
+  NAME 'ds-cfg-plugin-order-post-operation-abandon'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.409
+  NAME 'ds-cfg-plugin-order-post-operation-add'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.410
+  NAME 'ds-cfg-plugin-order-post-operation-bind'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.411
+  NAME 'ds-cfg-plugin-order-post-operation-compare'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.412
+  NAME 'ds-cfg-plugin-order-post-operation-delete'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.413
+  NAME 'ds-cfg-plugin-order-post-operation-extended'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.414
+  NAME 'ds-cfg-plugin-order-post-operation-modify'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.415
+  NAME 'ds-cfg-plugin-order-post-operation-modify-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.416
+  NAME 'ds-cfg-plugin-order-post-operation-search'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.417
+  NAME 'ds-cfg-plugin-order-post-operation-unbind'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.418
+  NAME 'ds-cfg-plugin-order-post-response-add'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.419
+  NAME 'ds-cfg-plugin-order-post-response-bind'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.420
+  NAME 'ds-cfg-plugin-order-post-response-compare'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.421
+  NAME 'ds-cfg-plugin-order-post-response-delete'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.422
+  NAME 'ds-cfg-plugin-order-post-response-extended'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.423
+  NAME 'ds-cfg-plugin-order-post-response-modify'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.424
+  NAME 'ds-cfg-plugin-order-post-response-modify-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.425
+  NAME 'ds-cfg-plugin-order-post-response-search'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.426
+  NAME 'ds-cfg-plugin-order-search-result-entry'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.427
+  NAME 'ds-cfg-plugin-order-search-result-reference'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.428
+  NAME 'ds-cfg-plugin-order-intermediate-response'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1832,4 +2006,46 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.110 NAME 'ds-cfg-file-system-entry-cache'
   ds-cfg-include-filter $ ds-cfg-cache-directory $ ds-cfg-cache-type $
   ds-cfg-persistent-cache $ ds-cfg-database-cache-percent $
   ds-cfg-database-cache-size ) X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.114 NAME 'ds-cfg-plugin-root'
+  SUP top AUXILIARY MAY ( ds-cfg-plugin-order-startup $
+  ds-cfg-plugin-order-shutdown $ ds-cfg-plugin-order-post-connect $
+  ds-cfg-plugin-order-post-disconnect $ ds-cfg-plugin-order-ldif-import $
+  ds-cfg-plugin-order-ldif-export $ ds-cfg-plugin-order-pre-parse-abandon $
+  ds-cfg-plugin-order-pre-parse-add $ ds-cfg-plugin-order-pre-parse-bind $
+  ds-cfg-plugin-order-pre-parse-compare $
+  ds-cfg-plugin-order-pre-parse-delete $
+  ds-cfg-plugin-order-pre-parse-extended $
+  ds-cfg-plugin-order-pre-parse-modify $
+  ds-cfg-plugin-order-pre-parse-modify-dn $
+  ds-cfg-plugin-order-pre-parse-search $ ds-cfg-plugin-order-pre-parse-unbind $
+  ds-cfg-plugin-order-pre-operation-add $
+  ds-cfg-plugin-order-pre-operation-bind $
+  ds-cfg-plugin-order-pre-operation-compare $
+  ds-cfg-plugin-order-pre-operation-delete $
+  ds-cfg-plugin-order-pre-operation-extended $
+  ds-cfg-plugin-order-pre-operation-modify $
+  ds-cfg-plugin-order-pre-operation-modify-dn $
+  ds-cfg-plugin-order-pre-operation-search $
+  ds-cfg-plugin-order-post-operation-abandon $
+  ds-cfg-plugin-order-post-operation-add $
+  ds-cfg-plugin-order-post-operation-bind $
+  ds-cfg-plugin-order-post-operation-compare $
+  ds-cfg-plugin-order-post-operation-delete $
+  ds-cfg-plugin-order-post-operation-extended $
+  ds-cfg-plugin-order-post-operation-modify $
+  ds-cfg-plugin-order-post-operation-modify-dn $
+  ds-cfg-plugin-order-post-operation-search $
+  ds-cfg-plugin-order-post-operation-unbind $
+  ds-cfg-plugin-order-post-response-add $
+  ds-cfg-plugin-order-post-response-bind $
+  ds-cfg-plugin-order-post-response-compare $
+  ds-cfg-plugin-order-post-response-delete $
+  ds-cfg-plugin-order-post-response-extended $
+  ds-cfg-plugin-order-post-response-modify $
+  ds-cfg-plugin-order-post-response-modify-dn $
+  ds-cfg-plugin-order-post-response-search $
+  ds-cfg-plugin-order-search-result-entry $
+  ds-cfg-plugin-order-search-result-reference $
+  ds-cfg-plugin-order-intermediate-response )
+  X-ORIGIN 'OpenDS Directory Server' )
 
