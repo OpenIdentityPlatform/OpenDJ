@@ -37,6 +37,7 @@
     .
   </adm:synopsis>
   <adm:tag name="core"/>
+
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.13</ldap:oid>
@@ -44,6 +45,7 @@
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+
   <adm:property name="check-schema" mandatory="true">
     <adm:synopsis>
       Indicates whether schema enforcement is active.
@@ -66,4 +68,412 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
+  <adm:property name="default-password-policy" mandatory="true">
+    <adm:synopsis>
+      Specifies the DN of the configuration entry for the password policy that
+      will be in effect for users whose entries do not specify an alternate
+      password policy (either via a real or virtual attribute).
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:dn>
+        <adm:base>cn=Password Policies,cn=config</adm:base>
+      </adm:dn>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.202</ldap:oid>
+        <ldap:name>ds-cfg-default-password-policy</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="add-missing-rdn-attributes" mandatory="false">
+    <adm:synopsis>
+      Indicates whether the Directory Server should automatically add any
+      attribute values contained in the entry's RDN into that entry when
+      processing an add request.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          true
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.142</ldap:oid>
+        <ldap:name>ds-cfg-add-missing-rdn-attributes</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="allow-attribute-name-exceptions" mandatory="false">
+    <adm:synopsis>
+      Indicates whether the Directory Server should allow the use of underscores
+      in attribute names, and should allow attribute names to begin with
+      numeric digits (both of which are violations of the LDAP standards).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          false
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.5</ldap:oid>
+        <ldap:name>ds-cfg-allow-attribute-name-exceptions</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="invalid-attribute-syntax-behavior" mandatory="false">
+    <adm:synopsis>
+      Specifies how the Directory Server should handle operations which would
+      result in an attribute value that violates the associated attribute
+      syntax.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          reject
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="accept">
+          <adm:synopsis>
+            The Directory Server will silently accept attribute values that are
+            invalid according to their associated syntax.  Matching operations
+            targeting those values may not behave as expected.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="reject">
+          <adm:synopsis>
+            The Directory Server will reject attribute values that are invalid
+            according to their associated syntax.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="warn">
+          <adm:synopsis>
+            The Directory Server will accept attribute values that are invalid
+            according to their associated syntax, but will also log a warning
+            message to the error log.  Matching operations targeting those
+            values may not behave as expected.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.44</ldap:oid>
+        <ldap:name>ds-cfg-invalid-attribute-syntax-behavior</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="server-error-result-code" mandatory="false">
+    <adm:synopsis>
+      Specifies the numeric value of the result code that should be used for
+      cases in which request processing fails due to an internal server error.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          80
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.143</ldap:oid>
+        <ldap:name>ds-cfg-server-error-result-code</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="single-structural-objectclass-behavior" mandatory="false">
+    <adm:synopsis>
+      Specifies how the Directory Server should handle operations which would
+      result in an entry without any structural object class, or that would
+      result in an entry containing multiple structural classes.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          reject
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="accept">
+          <adm:synopsis>
+            The Directory Server will silently accept entries that do not
+            contain exactly one structural object class.  Certain schema
+            features that depend on the entry's structural class may not behave
+            as expected.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="reject">
+          <adm:synopsis>
+            The Directory Server will reject entries that do not contain exactly
+            one structural object class.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="warn">
+          <adm:synopsis>
+            The Directory Server will accept entries that do not contain exactly
+            one structural object class, but will also log a warning message to
+            the error log.  Certain schema features that depend on the entry's
+            structural class may not behave
+            as expected.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.117</ldap:oid>
+        <ldap:name>ds-cfg-single-structural-objectclass-behavior</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="notify-abandoned-operations" mandatory="false">
+    <adm:synopsis>
+      Indicates whether the Directory Server should send a response to any
+      operation that is interrupted via an abandon request.  The LDAP
+      specification states that abandoned operations should not receive any
+      response, but this may cause problems with client applications that
+      always expect to receive a response to each request.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          false
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.71</ldap:oid>
+        <ldap:name>ds-cfg-notify-abandoned-operations</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="size-limit" mandatory="false">
+    <adm:synopsis>
+      Specifies the maximum number of entries that the Directory Server should
+      return to the client in the course of processing a search operation.  A
+      value of 0 indicates that no size limit will be enforced.  Note that this
+      is the default server-wide limit, but it may be overridden on a per-user
+      basis using the ds-rlim-size-limit operational attribute.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          1000
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.118</ldap:oid>
+        <ldap:name>ds-cfg-size-limit</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="time-limit" mandatory="false">
+    <adm:synopsis>
+      Specifies the maximum length of time that the Directory Server should
+      spend procesing a search operation.  A value of 0 seconds indicates that
+      no time limit will be enforced.  Note that this is the default server-wide
+      time limit, but it may be overridden on a per-user basis using the
+      ds-rlim-time-limit operational attribute.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          60 seconds
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="s" lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.150</ldap:oid>
+        <ldap:name>ds-cfg-time-limit</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="proxied-authorization-identity-mapper-dn"
+    mandatory="true">
+    <adm:synopsis>
+      Specifies the DN of the configuration entry for the identity mapper that
+      will be used to map authorization ID values (using the "u:" form) provided
+      in the proxied authorization control to the corresponding user entry.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:dn>
+        <adm:base>cn=Identity Mappers,cn=config</adm:base>
+      </adm:dn>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.149</ldap:oid>
+        <ldap:name>ds-cfg-proxied-authorization-identity-mapper-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="writability-mode" mandatory="false">
+    <adm:synopsis>
+      Specifies which kinds of write operations the Directory Server should
+      attempt to process.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          enabled
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="enabled">
+          <adm:synopsis>
+            The Directory Server will attempt to process all write operations
+            that are requested of it, regardless of their origin.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="disabled">
+          <adm:synopsis>
+            The Directory Server will reject all write operations that are
+            requested of it, regardless of their origin.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="internal-only">
+          <adm:synopsis>
+            The Directory Server will attempt to process write operations
+            requested as internal operations or through synchronization, but
+            will reject any such operations requested from external clients.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.161</ldap:oid>
+        <ldap:name>ds-cfg-writability-mode</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="reject-unauthenticated-requests" mandatory="false">
+    <adm:synopsis>
+      Indicates whether the Directory Server should reject any request (other
+      than bind or StartTLS requests) received from a client that has not yet
+      authenticated, whose last authentication attempt was unsuccessful, or
+      whose last authentication attempt used anonymous authentication.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          false
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.301</ldap:oid>
+        <ldap:name>ds-cfg-reject-unauthenticated-requests</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="bind-with-dn-requires-password" mandatory="false">
+    <adm:synopsis>
+      Indicates whether the Directory Server should reject any simple bind
+      request that contains a DN but no password.  Although such bind requests
+      are technically allowed by the LDAPv3 specification (and should be treated
+      as anonymous simple authentication), they may introduce security problems
+      in applications that do not verify that the client actually provided a
+      password.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          true
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.163</ldap:oid>
+        <ldap:name>ds-cfg-bind-with-dn-requires-password</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="lookthrough-limit" mandatory="false">
+    <adm:synopsis>
+      Specifies the maximum number of entries that the Directory Server should
+      "look through" in the course of processing a search request.  This
+      includes any entry that the server must examine in the course of
+      processing the request, regardless of whether it actually matches the
+      search criteria.  A value of 0 indicates that no lookthrough limit will
+      be enforced.  Note that this is the default server-wide limit, but it may
+      be overridden on a per-user basis using the ds-rlim-lookthrough-limit
+      operational attribute.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          5000
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.285</ldap:oid>
+        <ldap:name>ds-cfg-lookthrough-limit</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:managed-object>
+
