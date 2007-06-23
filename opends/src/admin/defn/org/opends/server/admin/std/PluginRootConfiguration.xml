@@ -1,0 +1,1322 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+! CDDL HEADER START
+!
+! The contents of this file are subject to the terms of the
+! Common Development and Distribution License, Version 1.0 only
+! (the "License").  You may not use this file except in compliance
+! with the License.
+!
+! You can obtain a copy of the license at
+! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+! See the License for the specific language governing permissions
+! and limitations under the License.
+!
+! When distributing Covered Code, include this CDDL HEADER in each
+! file and include the License file at
+! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+! add the following below this CDDL HEADER, with the fields enclosed
+! by brackets "[]" replaced with your own identifying information:
+!      Portions Copyright [yyyy] [name of copyright owner]
+!
+! CDDL HEADER END
+!
+!
+!      Portions Copyright 2007 Sun Microsystems, Inc.
+! -->
+
+<adm:managed-object name="plugin-root"
+plural-name="plugin-roots"
+package="org.opends.server.admin.std" abstract="false"
+xmlns:adm="http://www.opends.org/admin"
+xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    defines the parent entry for all plugins defined in the server.  It may also
+    include configuration attributes that define the order in which those
+    plugins should be loaded and invoked.
+  </adm:synopsis>
+  <adm:tag name="core"/>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.114</ldap:oid>
+      <ldap:name>ds-cfg-plugin-root</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:relation name="plugin">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence />
+      <ldap:naming-attribute>
+        cn
+      </ldap:naming-attribute>
+    </adm:profile>
+  </adm:relation>
+
+  <adm:property name="plugin-order-startup" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which startup plugins should be loaded and invoked.
+      The value should be a comma-delimited list of plugin names (where the
+      plugin name is the RDN value from the plugin configuration entry DN).
+      The list may include at most one asterisk to indicate the position of any
+      unnamed plugin (and the relative order of those unnamed plugins will be
+      undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which startup plugins are loaded and invoked will be
+          undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.384</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-startup</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-shutdown" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which shutdown plugins should be loaded and
+      invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which shutdown plugins are loaded and invoked will be
+          undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.385</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-shutdown</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-connect" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-connect plugins should be loaded and
+      invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-connect plugins are loaded and invoked will be
+          undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.386</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-connect</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-disconnect" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-disconnect plugins should be loaded and
+      invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-disconnect plugins are loaded and invoked will
+          be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.387</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-disconnect</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-ldif-import" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which LDIF import plugins should be loaded and
+      invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which LDIF import plugins are loaded and invoked will be
+          undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.388</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-ldif-import</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-ldif-export" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which LDIF export plugins should be loaded and
+      invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which LDIF export plugins are loaded and invoked will be
+          undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.389</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-ldif-export</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-parse-abandon" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-parse abandon plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-parse abandon plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.390</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-parse-abandon</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-parse-add" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-parse add plugins should be loaded and
+      invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-parse add plugins are loaded and invoked will
+          be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.391</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-parse-add</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-parse-bind" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-parse bind plugins should be loaded and
+      invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-parse bind plugins are loaded and invoked will
+          be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.392</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-parse-bind</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-parse-compare" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-parse compare plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-parse compare plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.393</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-parse-compare</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-parse-delete" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-parse delete plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-parse delete plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.394</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-parse-delete</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-parse-extended" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-parse extended operation plugins should
+      be loaded and invoked.  The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-parse extended operation plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.395</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-parse-extended</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-parse-modify" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-parse modify plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-parse modify plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.396</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-parse-modify</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-parse-modify-dn" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-parse modify DN plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-parse modify DN plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.397</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-parse-modify-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-parse-search" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-parse search plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-parse search plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.398</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-parse-search</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-parse-unbind" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-parse unbind plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-parse unbind plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.399</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-parse-unbind</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-operation-add" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-operation add plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-operation add plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.400</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-operation-add</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-operation-bind" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-operation bind plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-operation bind plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.401</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-operation-bind</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-operation-compare" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-operation compare plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-operation compare plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.402</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-operation-compare</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-operation-delete" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-operation delete plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-operation delete plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.403</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-operation-delete</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-operation-extended" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-operation extended operation plugins
+      should be loaded and invoked.  The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-operation extended operation plugins are loaded
+          and invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.404</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-operation-extended</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-operation-modify" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-operation modify plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-operation modify plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.405</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-operation-modify</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-operation-modify-dn" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-operation modify DN plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-operation modify DN plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.406</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-operation-modify-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-pre-operation-search" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which pre-operation search plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which pre-operation searc plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.407</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-pre-operation-search</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-operation-abandon" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-operation abandon plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-operation abandon plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.408</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-abandon</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-operation-add" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-operation add plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-operation add plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.409</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-add</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-operation-bind" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-operation bind plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-operation bind plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.410</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-bind</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-operation-compare" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-operation compare plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-operation compare plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.411</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-compare</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-operation-delete" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-operation delete plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-operation delete plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.412</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-delete</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-operation-extended" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-operation extended operation plugins
+      should be loaded and invoked.  The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-operation extended operation plugins are
+          loaded and invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.413</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-extended</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-operation-modify" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-operation modify plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-operation modify plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.414</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-modify</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-operation-modify-dn" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-operation modify DN plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-operation modify DN plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.415</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-modify-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-operation-search" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-operation search plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-operation search plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.416</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-search</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-operation-unbind" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-operation unbind plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-operation unbind plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.417</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-unbind</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-response-add" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-response add plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-response add plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.418</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-add</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-response-bind" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-response bind plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-response bind plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.419</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-bind</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-response-compare" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-response compare plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-response compare plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.420</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-compare</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-response-delete" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-response delete plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-response delete plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.421</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-delete</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-response-extended" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-response extended operation plugins
+      should be loaded and invoked.  The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-response extended operation plugins are loaded
+          and invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.422</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-extended</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-response-modify" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-response modify plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-response modify plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.423</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-modify</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-response-modify-dn" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-response modify DN plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-response modify DN plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.424</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-modify-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-response-search" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-response search plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-response search plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.425</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-operation-search</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-search-result-entry" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which search result entry plugins should be loaded
+      and invoked.  The value should be a comma-delimited list of plugin names
+      (where the plugin name is the RDN value from the plugin configuration
+      entry DN).  The list may include at most one asterisk to indicate the
+      position of any unnamed plugin (and the relative order of those unnamed
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which search result entry plugins are loaded and invoked
+          will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.426</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-search-result-entry</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-search-result-reference" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which search result reference plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which search result reference plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.427</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-search-result-reference</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-intermediate-response" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which intermediate response plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unnamed plugin (and the relative order of
+      those unnamed plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which intermediate response plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.428</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-intermediate-response</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+</adm:managed-object>
+

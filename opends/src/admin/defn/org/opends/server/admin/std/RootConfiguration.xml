@@ -146,16 +146,10 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="plugin">
-    <adm:one-to-many />
+  <adm:relation name="plugin-root" managed-object-name="plugin-root">
+    <adm:one-to-one />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Plugins,cn=config</ldap:rdn-sequence>
-    </adm:profile>
-    <adm:profile name="cli">
-      <cli:relation>
-        <cli:default-property name="enabled" />
-        <cli:default-property name="plugin-type" />
-      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:relation name="virtual-attribute">

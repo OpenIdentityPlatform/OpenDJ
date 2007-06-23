@@ -1245,6 +1245,7 @@ ds-cfg-case-sensitive-validation: false
 dn: cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
+objectClass: ds-cfg-plugin-root
 cn: Plugins
 
 dn: cn=Entry UUID,cn=Plugins,cn=config
