@@ -229,6 +229,17 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
+  <adm:relation name="root-dn">
+    <adm:one-to-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Root DNs,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="default-root-privilege-name" />
+      </cli:relation>
+    </adm:profile>
+  </adm:relation>
   <adm:relation name="root-dse-backend">
     <adm:one-to-one />
     <adm:profile name="ldap">
