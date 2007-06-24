@@ -159,7 +159,9 @@ public class JmxConnectTest extends JmxTestCase {
   /**
    * Test setting some config attribute through jmx.
    */
-  @Test(enabled = true)
+  // NOTE:  This test is disabled because JMX interaction is not allowed with
+  //        the admin framework, and the cn=config entry is now governed by it.
+  @Test(enabled = false)
   public void simpleSet() throws Exception {
     OpendsJmxConnector connector = connect("cn=directory manager",
         "password", TestCaseUtils.getServerJmxPort());
