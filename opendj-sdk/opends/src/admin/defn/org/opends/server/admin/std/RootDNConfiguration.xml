@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+! CDDL HEADER START
+!
+! The contents of this file are subject to the terms of the
+! Common Development and Distribution License, Version 1.0 only
+! (the "License").  You may not use this file except in compliance
+! with the License.
+!
+! You can obtain a copy of the license at
+! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+! See the License for the specific language governing permissions
+! and limitations under the License.
+!
+! When distributing Covered Code, include this CDDL HEADER in each
+! file and include the License file at
+! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+! add the following below this CDDL HEADER, with the fields enclosed
+! by brackets "[]" replaced with your own identifying information:
+!      Portions Copyright [yyyy] [name of copyright owner]
+!
+! CDDL HEADER END
+!
+!
+!      Portions Copyright 2007 Sun Microsystems, Inc.
+! -->
+
+<adm:managed-object name="root-dn" plural-name="root-dns"
+package="org.opends.server.admin.std"
+xmlns:adm="http://www.opends.org/admin"
+xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    This class defines the parent entry for all root DN users in the server.  It
+    also defines the set of privileges that root users will automatically
+    inherit.
+  </adm:synopsis>
+
+  <adm:tag name="core"/>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.82</ldap:oid>
+      <ldap:name>ds-cfg-root-dn-base</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:relation name="root-dn-user">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence />
+      <ldap:naming-attribute>
+        cn
+      </ldap:naming-attribute>
+    </adm:profile>
+  </adm:relation>
+
+  <adm:property name="default-root-privilege-name" mandatory="false"
+    multi-valued="true">
+    <adm:synopsis>
+      Specifies the names of the privileges that root users will be granted by
+      default.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>bypass-acl</adm:value>
+        <adm:value>modify-acl</adm:value>
+        <adm:value>config-read</adm:value>
+        <adm:value>config-write</adm:value>
+        <adm:value>ldif-import</adm:value>
+        <adm:value>ldif-export</adm:value>
+        <adm:value>backend-backup</adm:value>
+        <adm:value>backend-restore</adm:value>
+        <adm:value>server-shutdown</adm:value>
+        <adm:value>server-restart</adm:value>
+        <adm:value>disconnect-client</adm:value>
+        <adm:value>cancel-request</adm:value>
+        <adm:value>password-reset</adm:value>
+        <adm:value>update-schema</adm:value>
+        <adm:value>privilege-change</adm:value>
+        <adm:value>unindexed-search</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="bypass-acl">
+          <adm:synopsis>
+            Allows the associated user to bypass access control checks performed
+            by the server.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="modify-acl">
+          <adm:synopsis>
+            Allows the associated user to modify the server's access control
+            configuration.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="config-read">
+          <adm:synopsis>
+            Allows the associated user to read the server configuration.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="config-write">
+          <adm:synopsis>
+            Allows the associated user to update the server configuration.  The
+            config-read privilege is also required.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="jmx-read">
+          <adm:synopsis>
+            Allows the associated user to perform JMX read operations.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="jmx-write">
+          <adm:synopsis>
+            Allows the associated user to perform JMX write operations.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="jmx-notify">
+          <adm:synopsis>
+            Allows the associated user to subscribe to receive JMX
+            notifications.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="ldif-import">
+          <adm:synopsis>
+            Allows the user to request that the server process LDIF import
+            tasks.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="ldif-export">
+          <adm:synopsis>
+            Allows the user to request that the server process LDIF export
+            tasks.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="backend-backup">
+          <adm:synopsis>
+            Allows the user to request that the server process backup tasks.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="backend-restore">
+          <adm:synopsis>
+            Allows the user to request that the server process restore tasks.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="server-shutdown">
+          <adm:synopsis>
+            Allows the user to request that the server shut down.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="server-restart">
+          <adm:synopsis>
+            Allows the user to request that the server perform an in-core
+            restart.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="proxied-auth">
+          <adm:synopsis>
+            Allows the user to use the proxied authorization control, or to
+            perform a bind that specifies an alternate authorization identity.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="disconnect-client">
+          <adm:synopsis>
+            Allows the user to terminate other client connections.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="cancel-request">
+          <adm:synopsis>
+            Allows the user to cancel operations in progress on other client
+            connections.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="password-reset">
+          <adm:synopsis>
+            Allows the user to reset user passwords.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="data-sync">
+          <adm:synopsis>
+            Allows the user to participate in data synchronization.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="update-schema">
+          <adm:synopsis>
+            Allows the user to make changes to the server schema.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="privilege-change">
+          <adm:synopsis>
+            Allows the user to make changes to the set of defined root
+            privileges, as well as to grant and revoke privileges for users.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="unindexed-search">
+          <adm:synopsis>
+            Allows the user to request that the server process a search that
+            cannot be optimized using server indexes.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.308</ldap:oid>
+        <ldap:name>ds-cfg-default-root-privilege-name</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+</adm:managed-object>
+
