@@ -31,9 +31,9 @@ package org.opends.server.extensions;
 import java.util.Collections;
 import java.util.List;
 
+import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -64,7 +64,7 @@ import static org.opends.server.util.Validator.*;
  * membership is based on membership of another group.
  */
 public class VirtualStaticGroup
-       extends Group
+       extends Group<GroupImplementationCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -117,7 +117,8 @@ public class VirtualStaticGroup
    * {@inheritDoc}
    */
   @Override()
-  public void initializeGroupImplementation(ConfigEntry configEntry)
+  public void initializeGroupImplementation(
+                   GroupImplementationCfg configuration)
          throws ConfigException, InitializationException
   {
     // No additional initialization is required.

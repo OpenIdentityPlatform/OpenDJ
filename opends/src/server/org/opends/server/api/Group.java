@@ -30,7 +30,7 @@ package org.opends.server.api;
 
 import java.util.List;
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -59,17 +59,20 @@ import org.opends.server.types.SearchScope;
  *       group type provides the ability to explicitly add or remove
  *       members.</LI>
  * </UL>
+ *
+ * @param  <T>  The type of configuration handled by this group
+ *              implementation.
  */
-public abstract class Group
+public abstract class Group<T
+       extends GroupImplementationCfg>
 {
   /**
    * Initializes a "shell" instance of this group implementation that
    * may be used to identify and instantiate instances of this type of
    * group in the directory data.
    *
-   * @param  configEntry  The configuration entry that may contain
-   *                      information about the way that this group
-   *                      implementation should operate.
+   * @param  configuration  The configuration for this group
+   *                        implementation.
    *
    * @throws  ConfigException  If there is a problem with the provided
    *                           configuration entry.
@@ -80,8 +83,7 @@ public abstract class Group
    *                                   not related to the server
    *                                   configuration.
    */
-  public abstract void initializeGroupImplementation(
-                            ConfigEntry configEntry)
+  public abstract void initializeGroupImplementation(T configuration)
          throws ConfigException, InitializationException;
 
 
