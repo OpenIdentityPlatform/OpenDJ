@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.LDIFPluginResult;
@@ -47,9 +49,11 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PreOperationAddOperation;
 
 import static org.opends.server.messages.MessageHandler.*;
@@ -69,6 +73,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public final class EntryUUIDPlugin
        extends DirectoryServerPlugin<PluginCfg>
+       implements ConfigurationChangeListener<PluginCfg>
 {
   /**
    * The name of the entryUUID attribute type.
@@ -125,6 +130,8 @@ public final class EntryUUIDPlugin
                                      PluginCfg configuration)
          throws ConfigException
   {
+    configuration.addChangeListener(this);
+
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
     {
@@ -218,6 +225,50 @@ public final class EntryUUIDPlugin
     // Add the attribute to the entry and return.
     addOperation.setAttribute(entryUUIDType, uuidList);
     return PreOperationPluginResult.SUCCESS;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    boolean configAcceptable = true;
+
+    // Ensure that the set of plugin types contains only LDIF import and
+    // pre-operation add.
+    for (PluginCfgDefn.PluginType pluginType : configuration.getPluginType())
+    {
+      switch (pluginType)
+      {
+        case LDIFIMPORT:
+        case PREOPERATIONADD:
+          // These are acceptable.
+          break;
+
+
+        default:
+          int msgID = MSGID_PLUGIN_ENTRYUUID_INVALID_PLUGIN_TYPE;
+          String message = getMessage(msgID, pluginType.toString());
+          unacceptableReasons.add(message);
+          configAcceptable = false;
+      }
+    }
+
+    return configAcceptable;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(PluginCfg configuration)
+  {
+    // No implementation is required.
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }
 

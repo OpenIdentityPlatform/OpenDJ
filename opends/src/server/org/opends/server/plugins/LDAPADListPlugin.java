@@ -28,16 +28,21 @@ package org.opends.server.plugins;
 
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PreParseSearchOperation;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -57,6 +62,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public final class LDAPADListPlugin
        extends DirectoryServerPlugin<PluginCfg>
+       implements ConfigurationChangeListener<PluginCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -85,6 +91,8 @@ public final class LDAPADListPlugin
                                      PluginCfg configuration)
          throws ConfigException
   {
+    configuration.addChangeListener(this);
+
     // The set of plugin types must contain only the pre-parse search element.
     if (pluginTypes.isEmpty())
     {
@@ -181,6 +189,50 @@ public final class LDAPADListPlugin
 
 
     return PreParsePluginResult.SUCCESS;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    boolean configAcceptable = true;
+
+    // Ensure that the set of plugin types contains only pre-parse search.
+    for (PluginCfgDefn.PluginType pluginType : configuration.getPluginType())
+    {
+      switch (pluginType)
+      {
+        case PREPARSESEARCH:
+          // This is acceptable.
+          break;
+
+
+        default:
+          int    msgID   = MSGID_PLUGIN_ADLIST_INVALID_PLUGIN_TYPE;
+          String message = getMessage(msgID,
+                                      String.valueOf(configuration.dn()),
+                                      String.valueOf(pluginType));
+          unacceptableReasons.add(message);
+          configAcceptable = false;
+      }
+    }
+
+    return configAcceptable;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(PluginCfg configuration)
+  {
+    // No implementation is required.
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }
 

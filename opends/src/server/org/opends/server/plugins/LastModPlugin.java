@@ -30,8 +30,11 @@ package org.opends.server.plugins;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
@@ -41,11 +44,13 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
@@ -66,6 +71,7 @@ import org.opends.server.loggers.debug.DebugTracer;
  */
 public final class LastModPlugin
        extends DirectoryServerPlugin<PluginCfg>
+       implements ConfigurationChangeListener<PluginCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -121,6 +127,8 @@ public final class LastModPlugin
                                      PluginCfg configuration)
          throws ConfigException
   {
+    configuration.addChangeListener(this);
+
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
     {
@@ -312,6 +320,51 @@ public final class LastModPlugin
 
     // We shouldn't ever need to return a non-success result.
     return PreOperationPluginResult.SUCCESS;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    boolean configAcceptable = true;
+
+    // Ensure that the set of plugin types contains only pre-operation add,
+    // pre-operation modify, and pre-operation modify DN.
+    for (PluginCfgDefn.PluginType pluginType : configuration.getPluginType())
+    {
+      switch (pluginType)
+      {
+        case PREOPERATIONADD:
+        case PREOPERATIONMODIFY:
+        case PREOPERATIONMODIFYDN:
+          // These are acceptable.
+          break;
+
+
+        default:
+          int msgID = MSGID_PLUGIN_LASTMOD_INVALID_PLUGIN_TYPE;
+          String message = getMessage(msgID, pluginType.toString());
+          unacceptableReasons.add(message);
+          configAcceptable = false;
+      }
+    }
+
+    return configAcceptable;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(PluginCfg configuration)
+  {
+    // No implementation is required.
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }
 
