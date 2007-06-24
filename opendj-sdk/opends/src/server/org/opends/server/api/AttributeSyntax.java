@@ -28,7 +28,7 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.InitializationException;
@@ -39,16 +39,18 @@ import org.opends.server.types.InitializationException;
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that implements an
  * attribute syntax.
+ *
+ * @param  <T>  The type of configuration handled by this attribute
+ *              syntax.
  */
-public abstract class AttributeSyntax
+public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
 {
   /**
    * Initializes this attribute syntax based on the information in the
    * provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      attribute syntax.
+   * @param  configuration  The configuration to use to initialize
+   *                        this attribute syntax.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -59,7 +61,7 @@ public abstract class AttributeSyntax
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializeSyntax(ConfigEntry configEntry)
+  public abstract void initializeSyntax(T configuration)
          throws ConfigException, InitializationException;
 
 

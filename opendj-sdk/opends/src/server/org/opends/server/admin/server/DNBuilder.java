@@ -132,7 +132,8 @@ final class DNBuilder implements ManagedObjectPathSerializer {
 
     // Now add the single RDN representing the named instance.
     String type = profile.getInstantiableRelationChildRDNType(r);
-    AttributeType atype = DirectoryServer.getAttributeType(type.toLowerCase());
+    AttributeType atype = DirectoryServer.getAttributeType(type.toLowerCase(),
+                                                           true);
     AttributeValue avalue = new AttributeValue(atype, name);
     dn = dn.concat(RDN.create(atype, avalue));
   }

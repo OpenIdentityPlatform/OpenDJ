@@ -28,36 +28,29 @@ package org.opends.server.schema;
 
 
 
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.AttributeValueDecoder;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -72,25 +65,17 @@ import static org.opends.server.util.StaticUtils.*;
  * matching will be allowed.
  */
 public class DirectoryStringSyntax
-       extends AttributeSyntax
-       implements ConfigurableComponent
+       extends AttributeSyntax<DirectoryStringAttributeSyntaxCfg>
+       implements ConfigurationChangeListener<DirectoryStringAttributeSyntaxCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-
-
-
   // The default approximate matching rule for this syntax.
   private ApproximateMatchingRule defaultApproximateMatchingRule;
 
   // Indicates whether we will allow zero-length values.
   private boolean allowZeroLengthValues;
 
-  // The DN of the configuration entry for this syntax.
-  private DN configEntryDN;
+  // The reference to the configuration for this directory string syntax.
+  private DirectoryStringAttributeSyntaxCfg currentConfig;
 
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
@@ -131,22 +116,14 @@ public class DirectoryStringSyntax
   public DirectoryStringSyntax()
   {
     super();
-
   }
 
 
 
   /**
-   * Initializes this attribute syntax based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this attribute syntax.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
+   * {@inheritDoc}
    */
-  public void initializeSyntax(ConfigEntry configEntry)
+  public void initializeSyntax(DirectoryStringAttributeSyntaxCfg configuration)
          throws ConfigException
   {
     defaultApproximateMatchingRule =
@@ -190,44 +167,14 @@ public class DirectoryStringSyntax
     // it may be instantiated at times without a configuration entry.  If that
     // is the case, then we'll exit now before doing anything that could require
     // access to that entry.
-    if (configEntry == null)
+    if (configuration == null)
     {
       return;
     }
 
-
-    allowZeroLengthValues = DEFAULT_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS;
-    int msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_DESCRIPTION_ALLOW_ZEROLENGTH;
-    BooleanConfigAttribute allowZeroLengthStub =
-         new BooleanConfigAttribute(ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                                    getMessage(msgID), false);
-    try
-    {
-      BooleanConfigAttribute allowZeroLengthAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(allowZeroLengthStub);
-      if (allowZeroLengthAttr != null)
-      {
-        allowZeroLengthValues = allowZeroLengthAttr.activeValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_CANNOT_DETERMINE_ZEROLENGTH;
-      String message = getMessage(msgID, ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                                  getExceptionMessage(e));
-      logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.SEVERE_WARNING,
-               message, msgID);
-    }
-
-
-    configEntryDN = configEntry.getDN();
-    DirectoryServer.registerConfigurableComponent(this);
+    currentConfig = configuration;
+    currentConfig.addDirectoryStringChangeListener(this);
+    allowZeroLengthValues = currentConfig.isAllowZeroLengthValues();
   }
 
 
@@ -237,7 +184,7 @@ public class DirectoryStringSyntax
    */
   public void finalizeSyntax()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removeDirectoryStringChangeListener(this);
   }
 
 
@@ -385,161 +332,28 @@ public class DirectoryStringSyntax
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
+  public boolean isConfigurationChangeAcceptable(
+                      DirectoryStringAttributeSyntaxCfg configuration,
+                      List<String> unacceptableReasons)
   {
-    return configEntryDN;
+    // The configuration will always be acceptable.
+    return true;
   }
 
 
 
   /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
+   * {@inheritDoc}
    */
-  public List<ConfigAttribute> getConfigurationAttributes()
+  public ConfigChangeResult applyConfigurationChange(
+              DirectoryStringAttributeSyntaxCfg configuration)
   {
-    LinkedList<ConfigAttribute> configAttrs = new LinkedList<ConfigAttribute>();
+    currentConfig = configuration;
+    allowZeroLengthValues = configuration.isAllowZeroLengthValues();
 
-    int msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_DESCRIPTION_ALLOW_ZEROLENGTH;
-    configAttrs.add(new BooleanConfigAttribute(
-                             ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                             getMessage(msgID), false, allowZeroLengthValues));
-
-    return configAttrs;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
-  {
-    boolean configValid = true;
-
-
-    int msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_DESCRIPTION_ALLOW_ZEROLENGTH;
-    BooleanConfigAttribute allowZeroLengthStub =
-         new BooleanConfigAttribute(ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                                    getMessage(msgID), false);
-    try
-    {
-      BooleanConfigAttribute allowZeroLengthAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(allowZeroLengthStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      configValid = false;
-
-      msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_CANNOT_DETERMINE_ZEROLENGTH;
-      unacceptableReasons.add(getMessage(msgID,
-                                         ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                                         getExceptionMessage(e)));
-    }
-
-
-    return configValid;
-  }
-
-
-
-  /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
-   */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
-  {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-
-    boolean newAllowZeroLengthValues = false;
-    int msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_DESCRIPTION_ALLOW_ZEROLENGTH;
-    BooleanConfigAttribute allowZeroLengthStub =
-         new BooleanConfigAttribute(ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                                    getMessage(msgID), false);
-    try
-    {
-      BooleanConfigAttribute allowZeroLengthAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(allowZeroLengthStub);
-      if (allowZeroLengthAttr != null)
-      {
-        newAllowZeroLengthValues = allowZeroLengthAttr.pendingValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      resultCode = DirectoryServer.getServerErrorResultCode();
-
-      msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_CANNOT_DETERMINE_ZEROLENGTH;
-      messages.add(getMessage(msgID, ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                              getExceptionMessage(e)));
-    }
-
-    if (resultCode == ResultCode.SUCCESS)
-    {
-      if (newAllowZeroLengthValues != allowZeroLengthValues)
-      {
-        allowZeroLengthValues = newAllowZeroLengthValues;
-
-        if (detailedResults)
-        {
-          msgID = MSGID_ATTR_SYNTAX_DIRECTORYSTRING_UPDATED_ALLOW_ZEROLENGTH;
-          messages.add(getMessage(msgID, ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS,
-                                  String.valueOf(configEntry.getDN()),
-                                  String.valueOf(allowZeroLengthValues)));
-        }
-      }
-    }
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }
 

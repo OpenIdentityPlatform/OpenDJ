@@ -76,10 +76,8 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
   @Test(dataProvider= "acceptableValues")
   public void testAcceptableValues(String value, Boolean result) throws Exception
   {
-    AttributeSyntax syntax = new BitStringSyntax();
-    ConfigEntry configEntry = DirectoryServer.getConfigEntry(
-                        DN.decode("cn=Bit String,cn=Syntaxes,cn=config"));
-    syntax.initializeSyntax(configEntry);
+    BitStringSyntax syntax = new BitStringSyntax();
+    syntax.initializeSyntax(null);
 
     ByteString byteStringValue = new ASN1OctetString(value);
 

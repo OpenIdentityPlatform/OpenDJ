@@ -32,8 +32,10 @@ import static org.opends.server.schema.SchemaConstants.*;
 import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.TelephoneNumberAttributeSyntaxCfgDefn;
+import org.opends.server.admin.std.server.TelephoneNumberAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -45,12 +47,12 @@ import org.testng.annotations.Test;
 public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
 {
   /**
-   * Build the data for the test of the hasAcceptableValue Methods 
+   * Build the data for the test of the hasAcceptableValue Methods
    * of the class extending the AttributeSyntax class and having
    * some configuration capabilities.
    */
   @DataProvider(name="acceptableValues")
-  public Object[][] createapproximateMatchingRuleTest() throws Exception
+  public Object[][] createSyntaxTest() throws Exception
   {
     // some config object used later in the test
     ConfigEntry strictConfig = new ConfigEntry(TestCaseUtils.makeEntry(
@@ -77,7 +79,7 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
 
     // fill this table with tables containing :
     // - the configEntry that must be applied before the test.
-    // - the name of the Syntax rule to test.
+    // - the name of the Syntax to test.
     // - a value that must be tested for correctness.
     // - a boolean indicating if the value is correct.
     return new Object[][] {
@@ -89,8 +91,8 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
          {strictConfig, SYNTAX_TELEPHONE_OID, "+1x512x315x0280", false},
          {strictConfig, SYNTAX_TELEPHONE_OID, "   ", false},
          {strictConfig, SYNTAX_TELEPHONE_OID, "", false},
-         
-         
+
+
          {relaxedConfig, SYNTAX_TELEPHONE_OID, "+1+512 315 0280", true},
          {relaxedConfig, SYNTAX_TELEPHONE_OID, "+1x512x315x0280", true},
          {strictConfig, SYNTAX_TELEPHONE_OID, "   ", false},
@@ -106,30 +108,35 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
   public void testAcceptableValues(ConfigEntry config, String oid, String value,
       Boolean result) throws Exception
   {
-    AttributeSyntax rule = DirectoryServer.getAttributeSyntax(oid, false);
-    ConfigurableComponent component = (ConfigurableComponent) rule;
-    
+    TelephoneNumberAttributeSyntaxCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              TelephoneNumberAttributeSyntaxCfgDefn.getInstance(),
+              config.getEntry());
+
+    TelephoneNumberSyntax syntax =
+         (TelephoneNumberSyntax) DirectoryServer.getAttributeSyntax(oid, false);
+
     // apply the configuration.
     ArrayList<String> unacceptableReasons = new ArrayList<String>();
-    assertTrue(
-        component.hasAcceptableConfiguration(config, unacceptableReasons));
+    assertTrue(syntax.isConfigurationChangeAcceptable(configuration,
+                                                      unacceptableReasons));
     ConfigChangeResult configResult =
-      component.applyNewConfiguration(config, false);
+         syntax.applyConfigurationChange(configuration);
     assertEquals(configResult.getResultCode(), ResultCode.SUCCESS);
-    
-    // check the syntax of the given value. 
-    Boolean liveResult = rule.valueIsAcceptable(
+
+    // check the syntax of the given value.
+    Boolean liveResult = syntax.valueIsAcceptable(
         new ASN1OctetString(value), new StringBuilder());
     assertEquals(result, liveResult);
 
     // call the getters to increase code coverage...
-    rule.getApproximateMatchingRule();
-    rule.getDescription();
-    rule.getEqualityMatchingRule();
-    rule.getOID();
-    rule.getOrderingMatchingRule();
-    rule.getSubstringMatchingRule();
-    rule.getSyntaxName();
-    rule.toString();
+    syntax.getApproximateMatchingRule();
+    syntax.getDescription();
+    syntax.getEqualityMatchingRule();
+    syntax.getOID();
+    syntax.getOrderingMatchingRule();
+    syntax.getSubstringMatchingRule();
+    syntax.getSyntaxName();
+    syntax.toString();
   }
 }
