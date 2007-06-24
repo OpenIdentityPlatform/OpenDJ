@@ -33,9 +33,9 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
@@ -77,7 +77,7 @@ import static org.opends.server.util.Validator.*;
  * stores the member list in the {@code uniqueMember} attribute.
  */
 public class StaticGroup
-       extends Group
+       extends Group<GroupImplementationCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -138,7 +138,8 @@ public class StaticGroup
    * {@inheritDoc}
    */
   @Override()
-  public void initializeGroupImplementation(ConfigEntry configEntry)
+  public void initializeGroupImplementation(
+                   GroupImplementationCfg configuration)
          throws ConfigException, InitializationException
   {
     // No additional initialization is required.

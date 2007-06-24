@@ -34,8 +34,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -73,7 +73,7 @@ import static org.opends.server.util.Validator.*;
  * specifying the membership criteria.
  */
 public class DynamicGroup
-       extends Group
+       extends Group<GroupImplementationCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -126,7 +126,8 @@ public class DynamicGroup
    * {@inheritDoc}
    */
   @Override()
-  public void initializeGroupImplementation(ConfigEntry configEntry)
+  public void initializeGroupImplementation(
+                   GroupImplementationCfg configuration)
          throws ConfigException, InitializationException
   {
     // No additional initialization is required.
