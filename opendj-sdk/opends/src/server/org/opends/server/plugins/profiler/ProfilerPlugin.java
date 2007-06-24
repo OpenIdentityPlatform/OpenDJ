@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.ProfilerPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
@@ -250,6 +251,31 @@ public final class ProfilerPlugin
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
+
+    // Make sure that the plugin is only registered as a startup plugin.
+    if (configuration.getPluginType().isEmpty())
+    {
+      int    msgID   = MSGID_PLUGIN_PROFILER_NO_PLUGIN_TYPES;
+      String message = getMessage(msgID, String.valueOf(configEntryDN));
+      unacceptableReasons.add(message);
+      configAcceptable = false;
+    }
+    else
+    {
+      for (PluginCfgDefn.PluginType t : configuration.getPluginType())
+      {
+        if (t != PluginCfgDefn.PluginType.STARTUP)
+        {
+          int    msgID   = MSGID_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE;
+          String message = getMessage(msgID, String.valueOf(configEntryDN),
+                                      String.valueOf(t));
+          unacceptableReasons.add(message);
+          configAcceptable = false;
+          break;
+        }
+      }
+    }
+
 
     // Make sure that the profile directory exists.
     File profileDirectory = getFileForPath(configuration.getProfileDirectory());

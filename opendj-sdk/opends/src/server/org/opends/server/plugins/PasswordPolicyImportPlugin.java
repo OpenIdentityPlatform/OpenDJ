@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
@@ -50,10 +52,12 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ResultCode;
 
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -72,6 +76,7 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public final class PasswordPolicyImportPlugin
        extends DirectoryServerPlugin<PluginCfg>
+       implements ConfigurationChangeListener<PluginCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -180,6 +185,8 @@ public final class PasswordPolicyImportPlugin
                                      PluginCfg configuration)
          throws ConfigException
   {
+    configuration.addChangeListener(this);
+
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
     {
@@ -334,6 +341,48 @@ public final class PasswordPolicyImportPlugin
 
 
     return LDIFPluginResult.SUCCESS;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    boolean configAcceptable = true;
+
+    // Ensure that the set of plugin types contains only LDIF import.
+    for (PluginCfgDefn.PluginType pluginType : configuration.getPluginType())
+    {
+      switch (pluginType)
+      {
+        case LDIFIMPORT:
+          // This is the only acceptable type.
+          break;
+
+
+        default:
+          int msgID = MSGID_PLUGIN_PWPIMPORT_INVALID_PLUGIN_TYPE;
+          String message = getMessage(msgID, pluginType.toString());
+          unacceptableReasons.add(message);
+          configAcceptable = false;
+      }
+    }
+
+    return configAcceptable;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(PluginCfg configuration)
+  {
+    // No implementation is required.
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }
 
