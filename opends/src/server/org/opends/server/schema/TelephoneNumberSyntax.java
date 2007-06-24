@@ -28,32 +28,24 @@ package org.opends.server.schema;
 
 
 
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.TelephoneNumberAttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
@@ -71,28 +63,20 @@ import static org.opends.server.util.StaticUtils.*;
  * only accept values in the E.123 international telephone number format.
  */
 public class TelephoneNumberSyntax
-       extends AttributeSyntax
-       implements ConfigurableComponent
+       extends AttributeSyntax<TelephoneNumberAttributeSyntaxCfg>
+       implements ConfigurationChangeListener<TelephoneNumberAttributeSyntaxCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-
-
-
   // Indicates whether this matching rule should operate in strict mode.
   private boolean strictMode;
-
-  // The DN of the configuration entry, if we have one.
-  private DN configEntryDN;
 
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
+
+  // The current configuration for this telephone number syntax.
+  private TelephoneNumberAttributeSyntaxCfg currentConfig;
 
 
 
@@ -105,22 +89,14 @@ public class TelephoneNumberSyntax
   public TelephoneNumberSyntax()
   {
     super();
-
   }
 
 
 
   /**
-   * Initializes this attribute syntax based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this attribute syntax.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
+   * {@inheritDoc}
    */
-  public void initializeSyntax(ConfigEntry configEntry)
+  public void initializeSyntax(TelephoneNumberAttributeSyntaxCfg configuration)
          throws ConfigException
   {
     defaultEqualityMatchingRule =
@@ -146,39 +122,11 @@ public class TelephoneNumberSyntax
     // we should use the strict compliance mode.  If not, just assume that we
     // won't.
     strictMode = false;
-    if (configEntry != null)
+    if (configuration != null)
     {
-      configEntryDN = configEntry.getDN();
-      DirectoryServer.registerConfigurableComponent(this);
-
-
-      int msgID = MSGID_ATTR_SYNTAX_TELEPHONE_DESCRIPTION_STRICT_MODE;
-      BooleanConfigAttribute strictStub =
-           new BooleanConfigAttribute(ATTR_TELEPHONE_STRICT_MODE,
-                                      getMessage(msgID), false);
-      try
-      {
-        BooleanConfigAttribute strictAttr =
-             (BooleanConfigAttribute)
-             configEntry.getConfigAttribute(strictStub);
-        if (strictAttr != null)
-        {
-          strictMode = strictAttr.activeValue();
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-      }
+      currentConfig = configuration;
+      currentConfig.addTelephoneNumberChangeListener(this);
+      strictMode = currentConfig.isStrictFormat();
     }
   }
 
@@ -189,7 +137,7 @@ public class TelephoneNumberSyntax
    */
   public void finalizeSyntax()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removeTelephoneNumberChangeListener(this);
   }
 
 
@@ -410,173 +358,28 @@ public class TelephoneNumberSyntax
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
+  public boolean isConfigurationChangeAcceptable(
+                      TelephoneNumberAttributeSyntaxCfg configuration,
+                      List<String> unacceptableReasons)
   {
-    return configEntryDN;
+    // The configuration will always be acceptable.
+    return true;
   }
 
 
 
   /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
+   * {@inheritDoc}
    */
-  public List<ConfigAttribute> getConfigurationAttributes()
+  public ConfigChangeResult applyConfigurationChange(
+              TelephoneNumberAttributeSyntaxCfg configuration)
   {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
+    currentConfig = configuration;
+    strictMode = configuration.isStrictFormat();
 
-    int msgID = MSGID_ATTR_SYNTAX_TELEPHONE_DESCRIPTION_STRICT_MODE;
-    attrList.add(new BooleanConfigAttribute(ATTR_TELEPHONE_STRICT_MODE,
-                                            getMessage(msgID), false,
-                                            strictMode));
-
-    return attrList;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
-  {
-    boolean configIsAcceptable = true;
-
-
-    // See if the entry has a "strict mode" attribute.
-    int msgID = MSGID_ATTR_SYNTAX_TELEPHONE_DESCRIPTION_STRICT_MODE;
-    BooleanConfigAttribute strictStub =
-         new BooleanConfigAttribute(ATTR_TELEPHONE_STRICT_MODE,
-                                    getMessage(msgID), false);
-    try
-    {
-      // In this case, we don't care what the value is, or even whether the
-      // attribute exists at all.  However, if it does exist, then it must have
-      // a valid Boolean value.
-      BooleanConfigAttribute strictAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(strictStub);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      unacceptableReasons.add(message);
-      configIsAcceptable = false;
-    }
-
-
-    return configIsAcceptable;
-  }
-
-
-
-  /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
-   */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
-  {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-
-
-    // See if the entry has a "strict mode" attribute.
-    boolean newStrictMode;
-    int msgID = MSGID_ATTR_SYNTAX_TELEPHONE_DESCRIPTION_STRICT_MODE;
-    BooleanConfigAttribute strictStub =
-         new BooleanConfigAttribute(ATTR_TELEPHONE_STRICT_MODE,
-                                    getMessage(msgID), false);
-    try
-    {
-      BooleanConfigAttribute strictAttr =
-           (BooleanConfigAttribute)
-           configEntry.getConfigAttribute(strictStub);
-      if (strictAttr == null)
-      {
-        // This is fine -- the entry doesn't contain this attribute so we'll
-        // just use the default.
-        newStrictMode = false;
-      }
-      else
-      {
-        // The entry does contain this attribute, so we'll use its value.
-        newStrictMode = strictAttr.pendingValue();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_ATTR_SYNTAX_TELEPHONE_CANNOT_DETERMINE_STRICT_MODE;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              getExceptionMessage(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-
-      newStrictMode = false;
-    }
-
-
-    if (resultCode == ResultCode.SUCCESS)
-    {
-      if (strictMode != newStrictMode)
-      {
-        strictMode = newStrictMode;
-        if (detailedResults)
-        {
-          msgID = MSGID_ATTR_SYNTAX_TELEPHONE_UPDATED_STRICT_MODE;
-          messages.add(getMessage(msgID, String.valueOf(strictMode)));
-        }
-      }
-    }
-
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }
 

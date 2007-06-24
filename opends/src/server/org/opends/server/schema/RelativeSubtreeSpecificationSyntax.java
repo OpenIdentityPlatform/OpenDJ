@@ -33,13 +33,13 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.RelativeSubtreeSpecification;
@@ -55,13 +55,14 @@ import org.opends.server.types.ErrorLogSeverity;
  * syntax, which is used to specify the scope of access controls and
  * their parameters.
  */
-public final class RelativeSubtreeSpecificationSyntax extends
-    AttributeSyntax {
-
+public final class RelativeSubtreeSpecificationSyntax
+       extends AttributeSyntax<AttributeSyntaxCfg>
+{
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
 
 
   // The default equality matching rule for this syntax.
@@ -72,6 +73,8 @@ public final class RelativeSubtreeSpecificationSyntax extends
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
+
+
 
   /**
    * Create a new attribute value decoder with the specified root DN.
@@ -127,18 +130,10 @@ public final class RelativeSubtreeSpecificationSyntax extends
   }
 
   /**
-   * Initializes this attribute syntax based on the information in the
-   * provided configuration entry.
-   *
-   * @param configEntry
-   *          The configuration entry that contains the information to
-   *          use to initialize this attribute syntax.
-   * @throws ConfigException
-   *           If an unrecoverable problem arises in the process of
-   *           performing the initialization.
+   * {@inheritDoc}
    */
-  public void initializeSyntax(ConfigEntry configEntry)
-      throws ConfigException {
+  public void initializeSyntax(AttributeSyntaxCfg configuration)
+         throws ConfigException {
 
     defaultEqualityMatchingRule = DirectoryServer
         .getEqualityMatchingRule(EMR_OCTET_STRING_OID);

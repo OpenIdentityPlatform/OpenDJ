@@ -52,6 +52,8 @@ import javax.management.MBeanServerFactory;
 
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.admin.std.server.RootDSEBackendCfg;
@@ -184,22 +186,23 @@ public class DirectoryServer
        accountStatusNotificationHandlerConfigManager;
 
   // The default syntax to use for binary attributes.
-  private AttributeSyntax defaultBinarySyntax;
+  private AttributeSyntax<AttributeSyntaxCfg> defaultBinarySyntax;
 
   // The default syntax to use for Boolean attributes.
-  private AttributeSyntax defaultBooleanSyntax;
+  private AttributeSyntax<AttributeSyntaxCfg> defaultBooleanSyntax;
 
   // The default syntax to use for DN attributes.
-  private AttributeSyntax defaultDNSyntax;
+  private AttributeSyntax<AttributeSyntaxCfg> defaultDNSyntax;
 
   // The default syntax to use for integer attributes.
-  private AttributeSyntax defaultIntegerSyntax;
+  private AttributeSyntax<AttributeSyntaxCfg> defaultIntegerSyntax;
 
   // The default syntax to use for string attributes.
-  private AttributeSyntax defaultStringSyntax;
+  private AttributeSyntax<DirectoryStringAttributeSyntaxCfg>
+               defaultStringSyntax;
 
   // The default attribute syntax to use for attributes with no defined syntax.
-  private AttributeSyntax defaultSyntax;
+  private AttributeSyntax<DirectoryStringAttributeSyntaxCfg> defaultSyntax;
 
   // The attribute type used to reference the "objectclass" attribute.
   private AttributeType objectClassAttributeType;
@@ -1857,7 +1860,7 @@ public class DirectoryServer
 
     try
     {
-      AttributeSyntax syntax = new IA5StringSyntax();
+      IA5StringSyntax syntax = new IA5StringSyntax();
       syntax.initializeSyntax(null);
       registerAttributeSyntax(syntax, true);
     }
@@ -1899,7 +1902,7 @@ public class DirectoryServer
 
     try
     {
-      AttributeSyntax syntax = new GeneralizedTimeSyntax();
+      GeneralizedTimeSyntax syntax = new GeneralizedTimeSyntax();
       syntax.initializeSyntax(null);
       registerAttributeSyntax(syntax, true);
     }
@@ -1920,7 +1923,7 @@ public class DirectoryServer
 
     try
     {
-      AttributeSyntax syntax = new ObjectClassSyntax();
+      ObjectClassSyntax syntax = new ObjectClassSyntax();
       syntax.initializeSyntax(null);
       registerAttributeSyntax(syntax, true);
     }
@@ -1941,7 +1944,7 @@ public class DirectoryServer
 
     try
     {
-      AttributeSyntax syntax = new OIDSyntax();
+      OIDSyntax syntax = new OIDSyntax();
       syntax.initializeSyntax(null);
       registerAttributeSyntax(syntax, true);
     }
@@ -1962,7 +1965,7 @@ public class DirectoryServer
 
     try
     {
-      AttributeSyntax syntax = new TelephoneNumberSyntax();
+      TelephoneNumberSyntax syntax = new TelephoneNumberSyntax();
       syntax.initializeSyntax(null);
       registerAttributeSyntax(syntax, true);
     }
@@ -3399,8 +3402,9 @@ public class DirectoryServer
         {
           try
           {
-            oidSyntax = new OIDSyntax();
-            oidSyntax.initializeSyntax(null);
+            OIDSyntax newOIDSyntax = new OIDSyntax();
+            newOIDSyntax.initializeSyntax(null);
+            oidSyntax = newOIDSyntax;
             directoryServer.schema.registerSyntax(oidSyntax, true);
           }
           catch (Exception e)

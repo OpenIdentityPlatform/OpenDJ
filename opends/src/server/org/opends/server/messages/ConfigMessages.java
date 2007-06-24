@@ -6734,6 +6734,28 @@ public class ConfigMessages
 
 
 
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * delete an attribute syntax that is in use by an attribute type.  This takes
+   * two arguments, which is the name of the attribute syntax and the name or
+   * OID of the attribute type that is using that syntax.
+   */
+  public static final int MSGID_CONFIG_SCHEMA_CANNOT_DELETE_SYNTAX_IN_USE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 668;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * disable an attribute syntax that is in use by an attribute type.  This
+   * takes two arguments, which is the name of the attribute syntax and the name
+   * or  OID of the attribute type that is using that syntax.
+   */
+  public static final int MSGID_CONFIG_SCHEMA_CANNOT_DISABLE_SYNTAX_IN_USE =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 669;
+
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -8015,6 +8037,12 @@ public class ConfigMessages
                     "conflicts with another syntax defined in the server " +
                     "configuration:  %s.  This attribute syntax will not be " +
                     "used");
+    registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_DELETE_SYNTAX_IN_USE,
+                    "Attribute syntax %s cannot be deleted from the server " +
+                    "because it is in use by attribute type %s");
+    registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_DISABLE_SYNTAX_IN_USE,
+                    "Attribute syntax %s cannot be disabled because it is in " +
+                    "use by attribute type %s");
 
 
     registerMessage(MSGID_CONFIG_SCHEMA_NO_SCHEMA_DIR,

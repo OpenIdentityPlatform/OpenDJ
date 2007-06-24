@@ -33,12 +33,12 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
@@ -65,7 +65,7 @@ import static org.opends.server.util.StaticUtils.*;
  * of this syntax is defined in RFC 2252.
  */
 public class DITStructureRuleSyntax
-       extends AttributeSyntax
+       extends AttributeSyntax<AttributeSyntaxCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -95,7 +95,6 @@ public class DITStructureRuleSyntax
   public DITStructureRuleSyntax()
   {
     super();
-
   }
 
 
@@ -103,7 +102,7 @@ public class DITStructureRuleSyntax
   /**
    * {@inheritDoc}
    */
-  public void initializeSyntax(ConfigEntry configEntry)
+  public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException, InitializationException
   {
     defaultEqualityMatchingRule =
