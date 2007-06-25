@@ -37,9 +37,9 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
@@ -421,7 +421,7 @@ public class DbHandler implements Runnable
    * This internal class is used to implement the Monitoring capabilities
    * of the dbHandler.
    */
-  private class DbMonitorProvider extends MonitorProvider
+  private class DbMonitorProvider extends MonitorProvider<MonitorProviderCfg>
   {
     private DbMonitorProvider()
     {
@@ -478,7 +478,7 @@ public class DbHandler implements Runnable
      * {@inheritDoc}
      */
     @Override
-    public void initializeMonitorProvider(ConfigEntry configEntry)
+    public void initializeMonitorProvider(MonitorProviderCfg configuration)
                             throws ConfigException,InitializationException
     {
       // Nothing to do for now

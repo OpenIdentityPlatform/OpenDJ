@@ -63,7 +63,7 @@ public class VersionMonitorTestCase
          throws Exception
   {
     VersionMonitorProvider monitorProvider = new VersionMonitorProvider();
-    monitorProvider.initializeMonitorProvider(configEntry);
+    monitorProvider.initializeMonitorProvider(null);
     return monitorProvider;
   }
 }

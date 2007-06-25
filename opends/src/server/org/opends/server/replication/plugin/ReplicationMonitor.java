@@ -29,8 +29,8 @@ package org.opends.server.replication.plugin;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -39,7 +39,7 @@ import org.opends.server.types.AttributeValue;
 /**
  * Class used to generate monitoring information for the replication.
  */
-public class ReplicationMonitor extends MonitorProvider
+public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
 {
   private ReplicationDomain domain;  // the replication plugin
 
@@ -54,12 +54,10 @@ public class ReplicationMonitor extends MonitorProvider
   }
 
   /**
-   * initialization function for the Monitor.
-   * Not used for now
-   * @param configEntry the entry to use for initialization
+   * {@inheritDoc}
    */
-  @Override
-  public void initializeMonitorProvider(ConfigEntry configEntry)
+  @Override()
+  public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
     // TODO Auto-generated method stub
   }

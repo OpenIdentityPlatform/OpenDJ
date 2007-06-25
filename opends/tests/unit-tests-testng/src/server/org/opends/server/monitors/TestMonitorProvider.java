@@ -27,8 +27,8 @@
 
 package org.opends.server.monitors;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Attribute;
@@ -39,14 +39,14 @@ import java.util.Collections;
 /**
  * This test monitor provider has a DN embedded in its instance name.
  */
-class TestMonitorProvider extends MonitorProvider
+class TestMonitorProvider extends MonitorProvider<MonitorProviderCfg>
 {
   public TestMonitorProvider()
   {
     super("Test Monitor Thread");
   }
 
-  public void initializeMonitorProvider(ConfigEntry configEntry)
+  public void initializeMonitorProvider(MonitorProviderCfg configuration)
        throws ConfigException, InitializationException
   {
     // No implementation required.

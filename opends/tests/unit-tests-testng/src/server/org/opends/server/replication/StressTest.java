@@ -37,8 +37,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
@@ -213,7 +213,7 @@ public class StressTest extends ReplicationTestCase
     ServerSocket socket = TestCaseUtils.bindFreePort();
     replServerPort = socket.getLocalPort();
     socket.close();
-    
+
     // Change log
     String replServerLdif =
       "dn: cn=Replication Server, " + synchroPluginStringDN + "\n"
@@ -364,7 +364,7 @@ public class StressTest extends ReplicationTestCase
     }
   }
 
-  private class Monitor extends MonitorProvider
+  private class Monitor extends MonitorProvider<MonitorProviderCfg>
   {
     protected Monitor(String threadName)
     {
@@ -401,7 +401,7 @@ public class StressTest extends ReplicationTestCase
     }
 
     @Override
-    public void initializeMonitorProvider(ConfigEntry configEntry)
+    public void initializeMonitorProvider(MonitorProviderCfg configuration)
     throws ConfigException, InitializationException
     {
       // nothing to do

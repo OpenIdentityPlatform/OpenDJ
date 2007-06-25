@@ -110,7 +110,7 @@ public class ConnectionHandlerConfigManager implements
       DN dn = configuration.dn();
       try {
         // Attempt to start the connection handler.
-        ConnectionHandler connectionHandler =
+        ConnectionHandler<? extends ConnectionHandlerCfg> connectionHandler =
           getConnectionHandler(configuration);
         connectionHandler.start();
 
@@ -179,8 +179,9 @@ public class ConnectionHandlerConfigManager implements
 
           // Register the connection handler with the Directory
           // Server.
-          DirectoryServer
-              .registerConnectionHandler(connectionHandler);
+          DirectoryServer.registerConnectionHandler(
+               (ConnectionHandler<? extends ConnectionHandlerCfg>)
+               connectionHandler);
         } catch (ConfigException e) {
           if (debugEnabled())
           {
@@ -305,7 +306,8 @@ public class ConnectionHandlerConfigManager implements
         // because we're still in the startup process. Therefore, we
         // will not do so and allow the server to start it at the very
         // end of the initialization process.
-        ConnectionHandler connectionHandler = getConnectionHandler(config);
+        ConnectionHandler<? extends ConnectionHandlerCfg> connectionHandler =
+             getConnectionHandler(config);
 
         // Put this connection handler in the hash so that we will be
         // able to find it if it is altered.
@@ -366,8 +368,10 @@ public class ConnectionHandlerConfigManager implements
 
 
   // Load and initialize the connection handler named in the config.
-  private ConnectionHandler getConnectionHandler(
-      ConnectionHandlerCfg config) throws ConfigException {
+  private ConnectionHandler<? extends ConnectionHandlerCfg>
+               getConnectionHandler(ConnectionHandlerCfg config)
+          throws ConfigException
+  {
     String className = config.getJavaImplementationClass();
     ConnectionHandlerCfgDefn d =
       ConnectionHandlerCfgDefn.getInstance();
@@ -419,7 +423,8 @@ public class ConnectionHandlerConfigManager implements
     }
 
     // The connection handler has been successfully initialized.
-    return connectionHandler;
+    return (ConnectionHandler<? extends ConnectionHandlerCfg>)
+           connectionHandler;
   }
 
 

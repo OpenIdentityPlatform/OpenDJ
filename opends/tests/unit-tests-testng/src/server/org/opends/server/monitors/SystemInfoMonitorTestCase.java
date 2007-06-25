@@ -63,7 +63,7 @@ public class SystemInfoMonitorTestCase
          throws Exception
   {
     SystemInfoMonitorProvider monitorProvider = new SystemInfoMonitorProvider();
-    monitorProvider.initializeMonitorProvider(configEntry);
+    monitorProvider.initializeMonitorProvider(null);
     return monitorProvider;
   }
 }

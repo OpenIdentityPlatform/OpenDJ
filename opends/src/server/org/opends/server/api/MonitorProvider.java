@@ -30,7 +30,7 @@ package org.opends.server.api;
 
 import java.util.List;
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DebugLogLevel;
@@ -49,8 +49,11 @@ import static org.opends.server.util.ServerConstants.*;
  * implemented by a Directory Server module that can provide usage,
  * performance, availability, or other kinds of monitor information
  * to clients.
+ *
+ * @param  <T>  The type of configuration handled by this monitor
+ *              provider.
  */
-public abstract class MonitorProvider
+public abstract class MonitorProvider<T extends MonitorProviderCfg>
        extends DirectoryThread
 {
   /**
@@ -89,9 +92,8 @@ public abstract class MonitorProvider
    * Initializes this monitor provider based on the information in the
    * provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      monitor provider.
+   * @param  configuration  The configuration to use to initialize
+   *                        this monitor provider.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -102,8 +104,7 @@ public abstract class MonitorProvider
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializeMonitorProvider(
-                            ConfigEntry configEntry)
+  public abstract void initializeMonitorProvider(T configuration)
          throws ConfigException, InitializationException;
 
 

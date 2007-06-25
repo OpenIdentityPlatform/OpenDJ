@@ -61,7 +61,7 @@ import static org.testng.Assert.*;
 public class InternalSearchMonitorTestCase
        extends MonitorTestCase
 {
-  static MonitorProvider testMonitorProvider = new TestMonitorProvider();
+  static TestMonitorProvider testMonitorProvider = new TestMonitorProvider();
 
   /**
    * Ensures that the Directory Server is started.

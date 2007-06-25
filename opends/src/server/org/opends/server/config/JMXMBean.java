@@ -48,6 +48,7 @@ import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.DirectoryServerMBean;
@@ -118,7 +119,8 @@ public class JMXMBean
   private CopyOnWriteArrayList<InvokableComponent> invokableComponents;
 
   // The set of monitor providers for this MBean.
-  private CopyOnWriteArrayList<MonitorProvider> monitorProviders;
+  private CopyOnWriteArrayList<MonitorProvider<? extends MonitorProviderCfg>>
+               monitorProviders;
 
   // The DN of the configuration entry with which this MBean is associated.
   private DN configEntryDN;
@@ -206,7 +208,9 @@ public class JMXMBean
         configurableComponents =
                            new CopyOnWriteArrayList<ConfigurableComponent>();
         invokableComponents = new CopyOnWriteArrayList<InvokableComponent>();
-        monitorProviders = new CopyOnWriteArrayList<MonitorProvider>();
+        monitorProviders =
+             new CopyOnWriteArrayList<MonitorProvider<
+                                           ? extends MonitorProviderCfg>>();
 
         MBeanServer mBeanServer = DirectoryServer.getJMXMBeanServer();
         if (mBeanServer != null)
@@ -424,7 +428,8 @@ public class JMXMBean
    *
    * @return  The set of monitor providers associated with this JMX MBean.
    */
-  public CopyOnWriteArrayList<MonitorProvider> getMonitorProviders()
+  public CopyOnWriteArrayList<MonitorProvider<? extends MonitorProviderCfg>>
+              getMonitorProviders()
   {
     return monitorProviders;
   }
@@ -438,7 +443,8 @@ public class JMXMBean
    * @param  component  The component to add to the set of monitor providers
    *                    for this JMX MBean.
    */
-  public void addMonitorProvider(MonitorProvider component)
+  public void addMonitorProvider(MonitorProvider<? extends MonitorProviderCfg>
+                                      component)
   {
     synchronized (monitorProviders)
     {
@@ -548,7 +554,8 @@ public class JMXMBean
     {
       attrType = DirectoryServer.getDefaultAttributeType(name);
     }
-    for (MonitorProvider monitor : monitorProviders)
+    for (MonitorProvider<? extends MonitorProviderCfg> monitor :
+         monitorProviders)
     {
       for (org.opends.server.types.Attribute a : monitor.getMonitorData())
       {
@@ -912,7 +919,9 @@ private LDAPAttribute getLdapAttributeFromJmx(
         attrType = DirectoryServer.getDefaultAttributeType(name);
       }
 
-      monitorLoop: for (MonitorProvider monitor : monitorProviders)
+monitorLoop:
+      for (MonitorProvider<? extends MonitorProviderCfg> monitor :
+           monitorProviders)
       {
         for (org.opends.server.types.Attribute a : monitor.getMonitorData())
         {
@@ -1168,7 +1177,8 @@ private LDAPAttribute getLdapAttributeFromJmx(
       }
     }
 
-    for (MonitorProvider monitor : monitorProviders)
+    for (MonitorProvider<? extends MonitorProviderCfg> monitor :
+         monitorProviders)
     {
       for (org.opends.server.types.Attribute a : monitor.getMonitorData())
       {
