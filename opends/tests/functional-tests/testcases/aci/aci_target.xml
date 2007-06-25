@@ -1587,6 +1587,77 @@
           </testcase>
    
             <!---
+              Place test-specific test information here.
+              The tag, TestMarker, must be the same as the tag, TestSuiteName.
+              #@TestMarker                ACI Target Tests
+              #@TestName                  Target ACI with mispelled version
+              #@TestIssue                 1750
+              #@TestPurpose               Test if an aci is allowed that contains version mispelled
+              #@TestPreamble              none
+              #@TestStep                  Admin adds an aci to an existing entry
+                                          that has the keyword version misspelled
+              #@TestStep                  Admin checks if aci was added.
+              #@TestPostamble             none
+              #@TestResult                Success if OpenDS returns 21, 
+                                          and the aci has not been added.
+          -->
+          <testcase name="'ACI: Target: Keyword version mispelled'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>
+                    curr_aci="(targetattr=\"*\")(verison 3.0; acl \"add_aci14\"; allow (search,read) userdn=\"ldap:///all\";)"
+              </script>
+                
+              <message>
+                 'ACI: Target: Keyword version mispelled - add aci,\n %s' % curr_aci
+              </message>
+  
+              <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : curr_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '21'}
+              </call>
+                
+              <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+              </if>
+  
+              <message>
+                 'ACI: Target: Keyword version mispelled - check aci'
+              </message>
+  
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' ,
+                  'attributes'       : 'aci' }
+              </call>
+  
+              <script> 
+               returnString = STAXResult[0][1]
+              </script> 
+  
+              <call function="'checktestStringNotPresent'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'aci:' }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>          
+            </sequence>
+          </testcase>
+   
+            <!---
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Target Tests
