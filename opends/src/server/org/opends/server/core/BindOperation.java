@@ -1009,12 +1009,18 @@ bindProcessing:
 
         logBindRequest(this);
         logBindResponse(this);
+        pluginConfigManager.invokePostResponseBindPlugins(this);
         return;
       }
       else if (preParseResult.sendResponseImmediately())
       {
         skipPostOperation = true;
         logBindRequest(this);
+        break bindProcessing;
+      }
+      else if (preParseResult.skipCoreProcessing())
+      {
+        skipPostOperation = false;
         break bindProcessing;
       }
 
@@ -1145,11 +1151,17 @@ bindProcessing:
               processingStopTime = System.currentTimeMillis();
 
               logBindResponse(this);
+              pluginConfigManager.invokePostResponseBindPlugins(this);
               return;
             }
             else if (preOpResult.sendResponseImmediately())
             {
               skipPostOperation = true;
+              break bindProcessing;
+            }
+            else if (preOpResult.skipCoreProcessing())
+            {
+              skipPostOperation = false;
               break bindProcessing;
             }
 
@@ -1444,11 +1456,17 @@ bindProcessing:
               processingStopTime = System.currentTimeMillis();
 
               logBindResponse(this);
+              pluginConfigManager.invokePostResponseBindPlugins(this);
               return;
             }
             else if (preOpResult.sendResponseImmediately())
             {
               skipPostOperation = true;
+              break bindProcessing;
+            }
+            else if (preOpResult.skipCoreProcessing())
+            {
+              skipPostOperation = false;
               break bindProcessing;
             }
 
@@ -1737,11 +1755,17 @@ bindProcessing:
             processingStopTime = System.currentTimeMillis();
 
             logBindResponse(this);
+            pluginConfigManager.invokePostResponseBindPlugins(this);
             return;
           }
           else if (preOpResult.sendResponseImmediately())
           {
             skipPostOperation = true;
+            break bindProcessing;
+          }
+          else if (preOpResult.skipCoreProcessing())
+          {
+            skipPostOperation = false;
             break bindProcessing;
           }
 
@@ -2244,6 +2268,7 @@ bindProcessing:
         processingStopTime = System.currentTimeMillis();
 
         logBindResponse(this);
+        pluginConfigManager.invokePostResponseBindPlugins(this);
         return;
       }
     }

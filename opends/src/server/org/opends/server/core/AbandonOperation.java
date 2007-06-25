@@ -306,6 +306,11 @@ abandonProcessing:
         skipPostOperation = true;
         break abandonProcessing;
       }
+      else if (preParseResult.skipCoreProcessing())
+      {
+        skipPostOperation = false;
+        break abandonProcessing;
+      }
 
 
       // Log the abandon request message.

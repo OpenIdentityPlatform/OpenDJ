@@ -1551,12 +1551,18 @@ searchProcessing:
 
         logSearchRequest(this);
         logSearchResultDone(this);
+        pluginConfigManager.invokePostResponseSearchPlugins(this);
         return;
       }
       else if (preParseResult.sendResponseImmediately())
       {
         skipPostOperation = true;
         logSearchRequest(this);
+        break searchProcessing;
+      }
+      else if (preParseResult.skipCoreProcessing())
+      {
+        skipPostOperation = false;
         break searchProcessing;
       }
 
@@ -1571,6 +1577,7 @@ searchProcessing:
         indicateCancelled(cancelRequest);
         processingStopTime = System.currentTimeMillis();
         logSearchResultDone(this);
+        pluginConfigManager.invokePostResponseSearchPlugins(this);
         return;
       }
 
@@ -2037,6 +2044,7 @@ searchProcessing:
         indicateCancelled(cancelRequest);
         processingStopTime = System.currentTimeMillis();
         logSearchResultDone(this);
+        pluginConfigManager.invokePostResponseSearchPlugins(this);
         return;
       }
 
@@ -2055,11 +2063,17 @@ searchProcessing:
 
         processingStopTime = System.currentTimeMillis();
         logSearchResultDone(this);
+        pluginConfigManager.invokePostResponseSearchPlugins(this);
         return;
       }
       else if (preOpResult.sendResponseImmediately())
       {
         skipPostOperation = true;
+        break searchProcessing;
+      }
+      else if (preOpResult.skipCoreProcessing())
+      {
+        skipPostOperation = false;
         break searchProcessing;
       }
 
@@ -2070,6 +2084,7 @@ searchProcessing:
         indicateCancelled(cancelRequest);
         processingStopTime = System.currentTimeMillis();
         logSearchResultDone(this);
+        pluginConfigManager.invokePostResponseSearchPlugins(this);
         return;
       }
 
@@ -2184,6 +2199,7 @@ searchProcessing:
       indicateCancelled(cancelRequest);
       processingStopTime = System.currentTimeMillis();
       logSearchResultDone(this);
+      pluginConfigManager.invokePostResponseSearchPlugins(this);
       return;
     }
 
@@ -2202,6 +2218,7 @@ searchProcessing:
 
         processingStopTime = System.currentTimeMillis();
         logSearchResultDone(this);
+        pluginConfigManager.invokePostResponseSearchPlugins(this);
         return;
       }
     }

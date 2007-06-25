@@ -575,12 +575,18 @@ compareProcessing:
 
         logCompareRequest(this);
         logCompareResponse(this);
+        pluginConfigManager.invokePostResponseComparePlugins(this);
         return;
       }
       else if (preParseResult.sendResponseImmediately())
       {
         skipPostOperation = true;
         logCompareRequest(this);
+        break compareProcessing;
+      }
+      else if (preParseResult.skipCoreProcessing())
+      {
+        skipPostOperation = false;
         break compareProcessing;
       }
 
@@ -595,6 +601,7 @@ compareProcessing:
         indicateCancelled(cancelRequest);
         processingStopTime = System.currentTimeMillis();
         logCompareResponse(this);
+        pluginConfigManager.invokePostResponseComparePlugins(this);
         return;
       }
 
@@ -643,6 +650,7 @@ compareProcessing:
         indicateCancelled(cancelRequest);
         processingStopTime = System.currentTimeMillis();
         logCompareResponse(this);
+        pluginConfigManager.invokePostResponseComparePlugins(this);
         return;
       }
 
@@ -992,6 +1000,7 @@ compareProcessing:
           indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
           logCompareResponse(this);
+          pluginConfigManager.invokePostResponseComparePlugins(this);
           return;
         }
 
@@ -1010,11 +1019,17 @@ compareProcessing:
 
           processingStopTime = System.currentTimeMillis();
           logCompareResponse(this);
+          pluginConfigManager.invokePostResponseComparePlugins(this);
           return;
         }
         else if (preOpResult.sendResponseImmediately())
         {
           skipPostOperation = true;
+          break compareProcessing;
+        }
+        else if (preOpResult.skipCoreProcessing())
+        {
+          skipPostOperation = false;
           break compareProcessing;
         }
 
@@ -1114,6 +1129,7 @@ compareProcessing:
       indicateCancelled(cancelRequest);
       processingStopTime = System.currentTimeMillis();
       logCompareResponse(this);
+      pluginConfigManager.invokePostResponseComparePlugins(this);
       return;
     }
 
@@ -1132,6 +1148,7 @@ compareProcessing:
 
         processingStopTime = System.currentTimeMillis();
         logCompareResponse(this);
+        pluginConfigManager.invokePostResponseComparePlugins(this);
         return;
       }
     }

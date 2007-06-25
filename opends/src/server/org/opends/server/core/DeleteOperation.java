@@ -526,12 +526,18 @@ deleteProcessing:
 
         logDeleteRequest(this);
         logDeleteResponse(this);
+        pluginConfigManager.invokePostResponseDeletePlugins(this);
         return;
       }
       else if (preParseResult.sendResponseImmediately())
       {
         skipPostOperation = true;
         logDeleteRequest(this);
+        break deleteProcessing;
+      }
+      else if (preParseResult.skipCoreProcessing())
+      {
+        skipPostOperation = false;
         break deleteProcessing;
       }
 
@@ -546,6 +552,7 @@ deleteProcessing:
         indicateCancelled(cancelRequest);
         processingStopTime = System.currentTimeMillis();
         logDeleteResponse(this);
+        pluginConfigManager.invokePostResponseDeletePlugins(this);
         return;
       }
 
@@ -983,6 +990,7 @@ deleteProcessing:
           indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
           logDeleteResponse(this);
+          pluginConfigManager.invokePostResponseDeletePlugins(this);
           return;
         }
 
@@ -1004,11 +1012,17 @@ deleteProcessing:
 
             processingStopTime = System.currentTimeMillis();
             logDeleteResponse(this);
+            pluginConfigManager.invokePostResponseDeletePlugins(this);
             return;
           }
           else if (preOpResult.sendResponseImmediately())
           {
             skipPostOperation = true;
+            break deleteProcessing;
+          }
+          else if (preOpResult.skipCoreProcessing())
+          {
+            skipPostOperation = false;
             break deleteProcessing;
           }
         }
@@ -1020,6 +1034,7 @@ deleteProcessing:
           indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
           logDeleteResponse(this);
+          pluginConfigManager.invokePostResponseDeletePlugins(this);
           return;
         }
 
@@ -1280,6 +1295,7 @@ deleteProcessing:
 
         processingStopTime = System.currentTimeMillis();
         logDeleteResponse(this);
+        pluginConfigManager.invokePostResponseDeletePlugins(this);
         return;
       }
     }
