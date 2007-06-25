@@ -31,9 +31,9 @@ package org.opends.server.monitors;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.TraditionalWorkQueue;
@@ -51,11 +51,8 @@ import org.opends.server.types.InitializationException;
  * information about the state of the work queue.
  */
 public class TraditionalWorkQueueMonitor
-       extends MonitorProvider
+       extends MonitorProvider<MonitorProviderCfg>
 {
-
-
-
   /**
    * The name to use for the monitor attribute that provides the current request
    * backlog.
@@ -129,20 +126,9 @@ public class TraditionalWorkQueueMonitor
 
 
   /**
-   * Initializes this monitor provider based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this monitor provider.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
-  public void initializeMonitorProvider(ConfigEntry configEntry)
+  public void initializeMonitorProvider(MonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {
     maxBacklog   = 0;

@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
@@ -425,7 +426,7 @@ public class MonitorBackend
     // Get the RDN value and see if it matches the instance name for one of
     // the directory server monitor providers.
     String rdnValue = entryRDN.getAttributeValue(0).getStringValue();
-    MonitorProvider monitorProvider =
+    MonitorProvider<? extends MonitorProviderCfg> monitorProvider =
          DirectoryServer.getMonitorProvider(rdnValue.toLowerCase());
     if (monitorProvider == null)
     {
@@ -664,7 +665,9 @@ public class MonitorBackend
    * @return  The monitor entry generated from the information in the provided
    *          monitor provider.
    */
-  private Entry getMonitorEntry(DN entryDN, MonitorProvider monitorProvider)
+  private Entry getMonitorEntry(DN entryDN,
+                     MonitorProvider<? extends MonitorProviderCfg>
+                          monitorProvider)
   {
     HashMap<ObjectClass,String> monitorClasses =
          new LinkedHashMap<ObjectClass,String>(3);
@@ -897,7 +900,7 @@ public class MonitorBackend
 
       // Iterate through all of the monitor providers defined in the server.
       // Get an entry for each and compare it against the filter.
-      for (MonitorProvider monitorProvider :
+      for (MonitorProvider<? extends MonitorProviderCfg> monitorProvider :
            DirectoryServer.getMonitorProviders().values())
       {
         DN providerDN = DirectoryServer.getMonitorProviderDN(monitorProvider);

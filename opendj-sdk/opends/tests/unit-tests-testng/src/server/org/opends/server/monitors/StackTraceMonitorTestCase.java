@@ -63,7 +63,7 @@ public class StackTraceMonitorTestCase
          throws Exception
   {
     StackTraceMonitorProvider monitorProvider = new StackTraceMonitorProvider();
-    monitorProvider.initializeMonitorProvider(configEntry);
+    monitorProvider.initializeMonitorProvider(null);
     return monitorProvider;
   }
 }

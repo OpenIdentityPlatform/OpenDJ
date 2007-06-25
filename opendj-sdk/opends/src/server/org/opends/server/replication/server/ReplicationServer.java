@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.MonitorProvider;
@@ -75,7 +76,7 @@ import com.sleepycat.je.DatabaseException;
  *
  * It is responsible for creating the replication server cache and managing it
  */
-public class ReplicationServer extends MonitorProvider
+public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   implements Runnable, ConfigurableComponent,
              ConfigurationChangeListener<ReplicationServerCfg>
 {
@@ -534,7 +535,7 @@ public class ReplicationServer extends MonitorProvider
    * {@inheritDoc}
    */
   @Override
-  public void initializeMonitorProvider(ConfigEntry configEntry)
+  public void initializeMonitorProvider(MonitorProviderCfg configuraiton)
   {
     // Nothing to do for now
   }

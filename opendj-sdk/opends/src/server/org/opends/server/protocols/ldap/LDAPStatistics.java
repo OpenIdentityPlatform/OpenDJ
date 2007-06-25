@@ -32,9 +32,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
@@ -73,13 +73,12 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
  * about the interaction with a specific client or aggregated for all clients).
  */
 public class LDAPStatistics
-       extends MonitorProvider
+       extends MonitorProvider<MonitorProviderCfg>
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
 
 
 
@@ -203,16 +202,9 @@ public class LDAPStatistics
 
 
   /**
-   * Initializes this monitor provider based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this monitor provider.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
+   * {@inheritDoc}
    */
-  public void initializeMonitorProvider(ConfigEntry configEntry)
+  public void initializeMonitorProvider(MonitorProviderCfg configuration)
          throws ConfigException
   {
     // Throw an exception, because this monitor is not intended to be
@@ -220,7 +212,7 @@ public class LDAPStatistics
     // explicitly created and registered by the LDAP connection handler or an
     // LDAP client connection.
     int    msgID   = MSGID_LDAP_STATS_INVALID_MONITOR_INITIALIZATION;
-    String message = getMessage(msgID, String.valueOf(configEntry.getDN()));
+    String message = getMessage(msgID, String.valueOf(configuration.dn()));
     throw new ConfigException(msgID, message);
   }
 

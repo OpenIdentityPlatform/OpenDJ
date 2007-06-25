@@ -288,7 +288,7 @@ public class TraditionalWorkQueue
     {
       TraditionalWorkQueueMonitor monitor =
            new TraditionalWorkQueueMonitor(this);
-      monitor.initializeMonitorProvider(configEntry);
+      monitor.initializeMonitorProvider(null);
       monitor.start();
       DirectoryServer.registerMonitorProvider(monitor);
     }

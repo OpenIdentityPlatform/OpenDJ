@@ -34,8 +34,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
@@ -52,11 +52,8 @@ import org.opends.server.types.InitializationException;
  * the JVM.
  */
 public class StackTraceMonitorProvider
-       extends MonitorProvider
+       extends MonitorProvider<MonitorProviderCfg>
 {
-
-
-
   /**
    * Initializes this monitor provider.
    */
@@ -70,20 +67,9 @@ public class StackTraceMonitorProvider
 
 
   /**
-   * Initializes this monitor provider based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this monitor provider.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
-  public void initializeMonitorProvider(ConfigEntry configEntry)
+  public void initializeMonitorProvider(MonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

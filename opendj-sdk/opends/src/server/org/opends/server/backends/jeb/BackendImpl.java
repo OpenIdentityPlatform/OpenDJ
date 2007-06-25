@@ -44,6 +44,7 @@ import java.util.zip.CheckedInputStream;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentConfig;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
@@ -355,7 +356,7 @@ public class BackendImpl
     }
 
     // Register a monitor provider for the environment.
-    MonitorProvider monitorProvider =
+    MonitorProvider<? extends MonitorProviderCfg> monitorProvider =
         rootContainer.getMonitorProvider();
     monitorProviders.add(monitorProvider);
     DirectoryServer.registerMonitorProvider(monitorProvider);

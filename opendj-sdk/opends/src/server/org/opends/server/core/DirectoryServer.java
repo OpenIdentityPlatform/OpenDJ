@@ -53,7 +53,9 @@ import javax.management.MBeanServerFactory;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.admin.std.server.RootDSEBackendCfg;
@@ -312,7 +314,9 @@ public class DirectoryServer
 
   // The set of monitor providers registered with the Directory Server, as a
   // mapping between the monitor name and the corresponding implementation.
-  private ConcurrentHashMap<String,MonitorProvider> monitorProviders;
+  private ConcurrentHashMap<String,
+                            MonitorProvider<? extends MonitorProviderCfg>>
+               monitorProviders;
 
   // The set of password storage schemes defined in the server (mapped between
   // the lowercase scheme name and the storage scheme) that support the
@@ -668,7 +672,8 @@ public class DirectoryServer
     directoryServer.defaultPasswordPolicyDN = null;
     directoryServer.defaultPasswordPolicyConfig = null;
     directoryServer.monitorProviders =
-         new ConcurrentHashMap<String,MonitorProvider>();
+         new ConcurrentHashMap<String,
+                               MonitorProvider<? extends MonitorProviderCfg>>();
     directoryServer.backends = new TreeMap<String,Backend>();
     directoryServer.offlineBackendsStateIDs =
          new ConcurrentHashMap<String,Long>();
@@ -5232,7 +5237,9 @@ public class DirectoryServer
    * @return  The set of monitor providers that have been registered with the
    *          Directory Server.
    */
-  public static ConcurrentHashMap<String,MonitorProvider> getMonitorProviders()
+  public static ConcurrentHashMap<String,
+                                  MonitorProvider<? extends MonitorProviderCfg>>
+                     getMonitorProviders()
   {
     return directoryServer.monitorProviders;
   }
@@ -5248,7 +5255,8 @@ public class DirectoryServer
    * @return  The requested resource monitor, or <CODE>null</CODE> if none
    *          exists with the specified name.
    */
-  public static MonitorProvider getMonitorProvider(String lowerName)
+  public static MonitorProvider<? extends MonitorProviderCfg>
+                     getMonitorProvider(String lowerName)
   {
     return directoryServer.monitorProviders.get(lowerName);
   }
@@ -5263,7 +5271,9 @@ public class DirectoryServer
    * @param  monitorProvider  The monitor provider to register with the
    *                          Directory Server.
    */
-  public static void registerMonitorProvider(MonitorProvider monitorProvider)
+  public static void registerMonitorProvider(
+                          MonitorProvider<? extends MonitorProviderCfg>
+                               monitorProvider)
   {
     String lowerName = toLowerCase(monitorProvider.getMonitorInstanceName());
     directoryServer.monitorProviders.put(lowerName, monitorProvider);
@@ -7054,7 +7064,9 @@ public class DirectoryServer
    * @param  handler  The connection handler to register with the Directory
    *                  Server.
    */
-  public static void registerConnectionHandler(ConnectionHandler handler)
+  public static void registerConnectionHandler(
+                          ConnectionHandler<? extends ConnectionHandlerCfg>
+                               handler)
   {
     synchronized (directoryServer.connectionHandlers)
     {

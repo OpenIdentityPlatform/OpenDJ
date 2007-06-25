@@ -32,10 +32,11 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.server.admin.std.server.ConnectionHandlerCfg;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -54,11 +55,8 @@ import static org.opends.server.util.ServerConstants.*;
  * listeners, and established connections.
  */
 public class ConnectionHandlerMonitor
-       extends MonitorProvider
+       extends MonitorProvider<MonitorProviderCfg>
 {
-
-
-
   // The attribute type that will be used to report the established connections.
   private AttributeType connectionsType;
 
@@ -88,10 +86,10 @@ public class ConnectionHandlerMonitor
    * @param  connectionHandler  The connection handler with which this monitor
    *                            is associated.
    */
-  public ConnectionHandlerMonitor(ConnectionHandler connectionHandler)
+  public ConnectionHandlerMonitor(
+       ConnectionHandler<? extends ConnectionHandlerCfg> connectionHandler)
   {
     super(connectionHandler.getConnectionHandlerName());
-
 
     this.connectionHandler = connectionHandler;
   }
@@ -101,7 +99,7 @@ public class ConnectionHandlerMonitor
   /**
    * {@inheritDoc}
    */
-  public void initializeMonitorProvider(ConfigEntry configEntry)
+  public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
     monitorName = connectionHandler.getConnectionHandlerName();
 

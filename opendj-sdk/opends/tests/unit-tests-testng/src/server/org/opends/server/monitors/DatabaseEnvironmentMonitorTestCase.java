@@ -28,6 +28,7 @@ package org.opends.server.monitors;
 
 
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 
@@ -64,7 +65,8 @@ public class DatabaseEnvironmentMonitorTestCase
          throws Exception
   {
     String monitorName = "userroot database environment";
-    MonitorProvider provider = DirectoryServer.getMonitorProvider(monitorName);
+    MonitorProvider<? extends MonitorProviderCfg> provider =
+         DirectoryServer.getMonitorProvider(monitorName);
     provider.initializeMonitorProvider(null);
     return provider;
   }

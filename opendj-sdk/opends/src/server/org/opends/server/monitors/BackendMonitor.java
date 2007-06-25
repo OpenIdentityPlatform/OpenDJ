@@ -32,9 +32,9 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -54,11 +54,8 @@ import static org.opends.server.util.ServerConstants.*;
  * writability mode, and the number of entries it contains.
  */
 public class BackendMonitor
-       extends MonitorProvider
+       extends MonitorProvider<MonitorProviderCfg>
 {
-
-
-
   // The attribute type that will be used to report the backend ID.
   private AttributeType backendIDType;
 
@@ -102,7 +99,7 @@ public class BackendMonitor
   /**
    * {@inheritDoc}
    */
-  public void initializeMonitorProvider(ConfigEntry configEntry)
+  public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
     monitorName = backend.getBackendID() + " Backend";
 
