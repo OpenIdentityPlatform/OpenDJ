@@ -4908,7 +4908,171 @@
     
               </sequence>
             </testcase>
+
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Bind Type Tests
+                #@TestName                  userattr equals one operational attribute with bindtype
+                #@TestIssue                 1760
+                #@TestPurpose               Test behavior with userattr equals one operational attr with bindtype
+                #@TestPreamble              Admin adds an aci to the dn of one existing branch.
+                #@TestStep                  Client searches entry in the targeted branch dn for entry with matching userdn.
+                #@TestStep                  Client searches entry in a non-targeted branch dn for entry with matching userdn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap operations, and
+                                            and entries is returned only for step 1.
+            -->
+            <testcase name="'ACI: Bind Types: userattr equals one operational attr with bindtype'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci="(targetattr=\"*\")(version 3.0; acl \"add_userattr_aci9\"; allow (search,read) userattr=\"entrydn#USERDN\";)"
+                </script>
+              
+                <message>
+                   'ACI: Bind Types: userattr equals one operational attr with bindtype, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : curr_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Bind Types: userattr equals one operational attr with bindtype, user searching targeted entry with all attributes'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=gfarmer,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ruling' ,
+                    'dsBaseDN'         : 'uid=gfarmer,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid manager' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'cn:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'manager:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Bind Types: userattr equals one operational attr with bindtype, user searching in non-targeted branch'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=gfarmer,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ruling' ,
+                    'dsBaseDN'         : 'uid=gfarmer,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid manager' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=non-aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'ACI: Bind Types: userattr equals one operational attr with bindtype, admin deleting aci'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=aci branch, o=Bind Type Tests, o=ACI Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : curr_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Bind Types: userattr equals one operational attr with bindtype, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=gfarmer,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ruling' ,
+                    'dsBaseDN'         : 'uid=gfarmer,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid manager' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestStringNotPresent'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=gfarmer,ou=People,ou=aci branch,o=Bind Type Tests,o=ACI Tests' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
             
+                       
 <!-- syntax tests -->          
             <!---
                 Place test-specific test information here.
