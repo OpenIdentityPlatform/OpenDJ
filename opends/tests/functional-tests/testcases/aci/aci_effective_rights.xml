@@ -122,6 +122,81 @@
                 Place test-specific test information here.
                 The tag, TestMarker, must be the same as the tag, TestSuiteName.
                 #@TestMarker                ACI Effective Rights Tests
+                #@TestName                  Effective Rights - wildcard 
+                #@TestIssue                 1745
+                #@TestPurpose               Test effective rights with wildcard
+                #@TestPreamble              none
+                #@TestStep                  Admin searches for effective rights in an entry using the wildcard notation.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap operations, and
+                                            proper entries are returned for all steps.
+            -->
+            <testcase name="'ACI: Effective Rights: Basic - wildcard'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'ACI: Effective Rights: Basic - wildcard, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'uid=scarter'  ,
+                    'attributes'       : 'aclRights "*"' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com"' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;uid: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;cn: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;roomnumber: search:0,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+  
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Effective Rights Tests
                 #@TestName                  Effective Rights - read 
                 #@TestIssue                 87
                 #@TestPurpose               Test effective rights with read permission
