@@ -28,7 +28,7 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
@@ -41,16 +41,18 @@ import org.opends.server.types.InitializationException;
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server module that implements a matching
  * rule.
+ *
+ * @param  <T>  The type of configuration handled by this matching
+ *              rule.
  */
-public abstract class MatchingRule
+public abstract class MatchingRule<T extends MatchingRuleCfg>
 {
   /**
    * Initializes this matching rule based on the information in the
    * provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this
-   *                      matching rule.
+   * @param  configuration  The configuration to use to intialize this
+   *                        matching rule.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -60,8 +62,19 @@ public abstract class MatchingRule
    *                                   configuration-related occurs
    *                                   during initialization.
    */
-  public abstract void initializeMatchingRule(ConfigEntry configEntry)
+  public abstract void initializeMatchingRule(T configuration)
          throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Performs any finalization that may be needed whenever this
+   * matching rule is taken out of service.
+   */
+  public void finalizeMatchingRule()
+  {
+    // No implementation is required by default.
+  }
 
 
 

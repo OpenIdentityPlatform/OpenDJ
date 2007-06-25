@@ -28,6 +28,10 @@ package org.opends.server.schema;
 
 
 
+import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import org.opends.server.config.ConfigException;
+import org.opends.server.types.InitializationException;
+
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -41,16 +45,23 @@ import static org.opends.server.util.StaticUtils.*;
 public class KeywordEqualityMatchingRule
        extends WordEqualityMatchingRule
 {
-
-
-
   /**
    * Creates a new instance of this wordMatch matching rule.
    */
   public KeywordEqualityMatchingRule()
   {
     super();
+  }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
+         throws ConfigException, InitializationException
+  {
+    // No initialization is required.
   }
 
 

@@ -28,13 +28,14 @@ package org.opends.server.api;
 
 
 
+import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 
 
 
@@ -44,7 +45,7 @@ import org.opends.server.loggers.debug.DebugTracer;
  * rule used for equality matching.
  */
 public abstract class EqualityMatchingRule
-       extends MatchingRule
+       extends MatchingRule<EqualityMatchingRuleCfg>
 {
   /**
    * The tracer object for the debug logger.

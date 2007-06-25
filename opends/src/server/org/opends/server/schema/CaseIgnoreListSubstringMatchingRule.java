@@ -30,8 +30,8 @@ package org.opends.server.schema;
 
 import java.util.List;
 
+import org.opends.server.admin.std.server.SubstringMatchingRuleCfg;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
@@ -50,35 +50,20 @@ import static org.opends.server.util.StaticUtils.*;
 public class CaseIgnoreListSubstringMatchingRule
        extends SubstringMatchingRule
 {
-
-
-
   /**
    * Creates a new instance of this caseIgnoreSubstringsMatch matching rule.
    */
   public CaseIgnoreListSubstringMatchingRule()
   {
     super();
-
   }
 
 
 
   /**
-   * Initializes this matching rule based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this matching rule.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem that is not
-   *                                   configuration-related occurs during
-   *                                   initialization.
+   * {@inheritDoc}
    */
-  public void initializeMatchingRule(ConfigEntry configEntry)
+  public void initializeMatchingRule(SubstringMatchingRuleCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

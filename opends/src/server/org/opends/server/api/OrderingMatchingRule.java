@@ -31,6 +31,7 @@ package org.opends.server.api;
 import java.io.Serializable;
 import java.util.Comparator;
 
+import org.opends.server.admin.std.server.OrderingMatchingRuleCfg;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 
@@ -43,7 +44,7 @@ import org.opends.server.types.ConditionResult;
  * or processing range filters.
  */
 public abstract class OrderingMatchingRule
-       extends MatchingRule
+       extends MatchingRule<OrderingMatchingRuleCfg>
        implements Comparator<byte[]>, Serializable
 {
   /**
