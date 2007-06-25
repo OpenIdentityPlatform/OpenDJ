@@ -983,7 +983,7 @@ ds-cfg-matching-rule-enabled: true
 dn: cn=Word Equality Matching Rule,cn=Matching Rules,cn=config
 objectClass: top
 objectClass: ds-cfg-matching-rule
-objectClass: ds-cfg-substring-matching-rule
+objectClass: ds-cfg-equality-matching-rule
 cn: Word Equality Matching Rule
 ds-cfg-matching-rule-class: org.opends.server.schema.WordEqualityMatchingRule
 ds-cfg-matching-rule-enabled: true

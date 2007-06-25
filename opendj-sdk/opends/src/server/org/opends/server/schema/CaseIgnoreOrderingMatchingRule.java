@@ -28,8 +28,8 @@ package org.opends.server.schema;
 
 
 
+import org.opends.server.admin.std.server.OrderingMatchingRuleCfg;
 import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
@@ -48,9 +48,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class CaseIgnoreOrderingMatchingRule
        extends OrderingMatchingRule
 {
-
-
-
   /**
    * The serial version identifier required to satisfy the compiler because this
    * class implements the <CODE>java.io.Serializable</CODE> interface.  This
@@ -67,26 +64,14 @@ public class CaseIgnoreOrderingMatchingRule
   public CaseIgnoreOrderingMatchingRule()
   {
     super();
-
   }
 
 
 
   /**
-   * Initializes this matching rule based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this matching rule.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem that is not
-   *                                   configuration-related occurs during
-   *                                   initialization.
+   * {@inheritDoc}
    */
-  public void initializeMatchingRule(ConfigEntry configEntry)
+  public void initializeMatchingRule(OrderingMatchingRuleCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

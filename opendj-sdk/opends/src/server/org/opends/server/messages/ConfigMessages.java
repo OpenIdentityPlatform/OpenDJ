@@ -6756,6 +6756,50 @@ public class ConfigMessages
 
 
 
+  /**
+   * The message ID for the message that will be used if a matching rule cannot
+   * be removed because it is in use by an existing attribute type.  This takes
+   * two arguments, which are the name of the matching rule and the name or OID
+   * of the attribute type.
+   */
+  public static final int MSGID_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 670;
+
+
+
+  /**
+   * The message ID for the message that will be used if a matching rule cannot
+   * be removed because it is in use by an existing matching rule use.  This
+   * takes two arguments, which are the name of the matching rule and the name
+   * of the matching rule use.
+   */
+  public static final int MSGID_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_MRU =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 671;
+
+
+
+  /**
+   * The message ID for the message that will be used if a matching rule cannot
+   * be disabled because it is in use by an existing attribute type.  This takes
+   * two arguments, which are the name of the matching rule and the name or OID
+   * of the attribute type.
+   */
+  public static final int MSGID_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 672;
+
+
+
+  /**
+   * The message ID for the message that will be used if a matching rule cannot
+   * be disabled because it is in use by an existing matching rule use.  This
+   * takes two arguments, which are the name of the matching rule and the name
+   * of the matching rule use.
+   */
+  public static final int MSGID_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_MRU =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 673;
+
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -7954,6 +7998,18 @@ public class ConfigMessages
                     "conflicts with another matching rule defined in the " +
                     "server configuration:  %s.  This matching rule will not " +
                     "be used");
+    registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT,
+                    "Matching rule %s cannot be deleted from the server " +
+                    "because it is in use by attribute type %s");
+    registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_MRU,
+                    "Matching rule %s cannot be deleted from the server " +
+                    "because it is in use by matching rule use %s");
+    registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT,
+                    "Matching rule %s cannot be disabled because it is in " +
+                    "use by attribute type %s");
+    registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_MRU,
+                    "Matching rule %s cannot be disabled because it is in " +
+                    "use by matching rule use %s");
 
 
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_GET_SYNTAX_BASE,
@@ -9642,7 +9698,6 @@ public class ConfigMessages
                     "An error occurred while attempting create a text writer " +
                     "for a Directory Server logger from the information " +
                     "in configuration entry %s:  %s");
-
   }
 }
 

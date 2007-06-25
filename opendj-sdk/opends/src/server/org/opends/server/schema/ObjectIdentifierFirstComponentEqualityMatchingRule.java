@@ -28,10 +28,10 @@ package org.opends.server.schema;
 
 
 
+import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -59,35 +59,20 @@ import static org.opends.server.util.StaticUtils.*;
 public class ObjectIdentifierFirstComponentEqualityMatchingRule
        extends EqualityMatchingRule
 {
-
-
-
   /**
    * Creates a new instance of this integerFirstComponentMatch matching rule.
    */
   public ObjectIdentifierFirstComponentEqualityMatchingRule()
   {
     super();
-
   }
 
 
 
   /**
-   * Initializes this matching rule based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this matching rule.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem that is not
-   *                                   configuration-related occurs during
-   *                                   initialization.
+   * {@inheritDoc}
    */
-  public void initializeMatchingRule(ConfigEntry configEntry)
+  public void initializeMatchingRule(EqualityMatchingRuleCfg configuration)
          throws ConfigException, InitializationException
   {
     // No initialization is required.

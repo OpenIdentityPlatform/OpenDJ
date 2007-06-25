@@ -26,15 +26,16 @@
  */
 package org.opends.server.replication.plugin;
 
+import org.opends.server.admin.std.server.OrderingMatchingRuleCfg;
 import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
 
 /**
  * Used to establish an order between historical information and index them.
  */
-public class HistoricalCsnOrderingMatchingRule extends OrderingMatchingRule
+public class HistoricalCsnOrderingMatchingRule
+       extends OrderingMatchingRule
 {
   /**
    * The serial version identifier required to satisfy the compiler because this
@@ -75,12 +76,10 @@ public class HistoricalCsnOrderingMatchingRule extends OrderingMatchingRule
   }
 
   /**
-   * Initialization method.
-   * Currently not used
-   * @param configEntry unused
+   * {@inheritDoc}
    */
   @Override
-  public void initializeMatchingRule(ConfigEntry configEntry)
+  public void initializeMatchingRule(OrderingMatchingRuleCfg configuration)
   {
     // TODO Auto-generated method stub
   }

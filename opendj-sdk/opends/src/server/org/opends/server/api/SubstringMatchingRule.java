@@ -30,6 +30,7 @@ package org.opends.server.api;
 
 import java.util.List;
 
+import org.opends.server.admin.std.server.SubstringMatchingRuleCfg;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
@@ -42,7 +43,7 @@ import org.opends.server.types.DirectoryException;
  * rule used for substring matching.
  */
 public abstract class SubstringMatchingRule
-       extends MatchingRule
+       extends MatchingRule<SubstringMatchingRuleCfg>
 {
   /**
    * Normalizes the provided value fragment into a form that can be

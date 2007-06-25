@@ -28,6 +28,7 @@ package org.opends.server.api;
 
 
 
+import org.opends.server.admin.std.server.ApproximateMatchingRuleCfg;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
 
@@ -39,7 +40,7 @@ import org.opends.server.types.ConditionResult;
  * rule used for approximate matching.
  */
 public abstract class ApproximateMatchingRule
-       extends MatchingRule
+       extends MatchingRule<ApproximateMatchingRuleCfg>
 {
   /**
    * Indicates whether the two provided normalized values are

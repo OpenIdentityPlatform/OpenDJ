@@ -34,15 +34,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.MatchingRule;
-import org.opends.server.config.BooleanConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
@@ -52,11 +45,9 @@ import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
@@ -67,7 +58,6 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ResultCode;
 import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 
@@ -94,7 +84,6 @@ import static org.opends.server.util.StaticUtils.*;
  * forms, and matching rule use definitions will be ignored.
  */
 public class SchemaConfigManager
-       implements ConfigChangeListener, ConfigAddListener, ConfigDeleteListener
 {
   /**
    * The tracer object for the debug logger.
@@ -172,233 +161,9 @@ public class SchemaConfigManager
   public void initializeMatchingRules()
          throws ConfigException, InitializationException
   {
-    // First, get the matching rule configuration base entry.
-    ConfigEntry matchingRuleBaseEntry;
-    try
-    {
-      DN matchingRuleBaseDN = DN.decode(DN_MATCHING_RULE_CONFIG_BASE);
-      matchingRuleBaseEntry = configHandler.getConfigEntry(matchingRuleBaseDN);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_SCHEMA_CANNOT_GET_MR_BASE;
-      String message = getMessage(msgID, String.valueOf(e));
-      throw new ConfigException(msgID, message, e);
-    }
-
-    if (matchingRuleBaseEntry == null)
-    {
-      // The matching rule base entry does not exist.  This is not acceptable,
-      // so throw an exception.
-      int    msgID   = MSGID_CONFIG_SCHEMA_MR_BASE_DOES_NOT_EXIST;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
-    }
-
-
-    // Register add and delete listeners with the matching rule base entry.  We
-    // don't care about modifications to it.
-    matchingRuleBaseEntry.registerAddListener(this);
-    matchingRuleBaseEntry.registerDeleteListener(this);
-
-
-    // See if the matching rule base has any children.  If not, then this is
-    // very bad, since we won't know how to make any comparisons.
-    if (! matchingRuleBaseEntry.hasChildren())
-    {
-      int    msgID   = MSGID_CONFIG_SCHEMA_NO_MATCHING_RULES;
-      String message = getMessage(msgID);
-      throw new ConfigException(msgID, message);
-    }
-
-
-    // Iterate through the child entries and process them as matching rule
-    // entries.
-    for (ConfigEntry childEntry : matchingRuleBaseEntry.getChildren().values())
-    {
-      DN mrEntryDN = childEntry.getDN();
-
-
-      // Register as a change listener for this matching rule entry so that we
-      // will be notified of any changes that may be made to it.
-      childEntry.registerChangeListener(this);
-
-
-      // Check to see if this entry appears to contain a matching rule
-      // configuration.  If not, log a warning and skip it.
-      if (! childEntry.hasObjectClass(OC_MATCHING_RULE))
-      {
-        int    msgID   = MSGID_CONFIG_SCHEMA_ENTRY_DOES_NOT_HAVE_MR_CONFIG;
-        String message = getMessage(msgID, String.valueOf(mrEntryDN));
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-        continue;
-      }
-
-
-      // See if the entry contains an attribute that indicates whether the
-      // matching rule should be enabled.  If it does not, or if it is not set
-      // to "true", then skip it.
-      int msgID = MSGID_CONFIG_SCHEMA_MR_ATTR_DESCRIPTION_ENABLED;
-      BooleanConfigAttribute enabledStub =
-           new BooleanConfigAttribute(ATTR_MATCHING_RULE_ENABLED,
-                                      getMessage(msgID), false);
-      try
-      {
-        BooleanConfigAttribute enabledAttr =
-             (BooleanConfigAttribute)
-             childEntry.getConfigAttribute(enabledStub);
-        if (enabledAttr == null)
-        {
-          // The attribute is not present, so this matching rule will be
-          // disabled.  Log a message and continue.
-          msgID = MSGID_CONFIG_SCHEMA_MR_NO_ENABLED_ATTR;
-          String message = getMessage(msgID, String.valueOf(mrEntryDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-          continue;
-        }
-        else if (! enabledAttr.activeValue())
-        {
-          // The matching rule is explicitly disabled.  Log a mild warning and
-          // continue.
-          msgID = MSGID_CONFIG_SCHEMA_MR_DISABLED;
-          String message = getMessage(msgID, String.valueOf(mrEntryDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.INFORMATIONAL, message, msgID);
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SCHEMA_MR_UNABLE_TO_DETERMINE_ENABLED_STATE;
-        String message = getMessage(msgID, String.valueOf(mrEntryDN),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // See if the entry contains an attribute that specifies the class name
-      // for the matching rule implementation.  If it does, then load it and
-      // make sure that it's a valid matching rule implementation.  If there is
-      // no such attribute, the specified class cannot be loaded, or it does not
-      // contain a valid matching rule implementation, then log an error and
-      // skip it.
-      String className;
-      msgID = MSGID_CONFIG_SCHEMA_MR_ATTR_DESCRIPTION_CLASS;
-      StringConfigAttribute classStub =
-           new StringConfigAttribute(ATTR_MATCHING_RULE_CLASS,
-                                     getMessage(msgID), true, false, true);
-      try
-      {
-        StringConfigAttribute classAttr =
-             (StringConfigAttribute)
-             childEntry.getConfigAttribute(classStub);
-        if (classAttr == null)
-        {
-          msgID = MSGID_CONFIG_SCHEMA_MR_NO_CLASS_ATTR;
-          String message = getMessage(msgID, String.valueOf(mrEntryDN));
-          logError(ErrorLogCategory.CONFIGURATION,
-                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-          continue;
-        }
-        else
-        {
-          className = classAttr.activeValue();
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_GET_CLASS;
-        String message = getMessage(msgID, String.valueOf(mrEntryDN),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-      MatchingRule matchingRule;
-      try
-      {
-        Class matchingRuleClass = DirectoryServer.loadClass(className);
-        matchingRule = (MatchingRule) matchingRuleClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_INSTANTIATE;
-        String message = getMessage(msgID, String.valueOf(className),
-                                    String.valueOf(mrEntryDN),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // Perform the necessary initialization for the matching rule.
-      try
-      {
-        matchingRule.initializeMatchingRule(childEntry);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_CONFIG_SCHEMA_MR_CANNOT_INITIALIZE;
-        String message = getMessage(msgID, String.valueOf(className),
-                                    String.valueOf(mrEntryDN),
-                                    getExceptionMessage(e));
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
-                 message, msgID);
-        continue;
-      }
-
-
-      // Register the matching rule with the server schema.
-      try
-      {
-        schema.registerMatchingRule(matchingRule, false);
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        msgID = MSGID_CONFIG_SCHEMA_MR_CONFLICTING_MR;
-        String message = getMessage(msgID, String.valueOf(mrEntryDN),
-                                    de.getErrorMessage());
-        logError(ErrorLogCategory.CONFIGURATION,
-                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
-        continue;
-      }
-    }
+    MatchingRuleConfigManager matchingRuleConfigManager =
+         new MatchingRuleConfigManager();
+    matchingRuleConfigManager.initializeMatchingRules();
   }
 
 
@@ -1570,150 +1335,6 @@ public class SchemaConfigManager
 
 
     return mods;
-  }
-
-
-
-  /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * modification is acceptable to this change listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested update.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed change is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
-   */
-  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
-  {
-    // NYI
-
-    // If we've gotten here then the monitor entry appears to be acceptable.
-    return true;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration to this Directory Server component
-   * based on the provided changed entry.
-   *
-   * @param  configEntry  The configuration entry that containing the updated
-   *                      configuration for this component.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry)
-  {
-    DN                configEntryDN       = configEntry.getDN();
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-
-    // NYI
-
-
-    // If we've gotten here, then there haven't been any changes to anything
-    // that we care about.
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-
-  /**
-   * Indicates whether the configuration entry that will result from a proposed
-   * add is acceptable to this add listener.
-   *
-   * @param  configEntry         The configuration entry that will result from
-   *                             the requested add.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed entry is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry contains an acceptable
-   *          configuration, or <CODE>false</CODE> if it does not.
-   */
-  public boolean configAddIsAcceptable(ConfigEntry configEntry,
-                                       StringBuilder unacceptableReason)
-  {
-    // NYI
-
-    // If we've gotten here then the monitor entry appears to be acceptable.
-    return true;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration based on the provided added entry.
-   *
-   * @param  configEntry  The new configuration entry that contains the
-   *                      configuration to apply.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry)
-  {
-    DN                configEntryDN       = configEntry.getDN();
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<String> messages            = new ArrayList<String>();
-
-    // NYI
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-
-  /**
-   * Indicates whether it is acceptable to remove the provided configuration
-   * entry.
-   *
-   * @param  configEntry         The configuration entry that will be removed
-   *                             from the configuration.
-   * @param  unacceptableReason  A buffer to which this method can append a
-   *                             human-readable message explaining why the
-   *                             proposed delete is not acceptable.
-   *
-   * @return  <CODE>true</CODE> if the proposed entry may be removed from the
-   *          configuration, or <CODE>false</CODE> if not.
-   */
-  public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                                          StringBuilder unacceptableReason)
-  {
-    // NYI -- Should we allow deletes of elements with this as superior?
-
-    return true;
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration based on the provided deleted entry.
-   *
-   * @param  configEntry  The new configuration entry that has been deleted.
-   *
-   * @return  Information about the result of processing the configuration
-   *          change.
-   */
-  public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry)
-  {
-    DN         configEntryDN       = configEntry.getDN();
-    ResultCode resultCode          = ResultCode.SUCCESS;
-    boolean    adminActionRequired = false;
-
-
-    // NYI
-
-    return new ConfigChangeResult(resultCode, adminActionRequired);
   }
 }
 
