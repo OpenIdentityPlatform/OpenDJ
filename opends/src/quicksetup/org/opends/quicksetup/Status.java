@@ -27,7 +27,8 @@
 
 package org.opends.quicksetup;
 
-import org.opends.server.util.ServerConstants;
+import static org.opends.server.util.ServerConstants.SERVER_LOCK_FILE_NAME;
+import static org.opends.server.util.ServerConstants.LOCK_FILE_SUFFIX;
 import org.opends.server.core.LockFileManager;
 import org.opends.quicksetup.util.Utils;
 
@@ -38,8 +39,6 @@ import java.io.IOException;
  * This class represents the current state of a particular installation.
  */
 public class Status {
-
-  private static boolean lockPathInitialized;
 
   private Installation installation;
 
@@ -111,15 +110,10 @@ public class Status {
    */
   public boolean isServerRunning() {
     boolean isServerRunning;
-    if (!lockPathInitialized) {
-      File locksDir = installation.getLocksDirectory();
-
-      System.setProperty(
-              ServerConstants.PROPERTY_LOCK_DIRECTORY,
-              Utils.getPath(locksDir));
-      lockPathInitialized = true;
-    }
-    String lockFile = LockFileManager.getServerLockFileName();
+    String lockFileName = SERVER_LOCK_FILE_NAME + LOCK_FILE_SUFFIX;
+    String lockFile =
+            Utils.getPath(new File(installation.getLocksDirectory(),
+                                   lockFileName));
     StringBuilder failureReason = new StringBuilder();
     try {
       if (LockFileManager.acquireExclusiveLock(lockFile,
