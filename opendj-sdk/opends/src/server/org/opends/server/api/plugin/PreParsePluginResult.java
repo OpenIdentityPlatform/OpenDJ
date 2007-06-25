@@ -55,6 +55,10 @@ public class PreParsePluginResult
   // from this plugin to the client with no further processing.
   private final boolean sendResponseImmediately;
 
+  // Indicates whether the server should skip the core processing for
+  // the associated operation.
+  private final boolean skipCoreProcessing;
+
 
 
   /**
@@ -67,7 +71,7 @@ public class PreParsePluginResult
    */
   private PreParsePluginResult()
   {
-    this(false, true, false);
+    this(false, true, false, false);
   }
 
 
@@ -92,9 +96,44 @@ public class PreParsePluginResult
                               boolean continuePluginProcessing,
                               boolean sendResponseImmediately)
   {
+    this(connectionTerminated, continuePluginProcessing,
+         sendResponseImmediately, false);
+  }
+
+
+
+  /**
+   * Creates a new pre-operation plugin result with the provided
+   * information.
+   *
+   * @param  connectionTerminated      Indicates whether the
+   *                                   post-response plugin terminated
+   *                                   the client connection.
+   * @param  continuePluginProcessing  Indicates whether any further
+   *                                   pre-operation plugins should be
+   *                                   invoked for this operation.
+   * @param  sendResponseImmediately   Indicates whether the server
+   *                                   should send the response set by
+   *                                   this plugin to the client
+   *                                   immediately with no further
+   *                                   processing on the operation.
+   * @param  skipCoreProcessing        Indicates whether the server
+   *                                   should skip the core processing
+   *                                   for the operation.  If
+   *                                   {@code sendResponseImmediately}
+   *                                   is {@code false}, then any
+   *                                   post-operation plugins will
+   *                                   still be invoked.
+   */
+  public PreParsePluginResult(boolean connectionTerminated,
+                              boolean continuePluginProcessing,
+                              boolean sendResponseImmediately,
+                              boolean skipCoreProcessing)
+  {
     this.connectionTerminated     = connectionTerminated;
     this.continuePluginProcessing = continuePluginProcessing;
     this.sendResponseImmediately  = sendResponseImmediately;
+    this.skipCoreProcessing       = skipCoreProcessing;
   }
 
 
@@ -146,6 +185,22 @@ public class PreParsePluginResult
 
 
   /**
+   * Indicates whether the server should skip core processing for the
+   * operation.  If {@code sendResponseImmediately} is {@code false},
+   * then the server will still process any post-operation plugins
+   * that may be registered with the server.
+   *
+   * @return  {@code true} if the server should skip core processing
+   *          for the operation, or {@code false} if not.
+   */
+  public boolean skipCoreProcessing()
+  {
+    return skipCoreProcessing;
+  }
+
+
+
+  /**
    * Retrieves a string representation of this post-response plugin
    * result.
    *
@@ -176,6 +231,8 @@ public class PreParsePluginResult
     buffer.append(continuePluginProcessing);
     buffer.append(", sendResponseImmediately=");
     buffer.append(sendResponseImmediately);
+    buffer.append(", skipCoreProcessing=");
+    buffer.append(skipCoreProcessing);
     buffer.append(")");
   }
 }

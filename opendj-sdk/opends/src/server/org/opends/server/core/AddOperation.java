@@ -800,12 +800,18 @@ addProcessing:
 
         logAddRequest(this);
         logAddResponse(this);
+        pluginConfigManager.invokePostResponseAddPlugins(this);
         return;
       }
       else if (preParseResult.sendResponseImmediately())
       {
         skipPostOperation = true;
         logAddRequest(this);
+        break addProcessing;
+      }
+      else if (preParseResult.skipCoreProcessing())
+      {
+        skipPostOperation = false;
         break addProcessing;
       }
 
@@ -820,6 +826,7 @@ addProcessing:
         indicateCancelled(cancelRequest);
         processingStopTime = System.currentTimeMillis();
         logAddResponse(this);
+        pluginConfigManager.invokePostResponseAddPlugins(this);
         return;
       }
 
@@ -958,6 +965,7 @@ addProcessing:
         indicateCancelled(cancelRequest);
         processingStopTime = System.currentTimeMillis();
         logAddResponse(this);
+        pluginConfigManager.invokePostResponseAddPlugins(this);
         return;
       }
 
@@ -1027,6 +1035,7 @@ addProcessing:
           indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
           logAddResponse(this);
+          pluginConfigManager.invokePostResponseAddPlugins(this);
           return;
         }
 
@@ -1936,6 +1945,7 @@ addProcessing:
           indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
           logAddResponse(this);
+          pluginConfigManager.invokePostResponseAddPlugins(this);
           return;
         }
 
@@ -1958,11 +1968,17 @@ addProcessing:
             processingStopTime = System.currentTimeMillis();
 
             logAddResponse(this);
+            pluginConfigManager.invokePostResponseAddPlugins(this);
             return;
           }
           else if (preOpResult.sendResponseImmediately())
           {
             skipPostOperation = true;
+            break addProcessing;
+          }
+          else if (preOpResult.skipCoreProcessing())
+          {
+            skipPostOperation = false;
             break addProcessing;
           }
         }
@@ -1974,6 +1990,7 @@ addProcessing:
           indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
           logAddResponse(this);
+          pluginConfigManager.invokePostResponseAddPlugins(this);
           return;
         }
 
@@ -2223,6 +2240,7 @@ addProcessing:
         processingStopTime = System.currentTimeMillis();
 
         logAddResponse(this);
+        pluginConfigManager.invokePostResponseAddPlugins(this);
         return;
       }
     }

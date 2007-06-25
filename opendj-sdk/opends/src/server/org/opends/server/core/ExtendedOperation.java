@@ -484,12 +484,18 @@ extendedProcessing:
 
         logExtendedRequest(this);
         logExtendedResponse(this);
+        pluginConfigManager.invokePostResponseExtendedPlugins(this);
         return;
       }
       else if (preParseResult.sendResponseImmediately())
       {
         skipPostOperation = true;
         logExtendedRequest(this);
+        break extendedProcessing;
+      }
+      else if (preParseResult.skipCoreProcessing())
+      {
+        skipPostOperation = false;
         break extendedProcessing;
       }
 
@@ -506,6 +512,7 @@ extendedProcessing:
         {
           indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
+          pluginConfigManager.invokePostResponseExtendedPlugins(this);
           return;
         }
       }
@@ -582,11 +589,17 @@ extendedProcessing:
         processingStopTime = System.currentTimeMillis();
 
         logExtendedResponse(this);
+        pluginConfigManager.invokePostResponseExtendedPlugins(this);
         return;
       }
       else if (preOpResult.sendResponseImmediately())
       {
         skipPostOperation = true;
+        break extendedProcessing;
+      }
+      else if (preOpResult.skipCoreProcessing())
+      {
+        skipPostOperation = false;
         break extendedProcessing;
       }
 
@@ -599,6 +612,7 @@ extendedProcessing:
         {
           indicateCancelled(cancelRequest);
           processingStopTime = System.currentTimeMillis();
+          pluginConfigManager.invokePostResponseExtendedPlugins(this);
           return;
         }
       }
@@ -630,6 +644,7 @@ extendedProcessing:
         processingStopTime = System.currentTimeMillis();
 
         logExtendedResponse(this);
+        pluginConfigManager.invokePostResponseExtendedPlugins(this);
         return;
       }
     }
