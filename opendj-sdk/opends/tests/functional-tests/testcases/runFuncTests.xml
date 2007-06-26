@@ -49,6 +49,10 @@
       <call function="'main_aci'" />
 
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/testcases/privileges/privileges.xml' % (TESTS_DIR)" />
+      <call function="'main_privileges'" />
+
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/backends/backends.xml' % (TESTS_DIR)" />
       <call function="'main_backends'" />
 

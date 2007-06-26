@@ -1,0 +1,2206 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="privileges_directory_manager"/>
+
+  <function name="privileges_directory_manager">
+
+    <sequence>
+
+      <block name="'privileges-directory-manager'">
+      
+        <sequence>
+  
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='privileges'			  			  
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             Privileges Directory Manager Tests
+                #@TestSuitePurpose          Test the basic Privileges Support in regard to basic Directory Manager.
+                #@TestSuiteGroup            Basic Privileges Users Tests
+                #@TestScript                privileges_directory_manager.xml
+          -->
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/privileges/privileges_setup.xml' % (TESTS_DIR)"/>
+          <call function="'privileges_setup'" />
+
+												    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  bypass-acl 
+                #@TestIssue                 471
+                #@TestPurpose               bypass-acl privilege for Directory Manager
+                #@TestPreamble              Alternate root user removes global search ACI.
+                #@TestStep                  Directory Manager searches entry.
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Directory Manager searches entry.
+                #@TestStep                  Alternate root user puts back privilege.
+                #@TestStep                  Directory Manager searches entry.
+                #@TestStep                  Alternate root user puts back global search ACI.
+                #@TestStep                  Directory Manager searches entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all other ldap operations. 
+                                            Proper entries returned for allowed searches.
+            -->
+            <testcase name="'Privileges: Directory Manager: bypass-acl'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: bypass-acl, preamble, alternate root user removing global search ACI'
+                </message>
+    
+                <script>
+                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: bypass-acl, DM searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'sn: Carter' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: bypass-acl, alternate root user removing privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-bypass-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: bypass-acl, DM searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: bypass-acl, alternate root user putting back privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'cn=Aroot' ,
+                    'dsInstancePswd'        : 'PrivsRule' ,
+                    'DNToModify'            : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'         : 'ds-privilege-name' ,
+                    'newAttributeValue'     : '-bypass-acl' ,
+                    'changetype'            : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: bypass-acl, DM searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'cn=Aroot' ,
+                    'dsInstancePswd'   : 'PrivsRule' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'sn: Carter' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: bypass-acl, alternate root user putting back global search ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+               <message>
+                   'Privileges: Directory Manager: bypass-acl, DM searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+               
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+            
+           <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  bypass-acl, alternate bind DN
+                #@TestIssue                 471
+                #@TestPurpose               bypass-acl privilege for Directory Manager using alternate bind dn
+                #@TestPreamble              Alternate root user removes global search ACI.
+                #@TestStep                  Directory Manager searches entry.
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Alternate root user puts back global search ACI.
+                #@TestStep                  Directory Manager searches entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 32
+                                            for step 2, and 0
+                                            for all other ldap operations. 
+                                            Proper entries returned for allowed searches.
+            -->
+            <testcase name="'Privileges: Directory Manager: bypass-acl, alternate bind DN'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: bypass-acl, alternate bind DN, alternate root user removing global search ACI'
+                </message>
+    
+                <script>
+                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: bypass-acl, alternate bind DN, DM searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'sn: Carter' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: bypass-acl, alternate bind DN, alternate root user removing privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Directory Manager' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-bypass-acl' ,
+                    'changetype'             : 'add'  ,
+                    'expectedErrorCode'      : '32' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager:  bypass-acl, alternate bind DN, alternate root user putting back global search ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+               <message>
+                   'Privileges: Directory Manager: bypass-acl, alternate bind DN, DM searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+               
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+            
+           <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  modify-acl - add aci
+                #@TestIssue                 471
+                #@TestPurpose               modify-acl privilege for Directory Manager - add aci
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager adds ACI, default behavior.
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Directory Manager adds second ACI.
+                #@TestStep                  Alternate root user puts back privilege.
+                #@TestStep                  Directory Manager adds second ACI.
+                #@TestStep                  Alternate root removes first DM-added ACI.
+                #@TestStep                  Alternate root removes second DM-added ACI.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 3, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Directory Manager: modify-acl - add aci'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: modify-acl - add aci, check default, DM adding ACI'
+                </message>
+    
+                <script>
+                    search_aci="(targetattr=\"*\")(version 3.0; acl \"add_search_aci\"; allow (search,read) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: modify-acl - add aci, alternate root user removing privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-modify-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: modify-acl - add aci, DM adding ACI'
+                </message>
+    
+                <script>
+                    search2_aci="(targetattr=\"*\")(version 3.0; acl \"add_search_aci2\"; allow (write) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search2_aci ,
+                    'changetype'             : 'add' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: modify-acl - add aci, alternate root user putting back privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-modify-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: modify-acl - add aci, DM adding ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search2_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: modify-acl - add aci, alternate root user deleting ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: modify-acl - add aci, alternate root user deleting ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search2_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  modify-acl - replace aci
+                #@TestIssue                 471
+                #@TestPurpose               modify-acl privilege for Directory Manager - replace aci
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager replaces ACI, default behavior.
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Directory Manager replaces second ACI.
+                #@TestStep                  Alternate root user puts back privilege.
+                #@TestStep                  Directory Manager replaces second ACI.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 3, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Directory Manager: modify-acl - replace aci'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: modify-acl - replace aci, check default, DM replacing ACI'
+                </message>
+    
+                <script>
+                    search_aci="(targetattr=\"*\")(version 3.0; acl \"rep_search_aci_tmorris\"; allow (search,read) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'replace' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: modify-acl - replace aci, alternate root user removing privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-modify-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: modify-acl - replace aci, DM replacing ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'replace' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: modify-acl - replace aci, alternate root user putting back privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-modify-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: modify-acl - replace aci, DM replacing ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'replace' }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  modify-acl - delete aci
+                #@TestIssue                 471
+                #@TestPurpose               modify-acl privilege for Directory Manager - delete aci
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager deletes ACI, default behavior.
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Directory Manager deletes second ACI.
+                #@TestStep                  Alternate root user puts back privilege.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 3, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Directory Manager: modify-acl - delete aci'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: modify-acl - delete aci, check default, DM deleting ACI'
+                </message>
+    
+                <script>
+                    search_aci="(targetattr=\"*\")(version 3.0; acl \"del_search_aci_gfarmer\"; allow (write) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=gfarmer, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: modify-acl - delete aci, alternate root user removing privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-modify-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: modify-acl - delete aci, DM delete ACI'
+                </message>
+    
+                <script>
+                    search2_aci="(targetattr=\"*\")(version 3.0; acl \"del_search_aci_abergin\"; allow (search,read) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=abergin, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search2_aci ,
+                    'changetype'             : 'delete' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: modify-acl - delete aci, alternate root user putting back privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-modify-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  config-read 
+                #@TestIssue                 472
+                #@TestPurpose               config-read privilege for Directory Manager
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager searches cn=config, default behavior.
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Directory Manager searches cn=config.
+                #@TestStep                  Alternate root user puts back privilege.
+                #@TestStep                  Directory Manager searches cn=config.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 3, and 0
+                                            for all other ldap operations. 
+                                            Proper entries returned for allowed searches.
+            -->
+            <testcase name="'Privileges: Directory Manager: config-read'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: config-read, check default privilege, DM searching cn=config'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'cn=config' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'ds-cfg-check-schema' ,
+                    'extraParams'      : '-s base' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: cn=config' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'ds-cfg-check-schema:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: config-read, alternate root removing privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'cn=Aroot' ,
+                    'dsInstancePswd'        : 'PrivsRule' ,
+                    'DNToModify'            : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'         : 'ds-privilege-name' ,
+                    'newAttributeValue'     : '-config-read' ,
+                    'changetype'            : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Directory Manager: config-read, DM searching cn=config'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'cn=config' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'ds-cfg-check-schema' ,
+                    'extraParams'      : '-s base' }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: config-read, alternate root user putting back privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'          : 'cn=Aroot' ,
+                    'dsInstancePswd'        : 'PrivsRule' ,
+                    'DNToModify'            : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'         : 'ds-privilege-name' ,
+                    'newAttributeValue'     : '-config-read' ,
+                    'changetype'            : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Directory Manager: config-read, DM searching cn=config'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'cn=config' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'ds-cfg-check-schema' ,
+                    'extraParams'      : '-s base' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: cn=config' }
+                </call>
+               
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  config-write 
+                #@TestIssue                 472
+                #@TestPurpose               config-write privilege for Directory Manager
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager modifies cn=config, default behavior.
+                #@TestStep                  Alternate root user removes read privilege.
+                #@TestStep                  Directory Manager modifies cn=config.
+                #@TestStep                  Alternate root user removes write privilege.
+                #@TestStep                  Directory Manager modifies cn=config.
+                #@TestStep                  Alternate root user puts back read privilege.
+                #@TestStep                  Directory Manager modifies cn=config.
+                #@TestStep                  Alternate root user puts back write privilege.
+                #@TestStep                  Directory Manager modifies cn=config.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 3, 5, and 7 and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Directory Manager: config-write'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: config-write, check default privilege, DM modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Directory Manager: config-write, alternate root user removing read privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-config-read' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: config-write, DM modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: config-write, alternate root user removing write privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-config-write' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: config-write, DM modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: config-write, alternate root user putting back read privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-config-read' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: config-write, DM modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: config-write, alternate root user putting back write privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-config-write' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: config-write, DM modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' }
+                </call>
+
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  config-write - add global aci
+                #@TestIssue                 472
+                #@TestPurpose               config-write privilege for Directory Manager - add global aci
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager adds global ACI, default behavior.
+                #@TestStep                  Alternate root user removes read privilege.
+                #@TestStep                  Directory Manager adds global ACI.
+                #@TestStep                  Alternate root user removes write privilege.
+                #@TestStep                  Alternate root user puts back read privilege.
+                #@TestStep                  Directory Manager modifies cn=config.
+                #@TestStep                  Alternate root user puts back write privilege.
+                #@TestStep                  Directory Manager modifies cn=config.
+                #@TestStep                  Alternate root deletes first DM-added global aci.
+                #@TestStep                  Alternate root deletes second DM-added global aci.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 3, 6, and 8, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Directory Manager: config-write - add global aci'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: config-write - add global aci, check default, DM adding global ACI'
+                </message>
+    
+                <script>
+                    global_aci="(target=\"ldap:///ou=People,o=Privileges Tests,dc=example,dc=com\")(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous write access\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: config-write - add global aci, alternate root user removing config-read privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-config-read' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: config-write - add global aci, DM adding ACI'
+                </message>
+    
+                <script>
+                    global2_aci="(target=\"ldap:///ou=People,o=Privileges Tests,dc=example,dc=com\")(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous write access\"; allow (write) userdn=\"ldap:///anyone\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global2_aci ,
+                    'changetype'             : 'add' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: config-write - add global aci, alternate user removing config-write privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-config-write' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: config-write - add global aci, alternate root user putting back config-read privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-config-read' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: config-write - add global aci, DM  adding global ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global2_aci ,
+                    'changetype'             : 'add' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: config-write - add global aci, alternate root user putting back config-write privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-config-write' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: config-write - add global aci, DM adding global ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global2_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: config-write - add global aci, alternate root user deleting write global ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Directory Manager: config-write - add global aci, alternate root user deleting write global ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global2_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  password-reset 
+                #@TestIssue                 479
+                #@TestPurpose               password-reset privilege for Directory Manager
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager resets user password, default behavior.
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Directory Manager resets user password.
+                #@TestStep                  Alternate root user puts privilege.
+                #@TestStep                  Directory Manager resets user password.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 3, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Directory Manager: password-reset'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: password-reset, check default privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=tmason, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'pickles' ,
+                    'changetype'             : 'replace' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: password-reset, alternate root user removing privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-password-reset' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: password-reset, DM resetting password'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=tmason, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'pickles' ,
+                    'changetype'             : 'replace' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: password-reset, alternate root user putting back privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-password-reset' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: password-reset, DM resetting password'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=tmason, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'pickles' ,
+                    'changetype'             : 'replace' }
+                </call>
+                
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+                     
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  update-schema 
+                #@TestIssue                 468
+                #@TestPurpose               update-schema privilege for Directory Manager
+                #@TestPreamble              none
+                #@TestStep                  Alternate root user adds entry that uses new object class.
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Directory Manager adds new schema object.
+                #@TestStep                  Alternate root user puts back privilege.
+                #@TestStep                  Directory Manager adds new schema object.
+                #@TestStep                  Alternate root user adds entry that uses new object class.
+                #@TestStep                  Alternate root user searches new entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 3, 65 for step 1, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Directory Manager: update-schema'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: update-schema, alternate root user adding entry that users new object class'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'cn=Aroot' ,
+                    'dsInstancePswd'   : 'PrivsRule' ,
+                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <if expr="RC != 65">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: update-schema, alternate root user removing privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-update-schema' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: update-schema, DM adding new schema object'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
+                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: update-schema, alternate root user putting back privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-update-schema' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: update-schema, DM adding new schema object'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
+                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: update-schema, alternate root user adding entry that users new object class'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'cn=Aroot' ,
+                    'dsInstancePswd'   : 'PrivsRule' ,
+                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: update-schema, alternate root user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'cn=Aroot' ,
+                    'dsInstancePswd'   : 'PrivsRule' ,
+                    'dsBaseDN'         : 'uid=sfish,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=sfish,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                 <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'uid: sfish' }
+                </call>
+               
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  privilege-change
+                #@TestIssue                 1213
+                #@TestPurpose               privilege-change privilege for Directory Manager
+                #@TestPreamble              Alternate root user adding write ACI
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Directory Manager adds modify-acl privilege to second user.
+                #@TestStep                  Alternate root user puts back privilege.
+                #@TestStep                  Directory Manager adds modify-acl privilege to second user.
+                #@TestStep                  Second user adds an ACI.
+                #@TestStep                  Directory Manager removes modify-acl privilege from second user.
+                #@TestStep                  Alternate root user deletes user-added ACI.
+                #@TestStep                  Alternate root user deletes write ACI.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 2, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Directory Manager: privilege-change'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Directory Manager: privilege-change, preamble, alternate root user adding write ACI'
+                </message>
+    
+                <script>
+                    write_aci="(targetattr=\"aci || ds-privilege-name\")(version 3.0; acl \"add_write_acl\"; allow (write) userdn=\"ldap:///all\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule'  ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Directory Manager: privilege-change, alternate root user removing privilege from DM'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-privilege-change' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: privilege-change, DM adding privilege to second user'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD  ,
+                    'DNToModify'             : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'add' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Directory Manager: privilege-change, alternate root user putting back privilege to DM'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-privilege-change' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: privilege-change, DM adding privilege to second user'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD  ,
+                    'DNToModify'             : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: privilege-change, second user adding ACI'
+                </message>
+    
+                <script>
+                    search_aci="(targetattr=\"*\")(version 3.0; acl \"add_search_aci\"; allow (search,read) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Directory Manager: privilege-change, DM removing privilege to second user'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD  ,
+                    'DNToModify'             : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: privilege-change, alternate root user deleting ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: privilege-change, alternate root user deleting write ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  server-shutdown
+                #@TestIssue                 477
+                #@TestPurpose               server-shutdown privilege for Directory Manager
+                #@TestPreamble              none
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Directory Manager adds shutdown task.
+                #@TestStep                  Alternate root user puts back privilege.
+                #@TestStep                  Directory Manager adds shutdown task.
+                #@TestStep                  Directory Manager searches for an entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 2, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Directory Manager: server-shutdown'">
+    
+            <sequence>
+    
+                <call function="'testCase_Preamble'"/>
+    
+                <message>
+                   'Privileges: Directory Manager: server-shutdown, alternate root user removing privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-server-shutdown' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: server-shutdown, user adding server shutdown task'
+                </message>
+    
+                <call function="'shutdownTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: server-shutdown, alternate root user putting back privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-server-shutdown' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: server-shutdown, user adding server shutdown task'
+                </message>
+    
+                <call function="'shutdownTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="STAFCmdRC != 0">
+                    <tcstatus result="'fail'"/>
+                <else>
+                        <!--- Start DS -->
+                        <sequence>
+				
+                        <message>
+                        'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+                        </message>
+  
+                        <!--- Start DS -->
+                        <call function="'StartDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                        </call>
+  
+                        <call function="'checkRC'">
+                        { 'returncode' : RC ,
+                          'result'     : STAXResult }
+                        </call>
+  
+                        <!--- Check that DS started -->
+                        <call function="'isAlive'">
+                        { 'noOfLoops'        : 5 ,
+                          'noOfMilliSeconds' : 2000 }
+                        </call>			
+                        </sequence>
+                        <!--- End Block DS Process Active -->
+                </else>
+		</if>
+                
+                <message>
+                   'Privileges: Directory Manager: server-shutdown, DM searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                
+                <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+    		
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Directory Manager Tests
+                #@TestName                  server-restart
+                #@TestIssue                 477
+                #@TestPurpose               server-restart privilege for Directory Manager
+                #@TestPreamble              none
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  Directory Manager adds restart task.
+                #@TestStep                  Alternate root user puts back privilege.
+                #@TestStep                  Directory Manager adds restart task.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 2, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Directory Manager: server-restart'">
+    
+            <sequence>
+    
+                <call function="'testCase_Preamble'"/>
+    
+                <message>
+                   'Privileges: Directory Manager: server-restart, alternate root user removing privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-server-restart' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: server-restart, DM adding server restart task'
+                </message>
+    
+                <call function="'restartTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: server-restart, alternate root user putting back privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-server-restart' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Directory Manager: server-restart, DM adding server restart task'
+                </message>
+    
+                <call function="'restartTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'taskID'           : STAXCurrentTestcase
+                }
+                </call>
+                
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult  }
+                </call>
+                     
+                <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+    		
+           
+         
+            
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/privileges/privileges_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'privileges_cleanup'" />
+
+						  
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+       
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>
