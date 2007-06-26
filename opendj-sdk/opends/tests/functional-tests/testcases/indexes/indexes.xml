@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <defaultcall function="indexes" />
+  <function name="indexes">
+    <sequence>
+      <block name="'indexes'">
+        <sequence>
+          <script>
+            CurrentTestPath={}
+            envAlreadyLoaded='true'
+            CurrentTestPath['group']='indexes'
+          </script>
+          
+          <call function="'testGroup_Preamble'" />
+          <call function="'testSuite_Preamble'"/>
+          <call function="'setup'" />
+          <call function="'search'" />
+          <call function="'cleanup'" />
+          <call function="'testSuite_Postamble'"/>
+          <call function="'testGroup_Postamble'" />
+          
+        </sequence>
+      </block>
+    </sequence>
+  </function>
+  
+  <function name="search" >
+    <sequence>
+      <message>
+        'starting the search tests'
+      </message>
+
+      <script>
+        class indexTest:
+          "Describes an index test with indexed attribute, filter to test with and expected behaviour"
+          def __init__(self, attribute, testName, filter, expectedValue, isIndexed):
+            self.attribute = attribute
+            self.name = testName
+            self.filter = filter
+            self.rc = expectedValue
+            self.isIndexed=isIndexed
+            self.status='fail'
+          
+          def getAttribute(self):
+            return self.attribute
+            
+          def getName(self):
+            return self.name
+            
+          def getFilter(self):
+            return self.filter
+          
+          def getRC(self):
+            return self.rc
+            
+          def getSearchString(self):
+            if self.isIndexed.startswith('NOT'):
+              return 'NOT'
+            else:
+              return 'COUNT'
+            
+          def pass(self):
+            self.status='pass'
+            
+          def getStatus(self):
+            return self.status
+            
+          def desc(self):
+            description  = 'name=[%s]' % self.name
+            description += ' attribute=[%s]' % self.attribute
+            description += ' filter=[%s]' % self.filter
+            description += ' rc=[%s]' % self.rc
+            description += ' indexed=[%s]' % self.isIndexed
+            return description
+            
+        indexTests = []
+        
+        f = open('%s/testcases/indexes/search.filters' % TESTS_DIR,'r')
+        for line in f.readlines():
+          if line.startswith('#'):
+            continue
+          else: 
+            testLine = line.split(' ')
+            indexTests.append(indexTest(testLine[0], testLine[1], testLine[2], testLine[3], testLine[4]))
+              
+      </script>
+      <iterate var="test" in="indexTests">
+        <sequence>
+          <testcase name="'Indexes: Search: %s: %s' % ( test.getAttribute(), test.getName())" >
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+                'Searching attribute [%s] with filter[%s]' % (test.getAttribute(),test.getFilter())
+              </message>
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT  ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'dsBaseDN'         : 'ou=People,dc=example,%s' % DIRECTORY_INSTANCE_SFX ,
+                  'dsFilter'         : '%s' % test.getFilter() ,
+                  'attributes'	     : 'debugsearchindex' }
+              </call>
+              <script>
+                searchReturnCode, searchResultString = STAXResult[0]
+                srs=searchResultString.split('[')
+                srt=srs[1]
+                if (str(searchReturnCode) == str(test.getRC())) and srt.startswith(test.getSearchString()):
+                  test.pass()
+                    
+              </script>
+              <message level="'debug'">'%s searchReturnCode=[%s] srt=[%s] searchResultString=[%s] string looked for=[%s]' % (test.desc(), searchReturnCode, srt, searchResultString, test.getSearchString())</message>
+              <tcstatus result="'%s' % test.getStatus()" />
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+        </sequence>
+      </iterate>
+    </sequence>
+  </function>
+  
+  <!-- Setup the instance for indexes tests -->
+  <function name="setup">
+    <sequence>
+      <block name="'setup'">
+        <sequence>
+          <script>
+            CurrentTestPath['group']='indexes'
+          </script>
+          <block name="'Create OpenDS instance'">
+            <sequence>
+              <message>
+                 'Create DS topology as described in config.py'
+              </message>
+              <call function="'createTopology'">
+                { 'initialiseInstance' : True }
+              </call>
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+            </sequence>
+          </block>
+          <block name="'Start OpenDS'">
+            <sequence>
+              <message>
+                 'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+              </message>
+              <call function="'StartDsWithScript'">
+               { 'location'  : STAF_REMOTE_HOSTNAME }
+              </call>
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+              <call function="'isAlive'">
+                { 'noOfLoops'        : 5 ,
+                  'noOfMilliSeconds' : 2000 }
+              </call>
+            </sequence>
+          </block>
+        </sequence>
+      </block>
+    </sequence>
+  </function>
+  
+  <!-- cleanup after the tests -->
+  <function name="cleanup">
+    <sequence>
+      <block name="'cleanup'">
+        <sequence>
+          <block name="'Block DS Process Stop'">				
+            <sequence>
+              <message>
+                'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+              </message>
+              <call function="'StopDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+              </call>
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+            </sequence>			  
+          </block>
+          <block name="'Block Remove DS Topology'">
+            <sequence>
+              <message>
+                'Remove DS topology created for the Test Suite'
+              </message>				  
+              <call function="'removeTopology'"/>
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+            </sequence>			  
+          </block>	  														  
+        </sequence>        
+      </block>
+    </sequence>
+  </function>
+</stax>
