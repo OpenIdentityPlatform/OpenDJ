@@ -35,7 +35,9 @@ import javax.naming.ldap.InitialLdapContext;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 
@@ -287,6 +289,28 @@ public class DsServiceCliMain
     {
       // Bootstrap and initialize directory data structures.
       DirectoryServer.bootstrapClient();
+
+      // Bootstrap definition classes.
+      try
+      {
+        ClassLoaderProvider.getInstance().enable();
+      }
+      catch (InitializationException e)
+      {
+        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
+        String message = getMessage(msgID, host);
+
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
+      }
+      catch (IllegalStateException e)
+      {
+        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
+        String message = getMessage(msgID, host);
+
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
+      }
     }
 
     // perform the subCommand
