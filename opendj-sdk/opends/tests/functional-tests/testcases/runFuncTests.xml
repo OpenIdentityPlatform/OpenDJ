@@ -63,7 +63,10 @@
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/replication/replication.xml' % (TESTS_DIR)" />
       <call function="'main_replication'" />					
- 
+
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/testcases/indexes/indexes.xml' % (TESTS_DIR)" />
+      <call function="'indexes'" />
     </sequence>
   </function>
 </stax>
