@@ -249,10 +249,10 @@ public class DsServiceCliMain
     else
     if (argParser.startTLS())
     {
-      String ldapsUrl = "ldaps://" + host + ":" + port;
+      String ldapUrl = "ldap://" + host + ":" + port;
       try
       {
-        ctx = ConnectionUtils.createStartTLSContext(ldapsUrl, dn, pwd,
+        ctx = ConnectionUtils.createStartTLSContext(ldapUrl, dn, pwd,
             ConnectionUtils.getDefaultLDAPTimeout(), null, argParser
                 .getTrustManager(), argParser.getKeyManager(), null);
       }
