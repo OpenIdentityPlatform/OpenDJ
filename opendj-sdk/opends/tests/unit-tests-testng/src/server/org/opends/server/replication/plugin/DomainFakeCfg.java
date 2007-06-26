@@ -32,6 +32,7 @@ import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.client.MultimasterDomainCfgClient;
+import org.opends.server.admin.std.meta.MultimasterDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.MultimasterDomainCfg;
 import org.opends.server.types.DN;
 
@@ -45,6 +46,7 @@ public class DomainFakeCfg implements MultimasterDomainCfg
   private int serverId;
   private SortedSet<String> replicationServers;
   private long heartbeatInterval = 1000;
+  private IsolationPolicy policy = IsolationPolicy.REJECT_ALL_UPDATES;
 
   /**
    * Creates a new Domain with the provided information
@@ -180,4 +182,21 @@ public class DomainFakeCfg implements MultimasterDomainCfg
     heartbeatInterval = interval;
   }
 
+  /**
+   * Get the isolation policy.
+   */
+  public IsolationPolicy getIsolationPolicy()
+  {
+    return policy;
+  }
+
+  /**
+   * Set the isolation policy.
+   *
+   * @param policy the policy that must now be used.
+   */
+  public void setIsolationPolicy(IsolationPolicy policy)
+  {
+    this.policy = policy;
+  }
 }

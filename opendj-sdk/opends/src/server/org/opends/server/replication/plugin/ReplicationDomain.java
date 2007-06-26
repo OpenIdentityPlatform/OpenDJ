@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.MultimasterDomainCfgDefn.*;
 import org.opends.server.admin.std.server.MultimasterDomainCfg;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
@@ -192,6 +193,41 @@ public class ReplicationDomain extends DirectoryThread
   private long heartbeatInterval = 0;
   short serverId;
 
+  // The context related to an import or export being processed
+  // Null when none is being processed.
+  private IEContext ieContext = null;
+
+  // The backend information necessary to make an import or export.
+  private Backend backend;
+  private List<DN> branches = new ArrayList<DN>(0);
+
+  private int listenerThreadNumber = 10;
+
+  private Collection<String> replicationServers;
+
+  private DN baseDN;
+
+  private boolean shutdown = false;
+
+  private InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+  private boolean solveConflictFlag = true;
+
+  private boolean disabled = false;
+  private boolean stateSavingDisabled = false;
+
+  private int window = 100;
+
+  /**
+   * The isoalation policy that this domain is going to use.
+   * This field describes the behavior of the domain when an update is
+   * attempted and the domain could not connect to any Replication Server.
+   * Possible values are accept-updates or deny-updates, but other values
+   * may be added in the futur.
+   */
+  private IsolationPolicy isolationpolicy;
+
   /**
    * This class contain the context related to an import or export
    * launched on the domain.
@@ -272,33 +308,6 @@ public class ReplicationDomain extends DirectoryThread
     }
   }
 
-  // The context related to an import or export being processed
-  // Null when none is being processed.
-  private IEContext ieContext = null;
-
-  // The backend information necessary to make an import or export.
-  private Backend backend;
-  private List<DN> branches = new ArrayList<DN>(0);
-
-  private int listenerThreadNumber = 10;
-
-  private Collection<String> replicationServers;
-
-  private DN baseDN;
-
-  private boolean shutdown = false;
-
-  private InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-  private boolean solveConflictFlag = true;
-
-  private boolean disabled = false;
-  private boolean stateSavingDisabled = false;
-
-  private int window = 100;
-
-
   /**
    * Creates a new ReplicationDomain using configuration from configEntry.
    *
@@ -320,6 +329,7 @@ public class ReplicationDomain extends DirectoryThread
     maxSendDelay = (int) configuration.getMaxSendDelay();
     window  = configuration.getWindowSize();
     heartbeatInterval = configuration.getHeartbeatInterval();
+    isolationpolicy = configuration.getIsolationPolicy();
 
     /*
      * Modify conflicts are solved for all suffixes but the schema suffix
@@ -412,6 +422,12 @@ public class ReplicationDomain extends DirectoryThread
   public SynchronizationProviderResult handleConflictResolution(
       DeleteOperation deleteOperation)
   {
+    if ((!deleteOperation.isSynchronizationOperation())
+        && (!brokerIsConnected(deleteOperation)))
+    {
+      return new SynchronizationProviderResult(false);
+    }
+
     DeleteContext ctx =
       (DeleteContext) deleteOperation.getAttachment(SYNCHROCONTEXT);
     Entry deletedEntry = deleteOperation.getEntryToDelete();
@@ -464,6 +480,12 @@ public class ReplicationDomain extends DirectoryThread
   public SynchronizationProviderResult handleConflictResolution(
       AddOperation addOperation)
   {
+    if ((!addOperation.isSynchronizationOperation())
+        && (!brokerIsConnected(addOperation)))
+    {
+      return new SynchronizationProviderResult(false);
+    }
+
     if (addOperation.isSynchronizationOperation())
     {
       AddContext ctx = (AddContext) addOperation.getAttachment(SYNCHROCONTEXT);
@@ -520,6 +542,54 @@ public class ReplicationDomain extends DirectoryThread
   }
 
   /**
+   * Check that the broker associated to this ReplicationDomain has found
+   * a Replication Server and that this LDAP server is therefore able to
+   * process operations.
+   * If not set the ResultCode and the response message,
+   * interrupt the operation, and return false
+   *
+   * @param   Operation  The Operation that needs to be checked.
+   *
+   * @return  true when it OK to process the Operation, false otherwise.
+   *          When false is returned the resultCode and the reponse message
+   *          is also set in the Operation.
+   */
+  private boolean brokerIsConnected(Operation op)
+  {
+    if (isolationpolicy.equals(IsolationPolicy.ACCEPT_ALL_UPDATES))
+    {
+      // this policy imply that we always aceept updates.
+      return true;
+    }
+    if (isolationpolicy.equals(IsolationPolicy.REJECT_ALL_UPDATES))
+    {
+      // this isolation policy specifies that the updates are denied
+      // when the broker is not connected.
+      if (broker.isConnected())
+      {
+        return true;
+      }
+      else
+      {
+        String msg =
+          getMessage(MSGID_REPLICATION_COULD_NOT_CONNECT, baseDN.toString());
+        DirectoryException result =
+          new DirectoryException(
+              ResultCode.UNWILLING_TO_PERFORM, msg,
+              MSGID_REPLICATION_COULD_NOT_CONNECT);
+
+        op.setResponseData(result);
+
+        return false;
+      }
+    }
+    // we should never get there as the only possible policies are
+    // ACCEPT_UPDATES and DENY_UPDATES
+    return true;
+  }
+
+
+  /**
    * Implement the  handleConflictResolution phase of the ModifyDNOperation.
    *
    * @param modifyDNOperation The ModifyDNOperation.
@@ -529,6 +599,12 @@ public class ReplicationDomain extends DirectoryThread
   public SynchronizationProviderResult handleConflictResolution(
       ModifyDNOperation modifyDNOperation)
   {
+    if ((!modifyDNOperation.isSynchronizationOperation())
+        && (!brokerIsConnected(modifyDNOperation)))
+    {
+      return new SynchronizationProviderResult(false);
+    }
+
     ModifyDnContext ctx =
       (ModifyDnContext) modifyDNOperation.getAttachment(SYNCHROCONTEXT);
     if (ctx != null)
@@ -600,6 +676,12 @@ public class ReplicationDomain extends DirectoryThread
   public SynchronizationProviderResult handleConflictResolution(
                                                 ModifyOperation modifyOperation)
   {
+    if ((!modifyOperation.isSynchronizationOperation())
+        && (!brokerIsConnected(modifyOperation)))
+    {
+      return new SynchronizationProviderResult(false);
+    }
+
     ModifyContext ctx =
       (ModifyContext) modifyOperation.getAttachment(SYNCHROCONTEXT);
 
@@ -2808,7 +2890,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       MultimasterDomainCfg configuration, List<String> unacceptableReasons)
   {
     // Check that there is not already a domain with the same DN
-    // TODO : Check that the server id is a short
     DN dn = configuration.getReplicationDN();
     if (MultimasterReplication.findDomain(dn,null) != null)
     {
@@ -2826,6 +2907,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          MultimasterDomainCfg configuration)
   {
     // server id and base dn are readonly.
+    // isolationPolicy can be set immediately and will apply
+    // to the next updates.
     // The other parameters needs to be renegociated with the ReplicationServer.
     // so that requires restarting the session with the ReplicationServer.
     replicationServers = configuration.getReplicationServer();
@@ -2837,6 +2920,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     heartbeatInterval = configuration.getHeartbeatInterval();
     broker.changeConfig(replicationServers, maxReceiveQueue, maxReceiveDelay,
                         maxSendQueue, maxSendDelay, window, heartbeatInterval);
+    isolationpolicy = configuration.getIsolationPolicy();
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
