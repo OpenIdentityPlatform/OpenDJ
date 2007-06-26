@@ -59,6 +59,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -3378,6 +3379,46 @@ public final class StaticUtils
     fileToMove.delete();
   }
 
+  /**
+   * Renames the source file to the target file.  If the target file exists
+   * it is first deleted.  The rename and delete operation return values
+   * are checked for success and if unsuccessful, this method throws an
+   * exception.
+   *
+   * @param fileToRename The file to rename.
+   * @param target       The file to which <code>fileToRename</code> will be
+   *                     moved.
+   * @throws IOException If a problem occurs while attempting to rename the
+   *                     file.  On the Windows platform, this typically
+   *                     indicates that the file is in use by this or another
+   *                     application.
+   */
+  static public void renameFile(File fileToRename, File target)
+          throws IOException {
+    if (fileToRename != null && target != null)
+    {
+      synchronized(target)
+      {
+        if (target.exists())
+        {
+          if (!target.delete())
+          {
+            int    msgID   = MSGID_RENAMEFILE_CANNOT_DELETE_TARGET;
+            String message = getMessage(msgID, target.getPath());
+            throw new IOException(message);
+          }
+        }
+      }
+      if (!fileToRename.renameTo(target))
+      {
+        int    msgID   = MSGID_RENAMEFILE_CANNOT_RENAME;
+        String message = getMessage(msgID, fileToRename.getPath(),
+                target.getPath());
+        throw new IOException(message);
+
+      }
+    }
+  }
 
 
   /**

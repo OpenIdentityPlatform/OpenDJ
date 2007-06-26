@@ -1652,6 +1652,23 @@ public class UtilityMessages
 
 
   /**
+   * The message ID for the message that will be used an attempt to rename a
+   * file fails because the existing target file cannot be deleted.  This takes
+   * a single argument, which is the provided path of the file to move.
+   */
+  public static final int MSGID_RENAMEFILE_CANNOT_RENAME =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 157;
+
+  /**
+   * The message ID for the message that will be used an attempt to rename a
+   * file fails because the rename operation fails.  This takes two
+   * arguments, the source and target file names.
+   */
+  public static final int MSGID_RENAMEFILE_CANNOT_DELETE_TARGET =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 158;
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -2197,6 +2214,14 @@ public class UtilityMessages
                     "The accepted value for global options are:");
     registerMessage(MSGID_GLOBAL_HELP_REFERENCE,
                     "See \"%s --help\" to get more usage help");
+
+    registerMessage(MSGID_RENAMEFILE_CANNOT_DELETE_TARGET,
+                    "Failed to delete target file %s.  Make sure the file is " +
+                    "not currently in use by this or another application");
+
+    registerMessage(MSGID_RENAMEFILE_CANNOT_RENAME,
+                    "Failed to rename file %s to %s");
+
   }
 }
 

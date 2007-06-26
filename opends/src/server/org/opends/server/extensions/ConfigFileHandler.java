@@ -768,11 +768,12 @@ public class ConfigFileHandler
   private byte[] calculateConfigDigest()
           throws DirectoryException
   {
+    InputStream inputStream = null;
     try
     {
       MessageDigest sha1Digest =
            MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA_1);
-      FileInputStream inputStream = new FileInputStream(configFile);
+      inputStream = new FileInputStream(configFile);
       byte[] buffer = new byte[8192];
       while (true)
       {
@@ -784,7 +785,6 @@ public class ConfigFileHandler
 
         sha1Digest.update(buffer, 0, bytesRead);
       }
-
       return sha1Digest.digest();
     }
     catch (Exception e)
@@ -794,6 +794,19 @@ public class ConfigFileHandler
                                   stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, msgID, e);
+    }
+    finally
+    {
+      if (inputStream != null)
+      {
+        try
+        {
+          inputStream.close();
+        }
+        catch (IOException e) {
+          // ignore;
+        }
+      }
     }
   }
 
@@ -2030,9 +2043,9 @@ public class ConfigFileHandler
     // Delete the previous version of the configuration and rename the new one.
     try
     {
-      File f = new File(configFile);
-      f.delete();
-      new File(tempConfig).renameTo(f);
+      File actualConfig = new File(configFile);
+      File tmpConfig = new File(tempConfig);
+      renameFile(tmpConfig, actualConfig);
     }
     catch (Exception e)
     {
