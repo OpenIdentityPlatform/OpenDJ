@@ -1068,7 +1068,7 @@ objectClass: top
 objectClass: ds-cfg-password-policy
 cn: Root Password Policy
 ds-cfg-password-attribute: userPassword
-ds-cfg-default-password-storage-scheme: SSHA
+ds-cfg-default-password-storage-scheme: SSHA512
 ds-cfg-allow-expired-password-changes: false
 ds-cfg-allow-multiple-password-values: false
 ds-cfg-allow-pre-encoded-passwords: false
@@ -1278,6 +1278,7 @@ ds-cfg-plugin-type: preParseSearch
 dn: cn=Password Policy Import,cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-plugin
+objectClass: ds-cfg-password-policy-import-plugin
 cn: Password Policy Import
 ds-cfg-plugin-class: org.opends.server.plugins.PasswordPolicyImportPlugin
 ds-cfg-plugin-enabled: true
