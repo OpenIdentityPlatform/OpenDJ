@@ -228,7 +228,7 @@ public class ConnectionUtils
    * If trust manager is null, certificates are not checked during SSL
    * handshake.
    *
-   * @param ldapsURL      the target *LDAPS* URL.
+   * @param ldapURL       the target *LDAP* URL.
    * @param dn            passed as Context.SECURITY_PRINCIPAL if not null.
    * @param pwd           passed as Context.SECURITY_CREDENTIALS if not null.
    * @param timeout       passed as com.sun.jndi.ldap.connect.timeout if > 0.
@@ -251,7 +251,7 @@ public class ConnectionUtils
    * @see TrustedSocketFactory
    */
 
-  public static InitialLdapContext createStartTLSContext(String ldapsURL,
+  public static InitialLdapContext createStartTLSContext(String ldapURL,
       String dn, String pwd, int timeout, Hashtable<String, String> env,
       TrustManager trustManager, KeyManager keyManager,
       HostnameVerifier verifier)
@@ -275,7 +275,7 @@ public class ConnectionUtils
     }
     env.put(Context.INITIAL_CONTEXT_FACTORY,
         "com.sun.jndi.ldap.LdapCtxFactory");
-    env.put(Context.PROVIDER_URL, ldapsURL);
+    env.put(Context.PROVIDER_URL, ldapURL);
     env.put(Context.SECURITY_AUTHENTICATION , "none");
 
     /* Contains the DirContext and the Exception if any */
