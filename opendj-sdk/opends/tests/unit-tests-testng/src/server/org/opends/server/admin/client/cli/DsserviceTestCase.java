@@ -263,13 +263,13 @@ public class DsserviceTestCase
   /**
    * Tests a list-groups using StartTLS with blind trust.
    */
-  @Test(enabled=false)
+  @Test()
   public void testListGroupsStartTLSBlindTrust()
   {
     String[] args =
     {
       "list-groups",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-w", "password",
       "-q",
       "-X"
@@ -284,7 +284,7 @@ public class DsserviceTestCase
   /**
    * Tests a list-groups using StartTLS with a trust store.
    */
-  @Test(enabled=false)
+  @Test()
   public void testListGroupsStartTLSTrustStore()
   {
     String trustStorePath = DirectoryServer.getServerRoot() + File.separator +
@@ -293,7 +293,7 @@ public class DsserviceTestCase
     String[] args =
     {
       "list-groups",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-w", "password",
       "-q",
       "-P", trustStorePath
