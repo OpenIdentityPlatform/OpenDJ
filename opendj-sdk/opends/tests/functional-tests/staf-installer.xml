@@ -610,7 +610,7 @@ email.server.pwd=${email.server.pwd.input}
     <copy todir="${tests.run.dir}/${tests.run.time}/staf-logs">
       <fileset dir="${staf.home}/logs"/>
     </copy>
-    <delete dir="${staf.home}/logs" />
+    <!--<delete dir="${staf.home}/logs" />-->
     <echo>Saving report</echo>
     <copy todir="${tests.run.dir}/${tests.run.time}/report">
       <fileset dir="${staf.tmp.dir}">
@@ -978,7 +978,10 @@ email.server.pwd=${email.server.pwd.input}
 		<antcall target="uninstall"/>
 	</target>
 
-  <target name="restart" depends="stop,start"/>
+  <target name="restart">
+    <antcall target="stop" inheritAll="false" />
+    <antcall target="start" inheritAll="false" />
+  </target>
 <!--  Macros section - bottom -->
   <target name="javadoc" depends="status-do" if="staf.installed">
     <delete dir="${staf.home}/doc"/>
