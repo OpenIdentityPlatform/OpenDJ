@@ -789,6 +789,69 @@ public class PluginMessages
 
 
   /**
+   * The message ID for the message that will be used if the password policy
+   * import plugin is not configured with any default auth password schemes and
+   * the SHA1 scheme is not available.  This takes a single argument, which is
+   * the name of the SHA1 scheme.
+   */
+  public static final int MSGID_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES =
+       CATEGORY_MASK_PLUGIN | SEVERITY_MASK_SEVERE_ERROR | 69;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user specifies a
+   * default auth password storage scheme that is unknown to the server.  This
+   * takes a single argument, which is the specified scheme name.
+   */
+  public static final int MSGID_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME =
+       CATEGORY_MASK_PLUGIN | SEVERITY_MASK_SEVERE_ERROR | 70;
+
+
+
+  /**
+   * The message ID for the message that will be used if the password policy
+   * import plugin is not configured with any default user password schemes and
+   * the SSHA scheme is not available.  This takes a single argument, which is
+   * the name of the SSHA scheme.
+   */
+  public static final int MSGID_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES =
+       CATEGORY_MASK_PLUGIN | SEVERITY_MASK_SEVERE_ERROR | 71;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user specifies a
+   * default user password storage scheme that is unknown to the server.  This
+   * takes a single argument, which is the specified scheme name.
+   */
+  public static final int MSGID_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME =
+       CATEGORY_MASK_PLUGIN | SEVERITY_MASK_SEVERE_ERROR | 72;
+
+
+
+  /**
+   * The message ID for the message that will be used if an entry references a
+   * custom password policy that does not exist.  This takes two arguments,
+   * which are the DN of the target entry and the DN of the password policy.
+   */
+  public static final int MSGID_PLUGIN_PWIMPORT_NO_SUCH_POLICY =
+       CATEGORY_MASK_PLUGIN | SEVERITY_MASK_SEVERE_WARNING | 73;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to decode the custom passwod policy DN.  This takes two arguments,
+   * which are the DN of the target entry and a message explaining the problem
+   * that occured.
+   */
+  public static final int MSGID_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN =
+       CATEGORY_MASK_PLUGIN | SEVERITY_MASK_SEVERE_WARNING | 74;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1143,6 +1206,34 @@ public class PluginMessages
                     "An error occurred while attempting to encode a password " +
                     "value stored in attribute %s of user entry %s:  %s.  " +
                     "Password values for this user will not be encoded");
+    registerMessage(MSGID_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES,
+                    "The password policy import plugin is not configured " +
+                    "any default auth password schemes, and the server does " +
+                    "not support the %s auth password scheme");
+    registerMessage(MSGID_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME,
+                    "Auth password storage scheme %s referenced by the " +
+                    "password policy import plugin is not configured for use " +
+                    "in the server");
+    registerMessage(MSGID_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES,
+                    "The password policy import plugin is not configured " +
+                    "any default user password schemes, and the server does " +
+                    "not support the %s auth password scheme");
+    registerMessage(MSGID_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME,
+                    "User password storage scheme %s referenced by the " +
+                    "password policy import plugin is not configured for use " +
+                    "in the server");
+    registerMessage(MSGID_PLUGIN_PWIMPORT_NO_SUCH_POLICY,
+                    "Entry '%s' indicates that it uses custom password " +
+                    "policy '%s', but no such policy is defined in the " +
+                    "server.  Any passwords contained in the entry will be " +
+                    "encoded using the default storage schemes, but " +
+                    "authentication as this user may not be possible");
+    registerMessage(MSGID_PLUGIN_PWIMPORT_CANNOT_DECODE_POLICY_DN,
+                    "An error occurred while attempting to decode the " +
+                    "value of the custom password policy attribute in " +
+                    "entry '%s':  %s.  Any passwords contained in the entry " +
+                    "will be encoded using the default storage schemes, but " +
+                    "authentication as this user may not be possible");
 
 
     registerMessage(MSGID_PLUGIN_TYPE_NOT_SUPPORTED,

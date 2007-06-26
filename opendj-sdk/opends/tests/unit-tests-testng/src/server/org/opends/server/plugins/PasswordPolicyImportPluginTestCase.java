@@ -35,8 +35,8 @@ import java.util.List;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.PluginCfgDefn;
-import org.opends.server.admin.std.server.PluginCfg;
+import org.opends.server.admin.std.meta.PasswordPolicyImportPluginCfgDefn;
+import org.opends.server.admin.std.server.PasswordPolicyImportPluginCfg;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -86,11 +86,59 @@ public class PasswordPolicyImportPluginTestCase
          "dn: cn=Password Policy Import,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-password-policy-import-plugin",
          "cn: Password Policy Import",
          "ds-cfg-plugin-class: org.opends.server.plugins." +
               "PasswordPolicyImportPlugin",
          "ds-cfg-plugin-enabled: true",
-         "ds-cfg-plugin-type: ldifImport");
+         "ds-cfg-plugin-type: ldifImport",
+         "",
+         "dn: cn=Password Policy Import,cn=Plugins,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-password-policy-import-plugin",
+         "cn: Password Policy Import",
+         "ds-cfg-plugin-class: org.opends.server.plugins." +
+              "PasswordPolicyImportPlugin",
+         "ds-cfg-plugin-enabled: true",
+         "ds-cfg-plugin-type: ldifImport",
+         "ds-cfg-default-user-password-storage-scheme: SSHA",
+         "",
+         "dn: cn=Password Policy Import,cn=Plugins,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-password-policy-import-plugin",
+         "cn: Password Policy Import",
+         "ds-cfg-plugin-class: org.opends.server.plugins." +
+              "PasswordPolicyImportPlugin",
+         "ds-cfg-plugin-enabled: true",
+         "ds-cfg-plugin-type: ldifImport",
+         "ds-cfg-default-user-password-storage-scheme: CRYPT",
+         "ds-cfg-default-user-password-storage-scheme: SSHA",
+         "",
+         "dn: cn=Password Policy Import,cn=Plugins,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-password-policy-import-plugin",
+         "cn: Password Policy Import",
+         "ds-cfg-plugin-class: org.opends.server.plugins." +
+              "PasswordPolicyImportPlugin",
+         "ds-cfg-plugin-enabled: true",
+         "ds-cfg-plugin-type: ldifImport",
+         "ds-cfg-default-auth-password-storage-scheme: SHA1",
+         "",
+         "dn: cn=Password Policy Import,cn=Plugins,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-plugin",
+         "objectClass: ds-cfg-password-policy-import-plugin",
+         "cn: Password Policy Import",
+         "ds-cfg-plugin-class: org.opends.server.plugins." +
+              "PasswordPolicyImportPlugin",
+         "ds-cfg-plugin-enabled: true",
+         "ds-cfg-plugin-type: ldifImport",
+         "ds-cfg-default-user-password-storage-scheme: SSHA",
+         "ds-cfg-default-auth-password-storage-scheme: SHA1"
+    );
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -124,8 +172,9 @@ public class PasswordPolicyImportPluginTestCase
       }
     }
 
-    PluginCfg configuration = AdminTestCaseUtils.getConfiguration(
-        PluginCfgDefn.getInstance(), e);
+    PasswordPolicyImportPluginCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              PasswordPolicyImportPluginCfgDefn.getInstance(), e);
 
     PasswordPolicyImportPlugin plugin = new PasswordPolicyImportPlugin();
     plugin.initializePlugin(pluginTypes, configuration);
@@ -155,6 +204,7 @@ public class PasswordPolicyImportPluginTestCase
            "dn: cn=Password Policy Import,cn=Plugins,cn=config",
            "objectClass: top",
            "objectClass: ds-cfg-plugin",
+           "objectClass: ds-cfg-password-policy-import-plugin",
            "cn: Password Policy Import",
            "ds-cfg-plugin-class: org.opends.server.plugins." +
                 "PasswordPolicyImportPlugin",
@@ -200,9 +250,9 @@ public class PasswordPolicyImportPluginTestCase
     }
 
 
-    PluginCfg configuration =
+    PasswordPolicyImportPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              PluginCfgDefn.getInstance(), e);
+              PasswordPolicyImportPluginCfgDefn.getInstance(), e);
 
     PasswordPolicyImportPlugin plugin = new PasswordPolicyImportPlugin();
     plugin.initializePlugin(pluginTypes, configuration);
