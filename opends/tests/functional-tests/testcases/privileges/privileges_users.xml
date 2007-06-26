@@ -1,0 +1,3490 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="privileges_users"/>
+
+  <function name="privileges_users">
+
+    <sequence>
+
+      <block name="'privileges-users'">
+      
+        <sequence>
+  
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='privileges'			  			  
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             Privileges Users Tests
+                #@TestSuitePurpose          Test the basic Privileges Support in regrad to basic users.
+                #@TestSuiteGroup            Basic Privileges Users Tests
+                #@TestScript                privileges_users.xml
+          -->
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/privileges/privileges_setup.xml' % (TESTS_DIR)"/>
+          <call function="'privileges_setup'" />
+
+	  <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  bypass-acl 
+                #@TestIssue                 471
+                #@TestPurpose               bypass-acl privilege for normal users
+                #@TestPreamble              User searches entry.
+                #@TestStep                  Admin removes global search ACI.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin puts back global search ACI.
+                #@TestStep                  User searches entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all other ldap operations. 
+                                            Proper entries returned for allowed searches.
+            -->
+            <testcase name="'Privileges: Users: bypass-acl'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: bypass-acl, preamble check default privilege'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl, removing search global ACI'
+                </message>
+    
+                <script>
+                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: bypass-acl, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl, Admin adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'bypass-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'bypass-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+   
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+               
+               <message>
+                   'Privileges: Users: bypass-acl, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+              
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+               
+                <message>
+                   'Privileges: Users:  Putting Back Search Global ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                  
+                <message>
+                   'Privileges: Users: bypass-acl, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+               
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  bypass-acl with proxy 
+                #@TestIssue                 471
+                #@TestPurpose               bypass-acl privilege for normal users with proxy permission
+                #@TestPreamble              Admin removes global search ACI.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Proxied user searches entry.
+                #@TestStep                  Admin adds proxy ACI.
+                #@TestStep                  Proxied user searches entry.
+                #@TestStep                  Admin deletes proxy ACI.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin puts back global search ACI.
+                #@TestStep                  User searches entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap operations. 
+                                            Proper entries returned for allowed searches.
+            -->
+            <testcase name="'Privileges: Users: bypass-acl with proxy'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: bypass-acl with proxy, preamble, removing search global ACI'
+                </message>
+    
+                <script>
+                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: bypass-acl with proxy, Admin adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'bypass-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl with proxy, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                 'Privileges: Users: bypass-acl with proxy, proxied user searching targeted entry'
+                </message>
+  
+                <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid' }
+                </call>
+  
+                <script> 
+                    returnString = STAXResult[0][1]
+                </script> 
+  
+                <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+              
+                <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+                </if>
+  
+                <message>
+                 'Privileges: Users: bypass-acl with proxy, adding proxy aci'
+                </message>
+  
+                <script>
+                    proxy_aci="(target=\"ldap:///ou=People, o=Privileges Tests, dc=example,dc=com\")(targetattr=\"*\")(version 3.0; acl \"add_proxy_aci\"; allow (proxy) userdn=\"ldap:///uid=aproxy, ou=People, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : proxy_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                  <tcstatus result="'fail'"/>
+                </if>
+  
+                <message>
+                 'Privileges: Users: bypass-acl with proxy, proxied user searching targeted entry'
+                </message>
+  
+                <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=aproxy,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ProxyRules' ,
+                  'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'attributes'       : 'cn sn uid' }
+                </call>
+  
+                <script> 
+                    returnString = STAXResult[0][1]
+                </script> 
+  
+                <call function="'searchStringForSubstring'">
+                  { 'returnString'       : returnString ,
+                    'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+              
+                <if expr="returnCode != '0'">
+                  <tcstatus result="'fail'"/>
+                </if>
+  
+                <message>
+                   'Privileges: Users: bypass-acl with proxy, Admin deleting ACI'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : proxy_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: bypass-acl with proxy, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'         : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'bypass-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl with proxy, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users:  bypass-acl with proxy, Putting Back Search Global ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: bypass-acl with proxy, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+               
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  bypass-acl removal with minus notation
+                #@TestIssue                 471
+                #@TestPurpose               bypass-acl privilege for normal users with minus notation
+                #@TestPreamble              Admin removes global search ACI.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin adds privilege with minus notation.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin removes privilege with minus notation.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin puts back global search ACI.
+                #@TestStep                  User searches entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap operations. 
+                                            Proper entries returned for allowed searches.
+            -->
+            <testcase name="'Privileges: Users: bypass-acl with minus notation'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: bypass-acl with minus notation, preamble, removing search global ACI'
+                </message>
+    
+                <script>
+                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: bypass-acl with minus notation, Admin adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'bypass-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl with minus notation, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl with minus notation, Admin adding privilege with minus notation'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-bypass-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl with minus notation, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl with minus notation, Admin deleting privilege with minus notation'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-bypass-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl with minus notation, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl with proxy, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'bypass-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: bypass-acl with minus notation, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users:  bypass-acl with minus notation, Putting Back Search Global ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: bypass-acl with minus notation, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+               
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  bypass-acl self-modify add
+                #@TestIssue                 471
+                #@TestPurpose               bypass-acl privilege for normal users with self-modify add
+                #@TestPreamble              Admin removes global search ACI.
+                #@TestStep                  User adds ACI to itself.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin puts back global search ACI.
+                #@TestStep                  User searches entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 1, and 0
+                                            for all other ldap operations. 
+                                            Proper entries returned for allowed searches.
+            -->
+            <testcase name="'Privileges: Users: bypass-acl self-modify add'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: bypass-acl self-modify add, preamble, removing search global ACI'
+                </message>
+    
+                <script>
+                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: bypass-acl self-modify add, user adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'bypass-acl' ,
+                    'changetype'             : 'add' ,
+                    'expectedErrorCode'      : '50' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: bypass-acl self-modify add, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users:  bypass-acl self-modify add, Putting Back Search Global ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: bypass-acl self-modify add, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'cn sn uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'dn: uid=scarter,ou=People,o=Privileges Tests' }
+                </call>
+               
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  modify-acl - add aci
+                #@TestIssue                 471
+                #@TestPurpose               modify-acl privilege for normal users - add aci
+                #@TestPreamble              none
+                #@TestStep                  User adds ACI, check default behavior.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User adds ACI.
+                #@TestStep                  Admin adds write ACI.
+                #@TestStep                  User adds ACI.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User adds second ACI.
+                #@TestStep                  Admin deletes write ACI.
+                #@TestStep                  Admin deletes user-added ACI.
+                #@TestStep                  User adds second ACI.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1, 3, 7 and 10, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Users: modify-acl - add aci'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: modify-acl - add aci, check default, user adding ACI'
+                </message>
+    
+                <script>
+                    search_aci="(targetattr=\"*\")(version 3.0; acl \"add_search_aci\"; allow (search,read) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - add aci, Admin adding privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: modify-acl - add aci, user adding ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - add aci, Admin adding write ACI'
+                </message>
+    
+                <script>
+                    write_aci="(targetattr=\"aci || ds-privilege-name\")(version 3.0; acl \"add_write_acl\"; allow (write) userdn=\"ldap:///all\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - add aci, user adding ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - add aci, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: modify-acl - add aci, user adding second ACI'
+                </message>
+    
+                <script>
+                    search2_aci="(targetattr=\"*\")(version 3.0; acl \"add_search_aci2\"; allow (write) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search2_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - add aci, Admin deleting write ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: modify-acl - add aci, Admin deleting user-added ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: modify-acl - add aci, user adding second ACI'
+                </message>
+    
+                <script>
+                    search3_aci="(targetattr=\"*\")(version 3.0; acl \"add_search_aci_scarter\"; allow (search,read) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=scarter, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search3_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  modify-acl - replace aci
+                #@TestIssue                 471
+                #@TestPurpose               modify-acl privilege for normal users - replace aci
+                #@TestPreamble              none
+                #@TestStep                  User replaces ACI, check default behavior.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User replaces ACI.
+                #@TestStep                  Admin adds write ACI.
+                #@TestStep                  User replaces ACI.
+                #@TestStep                  Admin deletes write ACI.
+                #@TestStep                  User replaces ACI.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User replaces ACI.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1, 3, 7 and 9, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Users: modify-acl - replace aci'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: modify-acl - replace aci, check default, user replacing ACI'
+                </message>
+    
+                <script>
+                    search_aci="(targetattr=\"*\")(version 3.0; acl \"rep_search_aci_tmorris\"; allow (search,read) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - replace aci, Admin adding write ACI'
+                </message>
+    
+                <script>
+                    write_aci="(targetattr=\"aci || ds-privilege-name\")(version 3.0; acl \"add_write_acl\"; allow (write) userdn=\"ldap:///all\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - replace aci, user replacing ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - replace aci, Admin adding privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: modify-acl - replace aci, user replacing ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'replace' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: modify-acl - replace aci, Admin deleting write ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: modify-acl - replace aci, user replacing ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - replace aci, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: modify-acl - replace aci, user replacing ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!--
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  modify-acl - delete aci
+                #@TestIssue                 471
+                #@TestPurpose               modify-acl privilege for normal users - delete aci
+                #@TestPreamble              none
+                #@TestStep                  User deletes ACI, check default behavior.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User deletes ACI.
+                #@TestStep                  Admin adds write ACI.
+                #@TestStep                  User deletes ACI.
+                #@TestStep                  Admin deletes write ACI.
+                #@TestStep                  Admin removes privilege.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1 and 3, and 0
+                                            for all other ldap operations.
+            -->
+            <testcase name="'Privileges: Users: modify-acl - delete aci'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: modify-acl - delete aci, preamble, check default, user deleting ACI'
+                </message>
+    
+                <script>
+                    write_aci_dmiller="(targetattr=\"*\")(version 3.0; acl \"del_search_aci_dmiller\"; allow (write) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci_dmiller ,
+                    'changetype'             : 'delete' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - delete aci, Admin adding privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: modify-acl - delete aci, user deleting ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci_dmiller ,
+                    'changetype'             : 'delete' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - delete aci, Admin adding write ACI'
+                </message>
+    
+                <script>
+                    write_aci="(targetattr=\"aci || ds-privilege-name\")(version 3.0; acl \"add_write_acl\"; allow (write) userdn=\"ldap:///all\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: modify-acl - delete aci, user deleting ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci_dmiller ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: modify-acl - delete aci, Admin deleting write ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: modify-acl - delete aci, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  config-read 
+                #@TestIssue                 472
+                #@TestPurpose               config-read privilege for normal users
+                #@TestPreamble              none
+                #@TestStep                  User searches cn=config, check default behavior.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User searches cn=config.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User searches cn=config.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1 and 5, and 0
+                                            for all other ldap operations. 
+                                            Proper entries returned for allowed searches.
+            -->
+            <testcase name="'Privileges: Users: config-read'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: config-read, check default privilege, user searching cn=config'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'cn=config' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'ds-cfg-check-schema' ,
+                    'extraParams'      : '-s base' }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: config-read, Admin adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'config-read' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-read, user searching cn=config'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'cn=config' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'ds-cfg-check-schema' ,
+                    'extraParams'      : '-s base' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: cn=config' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'ds-cfg-check-schema:' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-read, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'config-read' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-read, user searching cn=config'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'cn=config' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'ds-cfg-check-schema' ,
+                    'extraParams'      : '-s base' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestStringNotPresent'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: cn=config' }
+                </call>
+               
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+             
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  config-write 
+                #@TestIssue                 472
+                #@TestPurpose               config-write privilege for normal users
+                #@TestPreamble              none
+                #@TestStep                  User modifies cn=config, check default behavior.
+                #@TestStep                  Admin adds write privilege.
+                #@TestStep                  User modifies cn=config.
+                #@TestStep                  Admin adds read privilege.
+                #@TestStep                  User modifies cn=config.
+                #@TestStep                  Admin adds write ACI.
+                #@TestStep                  User modifies cn=config.
+                #@TestStep                  Admin removes read privilege.
+                #@TestStep                  User modifies cn=config.
+                #@TestStep                  Admin removes write privilege.
+                #@TestStep                  User modifies cn=config.
+                #@TestStep                  Admin removes write ACI.
+                #@TestStep                  User modifies cn=config.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1, 3, 5, 9, 11, and 13, and 0
+                                            for all other ldap operations. 
+            -->
+            <testcase name="'Privileges: Users: config-write'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: config-write, check default privilege, user modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: config-write, Admin adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'config-write' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-write, user modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: config-write, Admin adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'config-read' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-write, user modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: config-write, Admin adding write ACI'
+                </message>
+    
+                <script>
+                    write_aci="(targetattr=\"ds-cfg-check-schema\")(version 3.0; acl \"add_write_config\"; allow (write) userdn=\"ldap:///all\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: config-write, user modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: config-write, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'config-read' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-write, user modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: config-write, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'config-write' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-write, user modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: modify-acl - add aci, Admin deleting write ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: config-write, user modifying cn=config'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'ds-cfg-check-schema' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  config-write - add global aci
+                #@TestIssue                 472
+                #@TestPurpose               config-write privilege for normal users - add global aci
+                #@TestPreamble              none
+                #@TestStep                  User adds global ACI, check default behavior.
+                #@TestStep                  Admin adds read privilege.
+                #@TestStep                  User adds global ACI.
+                #@TestStep                  Admin adds write privilege.
+                #@TestStep                  User adds global ACI.
+                #@TestStep                  Admin adds write ACI.
+                #@TestStep                  User adds global ACI.
+                #@TestStep                  Admin removes write privilege.
+                #@TestStep                  User adds second global ACI.
+                #@TestStep                  Admin removes read privilege.
+                #@TestStep                  User adds second global ACI.
+                #@TestStep                  Admin removes write ACI.
+                #@TestStep                  Admin removes user-added global ACI.
+                #@TestStep                  User adds second global ACI.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1, 3, 5, 9, 11, and 14, and 0
+                                            for all other ldap operations. 
+            -->
+            <testcase name="'Privileges: Users: config-write - add global aci'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: config-write - add global aci, check default, user adding ACI'
+                </message>
+    
+                <script>
+                    global_aci="(target=\"ldap:///ou=People,o=Privileges Tests,dc=example,dc=com\")(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous write access\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: config-write - add global aci, Admin adding privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'config-read' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-write - add global aci, user adding ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: config-write - add global aci, Admin adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'config-write' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-write - add global aci, user adding ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: config-write - add global aci, Admin adding write ACI'
+                </message>
+
+                <script>
+                    write_aci="(targetattr=\"ds-cfg-global-aci\")(version 3.0; acl \"add_allow_global_aci\"; allow (write) userdn=\"ldap:///all\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: config-write - add global aci, user adding ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: config-write - add global aci, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'config-write' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-write - add global aci, user adding ACI'
+                </message>
+    
+                <script>
+                    global2_aci="(target=\"ldap:///ou=People,o=Privileges Tests,dc=example,dc=com\")(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous write access\"; allow (write) userdn=\"ldap:///anyone\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global2_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: config-write - add global aci, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'config-read' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: config-write - add global aci, user adding ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global2_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: config-write - add global aci, Admin deleting write ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=config' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: config-write - add global aci, Admin deleting write ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci',
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: config-write - add global aci, user adding ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global2_aci ,
+                    'changetype'             : 'add' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  password-reset 
+                #@TestIssue                 479
+                #@TestPurpose               config-write privilege for normal users
+                #@TestPreamble              Admin adds write ACI
+                #@TestStep                  User resets another users password, check default behavior.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User resets another users password.
+                #@TestStep                  Other user binds with search operation.
+                #@TestStep                  Admin deletes write ACI.
+                #@TestStep                  User resets another users password.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User resets another users password.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1, 6, and 8, and 0
+                                            for all other ldap operations. 
+            -->
+            <testcase name="'Privileges: Users: password-reset'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: password-reset, preamble, Admin adding ACI'
+                </message>
+
+                <script>
+                    write_aci="(targetattr=\"userpassword\")(version 3.0; acl \"add_modify_acl\"; allow (write,add,delete) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: password-reset, check default privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=bhall, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'bananas' ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: password-reset, Admin adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'password-reset' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: password-reset, user resetting password'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=bhall, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'bananas' ,
+                    'changetype'             : 'replace' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: password-reset, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=bhall,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'bananas' ,
+                    'dsBaseDN'         : 'ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=bhall,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid: bhall' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: password-reset - delete aci, Admin deleting ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: password-reset, user resetting password'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=bhall, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'bananas' ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: password-reset, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'password-reset' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: password-reset, user resetting password'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=bhall, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'bananas' ,
+                    'changetype'             : 'replace' , 
+                    'expectedErrorCode'      : '50' }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  update-schema 
+                #@TestIssue                 468
+                #@TestPurpose               update-schema privilege for normal users
+                #@TestPreamble              Admin adds write ACI
+                #@TestStep                  User adds new schema object, check default behavior.
+                #@TestStep                  Admin adds new entry that uses new object class.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User adds new schema object.
+                #@TestStep                  Admin adds new entry that uses new object class.
+                #@TestStep                  Admin searches new entry.
+                #@TestStep                  Admin deletes write ACI.
+                #@TestStep                  Admin removes privilege.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 1, 65 for step 2, and 0
+                                            for all other ldap operations. 
+            -->
+            <testcase name="'Privileges: Users: update-schema'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: update-schema, preamble, Admin adding ACI'
+                </message>
+    
+                <script>
+                    write_aci="(target=\"ldap:///cn=schema\")(targetattr=\"objectclasses\")(version 3.0; acl \"add_global_write_schema\"; allow (all) userdn=\"ldap:///all\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: update-schema, check default privilege, user adding new schema object'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'      : 'ACIRules'  ,
+                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: update-schema, Admin adding entry that uses new object class'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <if expr="RC != 65">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: update-schema, Admin adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'update-schema' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: update-schema, user adding new schema object'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'      : 'ACIRules'  ,
+                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: update-schema, Admin adding entry that users new object class'
+                </message>
+    
+                <!--
+                <script>
+                    listAttr=[]
+                    listAttr.append('objectclass: top')
+                    listAttr.append('objectclass: person')
+                    listAttr.append('objectclass: mozillaobject')
+                    listAttr.append('cn: Salmon Fish')
+                    listAttr.append('sn: Fish')
+                    listAttr.append('givenname: Salmon')
+                    listAttr.append('l: Cupertino')
+                    listAttr.append('uid: sfish')
+                </script>
+    
+                <call function="'addAnEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
+                    'DNToAdd'             : 'uid=sfish, ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributesToAdd'     : listAttr }
+                </call>
+                -->
+                
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: password-reset, user searching entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'uid=sfish,ou=People,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'uid'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=sfish,ou=People,o=Privileges Tests' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid: sfish' }
+                </call>
+                
+                <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: update-schema, Admin deleting ACI'
+                </message>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'Privileges: Users: update-schema, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'update-schema' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult  }
+                </call>
+                     
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  privilege-change
+                #@TestIssue                 1213
+                #@TestPurpose               privilege-change privilege for normal users
+                #@TestPreamble              Admin adds write ACI
+                #@TestStep                  Admin adds privilege-change privilege to first user.
+                #@TestStep                  First user adds modify-acl privilege to second user.
+                #@TestStep                  Second user adds an ACI.
+                #@TestStep                  Admin removes modify-acl privilege.
+                #@TestStep                  Admin removes privilege-change privilege.
+                #@TestStep                  Admin deletes user-added ACI.
+                #@TestStep                  Admin deletes write ACI.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all other ldap operations. 
+            -->
+            <testcase name="'Privileges: Users: privilege-change'">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Users: privilege-change, Admin adding write ACI'
+                </message>
+    
+                <script>
+                    write_aci="(targetattr=\"aci || ds-privilege-name\")(version 3.0; acl \"add_write_acl\"; allow (write) userdn=\"ldap:///all\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: privilege-change, Admin adding privilege to first user'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'privilege-change' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: privilege-change, first user adding privilege to second user'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: privilege-change, second user adding ACI'
+                </message>
+    
+                <script>
+                    search_aci="(targetattr=\"*\")(version 3.0; acl \"add_search_aci\"; allow (search,read) userdn=\"ldap:///uid=auser, o=Privileges Tests,dc=example,dc=com\";)"
+                </script>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'ACIRules' ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: privilege-change, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'modify-acl' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: privilege-change, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'privilege-change' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: privilege-change, Admin deleting ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: privilege-change, Admin deleting write ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : write_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  server-shutdown
+                #@TestIssue                 477
+                #@TestPurpose               server-shutdown privilege for normal users
+                #@TestPreamble              none
+                #@TestStep                  User adds shutdown task, check default behavior.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User adds shutdown task.
+                #@TestStep                  Admin adds write ACI.
+                #@TestStep                  User adds shutdown task.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User adds shutdown task.
+                #@TestStep                  Admin deletes write ACI.
+                #@TestStep                  User adds shutdown task.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1, 3, 7, and 9, and 0
+                                            for all other ldap operations. 
+            -->
+            <testcase name="'Privileges: Users: server-shutdown'">
+    
+            <sequence>
+    
+                <call function="'testCase_Preamble'"/>
+    
+                <message>
+                   'Privileges: Users: server-shutdown, user adding server shutdown task'
+                </message>
+    
+                <call function="'shutdownTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules',
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+               
+                <message>
+                   'Privileges: Users: server-shutdown, Admin adding privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'server-shutdown' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: server-shutdown, user adding server shutdown task'
+                </message>
+    
+                <call function="'shutdownTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules',
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: server-shutdown, Admin adding ACI'
+                </message>
+    
+                <script>
+                    search_aci="(target=\"ldap:///cn=Scheduled Tasks,cn=Tasks\")(targetattr=\"ds-task-class-name || ds-task-export-backend-id || ds-task-export-ldif-file\")(version 3.0; acl \"Allows writes for tasks\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
+                </script>
+                                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: server-shutdown, user adding server shutdown task'
+                </message>
+    
+                <call function="'shutdownTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules',
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="STAFCmdRC != 0">
+                    <tcstatus result="'fail'"/>
+                <else>
+                        <!--- Start DS -->
+                        <sequence>
+				
+                        <message>
+                        'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+                        </message>
+  
+                        <!--- Start DS -->
+                        <call function="'StartDsWithScript'">
+                        { 'location'  : STAF_REMOTE_HOSTNAME }
+                        </call>
+  
+                        <call function="'checkRC'">
+                        { 'returncode' : RC ,
+                          'result'     : STAXResult }
+                        </call>
+  
+                        <!--- Check that DS started -->
+                        <call function="'isAlive'">
+                        { 'noOfLoops'        : 5 ,
+                          'noOfMilliSeconds' : 2000 }
+                        </call>			
+                        </sequence>
+                        <!--- End Block DS Process Active -->
+                </else>
+		</if>
+                
+                <message>
+                   'Privileges: Users: server-shutdown, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'server-shutdown' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: server-shutdown, user adding server shutdown task'
+                </message>
+    
+                <call function="'shutdownTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules',
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+               
+                <message>
+                   'Privileges: Users: server-shutdown, Admin removing ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: server-shutdown, user adding server shutdown task'
+                </message>
+    
+                <call function="'shutdownTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules',
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult ,
+                    'expected'   : 50 }
+                </call>
+                     
+                <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+    		
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Users Tests
+                #@TestName                  server-restart
+                #@TestIssue                 477
+                #@TestPurpose               server-restart privilege for normal users
+                #@TestPreamble              none
+                #@TestStep                  User adds restart task, check default behavior.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User adds restart task.
+                #@TestStep                  Admin adds write ACI.
+                #@TestStep                  User adds restart task.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User adds restart task.
+                #@TestStep                  Admin deletes write ACI.
+                #@TestStep                  User adds restart task.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1, 3, 7, and 9, and 0
+                                            for all other ldap operations. 
+            -->
+            <testcase name="'Privileges: Users: server-restart'">
+    
+            <sequence>
+    
+                <call function="'testCase_Preamble'"/>
+    
+                <message>
+                   'Privileges: Users: server-restart, user adding server restart task'
+                </message>
+    
+                <call function="'restartTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules',
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+               
+                <message>
+                   'Privileges: Users: server-restart, Admin adding privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'server-restart' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: server-restart, user adding server restart task'
+                </message>
+    
+                <call function="'restartTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules',
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: server-restart, Admin adding ACI'
+                </message>
+    
+                <script>
+                    search_aci="(target=\"ldap:///cn=Scheduled Tasks,cn=Tasks\")(targetattr=\"ds-task-class-name || ds-task-export-backend-id || ds-task-export-ldif-file\")(version 3.0; acl \"Allows writes for tasks\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
+                </script>
+                                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: server-restart, user adding server restart task'
+                </message>
+    
+                <call function="'restartTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules',
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="STAFCmdRC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: server-restart, Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'server-restart' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+                
+                <message>
+                   'Privileges: Users: server-restart, user adding server restart task'
+                </message>
+    
+                <call function="'restartTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules',
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <if expr="RC != 50">
+                    <tcstatus result="'fail'"/>
+                </if>
+               
+                <message>
+                   'Privileges: Users: server-restart, Admin removing ACI'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : search_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+
+                <message>
+                   'Privileges: Users: server-restart, user adding server restart task'
+                </message>
+    
+                <call function="'restartTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ACIRules',
+                  'taskID'           : STAXCurrentTestcase,
+                }
+                </call>
+    
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult ,
+                    'expected'   : 50 }
+                </call>
+                     
+                <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+    		
+           
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/privileges/privileges_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'privileges_cleanup'" />
+
+						  
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+       
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>
