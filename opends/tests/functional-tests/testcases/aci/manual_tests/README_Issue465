@@ -1,0 +1,47 @@
+Manual test for Issue 465, Access Control "timeofday" Client Target
+
+1.  Unzip and start OpenDS.
+
+2.  Add some entries (shared/data/aci/manual_tests/aci_startup.ldif).
+
+Note there is a user, uid=auser,ou=People,o=ACI Tests,dc=example,dc=com
+which will modify the entry, uid=scarter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com.
+
+3.  The user, uid=auser, attempts to modify entry, uid=scarter (shared/data/aci/manual_tests/replace_l.ldif).
+
+Error 50 (Insufficient Access Rights) results.
+
+/tmp/mikek/OpenDS-0.9.0-build004/bin/ldapmodify -a -h auseng013 -p 389 -D "uid=auser,ou=People,o=ACI Tests,dc=example,dc=com" -w ACIRules -f /tmp/manual_tests/replace_l.ldif 
+Processing MODIFY request for uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+MODIFY operation failed
+Result Code:  50 (Insufficient Access Rights)
+Additional Information:  The entry uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com cannot be modified due to insufficient access rights
+
+
+4.  Add ACI with the timeofday set to whatever makes the current time valid. This example uses any time in the afternoon. (shared/data/aci/manual_tests/add_aci_right_time.ldif)
+
+5.  Repeat step 3. Now it is successful.
+
+/tmp/mikek/OpenDS-0.9.0-build004/bin/ldapmodify -a -h auseng013 -p 389 -D "uid=auser,ou=People,o=ACI Tests,dc=example,dc=com" -w ACIRules -f /tmp/manual_tests/replace_l.ldif 
+Processing MODIFY request for uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+MODIFY operation successful for DN uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+
+6.  Add ACI with the timeofday set to whatever makes the current time invalid. This example uses any time in the morning when the current time is in the afternoon. (shared/data/aci/manual_tests/add_aci_wrong_time.ldif)
+
+7.  Repeat step 3. 
+
+Error 50 (Insufficient Access Rights) results. 
+
+The output is like that in step 3. 
+
+8.  Replace the ACI with a time that does not conform to the standard described in the users guide. This example uses 12:00 for the timeofday. (shared/data/aci/manual_tests/add_aci_bad_time.ldif)
+
+Error 21 (Invalid Attribute Syntax) results.
+
+/tmp/mikek/OpenDS-0.9.0-build004/bin/ldapmodify -a -h auseng013 -p 389 -D "cn=Directory Manager" -w password -f /tmp/manual_tests/add_aci_bad_time.ldif   
+Processing MODIFY request for ou=aci branch,o=ACI Tests,dc=example,dc=com
+MODIFY operation failed
+Result Code:  21 (Invalid Attribute Syntax)
+Additional Information:  When attempting to modify entry ou=aci branch,o=ACI Tests,dc=example,dc=com to replace the set of values for attribute aci, value "(targetattr="*")(version 3.0; acl "add_aci_right_day"; allow (add,delete,write) timeofday>"12:00";)" was found to be invalid according to the associated syntax:  The provided Access Control Instruction (ACI) bind rule timeofday expression value "12:00" is invalid. A valid timeofday value is expressed as four digits representing hours and minutes in the 24-hour clock (0 to 2359)
+
+

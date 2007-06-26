@@ -1,0 +1,46 @@
+Manual test for Issue 464, Access Control "dayofweek" Client Target
+
+1.  Unzip and start OpenDS.
+
+2.  Add some entries (shared/data/aci/manual_tests/aci_startup.ldif).
+
+Note there is a user, uid=auser,ou=People,o=ACI Tests,dc=example,dc=com
+which will modify the entry, uid=scarter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com.
+
+3.  The user, uid=auser, attempts to modify entry, uid=scarter (shared/data/aci/manual_tests/replace_l.ldif).
+
+Error 50 (Insufficient Access Rights) results.
+
+/tmp/mikek/OpenDS-0.9.0-build004/bin/ldapmodify -a -h auseng013 -p 389 -D "uid=auser,ou=People,o=ACI Tests,dc=example,dc=com" -w ACIRules -f /tmp/manual_tests/replace_l.ldif 
+Processing MODIFY request for uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+MODIFY operation failed
+Result Code:  50 (Insufficient Access Rights)
+Additional Information:  The entry uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com cannot be modified due to insufficient access rights
+
+4.  Add ACI with the dayofweek set to whatever it is today. The day today happens to be Tuesday. (shared/data/aci/manual_tests/add_aci_right_day.ldif)
+
+5.  Repeat step 3. Now it is successful.
+
+/tmp/mikek/OpenDS-0.9.0-build004/bin/ldapmodify -a -h auseng013 -p 389 -D "uid=auser,ou=People,o=ACI Tests,dc=example,dc=com" -w ACIRules -f /tmp/manual_tests/replace_l.ldif 
+Processing MODIFY request for uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+MODIFY operation successful for DN uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+
+6.  Replace the ACI with whatever today is not. This example sets the day to Saturday. (shared/data/aci/manual_tests/add_aci_wrong_day.ldif)
+
+7.  Repeat step 3. 
+
+Error 50 (Insufficient Access Rights) results. 
+
+The output is like that in step 3. 
+
+8.  Replace the ACI with a day that does not conform to the standard described in the users guide. This example uses tuesday for the dayofweek. (shared/data/aci/manual_tests/add_aci_bad_day.ldif)
+
+Error 21 (Invalid Attribute Syntax) results.
+
+bash-3.00# /tmp/mikek/OpenDS-0.9.0-build004/bin/ldapmodify -a -h auseng013 -p 389 -D "cn=Directory Manager" -w password -f /tmp/manual_tests/add_aci_bad_day.ldif 
+Processing MODIFY request for ou=aci branch,o=ACI Tests,dc=example,dc=com
+MODIFY operation failed
+Result Code:  21 (Invalid Attribute Syntax)
+Additional Information:  When attempting to modify entry ou=aci branch,o=ACI Tests,dc=example,dc=com to replace the set of values for attribute aci, value "(targetattr="*")(version 3.0; acl "add_aci_right_day"; allow (add,delete,write) dayofweek="tuesday";)" was found to be invalid according to the associated syntax:  The provided Access Control Instruction (ACI) bind rule dayofweek expression value "tuesday" is invalid, because of an invalid day of week value. A valid dayofweek value is one of the following English three-letter abbreviationsfor the days of the week: sun, mon, tue, wed, thu, fri, or sat
+
+
