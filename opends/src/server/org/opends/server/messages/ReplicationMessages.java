@@ -427,6 +427,21 @@ public class ReplicationMessages {
   public static final int MSGID_CHANGELOG_UNSUPPORTED_UTF8_ENCODING =
     CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 60;
 
+  /**
+   * An update operation is aborted on error because the replication
+   * is defined but the replicationDomain could not contact any
+   * of the ReplicationServer.
+   */
+  public static final int MSGID_REPLICATION_COULD_NOT_CONNECT =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 61;
+
+  /**
+   * After a failure to connect to any replication server the
+   * replication was finally able to connect.
+   */
+  public static final int MSGID_NOW_FOUND_CHANGELOG =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_NOTICE | 62;
+
 
   /**
    * Register the messages from this class in the core server.
@@ -483,7 +498,8 @@ public class ReplicationMessages {
         "Could not find a replication server that has seen all the local" +
         " changes. Going to replay changes");
     registerMessage(MSGID_COULD_NOT_FIND_CHANGELOG,
-        "Could not connect to any replication server, retrying...");
+        "Could not connect to any replication server on suffix %s, "
+        +"retrying...");
     registerMessage(MSGID_EXCEPTION_CLOSING_DATABASE,
         "Error closing changelog database %s : ");
     registerMessage(MSGID_EXCEPTION_DECODING_OPERATION,
@@ -587,5 +603,10 @@ public class ReplicationMessages {
         "The JVM does not support UTF-8. This is required to be able to "
         + "encode the changes in the database. "
         + "This replication server will now shutdown");
+    registerMessage(MSGID_REPLICATION_COULD_NOT_CONNECT,
+        "The Replication is configured for suffix  %s "
+        + "but was not able to connect to any Replication Server");
+    registerMessage(MSGID_NOW_FOUND_CHANGELOG,
+        "A Replication Server was found for suffix %s");
   }
 }

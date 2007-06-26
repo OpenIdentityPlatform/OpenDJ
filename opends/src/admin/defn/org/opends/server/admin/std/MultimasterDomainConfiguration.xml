@@ -244,4 +244,44 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="isolation-policy" mandatory="false"
+    multi-valued="false">
+    <adm:synopsis>
+      <adm:user-friendly-name />
+      indicates the behavior of the LDAP server if an update is attempted
+      when replication has been configured but none of the configured
+      Replication Servers are up an running when the update is received.
+    </adm:synopsis>
+    <adm:default-behavior>
+    	<adm:defined>
+    		<adm:value>reject-all-updates</adm:value></adm:defined></adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="accept-all-updates">
+          <adm:synopsis>
+            Indicates that updates should be accepted even though it is
+            not possible to send them to any Replication Server.
+            Best effort will be made to resend those updates to a
+            Replication Servers when one of them is available, however
+            those changes will be at risk because they will only be
+            available from the historical information. This mode may
+            also introduce high replication latency.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="reject-all-updates">
+          <adm:synopsis>
+            Indicates that all updates attempted on this replicated
+            base-dn on this server when no Replication Server is
+            available will be denied.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.383</ldap:oid>
+        <ldap:name>ds-cfg-isolation-policy</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

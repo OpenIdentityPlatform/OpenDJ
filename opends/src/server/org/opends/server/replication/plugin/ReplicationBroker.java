@@ -119,6 +119,15 @@ public class ReplicationBroker implements InternalSearchListener
    */
   private int numLostConnections = 0;
 
+  /**
+   * When the broker cannort connect to any replication server
+   * it log an error and keeps continuing every second.
+   * This boolean is set when the first failure happens and is used
+   * to avoid repeating the error message for further failure to connect
+   * and to know that it is necessary to print a new message when the broker
+   * finally succeed to connect.
+   */
+  private boolean connectionError = false;
 
   /**
    * Creates a new ReplicationServer Broker for a particular ReplicationDomain.
@@ -349,11 +358,16 @@ public class ReplicationBroker implements InternalSearchListener
            * There was no server waiting on this host:port
            * Log a notice and try the next replicationServer in the list
            */
-          int    msgID   = MSGID_NO_CHANGELOG_SERVER_LISTENING;
-          String message = getMessage(msgID, server);
-          logError(ErrorLogCategory.SYNCHRONIZATION,
-                   ErrorLogSeverity.NOTICE,
-                   message, msgID);
+          if (!connectionError )
+          {
+            // the error message is only logged once to avoid overflowing
+            // the error log
+            int    msgID   = MSGID_NO_CHANGELOG_SERVER_LISTENING;
+            String message = getMessage(msgID, server);
+            logError(ErrorLogCategory.SYNCHRONIZATION,
+                ErrorLogSeverity.NOTICE,
+                message, msgID);
+          }
         }
         catch (Exception e)
         {
@@ -402,18 +416,36 @@ public class ReplicationBroker implements InternalSearchListener
       }
     }
 
-    if (!connected)
+    if (connected)
+    {
+      // This server has connected correctly.
+      // let's check if it was previosuly on error, in this case log
+      // a message to let the administratot know that the failure was resolved.
+      if (connectionError)
+      {
+        connectionError = false;
+        int    msgID   = MSGID_NOW_FOUND_CHANGELOG;
+        String message = getMessage(msgID, baseDn.toString());
+        logError(ErrorLogCategory.SYNCHRONIZATION,
+            ErrorLogSeverity.NOTICE, message, msgID);
+      }
+    }
+    else
     {
       /*
        * This server could not find any replicationServer
        * It's going to start in degraded mode.
        * Log a message
        */
-      checkState = false;
-      int    msgID   = MSGID_COULD_NOT_FIND_CHANGELOG;
-      String message = getMessage(msgID);
-      logError(ErrorLogCategory.SYNCHRONIZATION,
-          ErrorLogSeverity.NOTICE, message, msgID);
+      if (!connectionError)
+      {
+        checkState = false;
+        connectionError = true;
+        int    msgID   = MSGID_COULD_NOT_FIND_CHANGELOG;
+        String message = getMessage(msgID, baseDn.toString());
+        logError(ErrorLogCategory.SYNCHRONIZATION,
+            ErrorLogSeverity.NOTICE, message, msgID);
+      }
     }
   }
 
@@ -502,6 +534,8 @@ public class ReplicationBroker implements InternalSearchListener
 
     while (!done)
     {
+      if (connectionError)
+        return;
       synchronized (lock)
       {
         try
@@ -536,7 +570,9 @@ public class ReplicationBroker implements InternalSearchListener
     while (shutdown == false)
     {
       if (!connected)
+      {
         reStart();
+      }
 
       ProtocolSession failingSession = session;
       try
@@ -750,4 +786,14 @@ public class ReplicationBroker implements InternalSearchListener
     return protocolVersion;
   }
 
+  /**
+   * Check if the broker is connected to a ReplicationServer and therefore
+   * ready to received and send Replication Messages.
+   *
+   * @return true if the server is connected, false if not.
+   */
+  public boolean isConnected()
+  {
+    return !connectionError;
+  }
 }
