@@ -1,0 +1,68 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Portions Copyright 2007 Sun Microsystems, Inc.
+#
+
+Manual test for Issue 462, Access Control "dns" Client Target
+
+1.  Unzip and start OpenDS.
+
+2.  Add some entries (shared/data/aci/manual_tests/aci_startup.ldif).
+
+Note there is a user, uid=auser,ou=People,o=ACI Tests,dc=example,dc=com
+which will modify the entry, uid=scarter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com.
+
+3.  The user, uid=auser, attempts to modify entry, uid=scarter (shared/data/aci/manual_tests/replace_l.ldif).
+
+Error 50 (Insufficient Access Rights) results.
+
+/tmp/mikek/OpenDS-0.9.0-build004/bin/ldapmodify -a -h auseng013 -p 389 -D "uid=auser,ou=People,o=ACI Tests,dc=example,dc=com" -w ACIRules -f /tmp/manual_tests/replace_l.ldif 
+Processing MODIFY request for uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+MODIFY operation failed
+Result Code:  50 (Insufficient Access Rights)
+Additional Information:  The entry uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com cannot be modified due to insufficient access rights
+
+4.  Add ACI with the dns set to whatever the server machine you are testing with. In this example, we are on a private network and the domain is simply auseng013. (shared/data/aci/manual_tests/add_aci_right_domain.ldif)
+
+5.  Repeat step 3. Now it is successful.
+
+/tmp/mikek/OpenDS-0.9.0-build004/bin/ldapmodify -a -h auseng013 -p 389 -D "uid=auser,ou=People,o=ACI Tests,dc=example,dc=com" -w ACIRules -f /tmp/manual_tests/replace_l.ldif 
+Processing MODIFY request for uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+MODIFY operation successful for DN uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+
+6.  Replace the ACI with some other machine name. This example sets the dns to pecos.central.sun.com. (shared/data/aci/manual_tests/add_aci_wrong_domain.ldif)
+
+7.  Repeat step 3. 
+
+Error 50 (Insufficient Access Rights) results. 
+
+The output is like that in step 3. 
+
+8.  Replace the ACI with a dns value that contains a wildcard and works for the current machine. This example uses simply * for the dns. (shared/data/aci/manual_tests/add_aci_wildcard_domain.ldif) 
+
+The modify is successful.
+
+/tmp/mikek/OpenDS-0.9.0-build004/bin/ldapmodify -a -h auseng013 -p 389 -D "uid=auser,ou=People,o=ACI Tests,dc=example,dc=com" -w ACIRules -f /tmp/manual_tests/replace_l.ldif 
+Processing MODIFY request for uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+MODIFY operation successful for DN uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com
+
