@@ -47,7 +47,7 @@ import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 /**
  * A set of test cases for the dsservice tool.
  */
-public class DsserviceTestCase
+public class DsframeworkTestCase
 {
   // The path to a file containing an invalid bind password.
   private String invalidPasswordFile;
@@ -68,7 +68,6 @@ public class DsserviceTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-    
 
     File pwFile = File.createTempFile("valid-bind-password-", ".txt");
     pwFile.deleteOnExit();
@@ -83,7 +82,7 @@ public class DsserviceTestCase
     fileWriter.write("wrongPassword" + System.getProperty("line.separator"));
     fileWriter.close();
     invalidPasswordFile = pwFile.getAbsolutePath();
-    
+
     String[] args =
     {
       "create-ads",
@@ -92,12 +91,12 @@ public class DsserviceTestCase
       "admin"
     };
 
-    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err),
-        ReturnCode.SUCCESSFUL.getReturnCode());
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
+        System.err), ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
   /**
-   * Ensures ADS is removed
+   * Ensures ADS is removed.
    * @throws  Exception  If an unexpected problem occurs.
    */
   @AfterClass()
@@ -112,8 +111,8 @@ public class DsserviceTestCase
       "admin"
     };
 
-    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err),
-        ReturnCode.SUCCESSFUL.getReturnCode());
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
+        System.err), ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
   /**
@@ -130,10 +129,10 @@ public class DsserviceTestCase
       "-w", "password"
     };
 
-    assertFalse(DsFrameworkCliMain.mainCLI(args, false, null, null) 
+    assertFalse(DsFrameworkCliMain.mainCLI(args, false, null, null)
         == ReturnCode.SUCCESSFUL.getReturnCode());
   }
-  
+
   /**
    * Tests list-groups with a nonexistent bind DN.
    */
@@ -190,10 +189,10 @@ public class DsserviceTestCase
       "-j", validPasswordFile,
     };
 
-    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err),
-        ReturnCode.SUCCESSFUL.getReturnCode());
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
+        System.err), ReturnCode.SUCCESSFUL.getReturnCode());
   }
-  
+
   /**
    * Tests list-groups with an invalid password read from a file.
    *
@@ -230,8 +229,8 @@ public class DsserviceTestCase
       "-X"
     };
 
-    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err),
-        ReturnCode.SUCCESSFUL.getReturnCode());
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
+        System.err), ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
 
@@ -254,8 +253,8 @@ public class DsserviceTestCase
       "-P", trustStorePath
     };
 
-    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err),
-        ReturnCode.SUCCESSFUL.getReturnCode());
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
+        System.err), ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
 
@@ -302,7 +301,7 @@ public class DsserviceTestCase
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, System.err),
         ReturnCode.SUCCESSFUL.getReturnCode());
   }
-  
+
   /**
    * Tests the dsservice with the "--help" option.
    */
