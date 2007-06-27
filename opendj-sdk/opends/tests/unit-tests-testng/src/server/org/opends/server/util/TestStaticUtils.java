@@ -33,7 +33,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -846,6 +849,72 @@ public final class TestStaticUtils extends UtilTestCase {
       src.delete();
       dst.delete();
       newSrc.delete();
+    }
+  }
+
+  /**
+   * Tests the {@link StaticUtils#renameFile(java.io.File, java.io.File)}
+   * method.
+   *
+   * @throws Exception If the test failed unexpectedly.
+   */
+  @Test
+  public void testRenameFileNonExistentTarget() throws Exception {
+    File src = File.createTempFile("src", null);
+    File target = new File(src.getParentFile(), "target");
+    try {
+      if (target.exists()) {
+        target.delete();
+        assert(!target.exists());
+      }
+      StaticUtils.renameFile(src, target);
+      assert(!src.exists());
+      assert(target.exists());
+    } finally {
+      src.delete();
+      target.delete();
+    }
+  }
+
+  /**
+   * Tests the {@link StaticUtils#renameFile(java.io.File, java.io.File)}
+   * method.
+   *
+   * @throws Exception If the test failed unexpectedly.
+   */
+  @Test
+  public void testRenameFileExistentTarget() throws Exception {
+    File src = File.createTempFile("src", null);
+    File target = File.createTempFile("target", null);
+    try {
+      StaticUtils.renameFile(src, target);
+      assert(!src.exists());
+      assert(target.exists());
+    } finally {
+      src.delete();
+      target.delete();
+    }
+  }
+
+  /**
+   * Tests the {@link StaticUtils#renameFile(java.io.File, java.io.File)}
+   * method.  Renaming locked files is a problem on Windows but not so
+   * much on other platforms.
+   *
+   * @throws Exception If the test failed unexpectedly.
+   */
+  @Test(groups = {"windows"}, expectedExceptions = IOException.class)
+  public void testRenameFileLockedTarget() throws Exception {
+    File src = File.createTempFile("src", null);
+    File target = File.createTempFile("target", null);
+    FileChannel c = new RandomAccessFile(target, "rw").getChannel();
+    FileLock lock = c.lock();
+    try {
+      StaticUtils.renameFile(src, target);
+    } finally {
+      lock.release();
+      src.delete();
+      target.delete();
     }
   }
 
