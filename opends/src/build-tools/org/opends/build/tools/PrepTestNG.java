@@ -173,6 +173,10 @@ public class PrepTestNG extends Task
               }
             }
             writer.println("  </run>\n</groups>");
+          } else {
+            if (!isWindows()) {
+              writer.println("    <groups><run><exclude name=\"windows\"/></run></groups>");
+            }
           }
 
           if(packages.length > 0)
@@ -256,5 +260,10 @@ public class PrepTestNG extends Task
     {
       throw new BuildException("File Error: " + e.toString());
     }
+  }
+
+  static private boolean isWindows() {
+    String os = System.getProperty("os.name");
+    return (os != null && os.toLowerCase().indexOf("windows") != -1);
   }
 }
