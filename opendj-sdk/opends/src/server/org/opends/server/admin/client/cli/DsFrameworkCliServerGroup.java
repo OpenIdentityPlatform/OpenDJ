@@ -44,7 +44,7 @@ import javax.naming.ldap.Rdn;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
-import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
+import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
@@ -54,7 +54,7 @@ import org.opends.server.util.args.SubCommandArgumentParser;
 /**
  * This class is handling server group CLI.
  */
-public class DsServiceCliServerGroup implements DsServiceCliSubCommandGroup
+public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 {
 
   /**

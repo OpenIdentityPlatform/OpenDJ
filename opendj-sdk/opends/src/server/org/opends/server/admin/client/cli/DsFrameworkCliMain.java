@@ -41,7 +41,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 
-import static org.opends.server.admin.client.cli.DsServiceCliReturnCode.*;
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.AdminMessages.*;
 import static org.opends.server.messages.ToolMessages.*;
@@ -50,15 +50,16 @@ import static org.opends.server.util.StaticUtils.*;
 
 
 /**
- * This class provides a tool that can be used to Directory Server services.
+ * This class provides a tool that can be used to Directory Server framework
+ * services.
  */
-public class DsServiceCliMain
+public class DsFrameworkCliMain
 {
   /**
    * The fully-qualified name of this class.
    */
   private static final String CLASS_NAME =
-      "org.opends.server.admin.client.cli.DsServiceCliMain";
+      "org.opends.server.admin.client.cli.DsFrameworkCliMain";
 
   // The print stream to use for standard error.
   private PrintStream err;
@@ -69,19 +70,19 @@ public class DsServiceCliMain
 
 
   /**
-   * Constructor for the DsServiceCLI object.
+   * Constructor for the DsFrameworkCLI object.
    *
    * @param  out            The print stream to use for standard output.
    * @param  err            The print stream to use for standard error.
    */
-  public DsServiceCliMain(PrintStream out, PrintStream err)
+  public DsFrameworkCliMain(PrintStream out, PrintStream err)
   {
     this.out           = out;
     this.err           = err;
   }
 
   /**
-   * The main method for dsservice tool.
+   * The main method for dsframework tool.
    *
    * @param  args  The command-line arguments provided to this program.
    */
@@ -98,7 +99,7 @@ public class DsServiceCliMain
 
   /**
    * Parses the provided command-line arguments and uses that information to
-   * run the dsservice tool.
+   * run the dsframework tool.
    *
    * @param  args  The command-line arguments provided to this program.
    *
@@ -112,7 +113,7 @@ public class DsServiceCliMain
 
   /**
    * Parses the provided command-line arguments and uses that information to
-   * run the dsservice tool.
+   * run the dsframework tool.
    *
    * @param  args              The command-line arguments provided to this
    *                           program.
@@ -149,13 +150,13 @@ public class DsServiceCliMain
       err = new PrintStream(errStream);
     }
 
-    DsServiceCliMain dsServiceCli = new DsServiceCliMain(out, err);
-    return dsServiceCli.execute(args,initializeServer);
+    DsFrameworkCliMain dsFrameworkCli = new DsFrameworkCliMain(out, err);
+    return dsFrameworkCli.execute(args,initializeServer);
   }
 
   /**
    * Parses the provided command-line arguments and uses that information to
-   * run the dsservice tool.
+   * run the dsframework tool.
    *
    * @param  args              The command-line arguments provided to this
    *                           program.
@@ -167,11 +168,11 @@ public class DsServiceCliMain
   {
     // Create the command-line argument parser for use with this
     // program.
-    DsServiceCliParser argParser ;
+    DsFrameworkCliParser argParser ;
     try
     {
       String toolDescription = getMessage(MSGID_ADMIN_TOOL_DESCRIPTION);
-      argParser = new DsServiceCliParser(CLASS_NAME,
+      argParser = new DsFrameworkCliParser(CLASS_NAME,
           toolDescription, false);
       argParser.initializeParser(out);
     }
@@ -322,7 +323,7 @@ public class DsServiceCliMain
     catch (ADSContextException e)
     {
       adsException = e;
-      returnCode = DsServiceCliReturnCode.getReturncodeFromAdsError(e
+      returnCode = DsFrameworkCliReturnCode.getReturncodeFromAdsError(e
           .getError());
       if (returnCode == null)
       {

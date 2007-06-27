@@ -32,7 +32,7 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
+import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.SubCommandArgumentParser;
 
@@ -91,7 +91,7 @@ public class CliTest {
   {
     for (ErrorType error: ErrorType.values())
     {
-      assertNotNull(DsServiceCliReturnCode.getReturncodeFromAdsError(error),
+      assertNotNull(DsFrameworkCliReturnCode.getReturncodeFromAdsError(error),
           "ErrorType." + error + " is not associated with a return code");
     }
   }
@@ -102,7 +102,7 @@ public class CliTest {
   @Test
   public void testServerGroupAttributeDisplayName()
   {
-    DsServiceCliServerGroup cli = new DsServiceCliServerGroup();
+    DsFrameworkCliServerGroup cli = new DsFrameworkCliServerGroup();
     
     try
     {

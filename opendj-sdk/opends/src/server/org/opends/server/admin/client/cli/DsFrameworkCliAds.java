@@ -36,7 +36,7 @@ import java.util.List;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContextHelper;
-import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
+import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
@@ -45,7 +45,7 @@ import org.opends.server.util.args.SubCommandArgumentParser;
 /**
  * This class is handling server group CLI.
  */
-public class DsServiceCliAds implements DsServiceCliSubCommandGroup
+public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
 {
   /**
    * The enumeration containing the different subCommand names.
