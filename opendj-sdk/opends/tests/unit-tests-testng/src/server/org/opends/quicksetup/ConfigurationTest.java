@@ -36,67 +36,67 @@ import java.util.Set;
 /**
  * Configuration Tester.
  */
-@Test(enabled=false, groups = {"slow"})
+@Test(groups = {"slow"})
 public class ConfigurationTest extends QuickSetupTestCase {
 
   Configuration config;
 
   @BeforeClass
   public void setUp() throws Exception {
-    config = Utils.getInstallation().getCurrentConfiguration();
+    config = TestUtilities.getInstallation().getCurrentConfiguration();
   }
 
-  @Test(enabled=false)
+  @Test
   public void testGetDirectoryManagerDns() throws IOException {
     Set<String> dns = config.getDirectoryManagerDns();
     assertTrue(dns.size() > 0);
   }
 
-  @Test(enabled=false)
+  @Test
   public void testGetPort() throws IOException {
-    assertTrue(Utils.ldapPort.equals(config.getPort()));
+    assertTrue(TestUtilities.ldapPort.equals(config.getPort()));
   }
 
-  @Test(enabled=false)
+  @Test
   public void testGetSecurePort() throws IOException {
     // TODO: something more useful
     config.getSecurePort();
   }
 
-  @Test(enabled=false)
+  @Test
   public void testGetLogPaths() throws IOException {
     // TODO: something more useful
     config.getLogPaths();
   }
 
-  @Test(enabled=false)
+  @Test
   public void testHasBeenModified() throws IOException {
     assertTrue(config.hasBeenModified());
   }
 
-  @Test(enabled=false)
+  @Test
   public void testGetOutsideLogs() throws IOException {
     // TODO: something more useful
     config.getOutsideLogs();
   }
 
-  @Test(enabled=false)
+  @Test
   public void testGetOutsideDbs() throws IOException {
     // TODO: something more useful
     config.getOutsideDbs();
   }
 
-  @Test(enabled=false)
+  @Test
   public void testGetContents() throws IOException {
     assertNotNull(config.getContents());
   }
 
-  @Test(enabled=false)
+  @Test
   public void testGetDatabasePaths() throws IOException {
     assertTrue(config.getDatabasePaths().size() > 0);
   }
 
-  @Test(enabled=false)
+  @Test
   public void testLoad() {
     //TODO:  need way to verify reload
   }

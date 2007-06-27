@@ -29,6 +29,7 @@ package org.opends.quicksetup;
 
 import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.quicksetup.util.ServerController;
+import org.opends.quicksetup.util.FileManager;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.OperatingSystem;
 
@@ -42,7 +43,7 @@ import java.util.ArrayList;
 /**
  *
  */
-public class Utils {
+public class TestUtilities {
     
   /**
    * The name of the system property that specifies the server build root.
@@ -64,9 +65,7 @@ public class Utils {
     if (!initialized) {
       if (qsServerRoot.exists()) {
         stopServer();
-        if (!qsServerRoot.delete()) {
-          throw new IllegalStateException("cannot delete stale installation");
-        }
+        new FileManager().deleteRecursively(qsServerRoot);
       }
       ZipExtractor extractor = new ZipExtractor(getInstallPackageFile());
       extractor.extract(qsServerRoot);
@@ -76,7 +75,7 @@ public class Utils {
   }
 
   static public Installation getInstallation() {
-    return new Installation(Utils.getQuickSetupTestServerRootDir());
+    return new Installation(getQuickSetupTestServerRootDir());
   }
 
   static private void setupServer() throws IOException, InterruptedException {
@@ -139,11 +138,15 @@ public class Utils {
     return installPackageFile;
   }
 
-  static public File getQuickSetupTestServerRootDir() {
+  static public File getQuickSetupTestWorkspace() {
     String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
     File   buildDir  = new File(buildRoot, "build");
     File   unitRootDir  = new File(buildDir, "unit-tests");
     return new File(unitRootDir, "quicksetup");
+  }
+
+  static public File getQuickSetupTestServerRootDir() {
+    return new File(getQuickSetupTestWorkspace(), "OpenDS");
   }
 
 }

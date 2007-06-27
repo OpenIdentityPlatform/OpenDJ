@@ -30,31 +30,29 @@ package org.opends.quicksetup.util;
 
 import org.testng.annotations.*;
 import org.opends.quicksetup.*;
-import org.opends.quicksetup.Utils;
-import org.opends.server.TestCaseUtils;
-
-import java.io.FileNotFoundException;
+import org.opends.quicksetup.TestUtilities;
 
 /**
  * ServerController Tester.
  */
-@Test(enabled=false, groups = {"slow"})
+@Test(groups = {"slow"})
 public class ServerControllerTest extends QuickSetupTestCase {
+
   ServerController controller;
   Status status;
 
   @BeforeClass
   public void setUp() throws Exception {
-//    Installation installation = Utils.getInstallation();
-//    controller = new ServerController(installation);
-//    status = installation.getStatus();
+    Installation installation = TestUtilities.getInstallation();
+    controller = new ServerController(installation);
+    status = installation.getStatus();
   }
 
   /**
    * Tests ability to stop the server.
    * @throws ApplicationException
    */
-  @Test(enabled=false)
+  @Test
   public void testStopServer() throws ApplicationException {
     if (!status.isServerRunning()) {
       controller.startServer();
@@ -68,7 +66,7 @@ public class ServerControllerTest extends QuickSetupTestCase {
    * Tests ability to start the server.
    * @throws ApplicationException
    */
-  @Test(enabled=false)
+  @Test
   public void testStartServer() throws ApplicationException {
     if (status.isServerRunning()) {
       controller.stopServer();

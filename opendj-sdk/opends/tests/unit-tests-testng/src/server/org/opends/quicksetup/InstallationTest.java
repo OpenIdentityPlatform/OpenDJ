@@ -36,28 +36,28 @@ import java.io.IOException;
 /**
  * Installation Tester.
  */
-@Test(enabled=false, groups = {"slow"})
+@Test(groups = {"slow"})
 public class InstallationTest extends QuickSetupTestCase {
 
   Installation installation;
 
   @BeforeClass
   public void setUp() throws Exception {
-    installation = Utils.getInstallation();
+    installation = TestUtilities.getInstallation();
   }
 
   /**
    * Tests to make sure installation is valid.
    */
-  @Test(enabled=false)
+  @Test
   public void testValidateRootDirectory() {
-    Installation.validateRootDirectory(Utils.getQuickSetupTestServerRootDir());
+    Installation.validateRootDirectory(TestUtilities.getQuickSetupTestServerRootDir());
   }
 
   /**
    * Tests that installation root directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetRootDirectory() {
     assertNotNull(installation.getRootDirectory());
   }
@@ -65,7 +65,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests that the installation root directory can be set.
    */
-  @Test(enabled=false)
+  @Test
   public void testSetRootDirectory() {
     File root = installation.getRootDirectory();
     installation.setRootDirectory(root);
@@ -74,7 +74,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests that the installation root is valid.
    */
-  @Test(enabled=false)
+  @Test
   public void testIsValid() {
     assertTrue(installation.isValid());
   }
@@ -83,7 +83,7 @@ public class InstallationTest extends QuickSetupTestCase {
    * Tests that an installation directory missing required directories
    * is considered invalid.
    */
-  @Test(enabled=false)
+  @Test
   public void testIsValid2() {
     assertTrue(installation.isValid());
     File x = new File(installation.getRootDirectory(), "x");
@@ -102,7 +102,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the configuration is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetCurrentConfiguration() {
     assertNotNull(installation.getCurrentConfiguration());
   }
@@ -110,7 +110,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the base configuration is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetBaseConfiguration() throws ApplicationException {
     assertNotNull(installation.getBaseConfiguration());
   }
@@ -118,7 +118,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the status is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetStatus() {
     assertNotNull(installation.getStatus());
   }
@@ -126,7 +126,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the lib directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetLibrariesDirectory() {
     assertExistentFile(installation.getLibrariesDirectory());
   }
@@ -134,7 +134,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the schema concat file is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetSchemaConcatFile() {
     assertNonexistentFile(installation.getSchemaConcatFile());
   }
@@ -142,7 +142,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the base schema file is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetBaseSchemaFile() throws ApplicationException {
     assertExistentFile(installation.getBaseSchemaFile());
   }
@@ -150,7 +150,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the base config file is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetBaseConfigurationFile() throws ApplicationException {
     assertExistentFile(installation.getBaseConfigurationFile());
   }
@@ -158,7 +158,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the SVN rev number is discernable.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetSvnRev() throws ApplicationException {
     assertNotNull(installation.getSvnRev());
   }
@@ -166,7 +166,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the config file is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetCurrentConfigurationFile() {
     assertExistentFile(installation.getCurrentConfigurationFile());
   }
@@ -174,7 +174,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the bin/bat directory is available and platform appropriate.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetBinariesDirectory() {
     File binariesDir;
     assertExistentFile(binariesDir = installation.getBinariesDirectory());
@@ -190,7 +190,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the db directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetDatabasesDirectory() {
     assertExistentFile(installation.getDatabasesDirectory());
   }
@@ -198,7 +198,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the backup directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetBackupDirectory() {
     assertExistentFile(installation.getBackupDirectory());
   }
@@ -206,7 +206,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the config directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetConfigurationDirectory() {
     assertExistentFile(installation.getConfigurationDirectory());
   }
@@ -214,7 +214,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the logs directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetLogsDirectory() {
     assertExistentFile(installation.getLogsDirectory());
   }
@@ -222,7 +222,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the locks directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetLocksDirectory() {
     assertExistentFile(installation.getLocksDirectory());
   }
@@ -230,7 +230,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the tmp directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetTemporaryDirectory() {
     assertNonexistentFile(installation.getTemporaryDirectory());
   }
@@ -238,7 +238,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the history directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetHistoryDirectory() {
     assertNonexistentFile(installation.getHistoryDirectory());
   }
@@ -246,7 +246,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests a historical backup directory can be created.
    */
-  @Test(enabled=false)
+  @Test
   public void testCreateHistoryBackupDirectory() throws IOException {
     assertExistentFile(installation.createHistoryBackupDirectory());
     assertExistentFile(installation.getHistoryDirectory());
@@ -256,7 +256,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the history log file is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetHistoryLogFile() {
     assertNonexistentFile(installation.getHistoryLogFile());
   }
@@ -264,7 +264,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the config upgrade directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetConfigurationUpgradeDirectory() {
     assertExistentFile(installation.getConfigurationUpgradeDirectory());
   }
@@ -272,7 +272,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the tmp/upgrade directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetTemporaryUpgradeDirectory() {
     assertNonexistentFile(installation.getTemporaryUpgradeDirectory());
   }
@@ -280,7 +280,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests getting a command file works.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetCommandFile() {
     assertExistentFile(installation.getCommandFile(
             Installation.UNIX_START_FILE_NAME));
@@ -289,7 +289,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the start server command is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetServerStartCommandFile() {
     assertExistentFile(installation.getServerStartCommandFile());
   }
@@ -297,7 +297,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the stop server command is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetServerStopCommandFile() {
     assertExistentFile(installation.getServerStopCommandFile());
   }
@@ -305,7 +305,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the ldif directory is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetLdifDirectory() {
     assertExistentFile(installation.getLdifDirectory());
   }
@@ -313,7 +313,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the quicksetup jar is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetQuicksetupJarFile() {
     assertExistentFile(installation.getQuicksetupJarFile());
   }
@@ -321,7 +321,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the OpenDS jar is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetOpenDSJarFile() {
     assertExistentFile(installation.getOpenDSJarFile());
   }
@@ -329,7 +329,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the uninstall file is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetUninstallBatFile() {
     assertExistentFile(installation.getUninstallBatFile());
   }
@@ -337,7 +337,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the status panel command file is available.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetStatusPanelCommandFile() {
     assertExistentFile(installation.getStatusPanelCommandFile());
   }
@@ -345,7 +345,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the build information is discernable.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetBuildInformation() throws ApplicationException {
     assertNotNull(installation.getBuildInformation());
   }
@@ -353,7 +353,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Tests the build information is discernable.
    */
-  @Test(enabled=false)
+  @Test
   public void testGetBuildInformation1() throws ApplicationException {
     assertNotNull(installation.getBuildInformation(true));
     assertNotNull(installation.getBuildInformation(false));
@@ -362,7 +362,7 @@ public class InstallationTest extends QuickSetupTestCase {
   /**
    * Test string representation is possible.
    */
-  @Test(enabled=false)
+  @Test
   public void testToString() {
     assertNotNull(installation.toString());
   }
