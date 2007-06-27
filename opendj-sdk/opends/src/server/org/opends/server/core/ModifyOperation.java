@@ -810,7 +810,7 @@ modifyProcessing:
       // If the user must change their password before doing anything else, and
       // if the target of the modify operation isn't the user's own entry, then
       // reject the request.
-      if (clientConnection.mustChangePassword())
+      if ((! isInternalOperation()) && clientConnection.mustChangePassword())
       {
         DN authzDN = getAuthorizationDN();
         if ((authzDN != null) && (! authzDN.equals(entryDN)))
@@ -2450,7 +2450,8 @@ modifyProcessing:
             break modifyProcessing;
           }
         }
-        else if(pwPolicyState.mustChangePassword())
+        else if ((! isInternalOperation()) &&
+                 pwPolicyState.mustChangePassword())
         {
           // The user will not be allowed to do anything else before
           // the password gets changed.

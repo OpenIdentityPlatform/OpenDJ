@@ -45,6 +45,7 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -4737,6 +4738,85 @@ public class PasswordPolicyTestCase
                               new Attribute(attr, "0 seconds")));
     modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Tests the ability of a user to bind to the server when their account
+   * includes the pwdReset operational attribute and last login time tracking is
+   * enabled.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testResetWithLastLoginTime()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
+      "dn: uid=test.user,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: oldpassword",
+      "ds-privilege-name: bypass-acl"
+    );
+
+    try
+    {
+      TestCaseUtils.applyModifications(
+        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-force-change-on-reset",
+        "ds-cfg-force-change-on-reset: true",
+        "-",
+        "replace: ds-cfg-last-login-time-attribute",
+        "ds-cfg-last-login-time-attribute: ds-pwp-last-login-time",
+        "-",
+        "replace: ds-cfg-last-login-time-format",
+        "ds-cfg-last-login-time-format: yyyyMMdd",
+        "",
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: newpassword");
+
+      String path = TestCaseUtils.createTempFile(
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: newnewpassword"
+      );
+
+      String[] args =
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "uid=test.user,o=test",
+        "-w", "newpassword",
+        "-f", path
+      };
+
+      assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    }
+    finally
+    {
+      TestCaseUtils.applyModifications(
+        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-force-change-on-reset",
+        "ds-cfg-force-change-on-reset: false",
+        "-",
+        "replace: ds-cfg-last-login-time-attribute",
+        "-",
+        "replace: ds-cfg-last-login-time-format");
+    }
   }
 
 

@@ -695,6 +695,15 @@ public class ServerConstants
 
 
   /**
+   * The OID for the password policy state extended operation (both the request
+   * and response types).
+   */
+  public static final String OID_PASSWORD_POLICY_STATE_EXTOP =
+       "1.3.6.1.4.1.26027.1.6.1";
+
+
+
+  /**
    * The request OID for the StartTLS extended operation.
    */
   public static final String OID_START_TLS_REQUEST = "1.3.6.1.4.1.1466.20037";
