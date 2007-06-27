@@ -88,7 +88,7 @@ public class DsframeworkTestCase
       "create-ads",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-w", "password",
-      "admin"
+      "--backendName", "admin"
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
@@ -108,7 +108,7 @@ public class DsframeworkTestCase
       "delete-ads",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-w", "password",
-      "admin"
+      "--backendName", "admin"
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,

@@ -571,9 +571,20 @@ public class ToolConstants
   public static final String OPTION_VALUE_MEMBERNAME = "{member-name}";
 
   /**
-   * The placeholder value of backend name that will be
+   * The value for the short option backendName attributes.
+   */
+  public static final char OPTION_SHORT_BACKENDNAME = 'b';
+
+  /**
+   * The value for the long option backendName
+   * attribute.
+   */
+  public static final String OPTION_LONG_BACKENDNAME= "backendName";
+
+  /**
+   * The placeholder value of backendName that will be
    * displayed in usage information.
    */
-  public static final String OPERAND_BACKEND = "BACKEND_NAME";
+  public static final String OPTION_VALUE_BACKENDNAME = "{backend-name}";
 }
 

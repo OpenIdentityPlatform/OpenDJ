@@ -39,6 +39,7 @@ import org.opends.admin.ads.ADSContextHelper;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
 
@@ -102,9 +103,19 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
   public SubCommand createAdsSubCmd;
 
   /**
+   * The 'backend-name' argument of the 'create-ads' subcommand.
+   */
+  private StringArgument createAdsBackendNameArg;
+
+  /**
    * The 'delete-ads' subcommand.
    */
   private SubCommand deleteAdsSubCmd;
+
+  /**
+   * The 'backend-name' argument of the 'delete-ads' subcommand.
+   */
+  private StringArgument deleteAdsBackendNameArg;
 
   /**
    * {@inheritDoc}
@@ -115,15 +126,25 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
   {
     // Create-ads subcommand
     createAdsSubCmd = new SubCommand(argParser, SubCommandNameEnum.CREATE_ADS
-        .toString(), true, 1, 1, OPERAND_BACKEND,
-        MSGID_ADMIN_SUBCMD_CREATE_ADS_DESCRIPTION);
+        .toString(), MSGID_ADMIN_SUBCMD_CREATE_ADS_DESCRIPTION);
     createAdsSubCmd.setHidden(true);
+
+    createAdsBackendNameArg = new StringArgument("backendName",
+        OPTION_SHORT_BACKENDNAME, OPTION_LONG_BACKENDNAME, true, true,
+        OPTION_VALUE_BACKENDNAME,
+        MSGID_ADMIN_ARG_BACKENDNAME_DESCRIPTION);
+    createAdsSubCmd.addArgument(createAdsBackendNameArg);
 
     // delete-ads
     deleteAdsSubCmd = new SubCommand(argParser,SubCommandNameEnum.DELETE_ADS
-        .toString(),  true, 1, 1, OPERAND_BACKEND,
-        MSGID_ADMIN_SUBCMD_DELETE_ADS_DESCRIPTION);
+        .toString(), MSGID_ADMIN_SUBCMD_DELETE_ADS_DESCRIPTION);
     deleteAdsSubCmd.setHidden(true);
+
+    deleteAdsBackendNameArg = new StringArgument("backendName",
+        OPTION_SHORT_BACKENDNAME, OPTION_LONG_BACKENDNAME, true, true,
+        OPTION_VALUE_BACKENDNAME,
+        MSGID_ADMIN_ARG_BACKENDNAME_DESCRIPTION);
+    deleteAdsSubCmd.addArgument(deleteAdsBackendNameArg);
   }
 
   /**
@@ -146,13 +167,13 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
     // create-ads subcommand
     if (subCmd.getName().equals(createAdsSubCmd.getName()))
     {
-      String backendName = subCmd.getTrailingArguments().get(0);
+      String backendName = createAdsBackendNameArg.getValue();
       adsContext.createAdminData(backendName);
       return ReturnCode.SUCCESSFUL;
     }
     else if (subCmd.getName().equals(deleteAdsSubCmd.getName()))
     {
-      String backendName = subCmd.getTrailingArguments().get(0);
+      String backendName = deleteAdsBackendNameArg.getValue();
       ADSContextHelper helper = new ADSContextHelper();
       helper.removeAdministrationSuffix(adsContext.getDirContext(),
           backendName);
