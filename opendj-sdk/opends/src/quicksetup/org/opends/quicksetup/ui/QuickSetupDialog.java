@@ -113,15 +113,7 @@ public class QuickSetupDialog
       }
     });
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-    UIFactory.IconType ic;
-    if (Utils.isMacOS())
-    {
-      ic = UIFactory.IconType.MINIMIZED_MAC;
-    } else
-    {
-      ic = UIFactory.IconType.MINIMIZED;
-    }
-    frame.setIconImage(UIFactory.getImageIcon(ic).getImage());
+    Utilities.setFrameIcon(frame);
   }
 
   /**
