@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup.ui;
 
+import org.opends.quicksetup.util.Utils;
+
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
@@ -72,6 +74,22 @@ public class Utilities {
     panel.add(Box.createHorizontalGlue(), gbc);
 
     return panel;
+  }
+
+  /**
+   * Sets a frames image icon to the standard OpenDS icon appropriate
+   * for the running platform.
+   *
+   * @param frame for which the icon will be set
+   */
+  static public void setFrameIcon(JFrame frame) {
+    UIFactory.IconType ic;
+    if (Utils.isMacOS()) {
+      ic = UIFactory.IconType.MINIMIZED_MAC;
+    } else {
+      ic = UIFactory.IconType.MINIMIZED;
+    }
+    frame.setIconImage(UIFactory.getImageIcon(ic).getImage());
   }
 
 }

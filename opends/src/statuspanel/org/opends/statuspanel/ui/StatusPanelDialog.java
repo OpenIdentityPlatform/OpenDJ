@@ -68,6 +68,7 @@ import javax.swing.table.TableColumn;
 
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 
@@ -142,15 +143,7 @@ public class StatusPanelDialog extends JFrame
       }
     });
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    UIFactory.IconType ic;
-    if (Utils.isMacOS())
-    {
-      ic = UIFactory.IconType.MINIMIZED_MAC;
-    } else
-    {
-      ic = UIFactory.IconType.MINIMIZED;
-    }
-    setIconImage(UIFactory.getImageIcon(ic).getImage());
+    Utilities.setFrameIcon(this);
   }
 
   /**
