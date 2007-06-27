@@ -475,6 +475,14 @@ public final class AdminMessages {
    */
   public static final int MSGID_ADMIN_ARG_MEMBERNAME_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 55;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * "backend-name" argument.  This does take one argument.
+   */
+  public static final int MSGID_ADMIN_ARG_BACKENDNAME_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 56;
+
   // Prevent instantiation.
   private AdminMessages() {
     // Do nothing.
@@ -644,7 +652,10 @@ public final class AdminMessages {
     registerMessage(MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION,
        "The group's identifier. This is a required argument");
     registerMessage(MSGID_ADMIN_ARG_MEMBERNAME_DESCRIPTION,
-    "The member's identifier. This is a required argument");
+       "The member's identifier. This is a required argument");
+    registerMessage(MSGID_ADMIN_ARG_BACKENDNAME_DESCRIPTION,
+        "The backen name is which the admin data will be registered. " +
+        "This is a required argument");
 
   }
 }
