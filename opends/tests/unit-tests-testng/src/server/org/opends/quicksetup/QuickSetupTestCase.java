@@ -38,7 +38,6 @@ import java.io.IOException;
  */
 public class QuickSetupTestCase {
 
-/*
   @BeforeSuite
   public final void suppressOutput() {
     TestCaseUtils.suppressOutput();
@@ -48,14 +47,13 @@ public class QuickSetupTestCase {
   public final void initServer()
           throws IOException, ApplicationException, InterruptedException
   {
-    Utils.initServer();
+    TestUtilities.initServer();
   }
 
   @AfterSuite
   public final void shutdownServer() throws ApplicationException {
-    Utils.stopServer();
+    TestUtilities.stopServer();
     TestCaseUtils.unsupressOutput();
   }  
-*/
 
 }
