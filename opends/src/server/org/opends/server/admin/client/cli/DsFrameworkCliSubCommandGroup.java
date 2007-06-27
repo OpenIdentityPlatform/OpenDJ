@@ -30,7 +30,7 @@ import java.io.OutputStream;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
-import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
+import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
@@ -39,7 +39,7 @@ import org.opends.server.util.args.SubCommandArgumentParser;
 /**
  * This Interface defines method that a group of subcommand shoud implement.
  */
-public interface DsServiceCliSubCommandGroup
+public interface DsFrameworkCliSubCommandGroup
 {
 
   /**

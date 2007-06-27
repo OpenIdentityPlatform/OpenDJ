@@ -51,7 +51,7 @@ import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.server.admin.client.cli.DsServiceCliReturnCode.ReturnCode;
+import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
@@ -68,7 +68,7 @@ import org.opends.server.util.args.SubCommandArgumentParser;
 /**
  * This class will parser CLI arguments.
  */
-public class DsServiceCliParser extends SubCommandArgumentParser
+public class DsFrameworkCliParser extends SubCommandArgumentParser
 {
   /**
    * The tracer object for the debug logger.
@@ -164,12 +164,12 @@ public class DsServiceCliParser extends SubCommandArgumentParser
    * The Logger.
    */
   static private final Logger LOG =
-    Logger.getLogger(DsServiceCliParser.class.getName());
+    Logger.getLogger(DsFrameworkCliParser.class.getName());
 
   /**
    * The diferent CLI group.
    */
-  public HashSet<DsServiceCliSubCommandGroup> cliGroup;
+  public HashSet<DsFrameworkCliSubCommandGroup> cliGroup;
 
 
 
@@ -188,11 +188,11 @@ public class DsServiceCliParser extends SubCommandArgumentParser
    *          Indicates whether subcommand and long argument names
    *          should be treated in a case-sensitive manner.
    */
-  public DsServiceCliParser(String mainClassName, String toolDescription,
+  public DsFrameworkCliParser(String mainClassName, String toolDescription,
       boolean longArgumentsCaseSensitive)
   {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
-    cliGroup = new HashSet<DsServiceCliSubCommandGroup>();
+    cliGroup = new HashSet<DsFrameworkCliSubCommandGroup>();
   }
 
   /**
@@ -212,13 +212,13 @@ public class DsServiceCliParser extends SubCommandArgumentParser
     initializeGlobalOption(outStream);
 
     // ads  Group cli
-    cliGroup.add(new DsServiceCliAds());
+    cliGroup.add(new DsFrameworkCliAds());
 
     // Server Group cli
-    cliGroup.add(new DsServiceCliServerGroup());
+    cliGroup.add(new DsFrameworkCliServerGroup());
 
     // Initialization
-    for (DsServiceCliSubCommandGroup oneCli : cliGroup)
+    for (DsFrameworkCliSubCommandGroup oneCli : cliGroup)
     {
       oneCli.initializeCliGroup(this, verboseArg);
     }
@@ -467,7 +467,7 @@ public class DsServiceCliParser extends SubCommandArgumentParser
   {
     SubCommand subCmd = getSubCommand();
 
-    for (DsServiceCliSubCommandGroup oneCli : cliGroup)
+    for (DsFrameworkCliSubCommandGroup oneCli : cliGroup)
     {
       if (oneCli.isSubCommand(subCmd))
       {

@@ -27,7 +27,7 @@ rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.server.admin.client.cli.DsServiceCliMain"
-set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=dsservice"
+set OPENDS_INVOKE_CLASS="org.opends.server.admin.client.cli.DsFrameworkCliMain"
+set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=dsframework"
 call "%~dP0\..\lib\_client-script.bat" %*
 

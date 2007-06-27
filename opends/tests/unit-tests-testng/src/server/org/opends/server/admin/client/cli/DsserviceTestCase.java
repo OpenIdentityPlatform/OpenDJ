@@ -40,7 +40,7 @@ import org.opends.server.core.DirectoryServer;
 
 import static org.testng.Assert.*;
 
-import static org.opends.server.admin.client.cli.DsServiceCliReturnCode.*;
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 
 
 
@@ -92,7 +92,7 @@ public class DsserviceTestCase
       "admin"
     };
 
-    assertEquals(DsServiceCliMain.mainCLI(args, false, System.out, System.err),
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err),
         ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
@@ -112,7 +112,7 @@ public class DsserviceTestCase
       "admin"
     };
 
-    assertEquals(DsServiceCliMain.mainCLI(args, false, System.out, System.err),
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err),
         ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
@@ -130,7 +130,7 @@ public class DsserviceTestCase
       "-w", "password"
     };
 
-    assertFalse(DsServiceCliMain.mainCLI(args, false, null, null) 
+    assertFalse(DsFrameworkCliMain.mainCLI(args, false, null, null) 
         == ReturnCode.SUCCESSFUL.getReturnCode());
   }
   
@@ -148,7 +148,7 @@ public class DsserviceTestCase
       "-w", "password"
     };
 
-    assertFalse(DsServiceCliMain.mainCLI(args, false, System.out, System.err)
+    assertFalse(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err)
         == ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
@@ -166,7 +166,7 @@ public class DsserviceTestCase
       "-w", "wrongPassword"
     };
 
-    assertFalse(DsServiceCliMain.mainCLI(args, false, System.out, System.err)
+    assertFalse(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err)
         == ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
@@ -190,7 +190,7 @@ public class DsserviceTestCase
       "-j", validPasswordFile,
     };
 
-    assertEquals(DsServiceCliMain.mainCLI(args, false, System.out, System.err),
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err),
         ReturnCode.SUCCESSFUL.getReturnCode());
   }
   
@@ -211,7 +211,7 @@ public class DsserviceTestCase
       "-j",invalidPasswordFile
     };
 
-    assertFalse(DsServiceCliMain.mainCLI(args, false, System.out, System.err)
+    assertFalse(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err)
         == ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
@@ -230,7 +230,7 @@ public class DsserviceTestCase
       "-X"
     };
 
-    assertEquals(DsServiceCliMain.mainCLI(args, false, System.out, System.err),
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err),
         ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
@@ -254,7 +254,7 @@ public class DsserviceTestCase
       "-P", trustStorePath
     };
 
-    assertEquals(DsServiceCliMain.mainCLI(args, false, System.out, System.err),
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err),
         ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
@@ -275,7 +275,7 @@ public class DsserviceTestCase
       "-X"
     };
 
-    assertEquals(DsServiceCliMain.mainCLI(args, false, null, System.err),
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, System.err),
         ReturnCode.SUCCESSFUL.getReturnCode());
   }
 
@@ -299,7 +299,7 @@ public class DsserviceTestCase
       "-P", trustStorePath
     };
 
-    assertEquals(DsServiceCliMain.mainCLI(args, false, null, System.err),
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, System.err),
         ReturnCode.SUCCESSFUL.getReturnCode());
   }
   
@@ -310,15 +310,15 @@ public class DsserviceTestCase
   public void testHelp()
   {
     String[] args = { "--help" };
-    assertEquals(DsServiceCliMain.mainCLI(args, false, null, null),
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, null),
         ReturnCode.SUCCESSFUL.getReturnCode());
 
     args = new String[] { "-H" };
-    assertEquals(DsServiceCliMain.mainCLI(args, false, null, null),
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, null),
         ReturnCode.SUCCESSFUL.getReturnCode());
 
     args = new String[] { "-?" };
-    assertEquals(DsServiceCliMain.mainCLI(args, false, null, null),
+    assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, null),
         ReturnCode.SUCCESSFUL.getReturnCode());
   }
 }

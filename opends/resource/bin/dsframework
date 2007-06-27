@@ -28,10 +28,10 @@
 
 # This script may be used to perform LDAP add, delete, modify, and modify DN
 # operations.
-OPENDS_INVOKE_CLASS="org.opends.server.admin.client.cli.DsServiceCliMain"
+OPENDS_INVOKE_CLASS="org.opends.server.admin.client.cli.DsFrameworkCliMain"
 export OPENDS_INVOKE_CLASS
 
-SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=dsservice"
+SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=dsframework"
 export SCRIPT_NAME_ARG
 
 SCRIPT_DIR=`dirname "${0}"`

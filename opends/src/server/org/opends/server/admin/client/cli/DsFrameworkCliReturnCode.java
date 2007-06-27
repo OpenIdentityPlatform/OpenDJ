@@ -36,7 +36,7 @@ import org.opends.admin.ads.ADSContextException.ErrorType;
 /**
  * This class is handling server group CLI.
  */
-public final class DsServiceCliReturnCode
+public final class DsFrameworkCliReturnCode
 {
   /**
    *
@@ -185,7 +185,7 @@ public final class DsServiceCliReturnCode
   private static boolean initialized = false ;
 
   // Prevent instantiation.
-  private void DsServiceCliReturnCode()
+  private void DsFrameworkCliReturnCode()
   {
     // Do nothing.
   }
