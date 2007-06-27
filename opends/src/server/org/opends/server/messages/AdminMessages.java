@@ -241,7 +241,7 @@ public final class AdminMessages {
    * The message ID for the message that will be used as the description of the
    * new "groupid" argument.  This does not take any arguments.
    */
-  public static final int MSGID_ADMIN_ARG_NEW_GROUPID_DESCRIPTION =
+  public static final int MSGID_ADMIN_ARG_NEW_GROUPNAME_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 23;
 
   /**
@@ -272,7 +272,7 @@ public final class AdminMessages {
    * The message ID for the message that will be used as the description of the
    * added "member-id" argument.  This does not take any arguments.
    */
-  public static final int MSGID_ADMIN_ARG_ADD_MEMBERID_DESCRIPTION =
+  public static final int MSGID_ADMIN_ARG_ADD_MEMBERNAME_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 27;
 
   /**
@@ -287,7 +287,7 @@ public final class AdminMessages {
    * The message ID for the message that will be used as the description of the
    * removed "member-id" argument.  This does not take any arguments.
    */
-  public static final int MSGID_ADMIN_ARG_REMOVE_MEMBERID_DESCRIPTION =
+  public static final int MSGID_ADMIN_ARG_REMOVE_MEMBERNAME_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 29;
 
   /**
@@ -454,8 +454,27 @@ public final class AdminMessages {
   public static final int MSGID_ADMIN_NO_MESSAGE =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_SEVERE_ERROR | 52;
 
+  /**
+   * The message ID for the message that will be used as the
+   * description of the "groupName" argument of the create-group
+   * subcommand. This does take one argument.
+   */
+  public static final int MSGID_ADMIN_ARG_CREATE_GROUP_GROUPNAME_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 53;
 
+  /**
+   * The message ID for the message that will be used as the description of the
+   * "groupName" argument.  This does take one argument.
+   */
+  public static final int MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 54;
 
+  /**
+   * The message ID for the message that will be used as the description of the
+   * "memberName" argument.  This does take one argument.
+   */
+  public static final int MSGID_ADMIN_ARG_MEMBERNAME_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 55;
   // Prevent instantiation.
   private AdminMessages() {
     // Do nothing.
@@ -559,7 +578,7 @@ public final class AdminMessages {
         "Modify a group's properties");
     registerMessage(MSGID_ADMIN_ARG_NEW_DESCRIPTION_DESCRIPTION,
         "If specified, the new description");
-    registerMessage(MSGID_ADMIN_ARG_NEW_GROUPID_DESCRIPTION,
+    registerMessage(MSGID_ADMIN_ARG_NEW_GROUPNAME_DESCRIPTION,
         "If specified, the new group's identifier");
     registerMessage(MSGID_ADMIN_SUBCMD_DELETE_GROUP_DESCRIPTION,
         "Delete an existing group of servers" );
@@ -567,12 +586,12 @@ public final class AdminMessages {
         "List groups that have been defined" );
     registerMessage(MSGID_ADMIN_SUBCMD_ADD_TO_GROUP_DESCRIPTION,
         "Add a member to a group" );
-    registerMessage(MSGID_ADMIN_ARG_ADD_MEMBERID_DESCRIPTION,
-        "The member to add" );
+    registerMessage(MSGID_ADMIN_ARG_ADD_MEMBERNAME_DESCRIPTION,
+        "The member to add. This is a required argument" );
     registerMessage(MSGID_ADMIN_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION,
         "Remove a member from a group" );
-    registerMessage(MSGID_ADMIN_ARG_REMOVE_MEMBERID_DESCRIPTION,
-        "The member to remove" );
+    registerMessage(MSGID_ADMIN_ARG_REMOVE_MEMBERNAME_DESCRIPTION,
+        "The member to remove. This is a required argument" );
     registerMessage(MSGID_ADMIN_SUBCMD_LIST_MEMBERS_DESCRIPTION,
         "List members of the specified group" );
     registerMessage(MSGID_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION,
@@ -603,7 +622,7 @@ public final class AdminMessages {
     registerMessage(MSGID_ADMIN_MISSING_PORT,
         "The port is missing");
     registerMessage(MSGID_ADMIN_NOVALID_PORT,
-        "The port is not vaklid");
+        "The port is not valid");
     registerMessage(MSGID_ADMIN_MISSING_NAME,
         "The name is missing");
     registerMessage(MSGID_ADMIN_MISSING_ADMIN_UID,
@@ -620,5 +639,12 @@ public final class AdminMessages {
        "The operation has been successfully completed, "+
        "but no action was required");
     registerMessage(MSGID_ADMIN_NO_MESSAGE,"");
+    registerMessage(MSGID_ADMIN_ARG_CREATE_GROUP_GROUPNAME_DESCRIPTION,
+       "The new group's identifier. This is a required argument");
+    registerMessage(MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION,
+       "The group's identifier. This is a required argument");
+    registerMessage(MSGID_ADMIN_ARG_MEMBERNAME_DESCRIPTION,
+    "The member's identifier. This is a required argument");
+
   }
 }

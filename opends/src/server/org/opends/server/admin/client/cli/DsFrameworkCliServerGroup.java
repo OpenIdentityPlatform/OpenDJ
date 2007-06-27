@@ -154,12 +154,17 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   /**
    * The 'create-group' subcommand.
    */
-  public SubCommand createGoupSubCmd;
+  public SubCommand createGroupSubCmd;
 
   /**
    * The 'description' argument of the 'create-group' subcommand.
    */
-  private StringArgument createGoupDescriptionArg;
+  private StringArgument createGroupDescriptionArg;
+
+  /**
+   * The 'group-name' argument of the 'create-group' subcommand.
+   */
+  private StringArgument createGroupGroupNameArg;
 
   /**
    * The 'modify-group' subcommand.
@@ -177,9 +182,19 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   private StringArgument modifyGroupGroupIdArg;
 
   /**
+   * The 'group-name' argument of the 'modify-group' subcommand.
+   */
+  private StringArgument modifyGroupGroupNameArg;
+
+  /**
    * The 'delete-group' subcommand.
    */
   private SubCommand deleteGroupSubCmd;
+
+  /**
+   * The 'group-name' argument of the 'delete-group' subcommand.
+   */
+  private StringArgument deleteGroupGroupNameArg;
 
   /**
    * The 'list-group' subcommand.
@@ -192,9 +207,14 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   private SubCommand addToGroupSubCmd;
 
   /**
+   * The 'group-name' argument of the 'add-to-group' subcommand.
+   */
+  private StringArgument addToGroupGroupNameArg;
+
+  /**
    * The 'member-id' argument of the 'add-to-group' subcommand.
    */
-  private StringArgument addToGoupMemberIdArg;
+  private StringArgument addToGoupMemberNameArg;
 
   /**
    * The 'remove-from-group' subcommand.
@@ -202,9 +222,14 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   private SubCommand removeFromGroupSubCmd;
 
   /**
+   * The 'group-name' argument of the 'remove-from-group' subcommand.
+   */
+  private StringArgument removeFromGroupGroupNameArg;
+
+  /**
    * The 'member-id' argument of the 'remove-from-group' subcommand.
    */
-  private StringArgument removeFromGoupMemberIdArg;
+  private StringArgument removeFromGoupMemberNameArg;
 
   /**
    * The 'list-members' subcommand.
@@ -212,9 +237,20 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   private SubCommand listMembersSubCmd;
 
   /**
+   * The 'group-name' argument of the 'list-members' subcommand.
+   */
+  private StringArgument listMembersGroupNameArg;
+
+  /**
    * The 'mlist-membership' subcommand.
    */
   private SubCommand listMembershipSubCmd;
+
+  /**
+   * The 'meber-name' argument of the 'list-membership' subcommand.
+   */
+  private StringArgument listMembershipMemberNameArg;
+
 
   /**
    * Association between ADSContext enum and display field.
@@ -240,75 +276,122 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     this.verboseArg = verboseArg ;
 
     // Create-group subcommand
-    createGoupSubCmd = new SubCommand(argParser, SubCommandNameEnum.CREATE_GROUP
-        .toString(), true, 1, 1, OPERAND_GROUPID,
+    createGroupSubCmd = new SubCommand(argParser,
+        SubCommandNameEnum.CREATE_GROUP.toString(),
         MSGID_ADMIN_SUBCMD_CREATE_GROUP_DESCRIPTION);
-    createGoupDescriptionArg = new StringArgument("description",
+
+    createGroupDescriptionArg = new StringArgument("description",
         OPTION_SHORT_DESCRIPTION, OPTION_LONG_DESCRIPTION, false, false,
         true, OPTION_VALUE_DESCRIPTION, "", null,
         MSGID_ADMIN_ARG_DESCRIPTION_DESCRIPTION);
-    createGoupSubCmd.addArgument(createGoupDescriptionArg);
+    createGroupSubCmd.addArgument(createGroupDescriptionArg);
+
+    createGroupGroupNameArg = new StringArgument("groupName",
+        OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
+        OPTION_VALUE_GROUPNAME,
+        MSGID_ADMIN_ARG_CREATE_GROUP_GROUPNAME_DESCRIPTION);
+    createGroupSubCmd.addArgument(createGroupGroupNameArg);
 
     // modify-group
     modifyGroupSubCmd = new SubCommand(argParser,
-        SubCommandNameEnum.MODIFY_GROUP.toString(), true, 1, 1,
-        OPERAND_GROUPID, MSGID_ADMIN_SUBCMD_MODIFY_GROUP_DESCRIPTION);
+        SubCommandNameEnum.MODIFY_GROUP.toString(),
+        MSGID_ADMIN_SUBCMD_MODIFY_GROUP_DESCRIPTION);
+
     modifyGroupDescriptionArg = new StringArgument("new-description",
         OPTION_SHORT_DESCRIPTION, OPTION_LONG_DESCRIPTION, false, false,
         true, OPTION_VALUE_DESCRIPTION, "", null,
         MSGID_ADMIN_ARG_NEW_DESCRIPTION_DESCRIPTION);
     modifyGroupSubCmd.addArgument(modifyGroupDescriptionArg);
-    modifyGroupGroupIdArg = new StringArgument("new-groupID",
-        OPTION_SHORT_GROUPID, OPTION_LONG_GROUPID, false, false, true,
-        OPTION_VALUE_GROUPID, "", null,
-        MSGID_ADMIN_ARG_NEW_GROUPID_DESCRIPTION);
+
+    modifyGroupGroupIdArg = new StringArgument("new-groupName",
+        OPTION_SHORT_NEWGROUPNAME, OPTION_LONG_NEWGROUPNAME, false, false, true,
+        OPTION_VALUE_GROUPNAME, "", null,
+        MSGID_ADMIN_ARG_NEW_GROUPNAME_DESCRIPTION);
     modifyGroupSubCmd.addArgument(modifyGroupGroupIdArg);
+
+    modifyGroupGroupNameArg = new StringArgument("groupName",
+        OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
+        OPTION_VALUE_GROUPNAME,
+        MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION);
+    modifyGroupSubCmd.addArgument(modifyGroupGroupNameArg);
 
     // delete-group
     deleteGroupSubCmd = new SubCommand(argParser,SubCommandNameEnum.DELETE_GROUP
-        .toString(), true, 1, 1, OPERAND_GROUPID,
-        MSGID_ADMIN_SUBCMD_DELETE_GROUP_DESCRIPTION);
+        .toString(), MSGID_ADMIN_SUBCMD_DELETE_GROUP_DESCRIPTION);
+
+    deleteGroupGroupNameArg = new StringArgument("groupName",
+        OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
+        OPTION_VALUE_GROUPNAME,
+        MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION);
+    deleteGroupSubCmd.addArgument(deleteGroupGroupNameArg);
 
     // list-groups
     listGroupSubCmd = new SubCommand(argParser, "list-groups",
         MSGID_ADMIN_SUBCMD_LIST_GROUPS_DESCRIPTION);
 
     // add-to-group
-    addToGroupSubCmd = new SubCommand(argParser, SubCommandNameEnum.ADD_TO_GROUP
-        .toString(), true, 1, 1, OPERAND_GROUPID,
+    addToGroupSubCmd = new SubCommand(argParser,
+        SubCommandNameEnum.ADD_TO_GROUP.toString(),
         MSGID_ADMIN_SUBCMD_ADD_TO_GROUP_DESCRIPTION);
-    addToGoupMemberIdArg = new StringArgument("memberID", OPTION_SHORT_MEMBERID,
-        OPTION_LONG_MEMBERID, false, false, true, OPTION_VALUE_MEMBERID, "",
-        null, MSGID_ADMIN_ARG_ADD_MEMBERID_DESCRIPTION);
-    addToGroupSubCmd.addArgument(addToGoupMemberIdArg);
+
+    addToGoupMemberNameArg = new StringArgument("memberName",
+        OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
+        OPTION_VALUE_MEMBERNAME,
+        MSGID_ADMIN_ARG_ADD_MEMBERNAME_DESCRIPTION);
+    addToGroupSubCmd.addArgument(addToGoupMemberNameArg);
+
+    addToGroupGroupNameArg = new StringArgument("groupName",
+        OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
+        OPTION_VALUE_GROUPNAME,
+        MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION);
+    addToGroupSubCmd.addArgument(addToGroupGroupNameArg);
 
     // remove-from-group
     removeFromGroupSubCmd = new SubCommand(argParser,
-        SubCommandNameEnum.REMOVE_FROM_GROUP.toString(), true, 1, 1,
-        OPERAND_GROUPID, MSGID_ADMIN_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION);
-    removeFromGoupMemberIdArg = new StringArgument("memberID",
-        OPTION_SHORT_MEMBERID, OPTION_LONG_MEMBERID, false, false, true,
-        OPTION_VALUE_MEMBERID, "", null,
-        MSGID_ADMIN_ARG_REMOVE_MEMBERID_DESCRIPTION);
-    removeFromGroupSubCmd.addArgument(removeFromGoupMemberIdArg);
+        SubCommandNameEnum.REMOVE_FROM_GROUP.toString(),
+        MSGID_ADMIN_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION);
+
+    removeFromGoupMemberNameArg = new StringArgument("memberName",
+        OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
+        OPTION_VALUE_MEMBERNAME,
+        MSGID_ADMIN_ARG_REMOVE_MEMBERNAME_DESCRIPTION);
+    removeFromGroupSubCmd.addArgument(removeFromGoupMemberNameArg);
+
+    removeFromGroupGroupNameArg = new StringArgument("groupName",
+        OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
+        OPTION_VALUE_GROUPNAME,
+        MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION);
+    removeFromGroupSubCmd.addArgument(removeFromGroupGroupNameArg);
+
 
     // list-members
     listMembersSubCmd = new SubCommand(argParser,SubCommandNameEnum.LIST_MEMBERS
-        .toString(), true, 1, 1, OPERAND_GROUPID,
-        MSGID_ADMIN_SUBCMD_LIST_MEMBERS_DESCRIPTION);
+        .toString(), MSGID_ADMIN_SUBCMD_LIST_MEMBERS_DESCRIPTION);
+
+    listMembersGroupNameArg = new StringArgument("groupName",
+        OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
+        OPTION_VALUE_GROUPNAME,
+        MSGID_ADMIN_ARG_GROUPNAME_DESCRIPTION);
+    listMembersSubCmd.addArgument(listMembersGroupNameArg);
 
     // list-membership
     listMembershipSubCmd = new SubCommand(argParser,
-        SubCommandNameEnum.LIST_MEMBERSHIP.toString(), true, 1, 1,
-        OPERAND_MEMBERID, MSGID_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION);
+        SubCommandNameEnum.LIST_MEMBERSHIP.toString(),
+        MSGID_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION);
+
+    listMembershipMemberNameArg = new StringArgument("memberName",
+        OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
+        OPTION_VALUE_MEMBERNAME,
+        MSGID_ADMIN_ARG_MEMBERNAME_DESCRIPTION);
+    listMembershipSubCmd.addArgument(listMembershipMemberNameArg);
 
     // Create association between ADSContext enum and display field
     attributeDisplayName = new HashMap<ServerGroupProperty, String>();
-    attributeDisplayName.put(ServerGroupProperty.UID, OPTION_LONG_GROUPID);
+    attributeDisplayName.put(ServerGroupProperty.UID, OPTION_LONG_GROUPNAME);
     attributeDisplayName.put(ServerGroupProperty.DESCRIPTION,
         OPTION_LONG_DESCRIPTION);
     attributeDisplayName.put(ServerGroupProperty.MEMBERS,
-        OPTION_LONG_MEMBERID);
+        OPTION_LONG_MEMBERNAME);
   }
 
   /**
@@ -330,20 +413,20 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // -----------------------
     // create-group subcommand
     // -----------------------
-    if (subCmd.getName().equals(createGoupSubCmd.getName()))
+    if (subCmd.getName().equals(createGroupSubCmd.getName()))
     {
-      String groupId = subCmd.getTrailingArguments().get(0);
+      String groupId = createGroupGroupNameArg.getValue();
       HashMap<ServerGroupProperty, Object> serverGroupProperties =
         new HashMap<ServerGroupProperty, Object>();
 
-      // get the GROUP_ID
+      // get the GROUP_NAME
       serverGroupProperties.put(ServerGroupProperty.UID, groupId);
 
       // get the Description
-      if (createGoupDescriptionArg.isPresent())
+      if (createGroupDescriptionArg.isPresent())
       {
         serverGroupProperties.put(ServerGroupProperty.DESCRIPTION,
-            createGoupDescriptionArg.getValue());
+            createGroupDescriptionArg.getValue());
       }
 
       // Create the group
@@ -355,7 +438,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // -----------------------
     else if (subCmd.getName().equals(deleteGroupSubCmd.getName()))
     {
-      String groupId = subCmd.getTrailingArguments().get(0);
+      String groupId = deleteGroupGroupNameArg.getValue();
       HashMap<ServerGroupProperty, Object> serverGroupProperties =
         new HashMap<ServerGroupProperty, Object>();
 
@@ -481,7 +564,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // -----------------------
     else if (subCmd.getName().equals(modifyGroupSubCmd.getName()))
     {
-      String groupId = subCmd.getTrailingArguments().get(0);
+      String groupId = modifyGroupGroupNameArg.getValue();
       HashMap<ServerGroupProperty, Object> serverGroupProperties =
         new HashMap<ServerGroupProperty, Object>();
       HashSet<ServerGroupProperty> serverGroupPropertiesToRemove =
@@ -546,7 +629,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // -----------------------
     else if (subCmd.getName().equals(addToGroupSubCmd.getName()))
     {
-      String groupId = subCmd.getTrailingArguments().get(0);
+      String groupId = addToGroupGroupNameArg.getValue();
       HashMap<ServerGroupProperty, Object> serverGroupProperties =
         new HashMap<ServerGroupProperty, Object>();
 
@@ -557,7 +640,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         memberList = new HashSet<String>();
       }
       String newMember = "cn="
-          + Rdn.escapeValue(addToGoupMemberIdArg.getValue());
+          + Rdn.escapeValue(addToGoupMemberNameArg.getValue());
       if (memberList.contains(newMember))
       {
         return ReturnCode.ALREADY_REGISTERED;
@@ -575,7 +658,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // -----------------------
     else if (subCmd.getName().equals(removeFromGroupSubCmd.getName()))
     {
-      String groupId = subCmd.getTrailingArguments().get(0);
+      String groupId = removeFromGroupGroupNameArg.getValue();
       HashMap<ServerGroupProperty, Object> serverGroupProperties =
         new HashMap<ServerGroupProperty, Object>();
 
@@ -586,7 +669,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         return ReturnCode.NOT_YET_REGISTERED;
       }
       String memberToRemove = "cn="
-          + Rdn.escapeValue(removeFromGoupMemberIdArg.getValue());
+          + Rdn.escapeValue(removeFromGoupMemberNameArg.getValue());
       if (!memberList.contains(memberToRemove))
       {
         return ReturnCode.NOT_YET_REGISTERED;
@@ -605,7 +688,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // -----------------------
     else if (subCmd.getName().equals(listMembersSubCmd.getName()))
     {
-      String groupId = subCmd.getTrailingArguments().get(0);
+      String groupId = listMembersGroupNameArg.getValue();
 
       // get the current member list
       Set<String> memberList = adsContext.getServerGroupMemberList(groupId);
@@ -637,7 +720,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 
       Set<Map<ServerGroupProperty, Object>> result = adsContext
           .readServerGroupRegistry();
-      String MemberId = subCmd.getTrailingArguments().get(0);
+      String MemberId = listMembershipMemberNameArg.getValue();
 
       StringBuffer buffer = new StringBuffer();
       for (Map<ServerGroupProperty, Object> groupProps : result)

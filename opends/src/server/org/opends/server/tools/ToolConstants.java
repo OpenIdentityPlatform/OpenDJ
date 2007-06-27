@@ -526,50 +526,49 @@ public class ToolConstants
   public static final String OPTION_VALUE_DESCRIPTION = "{description}";
 
   /**
-   * The value for the short option groupid attributes.
+   * The value for the short option groupName attributes.
    */
-  public static final char OPTION_SHORT_GROUPID = 'g';
+  public static final char OPTION_SHORT_GROUPNAME = 'g';
 
   /**
-   * The value for the long option groupid
+   * The value for the long option groupName
    * attribute.
    */
-  public static final String OPTION_LONG_GROUPID= "groupId";
+  public static final String OPTION_LONG_GROUPNAME= "groupName";
 
   /**
-   * The placeholder value of groupid that will be
+   * The placeholder value of groupName that will be
    * displayed in usage information.
    */
-  public static final String OPTION_VALUE_GROUPID = "{group-id}";
+  public static final String OPTION_VALUE_GROUPNAME = "{group-name}";
 
   /**
-   * The value for the short option member-id attributes.
+   * The value for the short option newGroupName attribute.
    */
-  public static final char OPTION_SHORT_MEMBERID = 'm';
+  public static final char OPTION_SHORT_NEWGROUPNAME = 'n';
 
   /**
-   * The value for the long member-id version
+   * The value for the long option groupName
    * attribute.
    */
-  public static final String OPTION_LONG_MEMBERID= "memberId";
+  public static final String OPTION_LONG_NEWGROUPNAME= "newGroupName";
 
   /**
-   * The placeholder value of member-id that will be
-   * displayed in usage information.
+   * The value for the short option member-name attributes.
    */
-  public static final String OPTION_VALUE_MEMBERID = "{member-id}";
+  public static final char OPTION_SHORT_MEMBERNAME = 'm';
 
   /**
-   * The placeholder value of group_id that will be
-   * displayed in usage information.
+   * The value for the long member-name version
+   * attribute.
    */
-  public static final String OPERAND_GROUPID = "GROUP_ID";
+  public static final String OPTION_LONG_MEMBERNAME= "memberName";
 
   /**
-   * The placeholder value of member_id that will be
+   * The placeholder value of member-name that will be
    * displayed in usage information.
    */
-  public static final String OPERAND_MEMBERID = "MEMBER_ID";
+  public static final String OPTION_VALUE_MEMBERNAME = "{member-name}";
 
   /**
    * The placeholder value of backend name that will be
