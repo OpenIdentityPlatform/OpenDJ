@@ -8028,6 +8028,918 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the description for the
+   * password policy state tool.
+   */
+  public static final int MSGID_PWPSTATE_TOOL_DESCRIPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1094;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * hostname argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_HOST =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1095;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * port argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_PORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1096;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * useSSL argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_USESSL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1097;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * useStartTLS argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_USESTARTTLS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1098;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * bindDN argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_BINDDN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1099;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * bindPassword argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_BINDPW =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1100;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * bindPasswordFile argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_BINDPWFILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1101;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * targetDN argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_TARGETDN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1102;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * saslOptions argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_SASLOPTIONS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1103;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * trustAll argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_TRUST_ALL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1104;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * keyStorePath argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_KSFILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1105;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * keyStorePIN argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_KSPW =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1106;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * keyStorePINFile argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_KSPWFILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1107;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * trustStorePath argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_TSFILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1108;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * trustStorePIN argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_TSPW =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1109;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * trustStorePINFile argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_TSPWFILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1110;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * showUsage argument.
+   */
+  public static final int MSGID_PWPSTATE_DESCRIPTION_SHOWUSAGE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1111;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-all subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_GET_ALL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1112;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-password-policy-dn subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_POLICY_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1113;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-account-is-disabled subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_ACCOUNT_DISABLED_STATE =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1114;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * set-account-is-disabled subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_SET_ACCOUNT_DISABLED_STATE =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1115;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * argument used to set Boolean values.
+   */
+  public static final int MSGID_DESCRIPTION_OPERATION_BOOLEAN_VALUE =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1116;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * clear-account-is-disabled subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_DISABLED_STATE =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1117;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-account-expiration-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_ACCOUNT_EXPIRATION_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1118;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * set-account-expiration-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_SET_ACCOUNT_EXPIRATION_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1119;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * argument used to set single values for single-valued attributes.
+   */
+  public static final int MSGID_DESCRIPTION_OPERATION_TIME_VALUE =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1120;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * clear-account-expiration-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_EXPIRATION_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1121;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-seconds-until-account-expiration subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1122;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-password-changed-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_CHANGED_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1123;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * set-password-changed-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_SET_PASSWORD_CHANGED_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1124;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * clear-password-changed-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_CHANGED_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1125;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-password-expiration-warned-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_EXPIRATION_WARNED_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1126;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * set-password-expiration-warned-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_SET_PASSWORD_EXPIRATION_WARNED_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1127;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * clear-password-expiration-warned-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_EXPIRATION_WARNED_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1128;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-seconds-until-password-expiration subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_PASSWORD_EXP =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1129;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-seconds-until-password-expiration-warning subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_PASSWORD_EXP_WARNING =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1130;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-auth-failure-times subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_GET_AUTH_FAILURE_TIMES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1131;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * add-auth-failure-time subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_ADD_AUTH_FAILURE_TIME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1132;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * set-auth-failure-times subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_SET_AUTH_FAILURE_TIMES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1133;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * argument used to set single values for multi-valued attributes.
+   */
+  public static final int MSGID_DESCRIPTION_OPERATION_TIME_VALUES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1134;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * clear-auth-failure-times subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_CLEAR_AUTH_FAILURE_TIMES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1135;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-seconds-until-authentication-failure-unlock subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_AUTH_FAILURE_UNLOCK =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1136;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-remaining-authentication-failure-count subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_REMAINING_AUTH_FAILURE_COUNT =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1137;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-last-login-time subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_GET_LAST_LOGIN_TIME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1138;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * set-last-login-time subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_SET_LAST_LOGIN_TIME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1139;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * clear-last-login-time subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_CLEAR_LAST_LOGIN_TIME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1140;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-seconds-until-idle-lockout subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_IDLE_LOCKOUT =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1141;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-password-is-reset subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_RESET_STATE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1142;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * set-password-is-reset subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_SET_PASSWORD_RESET_STATE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1143;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * clear-password-is-reset subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_RESET_STATE =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1144;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-seconds-until-reset-lockout subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_RESET_LOCKOUT =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1145;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-grace-login-use-times subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_GET_GRACE_LOGIN_USE_TIMES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1146;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * add-grace-login-use-time subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_ADD_GRACE_LOGIN_USE_TIME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1147;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * set-grace-login-use-times subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_SET_GRACE_LOGIN_USE_TIMES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1148;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * clear-grace-login-use-times subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_CLEAR_GRACE_LOGIN_USE_TIMES =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1149;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-remaining-grace-login-count subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_REMAINING_GRACE_LOGIN_COUNT =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1150;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-password-changed-by-required-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_PW_CHANGED_BY_REQUIRED_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1151;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * set-password-changed-by-required-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_SET_PW_CHANGED_BY_REQUIRED_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1152;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * clear-password-changed-by-required-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_CLEAR_PW_CHANGED_BY_REQUIRED_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1153;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-seconds-until-required-time subcommand.
+   */
+  public static final int
+       MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1154;
+
+
+
+  /**
+   * The message ID for the message that will be used if no subcommand was
+   * provided on the command line.  This does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_NO_SUBCOMMAND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1155;
+
+
+
+  /**
+   * The message ID for the message that will be used if the operation value
+   * provided could not be parsed as a Boolean value.  This takes a single
+   * argument, which is the provided value.
+   */
+  public static final int MSGID_PWPSTATE_INVALID_BOOLEAN_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1156;
+
+
+
+  /**
+   * The message ID for the message that will be used if no value was provided
+   * for an operation that requires a Boolean value.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_PWPSTATE_NO_BOOLEAN_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1157;
+
+
+
+  /**
+   * The message ID for the message that will be used if an unrecognized
+   * subcommand was provided.  This takes a single argument, which is the
+   * unrecognized subcommand.
+   */
+  public static final int MSGID_PWPSTATE_INVALID_SUBCOMMAND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1158;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to send the extended request to the server.  This takes a single
+   * argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_CANNOT_SEND_REQUEST_EXTOP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1159;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server closed the
+   * connection without sending a response.  This does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_CONNECTION_CLOSED_READING_RESPONSE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1160;
+
+
+
+  /**
+   * The message ID for the message that will be used if the response from the
+   * server indicates that the request was not processed properly.  This takes
+   * three arguments, which are the result code, a string representation of the
+   * result code, and the error message.
+   */
+  public static final int MSGID_PWPSTATE_REQUEST_FAILED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1161;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurred while
+   * attempting to decode the response message from the server.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_CANNOT_DECODE_RESPONSE_MESSAGE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1162;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurred while
+   * attempting to decode a response op.  This takes a single argument, which is
+   * a message explaining the problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_CANNOT_DECODE_RESPONSE_OP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1163;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the password policy DN.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_PASSWORD_POLICY_DN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1164;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the account disabled state.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_ACCOUNT_DISABLED_STATE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1165;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the account expiration time.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_ACCOUNT_EXPIRATION_TIME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1166;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the seconds until account expiration.
+   */
+  public static final int
+       MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_ACCOUNT_EXPIRATION =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1167;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the password changed time.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_PASSWORD_CHANGED_TIME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1168;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the password expiration warned time.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_PASSWORD_EXPIRATION_WARNED_TIME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1169;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the seconds until password expiration.
+   */
+  public static final int
+       MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1170;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the seconds until the password expiration warning.
+   */
+  public static final int
+       MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1171;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the auth failure times.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_AUTH_FAILURE_TIMES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1172;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the seconds until auth failure unlock.
+   */
+  public static final int
+       MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_AUTH_FAILURE_UNLOCK =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1173;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the remaining auth failure count.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_REMAINING_AUTH_FAILURE_COUNT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1174;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the last login time.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_LAST_LOGIN_TIME =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1175;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the seconds until idle lockout.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_IDLE_LOCKOUT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1176;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the password reset state.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_PASSWORD_RESET_STATE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1177;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the seconds until password reset lockout.
+   */
+  public static final int
+       MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1178;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the grace login use times.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_GRACE_LOGIN_USE_TIMES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1179;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the remaining grace login count.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_REMAINING_GRACE_LOGIN_COUNT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1180;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the password changed by required time.
+   */
+  public static final int
+       MSGID_PWPSTATE_LABEL_PASSWORD_CHANGED_BY_REQUIRED_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1181;
+
+
+
+  /**
+   * The message ID for the message that will be used as the label when
+   * displaying the seconds until required change time.
+   */
+  public static final int
+       MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_REQUIRED_CHANGE_TIME =
+            CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1182;
+
+
+
+  /**
+   * The message ID for the message that will be used if the response contained
+   * an unknown or invalid operation type.  This takes a single argument, which
+   * is the invalid operation type.
+   */
+  public static final int MSGID_PWPSTATE_INVALID_RESPONSE_OP_TYPE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1183;
+
+
+
+  /**
+   * The message ID for the message that will be used if two arguments that are
+   * mutually exclusive were both provided.  This takes two arguments, which are
+   * the long identifiers for the mutually-exclusive command line arguments.
+   */
+  public static final int MSGID_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1184;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to perform SSL initialization.  This takes a single argument, which
+   * is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_CANNOT_INITIALIZE_SSL =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1185;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to parse a SASL option string.  This takes a single argument, which
+   * is the SASL option string.
+   */
+  public static final int MSGID_PWPSTATE_CANNOT_PARSE_SASL_OPTION =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1186;
+
+
+
+  /**
+   * The message ID for the message that will be used if SASL options were used
+   * without specifying the SASL mechanism.  This does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_NO_SASL_MECHANISM =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1187;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to determine the port to use to communicate with the Directory
+   * Server.  This takes two arguments, which are the name of the port argument
+   * and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_CANNOT_DETERMINE_PORT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1188;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to connect to the Directory Server.  This takes a single argument,
+   * which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_CANNOT_CONNECT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1189;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -10634,6 +11546,278 @@ public class ToolMessages
 
     registerMessage(MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY,
                     "Display summary usage information");
+
+
+    registerMessage(MSGID_PWPSTATE_TOOL_DESCRIPTION,
+                    "This utility may be used to retrieve and manipulate " +
+                    "the values of password policy state variables");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_HOST,
+                    "Directory server hostname or IP address");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_PORT,
+                    "Directory server port number");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_USESSL,
+                    "Use SSL for secure communication with the server");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_USESTARTTLS,
+                    "Use StartTLS to secure communication with the server");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_BINDDN,
+                    "The DN to use to bind to the server");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_BINDPW,
+                    "The password to use to bind to the server");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_BINDPWFILE,
+                    "The path to the file containing the bind password");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_TARGETDN,
+                    "The DN of the user entry for which to get and set " +
+                    "password policy state information");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_SASLOPTIONS,
+                    "SASL bind options");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_TRUST_ALL,
+                    "Trust all server SSL certificates");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_KSFILE,
+                    "Certificate keystore path");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_KSPW,
+                    "Certificate keystore PIN");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_KSPWFILE,
+                    "Certificate keystore PIN file");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_TSFILE,
+                    "Certificate trust store path");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_TSPW,
+                    "Certificate trust store PIN");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_TSPWFILE,
+                    "Certificate trust store PIN file");
+    registerMessage(MSGID_PWPSTATE_DESCRIPTION_SHOWUSAGE,
+                    "Display this usage information");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_ALL,
+                    "Display all password policy state information for the " +
+                    "user");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_POLICY_DN,
+                    "Display the DN of the password policy for the user");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_ACCOUNT_DISABLED_STATE,
+                    "Display information about whether the user account has " +
+                    "been administratively disabled");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_SET_ACCOUNT_DISABLED_STATE,
+                    "Specify whether the user account has been " +
+                    "administratively disabled");
+    registerMessage(MSGID_DESCRIPTION_OPERATION_BOOLEAN_VALUE,
+                    "'true' to indicate that the account is disabled, or " +
+                    "'false' to indicate that it is not disabled");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_DISABLED_STATE,
+                    "Clear account disabled state information from the user " +
+                    "account");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_ACCOUNT_EXPIRATION_TIME,
+                    "Display when the user account will expire");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_SET_ACCOUNT_EXPIRATION_TIME,
+                    "Specify when the user account will expire");
+    registerMessage(MSGID_DESCRIPTION_OPERATION_TIME_VALUE,
+                    "A timestamp value using the generalized time syntax");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_EXPIRATION_TIME,
+                    "Clear account expiration time information from the user " +
+                    "account");
+    registerMessage(
+         MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION,
+         "Display the length of time in seconds until the user account " +
+         "expires");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_CHANGED_TIME,
+                    "Display the time that the user's password was last " +
+                    "changed");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_SET_PASSWORD_CHANGED_TIME,
+                    "Specify the time that the user's password was last " +
+                    "changed.  This should be used only for testing purposes");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_CHANGED_TIME,
+                    "Clear information about the time that the user's " +
+                    "password was last changed.  This should be used only " +
+                    "for testing purposes");
+    registerMessage(
+         MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_EXPIRATION_WARNED_TIME,
+         "Display the time that the user first received an expiration " +
+         "warning notice");
+    registerMessage(
+         MSGID_DESCRIPTION_PWPSTATE_SET_PASSWORD_EXPIRATION_WARNED_TIME,
+         "Specify the time that the user first received an expiration " +
+         "warning notice.  This should be used only for testing purposes");
+    registerMessage(
+         MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_EXPIRATION_WARNED_TIME,
+         "Clear information about the time that the user first received an " +
+         "expiration warning notice.  This should be used only for testing " +
+         "purposes");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_PASSWORD_EXP,
+                    "Display length of time in seconds until the user's " +
+                    "password expires");
+    registerMessage(
+         MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_PASSWORD_EXP_WARNING,
+         "Display the length of time in seconds until the user should start " +
+         "receiving password expiration warning notices");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_AUTH_FAILURE_TIMES,
+                    "Display the authentication failure times for the user");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_ADD_AUTH_FAILURE_TIME,
+                    "Add an authentication failure time to the user " +
+                    "account.  This should be used only for testing purposes");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_SET_AUTH_FAILURE_TIMES,
+                    "Specify the authentication failure times for the user.  " +
+                    "This should be used only for testing purposes");
+    registerMessage(MSGID_DESCRIPTION_OPERATION_TIME_VALUES,
+                    "A timestamp value using the generalized time syntax.  " +
+                    "Multiple timestamp values may be given by providing " +
+                    "this argument multiple times");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_CLEAR_AUTH_FAILURE_TIMES,
+                    "Clear authentication failure time information from the " +
+                    "user's account.  This should be used only for testing " +
+                    "purposes");
+    registerMessage(
+         MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_AUTH_FAILURE_UNLOCK,
+         "Display the length of time in seconds until the authentication " +
+         "failure lockout expires");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_REMAINING_AUTH_FAILURE_COUNT,
+                    "Display the number of remaining authentication failures " +
+                    "until the user's account is locked");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_LAST_LOGIN_TIME,
+                    "Display the time that the user last authenticated to " +
+                    "the server");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_SET_LAST_LOGIN_TIME,
+                    "Specify the time that the user last authenticated to " +
+                    "the server.  This should be used only for testing " +
+                    "purposes");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_CLEAR_LAST_LOGIN_TIME,
+                    "Clear the time that the user last authenticated to the " +
+                    "server.  This should be used only for testing purposes");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_IDLE_LOCKOUT,
+                    "Display the length of time in seconds until user's " +
+                    "account is locked because it has remained idle for " +
+                    "too long");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_RESET_STATE,
+                    "Display information about whether the user will be " +
+                    "required to change his or her password on the next " +
+                    "successful authentication");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_SET_PASSWORD_RESET_STATE,
+                    "Specify whether the user will be required to change his " +
+                    "or her password on the next successful authentication.  " +
+                    "This should be used only for testing purposes");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_RESET_STATE,
+                    "Clear information about whether the user will be " +
+                    "required to change his or her password on the next " +
+                    "successful authentication.  This should be used only " +
+                    "for testing purposes");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_RESET_LOCKOUT,
+                    "Display the length of time in seconds until user's " +
+                    "account is locked because the user failed to change the " +
+                    "password in a timely manner after an administrative " +
+                    "reset");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_GRACE_LOGIN_USE_TIMES,
+                    "Display the grace login use times for the user");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_ADD_GRACE_LOGIN_USE_TIME,
+                    "Add a grace login use time to the user account.  This " +
+                    "should be used only for testing purposes");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_SET_GRACE_LOGIN_USE_TIMES,
+                    "Specify the grace login use times for the user.  This " +
+                    "should be used only for testing purposes");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_CLEAR_GRACE_LOGIN_USE_TIMES,
+                    "Clear the set of grace login use times for the user.  " +
+                    "This should be used only for testing purposes");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_REMAINING_GRACE_LOGIN_COUNT,
+                    "Display the number of grace logins remaining for the " +
+                    "user");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_PW_CHANGED_BY_REQUIRED_TIME,
+                    "Display the required password change time with which " +
+                    "the user last complied");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_SET_PW_CHANGED_BY_REQUIRED_TIME,
+                    "Specify the required password change time with which " +
+                    "the user last complied.  This should be used only for " +
+                    "testing purposes");
+    registerMessage(
+         MSGID_DESCRIPTION_PWPSTATE_CLEAR_PW_CHANGED_BY_REQUIRED_TIME,
+         "Clear information about the required password change time with " +
+         "which the user last complied.  This should be used only for " +
+         "testing purposes");
+    registerMessage(
+         MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
+         "Display the length of time in seconds that the user has remaining " +
+         "to change his or her password before the account becomes locked " +
+         "due to the required change time");
+    registerMessage(MSGID_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS,
+                    "ERROR:  You may not provide both the %s and the %s " +
+                    "arguments");
+    registerMessage(MSGID_PWPSTATE_CANNOT_INITIALIZE_SSL,
+                    "ERROR:  Unable to perform SSL initialization:  %s");
+    registerMessage(MSGID_PWPSTATE_CANNOT_PARSE_SASL_OPTION,
+                    "ERROR:  The provided SASL option string \"%s\" could " +
+                    "not be parsed in the form \"name=value\"");
+    registerMessage(MSGID_PWPSTATE_NO_SASL_MECHANISM,
+                    "ERROR:  One or more SASL options were provided, but " +
+                    "none of them were the \"mech\" option to specify which " +
+                    "SASL mechanism should be used");
+    registerMessage(MSGID_PWPSTATE_CANNOT_DETERMINE_PORT,
+                    "ERROR:  Cannot parse the value of the %s argument as " +
+                    "an integer value between 1 and 65535:  %s");
+    registerMessage(MSGID_PWPSTATE_CANNOT_CONNECT,
+                    "ERROR:  Cannot establish a connection to the " +
+                    "Directory Server:  %s");
+    registerMessage(MSGID_PWPSTATE_NO_SUBCOMMAND,
+                    "No subcommand was provided to indicate which password " +
+                    "policy state operation should be performed");
+    registerMessage(MSGID_PWPSTATE_INVALID_BOOLEAN_VALUE,
+                    "The provided value '%s' was invalid for the requested " +
+                    "operation.  A Boolean value of either 'true' or 'false' " +
+                    "was expected");
+    registerMessage(MSGID_PWPSTATE_NO_BOOLEAN_VALUE,
+                    "No value was specified, but the requested operation " +
+                    "requires a Boolean value of either 'true' or 'false'");
+    registerMessage(MSGID_PWPSTATE_INVALID_SUBCOMMAND,
+                    "Unrecognized subcommand '%s'");
+    registerMessage(MSGID_PWPSTATE_CANNOT_SEND_REQUEST_EXTOP,
+                    "An error occurred while attempting to send the request " +
+                    "to the server:  %s");
+    registerMessage(MSGID_PWPSTATE_CONNECTION_CLOSED_READING_RESPONSE,
+                    "The Directory Server closed the connection before the " +
+                    "response could be read");
+    registerMessage(MSGID_PWPSTATE_REQUEST_FAILED,
+                    "The server was unable to process the request:  result " +
+                    "code %d (%s), error message '%s'");
+    registerMessage(MSGID_PWPSTATE_CANNOT_DECODE_RESPONSE_MESSAGE,
+                    "The server was unable to decode the response message " +
+                    "from the server:  %s");
+    registerMessage(MSGID_PWPSTATE_CANNOT_DECODE_RESPONSE_OP,
+                    "Unable to decode information about an operation " +
+                    "contained in the response:  %s");
+    registerMessage(MSGID_PWPSTATE_LABEL_PASSWORD_POLICY_DN,
+                    "Password Policy DN");
+    registerMessage(MSGID_PWPSTATE_LABEL_ACCOUNT_DISABLED_STATE,
+                    "Account Is Disabled");
+    registerMessage(MSGID_PWPSTATE_LABEL_ACCOUNT_EXPIRATION_TIME,
+                    "Account Expiration Time");
+    registerMessage(MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_ACCOUNT_EXPIRATION,
+                    "Seconds Until Account Expiration");
+    registerMessage(MSGID_PWPSTATE_LABEL_PASSWORD_CHANGED_TIME,
+                    "Password Changed Time");
+    registerMessage(MSGID_PWPSTATE_LABEL_PASSWORD_EXPIRATION_WARNED_TIME,
+                    "Password Expiration Warned Time");
+    registerMessage(MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION,
+                    "Seconds Until Password Expiration");
+    registerMessage(
+         MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING,
+         "Seconds Until Password Expiration Warning");
+    registerMessage(MSGID_PWPSTATE_LABEL_AUTH_FAILURE_TIMES,
+                    "Authentication Failure Times");
+    registerMessage(MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_AUTH_FAILURE_UNLOCK,
+                    "Seconds Until Authentication Failure Unlock");
+    registerMessage(MSGID_PWPSTATE_LABEL_REMAINING_AUTH_FAILURE_COUNT,
+                    "Remaining Authentication Failure Count");
+    registerMessage(MSGID_PWPSTATE_LABEL_LAST_LOGIN_TIME,
+                    "Last Login Time");
+    registerMessage(MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_IDLE_LOCKOUT,
+                    "Seconds Until Idle Account Lockout");
+    registerMessage(MSGID_PWPSTATE_LABEL_PASSWORD_RESET_STATE,
+                    "Password Is Reset");
+    registerMessage(MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT,
+                    "Seconds Until Password Reset Lockout");
+    registerMessage(MSGID_PWPSTATE_LABEL_GRACE_LOGIN_USE_TIMES,
+                    "Grace Login Use Times");
+    registerMessage(MSGID_PWPSTATE_LABEL_REMAINING_GRACE_LOGIN_COUNT,
+                    "Remaining Grace Login Count");
+    registerMessage(MSGID_PWPSTATE_LABEL_PASSWORD_CHANGED_BY_REQUIRED_TIME,
+                    "Password Changed by Required Time");
+    registerMessage(MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
+                    "Seconds Until Required Change Time");
+    registerMessage(MSGID_PWPSTATE_INVALID_RESPONSE_OP_TYPE,
+                    "Unrecognized or invalid operation type:  %s");
   }
 }
 

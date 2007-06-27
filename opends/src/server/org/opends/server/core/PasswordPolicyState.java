@@ -31,6 +31,7 @@ package org.opends.server.core;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -147,8 +148,8 @@ public class PasswordPolicyState
   // The set of grace login times for this user.
   private List<Long> graceLoginTimes = null;
 
-  // The time that the user's password should expire (or did expire).
-  private long expirationTime = Long.MIN_VALUE;
+  // The time that the user's account should expire (or did expire).
+  private long accountExpirationTime = Long.MIN_VALUE;
 
   // The time that the user's entry was locked due to too many authentication
   // failures.
@@ -156,6 +157,9 @@ public class PasswordPolicyState
 
   // The time that the user last authenticated to the Directory Server.
   private long lastLoginTime = Long.MIN_VALUE;
+
+  // The time that the user's password should expire (or did expire).
+  private long passwordExpirationTime = Long.MIN_VALUE;
 
   // The last required change time with which the user complied.
   private long requiredChangeTime = Long.MIN_VALUE;
@@ -187,13 +191,42 @@ public class PasswordPolicyState
                              boolean debug)
        throws DirectoryException
   {
+    this(userEntry, updateEntry, TimeThread.getTime(), debug);
+  }
+
+
+
+  /**
+   * Creates a new password policy state object with the provided information.
+   * Note that this version of the constructor should only be used for testing
+   * purposes when the tests should be evaluated with a fixed time rather than
+   * the actual current time.  For all other purposes, the other constructor
+   * should be used.
+   *
+   * @param  userEntry    The entry with the user account.
+   * @param  updateEntry  Indicates whether changes should update the provided
+   *                      user entry directly or whether they should be
+   *                      collected as a set of modifications.
+   * @param  currentTime  The time to use as the current time for all
+   *                      time-related determinations.
+   * @param  debug        Indicates whether to enable debugging for the
+   *                      operations performed.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting to
+   *                              determine the password policy for the user or
+   *                              perform any other state initialization.
+   */
+  public PasswordPolicyState(Entry userEntry, boolean updateEntry,
+                             long currentTime, boolean debug)
+       throws DirectoryException
+  {
     this.userEntry   = userEntry;
     this.updateEntry = updateEntry;
     this.debug       = debug;
+    this.currentTime = currentTime;
 
     userDNString     = userEntry.getDN().toString();
     passwordPolicy   = getPasswordPolicyInternal(this.userEntry, this.debug);
-    currentTime      = TimeThread.getTime();
 
     // Get the password changed time for the user.
     AttributeType type
@@ -636,6 +669,30 @@ public class PasswordPolicyState
 
 
   /**
+   * Retrieves the time that the password was last changed.
+   *
+   * @return  The time that the password was last changed.
+   */
+  public long getPasswordChangedTime()
+  {
+    return passwordChangedTime;
+  }
+
+
+
+  /**
+   * Retrieves the time that this password policy state object was created.
+   *
+   * @return  The time that this password policy state object was created.
+   */
+  public long getCurrentTime()
+  {
+    return currentTime;
+  }
+
+
+
+  /**
    * Retrieves the set of values for the password attribute from the user entry.
    *
    * @return  The set of values for the password attribute from the user entry.
@@ -664,6 +721,20 @@ public class PasswordPolicyState
    */
   public void setPasswordChangedTime()
   {
+    setPasswordChangedTime(currentTime);
+  }
+
+
+
+  /**
+   * Sets a new value for the password changed time equal to the specified time.
+   * This method should generally only be used for testing purposes, since the
+   * variant that uses the current time is preferred almost everywhere else.
+   *
+   * @param  passwordChangedTime  The time to use
+   */
+  public void setPasswordChangedTime(long passwordChangedTime)
+  {
     if (debug)
     {
       if (debugEnabled())
@@ -675,9 +746,9 @@ public class PasswordPolicyState
 
     // passwordChangedTime is computed in the constructor from values in the
     // entry.
-    if (passwordChangedTime != currentTime)
+    if (this.passwordChangedTime != passwordChangedTime)
     {
-      passwordChangedTime = currentTime;
+      this.passwordChangedTime = passwordChangedTime;
 
       AttributeType type =
            DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_TIME_LC);
@@ -693,11 +764,11 @@ public class PasswordPolicyState
       values.add(new AttributeValue(type, timeValue));
 
       Attribute a = new Attribute(type, OP_ATTR_PWPOLICY_CHANGED_TIME, values);
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
 
       if (updateEntry)
       {
+        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+        attrList.add(a);
         userEntry.putAttribute(type, attrList);
       }
       else
@@ -706,6 +777,57 @@ public class PasswordPolicyState
       }
     }
   }
+
+
+
+  /**
+   * Removes the password changed time value from the user's entry.  This should
+   * only be used for testing purposes, as it can really mess things up if you
+   * don't know what you're doing.
+   */
+  public void clearPasswordChangedTime()
+  {
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Clearing password changed time for user %s",
+                         userDNString);
+      }
+    }
+
+    AttributeType type =
+         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_TIME_LC,
+                                       true);
+    if (updateEntry)
+    {
+      userEntry.removeAttribute(type);
+    }
+    else
+    {
+      Attribute a = new Attribute(type);
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
+    }
+
+
+    // Fall back to using the entry creation time as the password changed time,
+    // if it's defined.  Otherwise, use a value of zero.
+    AttributeType createTimeType =
+         DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC, true);
+    try
+    {
+      passwordChangedTime = getGeneralizedTime(createTimeType);
+      if (passwordChangedTime <= 0)
+      {
+        passwordChangedTime = 0;
+      }
+    }
+    catch (Exception e)
+    {
+      passwordChangedTime = 0;
+    }
+  }
+
 
 
 
@@ -876,10 +998,9 @@ public class PasswordPolicyState
          DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_EXPIRATION_TIME,
                                           true);
 
-    long expirationTime;
     try
     {
-      expirationTime = getGeneralizedTime(type);
+      accountExpirationTime = getGeneralizedTime(type);
      }
     catch (Exception e)
     {
@@ -900,7 +1021,7 @@ public class PasswordPolicyState
       return true;
     }
 
-    if (expirationTime > currentTime)
+    if (accountExpirationTime > currentTime)
     {
       // The user does have an expiration time, but it hasn't arrived yet.
       isAccountExpired = ConditionResult.FALSE;
@@ -913,7 +1034,7 @@ public class PasswordPolicyState
         }
       }
     }
-    else if (expirationTime >= 0)
+    else if (accountExpirationTime >= 0)
     {
       // The user does have an expiration time, and it is in the past.
       isAccountExpired = ConditionResult.TRUE;
@@ -948,6 +1069,109 @@ public class PasswordPolicyState
 
 
   /**
+   * Retrieves the time at which the user's account will expire.
+   *
+   * @return  The time at which the user's account will expire, or -1 if it is
+   *          not configured with an expiration time.
+   */
+  public long getAccountExpirationTime()
+  {
+    if (accountExpirationTime == Long.MIN_VALUE)
+    {
+      isAccountExpired();
+    }
+
+    return accountExpirationTime;
+  }
+
+
+
+  /**
+   * Sets the user's account expiration time to the specified value.
+   *
+   * @param  accountExpirationTime  The time that the user's account should
+   *                                expire.
+   */
+  public void setAccountExpirationTime(long accountExpirationTime)
+  {
+    if (accountExpirationTime < 0)
+    {
+      clearAccountExpirationTime();
+    }
+    else
+    {
+      String timeStr = GeneralizedTimeSyntax.format(accountExpirationTime);
+
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugInfo("Setting account expiration time for user %s to %s",
+                    userDNString, timeStr);
+        }
+      }
+
+      this.accountExpirationTime = accountExpirationTime;
+      AttributeType type =
+           DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_EXPIRATION_TIME,
+                                            true);
+
+      LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>(1);
+      values.add(new AttributeValue(type, timeStr));
+
+      Attribute a = new Attribute(type, OP_ATTR_ACCOUNT_EXPIRATION_TIME,
+                                  values);
+
+      if (updateEntry)
+      {
+        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+        attrList.add(a);
+        userEntry.putAttribute(type, attrList);
+      }
+      else
+      {
+        modifications.add(new Modification(ModificationType.REPLACE, a, true));
+      }
+    }
+  }
+
+
+
+  /**
+   * Clears the user's account expiration time.
+   */
+  public void clearAccountExpirationTime()
+  {
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Clearing account expiration time for user %s",
+                  userDNString);
+      }
+    }
+
+    accountExpirationTime = -1;
+
+    AttributeType type =
+         DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_EXPIRATION_TIME,
+                                          true);
+
+    if (updateEntry)
+    {
+      userEntry.removeAttribute(type);
+    }
+    else
+    {
+      modifications.add(new Modification(ModificationType.REPLACE,
+                                         new Attribute(type), true));
+    }
+  }
+
+
+
+  /**
    * Retrieves the set of times of failed authentication attempts for the user.
    * If authentication failure time expiration is enabled, and there are expired
    * times in the entry, these times are removed from the instance field and an
@@ -957,7 +1181,7 @@ public class PasswordPolicyState
    *          which will be an empty list in the case of no valid (unexpired)
    *          times in the entry.
    */
-  private List<Long> getAuthFailureTimes()
+  public List<Long> getAuthFailureTimes()
   {
     if (authFailureTimes != null)
     {
@@ -1185,7 +1409,75 @@ public class PasswordPolicyState
 
     // Now check to see if there have been sufficient failures to lock the
     // account.
-    if (passwordPolicy.getLockoutFailureCount() <= failureTimes.size())
+    int lockoutCount = passwordPolicy.getLockoutFailureCount();
+    if ((lockoutCount > 0) && (lockoutCount <= authFailureTimes.size()))
+    {
+      setFailureLockedTime(highestFailureTime);
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugInfo("Locking user account %s due to too many failures.",
+                    userDNString);
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Explicitly specifies the auth failure times for the associated user.  This
+   * should generally only be used for testing purposes.  Note that it will also
+   * set or clear the locked time as appropriate.
+   *
+   * @param  authFailureTimes  The set of auth failure times to use for the
+   *                           account.  An empty list or {@code null} will
+   *                           clear the account of any existing failures.
+   */
+  public void setAuthFailureTimes(List<Long> authFailureTimes)
+  {
+    if ((authFailureTimes == null) || authFailureTimes.isEmpty())
+    {
+      clearAuthFailureTimes();
+      clearFailureLockedTime();
+      return;
+    }
+
+    long highestFailureTime = -1;
+    for (Long l : authFailureTimes)
+    {
+      highestFailureTime = Math.max(l, highestFailureTime);
+    }
+
+    AttributeType type =
+         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME_LC,
+                                          true);
+
+    LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>(authFailureTimes.size());
+    for (Long l : authFailureTimes)
+    {
+      values.add(new AttributeValue(type, GeneralizedTimeSyntax.format(l)));
+    }
+
+    Attribute a = new Attribute(type, OP_ATTR_PWPOLICY_FAILURE_TIME, values);
+
+    if (updateEntry)
+    {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(a);
+      userEntry.putAttribute(type, attrList);
+    }
+    else
+    {
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
+    }
+
+    // Now check to see if there have been sufficient failures to lock the
+    // account.
+    int lockoutCount = passwordPolicy.getLockoutFailureCount();
+    if ((lockoutCount > 0) && (lockoutCount <= authFailureTimes.size()))
     {
       setFailureLockedTime(highestFailureTime);
       if (debug)
@@ -1686,6 +1978,20 @@ public class PasswordPolicyState
    */
   public void setLastLoginTime()
   {
+    setLastLoginTime(currentTime);
+  }
+
+
+
+  /**
+   * Updates the user entry to use the specified last login time.  This should
+   * be used primarily for testing purposes, as the variant that uses the
+   * current time should be used most of the time.
+   *
+   * @param  lastLoginTime  The last login time to set in the user entry.
+   */
+  public void setLastLoginTime(long lastLoginTime)
+  {
     AttributeType type = passwordPolicy.getLastLoginTimeAttribute();
     String format = passwordPolicy.getLastLoginTimeFormat();
 
@@ -1698,7 +2004,8 @@ public class PasswordPolicyState
     try
     {
       SimpleDateFormat dateFormat = new SimpleDateFormat(format);
-      timestamp = dateFormat.format(TimeThread.getDate());
+      timestamp = dateFormat.format(new Date(lastLoginTime));
+      this.lastLoginTime = dateFormat.parse(timestamp).getTime();
     }
     catch (Exception e)
     {
@@ -1758,6 +2065,38 @@ public class PasswordPolicyState
         TRACER.debugInfo("Updated the last login time for user %s to %s",
                   userDNString, timestamp);
       }
+    }
+  }
+
+
+
+  /**
+   * Clears the last login time from the user's entry.  This should generally be
+   * used only for testing purposes.
+   */
+  public void clearLastLoginTime()
+  {
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Clearing last login time for user %s", userDNString);
+      }
+    }
+
+    lastLoginTime = -1;
+
+    AttributeType type =
+         DirectoryServer.getAttributeType(OP_ATTR_LAST_LOGIN_TIME, true);
+
+    if (updateEntry)
+    {
+      userEntry.removeAttribute(type);
+    }
+    else
+    {
+      modifications.add(new Modification(ModificationType.REPLACE,
+                                         new Attribute(type), true));
     }
   }
 
@@ -2108,9 +2447,9 @@ public class PasswordPolicyState
    */
   public long getPasswordExpirationTime()
   {
-    if (expirationTime == Long.MIN_VALUE)
+    if (passwordExpirationTime == Long.MIN_VALUE)
     {
-      expirationTime = Long.MAX_VALUE;
+      passwordExpirationTime = Long.MAX_VALUE;
 
       boolean checkWarning = false;
 
@@ -2118,9 +2457,9 @@ public class PasswordPolicyState
       if (maxAge > 0)
       {
         long expTime = passwordChangedTime + (1000L*maxAge);
-        if (expTime < expirationTime)
+        if (expTime < passwordExpirationTime)
         {
-          expirationTime = expTime;
+          passwordExpirationTime = expTime;
           checkWarning   = true;
         }
       }
@@ -2129,9 +2468,9 @@ public class PasswordPolicyState
       if (mustChangePassword() && (maxResetAge > 0))
       {
         long expTime = passwordChangedTime + (1000L*maxResetAge);
-        if (expTime < expirationTime)
+        if (expTime < passwordExpirationTime)
         {
-          expirationTime = expTime;
+          passwordExpirationTime = expTime;
           checkWarning   = false;
         }
       }
@@ -2141,20 +2480,20 @@ public class PasswordPolicyState
       {
         long reqChangeTime = getRequiredChangeTime();
         if ((reqChangeTime != mustChangeTime) &&
-            (mustChangeTime < expirationTime))
+            (mustChangeTime < passwordExpirationTime))
         {
-          expirationTime = mustChangeTime;
+          passwordExpirationTime = mustChangeTime;
           checkWarning   = true;
         }
       }
 
-      if (expirationTime == Long.MAX_VALUE)
+      if (passwordExpirationTime == Long.MAX_VALUE)
       {
-        expirationTime    = -1;
-        shouldWarn        = ConditionResult.FALSE;
-        isFirstWarning    = ConditionResult.FALSE;
-        isPasswordExpired = ConditionResult.FALSE;
-        mayUseGraceLogin  = ConditionResult.TRUE;
+        passwordExpirationTime = -1;
+        shouldWarn             = ConditionResult.FALSE;
+        isFirstWarning         = ConditionResult.FALSE;
+        isPasswordExpired      = ConditionResult.FALSE;
+        mayUseGraceLogin       = ConditionResult.TRUE;
       }
       else if (checkWarning)
       {
@@ -2163,7 +2502,8 @@ public class PasswordPolicyState
         int warningInterval = passwordPolicy.getWarningInterval();
         if (warningInterval > 0)
         {
-          long shouldWarnTime = expirationTime - (warningInterval*1000L);
+          long shouldWarnTime =
+                    passwordExpirationTime - (warningInterval*1000L);
           if (shouldWarnTime > currentTime)
           {
             // The warning time is in the future, so we know the password isn't
@@ -2178,7 +2518,7 @@ public class PasswordPolicyState
             // expired.
             long warnedTime = getWarnedTime();
 
-            if (expirationTime > currentTime)
+            if (passwordExpirationTime > currentTime)
             {
               // The password is not expired but we should warn the user.
               shouldWarn        = ConditionResult.TRUE;
@@ -2191,7 +2531,8 @@ public class PasswordPolicyState
 
                 if (! passwordPolicy.expirePasswordsWithoutWarning())
                 {
-                  expirationTime = currentTime + (warningInterval*1000L);
+                  passwordExpirationTime =
+                       currentTime + (warningInterval*1000L);
                 }
               }
               else
@@ -2200,7 +2541,7 @@ public class PasswordPolicyState
 
                 if (! passwordPolicy.expirePasswordsWithoutWarning())
                 {
-                  expirationTime = warnedTime + (warningInterval*1000L);
+                  passwordExpirationTime = warnedTime + (warningInterval*1000L);
                 }
               }
             }
@@ -2216,8 +2557,8 @@ public class PasswordPolicyState
               }
               else if (warnedTime > 0)
               {
-                expirationTime = warnedTime + (warningInterval*1000L);
-                if (expirationTime > currentTime)
+                passwordExpirationTime = warnedTime + (warningInterval*1000L);
+                if (passwordExpirationTime > currentTime)
                 {
                   shouldWarn        = ConditionResult.TRUE;
                   isFirstWarning    = ConditionResult.FALSE;
@@ -2232,10 +2573,10 @@ public class PasswordPolicyState
               }
               else
               {
-                shouldWarn        = ConditionResult.TRUE;
-                isFirstWarning    = ConditionResult.TRUE;
-                isPasswordExpired = ConditionResult.FALSE;
-                expirationTime    = currentTime + (warningInterval*1000L);
+                shouldWarn             = ConditionResult.TRUE;
+                isFirstWarning         = ConditionResult.TRUE;
+                isPasswordExpired      = ConditionResult.FALSE;
+                passwordExpirationTime = currentTime + (warningInterval*1000L);
               }
             }
           }
@@ -2247,7 +2588,7 @@ public class PasswordPolicyState
           shouldWarn     = ConditionResult.FALSE;
           isFirstWarning = ConditionResult.FALSE;
 
-          if (currentTime > expirationTime)
+          if (currentTime > passwordExpirationTime)
           {
             isPasswordExpired = ConditionResult.TRUE;
           }
@@ -2263,7 +2604,7 @@ public class PasswordPolicyState
         shouldWarn       = ConditionResult.FALSE;
         isFirstWarning   = ConditionResult.FALSE;
 
-        if (expirationTime < currentTime)
+        if (passwordExpirationTime < currentTime)
         {
           isPasswordExpired = ConditionResult.TRUE;
         }
@@ -2279,11 +2620,11 @@ public class PasswordPolicyState
       if (debugEnabled())
       {
         TRACER.debugInfo("Returning password expiration time of %d for user " +
-            "%s.", expirationTime, userDNString);
+            "%s.", passwordExpirationTime, userDNString);
       }
     }
 
-    return expirationTime;
+    return passwordExpirationTime;
   }
 
 
@@ -2538,6 +2879,24 @@ public class PasswordPolicyState
    */
   public void setRequiredChangeTime()
   {
+    long requiredChangeByTimePolicy = passwordPolicy.getRequireChangeByTime();
+    if (requiredChangeByTimePolicy > 0)
+    {
+      setRequiredChangeTime(requiredChangeByTimePolicy);
+    }
+  }
+
+
+
+  /**
+   * Updates the user entry with a timestamp indicating that the password has
+   * been changed in accordance with the require change time.
+   *
+   * @param  requiredChangeTime  The timestamp to use for the required change
+   *                             time value.
+   */
+  public void setRequiredChangeTime(long requiredChangeTime)
+  {
     if (debug)
     {
       if (debugEnabled())
@@ -2547,16 +2906,14 @@ public class PasswordPolicyState
       }
     }
 
-    long requiredChangeByTimePolicy = passwordPolicy.getRequireChangeByTime();
-    if (getRequiredChangeTime() != requiredChangeByTimePolicy)
+    if (getRequiredChangeTime() != requiredChangeTime)
     {
       AttributeType type = DirectoryServer.getAttributeType(
                                OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME, true);
 
       LinkedHashSet<AttributeValue> values =
            new LinkedHashSet<AttributeValue>(1);
-      String timeValue =
-           GeneralizedTimeSyntax.format(requiredChangeByTimePolicy);
+      String timeValue = GeneralizedTimeSyntax.format(requiredChangeTime);
       values.add(new AttributeValue(type, timeValue));
 
       Attribute a = new Attribute(type,
@@ -2573,6 +2930,36 @@ public class PasswordPolicyState
       {
         modifications.add(new Modification(ModificationType.REPLACE, a, true));
       }
+    }
+  }
+
+
+
+  /**
+   * Updates the user entry to remove any timestamp indicating that the password
+   * has been changed in accordance with the required change time.
+   */
+  public void clearRequiredChangeTime()
+  {
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Clearing required change time for user %s",
+                         userDNString);
+      }
+    }
+
+    AttributeType type = DirectoryServer.getAttributeType(
+                             OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME, true);
+    if (updateEntry)
+    {
+      userEntry.removeAttribute(type);
+    }
+    else
+    {
+      modifications.add(new Modification(ModificationType.REPLACE,
+                                         new Attribute(type), true));
     }
   }
 
@@ -2632,22 +3019,37 @@ public class PasswordPolicyState
    */
   public void setWarnedTime()
   {
+    setWarnedTime(currentTime);
+  }
+
+
+
+  /**
+   * Updates the user entry to set the warned time to the specified time.  This
+   * method should generally only be used for testing purposes, since the
+   * variant that uses the current time is preferred almost everywhere else.
+   *
+   * @param  warnedTime  The value to use for the warned time.
+   */
+  public void setWarnedTime(long warnedTime)
+  {
     long warnTime = getWarnedTime();
-    if (warnTime == currentTime)
+    if (warnTime == warnedTime)
     {
       if (debug)
       {
         if (debugEnabled())
         {
           TRACER.debugInfo("Not updating warned time for user %s because " +
-              "the warned time is the same as the current time.", userDNString);
+              "the warned time is the same as the specified time.",
+              userDNString);
         }
       }
 
       return;
     }
 
-    warnedTime = currentTime;
+    this.warnedTime = warnedTime;
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME, true);
@@ -2873,6 +3275,58 @@ public class PasswordPolicyState
                                         addValues);
 
       modifications.add(new Modification(ModificationType.ADD, addAttr, true));
+    }
+  }
+
+
+
+  /**
+   * Specifies the set of grace login use times for the associated user.  If
+   * the provided list is empty or {@code null}, then the set will be cleared.
+   *
+   * @param  graceLoginTimes  The grace login use times for the associated user.
+   */
+  public void setGraceLoginTimes(List<Long> graceLoginTimes)
+  {
+    if ((graceLoginTimes == null) || graceLoginTimes.isEmpty())
+    {
+      clearGraceLoginTimes();
+      return;
+    }
+
+
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Updating grace login times for user %s",
+                         userDNString);
+      }
+    }
+
+
+    AttributeType type =
+         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC,
+                                          true);
+    LinkedHashSet<AttributeValue> values =
+         new LinkedHashSet<AttributeValue>(graceLoginTimes.size());
+    for (Long l : graceLoginTimes)
+    {
+      values.add(new AttributeValue(type, GeneralizedTimeSyntax.format(l)));
+    }
+    Attribute a =
+         new Attribute(type, OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME, values);
+
+    if (updateEntry)
+    {
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(a);
+
+      userEntry.putAttribute(type, attrList);
+    }
+    else
+    {
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
   }
 

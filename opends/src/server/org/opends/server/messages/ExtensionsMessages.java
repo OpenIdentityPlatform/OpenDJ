@@ -5212,6 +5212,274 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if a user requests the
+   * password policy state extended operation but does not have adequate
+   * privileges to do so.  This does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_NO_PRIVILEGE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 502;
+
+
+
+  /**
+   * The message ID for the message that will be used if a user requests the
+   * password policy state extended operation but does not include a request
+   * value.  This does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_NO_REQUEST_VALUE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 503;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to decode the password policy state extended request value.
+   * This takes a single argument, which is a message explaining the problem
+   * that occurred.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_DECODE_FAILURE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 504;
+
+
+
+  /**
+   * The message ID for the message that will be used if the server finds
+   * multiple entries for a given DN.  This takes a single argument, which is a
+   * string representation of the provided DN.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_MULTIPLE_ENTRIES =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 505;
+
+
+
+  /**
+   * The message ID for the message that will be used if the password policy
+   * state request includes an operation with an invalid encoding.  This takes a
+   * single argument, which is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_INVALID_OP_ENCODING =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 506;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the disabled state for an account but does not provide a value.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_NO_DISABLED_VALUE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 507;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the disabled state for an account but provides multiple values.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_DISABLED_VALUE_COUNT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 508;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the disabled state for an account but provides an invalid value.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_DISABLED_VALUE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 509;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the account expiration time but provides multiple values.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE_COUNT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 510;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the account expiration time but provides an invalid value.  This takes
+   * two arguments, which are the provided value and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 511;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the password changed time but provides multiple values.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE_COUNT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 512;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the password changed time but provides an invalid value.  This takes
+   * two arguments, which are the provided value and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 513;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the password warned time but provides multiple values.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE_COUNT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 514;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the password warned time but provides an invalid value.  This takes
+   * two arguments, which are the provided value and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 515;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * add a failure time but provides multiple values.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_ADD_FAILURE_TIME_COUNT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 516;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * alter the failure times but provides an invalid value.  This takes two
+   * arguments, which are the provided value and a message explaining the
+   * that occurred.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 517;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the last login time but provides multiple values.  This does not take
+   * any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME_COUNT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 518;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the last login time but provides an invalid value.  This takes two
+   * arguments, which are the provided value and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 519;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the reset state for an account but does not provide a value.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_NO_RESET_STATE_VALUE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 520;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the reset state for an account but provides multiple values.  This does
+   * does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE_COUNT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 521;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the reset state for an account but provides an invalid value.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 522;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * add a grace login time but provides multiple values.  This does not take
+   * any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_ADD_GRACE_LOGIN_TIME_COUNT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 523;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * alter the grace login times but provides an invalid value.  This takes two
+   * arguments, which are the provided value and a message explaining the
+   * that occurred.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 524;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the required change time but provides multiple values.  This does not
+   * take any arguments.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME_COUNT =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 525;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user attempts to
+   * set the required change time but provides an invalid value.  This takes two
+   * arguments, which are the provided value and a message explaining the
+   * problem that occurred.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 526;
+
+
+
+  /**
+   * The message ID for the message that will be used if the password policy
+   * state request includes an operation with an unrecognized type.  This takes
+   * a single argument, which is the provided operation type.
+   */
+  public static final int MSGID_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 527;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7492,6 +7760,121 @@ public class ExtensionsMessages
     registerMessage(MSGID_ENTRYUUID_VATTR_NOT_SEARCHABLE,
                     "The %s attribute is not searchable and should not be " +
                     "included in otherwise unindexed search filters");
+
+
+    registerMessage(MSGID_PWPSTATE_EXTOP_NO_PRIVILEGE,
+                    "You do not have sufficient privileges to use the " +
+                    "password policy state extended operation");
+    registerMessage(MSGID_PWPSTATE_EXTOP_NO_REQUEST_VALUE,
+                    "The provided password policy state extended request " +
+                    "did not include a request value");
+    registerMessage(MSGID_PWPSTATE_EXTOP_DECODE_FAILURE,
+                    "An unexpected error occurred while attempting to decode " +
+                    "password policy state extended request value:  %s");
+    registerMessage(MSGID_PWPSTATE_EXTOP_MULTIPLE_ENTRIES,
+                    "SEVERE ERROR:  Multiple entries were found with DN %s");
+    registerMessage(MSGID_PWPSTATE_EXTOP_INVALID_OP_ENCODING,
+                    "An unexpected error occurred while attempting to decode " +
+                    "an operation from the password policy state extended " +
+                    "request:  %s");
+    registerMessage(MSGID_PWPSTATE_EXTOP_NO_DISABLED_VALUE,
+                    "No value was provided for the password policy state " +
+                    "operation intended to set the disabled state for the " +
+                    "user.  Exactly one value (either 'true' or 'false') " +
+                    "must be given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_DISABLED_VALUE_COUNT,
+                    "Multiple values were provided for the password policy " +
+                    "state operation intended to set the disabled state " +
+                    "for the user.  Exactly one value (either 'true' or " +
+                    "'false') must be given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_DISABLED_VALUE,
+                    "The value provided for the password policy state " +
+                    "operation  intended to set the disabled state for the " +
+                    "user was invalid.  The value must be either 'true' or " +
+                    "'false'");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE_COUNT,
+                    "Multiple values were provided for the password policy " +
+                    "state operation intended to set the account expiration " +
+                    "time for the user.  Exactly one value must be given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE,
+                    "The value %s provided for the password policy state " +
+                    "operation used to set the account expiration time was " +
+                    "invalid:  %s.  The value should be specifed using the " +
+                    "generalized time format");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE_COUNT,
+                    "Multiple values were provided for the password policy " +
+                    "state operation intended to set the password changed " +
+                    "time for the user.  Exactly one value must be given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE,
+                    "The value %s provided for the password policy state " +
+                    "operation used to set the password changed time was " +
+                    "invalid:  %s.  The value should be specifed using the " +
+                    "generalized time format");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE_COUNT,
+                    "Multiple values were provided for the password policy " +
+                    "state operation intended to set the password warned " +
+                    "time for the user.  Exactly one value must be given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE,
+                    "The value %s provided for the password policy state " +
+                    "operation used to set the password warned time was " +
+                    "invalid:  %s.  The value should be specifed using the " +
+                    "generalized time format");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_ADD_FAILURE_TIME_COUNT,
+                    "Multiple values were provided for the password policy " +
+                    "state operation intended to add an authentication " +
+                    "failure time for the user.  Exactly one value must be " +
+                    "given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME,
+                    "The value %s provided for the password policy state " +
+                    "operation used to update the authentication failure " +
+                    "times was invalid:  %s.  The value should be specifed " +
+                    "using the generalized time format");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME_COUNT,
+                    "Multiple values were provided for the password policy " +
+                    "state operation intended to set the last login time for " +
+                    "the user.  Exactly one value must be given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME,
+                    "The value %s provided for the password policy state " +
+                    "operation used to set the last login time was invalid:  " +
+                    "%s.  The value should be specifed using the " +
+                    "generalized time format");
+    registerMessage(MSGID_PWPSTATE_EXTOP_NO_RESET_STATE_VALUE,
+                    "No value was provided for the password policy state " +
+                    "operation intended to set the reset state for the " +
+                    "user.  Exactly one value (either 'true' or 'false') " +
+                    "must be given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE_COUNT,
+                    "Multiple values were provided for the password policy " +
+                    "state operation intended to set the reset state " +
+                    "for the user.  Exactly one value (either 'true' or " +
+                    "'false') must be given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_RESET_STATE_VALUE,
+                    "The value provided for the password policy state " +
+                    "operation  intended to set the reset state for the " +
+                    "user was invalid.  The value must be either 'true' or " +
+                    "'false'");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_ADD_GRACE_LOGIN_TIME_COUNT,
+                    "Multiple values were provided for the password policy " +
+                    "state operation intended to add a grace login use time " +
+                    "for the user.  Exactly one value must be given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME,
+                    "The value %s provided for the password policy state " +
+                    "operation used to update the grace login use times was " +
+                    "invalid:  %s.  The value should be specifed using the " +
+                    "generalized time format");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME_COUNT,
+                    "Multiple values were provided for the password policy " +
+                    "state operation intended to set the required change " +
+                    "time for the user.  Exactly one value must be given");
+    registerMessage(MSGID_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME,
+                    "The value %s provided for the password policy state " +
+                    "operation used to set the required change time was " +
+                    "invalid:  %s.  The value should be specifed using the " +
+                    "generalized time format");
+    registerMessage(MSGID_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE,
+                    "The password policy state extended request included an " +
+                    "operation with an invalid or unsupported operation type " +
+                    "of %s");
   }
 }
 
