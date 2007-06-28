@@ -38,6 +38,9 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.FileBasedTrustManagerCfgDefn;
+import org.opends.server.admin.std.server.FileBasedTrustManagerCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -173,12 +176,12 @@ public class FileBasedTrustManagerProviderTestCase
   public void testVvalidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=SSL,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    FileBasedTrustManagerCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              FileBasedTrustManagerCfgDefn.getInstance(), e);
 
     FileBasedTrustManagerProvider provider = new FileBasedTrustManagerProvider();
-    provider.initializeTrustManagerProvider(configEntry);
+    provider.initializeTrustManagerProvider(configuration);
     provider.finalizeTrustManagerProvider();
   }
 
@@ -298,13 +301,13 @@ public class FileBasedTrustManagerProviderTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=SSL,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    FileBasedTrustManagerCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              FileBasedTrustManagerCfgDefn.getInstance(), e);
 
     FileBasedTrustManagerProvider provider =
          new FileBasedTrustManagerProvider();
-    provider.initializeTrustManagerProvider(configEntry);
+    provider.initializeTrustManagerProvider(configuration);
     for (StringBuilder sb : e.toLDIF())
     {
       System.err.println(sb.toString());

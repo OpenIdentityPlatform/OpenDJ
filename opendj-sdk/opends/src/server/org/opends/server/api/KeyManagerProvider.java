@@ -31,7 +31,6 @@ package org.opends.server.api;
 import javax.net.ssl.KeyManager;
 
 import org.opends.server.admin.std.server.KeyManagerCfg;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -50,30 +49,6 @@ import org.opends.server.types.InitializationException;
 public abstract class KeyManagerProvider
     <T extends KeyManagerCfg>
 {
-  /**
-   * Initializes this key manager provider based on the information in
-   * the provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this key
-   *                      manager provider.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in
-   *                           the process of performing the
-   *                           initialization as a result of the
-   *                           server configuration.
-   *
-   * @throws  InitializationException  If a problem occurs during
-   *                                   initialization that is not
-   *                                   related to the server
-   *                                   configuration.
-   */
-  public abstract void initializeKeyManagerProvider(
-                            ConfigEntry configEntry)
-         throws ConfigException, InitializationException;
-
-
-
   /**
    * Initializes this key manager provider based on the information in
    * the provided key manager provider configuration.

@@ -32,8 +32,8 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.opends.server.admin.std.server.TrustManagerCfg;
 import org.opends.server.api.TrustManagerProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -50,7 +50,7 @@ import org.opends.server.types.InitializationException;
  * trustworthy.
  */
 public class BlindTrustManagerProvider
-       extends TrustManagerProvider
+       extends TrustManagerProvider<TrustManagerCfg>
        implements X509TrustManager
 {
 
@@ -69,21 +69,10 @@ public class BlindTrustManagerProvider
 
 
   /**
-   * Initializes this trust manager provider based on the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this trust manager provider.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization as a
-   *                           result of the server configuration.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
-  public void initializeTrustManagerProvider(ConfigEntry configEntry)
+  @Override()
+  public void initializeTrustManagerProvider(TrustManagerCfg configuration)
          throws ConfigException, InitializationException
   {
     // No implementation is required.
@@ -95,6 +84,7 @@ public class BlindTrustManagerProvider
    * Performs any finalization that may be necessary for this trust manager
    * provider.
    */
+  @Override()
   public void finalizeTrustManagerProvider()
   {
     // No implementation is required.
@@ -103,15 +93,9 @@ public class BlindTrustManagerProvider
 
 
   /**
-   * Retrieves a <CODE>TrustManager</CODE> object that may be used for
-   * interactions requiring access to a trust manager.
-   *
-   * @return  A <CODE>TrustManager</CODE> object that may be used for
-   *          interactions requiring access to a trust manager.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to obtain
-   *                              the set of trust managers.
+   * {@inheritDoc}
    */
+  @Override()
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {

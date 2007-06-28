@@ -30,8 +30,8 @@ package org.opends.server.extensions;
 
 import javax.net.ssl.TrustManager;
 
+import org.opends.server.admin.std.server.TrustManagerCfg;
 import org.opends.server.api.TrustManagerProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -46,11 +46,8 @@ import org.opends.server.types.InitializationException;
  * configuration.
  */
 public class NullTrustManagerProvider
-       extends TrustManagerProvider
+       extends TrustManagerProvider<TrustManagerCfg>
 {
-
-
-
   /**
    * Creates a new instance of this null trust manager provider.  The
    * <CODE>initializeTrustManagerProvider</CODE> method must be called on the
@@ -64,21 +61,9 @@ public class NullTrustManagerProvider
 
 
   /**
-   * Initializes this trust manager provider based on the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this trust manager provider.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization as a
-   *                           result of the server configuration.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
-  public void initializeTrustManagerProvider(ConfigEntry configEntry)
+  public void initializeTrustManagerProvider(TrustManagerCfg configuration)
          throws ConfigException, InitializationException
   {
     // No implementation is required.
