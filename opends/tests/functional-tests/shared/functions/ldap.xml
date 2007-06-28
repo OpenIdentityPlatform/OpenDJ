@@ -892,6 +892,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="expected" type="optional" default="0">
+        <function-arg-description>
+	  expected value. Default is 0
+	</function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+        </function-arg-def>		
     </function-map-args>
     
     <sequence>
@@ -1064,12 +1070,11 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
-      
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
         { 'returncode' : RC ,
-          'result'     : STAXResult }
+          'result'     : STAXResult,
+          'expected'   : expected }
       </call>
-            
     </sequence>
   </function>
   
@@ -2418,6 +2423,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>          
+
     </function-map-args>
     
     <sequence>
@@ -2522,10 +2528,10 @@
         <returnstdout/>
       </process>
       
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
-      </call>
+      <call function="'checktestRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
+       </call>        
             
     </sequence>
   </function>
