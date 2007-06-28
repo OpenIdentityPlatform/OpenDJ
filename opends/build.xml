@@ -1228,6 +1228,13 @@
     <echo message="      Default debug target:"/>
     <echo message="      org.opends.server:level=warning,category=caught|data|database-access|message|protocol" />
     <echo message=""/>
+    <echo message="  -Dtest.groups=exclude=slow"/>
+    <echo message="      for example excludes the slow tests.  Each value is expected" />
+    <echo message="      group inclusion/exclusion clause which consists of either 'include'" />
+    <echo message="      or 'exclude' followed by the '=' character and then a group name." />
+    <echo message="      For multiple group clauses, separate them with a ',' and "/>
+    <echo message="      quote the entire value. Debug logging is disabled."/>
+    <echo message=""/>
     <echo message="  -Dtest.packages=org.opends.server.api"/>
     <echo message="      for example runs only the tests in the api package"/>
     <echo message="      For multiple packages, separate them with a ',' and "/>
@@ -1240,7 +1247,8 @@
     <echo message=""/>
     <echo message="  -Dtest.methods=org.opends.server.types.TestDN.testGetRDN"/>
     <echo message="      for example only runs the testGetRDN method"/>
-    <echo message="      For multiple methods, separate them with a ',' and "/>
+    <echo message="      For multiple methods within the same class, append additional"/>
+    <echo message="      method names to the end separating them with a ',' and "/>
     <echo message="      quote the entire value. Debug logging is disabled."/>
     <echo message=""/>
     <echo message="  -Dtest.diff.srcpath=src/server/org/opends/server/core"/>
