@@ -38,6 +38,7 @@ import org.opends.server.tools.ConfigureWindowsService;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.awt.event.WindowEvent;
 
@@ -268,6 +269,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           catch (UserDataException uude) {
             throw uude;
           } catch (Throwable t) {
+            LOG.log(Level.WARNING, "Error processing task: "+t, t);
             throw new UserDataException(cStep,
                     getThrowableMsg("bug-msg", t));
           }
@@ -279,8 +281,17 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                                             Throwable throwable) {
           qs.getDialog().workerFinished();
           if (throwable != null) {
-            qs.displayError(throwable.getLocalizedMessage(),
+            if (throwable instanceof UserDataException)
+            {
+              qs.displayError(throwable.getLocalizedMessage(),
                     getMsg("error-title"));
+            }
+            else
+            {
+              LOG.log(Level.WARNING, "Error processing task: "+throwable,
+                  throwable);
+              qs.displayError(throwable.toString(), getMsg("error-title"));
+            }
           } else {
             boolean serverRunning = (Boolean) returnValue;
             if (!serverRunning) {
@@ -903,14 +914,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       };
 
       Installation installation = getInstallation();
-      String[] parentFiles = {
-              Utils.getPath(installation.getLibrariesDirectory()),
-              Utils.getPath(installation.getBinariesDirectory()),
-              Utils.getPath(installation.getDatabasesDirectory()),
-              Utils.getPath(installation.getLogsDirectory()),
-              Utils.getPath(installation.getConfigurationDirectory()),
-              Utils.getPath(installation.getBackupDirectory()),
-              Utils.getPath(installation.getLdifDirectory())
+      File[] parentFiles = {
+              installation.getLibrariesDirectory(),
+              installation.getBinariesDirectory(),
+              installation.getDatabasesDirectory(),
+              installation.getLogsDirectory(),
+              installation.getConfigurationDirectory(),
+              installation.getBackupDirectory(),
+              installation.getLdifDirectory()
       };
 
       boolean accept =
@@ -925,9 +936,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
       for (int i = 0; i < uData.length && accept; i++) {
         accept &= uData[i] ||
-                !equalsOrDescendant(file, new File(parentFiles[i]));
+                !equalsOrDescendant(file, parentFiles[i]);
       }
 
+      LOG.log(Level.INFO, "accept for :"+file+" is: "+accept);
       return accept;
     }
   }
