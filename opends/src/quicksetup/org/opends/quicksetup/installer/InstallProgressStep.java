@@ -102,9 +102,25 @@ public enum InstallProgressStep implements ProgressStep {
   ENABLING_WINDOWS_SERVICE,
 
   /**
+   * User is waiting for current task to finish
+   * so that the operation can be canceled.
+   */
+  WAITING_TO_CANCEL,
+
+  /**
+   * Canceling install.
+   */
+  CANCELING,
+
+  /**
    * Installation finished successfully.
    */
   FINISHED_SUCCESSFULLY,
+
+  /**
+   * User canceled installation.
+   */
+  FINISHED_CANCELED,
 
   /**
    * Installation finished with an error.
@@ -116,6 +132,7 @@ public enum InstallProgressStep implements ProgressStep {
    */
   public boolean isLast() {
     return this == FINISHED_SUCCESSFULLY ||
+            this == FINISHED_CANCELED ||
     this == FINISHED_WITH_ERROR;
   }
 

@@ -202,8 +202,8 @@ public class ProgressPanel extends QuickSetupStepPanel
     }
     progressBarLabel.setText(summaryText);
 
-    int v = descriptor.getProgressBarRatio();
-    if (v > 0)
+    Integer v = descriptor.getProgressBarRatio();
+    if (v != null && v > 0)
     {
       progressBar.setIndeterminate(false);
       progressBar.setValue(v);

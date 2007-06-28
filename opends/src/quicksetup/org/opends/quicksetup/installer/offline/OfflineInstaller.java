@@ -28,17 +28,23 @@
 package org.opends.quicksetup.installer.offline;
 
 import java.io.PrintStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.security.KeyStoreException;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.ProgressStep;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ServerController;
+import org.opends.quicksetup.util.FileManager;
+import org.opends.server.util.CertificateManager;
 
 /**
  * This is an implementation of the Installer class that is used to install
@@ -83,10 +89,16 @@ public class OfflineInstaller extends Installer
       System.setErr(err);
       System.setOut(out);
 
+      checkAbort();
+
       setStatus(InstallProgressStep.CONFIGURING_SERVER);
       configureServer();
 
+      checkAbort();
+
       createData();
+
+      checkAbort();
 
       writeJavaHome();
 
@@ -95,6 +107,7 @@ public class OfflineInstaller extends Installer
           notifyListeners(getTaskSeparator());
           setStatus(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
           enableWindowsService();
+          checkAbort();
       }
 
       if (mustStart())
@@ -102,6 +115,7 @@ public class OfflineInstaller extends Installer
         notifyListeners(getTaskSeparator());
         setStatus(InstallProgressStep.STARTING_SERVER);
         new ServerController(this).startServer();
+        checkAbort();
       }
 
       if (mustConfigureReplication())
@@ -110,6 +124,7 @@ public class OfflineInstaller extends Installer
         notifyListeners(getTaskSeparator());
 
         configureReplication();
+        checkAbort();
       }
 
       if (mustInitializeSuffixes())
@@ -117,6 +132,7 @@ public class OfflineInstaller extends Installer
         notifyListeners(getTaskSeparator());
         setStatus(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
         initializeSuffixes();
+        checkAbort();
       }
 
       if (mustCreateAds())
@@ -124,6 +140,7 @@ public class OfflineInstaller extends Installer
         notifyListeners(getTaskSeparator());
         setStatus(InstallProgressStep.CONFIGURING_ADS);
         updateADS();
+        checkAbort();
       }
 
       if (mustStop())
@@ -133,17 +150,24 @@ public class OfflineInstaller extends Installer
         new ServerController(this).stopServer();
       }
 
+      checkAbort();
       setStatus(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
     } catch (ApplicationException ex)
     {
-      notifyListeners(getLineBreak());
-      notifyListenersOfLog();
-      setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
-      String html = getFormattedError(ex, true);
-      notifyListeners(html);
-      LOG.log(Level.SEVERE, "Error installing.", ex);
+      if (ApplicationException.Type.CANCEL.equals(ex.getType())) {
+        uninstall();
+        setStatus(InstallProgressStep.FINISHED_CANCELED);
+        notifyListeners(null);
+      } else {
+        notifyListeners(getLineBreak());
+        notifyListenersOfLog();
+        setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
+        String html = getFormattedError(ex, true);
+        notifyListeners(html);
+        LOG.log(Level.SEVERE, "Error installing.", ex);
+      }
     }
     catch (Throwable t)
     {
@@ -174,6 +198,92 @@ public class OfflineInstaller extends Installer
   public String getSummary(ProgressStep status)
   {
     return hmSummary.get(status);
+  }
+
+  /**
+   * Called when the user elects to cancel this operation.
+   */
+  protected void uninstall() {
+
+    Installation installation = getInstallation();
+    FileManager fm = new FileManager(this);
+
+    // Stop the server if necessary
+    if (installation.getStatus().isServerRunning()) {
+      try {
+        new ServerController(installation).stopServer(true);
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO, "error stopping server", e);
+      }
+    }
+
+    uninstallServices();
+
+    // Revert to the base configuration
+    try {
+      File newConfig = fm.copy(installation.getBaseConfigurationFile(),
+                               installation.getConfigurationDirectory(),
+                               /*overwrite=*/true);
+      fm.rename(newConfig, installation.getCurrentConfigurationFile());
+
+    } catch (ApplicationException ae) {
+      LOG.log(Level.INFO, "failed to restore base configuration", ae);
+    }
+
+    // Cleanup SSL if necessary
+    SecurityOptions sec = getUserData().getSecurityOptions();
+    if (sec.getEnableSSL() || sec.getEnableStartTLS()) {
+      if (SecurityOptions.CertificateType.SELF_SIGNED_CERTIFICATE.equals(
+              sec.getCertificateType())) {
+        CertificateManager cm = new CertificateManager(
+            getSelfSignedKeystorePath(),
+            CertificateManager.KEY_STORE_TYPE_JKS,
+            getSelfSignedCertificatePwd());
+        try {
+          cm.removeCertificate(SELF_SIGNED_CERT_ALIAS);
+        } catch (KeyStoreException e) {
+          LOG.log(Level.INFO, "Error deleting self signed certification", e);
+        }
+      }
+
+      File keystore = new File(installation.getConfigurationDirectory(),
+              "keystore");
+      if (keystore.exists()) {
+        try {
+          fm.delete(keystore);
+        } catch (ApplicationException e) {
+          LOG.log(Level.INFO, "Failed to delete keystore", e);
+        }
+      }
+
+      File keystorePin = new File(installation.getConfigurationDirectory(),
+              "keystore.pin");
+      if (keystorePin.exists()) {
+        try {
+          fm.delete(keystorePin);
+        } catch (ApplicationException e) {
+          LOG.log(Level.INFO, "Failed to delete keystore.pin", e);
+        }
+      }
+
+      File truststore = new File(installation.getConfigurationDirectory(),
+              "truststore");
+      if (truststore.exists()) {
+        try {
+          fm.delete(truststore);
+        } catch (ApplicationException e) {
+          LOG.log(Level.INFO, "Failed to delete truststore", e);
+        }
+      }
+    }
+
+    // Remove the databases
+    try {
+      fm.deleteChildren(installation.getDatabasesDirectory());
+    } catch (ApplicationException e) {
+      LOG.log(Level.INFO, "Error deleting databases", e);
+    }
+
   }
 
   /**
@@ -277,6 +387,7 @@ public class OfflineInstaller extends Installer
     }
     hmRatio.put(InstallProgressStep.FINISHED_SUCCESSFULLY, 100);
     hmRatio.put(InstallProgressStep.FINISHED_WITH_ERROR, 100);
+    hmRatio.put(InstallProgressStep.FINISHED_CANCELED, 100);
   }
 
   /**
