@@ -5515,12 +5515,12 @@
             #@TestResult                Success if OpenDS returns 0 for all ldap operations.
                                         Entry returned for step 3.
         -->
-        <testcase name="'Security: Bind Types: authmethod equals none'">
+        <testcase name="'ACI: Bind Types: authmethod equals none'">
           <sequence>
             <call function="'testCase_Preamble'"/>
 
             <message>
-               'Security: Bind Types: authmethod equals none, anonymous search'
+               'ACI: Bind Types: authmethod equals none, anonymous search'
             </message>
 
             <call function="'AnonSearchObject'">
@@ -5545,7 +5545,7 @@
             </if>
             
             <message>
-               'Security: Bind Types: authmethod equals none, adding authmethod ACI'
+               'ACI: Bind Types: authmethod equals none, adding authmethod ACI'
             </message>
 
             <script>
@@ -5568,7 +5568,7 @@
              </if>
     
              <message>
-               'Security: Bind Types: authmethod equals none, anonymous search'
+               'ACI: Bind Types: authmethod equals none, anonymous search'
              </message>
 
              <call function="'AnonSearchObject'">
@@ -5593,7 +5593,7 @@
             </if>
             
             <message>
-               'Security: Bind Types: authmethod equals none, deleting authmethod ACI'
+               'ACI: Bind Types: authmethod equals none, deleting authmethod ACI'
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -5612,7 +5612,7 @@
              </if>
     
              <message>
-               'Security: Bind Types: authmethod equals none, anonymous search'
+               'ACI: Bind Types: authmethod equals none, anonymous search'
              </message>
 
              <call function="'AnonSearchObject'">
