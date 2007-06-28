@@ -145,6 +145,19 @@ public class InstallerHelper implements JnlpProperties {
     }
   }
 
+  /**
+   * This method disables this server as a Windows service.
+   * @throws ApplicationException if something goes worong.
+   */
+  public void disableWindowsService() throws ApplicationException
+  {
+    int code = ConfigureWindowsService.disableService(System.out, System.err);
+    if (code == ConfigureWindowsService.SERVICE_DISABLE_ERROR) {
+      throw new ApplicationException(
+              ApplicationException.Type.WINDOWS_SERVICE_ERROR,
+              getMsg("error-disabling-windows-service"), null);
+    }
+  }
 
   private String getThrowableMsg(String key, Throwable t)
   {

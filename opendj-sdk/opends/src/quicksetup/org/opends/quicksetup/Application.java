@@ -169,7 +169,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Sets the application's installation.
    * @param installation describing the application's OpenDS installation
    */
-  protected void setInstallation(Installation installation) {
+  public void setInstallation(Installation installation) {
     this.installation = installation;
   }
 

@@ -100,8 +100,11 @@ import javax.swing.*;
 public abstract class Installer extends GuiApplication {
   private TopologyCache lastLoadedCache;
 
-  /* Indicates that we've detected that there is something installed */
+  /** Indicates that we've detected that there is something installed. */
   boolean forceToDisplaySetup = false;
+
+  /** When true indicates that the user has canceled this operation. */
+  protected boolean canceled = false;
 
   // Constants used to do checks
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
@@ -122,6 +125,10 @@ public abstract class Installer extends GuiApplication {
 
   private static final int MAX_NUMBER_ENTRIES = 10000;
 
+  /** Set of progress steps that have been completed. */
+  protected Set<InstallProgressStep>
+          completedProgress = new HashSet<InstallProgressStep>();
+
   private List<WizardStep> lstSteps = new ArrayList<WizardStep>();
 
   private final HashSet<WizardStep> SUBSTEPS = new HashSet<WizardStep>();
@@ -137,11 +144,16 @@ public abstract class Installer extends GuiApplication {
   private HashMap<WizardStep, WizardStep> hmPreviousSteps =
     new HashMap<WizardStep, WizardStep>();
 
+  private char[] selfSignedCertPw = null;
+
   /**
    * An static String that contains the class name of ConfigFileHandler.
    */
   protected static final String CONFIG_CLASS_NAME =
       "org.opends.server.extensions.ConfigFileHandler";
+
+  /** Alias of a self-signed certificate. */
+  protected static final String SELF_SIGNED_CERT_ALIAS = "server-cert";
 
   /**
    * Creates a default instance.
@@ -175,7 +187,7 @@ public abstract class Installer extends GuiApplication {
    * {@inheritDoc}
    */
   public boolean isCancellable() {
-    return false; // TODO: have installer delete installed files upon cancel
+    return true;
   }
 
   /**
@@ -338,6 +350,7 @@ public abstract class Installer extends GuiApplication {
   public boolean isFinished()
   {
     return getCurrentProgressStep() == InstallProgressStep.FINISHED_SUCCESSFULLY
+            || getCurrentProgressStep() == InstallProgressStep.FINISHED_CANCELED
         || getCurrentProgressStep() == InstallProgressStep.FINISHED_WITH_ERROR;
   }
 
@@ -345,7 +358,9 @@ public abstract class Installer extends GuiApplication {
    * {@inheritDoc}
    */
   public void cancel() {
-    // do nothing; not cancellable
+    setStatus(InstallProgressStep.WAITING_TO_CANCEL);
+    notifyListeners(null);
+    this.canceled = true;
   }
 
   /**
@@ -644,6 +659,26 @@ public abstract class Installer extends GuiApplication {
   }
 
   /**
+   * Uninstalls installed services.  This is to be used when the user
+   * has elected to cancel an installation.
+   */
+  protected void uninstallServices() {
+    if (completedProgress.contains(
+            InstallProgressStep.ENABLING_WINDOWS_SERVICE)) {
+      try {
+        new InstallerHelper().disableWindowsService();
+      } catch (ApplicationException ae) {
+        LOG.log(Level.INFO, "Error disabling Windows service", ae);
+      }
+    }
+
+    if (completedProgress.contains(
+            InstallProgressStep.CONFIGURING_REPLICATION)) {
+      // TODO:  undo replication
+    }
+  }
+
+  /**
    * Creates a template file based in the contents of the UserData object.
    * This template file is used to generate automatically data.  To generate
    * the template file the code will basically take into account the value of
@@ -815,17 +850,17 @@ public abstract class Installer extends GuiApplication {
             getSelfSignedKeystorePath(),
             CertificateManager.KEY_STORE_TYPE_JKS,
             pwd);
-        certManager.generateSelfSignedCertificate("server-cert",
+        certManager.generateSelfSignedCertificate(SELF_SIGNED_CERT_ALIAS,
             getSelfSignedCertificateSubjectDN(),
             getSelfSignedCertificateValidity());
-        exportCertificate(certManager, "server-cert",
+        exportCertificate(certManager, SELF_SIGNED_CERT_ALIAS,
             getTemporaryCertificatePath());
 
         trustManager = new CertificateManager(
             getTrustManagerPath(),
             CertificateManager.KEY_STORE_TYPE_JKS,
             pwd);
-        trustManager.addCertificate("server-cert",
+        trustManager.addCertificate(SELF_SIGNED_CERT_ALIAS,
             new File(getTemporaryCertificatePath()));
         Utils.createFile(getKeystorePinPath(), pwd);
         f = new File(getTemporaryCertificatePath());
@@ -1034,16 +1069,18 @@ public abstract class Installer extends GuiApplication {
 
       if (result != 0)
       {
-        String[] msgArgs = { Utils.stringArrayToString(args, " ") };
         throw new ApplicationException(
             ApplicationException.Type.CONFIGURATION_ERROR,
-            getMsg("error-import-automatically-generated", msgArgs), null);
+            getMsg("error-import-ldif-tool-return-code",
+                    Integer.toString(result)), null);
       }
     } catch (Throwable t)
     {
       throw new ApplicationException(
           ApplicationException.Type.CONFIGURATION_ERROR,
-          getThrowableMsg("error-import-automatically-generated", null, t), t);
+          getThrowableMsg("error-import-automatically-generated",
+                  new String[] { Utils.listToString(argList, " "),
+                          t.getLocalizedMessage()}, t), t);
     }
   }
 
@@ -1278,6 +1315,10 @@ public abstract class Installer extends GuiApplication {
         getFormattedSummary(getMsg("summary-initialize-replicated-suffixes")));
     hmSummary.put(InstallProgressStep.ENABLING_WINDOWS_SERVICE,
         getFormattedSummary(getMsg("summary-enabling-windows-service")));
+    hmSummary.put(InstallProgressStep.WAITING_TO_CANCEL,
+        getFormattedSummary(getMsg("summary-waiting-to-cancel")));
+    hmSummary.put(InstallProgressStep.CANCELING,
+        getFormattedSummary(getMsg("summary-canceling")));
 
     Installation installation = getInstallation();
     String cmd = Utils.getPath(installation.getStatusPanelCommandFile());
@@ -1286,8 +1327,29 @@ public abstract class Installer extends GuiApplication {
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
         getFormattedSuccess(
             getMsg("summary-install-finished-successfully", args)));
+    hmSummary.put(InstallProgressStep.FINISHED_CANCELED,
+        getFormattedSuccess(
+            getMsg("summary-install-finished-canceled", args)));
     hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,
         getFormattedError(getMsg("summary-install-finished-with-error", args)));
+  }
+
+  /**
+   * Checks the value of <code>canceled</code> field and throws an
+   * ApplicationException if true.  This indicates that the user has
+   * canceled this operation and the process of aborting should begin
+   * as soon as possible.
+   *
+   * @throws ApplicationException thrown if <code>canceled</code>
+   */
+  protected void checkAbort() throws ApplicationException {
+    if (canceled) {
+      setStatus(InstallProgressStep.CANCELING);
+      notifyListeners(null);
+      throw new ApplicationException(
+            ApplicationException.Type.CANCEL,
+            getMsg("upgrade-canceled"), null);
+    }
   }
 
   /**
@@ -1365,6 +1427,9 @@ public abstract class Installer extends GuiApplication {
    */
   protected void setStatus(InstallProgressStep status)
   {
+    if (status != null) {
+      this.completedProgress.add(status);
+    }
     this.status = status;
   }
 
@@ -3339,7 +3404,7 @@ public abstract class Installer extends GuiApplication {
    * @return the keystore path to be used for generating a self-signed
    * certificate.
    */
-  private String getSelfSignedKeystorePath()
+  protected String getSelfSignedKeystorePath()
   {
     String parentFile = Utils.getPath(getInstallationPath(),
         Installation.CONFIG_PATH_RELATIVE);
@@ -3405,13 +3470,26 @@ public abstract class Installer extends GuiApplication {
   }
 
   /**
+   * Returns the self-signed certificate password used for this session.  This
+   * method calls <code>createSelfSignedCertificatePwd()</code> the first time
+   * this method is called.
+   * @return the self-signed certificate password used for this session.
+   */
+  protected String getSelfSignedCertificatePwd()
+  {
+    if (selfSignedCertPw == null) {
+      selfSignedCertPw = createSelfSignedCertificatePwd();
+    }
+    return new String(selfSignedCertPw);
+  }
+
+  /**
    * Returns a randomly generated password for the self-signed certificate
    * keystore.
    * @return a randomly generated password for the self-signed certificate
    * keystore.
    */
-  private String getSelfSignedCertificatePwd()
-  {
+  private char[] createSelfSignedCertificatePwd() {
     int pwdLength = 50;
     char[] pwd = new char[pwdLength];
     Random random = new Random();
@@ -3420,9 +3498,7 @@ public abstract class Installer extends GuiApplication {
         char nextChar = getRandomChar(random,type);
         pwd[pos] = nextChar;
     }
-
-    String pwdString = new String(pwd);
-    return pwdString;
+    return pwd;
   }
 
   private void exportCertificate(CertificateManager certManager, String alias,

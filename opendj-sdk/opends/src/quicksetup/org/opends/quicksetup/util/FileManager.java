@@ -112,6 +112,44 @@ public class FileManager {
   }
 
   /**
+   * Renames the source file to the target file.  If the target file exists
+   * it is first deleted.  The rename and delete operation return values
+   * are checked for success and if unsuccessful, this method throws an
+   * exception.
+   *
+   * @param fileToRename The file to rename.
+   * @param target       The file to which <code>fileToRename</code> will be
+   *                     moved.
+   * @throws ApplicationException If a problem occurs while attempting to rename
+   *                     the file.  On the Windows platform, this typically
+   *                     indicates that the file is in use by this or another
+   *                     application.
+   */
+  public void rename(File fileToRename, File target)
+          throws ApplicationException {
+    if (fileToRename != null && target != null) {
+      synchronized (target) {
+        if (target.exists()) {
+          if (!target.delete()) {
+            throw new ApplicationException(
+                    ApplicationException.Type.FILE_SYSTEM_ERROR,
+                    getMsg("error-deleting-file",
+                            Utils.getPath(target)), null);
+          }
+        }
+      }
+      if (!fileToRename.renameTo(target)) {
+        throw new ApplicationException(
+                ApplicationException.Type.FILE_SYSTEM_ERROR,
+                getMsg("error-renaming-file",
+                        Utils.getPath(fileToRename),
+                        Utils.getPath(target)), null);
+      }
+    }
+  }
+
+
+  /**
    * Move a file.
    * @param object File to move
    * @param newParent File representing new parent directory
@@ -167,6 +205,23 @@ public class FileManager {
   }
 
   /**
+   * Deletes the children of a directory.
+   *
+   * @param parentDir the directory whose children is deleted
+   * @throws ApplicationException if there is a problem deleting children
+   */
+  public void deleteChildren(File parentDir) throws ApplicationException {
+    if (parentDir != null && parentDir.exists() && parentDir.isDirectory()) {
+      File[] children = parentDir.listFiles();
+      if (children != null) {
+        for (File child : children) {
+          delete(child);
+        }
+      }
+    }
+  }
+
+  /**
    * Deletes everything below the specified file.
    *
    * @param file the path to be deleted.
@@ -198,12 +253,15 @@ public class FileManager {
    *
    * @param objectFile   the file to be copied.
    * @param destDir      the directory to copy the file to
+   * @return File representing the destination
    * @throws ApplicationException if something goes wrong.
    */
-  public void copy(File objectFile, File destDir)
+  public File copy(File objectFile, File destDir)
           throws ApplicationException
   {
-    new CopyOperation(objectFile, destDir, false).apply();
+    CopyOperation co = new CopyOperation(objectFile, destDir, false);
+    co.apply();
+    return co.getDestination();
   }
 
   /**
@@ -211,13 +269,16 @@ public class FileManager {
    *
    * @param objectFile   the file to be copied.
    * @param destDir      the directory to copy the file to
+   * @return File representing the destination
    * @param overwrite    overwrite destination files.
    * @throws ApplicationException if something goes wrong.
    */
-  public void copy(File objectFile, File destDir, boolean overwrite)
+  public File copy(File objectFile, File destDir, boolean overwrite)
           throws ApplicationException
   {
-    new CopyOperation(objectFile, destDir, overwrite).apply();
+    CopyOperation co = new CopyOperation(objectFile, destDir, overwrite);
+    co.apply();
+    return co.getDestination();
   }
 
   /**
@@ -369,6 +430,15 @@ public class FileManager {
      */
     public FileOperation copyForChild(File child) {
       return new CopyOperation(child, destination, overwrite);
+    }
+
+    /**
+     * Returns the destination file that is the result of copying
+     * <code>objectFile</code> to <code>destDir</code>.
+     * @return
+     */
+    public File getDestination() {
+      return this.destination;
     }
 
     /**

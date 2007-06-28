@@ -45,6 +45,7 @@ import org.opends.quicksetup.installer.InstallProgressStep;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.quicksetup.util.ServerController;
+import org.opends.quicksetup.util.FileManager;
 
 /**
  * This is an implementation of the Installer class that is used to install
@@ -109,11 +110,15 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
       setStatus(InstallProgressStep.DOWNLOADING);
 
+      checkAbort();
+
       InputStream in =
           getZipInputStream(getRatio(InstallProgressStep.EXTRACTING));
 
       setStatus(InstallProgressStep.EXTRACTING);
       notifyListeners(getTaskSeparator());
+
+      checkAbort();
 
       createParentDirectoryIfRequired();
       extractZipFiles(in, getRatio(InstallProgressStep.EXTRACTING),
@@ -127,6 +132,9 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       {
         LOG.log(Level.INFO, "Error closing zip input stream: "+t, t);
       }
+
+      checkAbort();
+
       setStatus(InstallProgressStep.CONFIGURING_SERVER);
       notifyListeners(getTaskSeparator());
 
@@ -135,15 +143,24 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       writeJavaHome();
       setInstallation(new Installation(getUserData().getServerLocation()));
 
+      checkAbort();
+
       setStatus(InstallProgressStep.CONFIGURING_SERVER);
       configureServer();
+
+      checkAbort();
+
       createData();
+
+      checkAbort();
 
       if (Utils.isWindows() && getUserData().getEnableWindowsService())
       {
           notifyListeners(getTaskSeparator());
           setStatus(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
           enableWindowsService();
+
+          checkAbort();
       }
 
       if (mustStart())
@@ -151,6 +168,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
         notifyListeners(getTaskSeparator());
         setStatus(InstallProgressStep.STARTING_SERVER);
         new ServerController(this).startServer();
+
+        checkAbort();
       }
 
       if (mustConfigureReplication())
@@ -159,6 +178,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
         notifyListeners(getTaskSeparator());
 
         configureReplication();
+
+        checkAbort();
       }
 
       if (mustInitializeSuffixes())
@@ -166,6 +187,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
         notifyListeners(getTaskSeparator());
         setStatus(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
         initializeSuffixes();
+
+        checkAbort();
       }
 
       if (mustCreateAds())
@@ -173,6 +196,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
         notifyListeners(getTaskSeparator());
         setStatus(InstallProgressStep.CONFIGURING_ADS);
         updateADS();
+
+        checkAbort();
       }
 
       if (mustStop())
@@ -182,17 +207,24 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
         new ServerController(this).stopServer();
       }
 
+      checkAbort();
       setStatus(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
     } catch (ApplicationException ex)
     {
-      notifyListeners(getLineBreak());
-      notifyListenersOfLog();
-      setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
-      String html = getFormattedError(ex, true);
-      notifyListeners(html);
-      LOG.log(Level.SEVERE, "Error installing.", ex);
+      if (ApplicationException.Type.CANCEL.equals(ex.getType())) {
+        uninstall();
+        setStatus(InstallProgressStep.FINISHED_CANCELED);
+        notifyListeners(null);
+      } else {
+        notifyListeners(getLineBreak());
+        notifyListenersOfLog();
+        setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
+        String html = getFormattedError(ex, true);
+        notifyListeners(html);
+        LOG.log(Level.SEVERE, "Error installing.", ex);
+      }
     }
     catch (Throwable t)
     {
@@ -338,6 +370,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
     }
 
     hmRatio.put(InstallProgressStep.FINISHED_SUCCESSFULLY, 100);
+    hmRatio.put(InstallProgressStep.FINISHED_CANCELED, 100);
     hmRatio.put(InstallProgressStep.FINISHED_WITH_ERROR, 100);
   }
 
@@ -459,6 +492,32 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
   {
     // Passed as a java option in the JNLP file
     return System.getProperty(ZIP_FILE_NAME);
+  }
+
+  /**
+   * Uninstall what has already been installed.
+   */
+  private void uninstall() {
+    Installation installation = getInstallation();
+    FileManager fm = new FileManager(this);
+
+    // Stop the server if necessary
+    if (installation.getStatus().isServerRunning()) {
+      try {
+        new ServerController(installation).stopServer(true);
+      } catch (ApplicationException e) {
+        LOG.log(Level.INFO, "error stopping server", e);
+      }
+    }
+
+    uninstallServices();
+
+    try {
+      fm.deleteRecursively(installation.getRootDirectory(), null,
+              FileManager.DeletionPolicy.DELETE_ON_EXIT_IF_UNSUCCESSFUL);
+    } catch (ApplicationException e) {
+      LOG.log(Level.INFO, "error deleting files", e);
+    }
   }
 
   /**
