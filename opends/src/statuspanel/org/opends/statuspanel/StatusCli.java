@@ -50,8 +50,15 @@ import org.opends.statuspanel.i18n.ResourceProvider;
 import org.opends.statuspanel.ui.DatabasesTableModel;
 import org.opends.statuspanel.ui.ListenersTableModel;
 
+import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
+
 import org.opends.server.util.PasswordReader;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.args.ArgumentParser;
+import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.FileBasedArgument;
+import org.opends.server.util.args.StringArgument;
 
 /**
  * The class used to provide some CLI interface to display status.
@@ -374,21 +381,57 @@ class StatusCli
 
   private void printUsage(PrintStream stream)
   {
-    String arg;
-    if (Utils.isWindows())
-    {
-      arg = Installation.WINDOWS_STATUSCLI_FILE_NAME;
-    } else
-    {
-      arg = Installation.UNIX_STATUSCLI_FILE_NAME;
+    ArgumentParser argParser =
+      new ArgumentParser(StatusPanelLauncher.class.getName(),
+        getI18n().getMsg("status-cli-usage-description"), false);
+    BooleanArgument showUsage;
+    StringArgument bindDN;
+    StringArgument bindPW;
+    FileBasedArgument bindPWFile;
+    String scriptName;
+    if (Utils.isWindows()) {
+      scriptName = Installation.WINDOWS_STATUSCLI_FILE_NAME;
+    } else {
+      scriptName = Installation.UNIX_STATUSCLI_FILE_NAME;
     }
-    /*
-     * This is required because the usage message contains '{' characters that
-     * mess up the MessageFormat.format method.
-     */
-    String msg = getMsg("status-cli-usage", true);
-    msg = msg.replace("{0}", arg);
-    stream.println(msg);
+    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    try
+    {
+      bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
+          OPTION_LONG_BINDDN, false, false, true,
+          OPTION_VALUE_BINDDN, null, null,
+          MSGID_STOPDS_DESCRIPTION_BINDDN);
+      argParser.addArgument(bindDN);
+
+      bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
+          OPTION_LONG_BINDPWD, false, false,
+          true,
+          OPTION_VALUE_BINDPWD, null, null,
+          MSGID_STOPDS_DESCRIPTION_BINDPW);
+      argParser.addArgument(bindPW);
+
+      bindPWFile = new FileBasedArgument("bindpwfile",
+          OPTION_SHORT_BINDPWD_FILE,
+          OPTION_LONG_BINDPWD_FILE,
+          false, false,
+          OPTION_VALUE_BINDPWD_FILE,
+          null, null,
+          MSGID_STOPDS_DESCRIPTION_BINDPWFILE);
+      argParser.addArgument(bindPWFile);
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+        OPTION_LONG_HELP,
+        MSGID_DESCRIPTION_USAGE);
+      argParser.addArgument(showUsage);
+      argParser.setUsageArgument(showUsage);
+
+      String msg = argParser.getUsage();
+      stream.println(msg);
+    }
+    catch (Throwable t)
+    {
+      System.out.println("ERROR: "+t);
+      t.printStackTrace();
+    }
   }
 
   private ServerStatusDescriptor createServerStatusDescriptor(String dn,

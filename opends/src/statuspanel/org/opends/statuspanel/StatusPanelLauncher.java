@@ -36,7 +36,12 @@ import java.util.logging.Logger;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.args.ArgumentParser;
+import org.opends.server.util.args.BooleanArgument;
 import org.opends.statuspanel.i18n.ResourceProvider;
+
+import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 /**
@@ -89,7 +94,7 @@ public class StatusPanelLauncher
         printVersion = true;
       }
     }
-    // We first check if we have to pribt the version
+    // We first check if we have to print the version
     if(printVersion)
     {
       try
@@ -209,21 +214,33 @@ public class StatusPanelLauncher
 
   private static void printUsage(PrintStream stream)
   {
-    String arg;
-    if (Utils.isWindows())
-    {
-      arg = Installation.WINDOWS_STATUSPANEL_FILE_NAME;
-    } else
-    {
-      arg = Installation.UNIX_STATUSPANEL_FILE_NAME;
+    ArgumentParser argParser =
+      new ArgumentParser(StatusPanelLauncher.class.getName(),
+        getI18n().getMsg("status-panel-launcher-usage-description"), false);
+    BooleanArgument showUsage;
+    String scriptName;
+    if (Utils.isWindows()) {
+      scriptName = Installation.WINDOWS_STATUSPANEL_FILE_NAME;
+    } else {
+      scriptName = Installation.UNIX_STATUSPANEL_FILE_NAME;
     }
-    /*
-     * This is required because the usage message contains '{' characters that
-     * mess up the MessageFormat.format method.
-     */
-    String msg = getMsg("status-panel-launcher-usage");
-    msg = msg.replace("{0}", arg);
-    stream.println(msg);
+    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    try
+    {
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+        OPTION_LONG_HELP,
+        MSGID_DESCRIPTION_USAGE);
+      argParser.addArgument(showUsage);
+      argParser.setUsageArgument(showUsage);
+
+      String msg = argParser.getUsage();
+      stream.println(msg);
+    }
+    catch (Throwable t)
+    {
+      System.out.println("ERROR: "+t);
+      t.printStackTrace();
+    }
   }
 
   /**
