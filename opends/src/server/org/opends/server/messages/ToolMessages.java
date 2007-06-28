@@ -8937,6 +8937,46 @@ public class ToolMessages
   public static final int MSGID_PWPSTATE_CANNOT_CONNECT =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1189;
 
+  /**
+   * The message ID for the message that will be used as the
+   * description of the upgrade file argument. This does not
+   * take any arguments.
+   */
+  public static final int MSGID_UPGRADE_DESCRIPTION_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1190;
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the upgrade interactive mode argument. This does not
+   * take any arguments.
+   */
+  public static final int MSGID_UPGRADE_DESCRIPTION_INTERACTIVE =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1191;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the upgrade silent mode argument. This does not
+   * take any arguments.
+   */
+  public static final int MSGID_UPGRADE_DESCRIPTION_SILENT =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1192;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the uninstall cli mode argument. This does not
+   * take any arguments.
+   */
+  public static final int MSGID_UNINSTALLDS_DESCRIPTION_CLI =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1193;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the uninstall silent mode argument. This does not
+   * take any arguments.
+   */
+  public static final int MSGID_UNINSTALLDS_DESCRIPTION_SILENT =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1194;
 
 
   /**
@@ -10267,7 +10307,10 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_PROGNAME,
                     "The setup command used to invoke this program");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_CLI,
-                    "Launch the installer in command-line mode (no GUI)");
+                    "Specifies to use the command line install.  If not "+
+                    "specified the graphical interface will be launched.  The "+
+                    "rest of the options (excluding help and version) will " +
+                    "only be taken into account if this option is specified");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_SILENT,
                     "Perform a silent installation");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_BASEDN,
@@ -10440,6 +10483,13 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_ENABLING_WINDOWS_SERVICE,
                     "Enabling OpenDS as a Windows service...");
 
+    registerMessage(MSGID_UNINSTALLDS_DESCRIPTION_CLI,
+        "Specifies to use the command line install.  If not "+
+        "specified the graphical interface will be launched.  The "+
+        "silent install option will only be taken into account if this "+
+        "option is specified");
+    registerMessage(MSGID_UNINSTALLDS_DESCRIPTION_SILENT,
+        "Perform a silent uninstall");
 
     registerMessage(MSGID_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT,
                     "Invalid number of arguments provided for tag %s on line " +
@@ -11547,6 +11597,16 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY,
                     "Display summary usage information");
 
+    registerMessage(MSGID_UPGRADE_DESCRIPTION_FILE,
+                    "Specifies an existing OpenDS package (.zip) file to "+
+                    "which the current build will be upgraded using the "+
+                    "command line version of this tool");
+
+    registerMessage(MSGID_UPGRADE_DESCRIPTION_INTERACTIVE,
+                    "Prompt for any required information rather than fail");
+
+    registerMessage(MSGID_UPGRADE_DESCRIPTION_SILENT,
+                    "Perform a silent upgrade");
 
     registerMessage(MSGID_PWPSTATE_TOOL_DESCRIPTION,
                     "This utility may be used to retrieve and manipulate " +

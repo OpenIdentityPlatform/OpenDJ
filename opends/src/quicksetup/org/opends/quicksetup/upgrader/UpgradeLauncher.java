@@ -27,12 +27,19 @@
 
 package org.opends.quicksetup.upgrader;
 
+import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.tools.ToolConstants.*;
+
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.args.ArgumentParser;
+import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.FileBasedArgument;
 
 import java.util.logging.Logger;
 import java.io.File;
@@ -55,9 +62,7 @@ public class UpgradeLauncher extends Launcher {
   /**
    * The main method which is called by the setup command lines.
    *
-   * @param args the arguments passed by the command lines.  In the case
-   * we want to launch the cli setup they are basically the arguments that we
-   * will pass to the org.opends.server.tools.InstallDS class.
+   * @param args the arguments passed by the command lines.
    */
   public static void main(String[] args) {
     try {
@@ -75,7 +80,7 @@ public class UpgradeLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected String getFrameTitle() {
-    return getMsg("frame-upgrade-title");
+    return getI18n().getMsg("frame-upgrade-title");
   }
 
   /**
@@ -90,19 +95,46 @@ public class UpgradeLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected void printUsage() {
-    String arg;
+    ArgumentParser argParser = new ArgumentParser(getClass().getName(),
+        getI18n().getMsg("upgrade-launcher-usage-description"), false);
+    BooleanArgument showUsage;
+    FileBasedArgument file;
+    BooleanArgument silent;
+    BooleanArgument interactive;
+    String scriptName;
     if (Utils.isWindows()) {
-      arg = Installation.WINDOWS_UPGRADE_FILE_NAME;
+      scriptName = Installation.WINDOWS_UPGRADE_FILE_NAME;
     } else {
-      arg = Installation.UNIX_UPGRADE_FILE_NAME;
+      scriptName = Installation.UNIX_UPGRADE_FILE_NAME;
     }
-    String msg = getMsg("upgrade-launcher-usage");
-    /*
-     * This is required because the usage message contains '{' characters that
-     * mess up the MessageFormat.format method.
-     */
-    msg = msg.replace("{0}", arg);
-    printUsage(msg);
+    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    try
+    {
+      file = new FileBasedArgument("file", 'f',
+          "{file}", false, false,
+          "file",
+          null, null, MSGID_UPGRADE_DESCRIPTION_FILE);
+      argParser.addArgument(file);
+      interactive = new BooleanArgument("interactive", 'i', "interactive",
+          MSGID_UPGRADE_DESCRIPTION_INTERACTIVE);
+      argParser.addArgument(interactive);
+      silent = new BooleanArgument("silent", 's', "silent",
+          MSGID_UPGRADE_DESCRIPTION_SILENT);
+      argParser.addArgument(silent);
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+        OPTION_LONG_HELP,
+        MSGID_DESCRIPTION_USAGE);
+      argParser.addArgument(showUsage);
+      argParser.setUsageArgument(showUsage);
+
+      String msg = argParser.getUsage();
+      printUsage(msg);
+    }
+    catch (Throwable t)
+    {
+      System.out.println("ERROR: "+t);
+      t.printStackTrace();
+    }
   }
 
   /**

@@ -377,7 +377,11 @@ public abstract class Launcher {
     }
   }
 
-  private ResourceProvider getI18n()
+  /**
+   * Returns the ResourceProvider used to get localized messages.
+   * @return the ResourceProvider used to get localized messages.
+   */
+  protected ResourceProvider getI18n()
   {
     return ResourceProvider.getInstance();
   }

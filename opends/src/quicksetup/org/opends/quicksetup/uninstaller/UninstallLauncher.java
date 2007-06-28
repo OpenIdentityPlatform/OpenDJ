@@ -27,6 +27,9 @@
 
 package org.opends.quicksetup.uninstaller;
 
+import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.tools.ToolConstants.*;
+
 import java.io.File;
 import java.util.logging.Logger;
 
@@ -35,6 +38,9 @@ import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.args.ArgumentParser;
+import org.opends.server.util.args.BooleanArgument;
 
 /**
  * This class is called by the uninstall command lines to launch the uninstall
@@ -115,26 +121,47 @@ public class UninstallLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected String getFrameTitle() {
-    return getMsg("frame-uninstall-title");
+    return getI18n().getMsg("frame-uninstall-title");
   }
 
   /**
    * {@inheritDoc}
    */
   protected void printUsage() {
-    String arg;
+    ArgumentParser argParser = new ArgumentParser(getClass().getName(),
+        getI18n().getMsg("uninstall-launcher-usage-description"), false);
+    BooleanArgument cli;
+    BooleanArgument silent;
+    BooleanArgument showUsage;
+    String scriptName;
     if (Utils.isWindows()) {
-      arg = Installation.WINDOWS_UNINSTALL_FILE_NAME;
+      scriptName = Installation.WINDOWS_UNINSTALL_FILE_NAME;
     } else {
-      arg = Installation.UNIX_UNINSTALL_FILE_NAME;
+      scriptName = Installation.UNIX_UNINSTALL_FILE_NAME;
     }
-    String msg = getMsg("uninstall-launcher-usage");
-    /*
-     * This is required because the usage message contains '{' characters that
-     * mess up the MessageFormat.format method.
-     */
-    msg = msg.replace("{0}", arg);
-    printUsage(msg);
+    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    try
+    {
+      cli = new BooleanArgument("cli", 'i', "cli",
+          MSGID_UNINSTALLDS_DESCRIPTION_CLI);
+      argParser.addArgument(cli);
+      silent = new BooleanArgument("silent", 's', "silent",
+          MSGID_UNINSTALLDS_DESCRIPTION_SILENT);
+      argParser.addArgument(silent);
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+        OPTION_LONG_HELP,
+        MSGID_DESCRIPTION_USAGE);
+      argParser.addArgument(showUsage);
+      argParser.setUsageArgument(showUsage);
+
+      String msg = argParser.getUsage();
+      printUsage(msg);
+    }
+    catch (Throwable t)
+    {
+      System.out.println("ERROR: "+t);
+      t.printStackTrace();
+    }
   }
 
 }
