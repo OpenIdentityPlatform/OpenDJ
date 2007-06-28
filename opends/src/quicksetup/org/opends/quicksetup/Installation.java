@@ -473,45 +473,15 @@ public class Installation {
   }
 
   /**
-   * Gets the SVN revision number of the build by looking for the 'base'
-   * configuration file config/upgrade/config.ldif.[svn rev #].
+   * Gets the SVN revision number of the build.
    *
    * @return Integer representing the svn number
    * @throws ApplicationException if for some reason the number could not
    *                             be determined
    */
   public Integer getSvnRev() throws ApplicationException {
-    Integer rev = null;
-    File configUpgradeDir = getConfigurationUpgradeDirectory();
-    if (configUpgradeDir.exists()) {
-      String[] upgradeFileNames = configUpgradeDir.list();
-      for (String upgradeFileName : upgradeFileNames) {
-
-        // This code assumes that there will only be one file
-        // in the config/upgrade directory having the prefix
-        // config.ldif. and that it will end with the SVN
-        // revision number of the build of the current
-        // installation.
-        if (upgradeFileName.startsWith(BASE_CONFIG_FILE_PREFIX)) {
-          String svnRefString = upgradeFileName.substring(
-                  BASE_CONFIG_FILE_PREFIX.length());
-          try {
-            rev = new Integer(svnRefString);
-          } catch (NumberFormatException nfe) {
-            // ignore for now; try other files
-          }
-          if (rev != null) {
-            break;
-          }
-        }
-      }
-    }
-    if (rev == null) {
-      throw new ApplicationException(
-          ApplicationException.Type.FILE_SYSTEM_ERROR,
-          getMsg("error-determining-svn-rev"), null);
-    }
-    return rev;
+    BuildInformation bi = getBuildInformation();
+    return bi.getRevisionNumber();
   }
 
   /**
