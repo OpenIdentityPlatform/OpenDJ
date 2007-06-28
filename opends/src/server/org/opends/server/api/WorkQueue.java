@@ -28,7 +28,7 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.WorkQueueCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -45,16 +45,17 @@ import org.opends.server.types.Operation;
  * implementations, but in general it is assumed that one or more
  * worker threads will be associated with the queue and may be used to
  * process requests in parallel.
+ *
+ * @param  <T>  The type of configuration handled by this work queue.
  */
-public abstract class WorkQueue
+public abstract class WorkQueue<T extends WorkQueueCfg>
 {
   /**
    * Initializes this work queue based on the information in the
    * provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this work
-   *                      queue.
+   * @param  configuration  The configuration to use to initialize
+   *                        the work queue.
    *
    * @throws  ConfigException  If the provided configuration entry
    *                           does not have a valid work queue
@@ -65,7 +66,7 @@ public abstract class WorkQueue
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializeWorkQueue(ConfigEntry configEntry)
+  public abstract void initializeWorkQueue(T configuration)
          throws ConfigException, InitializationException;
 
 

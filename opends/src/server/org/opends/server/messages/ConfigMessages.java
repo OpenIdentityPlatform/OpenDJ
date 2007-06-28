@@ -6800,6 +6800,30 @@ public class ConfigMessages
 
 
 
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing the Directory Server work queue.  This takes three arguments,
+   * which are the name of the class providing the work queue implementation,
+   * the DN of the configuration entry, and a message explaining the problem
+   * that occurred.
+   */
+  public static final int MSGID_CONFIG_WORK_QUEUE_INITIALIZATION_FAILED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 674;
+
+
+
+  /**
+   * The message ID for the message that indicates the server needs to be
+   * restarted in order for changes to the work queue class to take effect.
+   * This takes two arguments, which are the names of the old and new work queue
+   * class.
+   */
+  public static final int
+       MSGID_CONFIG_WORK_QUEUE_CLASS_CHANGE_REQUIRES_RESTART =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_INFORMATIONAL | 675;
+
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -7577,6 +7601,15 @@ public class ConfigMessages
                     "instance of class %s to use as a monitor provider for " +
                     "the Directory Server work queue:  %s.  No monitor " +
                     "information will be available for the work queue");
+    registerMessage(MSGID_CONFIG_WORK_QUEUE_INITIALIZATION_FAILED,
+                    "Unable to initialize an instance of class %s as a work " +
+                    "queue as specified in configuration entry %s:  %s");
+    registerMessage(MSGID_CONFIG_WORK_QUEUE_CLASS_CHANGE_REQUIRES_RESTART,
+                    "The class used to provide the Directory Server work " +
+                    "queue implementation has been changed from %s to %s, " +
+                    "but this change will not take effect until the server " +
+                    "is restarted");
+
 
    registerMessage(MSGID_CONFIG_DESCRIPTION_BACKEND_DIRECTORY,
                    "The name of the directory in which backend database " +
