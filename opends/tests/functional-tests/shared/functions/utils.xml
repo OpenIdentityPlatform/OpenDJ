@@ -111,6 +111,9 @@
           <message log="1">
             'RC=%s, Result=%s' % (returncode,result)
           </message>
+          <script>
+             RC=0
+          </script>			
         </sequence>
         <else>
           <sequence>
@@ -118,9 +121,13 @@
             <message log="1" level="'Error'">
               'RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
             </message>
+            <script>
+              RC=1
+            </script>				  
           </sequence>
         </else>
       </if>
+      <return>RC</return>		
     </sequence>
   </function>
 
@@ -718,5 +725,5 @@
     </sequence>
 
   </function>
-
+	
 </stax>
