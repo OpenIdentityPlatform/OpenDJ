@@ -568,7 +568,6 @@ public class TraditionalWorkQueue
   /**
    * {@inheritDoc}
    */
-  @Override()
   public boolean isConfigurationChangeAcceptable(
                       TraditionalWorkQueueCfg configuration,
                       List<String> unacceptableReasons)
@@ -582,7 +581,6 @@ public class TraditionalWorkQueue
   /**
    * {@inheritDoc}
    */
-  @Override()
   public ConfigChangeResult applyConfigurationChange(
                                  TraditionalWorkQueueCfg configuration)
   {
