@@ -911,7 +911,7 @@ public class AciMessages {
      */
 
      public static final int MSGID_ACI_SYNTAX_INVALID_NETMASK =
-         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 89;
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 90;
 
     /**
      * Associates a set of generic messages with the message IDs defined in
