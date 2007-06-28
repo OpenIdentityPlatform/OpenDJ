@@ -30,7 +30,7 @@ package org.opends.server.api;
 
 import javax.net.ssl.TrustManager;
 
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.admin.std.server.TrustManagerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -41,16 +41,18 @@ import org.opends.server.types.InitializationException;
  * This class defines an API that may be used to obtain a set of
  * {@code javax.net.ssl.TrustManager} objects for use when performing
  * SSL/StartTLS negotiation.
+ *
+ * @param  <T>  The type of trust manager provider configuration
+ *              handled by this trust manager provider implementation.
  */
-public abstract class TrustManagerProvider
+public abstract class TrustManagerProvider<T extends TrustManagerCfg>
 {
   /**
    * Initializes this trust manager provider based on the information
    * in the provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this trust
-   *                      manager provider.
+   * @param  configuration  The configuration to use for this trust
+   *                        manager provider.
    *
    * @throws  ConfigException  If an unrecoverable problem arises in
    *                           the process of performing the
@@ -63,7 +65,7 @@ public abstract class TrustManagerProvider
    *                                   configuration.
    */
   public abstract void initializeTrustManagerProvider(
-                            ConfigEntry configEntry)
+                            T configuration)
          throws ConfigException, InitializationException;
 
 

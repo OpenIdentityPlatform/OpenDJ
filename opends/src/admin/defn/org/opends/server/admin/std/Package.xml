@@ -130,9 +130,7 @@
       </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:defined>
-        <adm:value>jks</adm:value>
-      </adm:defined>
+      <adm:undefined />
     </adm:default-behavior>
     <adm:syntax>
       <adm:string />
@@ -264,6 +262,127 @@
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.310</ldap:oid>
         <ldap:name>ds-cfg-key-manager-provider-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="trust-store-pin">
+    <adm:synopsis>
+      Specifies the clear-text PIN needed to access the
+      <adm:user-friendly-name />
+      .
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect the next time that
+          the
+          <adm:user-friendly-name />
+          is accessed.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.130</ldap:oid>
+        <ldap:name>ds-cfg-trust-store-pin</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="trust-store-pin-property">
+    <adm:TODO>Better syntax for property name?</adm:TODO>
+    <adm:synopsis>
+      Specifies the name of the Java property that contains the
+      clear-text PIN needed to access the
+      <adm:user-friendly-name />
+      .
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect the next time that
+          the
+          <adm:user-friendly-name />
+          is accessed.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.133</ldap:oid>
+        <ldap:name>ds-cfg-trust-store-pin-property</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="trust-store-pin-environment-variable">
+    <adm:synopsis>
+      Specifies the name of the environment variable that contains the
+      clear-text PIN needed to access the
+      <adm:user-friendly-name />
+      .
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect the next time that
+          the
+          <adm:user-friendly-name />
+          is accessed.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.131</ldap:oid>
+        <ldap:name>ds-cfg-trust-store-pin-environment-variable</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="trust-store-pin-file">
+    <adm:TODO>Should use a file-based property definition?</adm:TODO>
+    <adm:synopsis>
+      Specifies the path to the text file whose only contents should be
+      a single line containing the clear-text PIN needed to access the
+      <adm:user-friendly-name />
+      .
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect the next time that
+          the
+          <adm:user-friendly-name />
+          is accessed.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.132</ldap:oid>
+        <ldap:name>ds-cfg-trust-store-pin-file</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

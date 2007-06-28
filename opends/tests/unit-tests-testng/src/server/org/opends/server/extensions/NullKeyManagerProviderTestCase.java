@@ -68,7 +68,7 @@ public class NullKeyManagerProviderTestCase
          throws Exception
   {
     NullKeyManagerProvider provider = new NullKeyManagerProvider();
-    provider.initializeKeyManagerProvider((ConfigEntry) null);
+    provider.initializeKeyManagerProvider(null);
     assertNotNull(provider.getKeyManagers());
     provider.finalizeKeyManagerProvider();
   }

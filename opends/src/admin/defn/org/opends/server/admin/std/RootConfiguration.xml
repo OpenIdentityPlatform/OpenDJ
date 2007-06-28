@@ -360,6 +360,32 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
+  <adm:relation name="key-manager">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Key Manager Providers,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="trust-manager">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=Trust Manager Providers,cn=config
+      </ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
+    </adm:profile>
+  </adm:relation>
   <adm:relation name="work-queue">
     <adm:one-to-one />
     <adm:profile name="ldap">

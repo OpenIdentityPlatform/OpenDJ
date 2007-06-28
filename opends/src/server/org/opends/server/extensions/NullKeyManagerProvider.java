@@ -32,7 +32,6 @@ import javax.net.ssl.KeyManager;
 
 import org.opends.server.admin.std.server.KeyManagerCfg;
 import org.opends.server.api.KeyManagerProvider;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -46,8 +45,7 @@ import org.opends.server.types.InitializationException;
  * other key manager provider has been defined in the server configuration.
  */
 public class NullKeyManagerProvider
-       extends KeyManagerProvider
-{
+       extends KeyManagerProvider<KeyManagerCfg>{
 
 
 
@@ -57,29 +55,6 @@ public class NullKeyManagerProvider
    * resulting object before it may be used.
    */
   public NullKeyManagerProvider()
-  {
-    // No implementation is required.
-  }
-
-
-
-  /**
-   * Initializes this key manager provider based on the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this key manager provider.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization as a
-   *                           result of the server configuration.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
-   */
-  public void initializeKeyManagerProvider(ConfigEntry configEntry)
-         throws ConfigException, InitializationException
   {
     // No implementation is required.
   }

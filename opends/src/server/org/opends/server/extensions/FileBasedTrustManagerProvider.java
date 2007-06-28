@@ -28,25 +28,21 @@ package org.opends.server.extensions;
 
 
 
+import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.opends.server.api.ConfigurableComponent;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.FileBasedTrustManagerCfg;
 import org.opends.server.api.TrustManagerProvider;
-import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
@@ -54,7 +50,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -69,8 +64,8 @@ import static org.opends.server.util.StaticUtils.*;
  * stored in a file located on the Directory Server filesystem.
  */
 public class FileBasedTrustManagerProvider
-       extends TrustManagerProvider
-       implements ConfigurableComponent
+       extends TrustManagerProvider<FileBasedTrustManagerCfg>
+       implements ConfigurationChangeListener<FileBasedTrustManagerCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -86,17 +81,11 @@ public class FileBasedTrustManagerProvider
   // The PIN needed to access the trust store.
   private char[] trustStorePIN;
 
+  // The handle to the configuration for this trust manager.
+  private FileBasedTrustManagerCfg currentConfig;
+
   // The path to the trust store backing file.
   private String trustStoreFile;
-
-  // The name of the environment variable containing the trust store PIN.
-  private String trustStorePINEnVar;
-
-  // The path to the file containing the trust store PIN.
-  private String trustStorePINFile;
-
-  // The name of the Java property containing the trust store PIN.
-  private String trustStorePINProperty;
 
   // The trust store type to use.
   private String trustStoreType;
@@ -116,141 +105,56 @@ public class FileBasedTrustManagerProvider
 
 
   /**
-   * Initializes this trust manager provider based on the information in the
-   * provided configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this trust manager provider.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization as a
-   *                           result of the server configuration.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
-  public void initializeTrustManagerProvider(ConfigEntry configEntry)
+  @Override()
+  public void initializeTrustManagerProvider(
+                   FileBasedTrustManagerCfg configuration)
          throws ConfigException, InitializationException
   {
-    // Store the DN of the configuration entry.
-    configEntryDN = configEntry.getDN();
+    // Store the DN of the configuration entry and register to listen for any
+    // changes to the configuration entry.
+    currentConfig = configuration;
+    configEntryDN = configuration.dn();
+    configuration.addFileBasedChangeListener(this);
 
 
     // Get the path to the trust store file.
-    int msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_FILE;
-    StringConfigAttribute fileStub =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_FILE, getMessage(msgID),
-                                   true, false, false);
-    try
+    trustStoreFile = configuration.getTrustStoreFile();
+    File f = getFileForPath(trustStoreFile);
+    if (! (f.exists() && f.isFile()))
     {
-      StringConfigAttribute fileAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(fileStub);
-      if ((fileAttr == null) ||
-          ((trustStoreFile = fileAttr.activeValue()) == null))
-      {
-        msgID = MSGID_FILE_TRUSTMANAGER_NO_FILE_ATTR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN));
-        throw new ConfigException(msgID, message);
-      }
-
-      File f = getFileForPath(trustStoreFile);
-      if (! (f.exists() && f.isFile()))
-      {
-        msgID = MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE;
-        String message = getMessage(msgID, String.valueOf(trustStoreFile),
-                                    String.valueOf(configEntryDN));
-        throw new InitializationException(msgID, message);
-      }
-    }
-    catch (ConfigException ce)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
-
-      throw ce;
-    }
-    catch (InitializationException ie)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-      }
-
-      throw ie;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      int    msgID   = MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE;
+      String message = getMessage(msgID, String.valueOf(trustStoreFile),
+                                  String.valueOf(configEntryDN));
+      throw new InitializationException(msgID, message);
     }
 
 
     // Get the trust store type.  If none is specified, then use the default
     // type.
-    trustStoreType = KeyStore.getDefaultType();
-    msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_TYPE;
-    StringConfigAttribute typeStub =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_TYPE, getMessage(msgID),
-                                   false, false, false);
+    trustStoreType = configuration.getTrustStoreType();
+    if (trustStoreType == null)
+    {
+      trustStoreType = KeyStore.getDefaultType();
+    }
+
     try
     {
-      StringConfigAttribute typeAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(typeStub);
-      if (typeAttr != null)
-      {
-        // A trust store type was specified, so make sure it is valid.
-        String typeStr = typeAttr.activeValue();
-
-        try
-        {
-          KeyStore.getInstance(typeStr);
-          trustStoreType = typeStr;
-        }
-        catch (KeyStoreException kse)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-          }
-
-          msgID = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
-          String message = getMessage(msgID, String.valueOf(typeStr),
-                                      String.valueOf(configEntryDN),
-                                      getExceptionMessage(kse));
-          throw new InitializationException(msgID, message);
-        }
-      }
+      KeyStore.getInstance(trustStoreType);
     }
-    catch (InitializationException ie)
+    catch (KeyStoreException kse)
     {
       if (debugEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ie);
+        TRACER.debugCaught(DebugLogLevel.ERROR, kse);
       }
 
-      throw ie;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_TYPE;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      throw new InitializationException(msgID, message, e);
+      int    msgID   = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
+      String message = getMessage(msgID, String.valueOf(trustStoreType),
+                                  String.valueOf(configEntryDN),
+                                  getExceptionMessage(kse));
+      throw new InitializationException(msgID, message);
     }
 
 
@@ -264,130 +168,33 @@ public class FileBasedTrustManagerProvider
     // In any case, the PIN must be in the clear.  If no PIN is provided, then
     // it will be assumed that none is required to access the information in the
     // trust store.
-    trustStorePIN         = null;
-    trustStorePINEnVar    = null;
-    trustStorePINFile     = null;
-    trustStorePINProperty = null;
-pinSelection:
+    String pinProperty = configuration.getTrustStorePinProperty();
+    if (pinProperty == null)
     {
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_PROPERTY;
-      StringConfigAttribute pinPropertyStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_PROPERTY,
-                                     getMessage(msgID), false, false, false);
-      try
+      String pinEnVar = configuration.getTrustStorePinEnvironmentVariable();
+      if (pinEnVar == null)
       {
-        StringConfigAttribute pinPropertyAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinPropertyStub);
-        if (pinPropertyAttr != null)
+        String pinFilePath = configuration.getTrustStorePinFile();
+        if (pinFilePath == null)
         {
-          String propertyName = pinPropertyAttr.activeValue();
-          String pinStr       = System.getProperty(propertyName);
+          String pinStr = configuration.getTrustStorePin();
           if (pinStr == null)
           {
-            msgID = MSGID_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET;
-            String message = getMessage(msgID, String.valueOf(propertyName),
-                                        String.valueOf(configEntryDN));
-            throw new InitializationException(msgID, message);
+            trustStorePIN = null;
           }
           else
           {
-            trustStorePIN         = pinStr.toCharArray();
-            trustStorePINProperty = propertyName;
-            break pinSelection;
+            trustStorePIN = pinStr.toCharArray();
           }
         }
-      }
-      catch (InitializationException ie)
-      {
-        if (debugEnabled())
+        else
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-        }
-
-        throw ie;
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    getExceptionMessage(e));
-        throw new InitializationException(msgID, message, e);
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_ENVAR;
-      StringConfigAttribute pinEnVarStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_ENVAR,
-                                     getMessage(msgID), false, false, false);
-      try
-      {
-        StringConfigAttribute pinEnVarAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinEnVarStub);
-        if (pinEnVarAttr != null)
-        {
-          String enVarName = pinEnVarAttr.activeValue();
-          String pinStr    = System.getenv(enVarName);
-          if (pinStr == null)
-          {
-            msgID = MSGID_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET;
-            String message = getMessage(msgID, String.valueOf(enVarName),
-                                        String.valueOf(configEntryDN));
-            throw new InitializationException(msgID, message);
-          }
-          else
-          {
-            trustStorePIN      = pinStr.toCharArray();
-            trustStorePINEnVar = enVarName;
-            break pinSelection;
-          }
-        }
-      }
-      catch (InitializationException ie)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
-        }
-
-        throw ie;
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    getExceptionMessage(e));
-        throw new InitializationException(msgID, message, e);
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_FILE;
-      StringConfigAttribute pinFileStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_FILE,
-                                     getMessage(msgID), false, false, false);
-      try
-      {
-        StringConfigAttribute pinFileAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinFileStub);
-        if (pinFileAttr != null)
-        {
-          String fileName = pinFileAttr.activeValue();
-
-          File pinFile = getFileForPath(fileName);
+          File pinFile = getFileForPath(pinFilePath);
           if (! pinFile.exists())
           {
-            msgID = MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE;
-            String message = getMessage(msgID, String.valueOf(fileName),
+            int    msgID    = MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE;
+            String message = getMessage(msgID,
+                                        String.valueOf(pinFilePath),
                                         String.valueOf(configEntryDN));
             throw new InitializationException(msgID, message);
           }
@@ -395,115 +202,96 @@ pinSelection:
           {
             String pinStr;
 
+            BufferedReader br = null;
             try
             {
-              BufferedReader br = new BufferedReader(new FileReader(pinFile));
+              br = new BufferedReader(new FileReader(pinFile));
               pinStr = br.readLine();
-              br.close();
             }
             catch (IOException ioe)
             {
-              msgID = MSGID_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ;
-              String message = getMessage(msgID, String.valueOf(fileName),
+              int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ;
+              String message = getMessage(msgID,
+                                          String.valueOf(pinFilePath),
                                           String.valueOf(configEntryDN),
                                           getExceptionMessage(ioe));
               throw new InitializationException(msgID, message, ioe);
             }
+            finally
+            {
+              try
+              {
+                br.close();
+              } catch (Exception e) {}
+            }
 
             if (pinStr == null)
             {
-              msgID = MSGID_FILE_TRUSTMANAGER_PIN_FILE_EMPTY;
-              String message = getMessage(msgID, String.valueOf(fileName),
+              int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_FILE_EMPTY;
+              String message = getMessage(msgID,
+                                          String.valueOf(pinFilePath),
                                           String.valueOf(configEntryDN));
               throw new InitializationException(msgID, message);
             }
             else
             {
               trustStorePIN     = pinStr.toCharArray();
-              trustStorePINFile = fileName;
-              break pinSelection;
             }
           }
         }
       }
-      catch (InitializationException ie)
+      else
       {
-        if (debugEnabled())
+        String pinStr = System.getenv(pinEnVar);
+        if (pinStr == null)
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
+          int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET;
+          String message = getMessage(msgID,
+                                      String.valueOf(pinProperty),
+                                      String.valueOf(configEntryDN));
+          throw new InitializationException(msgID, message);
         }
-
-        throw ie;
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
+        else
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          trustStorePIN = pinStr.toCharArray();
         }
-
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FILE;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    getExceptionMessage(e));
-        throw new InitializationException(msgID, message, e);
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_ATTR;
-      StringConfigAttribute pinStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN, getMessage(msgID),
-                                     false, false, false);
-      try
-      {
-        StringConfigAttribute pinAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinStub);
-        if (pinAttr != null)
-        {
-          trustStorePIN = pinAttr.activeValue().toCharArray();
-          break pinSelection;
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    getExceptionMessage(e));
-        throw new InitializationException(msgID, message, e);
       }
     }
-
-
-    DirectoryServer.registerConfigurableComponent(this);
+    else
+    {
+      String pinStr = System.getProperty(pinProperty);
+      if (pinStr == null)
+      {
+        int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET;
+        String message = getMessage(msgID,
+                                    String.valueOf(pinProperty),
+                                    String.valueOf(configEntryDN));
+        throw new InitializationException(msgID, message);
+      }
+      else
+      {
+        trustStorePIN = pinStr.toCharArray();
+      }
+    }
   }
 
 
 
   /**
-   * Performs any finalization that may be necessary for this trust manager
-   * provider.
+   * {@inheritDoc}
    */
+  @Override()
   public void finalizeTrustManagerProvider()
   {
-    DirectoryServer.deregisterConfigurableComponent(this);
+    currentConfig.removeFileBasedChangeListener(this);
   }
 
 
 
   /**
-   * Retrieves a set of <CODE>TrustManager</CODE> objects that may be used for
-   * interactions requiring access to a trust manager.
-   *
-   * @return  A set of <CODE>TrustManager</CODE> objects that may be used for
-   *          interactions requiring access to a trust manager.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to obtain
-   *                              the set of trust managers.
+   * {@inheritDoc}
    */
+  @Override()
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
@@ -555,837 +343,303 @@ pinSelection:
     }
   }
 
-
-
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
+  public boolean isConfigurationChangeAcceptable(
+                      FileBasedTrustManagerCfg configuration,
+                      List<String> unacceptableReasons)
   {
-    return configEntryDN;
-  }
+    boolean configAcceptable = true;
 
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-
-    int msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_FILE;
-    StringConfigAttribute fileAttr =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_FILE, getMessage(msgID),
-                                   true, false, false, trustStoreFile);
-    attrList.add(fileAttr);
-
-
-    msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_TYPE;
-    StringConfigAttribute typeAttr =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_TYPE, getMessage(msgID),
-                                   true, false, false, trustStoreType);
-    attrList.add(typeAttr);
-
-
-    msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_PROPERTY;
-    StringConfigAttribute pinPropertyAttr =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_PROPERTY,
-                                   getMessage(msgID), false, false, false,
-                                   trustStorePINProperty);
-    attrList.add(pinPropertyAttr);
-
-
-    msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_ENVAR;
-    StringConfigAttribute pinEnvVarAttr =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_ENVAR,
-                                   getMessage(msgID), false, false, false,
-                                   trustStorePINEnVar);
-    attrList.add(pinEnvVarAttr);
-
-
-    msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_FILE;
-    StringConfigAttribute pinFileAttr =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_FILE,
-                                   getMessage(msgID), false, false, false,
-                                   trustStorePINFile);
-    attrList.add(pinFileAttr);
-
-
-    String pinString;
-    if ((trustStorePINProperty == null) && (trustStorePINEnVar == null) &&
-        (trustStorePINFile == null))
+    // Check to see if the trust store type is acceptable.
+    String storeType = configuration.getTrustStoreType();
+    if (storeType != null)
     {
-      pinString = new String(trustStorePIN);
-    }
-    else
-    {
-      pinString = null;
-    }
-    msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_ATTR;
-    StringConfigAttribute pinAttr =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_PIN, getMessage(msgID),
-                                   false, false, false, pinString);
-    attrList.add(pinAttr);
-
-
-    return attrList;
-  }
-
-
-
-  /**
-   * Indicates whether the provided configuration entry has an acceptable
-   * configuration for this component.  If it does not, then detailed
-   * information about the problem(s) should be added to the provided list.
-   *
-   * @param  configEntry          The configuration entry for which to make the
-   *                              determination.
-   * @param  unacceptableReasons  A list that can be used to hold messages about
-   *                              why the provided entry does not have an
-   *                              acceptable configuration.
-   *
-   * @return  <CODE>true</CODE> if the provided entry has an acceptable
-   *          configuration for this component, or <CODE>false</CODE> if not.
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-                                            List<String> unacceptableReasons)
-  {
-    // Make sure that a trust store file was provided.
-    int msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_FILE;
-    StringConfigAttribute fileStub =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_FILE, getMessage(msgID),
-                                   true, false, false);
-    try
-    {
-      String newTrustStoreFile = null;
-
-      StringConfigAttribute fileAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(fileStub);
-      if ((fileAttr == null) ||
-          ((newTrustStoreFile = fileAttr.activeValue()) == null))
+      try
       {
-        msgID = MSGID_FILE_TRUSTMANAGER_NO_FILE_ATTR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN));
-        throw new ConfigException(msgID, message);
+        KeyStore.getInstance(storeType);
       }
-
-      File f = getFileForPath(newTrustStoreFile);
-      if (! (f.exists() && f.isFile()))
+      catch (KeyStoreException kse)
       {
-        msgID = MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE;
-        String message = getMessage(msgID, String.valueOf(newTrustStoreFile),
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, kse);
+        }
+
+        int    msgID   = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
+        String message = getMessage(msgID, String.valueOf(storeType),
+                                    String.valueOf(configEntryDN),
+                                    getExceptionMessage(kse));
+        unacceptableReasons.add(message);
+        configAcceptable = false;
+      }
+    }
+
+
+    // If there is a PIN property, then make sure the corresponding
+    // property is set.
+    String pinProp = configuration.getTrustStorePinProperty();
+    if (pinProp != null)
+    {
+      if (System.getProperty(pinProp) == null)
+      {
+        int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET;
+        String message = getMessage(msgID, String.valueOf(pinProp),
                                     String.valueOf(configEntryDN));
         unacceptableReasons.add(message);
-        return false;
+        configAcceptable = false;
       }
     }
-    catch (ConfigException ce)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
-      }
 
-      unacceptableReasons.add(ce.getMessage());
-      return false;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      unacceptableReasons.add(message);
-      return false;
+    // If there is a PIN environment variable, then make sure the corresponding
+    // environment variable is set.
+    String pinEnVar = configuration.getTrustStorePinEnvironmentVariable();
+    if (pinEnVar != null)
+    {
+      if (System.getenv(pinEnVar) == null)
+      {
+        int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET;
+        String message = getMessage(msgID, String.valueOf(pinEnVar),
+                                    String.valueOf(configEntryDN));
+        unacceptableReasons.add(message);
+        configAcceptable = false;
+      }
     }
 
 
-    // See if a trust store type was provided.  It is optional, but if one was
-    // provided, then it must be a valid type.
-    msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_TYPE;
-    StringConfigAttribute typeStub =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_TYPE, getMessage(msgID),
-                                   false, false, false);
-    try
+    // If there is a PIN file, then make sure the file exists and is readable.
+    String pinFile = configuration.getTrustStorePinFile();
+    if (pinFile != null)
     {
-      StringConfigAttribute typeAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(typeStub);
-      if (typeAttr != null)
+      File f = new File(pinFile);
+      if (f.exists())
       {
-        // A trust store type was specified, so make sure it is valid.
-        String typeStr = typeAttr.activeValue();
+        String pinStr = null;
 
+        BufferedReader br = null;
         try
         {
-          KeyStore.getInstance(typeStr);
+          br = new BufferedReader(new FileReader(pinFile));
+          pinStr = br.readLine();
         }
-        catch (KeyStoreException kse)
+        catch (IOException ioe)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-          }
-
-          msgID = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
-          String message = getMessage(msgID, String.valueOf(typeStr),
+          int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ;
+          String message = getMessage(msgID, String.valueOf(pinFile),
                                       String.valueOf(configEntryDN),
-                                      getExceptionMessage(kse));
+                                      getExceptionMessage(ioe));
           unacceptableReasons.add(message);
-          return false;
+          configAcceptable = false;
         }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_TYPE;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  getExceptionMessage(e));
-      unacceptableReasons.add(message);
-      return false;
-    }
-
-
-    // Make sure that there is some way to determine the PIN.  Look for the PIN
-    // in a property, environment variable, file, or configuration attribute, in
-    // that order.
-pinSelection:
-    {
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_PROPERTY;
-      StringConfigAttribute pinPropertyStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_PROPERTY,
-                                     getMessage(msgID), false, false, false);
-      try
-      {
-        StringConfigAttribute pinPropertyAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinPropertyStub);
-        if (pinPropertyAttr != null)
+        finally
         {
-          String propertyName = pinPropertyAttr.activeValue();
-          String pinStr       = System.getProperty(propertyName);
-          if (pinStr == null)
+          try
           {
-            msgID = MSGID_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET;
-            String message = getMessage(msgID, String.valueOf(propertyName),
-                                        String.valueOf(configEntryDN));
-            unacceptableReasons.add(message);
-            return false;
-          }
-          else
-          {
-            break pinSelection;
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            br.close();
+          } catch (Exception e) {}
         }
 
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    getExceptionMessage(e));
+        if (pinStr == null)
+        {
+          int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_FILE_EMPTY;
+          String message =  getMessage(msgID, String.valueOf(pinFile),
+                                       String.valueOf(configEntryDN));
+          unacceptableReasons.add(message);
+          configAcceptable = false;
+        }
+      }
+      else
+      {
+        int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE;
+        String message = getMessage(msgID, String.valueOf(pinFile),
+                                    String.valueOf(configEntryDN));
         unacceptableReasons.add(message);
-        return false;
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_ENVAR;
-      StringConfigAttribute pinEnVarStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_ENVAR,
-                                     getMessage(msgID), false, false, false);
-      try
-      {
-        StringConfigAttribute pinEnVarAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinEnVarStub);
-        if (pinEnVarAttr != null)
-        {
-          String enVarName = pinEnVarAttr.activeValue();
-          String pinStr    = System.getenv(enVarName);
-          if (pinStr == null)
-          {
-            msgID = MSGID_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET;
-            String message = getMessage(msgID, String.valueOf(enVarName),
-                                        String.valueOf(configEntryDN));
-            unacceptableReasons.add(message);
-            return false;
-          }
-          else
-          {
-            break pinSelection;
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    getExceptionMessage(e));
-        unacceptableReasons.add(message);
-        return false;
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_FILE;
-      StringConfigAttribute pinFileStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_FILE,
-                                     getMessage(msgID), false, false, false);
-      try
-      {
-        StringConfigAttribute pinFileAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinFileStub);
-        if (pinFileAttr != null)
-        {
-          String fileName = pinFileAttr.activeValue();
-
-          File pinFile = getFileForPath(fileName);
-          if (! pinFile.exists())
-          {
-            msgID = MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE;
-            String message = getMessage(msgID, String.valueOf(fileName),
-                                        String.valueOf(configEntryDN));
-            unacceptableReasons.add(message);
-            return false;
-          }
-          else
-          {
-            String pinStr;
-
-            try
-            {
-              BufferedReader br = new BufferedReader(new FileReader(pinFile));
-              pinStr = br.readLine();
-              br.close();
-            }
-            catch (IOException ioe)
-            {
-              msgID = MSGID_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ;
-              String message = getMessage(msgID, String.valueOf(fileName),
-                                          String.valueOf(configEntryDN),
-                                          getExceptionMessage(ioe));
-              unacceptableReasons.add(message);
-              return false;
-            }
-
-            if (pinStr == null)
-            {
-              msgID = MSGID_FILE_TRUSTMANAGER_PIN_FILE_EMPTY;
-              String message = getMessage(msgID, String.valueOf(fileName),
-                                          String.valueOf(configEntryDN));
-              unacceptableReasons.add(message);
-              return false;
-            }
-            else
-            {
-              break pinSelection;
-            }
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FILE;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    getExceptionMessage(e));
-        unacceptableReasons.add(message);
-        return false;
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_ATTR;
-      StringConfigAttribute pinStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN, getMessage(msgID),
-                                     false, false, false);
-      try
-      {
-        StringConfigAttribute pinAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinStub);
-        if (pinAttr != null)
-        {
-          break pinSelection;
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                    getExceptionMessage(e));
-        unacceptableReasons.add(message);
-        return false;
+        configAcceptable = false;
       }
     }
 
 
-    // If we've gotten here, then everything looks OK.
-    return true;
+    return configAcceptable;
   }
 
-
-
   /**
-   * Makes a best-effort attempt to apply the configuration contained in the
-   * provided entry.  Information about the result of this processing should be
-   * added to the provided message list.  Information should always be added to
-   * this list if a configuration change could not be applied.  If detailed
-   * results are requested, then information about the changes applied
-   * successfully (and optionally about parameters that were not changed) should
-   * also be included.
-   *
-   * @param  configEntry      The entry containing the new configuration to
-   *                          apply for this component.
-   * @param  detailedResults  Indicates whether detailed information about the
-   *                          processing should be added to the list.
-   *
-   * @return  Information about the result of the configuration update.
+   * {@inheritDoc}
    */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-                                                  boolean detailedResults)
+  public ConfigChangeResult applyConfigurationChange(
+                                 FileBasedTrustManagerCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<String> messages            = new ArrayList<String>();
 
 
-    // Make sure that a trust store file was provided.
-    String newTrustStoreFile = null;
-    int msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_FILE;
-    StringConfigAttribute fileStub =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_FILE, getMessage(msgID),
-                                   true, false, false);
+    // Get the path to the trust store file.
+    String newTrustStoreFile = configuration.getTrustStoreFile();
+    File f = getFileForPath(newTrustStoreFile);
+    if (! (f.exists() && f.isFile()))
+    {
+      resultCode = DirectoryServer.getServerErrorResultCode();
+
+      int msgID = MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE;
+      messages.add(getMessage(msgID, String.valueOf(newTrustStoreFile),
+                              String.valueOf(configEntryDN)));
+    }
+
+
+    // Get the trust store type.  If none is specified, then use the default
+    // type.
+    String newTrustStoreType = configuration.getTrustStoreType();
+    if (newTrustStoreType == null)
+    {
+      newTrustStoreType = KeyStore.getDefaultType();
+    }
+
     try
     {
-      StringConfigAttribute fileAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(fileStub);
-      if ((fileAttr == null) ||
-          ((newTrustStoreFile = fileAttr.activeValue()) == null))
-      {
-        msgID = MSGID_FILE_TRUSTMANAGER_NO_FILE_ATTR;
-        String message = getMessage(msgID, String.valueOf(configEntryDN));
-        throw new ConfigException(msgID, message);
-      }
-
-      File f = getFileForPath(newTrustStoreFile);
-      if (! (f.exists() && f.isFile()))
-      {
-        msgID = MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE;
-        messages.add(getMessage(msgID, String.valueOf(newTrustStoreFile),
-                                String.valueOf(configEntryDN)));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
-        }
-      }
+      KeyStore.getInstance(newTrustStoreType);
     }
-    catch (ConfigException ce)
+    catch (KeyStoreException kse)
     {
       if (debugEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ce);
+        TRACER.debugCaught(DebugLogLevel.ERROR, kse);
       }
 
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      int msgID = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
+      messages.add(getMessage(msgID, String.valueOf(newTrustStoreType),
+                              String.valueOf(configEntryDN),
+                              getExceptionMessage(kse)));
 
-      msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              getExceptionMessage(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
+      resultCode = DirectoryServer.getServerErrorResultCode();
     }
 
 
-    // See if a trust store type was provided.  It is optional, but if one was
-    // provided, then it must be a valid type.
-    String newTrustStoreType = KeyStore.getDefaultType();
-    msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_TYPE;
-    StringConfigAttribute typeStub =
-         new StringConfigAttribute(ATTR_TRUSTSTORE_TYPE, getMessage(msgID),
-                                   false, false, false);
-    try
+    // Get the PIN needed to access the contents of the trust store file.  We
+    // will offer several places to look for the PIN, and we will do so in the
+    // following order:
+    // - In a specified Java property
+    // - In a specified environment variable
+    // - In a specified file on the server filesystem.
+    // - As the value of a configuration attribute.
+    // In any case, the PIN must be in the clear.  If no PIN is provided, then
+    // it will be assumed that none is required to access the information in the
+    // trust store.
+    char[] newPIN = null;
+    String newPINProperty = configuration.getTrustStorePinProperty();
+    if (newPINProperty == null)
     {
-      StringConfigAttribute typeAttr =
-           (StringConfigAttribute) configEntry.getConfigAttribute(typeStub);
-      if (typeAttr != null)
+      String newPINEnVar = configuration.getTrustStorePinEnvironmentVariable();
+      if (newPINEnVar == null)
       {
-        // A trust store type was specified, so make sure it is valid.
-        newTrustStoreType = typeAttr.activeValue();
-
-        try
+        String newPINFile = configuration.getTrustStorePinFile();
+        if (newPINFile == null)
         {
-          KeyStore.getInstance(newTrustStoreType);
-        }
-        catch (KeyStoreException kse)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, kse);
-          }
-
-          msgID = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
-          messages.add(getMessage(msgID, String.valueOf(newTrustStoreType),
-                                  String.valueOf(configEntryDN),
-                                  getExceptionMessage(kse)));
-
-          if (resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = ResultCode.CONSTRAINT_VIOLATION;
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_TYPE;
-      messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                              getExceptionMessage(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-    }
-
-
-    // Make sure that there is some way to determine the PIN.  Look for the PIN
-    // in a property, environment variable, file, or configuration attribute, in
-    // that order.
-    char[] newTrustStorePIN         = null;
-    String newTrustStorePINEnVar    = null;
-    String newTrustStorePINFile     = null;
-    String newTrustStorePINProperty = null;
-pinSelection:
-    {
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_PROPERTY;
-      StringConfigAttribute pinPropertyStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_PROPERTY,
-                                     getMessage(msgID), false, false, false);
-      try
-      {
-        StringConfigAttribute pinPropertyAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinPropertyStub);
-        if (pinPropertyAttr != null)
-        {
-          String propertyName = pinPropertyAttr.activeValue();
-          String pinStr       = System.getProperty(propertyName);
+          String pinStr = configuration.getTrustStorePin();
           if (pinStr == null)
           {
-            msgID = MSGID_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET;
-            messages.add(getMessage(msgID, String.valueOf(propertyName),
-                                    String.valueOf(configEntryDN)));
-
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = ResultCode.CONSTRAINT_VIOLATION;
-            }
-
-            break pinSelection;
+            newPIN = null;
           }
           else
           {
-            newTrustStorePIN         = pinStr.toCharArray();
-            newTrustStorePINProperty = propertyName;
-            break pinSelection;
+            newPIN = pinStr.toCharArray();
           }
         }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
+        else
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_PROPERTY;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                getExceptionMessage(e)));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
-
-        break pinSelection;
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_ENVAR;
-      StringConfigAttribute pinEnVarStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_ENVAR,
-                                     getMessage(msgID), false, false, false);
-      try
-      {
-        StringConfigAttribute pinEnVarAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinEnVarStub);
-        if (pinEnVarAttr != null)
-        {
-          String enVarName = pinEnVarAttr.activeValue();
-          String pinStr    = System.getenv(enVarName);
-          if (pinStr == null)
-          {
-            msgID = MSGID_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET;
-            messages.add(getMessage(msgID, String.valueOf(enVarName),
-                                    String.valueOf(configEntryDN)));
-
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = ResultCode.CONSTRAINT_VIOLATION;
-            }
-
-            break pinSelection;
-          }
-          else
-          {
-            newTrustStorePIN      = pinStr.toCharArray();
-            newTrustStorePINEnVar = enVarName;
-            break pinSelection;
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_ENVAR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                getExceptionMessage(e)));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
-
-        break pinSelection;
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_FILE;
-      StringConfigAttribute pinFileStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN_FILE,
-                                     getMessage(msgID), false, false, false);
-      try
-      {
-        StringConfigAttribute pinFileAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinFileStub);
-        if (pinFileAttr != null)
-        {
-          String fileName = pinFileAttr.activeValue();
-
-          File pinFile = getFileForPath(fileName);
+          File pinFile = getFileForPath(newPINFile);
           if (! pinFile.exists())
           {
-            msgID = MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE;
-            messages.add(getMessage(msgID, String.valueOf(fileName),
+            resultCode = DirectoryServer.getServerErrorResultCode();
+
+            int msgID = MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE;
+            messages.add(getMessage(msgID, String.valueOf(newPINFile),
                                     String.valueOf(configEntryDN)));
-
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = ResultCode.CONSTRAINT_VIOLATION;
-            }
-
-            break pinSelection;
           }
           else
           {
-            String pinStr;
+            String pinStr = null;
 
+            BufferedReader br = null;
             try
             {
-              BufferedReader br = new BufferedReader(new FileReader(pinFile));
+              br = new BufferedReader(new FileReader(pinFile));
               pinStr = br.readLine();
-              br.close();
             }
             catch (IOException ioe)
             {
-              msgID = MSGID_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ;
-              messages.add(getMessage(msgID, String.valueOf(fileName),
+              resultCode = DirectoryServer.getServerErrorResultCode();
+
+              int msgID = MSGID_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ;
+              messages.add(getMessage(msgID, String.valueOf(newPINFile),
                                       String.valueOf(configEntryDN),
                                       getExceptionMessage(ioe)));
-
-              if (resultCode == ResultCode.SUCCESS)
+            }
+            finally
+            {
+              try
               {
-                resultCode = DirectoryServer.getServerErrorResultCode();
-              }
-
-              break pinSelection;
+                br.close();
+              } catch (Exception e) {}
             }
 
             if (pinStr == null)
             {
-              msgID = MSGID_FILE_TRUSTMANAGER_PIN_FILE_EMPTY;
-              messages.add(getMessage(msgID, String.valueOf(fileName),
+              resultCode = DirectoryServer.getServerErrorResultCode();
+
+              int msgID = MSGID_FILE_TRUSTMANAGER_PIN_FILE_EMPTY;
+              messages.add(getMessage(msgID, String.valueOf(newPINFile),
                                       String.valueOf(configEntryDN)));
-
-              if (resultCode == ResultCode.SUCCESS)
-              {
-                resultCode = ResultCode.CONSTRAINT_VIOLATION;
-              }
-
-              break pinSelection;
             }
             else
             {
-              newTrustStorePIN     = pinStr.toCharArray();
-              newTrustStorePINFile = fileName;
-              break pinSelection;
+              newPIN = pinStr.toCharArray();
             }
           }
         }
       }
-      catch (Exception e)
+      else
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FILE;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                getExceptionMessage(e)));
-
-        if (resultCode == ResultCode.SUCCESS)
+        String pinStr = System.getenv(newPINEnVar);
+        if (pinStr == null)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
+
+          int msgID = MSGID_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET;
+          messages.add(getMessage(msgID, String.valueOf(newPINEnVar),
+                                  String.valueOf(configEntryDN)));
         }
-
-        break pinSelection;
-      }
-
-      msgID = MSGID_FILE_TRUSTMANAGER_DESCRIPTION_PIN_ATTR;
-      StringConfigAttribute pinStub =
-           new StringConfigAttribute(ATTR_TRUSTSTORE_PIN, getMessage(msgID),
-                                     false, false, false);
-      try
-      {
-        StringConfigAttribute pinAttr =
-             (StringConfigAttribute)
-             configEntry.getConfigAttribute(pinStub);
-        if (pinAttr != null)
+        else
         {
-          newTrustStorePIN = pinAttr.activeValue().toCharArray();
-          break pinSelection;
+          newPIN = pinStr.toCharArray();
         }
       }
-      catch (Exception e)
+    }
+    else
+    {
+      String pinStr = System.getProperty(newPINProperty);
+      if (pinStr == null)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
+        resultCode = DirectoryServer.getServerErrorResultCode();
 
-        msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR;
-        messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                getExceptionMessage(e)));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
-
-        break pinSelection;
+        int msgID = MSGID_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET;
+        messages.add(getMessage(msgID, String.valueOf(newPINProperty),
+                                String.valueOf(configEntryDN)));
+      }
+      else
+      {
+        newPIN = pinStr.toCharArray();
       }
     }
 
 
-    // If everything looks successful, then apply the changes.
     if (resultCode == ResultCode.SUCCESS)
     {
-      if (! trustStoreFile.equals(newTrustStoreFile))
-      {
-        trustStoreFile = newTrustStoreFile;
-
-        if (detailedResults)
-        {
-          msgID = MSGID_FILE_TRUSTMANAGER_UPDATED_FILE;
-          messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                  String.valueOf(newTrustStoreFile)));
-        }
-      }
-
-      if (! trustStoreType.equals(newTrustStoreType))
-      {
-        trustStoreType = newTrustStoreType;
-
-        if (detailedResults)
-        {
-          msgID = MSGID_FILE_TRUSTMANAGER_UPDATED_TYPE;
-          messages.add(getMessage(msgID, String.valueOf(configEntryDN),
-                                  String.valueOf(newTrustStoreType)));
-        }
-      }
-
-      if (! (((trustStorePIN == null) && (newTrustStorePIN == null)) ||
-             Arrays.equals(trustStorePIN, newTrustStorePIN)))
-      {
-        trustStorePIN = newTrustStorePIN;
-
-        trustStorePINProperty = newTrustStorePINProperty;
-        trustStorePINEnVar    = newTrustStorePINEnVar;
-        trustStorePINFile     = newTrustStorePINFile;
-
-        if (detailedResults)
-        {
-          msgID = MSGID_FILE_TRUSTMANAGER_UPDATED_PIN;
-          messages.add(getMessage(msgID));
-        }
-      }
+      trustStoreFile = newTrustStoreFile;
+      trustStoreType = newTrustStoreType;
+      trustStorePIN  = newPIN;
+      currentConfig  = configuration;
     }
 
 

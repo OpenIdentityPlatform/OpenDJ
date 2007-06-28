@@ -38,6 +38,9 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.FileBasedKeyManagerCfgDefn;
+import org.opends.server.admin.std.server.FileBasedKeyManagerCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -175,12 +178,12 @@ public class FileBasedKeyManagerProviderTestCase
   public void testVvalidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=SSL,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    FileBasedKeyManagerCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              FileBasedKeyManagerCfgDefn.getInstance(), e);
 
     FileBasedKeyManagerProvider provider = new FileBasedKeyManagerProvider();
-    provider.initializeKeyManagerProvider(configEntry);
+    provider.initializeKeyManagerProvider(configuration);
     provider.finalizeKeyManagerProvider();
   }
 
@@ -197,7 +200,7 @@ public class FileBasedKeyManagerProviderTestCase
          throws Exception
   {
     List<Entry> entries = TestCaseUtils.makeEntries(
-         "dn: cn=Key Manager Provider,cn=SSL,cn=config",
+         "dn: cn=No Key Store File,cn=SSL,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
@@ -207,7 +210,7 @@ public class FileBasedKeyManagerProviderTestCase
          "ds-cfg-key-manager-provider-enabled: true",
          "ds-cfg-key-store-pin: password",
          "",
-         "dn: cn=Key Manager Provider,cn=SSL,cn=config",
+         "dn: cn=Nonexistent Key Store File,cn=SSL,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
@@ -218,7 +221,7 @@ public class FileBasedKeyManagerProviderTestCase
          "ds-cfg-key-store-file: config/nosuchfile",
          "ds-cfg-key-store-pin: password",
          "",
-         "dn: cn=Key Manager Provider,cn=SSL,cn=config",
+         "dn: cn=No Key Store PIN,cn=SSL,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
@@ -228,7 +231,7 @@ public class FileBasedKeyManagerProviderTestCase
          "ds-cfg-key-manager-provider-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "",
-         "dn: cn=Key Manager Provider,cn=SSL,cn=config",
+         "dn: cn=Nonexistent Key Store PIN File,cn=SSL,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
@@ -239,7 +242,7 @@ public class FileBasedKeyManagerProviderTestCase
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin-file: config/nosuchfile",
          "",
-         "dn: cn=Key Manager Provider,cn=SSL,cn=config",
+         "dn: cn=Empty Key Store PIN File,cn=SSL,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
@@ -250,7 +253,7 @@ public class FileBasedKeyManagerProviderTestCase
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin-file: config/empty",
          "",
-         "dn: cn=Key Manager Provider,cn=SSL,cn=config",
+         "dn: cn=Nonexistent Key Store PIN Property,cn=SSL,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
@@ -261,7 +264,7 @@ public class FileBasedKeyManagerProviderTestCase
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin-property: nosuchproperty",
          "",
-         "dn: cn=Key Manager Provider,cn=SSL,cn=config",
+         "dn: cn=Nonexistent Key Store PIN Env Variable,cn=SSL,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
@@ -272,7 +275,7 @@ public class FileBasedKeyManagerProviderTestCase
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin-environment-variable: nosuchenv",
          "",
-         "dn: cn=Key Manager Provider,cn=SSL,cn=config",
+         "dn: cn=Invalid Key Store Type,cn=SSL,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
@@ -310,12 +313,13 @@ public class FileBasedKeyManagerProviderTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    DN parentDN = DN.decode("cn=SSL,cn=config");
-    ConfigEntry parentEntry = DirectoryServer.getConfigEntry(parentDN);
-    ConfigEntry configEntry = new ConfigEntry(e, parentEntry);
+    FileBasedKeyManagerCfg configuration =
+         AdminTestCaseUtils.getConfiguration(
+              FileBasedKeyManagerCfgDefn.getInstance(), e);
+
 
     FileBasedKeyManagerProvider provider = new FileBasedKeyManagerProvider();
-    provider.initializeKeyManagerProvider(configEntry);
+    provider.initializeKeyManagerProvider(configuration);
   }
 }
 
