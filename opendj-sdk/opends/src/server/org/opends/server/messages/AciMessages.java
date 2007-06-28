@@ -807,6 +807,113 @@ public class AciMessages {
         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 80;
 
     /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse fails beacause a bind rule IP field had an invalid
+     * prefix format. This takes one argument, which is the IP field from the
+     * bind rule expression.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_INVALID_PREFIX_FORMAT =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 81;
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse fails beacause a bind rule IP field had an invalid
+     * prefix value. This takes one argument, which is the IP field from the
+     * bind rule expression.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_INVALID_PREFIX_VALUE =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 82;
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse fails beacause a bind rule IP field has an
+     * prefix value that is not numeric. This takes one argument, which is
+     * the IP field from the bind rule expression.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_PREFIX_NOT_NUMERIC =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 83;
+
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse fails beacause a bind rule IP field IPv4 address has an
+     * invalid format. This takes one argument, which is
+     * the IP field from the bind rule expression.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_INVALID_IPV4_FORMAT =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 84;
+
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse fails beacause a bind rule IP field IPv4 address has an
+     * invalid value. This takes one argument, which is
+     * the IP field from the bind rule expression.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_INVALID_IPV4_VALUE =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 85;
+
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse fails beacause a bind rule IP field IPv4 address has an
+     * non-numeric value. This takes one argument, which is
+     * the IP field from the bind rule expression.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_IPV4_NOT_NUMERIC =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 86;
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse fails beacause a bind rule IP field IPv6 address
+     * contains a wildcard character '*'. This takes one argument, which is
+     * the IP field from the bind rule expression.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_IPV6_WILDCARD_INVALID =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 87;
+
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse fails beacause a bind rule IP field IPv6 address
+     * has an invalid format. This takes otwo arguments, which are
+     * the IP field from the bind rule expression and the message from the
+     * IPv6 parsing method.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_INVALID_IPV6_FORMAT =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 88;
+
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse fails beacause a bind rule IP field had an invalid
+     * netmask format. This takes one argument, which is the IP field from the
+     * bind rule expression.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_INVALID_NETMASK_FORMAT =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 89;
+
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse fails beacause a bind rule IP field had an invalid
+     * netmask value. This takes one argument, which is the IP field from the
+     * bind rule expression.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_INVALID_NETMASK =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 89;
+
+    /**
      * Associates a set of generic messages with the message IDs defined in
      * this class.
      */
@@ -926,15 +1033,15 @@ public class AciMessages {
         registerMessage(MSGID_ACI_SYNTAX_INVALID_IP_EXPRESSION,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "ip expression value \"%s\" is invalid. A valid ip " +
-                "keyword expression value requires one or more" +
-                "comma-separated elements of an IP address list expression");
+                "keyword expression requires one or more " +
+                "comma-separated elements of a valid IP address list" +
+                " expression");
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_DNS_EXPRESSION,
                 "The provided Access Control Instruction (ACI) bind rule " +
                 "dns expression value \"%s\" is invalid. A valid dns " +
                 "keyword expression value requires a valid fully qualified"+
                 " DNS domain name");
-
 
         registerMessage(MSGID_ACI_SYNTAX_INVALID_DNS_WILDCARD,
                 "The provided Access Control Instruction (ACI) bind rule " +
@@ -1267,5 +1374,66 @@ public class AciMessages {
                 "userattr expression value failed to parse because the " +
                 "attribute field of the ldap URL \"%s\" either contains more " +
                 "than one description or the field is empty");
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_PREFIX_FORMAT,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                 "IP address expression failed to parse because the " +
+                 "prefix part of the expression \"%s\" has an invalid format");
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_PREFIX_VALUE,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                "IP address expression failed to parse because the " +
+                "prefix value of the expression \"%s\" was an invalid" +
+                " value. All values must greater than or equal to 0 and " +
+                "either less than or equal 32 for IPV4 addresses or less than" +
+                " or equal to 128 for IPV6 addresses");
+
+        registerMessage(MSGID_ACI_SYNTAX_PREFIX_NOT_NUMERIC,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                 "IP address expression failed to parse because the " +
+                 "prefix part of the expression \"%s\" has an non-numeric" +
+                 " value");
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_IPV4_FORMAT,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                 "IP address expression failed to parse because the " +
+                 "the IPv4 address expression \"%s\" format was invalid");
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_IPV4_VALUE,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                 "IP address expression failed to parse because the " +
+                 " IPv4 address expression \"%s\" contains an invalid value." +
+                 "All values of the address must be between 0 and 255");
+
+        registerMessage(MSGID_ACI_SYNTAX_IPV4_NOT_NUMERIC,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                 "IP address expression failed to parse because the " +
+                 "the IPv4 address expression \"%s\" contains a non-numeric" +
+                 " value");
+
+        registerMessage(MSGID_ACI_SYNTAX_IPV6_WILDCARD_INVALID,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                 "IP address expression failed to parse because the " +
+                 "the IPv6 address expression \"%s\" contains an illegal" +
+                 " wildcard character. Wildcards are not supported when " +
+                 "using IPv6 addresses in a IP bind rule expression");
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_IPV6_FORMAT,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                 "IP address expression \"%s\" failed to parse for the " +
+                 "following reason: \"%s\"");
+
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_NETMASK_FORMAT,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                 "IP address expression failed to parse because the " +
+                 "netmask part of the expression \"%s\" has an invalid format");
+
+
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_NETMASK_FORMAT,
+                "The provided Access Control Instruction (ACI) bind rule " +
+                 "IP address expression failed to parse because the " +
+                 "netmask part of the expression \"%s\" has an invalid value");
+
     }
 }

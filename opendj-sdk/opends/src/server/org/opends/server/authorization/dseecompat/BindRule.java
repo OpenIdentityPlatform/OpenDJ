@@ -508,7 +508,7 @@ public class BindRule {
             }
             case IP:
             {
-                rule = IpCriteria.decode(expr, op);
+                rule=IP.decode(expr, op);
                 break;
             }
             case DNS:
