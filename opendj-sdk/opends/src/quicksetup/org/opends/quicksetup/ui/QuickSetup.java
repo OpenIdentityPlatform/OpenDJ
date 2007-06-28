@@ -384,7 +384,27 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
            */
           env.remove("JAVA_BIN");
           Process process = pb.start();
-          int returnValue = process.waitFor();
+          /**
+           * Wait for 3 seconds.  Assume that if the process has not exited
+           * everything went fine.
+           */
+          int returnValue = 0;
+          try
+          {
+            Thread.sleep(3000);
+          }
+          catch (Throwable t)
+          {
+          }
+          try
+          {
+            returnValue = process.exitValue();
+          }
+          catch (IllegalThreadStateException ithse)
+          {
+            // The process has not exited: assume that the status panel could
+            // be launched successfully.
+          }
 
           if (returnValue != 0)
           {
