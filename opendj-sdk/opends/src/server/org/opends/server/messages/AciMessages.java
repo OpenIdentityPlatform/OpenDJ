@@ -1430,7 +1430,7 @@ public class AciMessages {
                  "netmask part of the expression \"%s\" has an invalid format");
 
 
-        registerMessage(MSGID_ACI_SYNTAX_INVALID_NETMASK_FORMAT,
+        registerMessage(MSGID_ACI_SYNTAX_INVALID_NETMASK,
                 "The provided Access Control Instruction (ACI) bind rule " +
                  "IP address expression failed to parse because the " +
                  "netmask part of the expression \"%s\" has an invalid value");
