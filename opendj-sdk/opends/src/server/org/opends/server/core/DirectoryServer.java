@@ -66,7 +66,6 @@ import org.opends.server.api.plugin.StartupPluginResult;
 import org.opends.server.backends.RootDSEBackend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
@@ -1167,7 +1166,7 @@ public class DirectoryServer
 
 
       // Create and initialize the work queue.
-      initializeWorkQueue();
+      workQueue = new WorkQueueConfigManager().initializeWorkQueue();
 
 
       StartupPluginResult startupPluginResult =
@@ -7105,102 +7104,6 @@ public class DirectoryServer
   }
 
 
-
-  /**
-   * Initializes the Directory Server work queue from the information in the
-   * configuration.
-   *
-   * @throws  ConfigException  If the Directory Server configuration does not
-   *                           have a valid work queue specification.
-   *
-   * @throws  InitializationException  If a problem occurs while attempting to
-   *                                   initialize the work queue.
-   */
-  private void initializeWorkQueue()
-          throws ConfigException, InitializationException
-  {
-    DN configEntryDN;
-    try
-    {
-      configEntryDN = DN.decode(DN_WORK_QUEUE_CONFIG);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_WORKQ_CANNOT_PARSE_DN;
-      String message = getMessage(msgID, DN_WORK_QUEUE_CONFIG,
-                                  stackTraceToSingleLineString(e));
-      throw new InitializationException(msgID, message, e);
-    }
-
-
-    ConfigEntry configEntry = configHandler.getConfigEntry(configEntryDN);
-    if (configEntry == null)
-    {
-      int    msgID   = MSGID_WORKQ_NO_CONFIG;
-      String message = getMessage(msgID, DN_WORK_QUEUE_CONFIG);
-      throw new ConfigException(msgID, message);
-    }
-
-
-    int msgID = MSGID_WORKQ_DESCRIPTION_CLASS;
-    StringConfigAttribute classStub =
-         new StringConfigAttribute(ATTR_WORKQ_CLASS, getMessage(msgID), true,
-                                   false, true);
-    StringConfigAttribute classAttr =
-         (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
-    if (classAttr == null)
-    {
-      msgID = MSGID_WORKQ_NO_CLASS_ATTR;
-      String message = getMessage(msgID, DN_WORK_QUEUE_CONFIG,
-                                  ATTR_WORKQ_CLASS);
-
-      throw new ConfigException(msgID, message);
-    }
-    else
-    {
-      Class workQueueClass ;
-      try
-      {
-        workQueueClass = DirectoryServer.loadClass(classAttr.activeValue());
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_WORKQ_CANNOT_LOAD;
-        String message = getMessage(msgID, classAttr.activeValue(),
-                                    stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message, e);
-      }
-
-      try
-      {
-        workQueue = (WorkQueue) workQueueClass.newInstance();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        msgID = MSGID_WORKQ_CANNOT_INSTANTIATE;
-        String message = getMessage(msgID, classAttr.activeValue(),
-                                    stackTraceToSingleLineString(e));
-        throw new InitializationException(msgID, message, e);
-      }
-
-      workQueue.initializeWorkQueue(configEntry);
-    }
-  }
 
   /**
    * Starts the connection handlers defined in the Directory Server
