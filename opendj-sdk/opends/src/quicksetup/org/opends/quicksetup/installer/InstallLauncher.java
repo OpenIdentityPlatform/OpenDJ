@@ -178,7 +178,7 @@ public class InstallLauncher extends Launcher {
 
     try
     {
-      cliMode = new BooleanArgument("cli", null, OPTION_LONG_CLI,
+      cliMode = new BooleanArgument("cli", 'c', OPTION_LONG_CLI,
           MSGID_INSTALLDS_DESCRIPTION_CLI);
       argParser.addArgument(cliMode);
 
@@ -302,7 +302,8 @@ public class InstallLauncher extends Launcher {
     ArrayList<String> newArgList = new ArrayList<String>();
     if (args != null) {
       for (int i = 0; i < args.length; i++) {
-        if (!args[i].equalsIgnoreCase("--cli")) {
+        if (!args[i].equalsIgnoreCase("--cli") &&
+            !args[i].equalsIgnoreCase("-c")) {
           newArgList.add(args[i]);
         }
       }

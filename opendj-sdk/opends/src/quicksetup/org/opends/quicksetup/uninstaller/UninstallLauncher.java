@@ -142,7 +142,7 @@ public class UninstallLauncher extends Launcher {
     System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
     try
     {
-      cli = new BooleanArgument("cli", 'i', "cli",
+      cli = new BooleanArgument("cli", 'c', "cli",
           MSGID_UNINSTALLDS_DESCRIPTION_CLI);
       argParser.addArgument(cli);
       silent = new BooleanArgument("silent", 's', "silent",

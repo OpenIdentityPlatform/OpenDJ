@@ -78,6 +78,7 @@ class UninstallCliHelper extends CliApplicationHelper {
      */
     Set<String> validArgs = new HashSet<String>();
     validArgs.add("--cli");
+    validArgs.add("-c");
     validArgs.add("-H");
     validArgs.add("--help");
     validArgs.add("--silentUninstall");

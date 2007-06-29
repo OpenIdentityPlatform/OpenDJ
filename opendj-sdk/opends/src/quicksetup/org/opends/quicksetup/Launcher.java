@@ -115,7 +115,7 @@ public abstract class Launcher {
   protected boolean isCli() {
     boolean isCli = false;
     for (String arg : args) {
-      if (arg.equalsIgnoreCase("--cli")) {
+      if (arg.equalsIgnoreCase("--cli") || arg.equalsIgnoreCase("-c")) {
         isCli = true;
         break;
       }
