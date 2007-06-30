@@ -34,7 +34,6 @@
           <script>
             CurrentTestPath={}
             envAlreadyLoaded='true'
-            CurrentTestPath['group']='indexes'
           </script>
           
           <call function="'testGroup_Preamble'" />
@@ -108,11 +107,21 @@
           else: 
             testLine = line.split(' ')
             indexTests.append(indexTest(testLine[0], testLine[1], testLine[2], testLine[3], testLine[4]))
-              
+          
+        iteration=0
+        previousTestName=''
+        testNumber=0
       </script>
       <iterate var="test" in="indexTests">
         <sequence>
-          <testcase name="'Indexes: Search: %s: %s' % ( test.getAttribute(), test.getName())" >
+          <script>
+          iteration=iteration+1
+          if previousTestName != test.getName():
+            previousTestName=test.getName()
+            testNumber=0
+            
+          </script>
+          <testcase name="'Indexes: 1.Search: %03d-%03d.%s: %s%02d' % ( len(indexTests)-iteration, iteration, test.getAttribute(), test.getName(), testNumber)" >
             <sequence>
               <call function="'testCase_Preamble'" />
               <message>
@@ -138,6 +147,9 @@
               <message level="'debug'">'%s searchReturnCode=[%s] srt=[%s] searchResultString=[%s] string looked for=[%s]' % (test.desc(), searchReturnCode, srt, searchResultString, test.getSearchString())</message>
               <tcstatus result="'%s' % test.getStatus()" />
               <call function="'testCase_Postamble'" />
+              <script>
+                testNumber=testNumber+1
+              </script>
             </sequence>
           </testcase>
         </sequence>
