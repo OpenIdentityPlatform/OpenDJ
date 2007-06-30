@@ -33,6 +33,8 @@ import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
+import org.opends.server.TestCaseUtils;
+
 
 
 /**
@@ -42,10 +44,18 @@ public class RelativeInheritedDefaultBehaviorProviderTest {
 
   private static final int OFFSET = 0;
 
-  private static final TestParentCfgDefn d = TestParentCfgDefn.getInstance();
+  private static final TestParentCfgDefn d;
 
   private RelativeInheritedDefaultBehaviorProvider<Integer> ridbp = null;
 
+  static
+  {
+    try
+    {
+      TestCaseUtils.startServer();
+    } catch (Exception e) {}
+    d = TestParentCfgDefn.getInstance();
+  }
 
 
   /**
