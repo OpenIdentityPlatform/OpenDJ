@@ -1265,6 +1265,275 @@
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
             #@TestMarker                SASL DIGEST-MD5 Tests
+            #@TestName                  uid (dn:) Bind with ACI with authmethod equal simple
+            #@TestIssue                 460
+            #@TestPurpose               Test bind where an ACI authmethod equal simple applies.
+            #@TestPreamble              none
+            #@TestStep                  User binds with sasl authetication and with authid=dn:[DN] format.
+            #@TestStep                  User binds with simple authetication.
+            #@TestStep                  Admin deletes global search ACI.
+            #@TestStep                  User binds with sasl authetication and with authid=dn:[DN] format.
+            #@TestStep                  User binds with simple authetication.
+            #@TestStep                  Admin adds ACI with authmethod equals sasl.
+            #@TestStep                  User binds with sasl authetication and with authid=dn:[DN] format.
+            #@TestStep                  User binds with simple authetication.
+            #@TestStep                  Admin deletes ACI with authmethod equals sasl.
+            #@TestStep                  Admin puts global search ACI.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all ldap operations.
+                                        Entries returned for steps 1, 2, and 8.
+        -->
+        <testcase name="'Security: SASL DIGEST-MD5: User (dn:) Bind with ACI with authmethod equal simple'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal simple, sasl authentication'
+            </message>
+
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+            </call>
+
+            <script> 
+                 returnString = STAXResult[0][1]
+            </script> 
+    
+            <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            </call>
+                
+            <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, simple authentication'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'frogleg' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  }
+            </call>
+
+            <script> 
+                 returnString = STAXResult[0][1]
+            </script> 
+    
+            <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            </call>
+                
+            <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, delete global search ACI'
+            </message>
+
+            <script>
+                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'delete' }
+             </call>
+                
+             <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+             </if>
+    
+             <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal simple, sasl authentication'
+            </message>
+
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+            </call>
+
+            <script> 
+                 returnString = STAXResult[0][1]
+            </script> 
+    
+            <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            </call>
+                
+            <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, simple authentication'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'frogleg' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  }
+            </call>
+
+            <script> 
+                 returnString = STAXResult[0][1]
+            </script> 
+    
+            <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            </call>
+                
+            <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, adding authmethod ACI'
+            </message>
+
+            <script>
+                    curr_aci="(targetattr=\"*\")(version 3.0; acl \"aci1\"; allow (read,search,compare) authmethod=\"simple\";)"
+            </script>
+                
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : curr_aci ,
+                    'changetype'             : 'add' }
+             </call>
+                
+             <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+             </if>
+    
+             <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal simple, sasl authentication'
+            </message>
+
+            <call function="'AnonSearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
+            </call>
+
+            <script> 
+                 returnString = STAXResult[0][1]
+            </script> 
+    
+            <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            </call>
+                
+            <if expr="returnCode != '0'">
+                    <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, simple authentication'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'frogleg' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  }
+            </call>
+
+            <script> 
+                 returnString = STAXResult[0][1]
+            </script> 
+    
+            <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'dn: uid=tmorris,ou=People' }
+            </call>
+                
+            <if expr="returnCode != '1'">
+                    <tcstatus result="'fail'"/>
+            </if>
+            
+            <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, deleting authmethod ACI'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'o=SASL Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : curr_aci ,
+                    'changetype'             : 'delete' }
+             </call>
+                
+             <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+             </if>
+    
+             <message>
+               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, put back global search ACI'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : global_aci ,
+                    'changetype'             : 'add' }
+             </call>
+                
+             <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                SASL DIGEST-MD5 Tests
             #@TestName                  uid (dn:) Bind with ACI with authmethod not equals simple
             #@TestIssue                 460
             #@TestPurpose               Test bind where an ACI authmethod not equals simple applies.
