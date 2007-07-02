@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="client_auth"/>
+
+  <function name="client_auth">
+
+    <sequence>
+
+      <block name="'client_auth'">
+      
+        <sequence>
+  
+          <script>
+			CurrentTestPath['group']='security'
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+
+          <call function="'testSuite_Preamble'"/>
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
+          <call function="'security_setup'"/>         
+  
+			<!--  client authentication setup -->
+
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/client_auth/client_auth_setup.xml' % (TESTS_DIR)"/>
+          <call function="'client_auth_setup'" />
+
+				
+			<!-- fingerprint certificates mapper -->
+		<!--
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/client_auth/fingerprint.xml' % (TESTS_DIR)"/>
+          <call function="'fingerprint'" />
+				-->
+  
+          <!-- subject DN to user attribut certificate mapper -->
+			
+			 <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/client_auth/subject_dn_mapper.xml' % (TESTS_DIR)"/>
+          <call function="'subject_dn_mapper'" />
+
+			<!-- subject attribute  to user attribut certificate mapper -->
+			
+			 <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/client_auth/subject_attribute_mapper.xml' % (TESTS_DIR)"/>
+          <call function="'subject_attribute_mapper'" />
+		
+			<!-- subject equals dn certificate mapper -->
+		
+			 <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/client_auth/equal_dn_mapper.xml' % (TESTS_DIR)"/>
+          <call function="'equal_dn_mapper'" />
+	
+		  <!--  client authentication teardown -->
+          <import machine="'%s' % STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/client_auth/client_auth_teardown.xml' % (TESTS_DIR)"/>
+          <call function="'client_auth_teardown'" />
+			
+
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'security_cleanup'"/>											
+
+			
+          <call function="'testSuite_Postamble'"/>
+
+        </sequence>
+   
+      </block>
+   
+    </sequence>
+
+  </function>
+
+</stax>
