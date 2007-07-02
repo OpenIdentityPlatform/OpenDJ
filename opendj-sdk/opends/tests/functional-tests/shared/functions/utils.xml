@@ -109,11 +109,11 @@
         <sequence>
           <tcstatus result="'pass'"/>
           <message log="1">
-            'RC=%s, Result=%s' % (returncode,result)
+            'RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
           </message>
           <script>
-             RC=0
-          </script>			
+            RC=0
+          </script>
         </sequence>
         <else>
           <sequence>
@@ -424,9 +424,10 @@
     </function-prolog>
     <function-no-args />
     <sequence>
-      <message>
-        '### Starting test case %s. ###' % STAXCurrentTestcase
-      </message>
+      <message>''</message>
+      <message>'****************************************************'</message>
+      <message>'*** STARTING TEST CASE %s.' % STAXCurrentTestcase</message>
+      <message>'***'</message>
     </sequence>
   </function>
 
@@ -436,9 +437,10 @@
     </function-prolog>
     <function-no-args />
     <sequence>
-      <message>
-        '### Ending test case %s. ###' % STAXCurrentTestcase
-      </message>
+      <message>'***'</message>
+      <message>'*** ENDING TEST CASE %s.' % STAXCurrentTestcase</message>
+      <message>'****************************************************'</message>
+      <message>''</message>
     </sequence>
   </function>
 
@@ -726,4 +728,62 @@
 
   </function>
 	
+  
+   
+  <function name="CheckMatches">
+    <function-prolog>
+      check the number of matching sub-string in a string
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="string2find" type="required">
+        <function-arg-description>
+          the sub-string to check
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="mainString" type="required">
+        <function-arg-description>
+          the main string where the search is done
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="nbExpected" type="optional" default="1">
+        <function-arg-description>
+          number of expected sub-string that must be in the main string
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+    </function-map-args>
+      
+    <sequence>
+      <script>
+        nbFound = mainString.count(string2find)
+        if nbFound == nbExpected:
+            myMessage = 'SUCCESS : %s matches %s time(s) (expected %s)' % (string2find,nbFound,nbExpected)
+            myRC=0
+        else:
+            myMessage = 'ERROR : %s matches %s time(s) (expected %s) in "%s"' % (string2find,nbFound,nbExpected,mainString)
+            myRC=1
+      </script>
+      <if expr="myRC == 0">
+        <sequence>
+          <tcstatus result="'pass'"/>
+            <message log="1">
+              '%s' % myMessage
+            </message>
+        </sequence>
+        <else>
+          <sequence>
+            <tcstatus result="'fail'"/>
+            <message log="1" level="'Error'">
+              '%s' % myMessage
+            </message>
+          </sequence>
+        </else>
+      </if>
+      <return>myRC,myMessage</return>
+    </sequence>
+  </function>
+  
+  
 </stax>
