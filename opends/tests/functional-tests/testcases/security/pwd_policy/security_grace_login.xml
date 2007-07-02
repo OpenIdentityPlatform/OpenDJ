@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="grace_login"/>
+
+  <function name="grace_login">
+
+      <sequence>
+
+        <testcase name="'Security: Grace Login: Preamble, Admin Changing Pwd Policy Settings'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <script>
+                listAttrs=[]
+                listAttrs.append("ds-cfg-expire-passwords-without-warning:true")
+                listAttrs.append("ds-cfg-maximum-password-age:1 seconds")
+                listAttrs.append("ds-cfg-grace-login-count:2")
+            </script>
+            
+            <message>
+               'Security: Grace Login: Admin modifying password policy settings'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'listAttributes'         : listAttrs ,
+                    'changetype'             : 'replace' }
+            </call>
+            
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Grace Login: Search Bad Pwd 4x'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Grace Login: Pause 2 seconds'
+            </message>
+
+            <call function="'Sleep'">
+              { 'sleepForMilliSeconds' : '2000' }
+            </call>
+            
+            <message>
+               'Security: Grace Login:  Search Bind 1'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=btalbot,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'trident',
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+            
+            <if expr="RC != 19">
+                    <tcstatus result="'fail'"/>
+            </if>
+    
+            <message>
+               'Security: Grace Login:  Search Bind 2'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=btalbot,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'trident',
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+            
+            <if expr="RC != 19">
+                    <tcstatus result="'fail'"/>
+            </if>
+    
+            <message>
+               'Security: Grace Login:  Search Bind 3'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=btalbot,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'trident',
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+            
+            <if expr="RC != 49">
+                    <tcstatus result="'fail'"/>
+            </if>
+    
+            <message>
+               'Security: Grace Login:  Search Bind 4'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=btalbot,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'trident',
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+            
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult ,
+                  'expected'   : 49}
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Grace Login: Reset Pwd'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>
+               'Security: Grace Login: Reset Pwd, Search Bind 1'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=kwinters,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'forsook',
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+            
+            <if expr="RC != 19">
+                    <tcstatus result="'fail'"/>
+            </if>
+    
+            <message>
+               'Security: Grace Login: Reset Pwd, User resetting password'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=kwinters,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'forsook' ,
+                    'DNToModify'             : 'uid=kwinters,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newforsook' ,
+                    'changetype'             : 'replace' }
+            </call>
+                
+            <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+            </if>
+    
+            <message>
+               'Security: Grace Login: Reset Pwd, Admin reset max password age'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'attributeName'          : 'ds-cfg-maximum-password-age' ,
+                    'newAttributeValue'      : '24 hours' ,
+                    'changetype'             : 'replace' }
+            </call>
+                
+            <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+            </if>
+    
+            <message>
+               'Security: Grace Login: Reset Pwd, Search Bind 2'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=kwinters,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newforsook',
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+            
+            <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+            </if>
+    
+            <message>
+               'Security: Grace Login: Reset Pwd, Search Bind 3'
+            </message>
+
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=kwinters,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'newforsook',
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
+            </call>
+            
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+
+          </sequence>
+        </testcase>
+
+        <testcase name="'Security: Grace Login: Postamble, Admin Resetting Pwd Policy Settings'">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <script>
+                listAttrs=[]
+                listAttrs.append("ds-cfg-expire-passwords-without-warning:false")
+                listAttrs.append("ds-cfg-maximum-password-age:0 seconds")
+                listAttrs.append("ds-cfg-grace-login-count:0")
+            </script>
+            
+            <message>
+               'Security: Grace Login: Admin resetting password policy settings'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'listAttributes'         : listAttrs ,
+                    'changetype'             : 'replace' }
+            </call>
+            
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        
+     </sequence>
+
+  </function>
+
+</stax>
