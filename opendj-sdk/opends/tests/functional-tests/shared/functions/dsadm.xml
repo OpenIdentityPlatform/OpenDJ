@@ -2620,6 +2620,131 @@
     </sequence>
   </function> 
 
+  <!-- Add Leave Lockdown Task Function --> 
+  <function name="leaveLockdownTask">
+
+    <function-prolog>
+        This function performs a leave lockdown task 
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server host name
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+      </function-arg-def>  
+      <function-arg-def name="taskID" type="optional">
+        <function-arg-description>
+          The identifier for the task
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+
+      <sequence>
+
+         <script>
+          myLocation=location
+          taskLdifFile='leaveShutdownTask.ldif'
+          taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
+          tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+          taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
+        </script>
+        
+        <!-- Build the schema task configuration object -->
+        <script>
+          ldifLines=[]
+          ldifLines.append('dn: %s' % taskDN)
+          ldifLines.append('objectclass: top')
+          ldifLines.append('objectclass: ds-task')
+          ldifLines.append('ds-task-class-name: org.opends.server.tasks.LeaveLockdownModeTask')
+          ldifLines.append('ds-task-id: %s' % taskID)
+        </script>
+               
+                   
+        <!-- Write out the task ldif -->
+        <script>
+          outfile = open(tmpTaskLdif,"w")
+            
+          for line in ldifLines:
+            outfile.write("%s\n" % line)
+            
+          outfile.close()
+        </script>
+        
+        <!-- Copy the task ldif to remote host -->
+        <message>'Copy task ldif file.'</message>
+        <call function="'copyFile'">
+          { 'location'   : STAXServiceMachine,
+            'srcfile'    : tmpTaskLdif,
+            'destfile'   : taskLdif,
+            'remotehost' : myLocation }
+        </call>
+        
+        <!-- Copy the schema update ldif to remote host's config/schema directory -->
+        <!--
+        <message>'Copy update ldif file.'</message>
+        <call function="'copyFile'">
+          { 'location'   : myLocation,
+            'srcfile'    : '%s/schema/ldifs/%s' % (logsRemoteDataDir,ldifFile),
+            'destfile'   : '%s/%s/config/schema/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,ldifFile),
+            'remotehost' : myLocation }
+        </call>
+        -->
+      <!-- Start the task using ldap task interface -->
+      <call function="'StartLdapTask'">
+        { 'location'   : myLocation,
+          'taskLabel'  : 'Online Schema Task',
+          'dsHost'     : dsInstanceHost,
+          'dsPort'     : dsInstancePort,
+          'dsBindDn'   : dsInstanceDn,
+          'dsBindPswd' : dsInstancePswd,
+          'dsTaskLdif' : taskLdif }
+      </call>
+ 
+      <!-- Check that the ldap task is completed -->
+      <call function="'CheckLdapTask'">
+        { 'location'   : myLocation,
+          'dsTaskDn'   : taskDN,
+          'dsHost'     : dsInstanceHost,
+          'dsPort'     : dsInstancePort,
+          'dsBindDn'   : dsInstanceDn,
+          'dsBindPswd' : dsInstancePswd }
+      </call>
+
+    </sequence>
+  </function> 
+
   <!-- Total Update Task Function --> 
   <function name="TotalUpdateTask">
 
