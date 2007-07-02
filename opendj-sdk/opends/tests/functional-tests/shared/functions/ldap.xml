@@ -1048,8 +1048,7 @@
           STAFCmdParamsList.append('"%s"' % dsFilter)
   
         if dsAttributes:
-          for attribute in dsAttributes:
-            STAFCmdParamsList.append('%s' % attribute)
+          STAFCmdParamsList.append('%s' % dsAttributes)
 
          
         STAFCmdParams=' '.join(STAFCmdParamsList)
@@ -1058,7 +1057,7 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-            
+      
       <process name="'LDAP Search Script'">
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
@@ -1070,11 +1069,19 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
       <call function="'checktestRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult,
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
           'expected'   : expected }
       </call>
+      <return>
+        STAXReason
+      </return>
+      
     </sequence>
   </function>
   
@@ -1796,11 +1803,15 @@
         <returnstdout/>
       </process>
       
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason }
       </call>
-      
+      <return>STAXReason</return>
     </sequence>
     
   </function>
@@ -2614,7 +2625,7 @@
 		
     <function-arg-def name="changetype" type="required">
         <function-arg-description>
-          Type of modifcation, can be delete, add, replace
+          Type of modification, can be delete, add, replace
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
@@ -2691,12 +2702,15 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
-      
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason }
       </call>
-          
+      <return>STAXReason</return>
     </sequence>
     
   </function>
@@ -2753,7 +2767,7 @@
 		
 	   <function-arg-def name="DNToAdd" type="required">
         <function-arg-description>
-          DN to modify
+          DN to add
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def>
@@ -2812,16 +2826,165 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
- 
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+
+      <script>
+        AddRC=RC
+        AddResult=STAXResult
+      </script>
+       
+      <call function="'checktestRC'">
+        { 'returncode' : AddRC ,
+          'result'     : AddResult }
       </call>
-          
+      
+      <return>AddResult</return>
+      
+    </sequence>
+    
+  </function>
+  
+
+	<!-- Modify an attribute -->
+  <function name="modifyDn">
+    <function-prolog>
+      This function rename the rdn
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+		<function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+		
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>		  
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+		
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+		
+	   <function-arg-def name="DNToModify" type="required">
+        <function-arg-description>
+          DN to modify
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+			
+      <function-arg-def name="newRDN" type="optional">
+        <function-arg-description>
+          new rdn name : ie uid=jdoe_bis
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+		
+	   <function-arg-def name="deleteOldRDN" type="optional">
+        <function-arg-description>
+          1 : delete old rdn, 0 do not delete old rdn, default value is 1
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+  
+    <function-arg-def name="expectedErrorCode" type="optional">
+		<function-arg-description>
+			Expected Error code. Default value is 0
+		</function-arg-description>
+		<function-arg-property name="type" value="string"/>
+	</function-arg-def>			
+	
+    </function-map-args>
+    <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+      
+		
+      <!-- Build the Command -->
+      
+        STAFCmdParamsList=[]
+        STAFCmdParams=''	
+        STAFCmd=''			  	
+		</script>
+		  
+     <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'"/>
+
+      <script>
+ 
+        if DNToModify:
+          STAFCmdParamsList.append('-d "%s"' % DNToModify)
+
+        if newRDN:
+          STAFCmdParamsList.append('-e "%s"' % newRDN)
+
+        if deleteOldRDN:
+          STAFCmdParamsList.append('-f "%s"' % deleteOldRDN)		  		  		  		  
+		    
+        if expectedErrorCode:
+          STAFCmdParamsList.append('-E "%s"' % expectedErrorCode)
+		  		  
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+		  		 
+        STAFCmd='modifyDn' 
+   
+    </script>
+      <process name="'Modify DN'">
+        <location>'%s' % location</location>
+        <command>'java'</command>
+        <workdir>'%s' % TESTS_JAVA_DIR</workdir>
+		  <parms>'%s %s' % (STAFCmd,STAFCmdParams)</parms>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s' % TESTS_JAVA_DIR]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason }
+      </call>
+      <return>STAXReason</return>
     </sequence>
     
   </function>
   
   
+  
+  
+    
   
 </stax>
