@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="client_auth_teardown"/>
+
+  <function name="client_auth_teardown">
+
+     <sequence>
+
+     <!--- Test Case : client_auth Teardown -->
+     <!---
+            Place suite-specific test information here.
+            #@TestSuiteName            Teardown Tests
+            #@TestSuitePurpose        Unconfigure JKS keystore and the secure port.
+            #@TestSuiteGroup           Security JKS Teardown Tests
+            #@TestScript                   teardown_client_auth.xml
+      -->
+     <!--- Delete Branch through SSL port -->
+     <testcase name="'Security: client_auth: teardown'">
+        <!---
+            Place test-specific test information here.
+            The tag, TestMarker, must be the same as the tag, TestSuiteName.
+            #@TestMarker                Teardown Tests
+            #@TestName                  JKS Teardown Test 
+            #@TestIssue                 413
+            #@TestPurpose               Unconfigure JKS keystore.
+            #@TestPreamble              none
+            #@TestStep                  Delete entries that were used for the JKS tests.
+            #@TestStep                  Unconfigure JKS keystore.
+            #@TestStep                  Remove JKS keystore.
+            #@TestStep                  Test search with unsecure port.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0 for all operations
+         -->
+       <sequence>
+          <call function="'testCase_Preamble'"/>
+
+		  <script>
+				  CERT_TMP="%s/CERT_%s" % (DIRECTORY_INSTANCE_DIR,DIRECTORY_INSTANCE_PORT)
+			      USER_1_CERT="client-cert-1"
+                  USER_1_DN="uid=%s,%s" % (USER_1_CERT,DIRECTORY_INSTANCE_SFX)
+				  USER_2_CERT="client-cert-2"
+				  USER_2_DN="uid=%s,%s" % (USER_2_CERT,DIRECTORY_INSTANCE_SFX)
+           </script>			   
+            <!--- Unconfigure  SSL -->
+			  
+			  
+           <!--- Disable LDAPS Connection Handler -->
+           <message>
+             'Disabling LDAPS Connection Handler'
+          </message>
+
+          <call function="'modifyEntry'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified' : '%s/security/client_auth/teardown/disable_ldaps_conn_handler.ldif' % (logsRemoteDataDir) }
+         </call>
+
+     
+         <!--- Disable SSL Trust Manager Provider -->
+         <message>   'Disabling SSL Trust Manager Provider' </message>
+
+         <call function="'modifyEntry'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified' : '%s/security/client_auth/teardown/disable_trust_mgr_provider.ldif' % (logsRemoteDataDir) }
+         </call>
+
+
+
+         <!--- Disable Key Manager Provider -->
+         <message>
+          'Disabling Key Manager Provider'
+         </message>
+
+         <call function="'modifyEntry'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+               'entryToBeModified' : '%s/security/client_auth/teardown/disable_key_mgr_provider.ldif' % (logsRemoteDataDir) }
+         </call>
+
+      
+			
+			   
+         <!--- Disable StartTLS -->
+         <message>
+           'Disabling StartTLS'
+         </message>
+
+         <call function="'modifyEntry'">
+                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified' : '%s/security/client_auth/teardown/disable_startTLS.ldif' % (logsRemoteDataDir) }
+         </call>
+
+			  
+			  <!-- remove client certificates keystore -->
+            <message>
+                'Delete folder %s' % (CERT_TMP)
+            </message>  
+			
+            <call function="'deleteFolder'">
+            { 'location' : '%s' % (DIRECTORY_INSTANCE_HOST), 
+		      'foldername' : '%s' % (CERT_TMP) }
+            </call>	
+			  
+            <!--- Remove JKS Keystore -->
+            <message>
+               'Security: client_auth:  Removing JKS Keystore'
+            </message>
+
+            <call function="'deleteFile'">
+              { 'location' : STAF_REMOTE_HOSTNAME,
+                'filename' : '%s/../config/keystore' % OPENDS_BINPATH }
+            </call>
+
+            <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+      
+            <!--- Search With Unsecure Port -->
+            <message>
+               'Security: client_auth: Postamble. Searching with Unsecure Connection'
+            </message>
+
+            <call function="'SearchObject'">				
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'        :  DIRECTORY_INSTANCE_SFX ,
+				'dsScope'           :  'base',
+                'dsFilter'             : 'objectclass=*' }
+            </call>
+
+            <call function="'DeleteEntry'">
+                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                       'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
+                       'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                       'dsBaseDN'	   : USER_1_DN}
+             </call>
+	  
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+			  			  
+            <call function="'DeleteEntry'">
+                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                       'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
+                       'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                       'dsBaseDN'	   : USER_2_DN}
+             </call>
+            <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
+			  	
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+     </sequence>
+
+  </function>
+
+</stax>
