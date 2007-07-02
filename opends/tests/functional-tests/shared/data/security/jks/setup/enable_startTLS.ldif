@@ -23,12 +23,14 @@
 #      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 #
 
-dn: cn=JKS,cn=Key Manager Providers,cn=config
+dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config
 changetype: modify
-replace: ds-cfg-key-manager-provider-enabled
-ds-cfg-key-manager-provider-enabled: true
+replace: ds-cfg-allow-start-tls
+ds-cfg-allow-start-tls: true
 -
-replace: ds-cfg-key-store-pin
-ds-cfg-key-store-pin: servercert
+add: ds-cfg-trust-manager-provider-dn
+ds-cfg-trust-manager-provider-dn: cn=Blind Trust,cn=Trust Manager Providers,cn=config
 -
-delete: ds-cfg-key-store-pin-file
+add: ds-cfg-key-manager-provider-dn
+ds-cfg-key-manager-provider-dn:  cn=JKS,cn=Key Manager Providers,cn=config
+
