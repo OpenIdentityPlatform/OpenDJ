@@ -27,4 +27,3 @@ dn: cn=Blind Trust,cn=Trust Manager Providers,cn=config
 changetype: modify
 replace: ds-cfg-trust-manager-provider-enabled
 ds-cfg-trust-manager-provider-enabled: true
-
