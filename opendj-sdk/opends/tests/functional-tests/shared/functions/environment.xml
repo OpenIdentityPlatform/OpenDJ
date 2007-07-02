@@ -262,7 +262,7 @@
     <sequence>
     
       <script>
-        logsDate=strftime("%Y%m%d-%H:%M:%S",localtime())
+        logsDate=strftime("%Y%m%d-%H%M%S",localtime())
         logsArch=DSInfo.getServerArch(DSInfo.ServerDict['system os'])
         logsOSName=DSInfo.getServerOSName(DSInfo.ServerDict['system os'])
         logsOS='%s-%s' % (logsOSName,logsArch)
