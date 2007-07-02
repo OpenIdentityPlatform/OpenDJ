@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../stax.dtd">
+<!DOCTYPE stax SYSTEM "../../stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -26,6 +26,413 @@
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  ! -->
 <stax>
+	
+
+	<!-- **************************************************** -->
+	<!--                       generate a certificate                            -->
+	<!-- **************************************************** -->	
+
+ <function name="genCertificate">
+    <function-prolog>
+      This function generates a server certificate
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>		
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>	 		
+      <function-arg-def name="certAlias" type="optional" default="'server-cert'">
+        <function-arg-description>
+          Alias certificate
+	</function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dname" type="optional" default="'cn=server,O=Sun Microsystems,C=US'">	 
+        <function-arg-description>
+          Certificate subject
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystore" type="optional" default="'keystore'">
+        <function-arg-description>
+	Path for the key store file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storepass" type="optional" default="'servercert'">
+        <function-arg-description>
+         Password to protect the contents of the key store
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keypass" type="optional" default="'servercert'">
+        <function-arg-description>
+	   Password to protect the private key on the key store: keypass
+        </function-arg-description>     
+      </function-arg-def>
+      <function-arg-def name="storetype" type="optional" default="'JKS'">
+        <function-arg-description>
+           The storetype. can be JKS or PKCS12
+        </function-arg-description>
+      </function-arg-def>
+     </function-map-args>
+    <sequence>
+  <!-- Local variables -->
+    <script>
+      if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 	 
+    </script>
+	<message>'keytool -genkey -alias %s -keyalg rsa -dname "%s" -keystore %s -storepass %s -keypass %s -storetype %s ' % (certAlias,dname,keystore,storepass,keypass,storetype)</message>
+      <process name="'Generate a Certificate'">
+        <location>'%s' % location</location>	  
+        <command>'%s/bin/keytool' % JAVA_HOME</command>   
+        <parms>'-genkey -alias %s -keyalg rsa -dname "%s" -keystore %s -storepass %s -keypass %s -storetype %s ' % (certAlias,dname,keystore,storepass,keypass,storetype)</parms>
+        <workdir>'%s' % dsConfigPath</workdir>	  
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>         	  
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+     <script>
+         STAXCode=RC
+         STAXReason=STAXResult
+       </script>
+       <call function="'checktestRC'">
+         { 'returncode' : STAXCode ,
+           'result'     : STAXReason }
+       </call>
+       <return>STAXReason</return>
+    </sequence>
+  </function>
+
+
+<!-- **************************************************** -->
+<!--                       Self signed a certificate                            -->
+<!-- **************************************************** -->
+	
+  <function name="SelfSignCertificate">
+  <function-prolog>
+      This function self-signs a certificate
+  </function-prolog> 
+  <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>	
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>	 		
+      <function-arg-def name="certAlias" type="optional" default="'server-cert'">
+        <function-arg-description>
+	   Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystore" type="optional" default="'keystore'">
+         <function-arg-description>
+		Path for the key store file
+         </function-arg-description>
+       </function-arg-def>
+       <function-arg-def name="storepass" type="optional" default="'servercert'">
+         <function-arg-description>
+	      Password to protect the contents of the key store
+         </function-arg-description>
+       </function-arg-def>
+       <function-arg-def name="keypass" type="optional" default="'servercert'">
+         <function-arg-description>
+	      Password to protect the private key on the key store: keypass
+         </function-arg-description>     
+       </function-arg-def>
+       <function-arg-def name="storetype" type="optional" default="'JKS'">
+         <function-arg-description>
+	     The storetype. can be JKS or PKCS12
+         </function-arg-description>
+       </function-arg-def>		
+     </function-map-args>
+    <sequence>
+  <!-- Local variables -->
+	<script>
+      if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 	 
+  </script>
+			
+  <message>'keytool -selfcert -alias %s -keystore "%s" -keypass "%s" -storepass "%s" -storetype "%s" ' % (certAlias,keystore,keypass,storepass,storetype)</message>
+      <process name="'Generate a Self-Signs Server Certificate'">
+        <location>'%s' % location</location>
+        <command>'%s/bin/keytool' % JAVA_HOME</command> 
+        <parms>'-selfcert -alias %s -keystore "%s"  -keypass "%s" -storepass "%s" -storetype "%s" ' % (certAlias,keystore,keypass,storepass,storetype)</parms>
+        <workdir>'%s' % dsConfigPath</workdir>	  
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>         	  		  
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <script>
+         STAXCode=RC
+         STAXReason=STAXResult
+       </script>
+       <call function="'checktestRC'">
+         { 'returncode' : STAXCode ,
+           'result'     : STAXReason }
+       </call>
+       <return>STAXReason</return>	
+    </sequence>
+  </function>
+
+<!-- **************************************************** -->
+<!--                       Export  a certificate                                 -->
+<!-- **************************************************** -->	
+
+<function name="ExportCertificate">
+    <function-prolog>
+      This function exports a certificate
+    </function-prolog>
+<function-map-args>
+	
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>	
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>	 		
+      <function-arg-def name="certAlias" type="optional" default="'server-cert'">
+        <function-arg-description>
+	    Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystore" type="optional" default="'keystore'">
+        <function-arg-description>
+		Path for the key store file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storepass" type="optional" default="'servercert'">
+        <function-arg-description>
+	    Password to protect the contents of the key store
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="format" type="optional">
+        <function-arg-description>
+	   Format of the certificate. By default, it's in binary encoding
+        </function-arg-description>     
+      </function-arg-def>
+      <function-arg-def name="storetype" type="optional" default="'JKS'">
+        <function-arg-description>
+	    The storetype. can be JKS or PKCS12
+        </function-arg-description>
+      </function-arg-def>				
+     <function-arg-def name="outputfile" type="required">
+        <function-arg-description>
+		Output file to store certificate
+        </function-arg-description> 
+     </function-arg-def>			
+    </function-map-args>
+
+    <sequence>
+   
+  <!-- Local variables -->
+    <script>
+       if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 	 
+        
+       STAFCmdParams=''
+
+       if format:
+          STAFCmdParams='-%s' % (format)
+    </script>	
+	
+<message>'keytool -export -alias %s -file %s -keystore "%s"  -storepass "%s" -storetype %s %s' % (certAlias,outputfile,keystore,storepass,storetype,STAFCmdParams)</message>
+      <process name="'Export a Certificate'">
+        <location>'%s' % location</location>
+        <command>'%s/bin/keytool' % JAVA_HOME</command> 
+        <parms>'-export -alias %s -file %s -keystore "%s"  -storepass "%s" -storetype %s %s' % (certAlias,outputfile,keystore,storepass,storetype,STAFCmdParams)</parms>
+        <workdir>'%s' % dsConfigPath</workdir>	  
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>         	  		  
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <script>
+         STAXCode=RC
+         STAXReason=STAXResult
+       </script>
+       <call function="'checktestRC'">
+         { 'returncode' : STAXCode ,
+           'result'     : STAXReason }
+       </call>
+       <return>STAXReason</return>	
+    </sequence>
+  </function>
+
+<!-- **************************************************** -->
+<!--                       Import  a certificate                                  -->
+<!-- **************************************************** -->
+
+<function name="ImportCertificate">
+    <function-prolog>
+      This function imports a certificate
+    </function-prolog>
+<function-map-args>
+	
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>	
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>	 		
+      <function-arg-def name="certAlias" type="optional" default="'server-cert'">
+        <function-arg-description>
+	   Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystore" type="optional" default="'keystore'">
+        <function-arg-description>
+		Path for the key store file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storepass" type="optional" default="'servercert'">
+        <function-arg-description>
+	    Password to protect the contents of the key store
+       </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storetype" type="optional" default="'JKS'">
+        <function-arg-description>
+	  The storetype. can be JKS or PKCS12
+        </function-arg-description>
+      </function-arg-def>				
+      <function-arg-def name="inputfile" type="required">
+	    <function-arg-description>
+		Certificate to import
+        </function-arg-description>	
+      </function-arg-def>	
+     </function-map-args>
+    <sequence>
+
+  <!-- Local variables -->
+    <script>
+       if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 	 
+
+    </script>	
+			
+<message>'keytool -import -alias %s -file %s -keystore "%s"  -storepass "%s" -storetype %s -noprompt' % (certAlias,inputfile,keystore,storepass,storetype)</message>
+      <process name="'Import a Certificate'">
+        <location>'%s' % location</location>
+        <command>'%s/bin/keytool' % JAVA_HOME</command> 
+        <parms>'-import  -alias %s -file %s -keystore "%s"  -storepass "%s" -storetype %s -noprompt' % (certAlias,inputfile,keystore,storepass,storetype)</parms>
+        <workdir>'%s' % dsConfigPath</workdir>	  
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>  
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <script>
+         STAXCode=RC
+         STAXReason=STAXResult
+       </script>
+       <call function="'checktestRC'">
+         { 'returncode' : STAXCode ,
+           'result'     : STAXReason }
+       </call>
+       <return>STAXReason</return>	
+    </sequence>
+  </function>
+
+<!-- **************************************************** -->
+<!--                      get MD5 and SHA1 values                          -->
+<!-- **************************************************** -->	
+
+<function name="getFingerprint">
+    <function-prolog>
+      This function returns the fingerprint MD5 or SHA1
+    </function-prolog>
+   <function-map-args>
+
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>	
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+     </function-arg-def>	 		
+     <function-arg-def name="certAlias" type="optional" default="'server-cert'">
+        <function-arg-description>
+	   Alias certificate
+        </function-arg-description>
+     </function-arg-def>
+     <function-arg-def name="keystore" type="optional" default="'keystore'">
+        <function-arg-description>
+		Path for the key store file
+        </function-arg-description>
+     </function-arg-def>
+     <function-arg-def name="storepass" type="optional" default="'servercert'">
+       <function-arg-description>
+	    Password to protect the contents of the key store
+       </function-arg-description>
+     </function-arg-def>		
+     <function-arg-def name="fingerprint" type="optional" default="'MD5'">
+        <function-arg-description>
+		 fingerprint. can be MD5 or SHA1
+	   </function-arg-description>
+     </function-arg-def>
+    </function-map-args>
+    <sequence>
+
+  <!-- Local variables -->
+    <script>
+       if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 	 
+
+    </script>			
+      <message>' -keystore "%s"  -storepass "%s"  -alias "%s" -list -v' % (keystore,storepass,certAlias)</message>
+      <process name="'getFingerprint'">
+        <location>'%s' % location</location>
+        <command>'%s/bin/keytool' % JAVA_HOME</command> 
+        <parms>' -list -v -keystore "%s"  -storepass "%s"  -alias "%s"' % (keystore,storepass,certAlias)</parms>
+       <workdir>'%s' % dsConfigPath</workdir>	  
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>  
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <script>
+         STAXCode=RC
+         STAXReason=STAXResult
+       </script>
+       <call function="'checktestRC'">
+         { 'returncode' : STAXCode ,
+           'result'     : STAXReason }
+       </call>
+       <return>STAXReason</return>    
+    </sequence>
+  </function>
+
+  
+<!-- Configure SSL -->
   <function name="configureSSL">
     <function-prolog>
       This function makes the configuration changes for SSL
@@ -103,7 +510,7 @@
           'dsInstancePswd'    : mypswd ,
           'entryToBeModified' : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
       { 'returncode' : RC ,
         'result'     : STAXResult }
       </call>
@@ -122,7 +529,7 @@
           'entryToBeModified' : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
       </call>
@@ -141,7 +548,7 @@
           'entryToBeModified' : '%s/security/ldaps_port.ldif' % (logsRemoteDataDir) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
       </call>
@@ -159,7 +566,7 @@
           'entryToBeModified' : '%s/security/%s/setup/enable_ldaps_conn_handler.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
       </call>
@@ -240,7 +647,7 @@
           'dsInstancePswd'    : mypswd ,
           'entryToBeModified' : '%s/security/%s/setup/enable_key_mgr_provider.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
       { 'returncode' : RC ,
         'result'     : STAXResult }
       </call>
@@ -259,7 +666,7 @@
           'entryToBeModified' : '%s/security/%s/setup/enable_trust_mgr_provider.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
       </call>
@@ -278,13 +685,15 @@
           'entryToBeAdded'  : '%s/security/%s/setup/enable_startTLS.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }
       </call>
     </sequence>
   </function>
 
+
+<!-- Unconfigure SSL -->
   <function name="unconfigureSSL">
     <function-prolog>
       This function reverses the configuration changes for SSL
@@ -363,7 +772,7 @@
           'entryToBeModified' : '%s/security/%s/teardown/disable_ldaps_conn_handler.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
       </call>
@@ -382,7 +791,7 @@
           'entryToBeModified' : '%s/security/%s/teardown/disable_trust_mgr_provider.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
       </call>
@@ -401,7 +810,7 @@
           'entryToBeModified' : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
       </call>
@@ -487,7 +896,7 @@
           'entryToBeModified' : '%s/security/%s/teardown/disable_startTLS.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
       </call>
@@ -506,7 +915,7 @@
           'entryToBeModified' : '%s/security/%s/teardown/disable_trust_mgr_provider.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
       </call>
@@ -525,10 +934,11 @@
           'entryToBeModified' : '%s/security/%s/teardown/disable_key_mgr_provider.ldif' % (logsRemoteDataDir,keystoreType) }
       </call>
 
-      <call function="'checkRC'">
+      <call function="'checktestRC'">
           { 'returncode' : RC ,
             'result'     : STAXResult }
       </call>
       </sequence>
     </function>
+
 </stax>
