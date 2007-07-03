@@ -27,19 +27,19 @@
 package org.opends.server.core;
 
 
-
 import java.util.ArrayList;
 import java.util.Set;
 
 import org.opends.server.controls.EntryChangeNotificationControl;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.types.Control;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
+import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -181,7 +181,7 @@ public class PersistentSearch
    * @param  addOperation  The add operation that has been processed.
    * @param  entry         The entry that was added.
    */
-  public void processAdd(AddOperation addOperation, Entry entry)
+  public void processAdd(LocalBackendAddOperation addOperation, Entry entry)
   {
     // See if we care about add operations.
     if (! changeTypes.contains(PersistentSearchChangeType.ADD))
@@ -296,7 +296,8 @@ public class PersistentSearch
    * @param  deleteOperation  The delete operation that has been processed.
    * @param  entry            The entry that was removed.
    */
-  public void processDelete(DeleteOperation deleteOperation, Entry entry)
+  public void processDelete(LocalBackendDeleteOperation deleteOperation,
+      Entry entry)
   {
     // See if we care about delete operations.
     if (! changeTypes.contains(PersistentSearchChangeType.DELETE))
@@ -412,7 +413,8 @@ public class PersistentSearch
    * @param  oldEntry         The entry before the modification was applied.
    * @param  newEntry         The entry after the modification was applied.
    */
-  public void processModify(ModifyOperation modifyOperation, Entry oldEntry,
+  public void processModify(LocalBackendModifyOperation modifyOperation,
+                            Entry oldEntry,
                             Entry newEntry)
   {
     // See if we care about modify operations.

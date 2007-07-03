@@ -32,11 +32,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
+import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.operation.PostOperationUnbindOperation;
 import org.opends.server.types.operation.PreParseUnbindOperation;
@@ -52,19 +54,14 @@ import static org.opends.server.messages.MessageHandler.*;
  * between the client and the Directory Server.
  */
 public class UnbindOperation
-       extends Operation
+       extends AbstractOperation
        implements PreParseUnbindOperation, PostOperationUnbindOperation
 {
 
-
-
-  // The time that processing started on this operation.
-  private long processingStartTime;
-
-  // The time that processing ended on this operation.
-  private long processingStopTime;
-
-
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = DebugLogger.getTracer();
 
   /**
    * Creates a new unbind operation with the provided information.
@@ -180,45 +177,13 @@ public class UnbindOperation
     // An unbind operation can never have a response, so just ignore this.
   }
 
-
-
   /**
-   * {@inheritDoc}
+   * Performs the work of actually processing this operation.  This
+   * should include all processing for the operation, including
+   * invoking plugins, logging messages, performing access control,
+   * managing synchronization, and any other work that might need to
+   * be done in the course of processing.
    */
-  @Override()
-  public long getProcessingStartTime()
-  {
-    return processingStartTime;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public long getProcessingStopTime()
-  {
-    return processingStopTime;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public long getProcessingTime()
-  {
-    return (processingStopTime - processingStartTime);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
   public final void run()
   {
     // Get the plugin config manager that will be used for invoking plugins.
@@ -226,7 +191,7 @@ public class UnbindOperation
          DirectoryServer.getPluginConfigManager();
     boolean skipPostOperation = false;
 
-    processingStartTime = System.currentTimeMillis();
+    setProcessingStartTime();
 
 
     // Invoke the pre-parse unbind plugins.  We don't care about the result
@@ -250,7 +215,7 @@ public class UnbindOperation
     // Invoke the post-operation unbind plugins.
     pluginConfigManager.invokePostOperationUnbindPlugins(this);
 
-    processingStopTime = System.currentTimeMillis();
+    setProcessingStopTime();
   }
 
 
@@ -282,7 +247,7 @@ public class UnbindOperation
    * {@inheritDoc}
    */
   @Override()
-  protected boolean setCancelRequest(CancelRequest cancelRequest)
+  public boolean setCancelRequest(CancelRequest cancelRequest)
   {
     // Unbind operations cannot be canceled.
     return false;
@@ -302,5 +267,6 @@ public class UnbindOperation
     buffer.append(operationID);
     buffer.append(")");
   }
+
 }
 

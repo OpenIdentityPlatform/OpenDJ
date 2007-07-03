@@ -29,6 +29,7 @@ package org.opends.server.replication.protocol;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -148,7 +149,7 @@ public class ModifyMsg extends UpdateMessage
     for (ASN1Element elem : mods)
       ldapmods.add(LDAPModification.decode(elem));
 
-    ModifyOperation mod = new ModifyOperation(connection,
+    ModifyOperationBasis mod = new ModifyOperationBasis(connection,
                                InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), null,
                                new ASN1OctetString(newDn), ldapmods);

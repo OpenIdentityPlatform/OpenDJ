@@ -55,6 +55,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.testng.Assert.*;
 
@@ -1101,7 +1102,10 @@ public class EntryDNVirtualAttributeProviderTestCase
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, null, null);
-    provider.processSearch(rule, searchOperation);
+    LocalBackendSearchOperation localSearch =
+      new LocalBackendSearchOperation(searchOperation);
+    
+    provider.processSearch(rule, localSearch);
 
     if (shouldMatch)
     {

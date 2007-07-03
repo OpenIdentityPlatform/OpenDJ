@@ -61,6 +61,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import org.opends.server.types.AbstractOperation;
 
 
 
@@ -122,7 +123,7 @@ public class TraditionalWorkQueue
   private int numWorkerThreads;
 
   // The queue that will be used to actually hold the pending operations.
-  private LinkedBlockingQueue<Operation> opQueue;
+  private LinkedBlockingQueue<AbstractOperation> opQueue;
 
   // The lock used to provide threadsafe access for the queue.
   private ReentrantLock queueLock;
@@ -167,11 +168,11 @@ public class TraditionalWorkQueue
     // Create the actual work queue.
     if (maxCapacity > 0)
     {
-      opQueue = new LinkedBlockingQueue<Operation>(maxCapacity);
+      opQueue = new LinkedBlockingQueue<AbstractOperation>(maxCapacity);
     }
     else
     {
-      opQueue = new LinkedBlockingQueue<Operation>();
+      opQueue = new LinkedBlockingQueue<AbstractOperation>();
     }
 
 
@@ -295,8 +296,7 @@ public class TraditionalWorkQueue
    *                              down or the pending operation queue is already
    *                              at its maximum capacity).
    */
-  @Override()
-  public void submitOperation(Operation operation)
+  public void submitOperation(AbstractOperation operation)
          throws DirectoryException
   {
     if (shutdownRequested)
@@ -331,7 +331,7 @@ public class TraditionalWorkQueue
    *          if the server is shutting down and no more operations will be
    *          processed.
    */
-  public Operation nextOperation(TraditionalWorkerThread workerThread)
+  public AbstractOperation nextOperation(TraditionalWorkerThread workerThread)
   {
     return retryNextOperation(workerThread, 0);
   }
@@ -354,7 +354,8 @@ public class TraditionalWorkQueue
    *          if the server is shutting down and no more operations will be
    *          processed, or if there have been too many consecutive failures.
    */
-  private Operation retryNextOperation(TraditionalWorkerThread workerThread,
+  private AbstractOperation retryNextOperation(
+                                       TraditionalWorkerThread workerThread,
                                        int numFailures)
   {
     // See if we should kill off this thread.  This could be necessary if the
@@ -414,7 +415,7 @@ public class TraditionalWorkQueue
     {
       while (true)
       {
-        Operation nextOperation = opQueue.poll(5, TimeUnit.SECONDS);
+        AbstractOperation nextOperation = opQueue.poll(5, TimeUnit.SECONDS);
         if (nextOperation == null)
         {
           // There was no work to do in the specified length of time.  See if
@@ -512,7 +513,7 @@ public class TraditionalWorkQueue
    * @return  <CODE>true</CODE> if the provided request was present in the queue
    *          and was removed successfully, or <CODE>false</CODE> it not.
    */
-  public boolean removeOperation(Operation operation)
+  public boolean removeOperation(AbstractOperation operation)
   {
     return opQueue.remove(operation);
   }
@@ -642,20 +643,22 @@ public class TraditionalWorkQueue
 
       try
       {
-        LinkedBlockingQueue<Operation> newOpQueue;
+        LinkedBlockingQueue<AbstractOperation> newOpQueue;
         if (newMaxCapacity > 0)
         {
-          newOpQueue = new LinkedBlockingQueue<Operation>(newMaxCapacity);
+          newOpQueue =
+            new LinkedBlockingQueue<AbstractOperation>(newMaxCapacity);
         }
         else
         {
-          newOpQueue = new LinkedBlockingQueue<Operation>();
+          newOpQueue = new LinkedBlockingQueue<AbstractOperation>();
         }
 
-        LinkedBlockingQueue<Operation> oldOpQueue = opQueue;
+        LinkedBlockingQueue<AbstractOperation> oldOpQueue = opQueue;
         opQueue = newOpQueue;
 
-        LinkedList<Operation> pendingOps = new LinkedList<Operation>();
+        LinkedList<AbstractOperation> pendingOps =
+          new LinkedList<AbstractOperation>();
         oldOpQueue.drainTo(pendingOps);
 
 
@@ -665,10 +668,10 @@ public class TraditionalWorkQueue
         // loop a few times to get everything in there.
         while (! pendingOps.isEmpty())
         {
-          Iterator<Operation> iterator = pendingOps.iterator();
+          Iterator<AbstractOperation> iterator = pendingOps.iterator();
           while (iterator.hasNext())
           {
-            Operation o = iterator.next();
+            AbstractOperation o = iterator.next();
             try
             {
               if (newOpQueue.offer(o, 1000, TimeUnit.MILLISECONDS))

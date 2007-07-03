@@ -6169,6 +6169,16 @@ public class CoreMessages
        CATEGORY_MASK_CORE | SEVERITY_MASK_NOTICE | 619;
 
 
+  /**
+   * The message ID for the message that will be used if a workflow is
+   * configured with no root workflow element. No root workflow element
+   * means no processing on the DIT attached to the workflow, which makes
+   * no sense.
+   */
+  public static final int MSGID_WARNING_ROOT_WORKFLOW_ELEMENT_NOT_DEFINED =
+    CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 620;
+
+
 
   /**
    * The message ID for the message that will be used if an attribute used an
@@ -8443,6 +8453,11 @@ public class CoreMessages
                     "The Directory Server is leaving lockdown mode and will " +
                     "resume normal operation");
 
+    registerMessage(MSGID_WARNING_ROOT_WORKFLOW_ELEMENT_NOT_DEFINED,
+        "The workflow with base DN \"%s\" has no root workflow " +
+        "element"
+        );
+
 
     registerMessage(MSGID_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN,
                     "Unable to decode the provided attribute because it " +
@@ -8458,6 +8473,10 @@ public class CoreMessages
     registerMessage(MSGID_ENTRYENCODECFG_INVALID_LENGTH,
                     "Unable to decode the provided entry encode " +
                     "configuration element because it has an invalid length");
+
+    registerMessage(MSGID_WARNING_ROOT_WORKFLOW_ELEMENT_NOT_DEFINED,
+                    "The workflow with base DN \"%s\" has no root workflow " +
+                    "element");
   }
 }
 

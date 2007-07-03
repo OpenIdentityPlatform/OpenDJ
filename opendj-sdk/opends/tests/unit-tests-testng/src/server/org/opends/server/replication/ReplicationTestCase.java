@@ -31,52 +31,50 @@ import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.fail;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.NoSuchElementException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.ReplicationBroker;
-import org.opends.server.replication.plugin.ReplicationDomain;
-import org.opends.server.replication.plugin.PersistentServerState;
-import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.plugin.PersistentServerState;
+import org.opends.server.replication.plugin.ReplicationBroker;
+import org.opends.server.schema.DirectoryStringSyntax;
+import org.opends.server.schema.IntegerSyntax;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
 import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
+import org.opends.server.types.SearchScope;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
-
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 /**
  * An abstract class that all Replication unit test should extend.
@@ -254,7 +252,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         ErrorLogSeverity.NOTICE,
         "ReplicationTestCase/Cleaning config entries" , 1);
 
-    DeleteOperation op;
+    DeleteOperationBasis op;
     // Delete entries
     try
     {
@@ -265,10 +263,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
             ErrorLogSeverity.NOTICE,
             "cleaning config entry " + dn, 1);
 
-        op = new DeleteOperation(connection, InternalClientConnection
+        op = new DeleteOperationBasis(connection, InternalClientConnection
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,
             dn);
-
         op.run();
       }
     }
@@ -286,7 +283,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         ErrorLogSeverity.NOTICE,
         "ReplicationTestCase/Cleaning entries" , 1);
 
-    DeleteOperation op;
+    DeleteOperationBasis op;
     // Delete entries
     try
     {
@@ -297,7 +294,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
             ErrorLogSeverity.NOTICE,
             "cleaning entry " + dn, 1);
 
-        op = new DeleteOperation(connection, InternalClientConnection
+        op = new DeleteOperationBasis(connection, InternalClientConnection
             .nextOperationID(), InternalClientConnection.nextMessageID(), null,
             dn);
 

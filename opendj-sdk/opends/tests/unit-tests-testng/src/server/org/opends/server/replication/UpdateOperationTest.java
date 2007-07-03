@@ -28,7 +28,12 @@
 package org.opends.server.replication;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -37,7 +42,17 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.plugins.ShortCircuitPlugin;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.ReplicationBroker;
@@ -49,16 +64,21 @@ import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -246,7 +266,7 @@ public class UpdateOperationTest extends ReplicationTestCase
    */
   private void addEntry(Entry entry) throws Exception
   {
-    AddOperation addOp = new AddOperation(connection,
+    AddOperationBasis addOp = new AddOperationBasis(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
             .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
         entry.getUserAttributes(), entry.getOperationalAttributes());
@@ -933,7 +953,7 @@ public class UpdateOperationTest extends ReplicationTestCase
     for (String entryStr : topEntries)
     {
       entry = TestCaseUtils.entryFromLdifString(entryStr);
-      AddOperation addOp = new AddOperation(connection,
+      AddOperationBasis addOp = new AddOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
           entry.getUserAttributes(), entry.getOperationalAttributes());
@@ -974,7 +994,7 @@ public class UpdateOperationTest extends ReplicationTestCase
          + "objectClass: organizationalUnit\n"
          + "entryUUID: 66666666-6666-6666-6666-666666666666\n";
     entry = TestCaseUtils.entryFromLdifString(p2);
-    AddOperation addOp = new AddOperation(connection,
+    AddOperationBasis addOp = new AddOperationBasis(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
         .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
         entry.getUserAttributes(), entry.getOperationalAttributes());
@@ -1122,7 +1142,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Create an Entry (add operation)
       Entry tmp = personEntry.duplicate(false);
-      AddOperation addOp = new AddOperation(connection,
+      AddOperationBasis addOp = new AddOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, tmp.getDN(),
           tmp.getObjectClasses(), tmp.getUserAttributes(),
@@ -1151,7 +1171,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       // Modify the entry
       List<Modification> mods = generatemods("telephonenumber", "01 02 45");
 
-      ModifyOperation modOp = new ModifyOperation(connection,
+      ModifyOperationBasis modOp = new ModifyOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, personEntry.getDN(), mods);
       modOp.setInternalOperation(true);
@@ -1191,7 +1211,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       "The received MODIFY_DN message is not for the excepted DN");
 
       // Delete the entry
-      DeleteOperation delOp = new DeleteOperation(connection,
+      DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, DN
           .decode("uid= new person,ou=People,dc=example,dc=com"));
@@ -1357,8 +1377,8 @@ public class UpdateOperationTest extends ReplicationTestCase
         "Starting replication test : deleteNoSuchObject" , 1);
 
     DN dn = DN.decode("cn=No Such Object,ou=People,dc=example,dc=com");
-    Operation op =
-         new DeleteOperation(connection,
+    DeleteOperationBasis op =
+         new DeleteOperationBasis(connection,
                              InternalClientConnection.nextOperationID(),
                              InternalClientConnection.nextMessageID(), null,
                              dn);
@@ -1404,8 +1424,8 @@ public class UpdateOperationTest extends ReplicationTestCase
           + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
           + "userPassword: password\n" + "initials: AA\n";
       Entry tmp = TestCaseUtils.entryFromLdifString(personLdif);
-      AddOperation addOp =
-           new AddOperation(connection,
+      AddOperationBasis addOp =
+           new AddOperationBasis(connection,
                             InternalClientConnection.nextOperationID(),
                             InternalClientConnection.nextMessageID(),
                             null, tmp.getDN(), tmp.getObjectClasses(),

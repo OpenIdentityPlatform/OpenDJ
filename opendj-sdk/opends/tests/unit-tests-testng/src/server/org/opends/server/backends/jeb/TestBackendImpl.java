@@ -54,6 +54,10 @@ import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
 import com.sleepycat.je.DatabaseEntry;
 
+import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
+
 /**
  * BackendImpl Tester.
  */
@@ -726,7 +730,7 @@ public class TestBackendImpl extends JebTestCase {
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
 
-    DeleteOperation delete = new DeleteOperation(conn,
+    DeleteOperationBasis delete = new DeleteOperationBasis(conn,
         conn.nextOperationID(),
         conn.nextMessageID(),
         deleteSubTreeControl,
@@ -777,10 +781,10 @@ public class TestBackendImpl extends JebTestCase {
       entryID = ec.getDN2ID().get(null,
           DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
 
-      DeleteOperation delete = new DeleteOperation(conn,
-          conn.nextOperationID(),
-          conn.nextMessageID(),
-          noControls,
+      DeleteOperationBasis delete = new DeleteOperationBasis(conn,
+        conn.nextOperationID(),
+        conn.nextMessageID(),
+        noControls,
 
           DN.decode("uid=user.539,ou=People,dc=test,dc=com"));
 
@@ -1025,15 +1029,15 @@ public class TestBackendImpl extends JebTestCase {
       InternalClientConnection conn =
           InternalClientConnection.getRootConnection();
 
-      ModifyOperation modifyOp = new ModifyOperation(conn,
-          conn.nextOperationID(),
-          conn.nextMessageID(),
-          noControls,
-          DN.decode("uid=user.1,ou=People,dc=test,dc=com"),
-          modifications);
+    ModifyOperationBasis modifyOp = new ModifyOperationBasis(conn,
+        conn.nextOperationID(),
+        conn.nextMessageID(),
+        noControls,
+        DN.decode("uid=user.1,ou=People,dc=test,dc=com"),
+        modifications);
 
 
-      backend.replaceEntry(newEntry, modifyOp);
+    backend.replaceEntry(newEntry, modifyOp);
 
       entry = ec.getEntry(DN.decode("uid=user.1,ou=People,dc=test,dc=com"));
 

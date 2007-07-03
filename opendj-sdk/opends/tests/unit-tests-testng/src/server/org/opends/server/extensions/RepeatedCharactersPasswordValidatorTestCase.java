@@ -42,10 +42,8 @@ import org.opends.server.admin.std.meta.
 import org.opends.server.admin.std.server.
             RepeatedCharactersPasswordValidatorCfg;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
@@ -316,8 +314,9 @@ public class RepeatedCharactersPasswordValidatorTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(conn, conn.nextOperationID(),
+                             conn.nextMessageID(),
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
@@ -384,8 +383,9 @@ public class RepeatedCharactersPasswordValidatorTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(conn, conn.nextOperationID(),
+                             conn.nextMessageID(),
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
@@ -451,8 +451,9 @@ public class RepeatedCharactersPasswordValidatorTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(conn, conn.nextOperationID(),
+                             conn.nextMessageID(),
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
@@ -519,8 +520,9 @@ public class RepeatedCharactersPasswordValidatorTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(conn, conn.nextOperationID(),
+                             conn.nextMessageID(),
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
@@ -585,8 +587,9 @@ public class RepeatedCharactersPasswordValidatorTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(conn, conn.nextOperationID(),
+                             conn.nextMessageID(),
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 
@@ -652,8 +655,9 @@ public class RepeatedCharactersPasswordValidatorTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-         new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(conn, conn.nextOperationID(),
+                             conn.nextMessageID(),
                              new ArrayList<Control>(),
                              DN.decode("uid=test.user,o=test"), mods);
 

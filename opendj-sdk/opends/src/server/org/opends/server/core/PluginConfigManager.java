@@ -80,6 +80,28 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationBindOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostOperationSearchOperation;
+import org.opends.server.types.operation.PostResponseAddOperation;
+import org.opends.server.types.operation.PostResponseBindOperation;
+import org.opends.server.types.operation.PostResponseDeleteOperation;
+import org.opends.server.types.operation.PostResponseModifyOperation;
+import org.opends.server.types.operation.PostResponseSearchOperation;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationBindOperation;
+import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.types.operation.PreOperationSearchOperation;
+import org.opends.server.types.operation.PreParseAddOperation;
+import org.opends.server.types.operation.PreParseBindOperation;
+import org.opends.server.types.operation.PreParseDeleteOperation;
+import org.opends.server.types.operation.PreParseModifyOperation;
+import org.opends.server.types.operation.PreParseSearchOperation;
+import org.opends.server.workflowelement.localbackend.*;
+
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -1758,8 +1780,8 @@ public class PluginConfigManager
    *
    * @return  The result of processing the pre-parse add plugins.
    */
-  public PreParsePluginResult invokePreParseAddPlugins(AddOperation
-                                                            addOperation)
+  public PreParsePluginResult invokePreParseAddPlugins(
+      PreParseAddOperation addOperation)
   {
     PreParsePluginResult result = null;
 
@@ -1839,7 +1861,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse bind plugins.
    */
   public PreParsePluginResult invokePreParseBindPlugins(
-                                   BindOperation bindOperation)
+                                   PreParseBindOperation bindOperation)
   {
     PreParsePluginResult result = null;
 
@@ -2001,7 +2023,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse delete plugins.
    */
   public PreParsePluginResult invokePreParseDeletePlugins(
-                                   DeleteOperation deleteOperation)
+                              PreParseDeleteOperation deleteOperation)
   {
     PreParsePluginResult result = null;
 
@@ -2159,13 +2181,13 @@ public class PluginConfigManager
    * Invokes the set of pre-parse modify plugins that have been configured in
    * the Directory Server.
    *
-   * @param  modifyOperation  The modify operation for which to invoke the
+   * @param  operation  The modify operation for which to invoke the
    *                          pre-parse plugins.
    *
    * @return  The result of processing the pre-parse modify plugins.
    */
   public PreParsePluginResult invokePreParseModifyPlugins(
-                                   ModifyOperation modifyOperation)
+                                   PreParseModifyOperation operation)
   {
     PreParsePluginResult result = null;
 
@@ -2173,7 +2195,7 @@ public class PluginConfigManager
     {
       try
       {
-        result = p.doPreParse(modifyOperation);
+        result = p.doPreParse(operation);
       }
       catch (Exception e)
       {
@@ -2185,17 +2207,17 @@ public class PluginConfigManager
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION;
         String message =
              getMessage(msgID,
-                        modifyOperation.getOperationType().getOperationName(),
+                        operation.getOperationType().getOperationName(),
                         String.valueOf(p.getPluginEntryDN()),
-                        modifyOperation.getConnectionID(),
-                        modifyOperation.getOperationID(),
+                        operation.getConnectionID(),
+                        operation.getOperationID(),
                         stackTraceToSingleLineString(e));
         logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
 
-        modifyOperation.setResultCode(
+        operation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
-        modifyOperation.appendErrorMessage(message);
+        operation.appendErrorMessage(message);
 
         return new PreParsePluginResult(false, false, true);
       }
@@ -2205,16 +2227,16 @@ public class PluginConfigManager
         int    msgID   = MSGID_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL;
         String message =
              getMessage(msgID,
-                        modifyOperation.getOperationType().getOperationName(),
+                        operation.getOperationType().getOperationName(),
                         String.valueOf(p.getPluginEntryDN()),
-                        modifyOperation.getConnectionID(),
-                        modifyOperation.getOperationID());
+                        operation.getConnectionID(),
+                        operation.getOperationID());
         logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
 
-        modifyOperation.setResultCode(
+        operation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
-        modifyOperation.appendErrorMessage(message);
+        operation.appendErrorMessage(message);
 
         return new PreParsePluginResult(false, false, true);
       }
@@ -2329,7 +2351,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse search plugins.
    */
   public PreParsePluginResult invokePreParseSearchPlugins(
-                                   SearchOperation searchOperation)
+                                   PreParseSearchOperation searchOperation)
   {
     PreParsePluginResult result = null;
 
@@ -2493,7 +2515,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-operation add plugins.
    */
   public PreOperationPluginResult invokePreOperationAddPlugins(
-                                       AddOperation addOperation)
+                                       PreOperationAddOperation addOperation)
   {
     PreOperationPluginResult result = null;
 
@@ -2573,7 +2595,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-operation bind plugins.
    */
   public PreOperationPluginResult invokePreOperationBindPlugins(
-                                       BindOperation bindOperation)
+                                       PreOperationBindOperation bindOperation)
   {
     PreOperationPluginResult result = null;
 
@@ -2735,7 +2757,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-operation delete plugins.
    */
   public PreOperationPluginResult invokePreOperationDeletePlugins(
-                                       DeleteOperation deleteOperation)
+                                  PreOperationDeleteOperation deleteOperation)
   {
     PreOperationPluginResult result = null;
 
@@ -2899,7 +2921,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-operation modify plugins.
    */
   public PreOperationPluginResult invokePreOperationModifyPlugins(
-                                       ModifyOperation modifyOperation)
+                                  PreOperationModifyOperation modifyOperation)
   {
     PreOperationPluginResult result = null;
 
@@ -3063,7 +3085,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-operation search plugins.
    */
   public PreOperationPluginResult invokePreOperationSearchPlugins(
-                                       SearchOperation searchOperation)
+                                  PreOperationSearchOperation searchOperation)
   {
     PreOperationPluginResult result = null;
 
@@ -3227,7 +3249,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation add plugins.
    */
   public PostOperationPluginResult invokePostOperationAddPlugins(
-                                        AddOperation addOperation)
+                                        PostOperationAddOperation addOperation)
   {
     PostOperationPluginResult result = null;
 
@@ -3307,7 +3329,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation bind plugins.
    */
   public PostOperationPluginResult invokePostOperationBindPlugins(
-                                        BindOperation bindOperation)
+                                   PostOperationBindOperation bindOperation)
   {
     PostOperationPluginResult result = null;
 
@@ -3469,7 +3491,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation delete plugins.
    */
   public PostOperationPluginResult invokePostOperationDeletePlugins(
-                                        DeleteOperation deleteOperation)
+                                   PostOperationDeleteOperation deleteOperation)
   {
     PostOperationPluginResult result = null;
 
@@ -3633,7 +3655,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation modify plugins.
    */
   public PostOperationPluginResult invokePostOperationModifyPlugins(
-                                        ModifyOperation modifyOperation)
+                                   PostOperationModifyOperation modifyOperation)
   {
     PostOperationPluginResult result = null;
 
@@ -3797,7 +3819,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation search plugins.
    */
   public PostOperationPluginResult invokePostOperationSearchPlugins(
-                                        SearchOperation searchOperation)
+                                   PostOperationSearchOperation searchOperation)
   {
     PostOperationPluginResult result = null;
 
@@ -3961,7 +3983,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-response add plugins.
    */
   public PostResponsePluginResult invokePostResponseAddPlugins(
-                                       AddOperation addOperation)
+                                       PostResponseAddOperation addOperation)
   {
     PostResponsePluginResult result = null;
 
@@ -4035,7 +4057,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-response bind plugins.
    */
   public PostResponsePluginResult invokePostResponseBindPlugins(
-                                       BindOperation bindOperation)
+                                       PostResponseBindOperation bindOperation)
   {
     PostResponsePluginResult result = null;
 
@@ -4183,7 +4205,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-response delete plugins.
    */
   public PostResponsePluginResult invokePostResponseDeletePlugins(
-                                       DeleteOperation deleteOperation)
+                          PostResponseDeleteOperation deleteOperation)
   {
     PostResponsePluginResult result = null;
 
@@ -4331,7 +4353,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-response modify plugins.
    */
   public PostResponsePluginResult invokePostResponseModifyPlugins(
-                                       ModifyOperation modifyOperation)
+                                  PostResponseModifyOperation modifyOperation)
   {
     PostResponsePluginResult result = null;
 
@@ -4479,7 +4501,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-response search plugins.
    */
   public PostResponsePluginResult invokePostResponseSearchPlugins(
-                                       SearchOperation searchOperation)
+                                  PostResponseSearchOperation searchOperation)
   {
     PostResponsePluginResult result = null;
 
@@ -4541,7 +4563,75 @@ public class PluginConfigManager
     return result;
   }
 
+  /**
+   * Invokes the set of search result entry plugins that have been configured
+   * in the Directory Server.
+   *
+   * @param  searchOperation  The search operation for which to invoke the
+   *                          search result entry plugins.
+   * @param  searchEntry      The search result entry to be processed.
+   *
+   * @return  The result of processing the search result entry plugins.
+   */
+  public SearchEntryPluginResult invokeSearchResultEntryPlugins(
+                                 LocalBackendSearchOperation searchOperation,
+                                 SearchResultEntry searchEntry)
+  {
+    SearchEntryPluginResult result = null;
 
+    for (DirectoryServerPlugin p : searchResultEntryPlugins)
+    {
+      try
+      {
+        result = p.processSearchEntry(searchOperation, searchEntry);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        int    msgID   = MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_EXCEPTION;
+        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
+                                    searchOperation.getConnectionID(),
+                                    searchOperation.getOperationID(),
+                                    String.valueOf(searchEntry.getDN()),
+                                    stackTraceToSingleLineString(e));
+        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+
+        return new SearchEntryPluginResult(false, false, false, false);
+      }
+
+      if (result == null)
+      {
+        int    msgID   = MSGID_PLUGIN_SEARCH_ENTRY_PLUGIN_RETURNED_NULL;
+        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
+                                    searchOperation.getConnectionID(),
+                                    searchOperation.getOperationID(),
+                                    String.valueOf(searchEntry.getDN()));
+        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+
+        return new SearchEntryPluginResult(false, false, false, false);
+      }
+      else if (result.connectionTerminated() ||
+               (! result.continuePluginProcessing()))
+      {
+        return result;
+      }
+    }
+
+    if (result == null)
+    {
+      // This should only happen if there were no search result entry plugins
+      // registered, which is fine.
+      result = SearchEntryPluginResult.SUCCESS;
+    }
+
+    return result;
+  }
 
   /**
    * Invokes the set of search result entry plugins that have been configured
@@ -4554,7 +4644,7 @@ public class PluginConfigManager
    * @return  The result of processing the search result entry plugins.
    */
   public SearchEntryPluginResult invokeSearchResultEntryPlugins(
-                                      SearchOperation searchOperation,
+                                      SearchOperationBasis searchOperation,
                                       SearchResultEntry searchEntry)
   {
     SearchEntryPluginResult result = null;
@@ -4613,7 +4703,75 @@ public class PluginConfigManager
     return result;
   }
 
+  /**
+   * Invokes the set of search result reference plugins that have been
+   * configured in the Directory Server.
+   *
+   * @param  searchOperation  The search operation for which to invoke the
+   *                          search result reference plugins.
+   * @param  searchReference  The search result reference to be processed.
+   *
+   * @return  The result of processing the search result reference plugins.
+   */
+  public SearchReferencePluginResult invokeSearchResultReferencePlugins(
+                                   LocalBackendSearchOperation searchOperation,
+                                   SearchResultReference searchReference)
+  {
+    SearchReferencePluginResult result = null;
 
+    for (DirectoryServerPlugin p : searchResultReferencePlugins)
+    {
+      try
+      {
+        result = p.processSearchReference(searchOperation, searchReference);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        int    msgID   = MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_EXCEPTION;
+        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
+                                    searchOperation.getConnectionID(),
+                                    searchOperation.getOperationID(),
+                                    searchReference.getReferralURLString(),
+                                    stackTraceToSingleLineString(e));
+        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+
+        return new SearchReferencePluginResult(false, false, false, false);
+      }
+
+      if (result == null)
+      {
+        int    msgID   = MSGID_PLUGIN_SEARCH_REFERENCE_PLUGIN_RETURNED_NULL;
+        String message = getMessage(msgID, String.valueOf(p.getPluginEntryDN()),
+                                    searchOperation.getConnectionID(),
+                                    searchOperation.getOperationID(),
+                                    searchReference.getReferralURLString());
+        logError(ErrorLogCategory.PLUGIN, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+
+        return new SearchReferencePluginResult(false, false, false, false);
+      }
+      else if (result.connectionTerminated() ||
+               (! result.continuePluginProcessing()))
+      {
+        return result;
+      }
+    }
+
+    if (result == null)
+    {
+      // This should only happen if there were no search result reference
+      // plugins registered, which is fine.
+      result = SearchReferencePluginResult.SUCCESS;
+    }
+
+    return result;
+  }
 
   /**
    * Invokes the set of search result reference plugins that have been
@@ -4626,7 +4784,7 @@ public class PluginConfigManager
    * @return  The result of processing the search result reference plugins.
    */
   public SearchReferencePluginResult invokeSearchResultReferencePlugins(
-                                          SearchOperation searchOperation,
+                                          SearchOperationBasis searchOperation,
                                           SearchResultReference searchReference)
   {
     SearchReferencePluginResult result = null;

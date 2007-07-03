@@ -30,11 +30,8 @@ import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccessControlProvider;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Operation;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.*;
+import org.opends.server.workflowelement.localbackend.*;
 
 /**
  * This class implements a default access control provider for the
@@ -103,7 +100,7 @@ class DefaultAccessControlProvider
      * {@inheritDoc}
      */
     @Override
-    public boolean isAllowed(AddOperation addOperation) {
+    public boolean isAllowed(LocalBackendAddOperation addOperation) {
 
       return true;
     }
@@ -112,7 +109,7 @@ class DefaultAccessControlProvider
      * {@inheritDoc}
      */
     @Override
-    public boolean isAllowed(BindOperation bindOperation) {
+    public boolean isAllowed(LocalBackendBindOperation bindOperation) {
 
       return true;
     }
@@ -130,7 +127,7 @@ class DefaultAccessControlProvider
      * {@inheritDoc}
      */
     @Override
-    public boolean isAllowed(DeleteOperation deleteOperation) {
+    public boolean isAllowed(LocalBackendDeleteOperation deleteOperation) {
 
       return true;
     }
@@ -148,7 +145,7 @@ class DefaultAccessControlProvider
      * {@inheritDoc}
      */
     @Override
-    public boolean isAllowed(ModifyOperation modifyOperation) {
+    public boolean isAllowed(LocalBackendModifyOperation modifyOperation) {
 
       return true;
     }
@@ -166,7 +163,7 @@ class DefaultAccessControlProvider
      * {@inheritDoc}
      */
     @Override
-    public boolean isAllowed(SearchOperation searchOperation) {
+    public boolean isAllowed(LocalBackendSearchOperation searchOperation) {
 
       return true;
     }
@@ -186,7 +183,8 @@ class DefaultAccessControlProvider
      */
     @Override
     public SearchResultEntry filterEntry(
-        SearchOperation searchOperation, SearchResultEntry searchEntry) {
+        SearchOperation searchOperation,
+        SearchResultEntry searchEntry) {
 
       // No implementation required.
       return searchEntry;

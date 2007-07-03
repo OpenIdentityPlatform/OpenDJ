@@ -42,6 +42,7 @@ import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.ReplicationBroker;
@@ -149,7 +150,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       List<Modification> mods = new ArrayList<Modification>();
       Modification mod = new Modification(ModificationType.ADD, attr);
       mods.add(mod);
-      ModifyOperation modOp = new ModifyOperation(connection,
+      ModifyOperationBasis modOp = new ModifyOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, baseDn, mods);
       modOp.setInternalOperation(true);
@@ -192,7 +193,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       mod = new Modification(ModificationType.DELETE, attr);
       mods.clear();
       mods.add(mod);
-      modOp = new ModifyOperation(connection,
+      modOp = new ModifyOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, baseDn, mods);
       modOp.setInternalOperation(true);

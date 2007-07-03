@@ -27,6 +27,7 @@
 package org.opends.server.replication.protocol;
 
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -199,7 +200,7 @@ public class AddMsg extends UpdateMessage
       attr.add(LDAPAttribute.decode(elem));
     }
 
-    AddOperation add =  new AddOperation(connection,
+    AddOperationBasis add =  new AddOperationBasis(connection,
                             InternalClientConnection.nextOperationID(),
                             InternalClientConnection.nextMessageID(), null,
                             new ASN1OctetString(newDn), attr);

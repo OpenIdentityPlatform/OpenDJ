@@ -32,14 +32,12 @@ import java.util.List;
 
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.workflowelement.localbackend.*;
 
 
 
@@ -109,7 +107,8 @@ public abstract class
    *                              synchronization processing.
    */
   public SynchronizationProviderResult
-              handleConflictResolution(AddOperation addOperation)
+              handleConflictResolution(LocalBackendAddOperation
+                                                        addOperation)
          throws DirectoryException
   {
     // No processing is required by default.
@@ -136,7 +135,8 @@ public abstract class
    *                              synchronization processing.
    */
   public abstract SynchronizationProviderResult
-                       doPreOperation(AddOperation addOperation)
+                       doPreOperation(LocalBackendAddOperation
+                                                     addOperation)
          throws DirectoryException;
 
 
@@ -153,7 +153,8 @@ public abstract class
    * @throws  DirectoryException  If a problem occurs during
    *                              synchronization processing.
    */
-  public abstract void doPostOperation(AddOperation addOperation)
+  public abstract void doPostOperation(LocalBackendAddOperation
+                                                      addOperation)
          throws DirectoryException;
 
 
@@ -177,7 +178,8 @@ public abstract class
    *                              synchronization processing.
    */
   public SynchronizationProviderResult
-       handleConflictResolution(DeleteOperation deleteOperation)
+       handleConflictResolution(LocalBackendDeleteOperation
+                                                 deleteOperation)
          throws DirectoryException
   {
     // No processing is required by default.
@@ -204,7 +206,8 @@ public abstract class
    *                              synchronization processing.
    */
   public abstract SynchronizationProviderResult
-              doPreOperation(DeleteOperation deleteOperation)
+              doPreOperation(LocalBackendDeleteOperation
+                                              deleteOperation)
          throws DirectoryException;
 
 
@@ -222,7 +225,8 @@ public abstract class
    *                              synchronization processing.
    */
   public abstract void doPostOperation(
-                            DeleteOperation deleteOperation)
+                            LocalBackendDeleteOperation
+                                                deleteOperation)
          throws DirectoryException;
 
 
@@ -246,7 +250,7 @@ public abstract class
    *                              synchronization processing.
    */
   public SynchronizationProviderResult
-              handleConflictResolution(ModifyOperation
+              handleConflictResolution(LocalBackendModifyOperation
                                             modifyOperation)
          throws DirectoryException
   {
@@ -274,7 +278,8 @@ public abstract class
    *                              synchronization processing.
    */
   public abstract SynchronizationProviderResult
-                       doPreOperation(ModifyOperation modifyOperation)
+                       doPreOperation(LocalBackendModifyOperation
+                                                     modifyOperation)
          throws DirectoryException;
 
 
@@ -292,7 +297,8 @@ public abstract class
    *                              synchronization processing.
    */
   public abstract void doPostOperation(
-                            ModifyOperation modifyOperation)
+                            LocalBackendModifyOperation
+                                            modifyOperation)
          throws DirectoryException;
 
 

@@ -68,6 +68,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -93,6 +94,7 @@ import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.tasks.InitializeTargetTask;
 import org.opends.server.tasks.InitializeTask;
 import org.opends.server.tasks.TaskUtils;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -115,6 +117,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.workflowelement.localbackend.*;
 
 /**
  *  This class implements the bulk part of the.of the Directory Server side
@@ -420,7 +423,7 @@ public class ReplicationDomain extends DirectoryThread
    *         can continue.
    */
   public SynchronizationProviderResult handleConflictResolution(
-      DeleteOperation deleteOperation)
+      LocalBackendDeleteOperation deleteOperation)
   {
     if ((!deleteOperation.isSynchronizationOperation())
         && (!brokerIsConnected(deleteOperation)))
@@ -674,7 +677,7 @@ public class ReplicationDomain extends DirectoryThread
    * @return code indicating is operation must proceed
    */
   public SynchronizationProviderResult handleConflictResolution(
-                                                ModifyOperation modifyOperation)
+      LocalBackendModifyOperation modifyOperation)
   {
     if ((!modifyOperation.isSynchronizationOperation())
         && (!brokerIsConnected(modifyOperation)))
@@ -1203,8 +1206,7 @@ public class ReplicationDomain extends DirectoryThread
         op.setInternalOperation(true);
         op.setSynchronizationOperation(true);
         changeNumber = OperationContext.getChangeNumber(op);
-
-        op.run();
+        ((AbstractOperation)op).run();
 
         ResultCode result = op.getResultCode();
 
@@ -2863,7 +2865,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public void synchronizeModifications(List<Modification> modifications)
   {
     Operation op =
-      new ModifyOperation(InternalClientConnection.getRootConnection(),
+      new ModifyOperationBasis(InternalClientConnection.getRootConnection(),
                           InternalClientConnection.nextOperationID(),
                           InternalClientConnection.nextMessageID(),
                           null, DirectoryServer.getSchemaDN(),

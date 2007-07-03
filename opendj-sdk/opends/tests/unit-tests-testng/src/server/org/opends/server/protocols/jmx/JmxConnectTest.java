@@ -51,8 +51,8 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
 import org.opends.server.config.JMXMBean;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.ConfigChangeResult;
@@ -221,7 +221,7 @@ public class JmxConnectTest extends JmxTestCase {
                 + serverJmxPort, "cn: JMX Connection Handler");
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
-    AddOperation addOp = new AddOperation(connection,
+    AddOperationBasis addOp = new AddOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
         newJmxConnectionJmx.getDN(), newJmxConnectionJmx
@@ -259,7 +259,7 @@ public class JmxConnectTest extends JmxTestCase {
     // cleanup client connection
     connector.close();
     jmxcDisabled.close();
-    DeleteOperation delOp = new DeleteOperation(connection,
+    DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
         newJmxConnectionJmx.getDN());
@@ -588,4 +588,5 @@ public class JmxConnectTest extends JmxTestCase {
 
     mbsc.setAttribute(name, attr);
   }
+
 }

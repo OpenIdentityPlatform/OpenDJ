@@ -27,11 +27,14 @@
 
 package org.opends.server.authorization.dseecompat;
 
+
+import static org.opends.server.authorization.dseecompat.Aci.*;
+
 import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
-import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
 import org.opends.server.core.*;
+
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -48,6 +51,8 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
+
+import org.opends.server.workflowelement.localbackend.*;
 
 /**
  * The AciHandler class performs the main processing for the
@@ -259,7 +264,7 @@ public class AciHandler extends AccessControlHandler {
      * @return  True if access is allowed.
      */
     private boolean aciCheckMods(AciLDAPOperationContainer container,
-                                 ModifyOperation operation,
+                                 LocalBackendModifyOperation operation,
                                  boolean skipAccessCheck) {
         Entry resourceEntry=container.getResourceEntry();
         DN dn=resourceEntry.getDN();
@@ -833,7 +838,7 @@ public class AciHandler extends AccessControlHandler {
      * @param operation The add operation to check access on.
      * @return  True if access is allowed.
      */
-    public boolean isAllowed(AddOperation operation) {
+    public boolean isAllowed(LocalBackendAddOperation operation) {
         AciLDAPOperationContainer operationContainer =
                 new AciLDAPOperationContainer(operation, ACI_ADD);
         boolean ret=isAllowed(operationContainer,operation);
@@ -883,7 +888,7 @@ public class AciHandler extends AccessControlHandler {
      * @param operation The delete operation to check access on.
      * @return  True if access is allowed.
      */
-   public boolean isAllowed(DeleteOperation operation) {
+   public boolean isAllowed(LocalBackendDeleteOperation operation) {
        AciLDAPOperationContainer operationContainer=
                new AciLDAPOperationContainer(operation, ACI_DELETE);
        return isAllowed(operationContainer, operation);
@@ -896,7 +901,7 @@ public class AciHandler extends AccessControlHandler {
     * @return  True if access is allowed.
     */
 
-  public boolean isAllowed(ModifyOperation operation) {
+  public boolean isAllowed(LocalBackendModifyOperation operation) {
       AciLDAPOperationContainer operationContainer=
               new AciLDAPOperationContainer(operation, ACI_NULL);
       return aciCheckMods(operationContainer, operation,
@@ -1169,7 +1174,7 @@ public class AciHandler extends AccessControlHandler {
    * {@inheritDoc}
    */
   @Override
-  public boolean isAllowed(BindOperation bindOperation) {
+  public boolean isAllowed(LocalBackendBindOperation bindOperation) {
       //Not planned to be implemented.
       return true;
   }
@@ -1187,7 +1192,7 @@ public class AciHandler extends AccessControlHandler {
    * {@inheritDoc}
    */
   @Override
-  public boolean isAllowed(SearchOperation searchOperation) {
+  public boolean isAllowed(LocalBackendSearchOperation searchOperation) {
       //Not planned to be implemented.
       return true;
   }

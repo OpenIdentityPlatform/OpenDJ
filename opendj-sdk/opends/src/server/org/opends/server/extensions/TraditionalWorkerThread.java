@@ -32,13 +32,13 @@ import java.util.Map;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.Operation;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -72,7 +72,7 @@ public class TraditionalWorkerThread
   private boolean waitingForWork;
 
   // The operation that this worker thread is currently processing.
-  private Operation operation;
+  private AbstractOperation operation;
 
   // The handle to the actual thread for this worker thread.
   private Thread workerThread;
@@ -221,8 +221,9 @@ public class TraditionalWorkerThread
                                       String.valueOf(operation),
                                       stackTraceToSingleLineString(e));
 
-          operation.disconnectClient(DisconnectReason.SERVER_ERROR, true,
-                                     message, msgID);
+          operation.disconnectClient(
+                                     DisconnectReason.SERVER_ERROR,
+                                     true, message, msgID);
         }
         catch (Exception e2)
         {

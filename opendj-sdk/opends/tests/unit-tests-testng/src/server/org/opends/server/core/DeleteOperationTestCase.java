@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.annotations.AfterMethod;
 
@@ -44,13 +43,11 @@ import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
-import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.types.ByteString;
@@ -63,6 +60,7 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 
 import static org.testng.Assert.*;
 
@@ -95,22 +93,22 @@ public class DeleteOperationTestCase
 
     return new Operation[]
     {
-      new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           new ArrayList<Control>(), new ASN1OctetString()),
-      new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           null, new ASN1OctetString()),
-      new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           new ArrayList<Control>(),
                           new ASN1OctetString("o=test")),
-      new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           null, new ASN1OctetString("o=test")),
-      new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           new ArrayList<Control>(), DN.nullDN()),
-      new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           null, DN.nullDN()),
-      new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           new ArrayList<Control>(), DN.decode("o=test")),
-      new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           null, DN.decode("o=test"))
     };
   }
@@ -140,7 +138,8 @@ public class DeleteOperationTestCase
 
 
   /**
-   * Tests the <CODE>getEntryDN</CODE> method when it should be null.
+   * Tests the <CODE>getEntryDN</CODE> method that should decode the rawEntryDN
+   * to compute the entryDN.
    */
   @Test()
   public void testGetEntryDNNull()
@@ -149,9 +148,9 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              null, new ASN1OctetString("o=test"));
-    assertNull(deleteOperation.getEntryDN());
+    assertNotNull(deleteOperation.getEntryDN());
   }
 
 
@@ -169,7 +168,7 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              null, DN.decode("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
   }
@@ -178,7 +177,10 @@ public class DeleteOperationTestCase
 
   /**
    * Tests the <CODE>getEntryDN</CODE> method when it originally started as
-   * non-null but then was changed to null.
+   * non-null, then was changed to null; because of the call to the
+   * <CODE>setRawEntry<CODE> method, and becomes non-null again because
+   * of the call to the <CODE>getEntryDN</CODE> again.
+   * 
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -190,12 +192,12 @@ public class DeleteOperationTestCase
          InternalClientConnection.getRootConnection();
 
     DeleteOperation deleteOperation =
-         new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              null, DN.decode("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
 
     deleteOperation.setRawEntryDN(new ASN1OctetString("dc=example,dc=com"));
-    assertNull(deleteOperation.getEntryDN());
+    assertNotNull(deleteOperation.getEntryDN());
   }
 
 
@@ -208,7 +210,6 @@ public class DeleteOperationTestCase
                     DeleteOperation deleteOperation)
          throws Exception
   {
-    assertNotNull(deleteOperation.getEntryToDelete());
     assertTrue(deleteOperation.getProcessingStartTime() > 0);
     assertTrue(deleteOperation.getProcessingStopTime() >=
                deleteOperation.getProcessingStartTime());
@@ -241,8 +242,13 @@ public class DeleteOperationTestCase
          conn.processDelete(new ASN1OctetString("o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
-
-    assertNotNull(deleteOperation.getEntryToDelete());
+    List localOps =
+      (List) (deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS));
+    assertNotNull(localOps);
+    for (Object localOp : localOps){
+      LocalBackendDeleteOperation curOp = (LocalBackendDeleteOperation) localOp;
+      assertNotNull(curOp.getEntryToDelete());
+    }
   }
 
 
@@ -265,7 +271,13 @@ public class DeleteOperationTestCase
     DeleteOperation deleteOperation =
          conn.processDelete(new ASN1OctetString("ou=People,o=test"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
-    assertNull(deleteOperation.getEntryToDelete());
+    List localOps =
+      (List) (deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS));
+    assertNotNull(localOps);
+    for (Object localOp : localOps){
+      LocalBackendDeleteOperation curOp = (LocalBackendDeleteOperation) localOp;
+      assertNull(curOp.getEntryToDelete());
+    }
   }
 
 
@@ -795,8 +807,8 @@ public class DeleteOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    DeleteOperation deleteOperation =
-         new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    DeleteOperationBasis deleteOperation =
+         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              null, new ASN1OctetString("o=test"));
 
     CancelRequest cancelRequest = new CancelRequest(false,
@@ -1152,8 +1164,8 @@ responseLoop:
     List<Control> controls =
          ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
 
-    DeleteOperation deleteOperation =
-         new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    DeleteOperationBasis deleteOperation =
+         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              controls, new ASN1OctetString("o=test"));
     deleteOperation.run();
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);

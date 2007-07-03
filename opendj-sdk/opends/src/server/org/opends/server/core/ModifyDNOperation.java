@@ -50,6 +50,7 @@ import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -68,7 +69,6 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
-import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
@@ -86,6 +86,8 @@ import static org.opends.server.loggers.AccessLogger.*;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
+import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -99,14 +101,14 @@ import static org.opends.server.util.StaticUtils.*;
  * in the Directory Server.
  */
 public class ModifyDNOperation
-       extends Operation
+       extends AbstractOperation
        implements PreParseModifyDNOperation, PreOperationModifyDNOperation,
                   PostOperationModifyDNOperation, PostResponseModifyDNOperation
 {
   /**
    * The tracer object for the debug logger.
    */
-  private static final DebugTracer TRACER = getTracer();
+  private static final DebugTracer TRACER = DebugLogger.getTracer();
 
   // Indicates whether to delete the old RDN value from the entry.
   private boolean deleteOldRDN;
@@ -149,12 +151,6 @@ public class ModifyDNOperation
 
   // The change number that has been assigned to this operation.
   private long changeNumber;
-
-  // The time that processing started on this operation.
-  private long processingStartTime;
-
-  // The time that processing ended on this operation.
-  private long processingStopTime;
 
   // The new RDN for the entry.
   private RDN newRDN;
@@ -490,41 +486,6 @@ public class ModifyDNOperation
     return newEntry;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingStartTime()
-  {
-    return processingStartTime;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingStopTime()
-  {
-    return processingStopTime;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingTime()
-  {
-    return (processingStopTime - processingStartTime);
-  }
-
-
-
   /**
    * Retrieves the change number that has been assigned to this operation.
    *
@@ -671,7 +632,7 @@ public class ModifyDNOperation
     }
 
     String processingTime =
-         String.valueOf(processingStopTime - processingStartTime);
+         String.valueOf(getProcessingTime());
 
     return new String[][]
     {
@@ -734,9 +695,12 @@ public class ModifyDNOperation
 
 
   /**
-   * {@inheritDoc}
+   * Performs the work of actually processing this operation.  This
+   * should include all processing for the operation, including
+   * invoking plugins, logging messages, performing access control,
+   * managing synchronization, and any other work that might need to
+   * be done in the course of processing.
    */
-  @Override()
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -749,14 +713,14 @@ public class ModifyDNOperation
 
 
     // Start the processing timer.
-    processingStartTime = System.currentTimeMillis();
+    setProcessingStartTime();
 
 
     // Check for and handle a request to cancel this operation.
     if (cancelRequest != null)
     {
       indicateCancelled(cancelRequest);
-      processingStopTime = System.currentTimeMillis();
+      setProcessingStopTime();
       return;
     }
 
@@ -777,7 +741,7 @@ modifyDNProcessing:
         int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
         appendErrorMessage(getMessage(msgID));
 
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
 
         logModifyDNRequest(this);
         logModifyDNResponse(this);
@@ -805,7 +769,7 @@ modifyDNProcessing:
       if (cancelRequest != null)
       {
         indicateCancelled(cancelRequest);
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
         logModifyDNResponse(this);
         pluginConfigManager.invokePostResponseModifyDNPlugins(this);
         return;
@@ -941,7 +905,7 @@ modifyDNProcessing:
       if (cancelRequest != null)
       {
         indicateCancelled(cancelRequest);
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
         logModifyDNResponse(this);
         pluginConfigManager.invokePostResponseModifyDNPlugins(this);
         return;
@@ -1025,7 +989,7 @@ modifyDNProcessing:
         if (cancelRequest != null)
         {
           indicateCancelled(cancelRequest);
-          processingStopTime = System.currentTimeMillis();
+          setProcessingStopTime();
           logModifyDNResponse(this);
           pluginConfigManager.invokePostResponseModifyDNPlugins(this);
           return;
@@ -1571,7 +1535,7 @@ modifyDNProcessing:
         if (cancelRequest != null)
         {
           indicateCancelled(cancelRequest);
-          processingStopTime = System.currentTimeMillis();
+          setProcessingStopTime();
           logModifyDNResponse(this);
           pluginConfigManager.invokePostResponseModifyDNPlugins(this);
           return;
@@ -1599,7 +1563,7 @@ modifyDNProcessing:
             int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
             appendErrorMessage(getMessage(msgID));
 
-            processingStopTime = System.currentTimeMillis();
+            setProcessingStopTime();
             logModifyDNResponse(this);
             pluginConfigManager.invokePostResponseModifyDNPlugins(this);
             return;
@@ -1798,7 +1762,7 @@ modifyDNProcessing:
         if (cancelRequest != null)
         {
           indicateCancelled(cancelRequest);
-          processingStopTime = System.currentTimeMillis();
+          setProcessingStopTime();
           logModifyDNResponse(this);
           pluginConfigManager.invokePostResponseModifyDNPlugins(this);
           return;
@@ -2078,7 +2042,7 @@ modifyDNProcessing:
         int msgID = MSGID_CANCELED_BY_POSTOP_DISCONNECT;
         appendErrorMessage(getMessage(msgID));
 
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
         logModifyDNResponse(this);
         pluginConfigManager.invokePostResponseModifyDNPlugins(this);
         return;
@@ -2114,7 +2078,7 @@ modifyDNProcessing:
 
 
     // Stop the processing timer.
-    processingStopTime = System.currentTimeMillis();
+    setProcessingStopTime();
 
 
     // Send the modify DN response to the client.
@@ -2217,7 +2181,7 @@ modifyDNProcessing:
    * {@inheritDoc}
    */
   @Override()
-  protected boolean setCancelRequest(CancelRequest cancelRequest)
+  public boolean setCancelRequest(CancelRequest cancelRequest)
   {
     this.cancelRequest = cancelRequest;
     return true;
@@ -2250,5 +2214,6 @@ modifyDNProcessing:
 
     buffer.append(")");
   }
+
 }
 

@@ -39,8 +39,9 @@ import static org.testng.Assert.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
@@ -693,7 +694,7 @@ public class ModifyConflictTest
     List<Modification> mods = new ArrayList<Modification>();
     mods.add(mod);
 
-    ModifyOperation modOp = new ModifyOperation(connection, 1, 1, null,
+    ModifyOperationBasis modOp = new ModifyOperationBasis(connection, 1, 1, null,
         entry.getDN(), mods);
     ModifyContext ctx = new ModifyContext(t, "uniqueId");
     modOp.setAttachment(SYNCHROCONTEXT, ctx);
@@ -701,7 +702,7 @@ public class ModifyConflictTest
     hist.replayOperation(modOp, entry);
     if (mod.getModificationType() == ModificationType.ADD)
     {
-      AddOperation addOp = new AddOperation(connection, 1, 1, null, entry
+      AddOperationBasis addOp = new AddOperationBasis(connection, 1, 1, null, entry
           .getDN(), entry.getObjectClasses(), entry.getUserAttributes(),
           entry.getOperationalAttributes());
       testHistorical(hist, addOp);

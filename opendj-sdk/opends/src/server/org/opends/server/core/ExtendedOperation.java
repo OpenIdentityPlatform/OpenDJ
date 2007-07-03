@@ -38,12 +38,12 @@ import org.opends.server.api.plugin.PostOperationPluginResult;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.api.plugin.PreParsePluginResult;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
-import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PostOperationExtendedOperation;
@@ -54,6 +54,8 @@ import org.opends.server.types.operation.PreParseExtendedOperation;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
+import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
@@ -67,17 +69,14 @@ import static org.opends.server.util.ServerConstants.*;
  * kind of task.
  */
 public class ExtendedOperation
-       extends Operation
+       extends AbstractOperation
        implements PreParseExtendedOperation, PreOperationExtendedOperation,
                   PostOperationExtendedOperation, PostResponseExtendedOperation
 {
   /**
    * The tracer object for the debug logger.
    */
-  private static final DebugTracer TRACER = getTracer();
-
-
-
+  private static final DebugTracer TRACER = DebugLogger.getTracer();
 
   // The value for the request associated with this extended operation.
   private ASN1OctetString requestValue;
@@ -93,12 +92,6 @@ public class ExtendedOperation
 
   // The set of response controls for this extended operation.
   private List<Control> responseControls;
-
-  // The time that processing started on this operation.
-  private long processingStartTime;
-
-  // The time that processing ended on this operation.
-  private long processingStopTime;
 
   // The OID for the request associated with this extended operation.
   private String requestOID;
@@ -245,40 +238,6 @@ public class ExtendedOperation
   }
 
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingStartTime()
-  {
-    return processingStartTime;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingStopTime()
-  {
-    return processingStopTime;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingTime()
-  {
-    return (processingStopTime - processingStartTime);
-  }
-
-
-
   /**
    * {@inheritDoc}
    */
@@ -384,7 +343,7 @@ public class ExtendedOperation
     }
 
     String processingTime =
-         String.valueOf(processingStopTime - processingStartTime);
+         String.valueOf(getProcessingTime());
 
     return new String[][]
     {
@@ -433,9 +392,12 @@ public class ExtendedOperation
 
 
   /**
-   * {@inheritDoc}
+   * Performs the work of actually processing this operation.  This
+   * should include all processing for the operation, including
+   * invoking plugins, logging messages, performing access control,
+   * managing synchronization, and any other work that might need to
+   * be done in the course of processing.
    */
-  @Override()
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -448,7 +410,7 @@ public class ExtendedOperation
 
 
     // Start the processing timer.
-    processingStartTime = System.currentTimeMillis();
+    setProcessingStartTime();
 
 
     // Check for and handle a request to cancel this operation.
@@ -458,7 +420,7 @@ public class ExtendedOperation
              requestOID.equals(OID_START_TLS_REQUEST)))
       {
         indicateCancelled(cancelRequest);
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
         return;
       }
     }
@@ -480,7 +442,7 @@ extendedProcessing:
         int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
         appendErrorMessage(getMessage(msgID));
 
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
 
         logExtendedRequest(this);
         logExtendedResponse(this);
@@ -511,7 +473,7 @@ extendedProcessing:
                requestOID.equals(OID_START_TLS_REQUEST)))
         {
           indicateCancelled(cancelRequest);
-          processingStopTime = System.currentTimeMillis();
+          setProcessingStopTime();
           pluginConfigManager.invokePostResponseExtendedPlugins(this);
           return;
         }
@@ -586,7 +548,7 @@ extendedProcessing:
         int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
         appendErrorMessage(getMessage(msgID));
 
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
 
         logExtendedResponse(this);
         pluginConfigManager.invokePostResponseExtendedPlugins(this);
@@ -611,7 +573,7 @@ extendedProcessing:
                requestOID.equals(OID_START_TLS_REQUEST)))
         {
           indicateCancelled(cancelRequest);
-          processingStopTime = System.currentTimeMillis();
+          setProcessingStopTime();
           pluginConfigManager.invokePostResponseExtendedPlugins(this);
           return;
         }
@@ -641,7 +603,7 @@ extendedProcessing:
         int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
         appendErrorMessage(getMessage(msgID));
 
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
 
         logExtendedResponse(this);
         pluginConfigManager.invokePostResponseExtendedPlugins(this);
@@ -651,7 +613,7 @@ extendedProcessing:
 
 
     // Stop the processing timer.
-    processingStopTime = System.currentTimeMillis();
+    setProcessingStopTime();
 
 
     // Send the response to the client, if it has not already been sent.
@@ -765,7 +727,7 @@ extendedProcessing:
    * {@inheritDoc}
    */
   @Override()
-  protected boolean setCancelRequest(CancelRequest cancelRequest)
+  public boolean setCancelRequest(CancelRequest cancelRequest)
   {
     this.cancelRequest = cancelRequest;
     return true;
@@ -787,5 +749,6 @@ extendedProcessing:
     buffer.append(requestOID);
     buffer.append(")");
   }
+
 }
 

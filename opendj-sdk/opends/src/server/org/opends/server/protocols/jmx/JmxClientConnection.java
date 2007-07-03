@@ -43,6 +43,7 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.protocols.internal.InternalSearchListener;
 
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
@@ -88,7 +89,7 @@ public class JmxClientConnection
   private ConnectionSecurityProvider securityProvider;
 
   // The empty operation list for this connection.
-  private LinkedList<Operation> operationList;
+  private LinkedList<AbstractOperation> operationList;
 
   // The connection ID for this client connection.
   private long connectionID;
@@ -142,7 +143,7 @@ public class JmxClientConnection
           true,
           MSGID_LDAP_CONNHANDLER_REJECTED_BY_SERVER);
     }
-    operationList = new LinkedList<Operation>();
+    operationList = new LinkedList<AbstractOperation>();
 
     try
     {
@@ -468,11 +469,11 @@ public class JmxClientConnection
    * @return  A reference to the add operation that was processed and contains
    *          information about the result of the processing.
    */
-  public AddOperation processAdd(ASN1OctetString rawEntryDN,
+  public AddOperationBasis processAdd(ASN1OctetString rawEntryDN,
                                  ArrayList<RawAttribute> rawAttributes)
   {
-    AddOperation addOperation =
-         new AddOperation(this, nextOperationID(), nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(this, nextOperationID(), nextMessageID(),
                           new ArrayList<Control>(0), rawEntryDN, rawAttributes);
 
     addOperation.run();
@@ -514,10 +515,10 @@ public class JmxClientConnection
    * @return  A reference to the delete operation that was processed and
    *          contains information about the result of the processing.
    */
-  public DeleteOperation processDelete(ASN1OctetString rawEntryDN)
+  public DeleteOperationBasis processDelete(ASN1OctetString rawEntryDN)
   {
-    DeleteOperation deleteOperation =
-         new DeleteOperation(this, nextOperationID(), nextMessageID(),
+    DeleteOperationBasis deleteOperation =
+         new DeleteOperationBasis(this, nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(0), rawEntryDN);
 
     deleteOperation.run();
@@ -560,11 +561,11 @@ public class JmxClientConnection
    * @return  A reference to the modify operation that was processed and
    *          contains information about the result of the processing
    */
-  public ModifyOperation processModify(ASN1OctetString rawEntryDN,
+  public ModifyOperationBasis processModify(ASN1OctetString rawEntryDN,
                               ArrayList<RawModification> rawModifications)
   {
-    ModifyOperation modifyOperation =
-         new ModifyOperation(this, nextOperationID(), nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(this, nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(0), rawEntryDN,
                              rawModifications);
 
@@ -714,8 +715,6 @@ public class JmxClientConnection
                                      typesOnly, filter, attributes,
                                      searchListener);
 
-
-
     searchOperation.run();
     return searchOperation;
   }
@@ -826,6 +825,7 @@ public class JmxClientConnection
     {
       UnbindOperation unbindOp = new UnbindOperation((ClientConnection) this,
           this.nextOperationID(), this.nextMessageID(), null);
+
       unbindOp.run();
     }
     catch (Exception e)
@@ -894,7 +894,7 @@ public class JmxClientConnection
    *
    * @return  The set of operations in progress for this client connection.
    */
-  public Collection<Operation> getOperationsInProgress()
+  public Collection<AbstractOperation> getOperationsInProgress()
   {
     return operationList;
   }
@@ -909,7 +909,7 @@ public class JmxClientConnection
    * @return  The operation in progress with the specified message ID, or
    *          <CODE>null</CODE> if no such operation could be found.
    */
-  public Operation getOperationInProgress(int messageID)
+  public AbstractOperation getOperationInProgress(int messageID)
   {
     // Jmx operations will not be tracked.
     return null;

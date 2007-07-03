@@ -443,28 +443,26 @@ public class TextAuditLogPublisher
 
     if(code == SUCCESS)
     {
-      Entry entry = addOperation.getEntryToAdd();
-
       StringBuilder buffer = new StringBuilder(50);
       buffer.append("# ");
       buffer.append(TimeThread.getLocalTime());
       buffer.append(EOL);
 
       buffer.append("dn:");
-      encodeValue(entry.getDN().toString(), buffer);
+      encodeValue(addOperation.getEntryDN().toString(), buffer);
       buffer.append(EOL);
 
       buffer.append("changetype: add");
       buffer.append(EOL);
 
-      for (String ocName : entry.getObjectClasses().values())
+      for (String ocName : addOperation.getObjectClasses().values())
       {
         buffer.append("objectClass: ");
         buffer.append(ocName);
         buffer.append(EOL);
       }
 
-      for (List<Attribute> attrList : entry.getUserAttributes().values())
+      for (List<Attribute> attrList : addOperation.getUserAttributes().values())
       {
         for (Attribute a : attrList)
         {
@@ -478,7 +476,8 @@ public class TextAuditLogPublisher
         }
       }
 
-      for (List<Attribute> attrList : entry.getOperationalAttributes().values())
+      for (List<Attribute> attrList :
+        addOperation.getOperationalAttributes().values())
       {
         for (Attribute a : attrList)
         {
@@ -563,15 +562,13 @@ public class TextAuditLogPublisher
 
     if(code == SUCCESS)
     {
-      Entry entry = deleteOperation.getEntryToDelete();
-
       StringBuilder buffer = new StringBuilder(50);
       buffer.append("# ");
       buffer.append(TimeThread.getLocalTime());
       buffer.append(EOL);
 
       buffer.append("dn:");
-      encodeValue(entry.getDN().toString(), buffer);
+      encodeValue(deleteOperation.getEntryDN().toString(), buffer);
       buffer.append(EOL);
 
       buffer.append("changetype: delete");
@@ -629,15 +626,13 @@ public class TextAuditLogPublisher
 
     if(code == SUCCESS)
     {
-      Entry entry = modifyOperation.getModifiedEntry();
-
       StringBuilder buffer = new StringBuilder(50);
       buffer.append("# ");
       buffer.append(TimeThread.getLocalTime());
       buffer.append(EOL);
 
       buffer.append("dn:");
-      encodeValue(entry.getDN().toString(), buffer);
+      encodeValue(modifyOperation.getEntryDN().toString(), buffer);
       buffer.append(EOL);
 
       buffer.append("changetype: modify");

@@ -41,11 +41,8 @@ import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -58,6 +55,7 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.server.messages.ReplicationMessages.*;
 
@@ -214,7 +212,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   @Override
-  public void doPostOperation(AddOperation addOperation)
+  public void doPostOperation(LocalBackendAddOperation addOperation)
   {
     DN dn = addOperation.getEntryDN();
     genericPostOperation(addOperation, dn);
@@ -225,7 +223,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   @Override
-  public void doPostOperation(DeleteOperation deleteOperation)
+  public void doPostOperation(LocalBackendDeleteOperation deleteOperation)
   {
     DN dn = deleteOperation.getEntryDN();
     genericPostOperation(deleteOperation, dn);
@@ -245,7 +243,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   @Override
-  public void doPostOperation(ModifyOperation modifyOperation)
+  public void doPostOperation(LocalBackendModifyOperation modifyOperation)
   {
     DN dn = modifyOperation.getEntryDN();
     genericPostOperation(modifyOperation, dn);
@@ -256,7 +254,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
-                                                ModifyOperation modifyOperation)
+    LocalBackendModifyOperation modifyOperation)
   {
     ReplicationDomain domain =
       findDomain(modifyOperation.getEntryDN(), modifyOperation);
@@ -271,7 +269,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
-      AddOperation addOperation) throws DirectoryException
+      LocalBackendAddOperation addOperation) throws DirectoryException
   {
     ReplicationDomain domain =
       findDomain(addOperation.getEntryDN(), addOperation);
@@ -286,7 +284,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
-      DeleteOperation deleteOperation) throws DirectoryException
+      LocalBackendDeleteOperation deleteOperation) throws DirectoryException
   {
     ReplicationDomain domain =
       findDomain(deleteOperation.getEntryDN(), deleteOperation);
@@ -316,7 +314,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult
-      doPreOperation(ModifyOperation modifyOperation)
+      doPreOperation(LocalBackendModifyOperation modifyOperation)
   {
     DN operationDN = modifyOperation.getEntryDN();
     ReplicationDomain domain = findDomain(operationDN, modifyOperation);
@@ -343,7 +341,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult doPreOperation(
-      DeleteOperation deleteOperation) throws DirectoryException
+      LocalBackendDeleteOperation deleteOperation) throws DirectoryException
   {
     return new SynchronizationProviderResult(true);
   }
@@ -362,7 +360,8 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   @Override
-  public SynchronizationProviderResult doPreOperation(AddOperation addOperation)
+  public SynchronizationProviderResult doPreOperation(
+      LocalBackendAddOperation addOperation)
   {
     ReplicationDomain domain =
       findDomain(addOperation.getEntryDN(), addOperation);

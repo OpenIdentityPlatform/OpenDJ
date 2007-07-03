@@ -28,6 +28,17 @@ package org.opends.server.protocols.ldap;
 
 
 
+import static org.opends.server.loggers.AccessLogger.logDisconnect;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.StaticUtils.getBacktrace;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -43,30 +54,34 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.AbandonOperation;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.BindOperationBasis;
 import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.extensions.NullConnectionSecurityProvider;
 import org.opends.server.extensions.TLSCapableConnection;
 import org.opends.server.extensions.TLSConnectionSecurityProvider;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Sequence;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.IntermediateResponse;
@@ -74,16 +89,6 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-
-import static org.opends.server.loggers.AccessLogger.*;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -127,7 +132,7 @@ public class LDAPClientConnection
   private byte[] elementValue;
 
   // The set of all operations currently in progress on this connection.
-  private ConcurrentHashMap<Integer,Operation> operationsInProgress;
+  private ConcurrentHashMap<Integer,AbstractOperation> operationsInProgress;
 
   // The connection security provider that was in use for the client connection
   // before switching to a TLS-based provider.
@@ -239,7 +244,7 @@ public class LDAPClientConnection
     nextOperationID      = new AtomicLong(0);
     connectionValid      = true;
     disconnectRequested  = false;
-    operationsInProgress = new ConcurrentHashMap<Integer,Operation>();
+    operationsInProgress = new ConcurrentHashMap<Integer,AbstractOperation>();
     keepStats            = connectionHandler.keepStats();
     protocol             = "LDAP";
 
@@ -624,7 +629,7 @@ public class LDAPClientConnection
         break;
       case BIND:
         ASN1OctetString serverSASLCredentials =
-             ((BindOperation) operation).getServerSASLCredentials();
+             ((BindOperationBasis) operation).getServerSASLCredentials();
         protocolOp = new BindResponseProtocolOp(resultCode.getIntValue(),
                               errorMessage.toString(), matchedDN,
                               referralURLs, serverSASLCredentials);
@@ -1117,7 +1122,7 @@ public class LDAPClientConnection
    *
    * @return  The set of operations in progress for this client connection.
    */
-  public Collection<Operation> getOperationsInProgress()
+  public Collection<AbstractOperation> getOperationsInProgress()
   {
     return operationsInProgress.values();
   }
@@ -1132,7 +1137,7 @@ public class LDAPClientConnection
    * @return  The operation in progress with the specified message ID, or
    *          <CODE>null</CODE> if no such operation could be found.
    */
-  public Operation getOperationInProgress(int messageID)
+  public AbstractOperation getOperationInProgress(int messageID)
   {
     return operationsInProgress.get(messageID);
   }
@@ -1150,7 +1155,7 @@ public class LDAPClientConnection
    *                              (e.g., the client already has reached the
    *                              maximum allowed concurrent requests).
    */
-  public void addOperationInProgress(Operation operation)
+  public void addOperationInProgress(AbstractOperation operation)
          throws DirectoryException
   {
     int messageID = operation.getMessageID();
@@ -1174,7 +1179,7 @@ public class LDAPClientConnection
 
       // See if there is already an operation in progress with the same message
       // ID.  If so, then we can't allow it.
-      Operation op = operationsInProgress.get(messageID);
+      AbstractOperation op = operationsInProgress.get(messageID);
       if (op != null)
       {
         int    msgID   = MSGID_LDAP_CLIENT_DUPLICATE_MESSAGE_ID;
@@ -1235,7 +1240,7 @@ public class LDAPClientConnection
    */
   public boolean removeOperationInProgress(int messageID)
   {
-    Operation operation = operationsInProgress.remove(messageID);
+    AbstractOperation operation = operationsInProgress.remove(messageID);
     return (operation != null);
   }
 
@@ -1254,7 +1259,7 @@ public class LDAPClientConnection
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
-    Operation op = operationsInProgress.get(messageID);
+    AbstractOperation op = operationsInProgress.get(messageID);
     if (op == null)
     {
       // See if the operation is in the list of persistent searches.
@@ -1303,7 +1308,7 @@ public class LDAPClientConnection
 
     try
     {
-      for (Operation o : operationsInProgress.values())
+      for (AbstractOperation o : operationsInProgress.values())
       {
         try
         {
@@ -1369,7 +1374,7 @@ public class LDAPClientConnection
           continue;
         }
 
-        Operation o = operationsInProgress.get(msgID);
+        AbstractOperation o = operationsInProgress.get(msgID);
         if (o != null)
         {
           try
@@ -1854,8 +1859,8 @@ public class LDAPClientConnection
   {
     // Create the add operation and add it into the work queue.
     AddRequestProtocolOp protocolOp = message.getAddRequestProtocolOp();
-    AddOperation addOp =
-         new AddOperation(this, nextOperationID.getAndIncrement(),
+    AddOperationBasis addOp =
+         new AddOperationBasis(this, nextOperationID.getAndIncrement(),
                           message.getMessageID(), controls, protocolOp.getDN(),
                           protocolOp.getAttributes());
 
@@ -1933,17 +1938,17 @@ public class LDAPClientConnection
 
     ASN1OctetString bindDN = protocolOp.getDN();
 
-    BindOperation bindOp;
+    BindOperationBasis bindOp;
     switch (protocolOp.getAuthenticationType())
     {
       case SIMPLE:
-        bindOp = new BindOperation(this, nextOperationID.getAndIncrement(),
+        bindOp = new BindOperationBasis(this, nextOperationID.getAndIncrement(),
                                    message.getMessageID(), controls,
                                    versionString, bindDN,
                                    protocolOp.getSimplePassword());
         break;
       case SASL:
-        bindOp = new BindOperation(this, nextOperationID.getAndIncrement(),
+        bindOp = new BindOperationBasis(this, nextOperationID.getAndIncrement(),
                                    message.getMessageID(), controls,
                                    versionString, bindDN,
                                    protocolOp.getSASLMechanism(),
@@ -1959,7 +1964,6 @@ public class LDAPClientConnection
         disconnect(DisconnectReason.PROTOCOL_ERROR, true, msg, msgID);
         return false;
     }
-
 
     // Add the operation into the work queue.
     try
@@ -2019,7 +2023,6 @@ public class LDAPClientConnection
                               protocolOp.getDN(), protocolOp.getAttributeType(),
                               protocolOp.getAssertionValue());
 
-
     // Add the operation into the work queue.
     try
     {
@@ -2064,11 +2067,10 @@ public class LDAPClientConnection
                                        ArrayList<Control> controls)
   {
     DeleteRequestProtocolOp protocolOp = message.getDeleteRequestProtocolOp();
-    DeleteOperation deleteOp =
-         new DeleteOperation(this, nextOperationID.getAndIncrement(),
+    DeleteOperationBasis deleteOp =
+         new DeleteOperationBasis(this, nextOperationID.getAndIncrement(),
                              message.getMessageID(), controls,
                              protocolOp.getDN());
-
 
     // Add the operation into the work queue.
     try
@@ -2139,7 +2141,6 @@ public class LDAPClientConnection
                                message.getMessageID(), controls,
                                protocolOp.getOID(), protocolOp.getValue());
 
-
     // Add the operation into the work queue.
     try
     {
@@ -2184,11 +2185,10 @@ public class LDAPClientConnection
                                        ArrayList<Control> controls)
   {
     ModifyRequestProtocolOp protocolOp = message.getModifyRequestProtocolOp();
-    ModifyOperation modifyOp =
-         new ModifyOperation(this, nextOperationID.getAndIncrement(),
+    ModifyOperationBasis modifyOp =
+         new ModifyOperationBasis(this, nextOperationID.getAndIncrement(),
                              message.getMessageID(), controls,
                              protocolOp.getDN(), protocolOp.getModifications());
-
 
     // Add the operation into the work queue.
     try
@@ -2241,7 +2241,6 @@ public class LDAPClientConnection
                                protocolOp.deleteOldRDN(),
                                protocolOp.getNewSuperior());
 
-
     // Add the operation into the work queue.
     try
     {
@@ -2286,8 +2285,8 @@ public class LDAPClientConnection
                                        ArrayList<Control> controls)
   {
     SearchRequestProtocolOp protocolOp = message.getSearchRequestProtocolOp();
-    SearchOperation searchOp =
-         new SearchOperation(this, nextOperationID.getAndIncrement(),
+    SearchOperationBasis searchOp =
+         new SearchOperationBasis(this, nextOperationID.getAndIncrement(),
                              message.getMessageID(), controls,
                              protocolOp.getBaseDN(), protocolOp.getScope(),
                              protocolOp.getDereferencePolicy(),
@@ -2295,7 +2294,6 @@ public class LDAPClientConnection
                              protocolOp.getTimeLimit(),
                              protocolOp.getTypesOnly(), protocolOp.getFilter(),
                              protocolOp.getAttributes());
-
 
     // Add the operation into the work queue.
     try
@@ -2345,7 +2343,6 @@ public class LDAPClientConnection
                               message.getMessageID(), controls);
 
     unbindOp.run();
-
 
     // The client connection will never be valid after an unbind.
     return false;

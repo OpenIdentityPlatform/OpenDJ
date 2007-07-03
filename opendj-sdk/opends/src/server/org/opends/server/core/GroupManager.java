@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+
+import org.opends.server.workflowelement.localbackend.*;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -598,9 +600,11 @@ public class GroupManager
                                          SearchScope.WHOLE_SUBTREE,
                                          DereferencePolicy.NEVER_DEREF_ALIASES,
                                          0, 0, false, filter, null, null);
+        LocalBackendSearchOperation localSearch =
+          new LocalBackendSearchOperation(internalSearch);
         try
         {
-          backend.search(internalSearch);
+          backend.search(localSearch);
         }
         catch (Exception e)
         {

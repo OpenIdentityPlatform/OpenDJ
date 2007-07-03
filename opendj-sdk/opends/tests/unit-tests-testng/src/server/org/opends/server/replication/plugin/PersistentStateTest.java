@@ -29,12 +29,11 @@ package org.opends.server.replication.plugin;
 import static org.testng.Assert.assertEquals;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.plugin.PersistentServerState;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
@@ -65,7 +64,7 @@ public class PersistentStateTest extends ReplicationTestCase
 
     connection = InternalClientConnection.getRootConnection();
     Entry entry = TestCaseUtils.entryFromLdifString(topEntry);
-    AddOperation addOp = new AddOperation(connection,
+    AddOperationBasis addOp = new AddOperationBasis(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
         .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
         entry.getUserAttributes(), entry.getOperationalAttributes());

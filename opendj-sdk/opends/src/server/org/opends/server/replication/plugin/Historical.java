@@ -52,7 +52,7 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
-
+import org.opends.server.workflowelement.localbackend.*;
 
 /**
  * This class is used to store historical information that is
@@ -146,7 +146,7 @@ public class Historical
    *
    * @param modifyOperation the modification.
    */
-  public void generateState(ModifyOperation modifyOperation)
+  public void generateState(LocalBackendModifyOperation modifyOperation)
   {
     List<Modification> mods = modifyOperation.getModifications();
     Entry modifiedEntry = modifyOperation.getModifiedEntry();

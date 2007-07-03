@@ -34,6 +34,7 @@ import static org.testng.Assert.*;
 
 
 import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
@@ -70,7 +71,7 @@ public class UpdateComparatorTest extends ReplicationTestCase
     DeleteOperation op = null;
     try
     {
-      op = new DeleteOperation(connection, 1, 1,null,
+      op = new DeleteOperationBasis(connection, 1, 1,null,
                                                DN.decode("dc=com"));
     }
     catch (DirectoryException e)

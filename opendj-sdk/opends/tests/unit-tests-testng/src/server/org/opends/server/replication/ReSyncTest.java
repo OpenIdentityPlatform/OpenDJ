@@ -33,9 +33,8 @@ import java.net.ServerSocket;
 import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
-
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
@@ -123,14 +122,15 @@ public class ReSyncTest extends ReplicationTestCase
   private ResultCode addEntry(String entryString) throws Exception
   {
     Entry entry;
-    AddOperation addOp;
+    AddOperationBasis addOp;
     entry = TestCaseUtils.entryFromLdifString(entryString);
-    addOp = new AddOperation(connection,
+    addOp = new AddOperationBasis(connection,
        InternalClientConnection.nextOperationID(), InternalClientConnection
        .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
        entry.getUserAttributes(), entry.getOperationalAttributes());
     addOp.setInternalOperation(true);
     addOp.run();
+    
     entryList.add(entry.getDN());
     return addOp.getResultCode();
   }

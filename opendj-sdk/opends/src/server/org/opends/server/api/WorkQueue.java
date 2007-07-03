@@ -30,9 +30,9 @@ package org.opends.server.api;
 
 import org.opends.server.admin.std.server.WorkQueueCfg;
 import org.opends.server.config.ConfigException;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Operation;
 
 
 
@@ -95,7 +95,7 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
    *                              already has too many pending
    *                              requests in the queue).
    */
-  public abstract void submitOperation(Operation operation)
+  public abstract void submitOperation(AbstractOperation operation)
          throws DirectoryException;
 
 
