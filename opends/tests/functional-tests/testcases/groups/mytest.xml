@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+
+  <defaultcall function="main_mytest"/>
+
+  <function name="main_mytest">
+
+    <sequence>
+
+      <block name="'mytest'">
+      
+        <sequence>
+  
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='groups'						  
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+                      
+          <call function="'testSuite_Preamble'"/>
+          
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/groups/group_setup.xml' % (TESTS_DIR)"/>
+          <call function="'group_setup'"> { 'startDS' : True } </call>
+          
+          <!--- Test Suite information
+          #@TestSuiteName       Just a simple test
+          #@TestSuitePurpose    Try some stuff to test the framework
+          #@TestSuiteID         Groups Tests
+          #@TestSuiteGroup      MyTest
+          #@TestGroup           Groups
+          #@TestScript          mytest.xml
+          #@TestHTMLLink        http://opends.dev.java.net/
+          -->
+
+   
+         
+          <!--- Test Case information
+          #@TestMarker          Group MyTest Tests
+          #@TestName            Group: MyTest: hello world
+          #@TestID              pouet
+          #@TestPurpose         pouetpouet
+          #@TestPreamble
+          #@TestSteps           
+          #@TestPostamble
+          #@TestResult
+          -->
+    
+ 		  <!-- *********************************************** -->
+          <testcase name="'Group: MyTest: hello world'">
+            <sequence>
+              <message>'------ aa RC = %s' % RC</message>
+              <call function="'testCase_Preamble'"/>
+              <message>'------ bb RC = %s' % RC</message>
+              <message log="1"> '------ Hello world log=1' </message>
+              <message> '------ Hello world nolog' </message>
+              
+              <call function="'checktestRC'">
+              { 'returncode' : RC , 
+                'result' : STAXResult }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+			
+          <!-- *********************************************** -->
+          <testcase name="'Group: MyTest: call shell cmd'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                '------ do ls'
+              </message>
+    
+              <process name="'just go into ds bin dir and run pwd cmd'">
+                <location>'%s' % STAF_REMOTE_HOSTNAME </location>
+                <!-- <command>'cd %s ; pwd' % dsBinPath</command> -->
+                <command>'pwd'</command>
+                <stderr mode="'stdout'"/>
+                <returnstdout/>
+              </process>
+    
+              <call function="'checktestRC'">
+                { 'returncode' : RC ,
+                'result'     : STAXResult }
+               </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+    
+          <!-- *********************************************** -->
+          <testcase name="'Group: MyTest: do simple ldapsearch'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+          
+              <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=scarter, ou=People, dc=example,dc=com' ,
+                'dsInstancePswd'   : 'sprain' ,
+                'dsBaseDN'         : 'uid=scarter, ou=People, dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' ,
+                'attributes'       : 'dn' }
+              </call>
+      
+              <message>
+                '++++ %s' % (STAXResult[0][1])
+              </message>
+              
+              <call function="'CheckMatches'">
+                { 'string2find'  : 'dc' ,
+                'mainString'   : STAXResult[0][1] ,
+                'nbExpected'        : 2
+                }
+              </call>
+              <script>
+                STAXCode, STAXReason=STAXResult
+              </script>
+              
+              <call function="'checktestRC'">
+                { 'returncode' : STAXCode ,
+                  'result'     : STAXReason }
+              </call>
+                  
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+        
+        
+          <!-- *********************************************** -->
+    <!--GA
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+              file="'%s/testcases/groups/group_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'group_cleanup'"> { 'stopDS' : False } </call>			  	
+     -->                                 
+          <call function="'testSuite_Postamble'"/>
+  
+        </sequence>
+        
+      </block>
+                  
+    </sequence>
+    
+  </function>
+
+</stax>
