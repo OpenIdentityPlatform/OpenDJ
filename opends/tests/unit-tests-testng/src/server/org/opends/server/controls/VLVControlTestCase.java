@@ -28,14 +28,15 @@ package org.opends.server.controls;
 
 
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
+import static org.opends.server.util.ServerConstants.OID_SERVER_SIDE_SORT_RESPONSE_CONTROL;
+import static org.opends.server.util.ServerConstants.OID_VLV_RESPONSE_CONTROL;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -45,19 +46,14 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
-import org.opends.server.types.SortKey;
-import org.opends.server.types.SortOrder;
-
-import static org.testng.Assert.*;
-
-import static org.opends.server.util.ServerConstants.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 
 
@@ -497,6 +493,7 @@ public class VLVControlTestCase
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
+
     internalSearch.run();
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -574,6 +571,7 @@ public class VLVControlTestCase
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
+
     internalSearch.run();
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -650,6 +648,7 @@ public class VLVControlTestCase
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
+
     internalSearch.run();
 
     // It will be successful because it's not a critical control.
@@ -700,6 +699,7 @@ public class VLVControlTestCase
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
+
     internalSearch.run();
 
     // It will be successful because it's not a critical control.
@@ -751,6 +751,7 @@ public class VLVControlTestCase
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
+
     internalSearch.run();
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -827,6 +828,7 @@ public class VLVControlTestCase
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
+
     internalSearch.run();
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -905,6 +907,7 @@ public class VLVControlTestCase
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
+
     internalSearch.run();
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -983,6 +986,7 @@ public class VLVControlTestCase
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
+
     internalSearch.run();
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -1061,6 +1065,7 @@ public class VLVControlTestCase
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
+
     internalSearch.run();
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -1139,6 +1144,7 @@ public class VLVControlTestCase
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
+
     internalSearch.run();
 
     // It will be successful because the control isn't critical.

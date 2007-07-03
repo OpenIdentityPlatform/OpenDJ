@@ -101,6 +101,8 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
 import com.sleepycat.je.JEVersion;
+import org.opends.server.workflowelement.WorkflowElement;
+import org.opends.server.workflowelement.localbackend.*;
 
 
 
@@ -1113,6 +1115,12 @@ public class DirectoryServer
 
       // Initialize all the backends and their associated suffixes.
       initializeBackends();
+
+      // A first set of workflows had been created in the registerBackend
+      // method. We now need to complete the workflow creation for the
+      // backends that were not registered through the registerBackend
+      // method (ie. cn=config and RootDSE).
+      createAndRegisterRemainingWorkflows();
 
       // Check for and initialize user configured entry cache if any,
       // if not stick with default entry cache initialized earlier.
@@ -2250,6 +2258,102 @@ public class DirectoryServer
     rootDSEBackend.initializeBackend();
   }
 
+
+  /**
+   * Deregister a workflow from a network group.
+   *
+   * In the first implementation, workflows are stored in the default network
+   * group.
+   *
+   * @param backend  the backend which is handled by the workflows to
+   *                 deregister
+   */
+  private static void deregisterWorkflows(
+      Backend backend
+      )
+  {
+    // Get the default network group and deregister all the workflows
+    // being configured for the backend (reminder: there is one worklfow
+    // per base DN configured in the backend).
+    NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
+    for (DN baseDN: backend.getBaseDNs())
+    {
+      defaultNetworkGroup.deregisterWorkflow (baseDN);
+    }
+  }
+
+
+  /**
+   * Create a workflow for the a backend then register the workflow
+   * with the appropriate network group.
+   *
+   * TODO implement the registration with the appropriate network group.
+   *
+   * @param backend  the backend handled by the workflow
+   */
+  private static void createAndRegisterWorkflows(
+      Backend backend
+      )
+  {
+    // Create a root workflow element to encapsulate the backend
+    LocalBackendWorkflowElement rootWE =
+        new LocalBackendWorkflowElement(backend);
+
+    // Create a worklfow for each baseDN being configured
+    // in the backend and register the workflow with the network groups
+    for (DN curBaseDN: backend.getBaseDNs())
+    {
+      WorkflowImpl workflowImpl = new WorkflowImpl(
+          curBaseDN, (WorkflowElement) rootWE);
+      registerWorkflowInNetworkGroups(workflowImpl);
+    }
+  }
+
+
+  /**
+   * Register a workflow with the appropriate network groups.
+   *
+   * In the first implementation, the workflow is registered with the
+   * default network group only.
+   *
+   * TODO implement the registration with the appropriate network group.
+   *
+   * @param workflowImpl  the workflow to register
+   */
+  private static void registerWorkflowInNetworkGroups(
+      WorkflowImpl workflowImpl
+      )
+  {
+    // Register first the workflow with the default network group
+    NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
+    defaultNetworkGroup.registerWorkflow(workflowImpl);
+
+    // Now for each network group that exposes the baseDN of the workflow
+    // create an instance of the workflow and register it with the network
+    // group.
+    // TODO jdemendi - we need the network group configuration to configure
+    // the workflows per network group.
+  }
+
+
+  /**
+   * Create the workflows for the backends that were not registered through
+   * registerBackend method, nemely cn=config and RootDSE.
+   *
+   * TODO jdemendi - read the Workflow config and create them accordingly
+   *
+   * For the prototype: there is no configuration for the workflows.
+   * So we create one workflow per local backend, and we register it
+   * to the pool.
+   */
+  private void createAndRegisterRemainingWorkflows()
+  {
+    // Create a workflow for the cn=config backend
+    createAndRegisterWorkflows (configHandler);
+
+    // Create a workflows for the rootDSE backend
+    createAndRegisterWorkflows (rootDSEBackend);
+  }
 
 
   /**
@@ -6006,6 +6110,15 @@ public class DirectoryServer
         monitor.initializeMonitorProvider(null);
         backend.setBackendMonitor(monitor);
         registerMonitorProvider(monitor);
+
+        // FIXME jdemendi - temporary code: create one workflow for each
+        // base DN being configured in the backend. We should not rely on the
+        // backend registration to create and register workflows because
+        // a workflow can be created for different type of "backend", including
+        // remote lDAP server. Instead, we should create the workflows using
+        // the administration framework. We will be doing so as soon as we
+        // have a configuration section for the workflows.
+        createAndRegisterWorkflows (backend);
       }
     }
   }
@@ -6031,6 +6144,13 @@ public class DirectoryServer
       newBackends.remove(backend.getBackendID());
 
       directoryServer.backends = newBackends;
+
+      // Delete all the workflows registered for the backend.
+      // FIXME jdemendi - This task should be performed in the scope of the
+      // administration framework. However the administration framework
+      // requires a configuration section for the workflows which we don't have
+      // as of today.
+      deregisterWorkflows (backend);
 
       BackendMonitor monitor = backend.getBackendMonitor();
       if (monitor != null)
@@ -7190,7 +7310,7 @@ public class DirectoryServer
    * @throws  DirectoryException  If a problem prevents the operation from being
    *                              added to the queue (e.g., the queue is full).
    */
-  public static void enqueueRequest(Operation operation)
+  public static void enqueueRequest(AbstractOperation operation)
          throws DirectoryException
   {
     // See if a bind is already in progress on the associated connection.  If so
@@ -7236,7 +7356,7 @@ public class DirectoryServer
           }
 
         case EXTENDED:
-         ExtendedOperation extOp      = (ExtendedOperation) operation;
+         ExtendedOperation extOp = (ExtendedOperation) operation;
          String   requestOID = extOp.getRequestOID();
          if (!((requestOID != null) &&
                  requestOID.equals(OID_START_TLS_REQUEST)))
@@ -7283,7 +7403,7 @@ public class DirectoryServer
         case EXTENDED:
           // We will only allow the password modify and StartTLS extended
           // operations.
-          ExtendedOperation extOp      = (ExtendedOperation) operation;
+          ExtendedOperation extOp = (ExtendedOperation) operation;
           String            requestOID = extOp.getRequestOID();
           if ((requestOID == null) ||
               ((! requestOID.equals(OID_PASSWORD_MODIFY_REQUEST)) &&

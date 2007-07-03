@@ -33,7 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
@@ -55,7 +55,7 @@ import org.opends.server.types.SearchScope;
  * client since there is no real client.
  */
 public class InternalSearchOperation
-       extends SearchOperation
+       extends SearchOperationBasis
 {
   // The internal search listener for this search, if one was
   // provided.
@@ -284,5 +284,26 @@ public class InternalSearchOperation
                                                    searchReference);
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void sendSearchEntry(SearchResultEntry searchEntry)
+    throws DirectoryException
+    {
+    addSearchEntry(searchEntry);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean sendSearchReference(SearchResultReference
+      searchReference)
+  throws DirectoryException
+  {
+    addSearchReference(searchReference);
+    return true;
+  }
+
 }
 

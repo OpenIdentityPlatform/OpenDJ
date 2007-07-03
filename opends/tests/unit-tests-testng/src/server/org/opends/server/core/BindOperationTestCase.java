@@ -37,9 +37,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
@@ -97,45 +95,45 @@ public class BindOperationTestCase
 
     BindOperation[] simpleBinds = new BindOperation[]
     {
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", new ASN1OctetString(),
                         new ASN1OctetString()),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", new ASN1OctetString(),
                         new ASN1OctetString()),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullOS, new ASN1OctetString()),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullOS, new ASN1OctetString()),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", new ASN1OctetString(), nullOS),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", new ASN1OctetString(), nullOS),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullOS, nullOS),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullOS, nullOS),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3",
                         new ASN1OctetString("cn=Directory Manager"),
                         new ASN1OctetString("password")),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", DN.nullDN(), new ASN1OctetString()),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", DN.nullDN(), new ASN1OctetString()),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullDN, new ASN1OctetString()),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullDN, new ASN1OctetString()),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", DN.nullDN(), nullOS),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", DN.nullDN(), nullOS),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullDN, nullOS),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullDN, nullOS),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", DN.decode("cn=Directory Manager"),
                         new ASN1OctetString("password"))
     };
@@ -170,45 +168,45 @@ public class BindOperationTestCase
 
     BindOperation[] saslBinds = new BindOperation[]
     {
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", new ASN1OctetString(), "EXTERNAL", null),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", new ASN1OctetString(), "EXTERNAL",
                         null),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullOS, "EXTERNAL", null),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullOS, "EXTERNAL", null),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", new ASN1OctetString(), "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password")),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", new ASN1OctetString(), "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password")),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullOS, "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password")),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullOS, "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password")),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", DN.nullDN(), "EXTERNAL", null),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", DN.nullDN(), "EXTERNAL", null),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullDN, "EXTERNAL", null),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullDN, "EXTERNAL", null),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", DN.nullDN(), "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password")),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", DN.nullDN(), "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password")),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         null, "3", nullDN, "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password")),
-      new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                         noControls, "3", nullDN, "PLAIN",
                         new ASN1OctetString("\u0000u:test.user\u0000password"))
     };
@@ -1670,8 +1668,8 @@ public class BindOperationTestCase
     ArrayList<Control> requestControls = new ArrayList<Control>(1);
     requestControls.add(new Control("1.2.3.4", true));
 
-    BindOperation bindOperation =
-         new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            requestControls, "3", DN.nullDN(),
                         new ASN1OctetString());
     bindOperation.run();
@@ -1697,8 +1695,8 @@ public class BindOperationTestCase
     ASN1OctetString saslCreds =
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
 
-    BindOperation bindOperation =
-         new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            requestControls, "3", DN.nullDN(), "PLAIN",
                         saslCreds);
     bindOperation.run();
@@ -1721,10 +1719,11 @@ public class BindOperationTestCase
     ArrayList<Control> requestControls = new ArrayList<Control>(1);
     requestControls.add(new Control("1.2.3.4", false));
 
-    BindOperation bindOperation =
-         new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            requestControls, "3", DN.nullDN(),
                            new ASN1OctetString());
+
     bindOperation.run();
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -1747,8 +1746,8 @@ public class BindOperationTestCase
     ASN1OctetString saslCreds =
          new ASN1OctetString("\u0000dn:cn=Directory Manager\u0000password");
 
-    BindOperation bindOperation =
-         new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            requestControls, "3", DN.nullDN(), "PLAIN",
                            saslCreds);
     bindOperation.run();

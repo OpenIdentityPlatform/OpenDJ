@@ -28,26 +28,30 @@ package org.opends.server.core;
 
 
 
+import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ERROR_MESSAGE;
+import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ID_TO_ABANDON;
+import static org.opends.server.core.CoreConstants.LOG_ELEMENT_PROCESSING_TIME;
+import static org.opends.server.core.CoreConstants.LOG_ELEMENT_RESULT_CODE;
+import static org.opends.server.messages.CoreMessages.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
+
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PostOperationAbandonOperation;
 import org.opends.server.types.operation.PreParseAbandonOperation;
 
-import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.messages.CoreMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-
-
 
 
 /**
@@ -55,22 +59,17 @@ import static org.opends.server.messages.MessageHandler.*;
  * may already be in progress in the Directory Server.
  */
 public class AbandonOperation
-       extends Operation
+       extends AbstractOperation
        implements PreParseAbandonOperation, PostOperationAbandonOperation
 {
 
-
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = DebugLogger.getTracer();
 
   // The message ID of the operation that should be abandoned.
   private final int idToAbandon;
-
-  // The time that processing started on this operation.
-  private long processingStartTime;
-
-  // The time that processing ended on this operation.
-  private long processingStopTime;
-
-
 
   /**
    * Creates a new abandon operation with the provided information.
@@ -105,41 +104,6 @@ public class AbandonOperation
   {
     return idToAbandon;
   }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingStartTime()
-  {
-    return processingStartTime;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingStopTime()
-  {
-    return processingStopTime;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingTime()
-  {
-    return (processingStopTime - processingStartTime);
-  }
-
-
 
   /**
    * {@inheritDoc}
@@ -213,7 +177,7 @@ public class AbandonOperation
     }
 
     String processingTime =
-         String.valueOf(processingStopTime - processingStartTime);
+         String.valueOf(getProcessingTime());
 
     return new String[][]
     {
@@ -261,9 +225,12 @@ public class AbandonOperation
 
 
   /**
-   * {@inheritDoc}
+   * Performs the work of actually processing this operation.  This
+   * should include all processing for the operation, including
+   * invoking plugins, logging messages, performing access control,
+   * managing synchronization, and any other work that might need to
+   * be done in the course of processing.
    */
-  @Override()
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -276,7 +243,7 @@ public class AbandonOperation
 
 
     // Start the processing timer.
-    processingStartTime = System.currentTimeMillis();
+    setProcessingStartTime();
 
 
     // Create a labeled block of code that we can break out of if a problem is
@@ -295,7 +262,7 @@ abandonProcessing:
         int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
         appendErrorMessage(getMessage(msgID));
 
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
 
         logAbandonRequest(this);
         logAbandonResult(this);
@@ -321,7 +288,7 @@ abandonProcessing:
       // code to reflect whether the abandon was successful and an error message
       // if it was not.  Even though there is no response, the result should
       // still be logged.
-      Operation operation =
+      AbstractOperation operation =
            clientConnection.getOperationInProgress(idToAbandon);
       if (operation == null)
       {
@@ -356,7 +323,7 @@ abandonProcessing:
 
 
     // Stop the processing timer.
-    processingStopTime = System.currentTimeMillis();
+    setProcessingStopTime();
 
 
     // Log the result of the abandon operation.
@@ -392,7 +359,7 @@ abandonProcessing:
    * {@inheritDoc}
    */
   @Override()
-  protected boolean setCancelRequest(CancelRequest cancelRequest)
+  public boolean setCancelRequest(CancelRequest cancelRequest)
   {
     // Abandon operations cannot be canceled.
     return false;
@@ -414,5 +381,6 @@ abandonProcessing:
     buffer.append(idToAbandon);
     buffer.append(")");
   }
+
 }
 

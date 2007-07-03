@@ -28,156 +28,31 @@ package org.opends.server.types;
 
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.operation.PostOperationOperation;
-import org.opends.server.types.operation.PostResponseOperation;
-import org.opends.server.types.operation.PreOperationOperation;
-import org.opends.server.types.operation.PreParseOperation;
-
-import static org.opends.server.core.CoreConstants.*;
-
 
 
 
 /**
- * This class defines a generic operation that may be processed by the
- * Directory Server.  Specific subclasses should implement specific
- * functionality appropriate for the type of operation.
+ * This interface defines a generic operation that may be processed by
+ * the Directory Server.  Specific subclasses should implement
+ * specific functionality appropriate for the type of operation.
  * <BR><BR>
  * Note that this class is not intended to be subclassed by any
  * third-party code outside of the OpenDS project.  It should only be
  * extended by the operation types included in the
  * {@code org.opends.server.core} package.
  */
-public abstract class Operation
-       implements PreParseOperation, PreOperationOperation,
-                  PostOperationOperation, PostResponseOperation,
-                  Runnable
+public interface Operation
 {
   /**
-   * The set of response controls that will always be returned for an
-   * abandon operation.
+   * Identifier used to get the local operation [if any] in the
+   * attachments.
    */
-  protected static final List<Control> NO_RESPONSE_CONTROLS =
-       new ArrayList<Control>(0);
-
-
-
-  /**
-   * The client connection with which this operation is associated.
-   */
-  protected final ClientConnection clientConnection;
-
-
-
-  /**
-   * The message ID for this operation.
-   */
-  protected final int messageID;
-
-
-
-  /**
-   * The operation ID for this operation.
-   */
-  protected final long operationID;
-
-
-
-  // Indicates whether this is an internal operation triggered within
-  // the server itself rather than requested by an external client.
-  private boolean isInternalOperation;
-
-  // Indicates whether this operation is involved in data
-  // synchronization processing.
-  private boolean isSynchronizationOperation;
-
-  // The cancel result for this operation.
-  private CancelResult cancelResult;
-
-  // The matched DN for this operation.
-  private DN matchedDN;
-
-  // The entry for the authorization identify for this operation.
-  private Entry authorizationEntry;
-
-  // A set of attachments associated with this operation that might be
-  // used by various components during its processing.
-  private Map<String,Object> attachments;
-
-  // The set of controls included in the request from the client.
-  private List<Control> requestControls;
-
-  // The set of referral URLs for this operation.
-  private List<String> referralURLs;
-
-  // The result code for this operation.
-  private ResultCode resultCode;
-
-  // Additional information that should be included in the log but not
-  // sent to the client.
-  private StringBuilder additionalLogMessage;
-
-  // The error message for this operation that should be included in
-  // the log and in the response to the client.
-  private StringBuilder errorMessage;
-
-  // Indicates whether this operation nneds to be synchronized to
-  // other copies of the data.
-  private boolean dontSynchronizeFlag;
-
-
-
-  /**
-   * Creates a new operation with the provided information.
-   *
-   * @param  clientConnection  The client connection with which this
-   *                           operation is associated.
-   * @param  operationID       The identifier assigned to this
-   *                           operation for the client connection.
-   * @param  messageID         The message ID of the request with
-   *                           which this operation is associated.
-   * @param  requestControls   The set of controls included in the
-   *                           request.
-   */
-  protected Operation(ClientConnection clientConnection,
-                      long operationID, int messageID,
-                      List<Control> requestControls)
-  {
-    this.clientConnection = clientConnection;
-    this.operationID      = operationID;
-    this.messageID        = messageID;
-
-    if (requestControls == null)
-    {
-      this.requestControls = new ArrayList<Control>(0);
-    }
-    else
-    {
-      this.requestControls  = requestControls;
-    }
-
-    resultCode                 = ResultCode.UNDEFINED;
-    additionalLogMessage       = new StringBuilder();
-    errorMessage               = new StringBuilder();
-    attachments                = new HashMap<String,Object>();
-    matchedDN                  = null;
-    referralURLs               = null;
-    cancelResult               = null;
-    isInternalOperation        = false;
-    isSynchronizationOperation = false;
-    authorizationEntry         =
-         clientConnection.getAuthenticationInfo().
-              getAuthorizationEntry();
-  }
-
-
+  public static final String LOCALBACKENDOPERATIONS =
+    "LocalBackendOperations";
 
   /**
    * Retrieves the operation type for this operation.
@@ -185,8 +60,6 @@ public abstract class Operation
    * @return  The operation type for this operation.
    */
   public abstract OperationType getOperationType();
-
-
 
   /**
    * Terminates the client connection being used to process this
@@ -213,8 +86,6 @@ public abstract class Operation
                             boolean sendNotification, String message,
                             int messageID);
 
-
-
   /**
    * Retrieves a set of standard elements that should be logged in all
    * requests and responses for all types of operations.  Each element
@@ -226,20 +97,7 @@ public abstract class Operation
    * @return  A standard set of elements that should be logged in
    *          requests and responses for all types of operations.
    */
-  public final String[][] getCommonLogElements()
-  {
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_CONNECTION_ID,
-                     String.valueOf(getConnectionID()) },
-      new String[] { LOG_ELEMENT_OPERATION_ID,
-                     String.valueOf(operationID) },
-      new String[] { LOG_ELEMENT_MESSAGE_ID,
-                     String.valueOf(messageID) }
-    };
-  }
-
-
+  public abstract String[][] getCommonLogElements();
 
   /**
    * Retrieves a standard set of elements that should be logged in
@@ -254,8 +112,6 @@ public abstract class Operation
    */
   public abstract String[][] getRequestLogElements();
 
-
-
   /**
    * Retrieves a standard set of elements that should be logged in
    * responses for this type of operation.  Each element in the array
@@ -269,9 +125,6 @@ public abstract class Operation
    */
   public abstract String[][] getResponseLogElements();
 
-
-
-
   /**
    * Retrieves the client connection with which this operation is
    * associated.
@@ -279,12 +132,7 @@ public abstract class Operation
    * @return  The client connection with which this operation is
    *          associated.
    */
-  public final ClientConnection getClientConnection()
-  {
-    return clientConnection;
-  }
-
-
+  public abstract ClientConnection getClientConnection();
 
   /**
    * Retrieves the unique identifier that is assigned to the client
@@ -293,36 +141,21 @@ public abstract class Operation
    * @return  The unique identifier that is assigned to the client
    *          connection that submitted this operation.
    */
-  public final long getConnectionID()
-  {
-    return clientConnection.getConnectionID();
-  }
-
-
+  public abstract long getConnectionID();
 
   /**
    * Retrieves the operation ID for this operation.
    *
    * @return  The operation ID for this operation.
    */
-  public final long getOperationID()
-  {
-    return operationID;
-  }
-
-
+  public abstract long getOperationID();
 
   /**
    * Retrieves the message ID assigned to this operation.
    *
    * @return  The message ID assigned to this operation.
    */
-  public final int getMessageID()
-  {
-    return messageID;
-  }
-
-
+  public abstract int getMessageID();
 
   /**
    * Retrieves the set of controls included in the request from the
@@ -331,12 +164,7 @@ public abstract class Operation
    * @return  The set of controls included in the request from the
    *          client.
    */
-  public final List<Control> getRequestControls()
-  {
-    return requestControls;
-  }
-
-
+  public abstract List<Control> getRequestControls();
 
   /**
    * Adds the provided control to the set of request controls for this
@@ -345,12 +173,7 @@ public abstract class Operation
    * @param  control  The control to add to the set of request
    *                  controls for this operation.
    */
-  public final void addRequestControl(Control control)
-  {
-    requestControls.add(control);
-  }
-
-
+  public abstract void addRequestControl(Control control);
 
   /**
    * Removes the provided control from the set of request controls for
@@ -360,12 +183,7 @@ public abstract class Operation
    * @param  control  The control to remove from the set of request
    *                  controls for this operation.
    */
-  public final void removeRequestControl(Control control)
-  {
-    requestControls.remove(control);
-  }
-
-
+  public abstract void removeRequestControl(Control control);
 
   /**
    * Retrieves the set of controls to include in the response to the
@@ -375,8 +193,6 @@ public abstract class Operation
    *          client.
    */
   public abstract List<Control> getResponseControls();
-
-
 
   /**
    * Adds the provided control to the set of controls to include in
@@ -388,8 +204,6 @@ public abstract class Operation
    */
   public abstract void addResponseControl(Control control);
 
-
-
   /**
    * Removes the provided control from the set of controls to include
    * in the response to the client.  This method may not be called by
@@ -400,8 +214,6 @@ public abstract class Operation
    */
   public abstract void removeResponseControl(Control control);
 
-
-
   /**
    * Retrieves the result code for this operation.
    *
@@ -409,12 +221,7 @@ public abstract class Operation
    *          {@code UNDEFINED} if the operation has not yet
    *          completed.
    */
-  public final ResultCode getResultCode()
-  {
-    return resultCode;
-  }
-
-
+  public abstract ResultCode getResultCode();
 
   /**
    * Specifies the result code for this operation.  This method may
@@ -422,12 +229,7 @@ public abstract class Operation
    *
    * @param  resultCode  The result code for this operation.
    */
-  public final void setResultCode(ResultCode resultCode)
-  {
-    this.resultCode = resultCode;
-  }
-
-
+  public abstract void setResultCode(ResultCode resultCode);
 
   /**
    * Retrieves the error message for this operation.  Its contents may
@@ -436,12 +238,7 @@ public abstract class Operation
    *
    * @return  The error message for this operation.
    */
-  public final StringBuilder getErrorMessage()
-  {
-    return errorMessage;
-  }
-
-
+  public abstract StringBuilder getErrorMessage();
 
   /**
    * Specifies the error message for this operation.  This method may
@@ -449,19 +246,7 @@ public abstract class Operation
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public final void setErrorMessage(StringBuilder errorMessage)
-  {
-    if (errorMessage == null)
-    {
-      this.errorMessage = new StringBuilder();
-    }
-    else
-    {
-      this.errorMessage = errorMessage;
-    }
-  }
-
-
+  public abstract void setErrorMessage(StringBuilder errorMessage);
 
   /**
    * Appends the provided message to the error message buffer.  If the
@@ -472,24 +257,7 @@ public abstract class Operation
    * @param  message  The message to append to the error message
    *                  buffer.
    */
-  public final void appendErrorMessage(String message)
-  {
-    if (errorMessage == null)
-    {
-      errorMessage = new StringBuilder(message);
-    }
-    else
-    {
-      if (errorMessage.length() > 0)
-      {
-        errorMessage.append("  ");
-      }
-
-      errorMessage.append(message);
-    }
-  }
-
-
+  public abstract void appendErrorMessage(String message);
 
   /**
    * Retrieves the additional log message for this operation, which
@@ -500,12 +268,7 @@ public abstract class Operation
    *
    * @return  The additional log message for this operation.
    */
-  public final StringBuilder getAdditionalLogMessage()
-  {
-    return additionalLogMessage;
-  }
-
-
+  public abstract StringBuilder getAdditionalLogMessage();
 
   /**
    * Specifies the additional log message for this operation, which
@@ -516,20 +279,8 @@ public abstract class Operation
    * @param  additionalLogMessage  The additional log message for this
    *                               operation.
    */
-  public final void setAdditionalLogMessage(StringBuilder
-                                                 additionalLogMessage)
-  {
-    if (additionalLogMessage == null)
-    {
-      this.additionalLogMessage = new StringBuilder();
-    }
-    else
-    {
-      this.additionalLogMessage = additionalLogMessage;
-    }
-  }
-
-
+  public abstract void setAdditionalLogMessage(
+      StringBuilder additionalLogMessage);
 
   /**
    * Appends the provided message to the additional log information
@@ -539,19 +290,7 @@ public abstract class Operation
    * @param  message  The message that should be appended to the
    *                  additional log information for this operation.
    */
-  public final void appendAdditionalLogMessage(String message)
-  {
-    if (additionalLogMessage == null)
-    {
-      additionalLogMessage = new StringBuilder(message);
-    }
-    else
-    {
-      additionalLogMessage.append(message);
-    }
-  }
-
-
+  public abstract void appendAdditionalLogMessage(String message);
 
   /**
    * Retrieves the matched DN for this operation.
@@ -560,12 +299,7 @@ public abstract class Operation
    *          the operation has not yet completed or does not have a
    *          matched DN.
    */
-  public final DN getMatchedDN()
-  {
-    return matchedDN;
-  }
-
-
+  public abstract DN getMatchedDN();
 
   /**
    * Specifies the matched DN for this operation.  This may not be
@@ -573,12 +307,7 @@ public abstract class Operation
    *
    * @param  matchedDN  The matched DN for this operation.
    */
-  public final void setMatchedDN(DN matchedDN)
-  {
-    this.matchedDN = matchedDN;
-  }
-
-
+  public abstract void setMatchedDN(DN matchedDN);
 
   /**
    * Retrieves the set of referral URLs for this operation.  Its
@@ -588,12 +317,7 @@ public abstract class Operation
    *          {@code null} if the operation is not yet complete or
    *          does not have a set of referral URLs.
    */
-  public final List<String> getReferralURLs()
-  {
-    return referralURLs;
-  }
-
-
+  public abstract List<String> getReferralURLs();
 
   /**
    * Specifies the set of referral URLs for this operation.  This may
@@ -602,12 +326,7 @@ public abstract class Operation
    * @param  referralURLs  The set of referral URLs for this
    *                       operation.
    */
-  public final void setReferralURLs(List<String> referralURLs)
-  {
-    this.referralURLs = referralURLs;
-  }
-
-
+  public abstract void setReferralURLs(List<String> referralURLs);
 
   /**
    * Sets the response elements for this operation based on the
@@ -618,17 +337,8 @@ public abstract class Operation
    *                             information to use for the response
    *                             elements.
    */
-  public final void setResponseData(
-                         DirectoryException directoryException)
-  {
-    this.resultCode   = directoryException.getResultCode();
-    this.matchedDN    = directoryException.getMatchedDN();
-    this.referralURLs = directoryException.getReferralURLs();
-
-    appendErrorMessage(directoryException.getErrorMessage());
-  }
-
-
+  public abstract void setResponseData(
+      DirectoryException directoryException);
 
   /**
    * Indicates whether this is an internal operation rather than one
@@ -637,12 +347,7 @@ public abstract class Operation
    * @return  {@code true} if this is an internal operation, or
    *          {@code false} if it is not.
    */
-  public final boolean isInternalOperation()
-  {
-    return isInternalOperation;
-  }
-
-
+  public abstract boolean isInternalOperation();
 
   /**
    * Specifies whether this is an internal operation rather than one
@@ -654,12 +359,8 @@ public abstract class Operation
    *                              that was requested by an external
    *                              client.
    */
-  public final void setInternalOperation(boolean isInternalOperation)
-  {
-    this.isInternalOperation = isInternalOperation;
-  }
-
-
+  public abstract void setInternalOperation(boolean
+      isInternalOperation);
 
   /**
    * Indicates whether this is a synchronization operation rather than
@@ -668,12 +369,7 @@ public abstract class Operation
    * @return  {@code true} if this is a data synchronization
    *          operation, or {@code false} if it is not.
    */
-  public final boolean isSynchronizationOperation()
-  {
-    return isSynchronizationOperation;
-  }
-
-
+  public abstract boolean isSynchronizationOperation();
 
   /**
    * Specifies whether this is a synchronization operation rather than
@@ -686,12 +382,8 @@ public abstract class Operation
    *                                     requested by an external
    *                                     client.
    */
-  public final void setSynchronizationOperation(
-                         boolean isSynchronizationOperation)
-  {
-    this.isSynchronizationOperation = isSynchronizationOperation;
-  }
-
+  public abstract void setSynchronizationOperation(
+      boolean isSynchronizationOperation);
 
   /**
    * Specifies whether this operation must be synchronized to other
@@ -701,10 +393,7 @@ public abstract class Operation
    *                          synchronized to other copies
    *                          of the data.
    */
-  public final void setDontSynchronize(boolean dontSynchronize)
-  {
-    this.dontSynchronizeFlag = dontSynchronize;
-  }
+  public abstract void setDontSynchronize(boolean dontSynchronize);
 
   /**
    * Retrieves the entry for the user that should be considered the
@@ -722,12 +411,7 @@ public abstract class Operation
    *          {@code null} if the authorization identity should be the
    *          unauthenticated  user.
    */
-  public final Entry getAuthorizationEntry()
-  {
-    return authorizationEntry;
-  }
-
-
+  public abstract Entry getAuthorizationEntry();
 
   /**
    * Provides the entry for the user that should be considered the
@@ -740,12 +424,8 @@ public abstract class Operation
    *                             if it should be the unauthenticated
    *                             user.
    */
-  public final void setAuthorizationEntry(Entry authorizationEntry)
-  {
-    this.authorizationEntry = authorizationEntry;
-  }
-
-
+  public abstract void setAuthorizationEntry(Entry
+      authorizationEntry);
 
   /**
    * Retrieves the authorization DN for this operation.  In many
@@ -760,19 +440,7 @@ public abstract class Operation
    * @return  The authorization DN for this operation, or the null DN
    *          if it should be the unauthenticated user..
    */
-  public final DN getAuthorizationDN()
-  {
-    if (authorizationEntry == null)
-    {
-      return DN.nullDN();
-    }
-    else
-    {
-      return authorizationEntry.getDN();
-    }
-  }
-
-
+  public abstract DN getAuthorizationDN();
 
   /**
    * Retrieves the set of attachments defined for this operation, as a
@@ -780,12 +448,7 @@ public abstract class Operation
    *
    * @return  The set of attachments defined for this operation.
    */
-  public final Map<String,Object> getAttachments()
-  {
-    return attachments;
-  }
-
-
+  public abstract Map<String, Object> getAttachments();
 
   /**
    * Retrieves the attachment with the specified name.
@@ -796,12 +459,7 @@ public abstract class Operation
    * @return  The requested attachment object, or {@code null} if it
    *          does not exist.
    */
-  public final Object getAttachment(String name)
-  {
-    return attachments.get(name);
-  }
-
-
+  public abstract Object getAttachment(String name);
 
   /**
    * Removes the attachment with the specified name.
@@ -812,12 +470,7 @@ public abstract class Operation
    * @return  The attachment that was removed, or {@code null} if it
    *          does not exist.
    */
-  public final Object removeAttachment(String name)
-  {
-    return attachments.remove(name);
-  }
-
-
+  public abstract Object removeAttachment(String name);
 
   /**
    * Sets the value of the specified attachment.  If an attachment
@@ -831,12 +484,7 @@ public abstract class Operation
    *          name, or {@code null} if there was previously no such
    *          attachment.
    */
-  public final Object setAttachment(String name, Object value)
-  {
-    return attachments.put(name, value);
-  }
-
-
+  public abstract Object setAttachment(String name, Object value);
 
   /**
    * Retrieves the time that processing started for this operation.
@@ -844,8 +492,6 @@ public abstract class Operation
    * @return  The time that processing started for this operation.
    */
   public abstract long getProcessingStartTime();
-
-
 
   /**
    * Retrieves the time that processing stopped for this operation.
@@ -855,8 +501,6 @@ public abstract class Operation
    * @return  The time that processing stopped for this operation.
    */
   public abstract long getProcessingStopTime();
-
-
 
   /**
    * Retrieves the length of time in milliseconds that the server
@@ -868,32 +512,12 @@ public abstract class Operation
    */
   public abstract long getProcessingTime();
 
-
-
-  /**
-   * Performs the work of actually processing this operation.  This
-   * should include all processing for the operation, including
-   * invoking plugins, logging messages, performing access control,
-   * managing synchronization, and any other work that might need to
-   * be done in the course of processing.
-   */
-  public abstract void run();
-
-
-
   /**
    * Indicates that processing on this operation has completed
    * successfully and that the client should perform any associated
    * cleanup work.
    */
-  public final void operationCompleted()
-  {
-    // Notify the client connection that this operation is complete
-    // and that it no longer needs to be retained.
-    clientConnection.removeOperationInProgress(messageID);
-  }
-
-
+  public abstract void operationCompleted();
 
   /**
    * Attempts to cancel this operation before processing has
@@ -906,8 +530,6 @@ public abstract class Operation
    *          cancellation.
    */
   public abstract CancelResult cancel(CancelRequest cancelRequest);
-
-
 
   /**
    * Sets the cancel request for this operation, if applicable.  This
@@ -923,10 +545,8 @@ public abstract class Operation
    *          {@code false} if it was not for some reason (e.g., the
    *          specified operation cannot be cancelled).
    */
-  protected abstract boolean setCancelRequest(CancelRequest
-                                                   cancelRequest);
-
-
+  public abstract boolean setCancelRequest(CancelRequest
+      cancelRequest);
 
   /**
    * Retrieves the cancel request that has been issued for this
@@ -939,8 +559,6 @@ public abstract class Operation
    */
   public abstract CancelRequest getCancelRequest();
 
-
-
   /**
    * Retrieves the cancel result for this operation.
    *
@@ -948,24 +566,14 @@ public abstract class Operation
    *          {@code null} if the operation has not seen and reacted
    *          to a cancel request.
    */
-  public final CancelResult getCancelResult()
-  {
-    return cancelResult;
-  }
-
-
+  public abstract CancelResult getCancelResult();
 
   /**
    * Specifies the cancel result for this operation.
    *
    * @param  cancelResult  The cancel result for this operation.
    */
-  public final void setCancelResult(CancelResult cancelResult)
-  {
-    this.cancelResult = cancelResult;
-  }
-
-
+  public abstract void setCancelResult(CancelResult cancelResult);
 
   /**
    * Indicates that this operation has been cancelled.  If
@@ -976,40 +584,14 @@ public abstract class Operation
    *
    * @param  cancelRequest  The request to cancel this operation.
    */
-  protected final void indicateCancelled(CancelRequest cancelRequest)
-  {
-    setCancelResult(CancelResult.CANCELED);
-
-    if (cancelRequest.notifyOriginalRequestor() ||
-        DirectoryServer.notifyAbandonedOperations())
-    {
-      setResultCode(ResultCode.CANCELED);
-
-      String cancelReason = cancelRequest.getCancelReason();
-      if (cancelReason != null)
-      {
-        appendErrorMessage(cancelReason);
-      }
-
-      clientConnection.sendResponse(this);
-    }
-  }
-
-
+  public abstract void indicateCancelled(CancelRequest cancelRequest);
 
   /**
    * Retrieves a string representation of this operation.
    *
    * @return  A string representation of this operation.
    */
-  public final String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
-
-
+  public abstract String toString();
 
   /**
    * Appends a string representation of this operation to the provided
@@ -1020,8 +602,6 @@ public abstract class Operation
    */
   public abstract void toString(StringBuilder buffer);
 
-
-
   /**
    * Indicates whether this operation needs to be synchronized to
    * other copies of the data.
@@ -1030,9 +610,28 @@ public abstract class Operation
    *                            synchronized, or
    *          <CODE>false</CODE> if it needs to be synchronized.
    */
-  public boolean dontSynchronize()
-  {
-    return dontSynchronizeFlag;
-  }
+  public abstract boolean dontSynchronize();
+
+  /**
+   * Set the time at which the processing stopped for this operation.
+   * This will actually hold a time immediately before the response
+   * was sent to the client.
+   */
+  public abstract void setProcessingStopTime();
+
+  /**
+   * Set the time at which the processing started for this operation.
+   */
+  public abstract void setProcessingStartTime();
+
+  /**
+   * Set the attachments to the operation.
+   *
+   * @param attachments - Attachments to register within the
+   *                      operation
+   */
+  public abstract void setAttachments(Map<String,
+      Object> attachments);
+
 }
 

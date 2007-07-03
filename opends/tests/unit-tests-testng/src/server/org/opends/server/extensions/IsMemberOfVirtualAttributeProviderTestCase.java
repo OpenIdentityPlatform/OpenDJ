@@ -57,6 +57,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.testng.Assert.*;
 
@@ -1113,7 +1114,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, null, null);
 
-    assertEquals(provider.isSearchable(rule, searchOperation), isSearchable);
+    assertEquals(provider.isSearchable(rule, new LocalBackendSearchOperation(searchOperation)), isSearchable);
   }
 
 
@@ -1237,7 +1238,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                                      SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES, 0,
                                      0, false, filter, null, null);
-    provider.processSearch(rule, searchOperation);
+    provider.processSearch(rule, new LocalBackendSearchOperation(searchOperation));
 
     boolean matchFound = false;
     for (Entry e : searchOperation.getSearchEntries())

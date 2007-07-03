@@ -32,7 +32,7 @@ import javax.management.remote.JMXAuthenticator;
 import javax.security.auth.Subject;
 
 import org.opends.server.api.plugin.PostConnectPluginResult;
-import org.opends.server.core.BindOperation;
+import org.opends.server.core.BindOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.messages.CoreMessages;
@@ -261,7 +261,7 @@ public class RmiAuthenticator implements JMXAuthenticator
     JmxClientConnection jmxClientConnection = new JmxClientConnection(
         jmxConnectionHandler, authInfo);
 
-    BindOperation bindOp = new BindOperation(jmxClientConnection,
+    BindOperationBasis bindOp = new BindOperationBasis(jmxClientConnection,
         jmxClientConnection.nextOperationID(),
         jmxClientConnection.nextMessageID(), requestControls,
         jmxConnectionHandler.getRMIConnector().getProtocolVersion(),

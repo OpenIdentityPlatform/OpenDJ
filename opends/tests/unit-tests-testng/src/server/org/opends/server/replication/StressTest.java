@@ -40,7 +40,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -104,7 +104,7 @@ public class StressTest extends ReplicationTestCase
 
       // Create an Entry (add operation) that will be later used in the test.
       Entry tmp = personEntry.duplicate(false);
-      AddOperation addOp = new AddOperation(connection,
+      AddOperationBasis addOp = new AddOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, tmp.getDN(),
           tmp.getObjectClasses(), tmp.getUserAttributes(),
@@ -193,7 +193,7 @@ public class StressTest extends ReplicationTestCase
     for (int i = 0; i < topEntries.length; i++)
     {
       entry = TestCaseUtils.entryFromLdifString(topEntries[i]);
-      AddOperation addOp = new AddOperation(connection,
+      AddOperationBasis addOp = new AddOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
               .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
           entry.getUserAttributes(), entry.getOperationalAttributes());

@@ -30,8 +30,8 @@ package org.opends.server.authorization.dseecompat;
 import org.opends.server.types.*;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
+import org.opends.server.core.AddOperationBasis;
 import org.opends.server.api.ConnectionSecurityProvider;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.extensions.TLSConnectionSecurityProvider;
 import org.opends.server.types.Operation;
@@ -250,7 +250,7 @@ implements AciTargetMatchContext, AciEvalContext {
       this.resourceEntry=entry;
       this.operation=operation;
       this.clientConnection=operation.getClientConnection();
-      if(operation instanceof AddOperation)
+      if(operation instanceof AddOperationBasis)
           this.isAddOp=true;
 
       //If the proxied authorization control was processed, then the operation

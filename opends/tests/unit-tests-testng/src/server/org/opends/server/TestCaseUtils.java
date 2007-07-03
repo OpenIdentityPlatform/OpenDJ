@@ -69,13 +69,13 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.ResultCode;
 
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertEquals;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -151,7 +151,8 @@ public final class TestCaseUtils {
    *                           configuration.
    */
   public static void startServer()
-         throws IOException, InitializationException, ConfigException
+         throws IOException, InitializationException, ConfigException,
+                DirectoryException
   {
     if (SERVER_STARTED)
     {
@@ -352,6 +353,8 @@ public final class TestCaseUtils {
     assertTrue(InvocationCounterPlugin.startupCalled());
 
     SERVER_STARTED = true;
+    
+    initializeTestBackend(true);
   }
 
   /**
@@ -439,7 +442,8 @@ public final class TestCaseUtils {
    * @throws  Exception  If an unexpected problem occurs.
    */
   public static void initializeTestBackend(boolean createBaseEntry)
-         throws Exception
+         throws IOException, InitializationException, ConfigException,
+                DirectoryException
   {
     startServer();
 

@@ -40,10 +40,11 @@ import java.util.UUID;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
@@ -175,11 +176,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     Operation op = msg.createOperation(connection);
     Operation generatedOperation = generatedMsg.createOperation(connection);
 
-    assertEquals(op.getClass(), ModifyOperation.class);
-    assertEquals(generatedOperation.getClass(), ModifyOperation.class);
+    assertEquals(op.getClass(), ModifyOperationBasis.class);
+    assertEquals(generatedOperation.getClass(), ModifyOperationBasis.class);
 
-    ModifyOperation mod1 = (ModifyOperation) op;
-    ModifyOperation mod2 = (ModifyOperation) generatedOperation;
+    ModifyOperationBasis mod1 = (ModifyOperationBasis) op;
+    ModifyOperationBasis mod2 = (ModifyOperationBasis) generatedOperation;
 
     assertEquals(mod1.getRawEntryDN(), mod2.getRawEntryDN());
     assertEquals( mod1.getAttachment(SYNCHROCONTEXT),
@@ -259,7 +260,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
-    DeleteOperation op = new DeleteOperation(connection, 1, 1,null,
+    DeleteOperationBasis op = new DeleteOperationBasis(connection, 1, 1,null,
                                              DN.decode(rawDN));
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
       (short) 123, (short) 45);
@@ -274,9 +275,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     Operation generatedOperation = generatedMsg.createOperation(connection);
 
-    assertEquals(generatedOperation.getClass(), DeleteOperation.class);
+    assertEquals(generatedOperation.getClass(), DeleteOperationBasis.class);
 
-    DeleteOperation mod2 = (DeleteOperation) generatedOperation;
+    DeleteOperationBasis mod2 = (DeleteOperationBasis) generatedOperation;
 
     assertEquals(op.getRawEntryDN(), mod2.getRawEntryDN());
 
@@ -402,7 +403,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     //Create an Add operation and generate and Add msg from it
     DN dn = DN.decode(rawDN);
 
-    addOp = new AddOperation(connection,
+    addOp = new AddOperationBasis(connection,
         (long) 1, 1, null, dn, objectClassList, userAttList, opList);
     OperationContext opCtx = new AddContext(cn, "thisIsaUniqueID",
         "parentUniqueId");

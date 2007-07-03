@@ -82,7 +82,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPAttribute ;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
-import org.opends.server.core.ModifyOperation ;
+import org.opends.server.core.ModifyOperationBasis ;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.ModificationType;
 
@@ -828,7 +828,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
 
     //
     // Process the modify
-    ModifyOperation op = jmxClientConnection.processModify(
+    ModifyOperationBasis op = jmxClientConnection.processModify(
           new ASN1OctetString(configEntryDN.toString()),
           ldapModList);
 

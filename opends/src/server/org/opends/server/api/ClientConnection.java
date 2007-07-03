@@ -41,6 +41,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.core.NetworkGroup;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -117,6 +119,9 @@ public abstract class ClientConnection
   // A set of persistent searches registered for this client.
   private CopyOnWriteArrayList<PersistentSearch> persistentSearches;
 
+  // The network group to which the connection belongs to.
+  private NetworkGroup networkGroup;
+
 
 
   /**
@@ -136,6 +141,7 @@ public abstract class ClientConnection
     lookthroughLimit   = DirectoryServer.getLookthroughLimit();
     finalized          = false;
     privileges         = new HashSet<Privilege>();
+    networkGroup       = NetworkGroup.getDefaultNetworkGroup();
   }
 
 
@@ -653,7 +659,8 @@ public abstract class ClientConnection
    * @return  The set of operations in progress for this client
    *          connection.
    */
-  public abstract Collection<Operation> getOperationsInProgress();
+  public abstract Collection<AbstractOperation>
+                                      getOperationsInProgress();
 
 
 
@@ -667,7 +674,8 @@ public abstract class ClientConnection
    *          or <CODE>null</CODE> if no such operation could be
    *          found.
    */
-  public abstract Operation getOperationInProgress(int messageID);
+  public abstract AbstractOperation
+                          getOperationInProgress(int messageID);
 
 
 
@@ -1542,5 +1550,28 @@ public abstract class ClientConnection
   {
     finalizeConnectionInternal();
   }
+
+
+  /**
+   * Returns the network group to which the connection belongs.
+   *
+   * @return the network group attached to the connection
+   */
+  public NetworkGroup getNetworkGroup()
+  {
+    return networkGroup;
+  }
+
+  /**
+   * Sets the network group to which the connection belongs.
+   *
+   * @param networkGroup  the network group to which the
+   *                      connections belongs to
+   */
+  public void setNetworkGroup (NetworkGroup networkGroup)
+  {
+    this.networkGroup = networkGroup;
+  }
+
 }
 

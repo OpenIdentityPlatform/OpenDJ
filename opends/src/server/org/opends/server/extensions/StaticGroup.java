@@ -35,7 +35,7 @@ import java.util.List;
 
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
-import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
@@ -460,8 +460,8 @@ public class StaticGroup
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
-      ModifyOperation modifyOperation =
-           new ModifyOperation(conn, conn.nextOperationID(),
+      ModifyOperationBasis modifyOperation =
+           new ModifyOperationBasis(conn, conn.nextOperationID(),
                                conn.nextMessageID(), requestControls,
                                groupEntryDN, mods);
       modifyOperation.run();
@@ -524,8 +524,8 @@ public class StaticGroup
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
-      ModifyOperation modifyOperation =
-           new ModifyOperation(conn, conn.nextOperationID(),
+      ModifyOperationBasis modifyOperation =
+           new ModifyOperationBasis(conn, conn.nextOperationID(),
                                conn.nextMessageID(), requestControls,
                                groupEntryDN, mods);
       modifyOperation.run();

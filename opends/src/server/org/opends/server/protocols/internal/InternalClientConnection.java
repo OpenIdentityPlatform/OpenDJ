@@ -28,6 +28,13 @@ package org.opends.server.protocols.internal;
 
 
 
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
+
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -43,18 +50,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.extensions.
-            InternalConnectionSecurityProvider;
+import org.opends.server.core.*;
+import org.opends.server.extensions.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AuthenticationInfo;
@@ -62,36 +62,28 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
-import org.opends.server.types.Modification;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
+import org.opends.server.types.RDN;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawFilter;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.RDN;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
-
-import static org.opends.server.config.ConfigConstants.*;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ProtocolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -136,7 +128,7 @@ public class InternalClientConnection
   private AuthenticationInfo authenticationInfo;
 
   // The empty operation list for this connection.
-  private LinkedList<Operation> operationList;
+  private LinkedList<AbstractOperation> operationList;
 
   // The connection ID for this client connection.
   private long connectionID;
@@ -237,7 +229,7 @@ public class InternalClientConnection
     }
 
     connectionID  = nextConnectionID.getAndDecrement();
-    operationList = new LinkedList<Operation>();
+    operationList = new LinkedList<AbstractOperation>();
 
     try
     {
@@ -274,7 +266,7 @@ public class InternalClientConnection
     super.setLookthroughLimit(0);
 
     connectionID  = nextConnectionID.getAndDecrement();
-    operationList = new LinkedList<Operation>();
+    operationList = new LinkedList<AbstractOperation>();
 
     try
     {
@@ -693,8 +685,9 @@ public class InternalClientConnection
   public AddOperation processAdd(ByteString rawEntryDN,
                                  List<RawAttribute> rawAttributes)
   {
-    AddOperation addOperation =
-         new AddOperation(this, nextOperationID(), nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(this, nextOperationID(),
+                          nextMessageID(),
                           new ArrayList<Control>(0), rawEntryDN,
                           rawAttributes);
     addOperation.setInternalOperation(true);
@@ -728,8 +721,9 @@ public class InternalClientConnection
                            Map<AttributeType,List<Attribute>>
                                 operationalAttributes)
   {
-    AddOperation addOperation =
-         new AddOperation(this, nextOperationID(), nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(this, nextOperationID(),
+                          nextMessageID(),
                           new ArrayList<Control>(0), entryDN,
                           objectClasses, userAttributes,
                           operationalAttributes);
@@ -795,8 +789,9 @@ public class InternalClientConnection
   public BindOperation processSimpleBind(ByteString rawBindDN,
                                          ByteString password)
   {
-    BindOperation bindOperation =
-         new BindOperation(this, nextOperationID(), nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(this, nextOperationID(),
+                           nextMessageID(),
                            new ArrayList<Control>(0),
                            PROTOCOL_VERSION, rawBindDN, password);
     bindOperation.setInternalOperation(true);
@@ -822,8 +817,9 @@ public class InternalClientConnection
   public BindOperation processSimpleBind(DN bindDN,
                                          ByteString password)
   {
-    BindOperation bindOperation =
-         new BindOperation(this, nextOperationID(), nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(this, nextOperationID(),
+                           nextMessageID(),
                            new ArrayList<Control>(0),
                            PROTOCOL_VERSION, bindDN, password);
     bindOperation.setInternalOperation(true);
@@ -851,8 +847,9 @@ public class InternalClientConnection
                             String saslMechanism,
                             ASN1OctetString saslCredentials)
   {
-    BindOperation bindOperation =
-         new BindOperation(this, nextOperationID(), nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(this, nextOperationID(),
+                           nextMessageID(),
                            new ArrayList<Control>(0),
                            PROTOCOL_VERSION, rawBindDN, saslMechanism,
                            saslCredentials);
@@ -881,8 +878,9 @@ public class InternalClientConnection
                             String saslMechanism,
                             ASN1OctetString saslCredentials)
   {
-    BindOperation bindOperation =
-         new BindOperation(this, nextOperationID(), nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(this, nextOperationID(),
+                           nextMessageID(),
                            new ArrayList<Control>(0),
                            PROTOCOL_VERSION, bindDN, saslMechanism,
                            saslCredentials);
@@ -1010,8 +1008,9 @@ public class InternalClientConnection
    */
   public DeleteOperation processDelete(ByteString rawEntryDN)
   {
-    DeleteOperation deleteOperation =
-         new DeleteOperation(this, nextOperationID(), nextMessageID(),
+    DeleteOperationBasis deleteOperation =
+         new DeleteOperationBasis(this, nextOperationID(),
+                             nextMessageID(),
                              new ArrayList<Control>(0), rawEntryDN);
     deleteOperation.setInternalOperation(true);
 
@@ -1033,8 +1032,9 @@ public class InternalClientConnection
    */
   public DeleteOperation processDelete(DN entryDN)
   {
-    DeleteOperation deleteOperation =
-         new DeleteOperation(this, nextOperationID(), nextMessageID(),
+    DeleteOperationBasis deleteOperation =
+         new DeleteOperationBasis(this, nextOperationID(),
+                             nextMessageID(),
                              new ArrayList<Control>(0), entryDN);
     deleteOperation.setInternalOperation(true);
 
@@ -1066,7 +1066,6 @@ public class InternalClientConnection
                                new ArrayList<Control>(0), requestOID,
                                requestValue);
     extendedOperation.setInternalOperation(true);
-
     extendedOperation.run();
     return extendedOperation;
   }
@@ -1111,13 +1110,14 @@ public class InternalClientConnection
   public ModifyOperation processModify(ByteString rawEntryDN,
                               List<RawModification> rawModifications)
   {
-    ModifyOperation modifyOperation =
-         new ModifyOperation(this, nextOperationID(), nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(this, nextOperationID(),
+                             nextMessageID(),
                              new ArrayList<Control>(0), rawEntryDN,
                              rawModifications);
     modifyOperation.setInternalOperation(true);
-
     modifyOperation.run();
+
     return modifyOperation;
   }
 
@@ -1138,13 +1138,14 @@ public class InternalClientConnection
   public ModifyOperation processModify(DN entryDN,
                               List<Modification> modifications)
   {
-    ModifyOperation modifyOperation =
-         new ModifyOperation(this, nextOperationID(), nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(this, nextOperationID(),
+                             nextMessageID(),
                              new ArrayList<Control>(0), entryDN,
                              modifications);
     modifyOperation.setInternalOperation(true);
-
     modifyOperation.run();
+
     return modifyOperation;
   }
 
@@ -1832,7 +1833,7 @@ public class InternalClientConnection
    * @return  The set of operations in progress for this client
    *          connection.
    */
-  public Collection<Operation> getOperationsInProgress()
+  public Collection<AbstractOperation> getOperationsInProgress()
   {
     return operationList;
   }
@@ -1849,7 +1850,7 @@ public class InternalClientConnection
    *          or <CODE>null</CODE> if no such operation could be
    *          found.
    */
-  public Operation getOperationInProgress(int messageID)
+  public AbstractOperation getOperationInProgress(int messageID)
   {
     // Internal operations will not be tracked.
     return null;

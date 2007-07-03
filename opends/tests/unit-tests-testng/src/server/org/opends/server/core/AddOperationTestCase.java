@@ -128,17 +128,17 @@ public class AddOperationTestCase
 
     Operation[] opArray = new Operation[]
     {
-      new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                        null, new ASN1OctetString("ou=People,o=test"),
                        ldapAttrList),
-      new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                        noControls, new ASN1OctetString("ou=People,o=test"),
                        ldapAttrList),
-      new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                        null, entry.getDN(), entry.getObjectClasses(),
                        entry.getUserAttributes(),
                        entry.getOperationalAttributes()),
-      new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                        noControls, entry.getDN(), entry.getObjectClasses(),
                        entry.getUserAttributes(),
                        entry.getOperationalAttributes()),
@@ -182,7 +182,7 @@ public class AddOperationTestCase
    * @param  addOperation  The add operation to be tested.
    */
   @Test(dataProvider = "addOperations")
-  public void testGetAndSetRawEntryDN(AddOperation addOperation)
+  public void testGetAndSetRawEntryDN(AddOperationBasis addOperation)
   {
     ByteString originalDN = addOperation.getRawEntryDN();
     assertNotNull(originalDN);
@@ -201,7 +201,7 @@ public class AddOperationTestCase
 
   /**
    * Tests the <CODE>getEntryDN</CODE> method for the case in which we expect
-   * the DN to be initially null.
+   * the rawEntryDN to be decoded.
    */
   @Test()
   public void testGetEntryDNInitiallyNull()
@@ -220,11 +220,11 @@ public class AddOperationTestCase
     values.add(new ASN1OctetString("People"));
     ldapAttrList.add(new LDAPAttribute("ou", values));
 
-    AddOperation addOperation =
-         new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           null, new ASN1OctetString("ou=People,o=test"),
                           ldapAttrList);
-    assertNull(addOperation.getEntryDN());
+    assertNotNull(addOperation.getEntryDN());
   }
 
 
@@ -248,8 +248,8 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    AddOperation addOperation =
-         new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           null, entry.getDN(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -261,7 +261,7 @@ public class AddOperationTestCase
   /**
    * Tests the <CODE>getEntryDN</CODE> method for the case in which we expect
    * the DN to be initially non-null but then becomes null after the raw DN is
-   * changed.
+   * changed, and <CODE>getEntryDN</CODE> method recomputes it again
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -278,15 +278,15 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    AddOperation addOperation =
-         new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           null, entry.getDN(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
     assertNotNull(addOperation.getEntryDN());
 
     addOperation.setRawEntryDN(new ASN1OctetString("ou=Users,o=test"));
-    assertNull(addOperation.getEntryDN());
+    assertNotNull(addOperation.getEntryDN());
   }
 
 
@@ -298,7 +298,7 @@ public class AddOperationTestCase
    * @param  addOperation  The add operation to be tested.
    */
   @Test(dataProvider = "addOperations")
-  public void testGetAndSetRawAttributes(AddOperation addOperation)
+  public void testGetAndSetRawAttributes(AddOperationBasis addOperation)
   {
     List<RawAttribute> rawAttrs = addOperation.getRawAttributes();
     assertNotNull(rawAttrs);
@@ -579,7 +579,6 @@ public class AddOperationTestCase
    */
   private void retrieveCompletedOperationElements(AddOperation addOperation)
   {
-    assertNotNull(addOperation.getEntryToAdd());
     assertTrue(addOperation.getProcessingStartTime() > 0);
     assertTrue(addOperation.getProcessingStopTime() >=
                addOperation.getProcessingStartTime());
@@ -1984,8 +1983,8 @@ public class AddOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    AddOperation addOperation =
-         new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           null, entry.getDN(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -2517,8 +2516,8 @@ responseLoop:
     rawAttrs.add(RawAttribute.create("objectClass", ocValues));
     rawAttrs.add(RawAttribute.create("o", "test"));
 
-    AddOperation addOperation =
-         new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           controls, new ASN1OctetString("o=test"), rawAttrs);
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);

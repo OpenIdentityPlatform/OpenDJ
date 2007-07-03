@@ -35,7 +35,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
@@ -127,7 +127,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         new org.opends.server.types.Attribute(
             "ds-cfg-connection-handler-enabled", "true")));
-    ModifyOperation op = new ModifyOperation(
+    ModifyOperationBasis op = new ModifyOperationBasis(
         conn,
         conn.nextOperationID(),
         conn.nextMessageID(),

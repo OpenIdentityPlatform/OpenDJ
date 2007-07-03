@@ -43,6 +43,7 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -56,7 +57,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.LockManager;
-import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
@@ -69,6 +69,8 @@ import org.opends.server.types.operation.PreParseCompareOperation;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
+import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
@@ -84,14 +86,14 @@ import static org.opends.server.util.StaticUtils.*;
  * pair.
  */
 public class CompareOperation
-       extends Operation
+       extends AbstractOperation
        implements PreParseCompareOperation, PreOperationCompareOperation,
                   PostOperationCompareOperation, PostResponseCompareOperation
 {
   /**
    * The tracer object for the debug logger.
    */
-  private static final DebugTracer TRACER = getTracer();
+  private static final DebugTracer TRACER = DebugLogger.getTracer();
 
   // The attribute type for this compare operation.
   private AttributeType attributeType;
@@ -116,12 +118,6 @@ public class CompareOperation
 
   // The set of response controls for this compare operation.
   private List<Control> responseControls;
-
-  // The time that processing started on this operation.
-  private long processingStartTime;
-
-  // The time that processing ended on this operation.
-  private long processingStopTime;
 
   // The attribute type for the compare operation.
   private String rawAttributeType;
@@ -324,41 +320,6 @@ public class CompareOperation
     return entry;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingStartTime()
-  {
-    return processingStartTime;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingStopTime()
-  {
-    return processingStopTime;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final long getProcessingTime()
-  {
-    return (processingStopTime - processingStartTime);
-  }
-
-
-
   /**
    * {@inheritDoc}
    */
@@ -465,7 +426,7 @@ public class CompareOperation
     }
 
     String processingTime =
-         String.valueOf(processingStopTime - processingStartTime);
+         String.valueOf(getProcessingTime());
 
     return new String[][]
     {
@@ -528,9 +489,12 @@ public class CompareOperation
 
 
   /**
-   * {@inheritDoc}
+   * Performs the work of actually processing this operation.  This
+   * should include all processing for the operation, including
+   * invoking plugins, logging messages, performing access control,
+   * managing synchronization, and any other work that might need to
+   * be done in the course of processing.
    */
-  @Override()
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -543,14 +507,14 @@ public class CompareOperation
 
 
     // Start the processing timer.
-    processingStartTime = System.currentTimeMillis();
+    setProcessingStartTime();
 
 
     // Check for and handle a request to cancel this operation.
     if (cancelRequest != null)
     {
       indicateCancelled(cancelRequest);
-      processingStopTime = System.currentTimeMillis();
+      setProcessingStopTime();
       return;
     }
 
@@ -571,7 +535,7 @@ compareProcessing:
         int msgID = MSGID_CANCELED_BY_PREPARSE_DISCONNECT;
         appendErrorMessage(getMessage(msgID));
 
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
 
         logCompareRequest(this);
         logCompareResponse(this);
@@ -599,7 +563,7 @@ compareProcessing:
       if (cancelRequest != null)
       {
         indicateCancelled(cancelRequest);
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
         logCompareResponse(this);
         pluginConfigManager.invokePostResponseComparePlugins(this);
         return;
@@ -648,7 +612,7 @@ compareProcessing:
       if (cancelRequest != null)
       {
         indicateCancelled(cancelRequest);
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
         logCompareResponse(this);
         pluginConfigManager.invokePostResponseComparePlugins(this);
         return;
@@ -998,7 +962,7 @@ compareProcessing:
         if (cancelRequest != null)
         {
           indicateCancelled(cancelRequest);
-          processingStopTime = System.currentTimeMillis();
+          setProcessingStopTime();
           logCompareResponse(this);
           pluginConfigManager.invokePostResponseComparePlugins(this);
           return;
@@ -1017,7 +981,7 @@ compareProcessing:
           int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
           appendErrorMessage(getMessage(msgID));
 
-          processingStopTime = System.currentTimeMillis();
+          setProcessingStopTime();
           logCompareResponse(this);
           pluginConfigManager.invokePostResponseComparePlugins(this);
           return;
@@ -1127,7 +1091,7 @@ compareProcessing:
     if (cancelRequest != null)
     {
       indicateCancelled(cancelRequest);
-      processingStopTime = System.currentTimeMillis();
+      setProcessingStopTime();
       logCompareResponse(this);
       pluginConfigManager.invokePostResponseComparePlugins(this);
       return;
@@ -1146,7 +1110,7 @@ compareProcessing:
         int msgID = MSGID_CANCELED_BY_POSTOP_DISCONNECT;
         appendErrorMessage(getMessage(msgID));
 
-        processingStopTime = System.currentTimeMillis();
+        setProcessingStopTime();
         logCompareResponse(this);
         pluginConfigManager.invokePostResponseComparePlugins(this);
         return;
@@ -1159,7 +1123,7 @@ compareProcessing:
 
 
     // Stop the processing timer.
-    processingStopTime = System.currentTimeMillis();
+    setProcessingStopTime();
 
 
     // Send the compare response to the client.
@@ -1233,7 +1197,7 @@ compareProcessing:
    * {@inheritDoc}
    */
   @Override()
-  protected boolean setCancelRequest(CancelRequest cancelRequest)
+  public boolean setCancelRequest(CancelRequest cancelRequest)
   {
     this.cancelRequest = cancelRequest;
     return true;
@@ -1257,5 +1221,6 @@ compareProcessing:
     buffer.append(rawAttributeType);
     buffer.append(")");
   }
+
 }
 

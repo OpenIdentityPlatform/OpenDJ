@@ -28,30 +28,32 @@ package org.opends.server.types;
 
 
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import org.opends.server.TestCaseUtils;
-import static org.opends.server.util.StaticUtils.createEntry;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -59,16 +61,10 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.DN;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RDN;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-
-import static org.testng.Assert.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 
@@ -1177,8 +1173,8 @@ public class PrivilegeTestCase
 
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
-    AddOperation addOperation =
-         new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           controls, e.getDN(), e.getObjectClasses(),
                           e.getUserAttributes(), e.getOperationalAttributes());
     addOperation.run();
@@ -1200,8 +1196,8 @@ public class PrivilegeTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               new Attribute("description", "foo")));
 
-    ModifyOperation modifyOperation =
-         new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              controls, e.getDN(), mods);
     modifyOperation.run();
 
@@ -1239,8 +1235,8 @@ public class PrivilegeTestCase
 
     // Try to delete the operation.  If this fails, then delete it with a root
     // connection so it gets cleaned up.
-    DeleteOperation deleteOperation =
-         new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    DeleteOperationBasis deleteOperation =
+         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              controls, newEntryDN);
     deleteOperation.run();
 
@@ -1255,8 +1251,8 @@ public class PrivilegeTestCase
 
       InternalClientConnection rootConnection =
            InternalClientConnection.getRootConnection();
-      deleteOperation = rootConnection.processDelete(newEntryDN);
-      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+      DeleteOperation delOp = rootConnection.processDelete(newEntryDN);
+      assertEquals(delOp.getResultCode(), ResultCode.SUCCESS);
     }
   }
 
@@ -1373,8 +1369,8 @@ public class PrivilegeTestCase
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
     DN authDN = conn.getAuthenticationInfo().getAuthenticationDN();
-    AddOperation addOperation =
-         new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           controls, e.getDN(), e.getObjectClasses(),
                           e.getUserAttributes(), e.getOperationalAttributes());
     addOperation.run();
@@ -1398,8 +1394,8 @@ public class PrivilegeTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               new Attribute("description", "foo")));
 
-    ModifyOperation modifyOperation =
-         new ModifyOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              controls, e.getDN(), mods);
     modifyOperation.run();
 
@@ -1441,8 +1437,8 @@ public class PrivilegeTestCase
 
     // Try to delete the operation.  If this fails, then delete it with a root
     // connection so it gets cleaned up.
-    DeleteOperation deleteOperation =
-         new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    DeleteOperationBasis deleteOperation =
+         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              controls, newEntryDN);
     deleteOperation.run();
 
@@ -1459,8 +1455,8 @@ public class PrivilegeTestCase
 
       InternalClientConnection rootConnection =
            InternalClientConnection.getRootConnection();
-      deleteOperation = rootConnection.processDelete(newEntryDN);
-      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+      DeleteOperation delOp = rootConnection.processDelete(newEntryDN);
+      assertEquals(delOp.getResultCode(), ResultCode.SUCCESS);
     }
   }
 

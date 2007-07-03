@@ -26,11 +26,20 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_COMPLETION_TIME;
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_INITIALIZE_DONE;
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_INITIALIZE_LEFT;
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_LOG_MESSAGES;
+import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.messages.ReplicationMessages.MSGID_INVALID_IMPORT_SOURCE;
+import static org.opends.server.messages.ReplicationMessages.MSGID_NO_MATCHING_DOMAIN;
+import static org.opends.server.messages.ReplicationMessages.MSGID_NO_REACHABLE_PEER_IN_THE_DOMAIN;
+import static org.opends.server.messages.ReplicationMessages.MSGID_SIMULTANEOUS_IMPORT_EXPORT_REJECTED;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -42,7 +51,9 @@ import java.util.UUID;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.messages.TaskMessages;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -53,11 +64,11 @@ import org.opends.server.replication.protocol.EntryMessage;
 import org.opends.server.replication.protocol.ErrorMessage;
 import org.opends.server.replication.protocol.InitializeRequestMessage;
 import org.opends.server.replication.protocol.InitializeTargetMessage;
+import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.RoutableMessage;
 import org.opends.server.replication.protocol.SocketSession;
-import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
+import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -69,8 +80,6 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.opends.server.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 /**
  * Tests contained here:
@@ -564,7 +573,7 @@ public class InitOnLineTest extends ReplicationTestCase
       for (String ldifEntry : updatedEntries)
       {
         Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
-        AddOperation addOp = new AddOperation(connection,
+        AddOperationBasis addOp = new AddOperationBasis(connection,
             InternalClientConnection.nextOperationID(), InternalClientConnection
             .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
             entry.getUserAttributes(), entry.getOperationalAttributes());

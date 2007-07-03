@@ -27,6 +27,7 @@
 
 package org.opends.server.authorization.dseecompat;
 
+import org.opends.server.workflowelement.localbackend.*;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.Backend;
@@ -235,8 +236,10 @@ public class AciListenerManager
                   null, baseDN, SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES,
                   0, 0, false, aciFilter, attrs, null);
+        LocalBackendSearchOperation localInternalSearch =
+          new LocalBackendSearchOperation(internalSearch);
         try  {
-          backend.search(internalSearch);
+          backend.search(localInternalSearch);
         } catch (Exception e) {
             if (debugEnabled())
             {

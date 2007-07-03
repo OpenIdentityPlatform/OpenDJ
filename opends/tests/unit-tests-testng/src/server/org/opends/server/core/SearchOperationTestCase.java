@@ -182,7 +182,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     return new Operation[]
     {
-         new SearchOperation(conn,
+         new SearchOperationBasis(conn,
                              InternalClientConnection.nextOperationID(),
                              InternalClientConnection.nextMessageID(),
                              new ArrayList<Control>(),
@@ -203,7 +203,7 @@ public class SearchOperationTestCase extends OperationTestCase
    *
    * @param  searchOperation  The operation to be tested.
    */
-  private void examineCompletedOperation(SearchOperation searchOperation)
+  private void examineCompletedOperation(SearchOperationBasis searchOperation)
   {
     assertTrue(searchOperation.getProcessingStartTime() > 0);
     assertTrue(searchOperation.getProcessingStopTime() > 0);

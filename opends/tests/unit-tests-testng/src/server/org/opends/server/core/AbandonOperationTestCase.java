@@ -28,21 +28,22 @@ package org.opends.server.core;
 
 
 
+import static org.opends.server.util.ServerConstants.OID_WHO_AM_I_REQUEST;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
@@ -61,10 +62,10 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
-import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
+import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
+import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.types.CancelRequest;
@@ -78,10 +79,7 @@ import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
-
-import static org.testng.Assert.*;
-
-import static org.opends.server.util.ServerConstants.*;
+import org.testng.annotations.Test;
 
 
 

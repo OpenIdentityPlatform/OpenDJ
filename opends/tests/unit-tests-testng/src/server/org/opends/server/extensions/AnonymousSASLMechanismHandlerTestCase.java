@@ -34,7 +34,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.BindOperation;
+import org.opends.server.core.BindOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
@@ -137,8 +137,8 @@ public class AnonymousSASLMechanismHandlerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    BindOperation bindOperation =
-         new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            new ArrayList<Control>(), "3", DN.nullDN(),
                            SASL_MECHANISM_ANONYMOUS, null);
     handler.processSASLBind(bindOperation);
@@ -164,8 +164,8 @@ public class AnonymousSASLMechanismHandlerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    BindOperation bindOperation =
-         new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            new ArrayList<Control>(), "3", DN.nullDN(),
                            SASL_MECHANISM_ANONYMOUS, new ASN1OctetString());
     handler.processSASLBind(bindOperation);
@@ -190,8 +190,8 @@ public class AnonymousSASLMechanismHandlerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    BindOperation bindOperation =
-         new BindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    BindOperationBasis bindOperation =
+         new BindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                            new ArrayList<Control>(), "3", DN.nullDN(),
                            SASL_MECHANISM_ANONYMOUS,
                            new ASN1OctetString("Internal Trace String"));

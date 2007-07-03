@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
@@ -90,7 +91,7 @@ public class DeleteMsg extends UpdateMessage
   public Operation createOperation(InternalClientConnection connection,
       String newDn)
   {
-    DeleteOperation del =  new DeleteOperation(connection,
+    DeleteOperationBasis del =  new DeleteOperationBasis(connection,
                                InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), null,
                                new ASN1OctetString(newDn));

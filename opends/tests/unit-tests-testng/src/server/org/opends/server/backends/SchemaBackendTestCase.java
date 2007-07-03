@@ -35,10 +35,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.server.SchemaBackendCfg;
+import org.opends.server.backends.SchemaBackend;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SchemaConfigManager;
@@ -264,8 +264,8 @@ public class SchemaBackendTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         new AddOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    AddOperationBasis addOperation =
+         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           null, entry.getDN(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -287,8 +287,8 @@ public class SchemaBackendTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation =
-         new DeleteOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    DeleteOperationBasis deleteOperation =
+         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                              null, schemaDN);
 
     schemaBackend.deleteEntry(schemaDN, deleteOperation);

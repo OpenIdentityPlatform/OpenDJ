@@ -33,6 +33,7 @@ import org.opends.server.core.*;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.Entry;
+import org.opends.server.workflowelement.localbackend.*;
 
 /**
  * The AciLDAPOperationContainer is an AciContainer
@@ -66,7 +67,9 @@ public class AciLDAPOperationContainer extends AciContainer  {
      * @param operation The add operation to evaluate.
      * @param rights  The rights of an add operation.
      */
-    public AciLDAPOperationContainer(AddOperation operation, int rights) {
+    public AciLDAPOperationContainer(LocalBackendAddOperation operation,
+        int rights)
+    {
         super(operation, rights, operation.getEntryToAdd());
     }
 
@@ -75,7 +78,9 @@ public class AciLDAPOperationContainer extends AciContainer  {
      * @param operation The add operation to evaluate.
      * @param rights  The rights of a delete operation.
      */
-    public AciLDAPOperationContainer(DeleteOperation operation,  int rights) {
+    public AciLDAPOperationContainer(LocalBackendDeleteOperation operation,
+        int rights)
+    {
         super(operation, rights, operation.getEntryToDelete());
     }
 
@@ -84,7 +89,9 @@ public class AciLDAPOperationContainer extends AciContainer  {
      * @param rights The rights of modify operation.
      * @param operation The add operation to evaluate.
      */
-    public AciLDAPOperationContainer(ModifyOperation operation, int rights) {
+    public AciLDAPOperationContainer(LocalBackendModifyOperation operation,
+        int rights)
+    {
         super(operation, rights, operation.getCurrentEntry());
         this.modifications=operation.getModifications();
     }
@@ -106,8 +113,10 @@ public class AciLDAPOperationContainer extends AciContainer  {
      * @param rights The rights of a search operation.
      * @param entry The entry to be evaluated for this search.
      */
-    public AciLDAPOperationContainer(SearchOperation operation,  int rights,
-                                     SearchResultEntry entry) {
+    public AciLDAPOperationContainer(SearchOperation operation,
+        int rights,
+        SearchResultEntry entry)
+    {
         super(operation, rights,  entry);
         this.searchEntry = entry;
     }

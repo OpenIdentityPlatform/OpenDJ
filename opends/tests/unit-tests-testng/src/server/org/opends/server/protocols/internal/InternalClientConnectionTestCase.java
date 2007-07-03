@@ -28,16 +28,18 @@ package org.opends.server.protocols.internal;
 
 
 
+import static org.opends.server.util.ServerConstants.OID_WHO_AM_I_REQUEST;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
@@ -45,23 +47,23 @@ import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
+import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
-import org.opends.server.types.Operation;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.RDN;
@@ -69,10 +71,9 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
-
-import static org.testng.Assert.*;
-
-import static org.opends.server.util.ServerConstants.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 
@@ -1068,7 +1069,7 @@ public class InternalClientConnectionTestCase
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    Collection<Operation> opList = conn.getOperationsInProgress();
+    Collection<AbstractOperation> opList = conn.getOperationsInProgress();
     assertNotNull(opList);
     assertTrue(opList.isEmpty());
   }

@@ -36,7 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -218,15 +218,14 @@ public class PersistentServerState extends ServerState
     ArrayList<RawModification> mods = new ArrayList<RawModification>(1);
     mods.add(mod);
 
-    ModifyOperation op =
-      new ModifyOperation(conn, InternalClientConnection.nextOperationID(),
+    ModifyOperationBasis op =
+      new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
           new ArrayList<Control>(0), asn1BaseDn,
           mods);
     op.setInternalOperation(true);
     op.setSynchronizationOperation(true);
     op.setDontSynchronize(true);
-
     op.run();
 
     ResultCode result = op.getResultCode();

@@ -45,7 +45,7 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
@@ -374,8 +374,8 @@ public class LengthBasedPasswordValidatorTestCase
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
-      ModifyOperation op =
-           new ModifyOperation(conn, conn.nextOperationID(),
+      ModifyOperationBasis op =
+           new ModifyOperationBasis(conn, conn.nextOperationID(),
                                conn.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
@@ -447,8 +447,8 @@ public class LengthBasedPasswordValidatorTestCase
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
-      ModifyOperation op =
-           new ModifyOperation(conn, conn.nextOperationID(),
+      ModifyOperationBasis op =
+           new ModifyOperationBasis(conn, conn.nextOperationID(),
                                conn.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
@@ -522,8 +522,8 @@ public class LengthBasedPasswordValidatorTestCase
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
-      ModifyOperation op =
-           new ModifyOperation(conn, conn.nextOperationID(),
+      ModifyOperationBasis op =
+           new ModifyOperationBasis(conn, conn.nextOperationID(),
                                conn.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 
@@ -597,8 +597,8 @@ public class LengthBasedPasswordValidatorTestCase
 
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
-      ModifyOperation op =
-           new ModifyOperation(conn, conn.nextOperationID(),
+      ModifyOperationBasis op =
+           new ModifyOperationBasis(conn, conn.nextOperationID(),
                                conn.nextMessageID(), new ArrayList<Control>(),
                                DN.decode("cn=uid=test.user,o=test"), mods);
 

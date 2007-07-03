@@ -27,9 +27,9 @@
 package org.opends.server.api;
 
 
-
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.opends.server.workflowelement.localbackend.*;
 
 
 /**
@@ -53,7 +53,8 @@ public abstract class AccessControlHandler
    *          the access control configuration, or <CODE>false</CODE>
    *          if not.
    */
-  public abstract boolean isAllowed(AddOperation addOperation);
+  public abstract boolean isAllowed(LocalBackendAddOperation
+      addOperation);
 
 
 
@@ -69,7 +70,8 @@ public abstract class AccessControlHandler
    *          the access control configuration, or <CODE>false</CODE>
    *          if not.
    */
-  public abstract boolean isAllowed(BindOperation bindOperation);
+  public abstract boolean isAllowed(LocalBackendBindOperation
+      bindOperation);
 
 
 
@@ -102,7 +104,8 @@ public abstract class AccessControlHandler
    *          the access control configuration, or <CODE>false</CODE>
    *          if not.
    */
-  public abstract boolean isAllowed(DeleteOperation deleteOperation);
+  public abstract boolean isAllowed(LocalBackendDeleteOperation
+      deleteOperation);
 
 
 
@@ -135,7 +138,8 @@ public abstract class AccessControlHandler
    *          the access control configuration, or <CODE>false</CODE>
    *          if not.
    */
-  public abstract boolean isAllowed(ModifyOperation modifyOperation);
+  public abstract boolean isAllowed(LocalBackendModifyOperation
+      modifyOperation);
 
 
 
@@ -171,7 +175,8 @@ public abstract class AccessControlHandler
    *          the access control configuration, or <CODE>false</CODE>
    *          if not.
    */
-  public abstract boolean isAllowed(SearchOperation searchOperation);
+  public abstract boolean isAllowed(LocalBackendSearchOperation
+      searchOperation);
 
 
 
@@ -189,8 +194,9 @@ public abstract class AccessControlHandler
    *          the access control configuration, or <CODE>false</CODE>
    *          if not.
    */
-  public abstract boolean maySend(SearchOperation searchOperation,
-                                  SearchResultEntry searchEntry);
+  public abstract boolean maySend(
+                         SearchOperation searchOperation,
+                         SearchResultEntry searchEntry);
 
 
 
@@ -207,7 +213,8 @@ public abstract class AccessControlHandler
    *          removed.
    */
   public abstract SearchResultEntry filterEntry(
-      SearchOperation searchOperation, SearchResultEntry searchEntry);
+                         SearchOperation searchOperation,
+                         SearchResultEntry searchEntry);
 
 
 
@@ -225,8 +232,9 @@ public abstract class AccessControlHandler
    *         the access control configuration, or <CODE>false</CODE>
    *         if not.
    */
-  public abstract boolean maySend(SearchOperation searchOperation,
-                               SearchResultReference searchReference);
+  public abstract boolean maySend(
+                          SearchOperation searchOperation,
+                          SearchResultReference searchReference);
 
 
 
