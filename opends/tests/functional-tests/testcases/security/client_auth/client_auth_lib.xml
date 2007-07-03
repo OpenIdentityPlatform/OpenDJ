@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+	
+
+	<!-- **************************************************** -->
+	<!--                       load variables                 -->
+	<!-- **************************************************** -->	
+
+ <function name="loadVariables">
+    <function-prolog>
+      This function loads variables used by the client_auth testsuite
+    </function-prolog>
+		
+    <sequence>
+  <!-- Local variables -->
+    <script>
+          SERVER_KEYPASS="servercert"
+          SERVER_STOREPASS="servercert"
+          CERT_TMP="%s/../%s/CERT_%s" % (dsPath,relativeDataDir,DIRECTORY_INSTANCE_PORT)
+          CLIENT_KEYSTORE="%s/keystore" % (CERT_TMP)
+          CLIENT_KEYPASS="password"
+          CLIENT_STOREPASS="password"		
+          USER_1_CERT="client-cert-1"
+          USER_1_CERT_FILE="%s/client_cert_1.txt" % (CERT_TMP)
+          USER_1_DN	="uid=%s,%s" % (USER_1_CERT,DIRECTORY_INSTANCE_SFX)
+          USER_1_CERT_FILE_RFC="%s/client_cert_1_rfc.txt" % (CERT_TMP)
+          USER_2_CERT="client-cert-2"
+          USER_2_CERT_FILE_RFC="%s/client_cert_2_rfc.txt" % (CERT_TMP)
+          USER_2_CERT_FILE="%s/client_cert_2.txt" % (CERT_TMP)		  
+          USER_2_DN	="uid=%s,%s" % (USER_2_CERT,DIRECTORY_INSTANCE_SFX)		
+          SERVER_CERT_FILE="%s/server_cert.txt" % (CERT_TMP)
+          user1LdifFileName='user1_cert.ldif'
+          user2LdifFileName='user2_cert.ldif'
+          remoteUser1LdifFile='%s/%s/../%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,relativeDataDir,user1LdifFileName)
+          remoteUser2LdifFile='%s/%s/../%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,relativeDataDir,user2LdifFileName)
+          localUser1LdifFile='%s/%s' % (logsTempDir,user1LdifFileName)
+          localUser2LdifFile='%s/%s' % (logsTempDir,user2LdifFileName)				  
+     </script>
+    </sequence>
+    </function>
+
+</stax>
