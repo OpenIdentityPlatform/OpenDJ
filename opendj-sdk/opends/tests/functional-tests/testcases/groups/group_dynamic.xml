@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+
+  <defaultcall function="main_dynamicgroup"/>
+
+  <function name="main_dynamicgroup">
+
+    <sequence>
+
+      <block name="'dynamicgroup'">
+      
+        <sequence>
+          
+          <script>
+            applicationDn='uid=my_application,dc=groups,dc=com'
+            applicationPswd='pw_my_application'
+            dynamicGroupDn='cn=my_dynamicgroup1,dc=groups,dc=com'
+            newDynamicGroup='my_newDynamicGroup'
+            newDynamicGroupDn='cn=%s,dc=groups,dc=com' % (newDynamicGroup)
+            newDynamicGroupPswd='pw_%s' % (newDynamicGroup)
+            user0='user_00'
+            user0Dn='uid=%s,ou=dynamic,dc=groups,dc=com' % (user0)
+            user0Pswd='pw_00'
+            user1='user_01'
+            user1Dn='uid=%s,ou=dynamic,dc=groups,dc=com' % (user1)
+            user1Pswd='pw_01'
+            user2='user_02'
+            user2Dn='uid=%s,ou=dynamic,dc=groups,dc=com' % (user2)
+            user2Pswd='pw_02'
+            user2Add='user_22'
+            user2AddDn='uid=%s,ou=dynamic,dc=groups,dc=com' % (user2Add)
+            user2AddPswd='pw_22'
+            user2AddRenamed='%s_bis' % (user2Add)
+            user2AddRenamedDn='uid=%s,ou=dynamic,dc=groups,dc=com' % (user2AddRenamed)            
+          </script>      
+ 
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='groups'						  
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+                      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!--- Test Suite information
+          #@TestSuiteName       Group test suite
+          #@TestSuitePurpose    Test this feature
+          #@TestSuiteID         Groups Tests
+          #@TestSuiteGroup      Dynamic Group
+          #@TestGroup           Dynamic Group
+          #@TestScript          group_dynamic.xml
+          #@TestHTMLLink        http://opends.dev.java.net/
+          -->
+
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/groups/group_setup.xml' % (TESTS_DIR)"/>
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/testcases/groups/group_lib.xml' % (TESTS_DIR)"/>
+                    
+          <call function="'group_setup'"> { 'startDS' : True } </call>
+
+          
+          <!--- Test Case information
+          #@TestMarker          Dynamic Group Tests
+          #@TestName            Group: Dynamic: add a dynamic group entry
+          #@TestID              
+          #@TestPurpose         
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="'Group: Dynamic: add a dynamic group entry'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+
+              <script>  
+                listAttr = []
+                listAttr.append('cn:%s' % newDynamicGroup)
+                listAttr.append('objectclass:top')
+                listAttr.append('objectclass:groupofurls')
+                listAttr.append('description:this is the description of %s' % newDynamicGroup)
+                listAttr.append('memberurl:ldap:///ou=dynamic,dc=groups,dc=com??sub?(uid=*0*)')
+              </script>
+              <message>
+                '++++ Application add group entry %s' % newDynamicGroupDn
+              </message>
+              <call function="'addAnEntry'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : applicationDn ,
+                'dsInstancePswd'   : applicationPswd ,
+                'DNToAdd'          : newDynamicGroupDn,
+                'listAttributes'   : listAttr
+                }
+              </call>
+              <!-- ******************** -->
+              <message>
+                '++++ Application do a search to check the entry has been created'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : applicationDn ,
+                'dsInstancePswd'   : applicationPswd ,
+                'dsBaseDN'         : newDynamicGroupDn ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'dsAttributes'     : 'uniquemember' }
+              </call>
+              <!-- ******************** -->
+              <call function="'CheckIsMemberOf'">
+                { 'baseDn'      : user0Dn ,
+                  'string2find' : newDynamicGroupDn ,
+                  'nbExpected'  : 1
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          <!--- Test Case information
+          #@TestMarker          Dynamic Group Tests
+          #@TestName            Group: Dynamic: delete a dynamic group entry
+          #@TestID              
+          #@TestPurpose         
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="'Group: Dynamic: delete a dynamic group entry'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                '++++ Delete the group entry %s' % newDynamicGroupDn
+              </message>
+              <call function="'DeleteEntry'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : applicationDn ,
+                'dsInstancePswd'   : applicationPswd ,
+                'dsBaseDN'         : newDynamicGroupDn,
+                }
+              </call>
+              <message>
+                '++++ Check the group entry %s no more exist' % newDynamicGroup
+              </message>              
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : applicationDn ,
+                'dsInstancePswd'   : applicationPswd ,
+                'dsBaseDN'         : newDynamicGroupDn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'expected'         : 32 }
+              </call>
+              <!-- ******************** -->
+              <call function="'CheckIsMemberOf'">
+                { 'baseDn'      : user0Dn ,
+                  'string2find' : newDynamicGroupDn ,
+                  'nbExpected'  : 0
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+         
+          <!--- Test Case information
+          #@TestMarker          Dynamic Group Tests
+          #@TestName            Group: Dynamic: no group user do a search
+          #@TestID              
+          #@TestPurpose         
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="'Group: Dynamic: no group user do a search'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                '++++ %s search itself (should PASS as not a member of dynamic group)' % user1
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : user1Dn ,
+                'dsInstancePswd'   : user1Pswd ,
+                'dsBaseDN'         : user1Dn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'expected'         : 0 }
+              </call>
+              <!-- ******************** -->
+              <call function="'CheckIsMemberOf'">
+                { 'baseDn'      : user1Dn ,
+                  'string2find' : dynamicGroupDn ,
+                  'nbExpected'  : 0
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+                            
+          <!--- Test Case information
+          #@TestMarker          Dynamic Group Tests
+          #@TestName            Group: Dynamic: group user do a search
+          #@TestID              
+          #@TestPurpose         
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="'Group: Dynamic: group user do a search'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                '++++ %s search itself (should be refused as dynamic group does not have the permission)' % user2
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : user2Dn ,
+                'dsInstancePswd'   : user2Pswd ,
+                'dsBaseDN'         : user2Dn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'expected'         : 0 }
+              </call>
+              <message>
+                '++++ Check the search return nothing'
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : 'dn' ,
+                'mainString'    : STAXResult[0][1] ,
+                'nbExpected'    : 0
+                }
+              </call>
+              <!-- ******************** -->
+              <call function="'CheckIsMemberOf'">
+                { 'baseDn'      : user2Dn ,
+                  'string2find' : dynamicGroupDn ,
+                  'nbExpected'  : 1
+                }
+              </call>
+                            
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+          
+          <!--- Test Case information
+          #@TestMarker          Dynamic Group Tests
+          #@TestName            Group: Dynamic: application add entry that belong to a group
+          #@TestID              
+          #@TestPurpose         
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="'Group: Dynamic: application add entry that belong to a group'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                '++++ Application add a new user %s / %s ' % (user2AddDn,user2AddPswd)
+              </message>
+              <script>  
+                listAttr = []
+                listAttr.append('uid:%s' % user2Add)
+                listAttr.append('objectclass:top')
+                listAttr.append('objectclass:person')
+                listAttr.append('objectclass:inetOrgPerson')
+                listAttr.append('cn:%s' % user2Add)
+                listAttr.append('sn:sn of user %s' % user2Add)
+                listAttr.append('description:this is the description of %s' % user2Add)
+                listAttr.append('userPassword:%s' % user2AddPswd)
+              </script>
+              <call function="'addAnEntry'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : applicationDn ,
+                'dsInstancePswd'   : applicationPswd ,
+                'DNToAdd'          : user2AddDn,
+                'listAttributes'   : listAttr
+                }
+              </call>
+              <!-- ******************** -->
+              <message>
+                '++++ %s search itself (should be refused as dynamic group does not have permission)' % user2Add
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : user2AddDn ,
+                'dsInstancePswd'   : user2AddPswd ,
+                'dsBaseDN'         : user2AddDn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'expected'         : 0 }
+              </call>
+              <message>
+                '++++ Check the search return nothing'
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : 'dn' ,
+                'mainString'    : STAXResult[0][1] ,
+                'nbExpected'    : 0
+                }
+              </call>
+              <!-- ******************** -->
+              <call function="'CheckIsMemberOf'">
+                { 'baseDn'      : user2AddDn ,
+                  'string2find' : dynamicGroupDn ,
+                  'nbExpected'  : 1
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          Dynamic Group Tests
+          #@TestName            Group: Dynamic: application rename entry that belong to a group
+          #@TestID              
+          #@TestPurpose         
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="'Group: Dynamic: application rename entry that belong to a group'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                '++++ Application rename %s into %s ' % (user2Add,user2AddRenamed)
+              </message>
+
+              <call function="'modifyDn'">
+                { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : applicationDn ,
+                'dsInstancePswd'    : applicationPswd ,
+                'DNToModify'        : user2AddDn ,
+                'newRDN'     				: user2AddRenamed, 
+                'deleteOldRDN' 			: 1 }
+              </call>
+              <!-- ******************** -->
+              <message>
+                '++++ %s search itself (should be refused as dynamic group does not have permission)' % user2AddRenamed
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : user2AddRenamedDn ,
+                'dsInstancePswd'   : user2AddPswd ,
+                'dsBaseDN'         : user2AddRenamedDn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'expected'         : 0 }
+              </call>
+              <message>
+                '++++ Check the search return nothing'
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : 'dn' ,
+                'mainString'    : STAXResult[0][1] ,
+                'nbExpected'    : 0
+                }
+              </call>
+              <!-- ******************** -->
+              <call function="'CheckIsMemberOf'">
+                { 'baseDn'      : user2AddRenamedDn ,
+                  'string2find' : dynamicGroupDn ,
+                  'nbExpected'  : 1
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+
+          <!--- Test Case information
+          #@TestMarker          Dynamic Group Tests
+          #@TestName            Group: Dynamic: application delete entry belonging to a group
+          #@TestID              
+          #@TestPurpose         
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="'Group: Dynamic: application delete entry belonging to a group'">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <message>
+                '++++ Application delete user %s' % user2Add
+              </message>
+              <call function="'DeleteEntry'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : applicationDn ,
+                'dsInstancePswd'   : applicationPswd ,
+                'dsBaseDN'         : user2AddDn
+                }
+              </call>
+              <!-- ******************** -->
+              <message>
+                '++++ Check the entry %s no more exist' % user2Add
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : applicationDn ,
+                'dsInstancePswd'   : applicationPswd ,
+                'dsBaseDN'         : user2AddDn ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'dsAttributes'     : 'dn',
+                'expected'				 : 32 }
+              </call>
+              <!-- ******************** -->
+              <message>
+                '++++ %s do a search (should fail)' % user2Add
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : user2AddDn ,
+                'dsInstancePswd'   : user2AddPswd ,
+                'dsBaseDN'         : user2AddDn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'expected'         : 49 }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>          
+          
+          
+          
+          
+          
+          <!-- *********************************************** -->
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+              file="'%s/testcases/groups/group_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'group_cleanup'"> { 'stopDS' : True } </call>
+          
+          <call function="'testSuite_Postamble'"/>
+  
+        </sequence>
+        
+      </block>
+                  
+    </sequence>
+    
+  </function>
+
+</stax>
