@@ -19,7 +19,10 @@
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
- * 
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
 
