@@ -168,7 +168,7 @@ public class UIFactory
   /**
    * Specifies the left inset for radio subordinate panel.
    */
-  public static final int LEFT_INSET_RADIO_SUBORDINATE = 20;
+  public static final int LEFT_INSET_RADIO_SUBORDINATE = 35;
 
   /**
    * Specifies the left inset for the secondary field.
