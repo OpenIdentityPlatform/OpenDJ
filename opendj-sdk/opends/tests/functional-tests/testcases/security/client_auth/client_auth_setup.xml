@@ -50,22 +50,13 @@
 		
     <testcase name="'Security: client_auth:  Setup. certificates configuration'">
       <sequence>
-        <script>
-          USER_1_CERT="client-cert-1"
-          USER_1_DN="uid=%s,%s" % (USER_1_CERT,DIRECTORY_INSTANCE_SFX)     			
-          USER_2_CERT="client-cert-2"
-          USER_2_DN="uid=%s,%s" % (USER_2_CERT,DIRECTORY_INSTANCE_SFX)
-          KEYPASS="password"
-          STOREPASS="password"
-          SERVER_KEYPASS="servercert"
-          SERVER_STOREPASS="servercert"
-          CERT_TMP="%s/CERT_%s" % (DIRECTORY_INSTANCE_DIR,DIRECTORY_INSTANCE_PORT)
-          CLIENT_KEYSTORE="%s/keystore" % (CERT_TMP)
-    	</script>
-        
- 
-      <message>
-           '---- Generating Server Certicate -----'
+
+ 	<!-- Load in the local shared python objects from libraries -->
+      <call function="'loadVariables'">
+	 </call>
+  
+      <message>   
+		    '---- Generating Server Certicate -----'
       </message>
 		
       <!-- create a server certificate -->           
@@ -115,9 +106,9 @@
       <call function="'genCertificate'">
            { 'certAlias'        : '%s' % USER_1_CERT,  
             'dname'           : '%s' % (USER_1_DN),
-            'storepass'       : '%s' % (STOREPASS),
+            'storepass'       : '%s' % (CLIENT_STOREPASS),
             'keystore'        : '%s' % (CLIENT_KEYSTORE),
-            'keypass'         : '%s' % (KEYPASS),
+            'keypass'         : '%s' % (CLIENT_KEYPASS),
             'storetype'  	   : 'JKS' }
       </call> 
 			   
@@ -126,8 +117,8 @@
       
       <call function="'SelfSignCertificate'">
            { 'certAlias'        :  '%s' % USER_1_CERT,
-              'storepass'      : '%s' % (STOREPASS),
-              'keypass'         : '%s' % (KEYPASS),
+              'storepass'      : '%s' % (CLIENT_STOREPASS),
+              'keypass'         : '%s' % (CLIENT_KEYPASS),
               'keystore'        : '%s' % (CLIENT_KEYSTORE),
               'storetype'  	 : 'JKS' }
       </call>
@@ -138,9 +129,9 @@
       <call function="'genCertificate'">
               { 'certAlias'        : '%s' % USER_2_CERT,
                 'dname'           : '%s' % (USER_2_DN),
-                'storepass'       : '%s' % (STOREPASS),
+                'storepass'       : '%s' % (CLIENT_STOREPASS),
                 'keystore'        : '%s' % (CLIENT_KEYSTORE),
-                'keypass'         : '%s' % (KEYPASS),
+                'keypass'         : '%s' % (CLIENT_KEYPASS),
                 'storetype'  	   : 'JKS' }
       </call> 
 			  
@@ -149,8 +140,8 @@
 
       <call function="'SelfSignCertificate'">
            { 'certAlias'        :  '%s' % USER_2_CERT,
-              'storepass'       : '%s' % (STOREPASS),
-              'keypass'         : '%s' % (KEYPASS),
+              'storepass'       : '%s' % (CLIENT_STOREPASS),
+              'keypass'         : '%s' % (CLIENT_KEYPASS),
               'keystore'        : '%s' % (CLIENT_KEYSTORE),
               'storetype'  	   : 'JKS' } 
       </call>
@@ -176,32 +167,14 @@
 		  
    <testcase name="'Security: client_auth:  setup. Export and Import certificates'">
       <sequence>
-          <script>
-				
-          CERT_TMP="%s/CERT_%s" % (DIRECTORY_INSTANCE_DIR,DIRECTORY_INSTANCE_PORT)
-          CLIENT_KEYSTORE="%s/keystore" % (CERT_TMP)
-    				
-          USER_1_CERT="client-cert-1"
-          USER_1_CERT_FILE="%s/client_cert_1.txt" % (CERT_TMP)
-          USER_1_CERT_FILE_RFC="%s/client_cert_1_rfc.txt" % (CERT_TMP)				  
-          USER_1_DN="uid=%s,%s" % (USER_1_CERT,DIRECTORY_INSTANCE_SFX)        
-          USER_2_CERT="client-cert-2"
-          USER_2_CERT_FILE="%s/client_cert_2.txt" % (CERT_TMP)
-          USER_2_CERT_FILE_RFC="%s/client_cert_2_rfc.txt" % (CERT_TMP)				  
-          USER_2_DN="uid=%s,%s" % (USER_2_CERT,DIRECTORY_INSTANCE_SFX)                
-          SERVER_CERT_FILE="%s/server_cert.txt" % (CERT_TMP)
-  				
-          KEYPASS="password"
-          STOREPASS="password"
-          SERVER_KEYPASS="servercert"
-          SERVER_STOREPASS="servercert"				
-          </script>
-		
 			  
       <call function="'testCase_Preamble'"/>
 		 
-			  	
-			<!-- Export the server Cert -->
+ 	<!-- Load in the local shared python objects from libraries -->
+      <call function="'loadVariables'">
+	 </call>
+		  			  	
+	  <!-- Export the server Cert -->
 
       <message>'----  Export the  Server Certicate ----'</message>	  
 			  
@@ -218,7 +191,7 @@
       <call function="'ExportCertificate'">
 			 { 'certAlias'        : '%s' % USER_1_CERT,
                 'outputfile'        : '%s' % (USER_1_CERT_FILE),
-                'storepass'       : '%s' % (STOREPASS),
+                'storepass'       : '%s' % (CLIENT_STOREPASS),
                 'keystore'        : '%s' % (CLIENT_KEYSTORE),		   
                 'storetype'  	   : 'JKS' }				
       </call>			
@@ -230,7 +203,7 @@
       <call function="'ExportCertificate'">
 			 { 'certAlias'        : '%s' % USER_1_CERT,
                 'outputfile'        : '%s' % (USER_1_CERT_FILE_RFC),
-                'storepass'       : '%s' % (STOREPASS),
+                'storepass'       : '%s' % (CLIENT_STOREPASS),
                 'keystore'        : '%s' % (CLIENT_KEYSTORE),
                 'format'           : 'rfc',		   
                 'storetype'  	   : 'JKS' }				
@@ -243,7 +216,7 @@
       <call function="'ExportCertificate'">
             { 'certAlias'        :'%s' % USER_2_CERT,
               	'outputfile'        : '%s' % (USER_2_CERT_FILE),
-                'storepass'       : '%s' % (STOREPASS),
+                'storepass'       : '%s' % (CLIENT_STOREPASS),
                 'keystore'        : '%s' % (CLIENT_KEYSTORE),
                 'storetype'  	   : 'JKS' }				
       </call>
@@ -255,7 +228,7 @@
       <call function="'ExportCertificate'">
             { 'certAlias'        :'%s' % USER_2_CERT,
               	'outputfile'        : '%s' % (USER_2_CERT_FILE_RFC),
-                'storepass'       : '%s' % (STOREPASS),
+                'storepass'       : '%s' % (CLIENT_STOREPASS),
                 'keystore'        : '%s' % (CLIENT_KEYSTORE),
                 'format'           : 'rfc',		  
                 'storetype'  	   : 'JKS' }				
@@ -270,7 +243,7 @@
             <call function="'ImportCertificate'">
 				{ 'certAlias'        : 'server-cert' ,
                 'inputfile'        : '%s' % (SERVER_CERT_FILE),
-                'storepass'       : '%s' % (STOREPASS),
+                'storepass'       : '%s' % (CLIENT_STOREPASS),
                 'keystore'        : '%s' % (CLIENT_KEYSTORE),
                 'storetype'  	   : 'JKS' }
             </call>
@@ -320,6 +293,11 @@
      <sequence>
 		  
 	  <call function="'testCase_Preamble'"/>
+		 
+ 	<!-- Load in the local shared python objects from libraries -->
+      <call function="'loadVariables'">
+	 </call>		 
+		 
 	  <!-- Configure SSL-->
 
       <message>
@@ -452,27 +430,12 @@
       <sequence>
       
       <call function="'testCase_Preamble'"/>
+		  
+ 	<!-- Load in the local shared python objects from libraries -->
+      <call function="'loadVariables'">
+	 </call>		  
+		  
       <!-- Create users entries--> 
-      <script>
-            CERT_TMP="%s/CERT_%s" % (DIRECTORY_INSTANCE_DIR,DIRECTORY_INSTANCE_PORT)
-				
-            USER_1_CERT="client-cert-1"
-            USER_1_CERT_FILE="%s/client_cert_1.txt" % (CERT_TMP)
-            USER_1_CERT_FILE_RFC="%s/client_cert_1_rfc.txt" % (CERT_TMP)		  
-            USER_1_DN="uid=%s,%s" % (USER_1_CERT,DIRECTORY_INSTANCE_SFX)
-            USER_2_CERT="client-cert-2"
-            USER_2_CERT_FILE_RFC="%s/client_cert_2_rfc.txt" % (CERT_TMP)
-            USER_2_CERT_FILE="%s/client_cert_2.txt" % (CERT_TMP)		  
-            USER_2_DN="uid=%s,%s" % (USER_2_CERT,DIRECTORY_INSTANCE_SFX)
-            SERVER_CERT_FILE="%s/server_cert.txt" % (CERT_TMP)
-
-            user1LdifFileName='user1_cert.ldif'
-            user2LdifFileName='user2_cert.ldif'		  
-            remoteUser1LdifFile='%s/../%s/%s' % (dsPath,relativeDataDir,user1LdifFileName)
-            remoteUser2LdifFile='%s/../%s/%s' % (dsPath,relativeDataDir,user2LdifFileName)		  
-            localUser1LdifFile='%s/%s' % (logsTempDir,user1LdifFileName)
-            localUser2LdifFile='%s/%s' % (logsTempDir,user2LdifFileName)
-      </script>
   
       <!-- Create USER_1_DN -->       
       <message> '----  Create User entry : %s----' % USER_1_DN</message>	  

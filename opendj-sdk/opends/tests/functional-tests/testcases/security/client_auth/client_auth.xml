@@ -44,49 +44,44 @@
 
           <call function="'testSuite_Preamble'"/>
 
+	      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+           file="'%s/testcases/security/client_auth/client_auth_lib.xml' % (TESTS_DIR)" />
 
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/security/security_setup.xml' % (TESTS_DIR)"/>
           <call function="'security_setup'"/>         
   
 			<!--  client authentication setup -->
-
           <import machine="'%s' % STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/client_auth/client_auth_setup.xml' % (TESTS_DIR)"/>
           <call function="'client_auth_setup'" />
 
 				
 			<!-- fingerprint certificates mapper -->
-		<!--
           <import machine="'%s' % STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/security/client_auth/fingerprint.xml' % (TESTS_DIR)"/>
-          <call function="'fingerprint'" />
-				-->
+            file="'%s/testcases/security/client_auth/fingerprint_mapper.xml' % (TESTS_DIR)"/>
+          <call function="'fingerprint_mapper'" />
+			
   
           <!-- subject DN to user attribut certificate mapper -->
-			
 			 <import machine="'%s' % STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/client_auth/subject_dn_mapper.xml' % (TESTS_DIR)"/>
           <call function="'subject_dn_mapper'" />
 
 			<!-- subject attribute  to user attribut certificate mapper -->
-			
 			 <import machine="'%s' % STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/client_auth/subject_attribute_mapper.xml' % (TESTS_DIR)"/>
           <call function="'subject_attribute_mapper'" />
 		
-			<!-- subject equals dn certificate mapper -->
-		
+			<!-- subject equals dn certificate mapper -->		
 			 <import machine="'%s' % STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/client_auth/equal_dn_mapper.xml' % (TESTS_DIR)"/>
           <call function="'equal_dn_mapper'" />
-	
+			
 		  <!--  client authentication teardown -->
           <import machine="'%s' % STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/client_auth/client_auth_teardown.xml' % (TESTS_DIR)"/>
-          <call function="'client_auth_teardown'" />
-			
-
+          <call function="'client_auth_teardown'" />	
 
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/security/security_cleanup.xml' % (TESTS_DIR)"/>
