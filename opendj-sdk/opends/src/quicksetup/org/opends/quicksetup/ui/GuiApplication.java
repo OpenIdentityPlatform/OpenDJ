@@ -110,7 +110,7 @@ public abstract class GuiApplication extends Application {
    * @param userData UserData representing the data specified by the user
    * @param step Step indicating the new current step
    */
-  protected abstract void setWizardDialogState(QuickSetupDialog dlg,
+  public abstract void setWizardDialogState(QuickSetupDialog dlg,
                                                UserData userData,
                                                WizardStep step);
 
@@ -202,6 +202,12 @@ public abstract class GuiApplication extends Application {
   abstract public WizardStep getPreviousWizardStep(WizardStep step);
 
   /**
+   * Gets the finished step in the wizard.
+   * @return Step the finished step
+   */
+  abstract public WizardStep getFinishedStep();
+
+  /**
    * Gets the currently displayed wizard step.
    * @return WizardStep being displayed.
    */
@@ -210,8 +216,16 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
-   * Indicates whether or not the provided <code>step</code> is a sub step or
-   * not.
+   * Returns the QuickSetupDialog in control.
+   * @return the QuickSetupDialog in control.
+   */
+  protected QuickSetupDialog getQuickSetupDialog()
+  {
+    return qs;
+  }
+
+  /**
+   * Indicates whether the provided <code>step</code> is a sub step or not.
    * @param step WizardStep for which the return value indicates whether
    * or not is a sub step.
    * @return boolean where true indicates the provided <code>step</code> is a
@@ -223,8 +237,7 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
-   * Indicates whether or not the provided <code>step</code> is visible or
-   * not.
+   * Indicates whether the provided <code>step</code> is visible or not.
    * @param step WizardStep for which the return value indicates whether
    * or not is visible.
    * @return boolean where true indicates the provided <code>step</code> is
@@ -232,7 +245,7 @@ public abstract class GuiApplication extends Application {
    */
   public boolean isVisible(WizardStep step)
   {
-    return false;
+    return true;
   }
 
   /**
@@ -280,18 +293,16 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
-   * Inidicates whether or not the user is allowed to finish the wizard from
+   * Indicates whether or not the user is allowed to finish the wizard from
    * <code>step</code>.
    * @param step WizardStep for which the the return value indicates whether
    * or not the user can finish the wizard
    * @return boolean where true indicates the user can finish the wizard
    */
-  public boolean canFinish(WizardStep step) {
-    return getNextWizardStep(step) != null;
-  }
+  public abstract boolean canFinish(WizardStep step);
 
   /**
-   * Inidicates whether or not the user is allowed to quit the wizard from
+   * Indicates whether or not the user is allowed to quit the wizard from
    * <code>step</code>.
    * @param step WizardStep for which the the return value indicates whether
    * or not the user can quit the wizard
@@ -389,6 +400,17 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
+   * Indicates whether the finish button must be placed on the left (close to
+   * "Next" button) or on the right (close to "Quit" button).
+   * @return <CODE>true</CODE> if the finish button must be placed on the left
+   * and <CODE>false</CODE> otherwise.
+   */
+  public boolean finishOnLeft()
+  {
+    return true;
+  }
+
+  /**
    * Updates the list of certificates accepted by the user in the trust manager
    * based on the information stored in the UserDataCertificateException we got
    * when trying to connect in secure mode.
@@ -403,6 +425,7 @@ public abstract class GuiApplication extends Application {
 
     if ((chain != null) && (authType != null) && (host != null))
     {
+      LOG.log(Level.INFO, "Accepting certificate presented by host "+host);
       getTrustManager().acceptCertificate(chain, authType, host);
     }
     else

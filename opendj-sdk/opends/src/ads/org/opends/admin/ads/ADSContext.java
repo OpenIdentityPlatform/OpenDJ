@@ -44,7 +44,6 @@ import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
 import javax.naming.NotContextException;
 import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
 import javax.naming.directory.SearchResult;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
@@ -52,7 +51,6 @@ import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.SearchControls;
 import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
@@ -762,7 +760,7 @@ public class ADSContext
    * The call to this method assumes that OpenDS.jar has already been loaded.
    * So this should not be called by the Java Web Start before being sure that
    * this jar is loaded.
-   * @param backendName the backend name which will handle admin inforamtion.
+   * @param backendName the backend name which will handle admin information.
    * @throws ADSContextException if something goes wrong.
    */
   public void createAdminData(String backendName) throws ADSContextException
@@ -775,7 +773,6 @@ public class ADSContext
     createAdministratorContainerEntry();
     createContainerEntry(getServerContainerDN());
     createContainerEntry(getServerGroupContainerDN());
-    //setupACIOnServer(getDirContext(), true);
   }
 
   /**
@@ -785,7 +782,6 @@ public class ADSContext
   public void removeAdminData() throws ADSContextException
   {
     removeAdministrationSuffix();
-    //setupACIOnServer(getDirContext(), false);
   }
 
 
@@ -928,92 +924,6 @@ public class ADSContext
   public static String getAdministrationSuffixDN()
   {
     return "cn=admin data";
-  }
-
-  /**
-   * Used to modify the configuration on the server that must be managed; this
-   * setups the ACIs on the server so that the Administrator can access the
-   * server configuration.
-   * TODO: complete this.
-   * @param dirCtx the DirContext to the server that must be updated.
-   * @param enable whether to enable or disable the access to the server.
-   * @return <CODE>true</CODE> if something modified and <CODE>false</CODE>
-   * otherwise.
-   * @throws ADSContextException if the ACIs could not be set up.
-   */
-  private boolean setupACIOnServer(LdapContext dirCtx, boolean enable)
-  throws ADSContextException
-  {
-    boolean result;
-    Attributes currentAttrs;
-    Attribute currentAttr, newAttr;
-    ModificationItem modItem;
-
-    try
-    {
-      // Get the ACI value on the global ACI
-      String accessControlDn = "cn=Access Control Handler,cn=config";
-      currentAttrs = dirCtx.getAttributes(accessControlDn,
-          new String[] { "ds-cfg-global-aci" });
-      currentAttr = currentAttrs.get("ds-cfg-global-aci");
-
-      // Check what ACIs values must be added or removed
-      newAttr = new BasicAttribute("ds-cfg-global-aci");
-      modItem = null;
-      if (enable)
-      {
-        if ((currentAttr == null) || !currentAttr.contains(getAdminACI1()))
-        {
-          newAttr.add(getAdminACI1());
-        }
-        if ((currentAttr == null) || !currentAttr.contains(getAdminACI2()))
-        {
-          newAttr.add(getAdminACI2());
-        }
-        if (newAttr.size() >= 1)
-        {
-          modItem = new ModificationItem(LdapContext.ADD_ATTRIBUTE, newAttr);
-        }
-      }
-      else
-      {
-        if ((currentAttr != null) && currentAttr.contains(getAdminACI1()))
-        {
-          newAttr.add(getAdminACI1());
-        }
-        if ((currentAttr != null) && currentAttr.contains(getAdminACI2()))
-        {
-          newAttr.add(getAdminACI2());
-        }
-        if (newAttr.size() >= 1)
-        {
-          modItem = new ModificationItem(LdapContext.REMOVE_ATTRIBUTE, newAttr);
-        }
-      }
-
-      // Update the ACI values on the access control entry
-      if (modItem != null)
-      {
-        dirCtx.modifyAttributes(accessControlDn,
-            new ModificationItem[] { modItem});
-        result = true;
-      }
-      else
-      {
-        result = false;
-      }
-    }
-    catch (NoPermissionException x)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ACCESS_PERMISSION);
-    }
-    catch(NamingException x)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
-    }
-    return result;
   }
 
   /**
@@ -1733,26 +1643,13 @@ public class ADSContext
   }
 
   /**
-   * Returns the DN of the ACI container entry.
-   * @return the DN of the ACI container entry.
-   */
-  private static String getTopContainerACI()
-  {
-    return
-    "(targetattr = \"*\")" +
-    "(version 3.0;" +
-    "acl \"Enable full access for Directory Services Managers group\";" +
-    "allow (all)" +
-    "(groupdn = \"ldap:///" + getAdministratorContainerDN() + "\");" +
-    ")";
-  }
-
-  /**
    * Creates the Administration Suffix.
-   * @param backendName TODO
+   * @param backendName the backend name to be used for the Administration
+   * Suffix.  If this value is null the default backendName for the
+   * Administration Suffix will be used.
    * @throws ADSContextException if something goes wrong.
    */
-  private void createAdministrationSuffix(String backendName)
+  public void createAdministrationSuffix(String backendName)
   throws ADSContextException
   {
     ADSContextHelper helper = new ADSContextHelper();
@@ -1762,7 +1659,7 @@ public class ADSContext
       ben = getBackendName() ;
     }
     helper.createAdministrationSuffix(getDirContext(), ben,
-        "db", "importAdminTemp");
+        getDbName(), getImportTemp());
   }
 
   /**
@@ -1780,36 +1677,13 @@ public class ADSContext
     return "adminRoot";
   }
 
-  /**
-   * Returns the first ACI required to provide access to administrators.
-   * @return the first ACI required to provide access to administrators.
-   */
-  private static String getAdminACI1()
+  private static String getDbName()
   {
-    return
-    "(target=\"ldap:///cn=config\")"+
-    "(targetattr = \"*\") " +
-    "(version 3.0; " +
-    "acl \"Enable full access for Global Administrators.\"; " +
-    "allow (all)(userdn = \"ldap:///" +
-    getAdministratorDN("*") +
-    "\");)";
+    return "adminDb";
   }
 
-
-  /**
-   * Returns the second ACI required to provide access to administrators.
-   * @return the second ACI required to provide access to administrators.
-   */
-  private static String getAdminACI2()
+  private static String getImportTemp()
   {
-    return
-    "(target=\"ldap:///cn=Access Control Handler,cn=config\")"+
-    "(targetattr = \"ds-cfg-global-aci\") (targetscope = \"base\") " +
-    "(version 3.0; " +
-    "acl \"Enable global ACI modification by Global Administrators.\"; "+
-    "allow (all)(userdn = \"ldap:///" +
-    getAdministratorDN("*") +
-    "\");)";
+    return "importAdminTemp";
   }
 }

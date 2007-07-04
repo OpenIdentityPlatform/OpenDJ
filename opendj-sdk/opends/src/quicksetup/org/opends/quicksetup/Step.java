@@ -80,7 +80,12 @@ public enum Step implements WizardStep
   /**
    * Progress panel.
    */
-  PROGRESS("progress-step");
+  PROGRESS("progress-step"),
+
+  /**
+   * Finished panel.
+   */
+  FINISHED("finished-step");
 
   private String msgKey;
 
@@ -109,5 +114,11 @@ public enum Step implements WizardStep
     return this == PROGRESS;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isFinishedStep() {
+    return this == FINISHED;
+  }
 
 }

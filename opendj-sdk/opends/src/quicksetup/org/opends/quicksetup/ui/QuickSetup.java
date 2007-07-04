@@ -230,6 +230,11 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
             SwingUtilities.invokeLater(new Runnable() {
               public void run() {
+                if (application.isFinished() &&
+                    !getCurrentStep().isFinishedStep())
+                {
+                  setCurrentStep(application.getFinishedStep());
+                }
                 getDialog().displayProgress(desc);
               }
             });

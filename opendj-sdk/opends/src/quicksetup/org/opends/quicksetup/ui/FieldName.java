@@ -40,9 +40,21 @@ package org.opends.quicksetup.ui;
 public enum FieldName
 {
   /**
+   * The value associated with this is a Boolean.
+   * It is used by the merged installer and upgrader to know whether an upgrade
+   * or an install must be performed.
+   */
+  IS_UPGRADE,
+  /**
    * The value associated with this is a String.
    * The upgrader uses this field to indicate the
    * location of the server to upgrade.
+   */
+  SERVER_TO_UPGRADE_LOCATION,
+  /**
+   * The value associated with this is a String.
+   * The web start installer uses this field to indicate the
+   * location to install the server.
    */
   SERVER_LOCATION,
   /**

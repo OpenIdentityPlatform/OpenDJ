@@ -178,7 +178,7 @@ public final class TestCaseUtils {
     //db_rebuild is the third jeb backend used by the jeb rebuild test cases
     //db_unindexed is the forth backend used by the unindexed search privilege
     //test cases
-    String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
+    String[] subDirectories = { "adminDb", "bak", "bin", "changelogDb", "classes",
                                 "config", "db", "db_verify", "ldif", "lib",
                                 "locks", "logs", "db_rebuild", "db_unindexed",
                                 "db_index_test", "db_import_test"};

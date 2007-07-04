@@ -96,11 +96,7 @@ public class StepsPanel extends QuickSetupPanel
               UIFactory.TextStyle.NOT_CURRENT_STEP);
         }
       }
-
-      if (getApplication().isSubStep(s))
-      {
-        setStepVisible(s, getApplication().isVisible(s));
-      }
+      setStepVisible(s, getApplication().isVisible(s));
     }
   }
 
@@ -143,14 +139,7 @@ public class StepsPanel extends QuickSetupPanel
       JLabel iconLabel =
           UIFactory.makeJLabel(UIFactory.IconType.CURRENT_STEP, null,
               UIFactory.TextStyle.NO_STYLE);
-      if (getApplication().isSubStep(s))
-      {
-        gbcAux.insets.left = UIFactory.LEFT_INSET_SUBSTEP;
-      }
-      else
-      {
-        gbcAux.insets.left = 0;
-      }
+      gbcAux.insets.left = 0;
 
       auxPanel.add(iconLabel, gbcAux);
       int width = (int) iconLabel.getPreferredSize().getWidth();

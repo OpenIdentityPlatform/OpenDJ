@@ -25,33 +25,33 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup;
+package org.opends.quicksetup.installandupgrader;
+
+import org.opends.quicksetup.upgrader.UpgradeUserData;
 
 /**
- * Step in a QuickSetup wizard application.
+ * User data specific to the upgrade and install merged application.
  */
-public interface WizardStep {
+public class InstallAndUpgradeUserData extends UpgradeUserData
+{
+  private boolean isUpgrade;
 
   /**
-   * Gets the message key associated with the display name of this step.
-   * @return String message key for accessing this step's display name
-   * in a message bundle
+   * Returns <CODE>true</CODE> if we are doing an upgrade and <CODE>false</CODE>
+   * if not.
+   * @return <CODE>true</CODE> if we are doing an upgrade and <CODE>false</CODE>
+   * if not.
    */
-  String getMessageKey();
+  public boolean isUpgrade() {
+    return isUpgrade;
+  }
 
   /**
-   * Indicates that when this step is displayed the application will
-   * be asked to launch itself.
-   * @return true indicating that this is the progress step for the
-   * application
+   * Sets whether we want to make an upgrade.
+   * @param isUpgrade the boolean telling whether we want to do an upgrade or
+   * not.
    */
-  boolean isProgressStep();
-
-  /**
-   * Indicates whether this is the finished step for the application or not.
-   * @return <CODE>true</CODE> if this is the finished step for the application
-   * and <CODE>false</CODE> otherwise.
-   */
-  boolean isFinishedStep();
-
+  public void setUpgrade(boolean isUpgrade) {
+    this.isUpgrade = isUpgrade;
+  }
 }
