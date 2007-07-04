@@ -158,9 +158,7 @@ public class FramePanel extends JPanel
    */
   public void setProgressIcon(UIFactory.IconType iconType)
   {
-    // For the moment we are lacking of a decent progress dialog to be
-    // displayed.
-    //progressLabel.setIcon(UIFactory.getImageIcon(iconType));
+    progressLabel.setIcon(UIFactory.getImageIcon(iconType));
   }
 
   /**
