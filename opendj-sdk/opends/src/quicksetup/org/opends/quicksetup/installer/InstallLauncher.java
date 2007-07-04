@@ -138,6 +138,9 @@ public class InstallLauncher extends Launcher {
     System.out.println(getMsg("setup-launcher-launching-gui"));
     System.setProperty("org.opends.quicksetup.Application.class",
             "org.opends.quicksetup.installer.offline.OfflineInstaller");
+    // TO DELETE
+    System.setProperty("org.opends.quicksetup.Application.class",
+    "org.opends.quicksetup.installandupgrader.InstallAndUpgrader");
   }
 
   /**
@@ -150,7 +153,7 @@ public class InstallLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  public void printUsage() {
+  protected void printUsage(boolean toStdErr) {
     String scriptName;
     if (Utils.isWindows()) {
       scriptName = Installation.WINDOWS_SETUP_FILE_NAME;
@@ -264,7 +267,7 @@ public class InstallLauncher extends Launcher {
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
       String msg = argParser.getUsage();
-      printUsage(msg);
+      printUsage(msg, toStdErr);
     }
     catch (Throwable t)
     {

@@ -127,7 +127,7 @@ public class UninstallLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected void printUsage() {
+  protected void printUsage(boolean toStdErr) {
     ArgumentParser argParser = new ArgumentParser(getClass().getName(),
         getI18n().getMsg("uninstall-launcher-usage-description"), false);
     BooleanArgument cli;
@@ -155,7 +155,7 @@ public class UninstallLauncher extends Launcher {
       argParser.setUsageArgument(showUsage);
 
       String msg = argParser.getUsage();
-      printUsage(msg);
+      printUsage(msg, toStdErr);
     }
     catch (Throwable t)
     {

@@ -94,7 +94,7 @@ public class UpgradeLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected void printUsage() {
+  protected void printUsage(boolean toStdErr) {
     ArgumentParser argParser = new ArgumentParser(getClass().getName(),
         getI18n().getMsg("upgrade-launcher-usage-description"), false);
     BooleanArgument showUsage;
@@ -128,7 +128,7 @@ public class UpgradeLauncher extends Launcher {
       argParser.setUsageArgument(showUsage);
 
       String msg = argParser.getUsage();
-      printUsage(msg);
+      printUsage(msg, toStdErr);
     }
     catch (Throwable t)
     {

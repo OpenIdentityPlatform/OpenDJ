@@ -150,14 +150,20 @@ public abstract class Launcher {
   }
 
   /**
-   * Prints a usage message to the terminal and exits
-   * with exit code QuickSetupCli.USER_DATA_ERROR.
-   * @param i18nMsg localized user message that will
-   * be printed to std error
+   * Prints a usage message to the terminal.
+   * @param i18nMsg localized user message that will be printed to the terminal.
+   * @param toStdErr whether the message must be printed to the standard error
+   * or the standard output.
    */
-  protected void printUsage(String i18nMsg) {
-    System.err.println(i18nMsg);
-    System.exit(QuickSetupCli.USER_DATA_ERROR);
+  protected void printUsage(String i18nMsg, boolean toStdErr) {
+    if (toStdErr)
+    {
+      System.err.println(i18nMsg);
+    }
+    else
+    {
+      System.out.println(i18nMsg);
+    }
   }
 
   /**
@@ -255,14 +261,14 @@ public abstract class Launcher {
     QuickSetupCli cli = new QuickSetupCli(cliApp, args);
     int returnValue = cli.run();
     if (returnValue == QuickSetupCli.USER_DATA_ERROR) {
-      printUsage();
+      printUsage(true);
+      System.exit(QuickSetupCli.USER_DATA_ERROR);
     }
     return returnValue;
   }
 
   /**
-   * Prints the version statement to terminal and exits
-   * with an error code.
+   * Prints the version statement to standard output terminal.
    */
   private void printVersion()
   {
@@ -272,8 +278,10 @@ public abstract class Launcher {
   /**
    * Prints a usage statement to terminal and exits with an error
    * code.
+   * @param toStdErr whether the message must be printed to the standard error
+   * or the standard output.
    */
-  protected abstract void printUsage();
+  protected abstract void printUsage(boolean toStdErr);
 
   /**
    * Creates a CLI application that will be run if the
@@ -300,15 +308,17 @@ public abstract class Launcher {
   protected abstract void guiLaunchFailed(String logFileName);
 
   /**
-   * The main method which is called by the uninstall command lines.
+   * The main method which is called by the command lines.
    */
   public void launch() {
     if (shouldPrintVersion())
     {
       printVersion();
+      System.exit(QuickSetupCli.SUCCESSFUL);
     }
     else if (shouldPrintUsage()) {
-      printUsage();
+      printUsage(false);
+      System.exit(QuickSetupCli.SUCCESSFUL);
     } else if (isCli()) {
       CliApplication cliApp = createCliApplication();
       int exitCode = launchCli(args, cliApp);
