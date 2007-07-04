@@ -45,7 +45,7 @@ import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.ProgressDescriptor;
 
 /**
- * This panel is used to show the progress of the install or the uninstall.
+ * This panel is used to show the progress of the application.
  *
  */
 public class ProgressPanel extends QuickSetupStepPanel
