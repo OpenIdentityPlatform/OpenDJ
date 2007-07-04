@@ -40,7 +40,7 @@ import org.opends.quicksetup.i18n.ResourceProvider;
 public class QuickSetupCli {
 
   /**
-   * Return code: Uninstall successful.
+   * Return code: Application successful.
    */
   static public int SUCCESSFUL = 0;
 
