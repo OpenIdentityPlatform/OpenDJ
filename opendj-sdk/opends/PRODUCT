@@ -5,10 +5,10 @@ PRODUCT_NAME=OpenDS Directory Server
 SHORT_NAME=OpenDS
 
 # The major version number for the Directory Server.  It must be an integer.
-MAJOR_VERSION=0
+MAJOR_VERSION=1
 
 # The minor version number for the Directory Server.  It must be an integer.
-MINOR_VERSION=9
+MINOR_VERSION=0
 
 # The point version number for the Directory Server.  It must be an integer.
 POINT_VERSION=0
