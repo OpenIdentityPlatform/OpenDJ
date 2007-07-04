@@ -28,19 +28,17 @@ package org.opends.server.extensions;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.SortedMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicLong;
 import java.io.File;
 import com.sleepycat.bind.EntryBinding;
 import com.sleepycat.bind.serial.SerialBinding;
@@ -52,11 +50,9 @@ import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseNotFoundException;
-import com.sleepycat.je.DbInternal;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.cleaner.UtilizationProfile;
-import com.sleepycat.je.dbi.EnvironmentImpl;
+import com.sleepycat.je.StatsConfig;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
@@ -121,20 +117,6 @@ public class FileSystemEntryCache
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
-  /**
-   * The set of time units that will be used for expressing the task retention
-   * time.
-   */
-  private static final LinkedHashMap<String, Double> timeUnits =
-          new LinkedHashMap<String, Double>();
-
-  /**
-    * The set of units and their multipliers for configuration attributes
-    * representing a number of bytes.
-    */
-  private static HashMap<String, Double> memoryUnits =
-      new HashMap<String, Double>();
 
   // Permissions for cache db environment.
   private static final FilePermission CACHE_HOME_PERMISSIONS =
@@ -204,6 +186,9 @@ public class FileSystemEntryCache
   private EnvironmentConfig entryCacheEnvConfig;
   private EnvironmentMutableConfig entryCacheEnvMutableConfig;
   private DatabaseConfig entryCacheDBConfig;
+
+  // Statistics retrieval operation config for this JE environment.
+  private StatsConfig entryCacheEnvStatsConfig = new StatsConfig();
 
   // The main entry cache database.
   private Database entryCacheDB;
@@ -380,6 +365,10 @@ public class FileSystemEntryCache
       entryCacheEnv.setMutableConfig(entryCacheEnvMutableConfig);
       entryCacheDBConfig = new DatabaseConfig();
       entryCacheDBConfig.setAllowCreate(true);
+
+      // Configure the JE environment statistics to return only
+      // the values which do not incur some performance penalty.
+      entryCacheEnvStatsConfig.setFast(true);
 
       // Remove old cache databases if this cache is not persistent.
       if ( !persistentCache ) {
@@ -1715,18 +1704,9 @@ public class FileSystemEntryCache
 
       // Zero means unlimited here.
       if (maxAllowedMemory != 0) {
-        // TODO: This should be done using JE public API
-        // EnvironmentStats.getTotalLogSize() when JE 3.2.28 is available.
-        EnvironmentImpl envImpl =
-              DbInternal.envGetEnvironmentImpl(entryCacheEnv);
-        UtilizationProfile utilProfile = envImpl.getUtilizationProfile();
-        SortedMap map = utilProfile.getFileSummaryMap(false);
-
-        // This calculation is not exactly precise as the last JE logfile
-        // will always be less than JELOGFILEMAX however in the interest
-        // of performance and the fact that JE environment is always a
-        // moving target we will allow for that margin of error here.
-        usedMemory = map.size() * JELOGFILEMAX.longValue();
+        // Get approximate current total log size of JE environment in bytes.
+        usedMemory =
+            entryCacheEnv.getStats(entryCacheEnvStatsConfig).getTotalLogSize();
 
         // TODO: Check and log a warning if usedMemory hits default or
         // configurable watermark, see Issue 1735.
