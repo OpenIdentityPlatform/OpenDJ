@@ -561,7 +561,7 @@ public class ReplicationDomain extends DirectoryThread
   {
     if (isolationpolicy.equals(IsolationPolicy.ACCEPT_ALL_UPDATES))
     {
-      // this policy imply that we always aceept updates.
+      // this policy imply that we always accept updates.
       return true;
     }
     if (isolationpolicy.equals(IsolationPolicy.REJECT_ALL_UPDATES))
@@ -587,7 +587,7 @@ public class ReplicationDomain extends DirectoryThread
       }
     }
     // we should never get there as the only possible policies are
-    // ACCEPT_UPDATES and DENY_UPDATES
+    // ACCEPT_ALL_UPDATES and REJECT_ALL_UPDATES
     return true;
   }
 

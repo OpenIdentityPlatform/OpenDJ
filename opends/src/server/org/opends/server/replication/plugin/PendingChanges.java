@@ -106,7 +106,7 @@ public class PendingChanges
    *
    * @return The number of update currently in the list.
    */
-  public synchronized int size()
+  public int size()
   {
     return pendingChanges.size();
   }

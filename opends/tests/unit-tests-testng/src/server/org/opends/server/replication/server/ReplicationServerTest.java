@@ -27,11 +27,15 @@
 package org.opends.server.replication.server;
 
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -49,7 +53,13 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyDnContext;
 import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.ReplServerStartMessage;
 import org.opends.server.replication.protocol.ReplicationMessage;
+import org.opends.server.replication.protocol.ServerStartMessage;
+import org.opends.server.replication.protocol.SocketSession;
+import org.opends.server.replication.protocol.WindowMessage;
+import org.opends.server.replication.protocol.WindowProbe;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
@@ -746,6 +756,56 @@ public class ReplicationServerTest extends ReplicationTestCase
       }
     }
   }
+
+  /**
+   * Test that the Replication sends back correctly WindowsUpdate
+   * when we send a WindowProbe.
+   */
+  @Test()
+  public void windowProbeTest() throws Exception
+  {
+    final int WINDOW = 10;
+    /*
+     * Open a socket connection to the replication server
+     */
+    InetSocketAddress ServerAddr = new InetSocketAddress(
+        InetAddress.getByName("localhost"), replicationServerPort);
+    Socket socket = new Socket();
+    socket.setReceiveBufferSize(1000000);
+    socket.setTcpNoDelay(true);
+    socket.connect(ServerAddr, 500);
+    SocketSession session = new SocketSession(socket);
+
+    /*
+     * Send our ServerStartMessage.
+     */
+    ServerStartMessage msg =
+      new ServerStartMessage((short) 1723, DN.decode("dc=example,dc=com"),
+          0, 0, 0, 0, WINDOW, (long) 5000, new ServerState(),
+          ProtocolVersion.currentVersion());
+    session.publish(msg);
+
+    /*
+     * Read the ReplServerStartMessage that should come back.
+     */
+    session.setSoTimeout(10000);
+    ReplServerStartMessage replStartMsg =
+      (ReplServerStartMessage) session.receive();
+    int serverwindow = replStartMsg.getWindowSize();
+
+    // push a WindowProbe message 
+    session.publish(new WindowProbe());
+    
+    WindowMessage windowMsg = (WindowMessage) session.receive();
+    assertEquals(serverwindow, windowMsg.getNumAck());
+    
+    // check that this did not change the window by sending a probe again.
+    session.publish(new WindowProbe());
+    
+    windowMsg = (WindowMessage) session.receive();
+    assertEquals(serverwindow, windowMsg.getNumAck());
+  }
+
 
   /**
    * After the tests stop the replicationServer.

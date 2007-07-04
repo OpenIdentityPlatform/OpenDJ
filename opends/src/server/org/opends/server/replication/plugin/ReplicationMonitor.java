@@ -59,7 +59,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   @Override()
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
   {
-    // TODO Auto-generated method stub
+    // no implementation needed.
   }
 
   /**

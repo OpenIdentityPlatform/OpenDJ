@@ -60,6 +60,7 @@ import org.opends.server.replication.protocol.ServerStartMessage;
 import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
+import org.opends.server.replication.protocol.WindowProbe;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -1371,5 +1372,35 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
              msg + " to " + serverId, 1);
 
     session.publish(msg);
+  }
+
+  /**
+   * Process the reception of a WindowProbe message.
+   *
+   * @param  windowProbeMsg The message to process.
+   *
+   * @throws IOException    When the session becomes unavailable.
+   */
+  public void process(WindowProbe windowProbeMsg) throws IOException
+  {
+    if (rcvWindow > 0)
+    {
+      // The LDAP server believes that its window is closed
+      // while it is not, this means that some problem happened in the
+      // window exchange procedure !
+      // lets update the LDAP server with out current window size and hope
+      // that everything will work better in the futur.
+      // TODO also log an error message.
+      WindowMessage msg = new WindowMessage(rcvWindow);
+      session.publish(msg);
+      outAckCount++;
+    }
+    else
+    {
+      // Both the LDAP server and the replication server believes that the
+      // window is closed. Lets check the flowcontrol in case we
+      // can now resume operations and send a windowMessage if necessary.
+      checkWindow();
+    }
   }
 }
