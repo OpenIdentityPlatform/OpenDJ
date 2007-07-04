@@ -85,19 +85,13 @@
     
   <testcase name="'Security: client_auth: Equal DN mapping '">
     <sequence>
-   <script>
 
-    USER_1_CERT="client-cert-1"
-    USER_1_DN="uid=%s,%s" % (USER_1_CERT,DIRECTORY_INSTANCE_SFX)               
-    USER_2_CERT="client-cert-2"
-    USER_2_DN="uid=%s,%s" % (USER_2_CERT,DIRECTORY_INSTANCE_SFX)			       
-    STOREPASS="password"
-    CERT_TMP="%s/CERT_%s" % (DIRECTORY_INSTANCE_DIR,DIRECTORY_INSTANCE_PORT)
-    CLIENT_KEYSTORE="%s/keystore" % (CERT_TMP)                      		
-    </script>
     <call function="'testCase_Preamble'"/>
    
-		
+	<!-- Load in the local shared python objects from libraries -->
+      <call function="'loadVariables'">
+	 </call>
+				
     <!--  Check mapping is working -->         
     <message>'--- Check SSL communication with SASL EXTERNAL authentication'</message>
 		
@@ -107,7 +101,7 @@
 		  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 		  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_1_CERT,
@@ -134,7 +128,7 @@
 		  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 		  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_2_CERT,
@@ -162,7 +156,7 @@
 		  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 		  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_1_CERT,
@@ -189,7 +183,7 @@
 		  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 		  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_2_CERT,

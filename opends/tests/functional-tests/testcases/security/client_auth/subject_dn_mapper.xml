@@ -50,7 +50,7 @@
 
    <sequence>
     <call function="'testCase_Preamble'"/>
-
+		
     <message>
              '----  Configure the SASL EXTERNAL mechanism -----'
     </message>			
@@ -89,19 +89,14 @@
     
   <testcase name="'Security: client_auth: subject dn mapping on ds-certificate-subject-dn'">
     <sequence>
-   <script>
 
-    USER_1_CERT="client-cert-1"
-    USER_1_DN="uid=%s,%s" % (USER_1_CERT,DIRECTORY_INSTANCE_SFX)              
- 
-    USER_2_CERT="client-cert-2"
-    USER_2_DN="uid=%s,%s" % (USER_2_CERT,DIRECTORY_INSTANCE_SFX)			       
-    STOREPASS="password"
-    CERT_TMP="%s/CERT_%s" % (DIRECTORY_INSTANCE_DIR,DIRECTORY_INSTANCE_PORT)
-    CLIENT_KEYSTORE="%s/keystore" % (CERT_TMP)                      		
-    </script>
     <call function="'testCase_Preamble'"/>
-   
+
+	<!-- Load in the local shared python objects from libraries -->
+      <call function="'loadVariables'">
+	 </call>
+		
+				   
     <message>'----- Configure the attribute ds-certificate-subject-dn  for user %s ---' % USER_1_DN</message>
     <message>'----- ds-certificate-subject-dn is the subject of the certificate %s '% USER_1_CERT</message>
      
@@ -144,7 +139,7 @@
 	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
       'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 	  'dsFilter'		: 'objectclass=*'	,
-      'dsKeyStorePassword'   :  STOREPASS,
+      'dsKeyStorePassword'   :  CLIENT_STOREPASS,
        'dsUseSSL'             :  ' ',
        'dsUseSASLExternal'   :  ' ',
        'dsCertNickname'       : USER_1_CERT,
@@ -171,7 +166,7 @@
 	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 	  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_2_CERT,
@@ -191,7 +186,7 @@
 	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 	  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'            :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_1_CERT,
@@ -218,7 +213,7 @@
 	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 	  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_2_CERT,
@@ -277,21 +272,13 @@
     
   <testcase name="'Security: client_auth: subject dn mapping on attribut description'">
     <sequence>
-   <script>
-    USER_1_CERT="client-cert-1"
-    USER_1_DN="uid=%s,%s" % (USER_1_CERT,DIRECTORY_INSTANCE_SFX)              
- 
-    USER_2_CERT="client-cert-2"
-    USER_2_DN="uid=%s,%s" % (USER_2_CERT,DIRECTORY_INSTANCE_SFX)			       
-    KEYPASS="servercert"
-    STOREPASS="password"
-    CERT_TMP="%s/CERT_%s" % (DIRECTORY_INSTANCE_DIR,DIRECTORY_INSTANCE_PORT)
-    CLIENT_KEYSTORE="%s/keystore" % (CERT_TMP)                 
-     
-    </script>
 	
     <call function="'testCase_Preamble'"/>
 
+	<!-- Load in the local shared python objects from libraries -->
+      <call function="'loadVariables'">
+	 </call>		
+		
     <message>'----- Configure  the mapping to be done on the attribute description' </message>
       		
     <call function="'modifyAnAttribute'">
@@ -345,7 +332,7 @@
 	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 	  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_1_CERT,
@@ -363,7 +350,7 @@
 	  'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 	  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseSSL'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_2_CERT,
@@ -392,7 +379,7 @@
 	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 	  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_1_CERT,
@@ -410,7 +397,7 @@
 	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
 	  'dsFilter'		: 'objectclass=*'	,
-          'dsKeyStorePassword'   :  STOREPASS,
+          'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
           'dsCertNickname'       : USER_2_CERT,

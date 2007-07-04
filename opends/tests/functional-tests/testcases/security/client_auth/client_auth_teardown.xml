@@ -61,13 +61,9 @@
        <sequence>
           <call function="'testCase_Preamble'"/>
 
-		  <script>
-				  CERT_TMP="%s/CERT_%s" % (DIRECTORY_INSTANCE_DIR,DIRECTORY_INSTANCE_PORT)
-			      USER_1_CERT="client-cert-1"
-                  USER_1_DN="uid=%s,%s" % (USER_1_CERT,DIRECTORY_INSTANCE_SFX)
-				  USER_2_CERT="client-cert-2"
-				  USER_2_DN="uid=%s,%s" % (USER_2_CERT,DIRECTORY_INSTANCE_SFX)
-           </script>			   
+		   	<!-- Load in the local shared python objects from libraries -->
+           <call function="'loadVariables'">
+	       </call>
             <!--- Unconfigure  SSL -->
 			  
 			  
