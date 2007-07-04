@@ -45,6 +45,7 @@ import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
+import org.opends.server.replication.protocol.WindowProbe;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -159,6 +160,11 @@ public class ServerReader extends DirectoryThread
           ErrorMessage errorMsg = (ErrorMessage) msg;
           handler.process(errorMsg);
         }
+        else if (msg instanceof WindowProbe)
+        {
+          WindowProbe windowProbeMsg = (WindowProbe) msg;
+          handler.process(windowProbeMsg);
+        }
         else if (msg == null)
         {
           /*
@@ -184,7 +190,7 @@ public class ServerReader extends DirectoryThread
       String message = getMessage(msgID, handler.toString());
       logError(ErrorLogCategory.SYNCHRONIZATION,
                ErrorLogSeverity.NOTICE,
-               message + e.getMessage(), msgID);
+               message + ": " + e.getMessage(), msgID);
     } catch (ClassNotFoundException e)
     {
       /*

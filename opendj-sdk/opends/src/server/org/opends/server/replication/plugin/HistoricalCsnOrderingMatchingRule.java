@@ -54,7 +54,6 @@ public class HistoricalCsnOrderingMatchingRule
   public HistoricalCsnOrderingMatchingRule()
   {
     super();
-    // TODO Auto-generated constructor stub
   }
 
   /**
@@ -81,7 +80,7 @@ public class HistoricalCsnOrderingMatchingRule
   @Override
   public void initializeMatchingRule(OrderingMatchingRuleCfg configuration)
   {
-    // TODO Auto-generated method stub
+    // No implementation needed here.
   }
 
   /**

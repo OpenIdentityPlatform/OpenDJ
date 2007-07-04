@@ -534,7 +534,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
   /**
    * Test that WindowMessageTest encoding and decoding works
-   * by checking that : msg == new WindowMessageTest(msg.getBytes()).
+   * by checking that : msg == new WindowMessage(msg.getBytes()).
    */
   @Test()
   public void WindowMessageTest() throws Exception
@@ -542,6 +542,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     WindowMessage msg = new WindowMessage(123);
     WindowMessage newMsg = new WindowMessage(msg.getBytes());
     assertEquals(msg.getNumAck(), newMsg.getNumAck());
+  }
+  
+  /**
+   * Test that WindowProbe encoding and decoding works
+   * by checking that : new WindowProbe(msg.getBytes()) does not throws
+   * an exception.
+   */
+  @Test()
+  public void WindowProbeTest() throws Exception
+  {
+    WindowProbe msg = new WindowProbe();
+    new WindowProbe(msg.getBytes());
   }
 
   /**

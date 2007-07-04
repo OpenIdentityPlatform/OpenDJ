@@ -32,9 +32,13 @@ import java.util.zip.DataFormatException;
 
 
 /**
- * This message is used by LDAP server when they first connect.
- * to a replication server to let them know who they are and what is their state
- * (their RUV)
+ * This message is used by LDAP server or by Replication Servers to
+ * update the send window of the remote entities.
+ *
+ * A receiving entity should create such a message with a given credit
+ * when it wants to open the send window of the remote entity.
+ * A LDAP or Replication Server should increase its send window when receiving
+ * such a message.
  */
 public class WindowMessage extends ReplicationMessage implements
     Serializable
@@ -47,7 +51,7 @@ public class WindowMessage extends ReplicationMessage implements
    * Create a new WindowMessage.
    *
    * @param numAck The number of acknowledged messages.
-   *               The window will be increase by this number.
+   *               The window will be increase by this credit number.
    */
   public WindowMessage(int numAck)
   {

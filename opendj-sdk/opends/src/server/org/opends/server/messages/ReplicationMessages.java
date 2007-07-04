@@ -444,6 +444,12 @@ public class ReplicationMessages {
 
 
   /**
+   * The connection to the curent Replication Server has failed.
+   */
+  public static final int MSGID_DISCONNECTED_FROM_CHANGELOG =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_NOTICE | 63;
+
+  /**
    * Register the messages from this class in the core server.
    *
    */
@@ -607,6 +613,9 @@ public class ReplicationMessages {
         "The Replication is configured for suffix  %s "
         + "but was not able to connect to any Replication Server");
     registerMessage(MSGID_NOW_FOUND_CHANGELOG,
-        "A Replication Server was found for suffix %s");
+        "Replication Server %s now used for Replication Domain %s");
+    registerMessage(MSGID_DISCONNECTED_FROM_CHANGELOG,
+        "The connection to Replication Server %s has been dropped by the "
+        + "Replication Server");
   }
 }
