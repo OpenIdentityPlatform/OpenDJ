@@ -159,40 +159,32 @@ public class UpgraderReviewPanel extends ReviewPanel {
     p.setLayout(new GridBagLayout());
     GridBagConstraints gbc = new GridBagConstraints();
 
-    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
-    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
     gbc.anchor = GridBagConstraints.NORTHWEST;
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    gbc.fill = GridBagConstraints.NONE;
-    p.add(UIFactory.makeJLabel(serverDescriptor), gbc);
-
-    gbc.gridx = 1;
-    gbc.gridy = 0;
-    gbc.weightx = 1.0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    p.add(tcServerLocation, gbc);
+    LabelFieldDescriptor[] descs = {serverDescriptor, oldVersionDescriptor,
+        newVersionDescriptor};
+    JLabel[] labels = {tcServerLocation, tcOldBuild, tcNewBuild};
 
-    gbc.gridx = 0;
-    gbc.gridy = 1;
-    gbc.fill = GridBagConstraints.NONE;
-    p.add(UIFactory.makeJLabel(oldVersionDescriptor), gbc);
+    for (int i=0; i<descs.length; i++)
+    {
+      gbc.gridwidth = GridBagConstraints.RELATIVE;
+      gbc.weightx = 0.0;
+      if (i > 0)
+      {
+        gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+      } else
+      {
+        gbc.insets.top = 0;
+      }
+      gbc.insets.left = 0;
+      gbc.anchor = GridBagConstraints.NORTHWEST;
+      p.add(UIFactory.makeJLabel(descs[i]), gbc);
+      gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
 
-    gbc.gridx = 1;
-    gbc.gridy = 1;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    p.add(tcOldBuild, gbc);
-
-    gbc.gridx = 0;
-    gbc.gridy = 2;
-    gbc.fill = GridBagConstraints.NONE;
-    p.add(UIFactory.makeJLabel(newVersionDescriptor), gbc);
-
-    gbc.gridx = 1;
-    gbc.gridy = 2;
-    gbc.weighty = 1.0;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    p.add(tcNewBuild, gbc);
+      gbc.weightx = 1.0;
+      gbc.gridwidth = GridBagConstraints.REMAINDER;
+      p.add(labels[i], gbc);
+    }
 
     return p;
   }
