@@ -55,12 +55,12 @@ public class QuickSetupLog {
       FileHandler fileHandler = new FileHandler(logFile.getCanonicalPath());
       fileHandler.setFormatter(new SimpleFormatter());
       Logger logger = Logger.getLogger("org.opends.quicksetup");
-      logger.setUseParentHandlers(false); // disable logging to console
       logger.addHandler(fileHandler);
-      logger.log(Level.INFO, getInitialLogRecord());
       logger = Logger.getLogger("org.opends.admin.ads");
       logger.addHandler(fileHandler);
       disableConsoleLogging();
+      logger = Logger.getLogger("org.opends.quicksetup");
+      logger.log(Level.INFO, getInitialLogRecord());
     }
   }
 
@@ -70,6 +70,8 @@ public class QuickSetupLog {
    */
   static public void disableConsoleLogging() {
     Logger logger = Logger.getLogger("org.opends.quicksetup");
+    logger.setUseParentHandlers(false);
+    logger = Logger.getLogger("org.opends.admin.ads");
     logger.setUseParentHandlers(false);
   }
 
