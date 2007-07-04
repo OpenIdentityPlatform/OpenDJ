@@ -190,7 +190,6 @@ public class CheckPrecommit
 
     if (! eolStyleProblemFiles.isEmpty())
     {
-      fail = true;
       System.err.println("WARNING:  Potential svn:eol-style updates needed " +
                          "for the following files:");
       for (String filename : eolStyleProblemFiles)
@@ -198,14 +197,19 @@ public class CheckPrecommit
         System.err.println("     " + filename);
       }
 
-      System.err.println("Fix svn:eol-style problems before proceeding, or " +
-                         "use '-D" + IGNORE_EOLSTYLE_ERRORS_PROPERTY +
-                         "=true' to ignore svn eol-style warnings.");
+      String ignoreProp =
+           getProject().getProperty(IGNORE_EOLSTYLE_ERRORS_PROPERTY);
+      if ((ignoreProp == null) || (! ignoreProp.equalsIgnoreCase("true")))
+      {
+        fail = true;
+        System.err.println("Fix svn:eol-style problems before proceeding, or " +
+                           "use '-D" + IGNORE_EOLSTYLE_ERRORS_PROPERTY +
+                           "=true' to ignore svn eol-style warnings.");
+      }
     }
 
     if (! copyrightProblemFiles.isEmpty())
     {
-      fail = true;
       System.err.println("WARNING:  Potential copyright year updates needed " +
                          "for the following files:");
       for (String filename : copyrightProblemFiles)
@@ -213,9 +217,15 @@ public class CheckPrecommit
         System.err.println("     " + filename);
       }
 
-      System.err.println("Fix copyright date problems before proceeding, or " +
-                         "use '-D" + IGNORE_COPYRIGHT_ERRORS_PROPERTY +
-                         "=true' to ignore copyright warnings.");
+      String ignoreProp =
+           getProject().getProperty(IGNORE_COPYRIGHT_ERRORS_PROPERTY);
+      if ((ignoreProp == null) || (! ignoreProp.equalsIgnoreCase("true")))
+      {
+        fail = true;
+        System.err.println("Fix copyright date problems before proceeding, " +
+                           "or use '-D" + IGNORE_COPYRIGHT_ERRORS_PROPERTY +
+                           "=true' to ignore copyright warnings.");
+      }
     }
 
     if (fail)
@@ -274,9 +284,9 @@ public class CheckPrecommit
 
 
     String filePath = file.getAbsolutePath();
-    if (filePath.startsWith(workspacePath.getPath()))
+    if (filePath.startsWith(workspacePath.getPath() + "/"))
     {
-      filePath = filePath.substring(workspacePath.getPath().length());
+      filePath = filePath.substring(workspacePath.getPath().length() + 1);
     }
 
 
