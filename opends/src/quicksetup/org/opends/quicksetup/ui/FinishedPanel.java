@@ -22,36 +22,33 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup;
+package org.opends.quicksetup.ui;
 
 /**
- * Step in a QuickSetup wizard application.
+ * This panel is used to show the application is finished.
+ *
  */
-public interface WizardStep {
+public class FinishedPanel extends ProgressPanel
+{
+  private static final long serialVersionUID = 8129325068133356170L;
 
   /**
-   * Gets the message key associated with the display name of this step.
-   * @return String message key for accessing this step's display name
-   * in a message bundle
+   * FinishedPanel constructor.
+   * @param application Application this panel represents
    */
-  String getMessageKey();
+  public FinishedPanel(GuiApplication application)
+  {
+    super(application);
+  }
 
   /**
-   * Indicates that when this step is displayed the application will
-   * be asked to launch itself.
-   * @return true indicating that this is the progress step for the
-   * application
+   * {@inheritDoc}
    */
-  boolean isProgressStep();
-
-  /**
-   * Indicates whether this is the finished step for the application or not.
-   * @return <CODE>true</CODE> if this is the finished step for the application
-   * and <CODE>false</CODE> otherwise.
-   */
-  boolean isFinishedStep();
-
+  protected String getTitle()
+  {
+    return getMsg("finished-panel-title");
+  }
 }

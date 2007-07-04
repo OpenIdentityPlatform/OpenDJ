@@ -28,6 +28,8 @@
 package org.opends.quicksetup.uninstaller;
 
 import org.opends.quicksetup.*;
+
+import static org.opends.quicksetup.Step.FINISHED;
 import static org.opends.quicksetup.Step.PROGRESS;
 import static org.opends.quicksetup.Step.REVIEW;
 import org.opends.quicksetup.ui.*;
@@ -93,6 +95,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     if (step != null && step.equals(Step.CONFIRM_UNINSTALL)) {
       nextStep = Step.PROGRESS;
     }
+    else if (Step.PROGRESS.equals(step))
+    {
+      nextStep = Step.FINISHED;
+    }
     return nextStep;
   }
 
@@ -104,7 +110,26 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     if (step != null && step.equals(Step.PROGRESS)) {
       prevStep = Step.CONFIRM_UNINSTALL;
     }
+    else if (Step.FINISHED.equals(step))
+    {
+      prevStep = Step.PROGRESS;
+    }
     return prevStep;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public WizardStep getFinishedStep() {
+    return Step.FINISHED;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean finishOnLeft()
+  {
+    return false;
   }
 
   /**
@@ -144,6 +169,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           "Cannot click on next from progress step");
     } else if (cStep == REVIEW) {
       throw new IllegalStateException("Cannot click on next from review step");
+    } else if (cStep == FINISHED) {
+      throw new IllegalStateException(
+          "Cannot click on next from finished step");
     }
   }
 
@@ -158,6 +186,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         {
           qs.quit();
         }
+    }
+    else if (cStep == FINISHED)
+    {
+      qs.quit();
     } else {
       throw new IllegalStateException(
           "Close only can be clicked on PROGRESS step");
@@ -222,6 +254,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       throw new IllegalStateException(
               "Cannot click on quit from progress step");
     }
+    else if (step == Step.FINISHED) {
+      throw new IllegalStateException(
+      "Cannot click on quit from finished step");
+    }
     qs.quit();
   }
 
@@ -250,9 +286,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public void previousClicked(WizardStep cStep, QuickSetup qs) {
-    if (cStep == Step.PROGRESS) {
+    if (cStep == PROGRESS) {
       throw new IllegalStateException(
               "Cannot click on previous from progress step");
+    }
+    else if (cStep == FINISHED) {
+      throw new IllegalStateException(
+      "Cannot click on previous from finished step");
     }
   }
 
@@ -333,13 +373,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  protected void setWizardDialogState(QuickSetupDialog dlg,
+  public void setWizardDialogState(QuickSetupDialog dlg,
                                       UserData userData,
                                       WizardStep step) {
     if (step == Step.CONFIRM_UNINSTALL) {
       dlg.setDefaultButton(ButtonName.FINISH);
       dlg.setFocusOnButton(ButtonName.FINISH);
-    } else if (step == Step.PROGRESS) {
+    } else if ((step == PROGRESS) || (step == FINISHED)) {
       dlg.setDefaultButton(ButtonName.CLOSE);
       dlg.setFocusOnButton(ButtonName.CLOSE);
       dlg.setButtonEnabled(ButtonName.CLOSE, false);
@@ -357,7 +397,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  protected String getInstallationPath() {
+  public String getInstallationPath() {
     return Utils.getInstallPathFromClasspath();
   }
 
@@ -634,7 +674,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public void windowClosing(QuickSetupDialog dlg, WindowEvent evt) {
-    if (dlg.getDisplayedStep() == Step.PROGRESS) {
+    if ((dlg.getDisplayedStep() == PROGRESS) ||
+        (dlg.getDisplayedStep() == FINISHED)) {
       // Simulate a close button event
       dlg.notifyButtonEvent(ButtonName.CLOSE);
     } else {
@@ -657,6 +698,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     Set<WizardStep> setSteps = new HashSet<WizardStep>();
     setSteps.add(Step.CONFIRM_UNINSTALL);
     setSteps.add(Step.PROGRESS);
+    setSteps.add(Step.FINISHED);
     return Collections.unmodifiableSet(setSteps);
   }
 
@@ -669,6 +711,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       p = new ConfirmUninstallPanel(this, installStatus);
     } else if (step == Step.PROGRESS) {
       p = new ProgressPanel(this);
+    } else if (step == Step.FINISHED) {
+      p = new FinishedPanel(this);
     }
     return p;
   }

@@ -203,21 +203,21 @@ implements ProgressMessageFormatter
 
   /**
    * Returns the plain text representation of an error message for a given
-   * exception.
+   * throwable.
    * This method applies a margin if the applyMargin parameter is
    * <CODE>true</CODE>.
-   * @param ex the exception.
+   * @param t the exception.
    * @param applyMargin specifies whether we apply a margin or not to the
    * resulting plain text.
    * @return the plain text representation of an error message for the given
    * exception.
    */
-  public String getFormattedError(Exception ex, boolean applyMargin)
+  public String getFormattedError(Throwable t, boolean applyMargin)
   {
-    String msg = ex.getMessage();
+    String msg = t.getMessage();
     if (msg == null)
     {
-      msg = ex.toString();
+      msg = t.toString();
     }
     String result;
     if (applyMargin)

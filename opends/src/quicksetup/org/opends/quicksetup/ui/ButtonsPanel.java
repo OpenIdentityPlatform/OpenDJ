@@ -29,11 +29,8 @@ package org.opends.quicksetup.ui;
 
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.WizardStep;
-import org.opends.quicksetup.upgrader.Upgrader;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
-import org.opends.quicksetup.installer.Installer;
-import org.opends.quicksetup.uninstaller.Uninstaller;
 
 import javax.swing.*;
 import java.awt.*;
@@ -115,11 +112,11 @@ public class ButtonsPanel extends QuickSetupPanel
 
     // The quit button appears on all the panels leading up
     // to the progress panel
-    quitButton.setVisible(!step.isProgressStep());
+    quitButton.setVisible(!step.isProgressStep() && !step.isFinishedStep());
 
     // The close button is only used on the progress panel and
     // is only enabled once progress has finished or cancelled.
-    closeButton.setVisible(step.isProgressStep());
+    closeButton.setVisible(step.isProgressStep() || step.isFinishedStep());
     closeButton.setEnabled(application.getCurrentProgressStep().isLast());
   }
 
@@ -227,9 +224,7 @@ public class ButtonsPanel extends QuickSetupPanel
     nextFinishPanel.setOpaque(false);
     nextFinishPanel.add(nextButton, gbcAux);
 
-    // TODO: remove this hack
-    if (getApplication() instanceof Installer ||
-            getApplication() instanceof Upgrader) {
+    if (getApplication().finishOnLeft()) {
       nextFinishPanel.add(finishButton, gbcAux);
     }
     width =
@@ -249,8 +244,7 @@ public class ButtonsPanel extends QuickSetupPanel
     gbc.fill = GridBagConstraints.NONE;
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
 
-    // TODO: remove this hack
-    if (getApplication() instanceof Uninstaller) {
+    if (!getApplication().finishOnLeft()) {
       gbc.insets.right = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
       add(finishButton, gbc);
       gbc.insets.right = 0;

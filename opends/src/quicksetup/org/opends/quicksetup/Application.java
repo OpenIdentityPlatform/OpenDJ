@@ -443,15 +443,15 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * exception.
    * This method applies a margin if the applyMargin parameter is
    * <CODE>true</CODE>.
-   * @param ex the exception.
+   * @param t the exception.
    * @param applyMargin specifies whether we apply a margin or not to the
    * resulting formatted text.
    * @return the formatted representation of an error message for the given
    * exception.
    */
-  protected String getFormattedError(Exception ex, boolean applyMargin)
+  protected String getFormattedError(Throwable t, boolean applyMargin)
   {
-    return formatter.getFormattedError(ex, applyMargin);
+    return formatter.getFormattedError(t, applyMargin);
   }
 
   /**
@@ -488,7 +488,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the installation path.
    * @return the installation path.
    */
-  protected abstract String getInstallationPath();
+  public abstract String getInstallationPath();
 
   /**
    * Gets the current step.

@@ -158,7 +158,7 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  protected String getInstallationPath() {
+  public String getInstallationPath() {
     return Utils.getInstallPathFromClasspath();
   }
 

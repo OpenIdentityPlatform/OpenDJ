@@ -29,6 +29,7 @@ package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.CliApplication;
 import static org.opends.quicksetup.Installation.*;
+
 import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.ApplicationException;
@@ -37,7 +38,6 @@ import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.UserDataException;
-import org.opends.quicksetup.Step;
 import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.UserInteraction;
@@ -53,6 +53,7 @@ import org.opends.quicksetup.util.FileManager;
 
 import org.opends.quicksetup.util.ExternalTools;
 import org.opends.quicksetup.util.OperationOutput;
+import org.opends.quicksetup.ui.FinishedPanel;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.ProgressPanel;
@@ -80,46 +81,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 /**
- * QuickSetup application of ugrading the bits of an installation of
+ * QuickSetup application of upgrading the bits of an installation of
  * OpenDS.
  */
 public class Upgrader extends GuiApplication implements CliApplication {
-
-  /**
-   * Steps in the Upgrade wizard.
-   */
-  enum UpgradeWizardStep implements WizardStep {
-
-    WELCOME("welcome-step"),
-
-    REVIEW("review-step"),
-
-    PROGRESS("progress-step");
-
-    private String msgKey;
-
-    private UpgradeWizardStep(String msgKey) {
-      this.msgKey = msgKey;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getMessageKey() {
-      return msgKey;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isProgressStep() {
-      return this == PROGRESS;
-    }
-
-  }
-
   /**
    * Steps during the upgrade process.
    */
@@ -357,10 +323,21 @@ public class Upgrader extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  protected void setWizardDialogState(QuickSetupDialog dlg,
+  public void setWizardDialogState(QuickSetupDialog dlg,
                                       UserData userData,
                                       WizardStep step) {
-    // TODO
+    //  Set the default button for the frame
+    if (step == UpgradeWizardStep.REVIEW) {
+      dlg.setFocusOnButton(ButtonName.FINISH);
+      dlg.setDefaultButton(ButtonName.FINISH);
+    } else if (step == UpgradeWizardStep.WELCOME) {
+      dlg.setDefaultButton(ButtonName.NEXT);
+      dlg.setFocusOnButton(ButtonName.NEXT);
+    } else if ((step == UpgradeWizardStep.PROGRESS) ||
+        (step == UpgradeWizardStep.FINISHED)) {
+      dlg.setDefaultButton(ButtonName.CLOSE);
+      dlg.setFocusOnButton(ButtonName.CLOSE);
+    }
   }
 
   /**
@@ -412,7 +389,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  protected String getInstallationPath() {
+  public String getInstallationPath() {
     // The upgrader runs from the bits extracted by BuildExtractor
     // in the staging directory.  So 'stagePath' below will point
     // to the staging directory [installroot]/tmp/upgrade.  However
@@ -473,7 +450,14 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public void windowClosing(QuickSetupDialog dlg, WindowEvent evt) {
-    // TODO
+    if ((dlg.getDisplayedStep() == UpgradeWizardStep.PROGRESS) ||
+        (dlg.getDisplayedStep() == UpgradeWizardStep.FINISHED)) {
+      // Simulate a close button event
+      dlg.notifyButtonEvent(ButtonName.CLOSE);
+    } else {
+      // Simulate a quit button event
+      dlg.notifyButtonEvent(ButtonName.QUIT);
+    }
   }
 
   /**
@@ -502,6 +486,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
       pnl = new UpgraderReviewPanel(this);
     } else if (UpgradeWizardStep.PROGRESS.equals(step)) {
       pnl = new ProgressPanel(this);
+    } else if (UpgradeWizardStep.FINISHED.equals(step)) {
+      pnl = new FinishedPanel(this);
     }
     return pnl;
   }
@@ -515,6 +501,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
       next = UpgradeWizardStep.REVIEW;
     } else if (UpgradeWizardStep.REVIEW.equals(step)) {
       next = UpgradeWizardStep.PROGRESS;
+    } else if (UpgradeWizardStep.PROGRESS.equals(step)) {
+      next = UpgradeWizardStep.FINISHED;
     }
     return next;
   }
@@ -524,12 +512,21 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   public WizardStep getPreviousWizardStep(WizardStep step) {
     WizardStep prev = null;
-    if (UpgradeWizardStep.PROGRESS.equals(step)) {
+    if (UpgradeWizardStep.FINISHED.equals(step)) {
+      prev = UpgradeWizardStep.PROGRESS;
+    } else if (UpgradeWizardStep.PROGRESS.equals(step)) {
       prev = UpgradeWizardStep.REVIEW;
     } else if (UpgradeWizardStep.REVIEW.equals(step)) {
       prev = UpgradeWizardStep.WELCOME;
     }
     return prev;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public WizardStep getFinishedStep() {
+    return UpgradeWizardStep.FINISHED;
   }
 
   /**
@@ -626,11 +623,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
       // the fields are readonly.
       if (Utils.isWebStart()) {
         String serverLocationString =
-                qs.getFieldStringValue(FieldName.SERVER_LOCATION);
+                qs.getFieldStringValue(FieldName.SERVER_TO_UPGRADE_LOCATION);
         if ((serverLocationString == null) ||
                 ("".equals(serverLocationString.trim()))) {
           errorMsgs.add(getMsg("empty-server-location"));
-          qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
+          qs.displayFieldInvalid(FieldName.SERVER_TO_UPGRADE_LOCATION, true);
         } else {
           try {
             File serverLocation = new File(serverLocationString);
@@ -652,13 +649,13 @@ public class Upgrader extends GuiApplication implements CliApplication {
             }
 
             uud.setServerLocation(serverLocationString);
-            qs.displayFieldInvalid(FieldName.SERVER_LOCATION, false);
+            qs.displayFieldInvalid(FieldName.SERVER_TO_UPGRADE_LOCATION, false);
           } catch (IllegalArgumentException iae) {
             LOG.log(Level.INFO,
                     "illegal OpenDS installation directory selected", iae);
             errorMsgs.add(getMsg("error-invalid-server-location",
                     serverLocationString));
-            qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
+            qs.displayFieldInvalid(FieldName.SERVER_TO_UPGRADE_LOCATION, true);
           }
         }
       } else {
@@ -672,7 +669,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
 
     if (errorMsgs.size() > 0) {
-      throw new UserDataException(Step.SERVER_SETTINGS,
+      throw new UserDataException(UpgradeWizardStep.WELCOME,
               Utils.getStringFromCollection(errorMsgs, "\n"));
     }
 
@@ -708,7 +705,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public boolean canGoBack(WizardStep step) {
-    return super.canGoBack(step) && !step.equals(UpgradeWizardStep.PROGRESS);
+    return super.canGoBack(step) && !step.equals(UpgradeWizardStep.PROGRESS)
+    && !step.equals(UpgradeWizardStep.FINISHED);
   }
 
   /**

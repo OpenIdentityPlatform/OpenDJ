@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import javax.naming.ldap.InitialLdapContext;
@@ -238,13 +239,18 @@ public class InstallerHelper implements JnlpProperties {
    * @param usedServerIds the list of server ids (domain ids) that
    * are already used.
    * @throws ApplicationException if something goes wrong.
+   * @return a ConfiguredReplication object describing what has been configured.
    */
-  public void configureReplication(InitialLdapContext remoteCtx,
-      Set<String> dns, Map<String,Set<String>> replicationServers,
+  public ConfiguredReplication configureReplication(
+      InitialLdapContext remoteCtx, Set<String> dns,
+      Map<String,Set<String>> replicationServers,
       int replicationPort, String serverDisplay,
       Set<Integer> usedReplicationServerIds, Set<Integer> usedServerIds)
   throws ApplicationException
   {
+    boolean synchProviderCreated;
+    boolean synchProviderEnabled;
+    boolean replicationServerCreated;
     try
     {
       ManagementContext mCtx = LDAPManagementContext.createFromContext(
@@ -273,8 +279,23 @@ public class InstallerHelper implements JnlpProperties {
             new ArrayList<DefaultBehaviorException>());
         sync.setJavaImplementationClass(
             "org.opends.server.replication.plugin.MultimasterReplication");
+        sync.setEnabled(Boolean.TRUE);
+        synchProviderCreated = true;
+        synchProviderEnabled = false;
       }
-      sync.setEnabled(Boolean.TRUE);
+      else
+      {
+        synchProviderCreated = false;
+        if (!sync.isEnabled())
+        {
+          sync.setEnabled(Boolean.TRUE);
+          synchProviderEnabled = true;
+        }
+        else
+        {
+          synchProviderEnabled = false;
+        }
+      }
       sync.commit();
 
       /*
@@ -291,12 +312,14 @@ public class InstallerHelper implements JnlpProperties {
             new ArrayList<DefaultBehaviorException>());
         replicationServer.setReplicationServerId(id);
         replicationServer.setReplicationPort(replicationPort);
+        replicationServerCreated = true;
       }
       else
       {
         replicationServer = sync.getReplicationServer();
         usedReplicationServerIds.add(
             replicationServer.getReplicationServerId());
+        replicationServerCreated = false;
       }
 
       Set<String> servers = replicationServer.getReplicationServer();
@@ -304,14 +327,19 @@ public class InstallerHelper implements JnlpProperties {
       {
         servers = new HashSet<String>();
       }
+      Set<String> oldServers = new HashSet<String>();
+      oldServers.addAll(servers);
       for (Set<String> rs : replicationServers.values())
       {
         servers.addAll(rs);
       }
 
       replicationServer.setReplicationServer(servers);
-
       replicationServer.commit();
+
+      Set<String> newReplicationServers = new HashSet<String>();
+      newReplicationServers.addAll(servers);
+      newReplicationServers.removeAll(oldServers);
 
       /*
        * Create the domains
@@ -321,6 +349,7 @@ public class InstallerHelper implements JnlpProperties {
       {
         domainNames = new String[]{};
       }
+      Set<ConfiguredDomain> domainsConf = new HashSet<ConfiguredDomain>();
       MultimasterDomainCfgClient[] domains =
         new MultimasterDomainCfgClient[domainNames.length];
       for (int i=0; i<domains.length; i++)
@@ -330,29 +359,152 @@ public class InstallerHelper implements JnlpProperties {
       for (String dn : dns)
       {
         MultimasterDomainCfgClient domain = null;
+        boolean isCreated;
+        String domainName = null;
         for (int i=0; i<domains.length && (domain == null); i++)
         {
           if (Utils.areDnsEqual(dn,
               domains[i].getReplicationDN().toString()))
           {
             domain = domains[i];
+            domainName = domainNames[i];
           }
         }
         if (domain == null)
         {
           int domainId = getReplicationId(usedServerIds);
           usedServerIds.add(domainId);
-          String domainName = getDomainName(domainNames, domainId);
+          domainName = getDomainName(domainNames, domainId);
           domain = sync.createMultimasterDomain(
               MultimasterDomainCfgDefn.getInstance(), domainName,
               new ArrayList<DefaultBehaviorException>());
           domain.setServerId(domainId);
           domain.setReplicationDN(DN.decode(dn));
+          isCreated = true;
         }
-        domain.setReplicationServer(replicationServers.get(dn));
+        else
+        {
+          isCreated = false;
+        }
+        oldServers = domain.getReplicationServer();
+        if (oldServers == null)
+        {
+          oldServers = new TreeSet<String>();
+        }
+        servers = replicationServers.get(dn);
+        domain.setReplicationServer(servers);
         usedServerIds.add(domain.getServerId());
 
         domain.commit();
+        servers.removeAll(oldServers);
+        ConfiguredDomain domainConf = new ConfiguredDomain(domainName,
+            isCreated, servers);
+        domainsConf.add(domainConf);
+      }
+      return new ConfiguredReplication(synchProviderCreated,
+          synchProviderEnabled, replicationServerCreated, newReplicationServers,
+          domainsConf);
+    }
+    catch (Throwable t)
+    {
+      String errorMessage = getMsg("error-configuring-remote-generic",
+          serverDisplay, t.toString());
+      throw new ApplicationException(
+          ApplicationException.Type.CONFIGURATION_ERROR, errorMessage, t);
+    }
+  }
+
+  /**
+   * Configures the replication on a given server.
+   * @param remoteCtx the conection to the server where we want to configure
+   * the replication.
+   * @param replConf the object describing what was configured.
+   * @param serverDisplay the server display.
+   * @throws ApplicationException if something goes wrong.
+   */
+  public void unconfigureReplication(
+      InitialLdapContext remoteCtx, ConfiguredReplication replConf,
+      String serverDisplay)
+  throws ApplicationException
+  {
+    try
+    {
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(
+          JNDIDirContextAdaptor.adapt(remoteCtx));
+      RootCfgClient root = mCtx.getRootConfiguration();
+
+      /*
+       * Unconfigure Synchronization plugin.
+       */
+      if (replConf.isSynchProviderCreated())
+      {
+        MultimasterSynchronizationProviderCfgClient sync = null;
+        try
+        {
+          root.removeSynchronizationProvider("Multimaster Synchronization");
+        }
+        catch (ManagedObjectNotFoundException monfe)
+        {
+          // It does not exist.
+        }
+      }
+      else
+      {
+        try
+        {
+          MultimasterSynchronizationProviderCfgClient sync =
+            (MultimasterSynchronizationProviderCfgClient)
+            root.getSynchronizationProvider("Multimaster Synchronization");
+          if (replConf.isSynchProviderEnabled())
+          {
+            sync.setEnabled(Boolean.FALSE);
+          }
+          if (replConf.isReplicationServerCreated())
+          {
+            sync.removeReplicationServer();
+          }
+          else if (sync.hasReplicationServer())
+          {
+            ReplicationServerCfgClient replicationServer =
+              sync.getReplicationServer();
+            Set<String> replServers = replicationServer.getReplicationServer();
+            if (replServers != null)
+            {
+              replServers.removeAll(replConf.getNewReplicationServers());
+              replicationServer.commit();
+            }
+          }
+          for (ConfiguredDomain domain : replConf.getDomainsConf())
+          {
+            if (domain.isCreated())
+            {
+              sync.removeMultimasterDomain(domain.getDomainName());
+            }
+            else
+            {
+              try
+              {
+                MultimasterDomainCfgClient d =
+                  sync.getMultimasterDomain(domain.getDomainName());
+                Set<String> replServers = d.getReplicationServer();
+                if (replServers != null)
+                {
+                  replServers.removeAll(domain.getAddedReplicationServers());
+                  d.commit();
+                }
+              }
+              catch (ManagedObjectNotFoundException monfe)
+              {
+                // It does not exist.
+              }
+            }
+          }
+          sync.commit();
+        }
+        catch (ManagedObjectNotFoundException monfe)
+        {
+          // It does not exist.
+        }
       }
     }
     catch (Throwable t)
@@ -574,4 +726,3 @@ class DomainEntry
     return replicationServers;
   }
 }
-

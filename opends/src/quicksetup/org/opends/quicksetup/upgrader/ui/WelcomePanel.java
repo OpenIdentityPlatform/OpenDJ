@@ -75,7 +75,7 @@ public class WelcomePanel extends QuickSetupStepPanel {
    */
   public Object getFieldValue(FieldName fieldName) {
     Object v = null;
-    if (FieldName.SERVER_LOCATION.equals(fieldName)) {
+    if (FieldName.SERVER_TO_UPGRADE_LOCATION.equals(fieldName)) {
       v = tcServerLocation.getText();
     }
     return v;
@@ -91,7 +91,7 @@ public class WelcomePanel extends QuickSetupStepPanel {
     } else {
       style = UIFactory.TextStyle.PRIMARY_FIELD_VALID;
     }
-    if (FieldName.SERVER_LOCATION.equals(fieldName)) {
+    if (FieldName.SERVER_TO_UPGRADE_LOCATION.equals(fieldName)) {
       UIFactory.setTextStyle(lblServerLocation, style);
     }
   }

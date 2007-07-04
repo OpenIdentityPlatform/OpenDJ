@@ -89,7 +89,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
   public WebStartInstaller()
   {
     initLoader();
-    setStatus(InstallProgressStep.NOT_STARTED);
+    setCurrentProgressStep(InstallProgressStep.NOT_STARTED);
   }
 
   /**
@@ -108,14 +108,14 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       System.setErr(err);
       System.setOut(out);
 
-      setStatus(InstallProgressStep.DOWNLOADING);
+      setCurrentProgressStep(InstallProgressStep.DOWNLOADING);
 
       checkAbort();
 
       InputStream in =
           getZipInputStream(getRatio(InstallProgressStep.EXTRACTING));
 
-      setStatus(InstallProgressStep.EXTRACTING);
+      setCurrentProgressStep(InstallProgressStep.EXTRACTING);
       notifyListeners(getTaskSeparator());
 
       checkAbort();
@@ -135,7 +135,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
       checkAbort();
 
-      setStatus(InstallProgressStep.CONFIGURING_SERVER);
+      setCurrentProgressStep(InstallProgressStep.CONFIGURING_SERVER);
       notifyListeners(getTaskSeparator());
 
       // Write java home before calling Installation class.  The installation
@@ -145,7 +145,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
       checkAbort();
 
-      setStatus(InstallProgressStep.CONFIGURING_SERVER);
+      setCurrentProgressStep(InstallProgressStep.CONFIGURING_SERVER);
       configureServer();
 
       checkAbort();
@@ -157,7 +157,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       if (Utils.isWindows() && getUserData().getEnableWindowsService())
       {
           notifyListeners(getTaskSeparator());
-          setStatus(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
+          setCurrentProgressStep(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
           enableWindowsService();
 
           checkAbort();
@@ -166,7 +166,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       if (mustStart())
       {
         notifyListeners(getTaskSeparator());
-        setStatus(InstallProgressStep.STARTING_SERVER);
+        setCurrentProgressStep(InstallProgressStep.STARTING_SERVER);
         new ServerController(this).startServer();
 
         checkAbort();
@@ -174,7 +174,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
       if (mustConfigureReplication())
       {
-        setStatus(InstallProgressStep.CONFIGURING_REPLICATION);
+        setCurrentProgressStep(InstallProgressStep.CONFIGURING_REPLICATION);
         notifyListeners(getTaskSeparator());
 
         configureReplication();
@@ -185,7 +185,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       if (mustInitializeSuffixes())
       {
         notifyListeners(getTaskSeparator());
-        setStatus(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
+        setCurrentProgressStep(
+            InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
         initializeSuffixes();
 
         checkAbort();
@@ -194,7 +195,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       if (mustCreateAds())
       {
         notifyListeners(getTaskSeparator());
-        setStatus(InstallProgressStep.CONFIGURING_ADS);
+        setCurrentProgressStep(InstallProgressStep.CONFIGURING_ADS);
         updateADS();
 
         checkAbort();
@@ -203,24 +204,24 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       if (mustStop())
       {
         notifyListeners(getTaskSeparator());
-        setStatus(InstallProgressStep.STOPPING_SERVER);
+        setCurrentProgressStep(InstallProgressStep.STOPPING_SERVER);
         new ServerController(this).stopServer();
       }
 
       checkAbort();
-      setStatus(InstallProgressStep.FINISHED_SUCCESSFULLY);
+      setCurrentProgressStep(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
     } catch (ApplicationException ex)
     {
       if (ApplicationException.Type.CANCEL.equals(ex.getType())) {
         uninstall();
-        setStatus(InstallProgressStep.FINISHED_CANCELED);
+        setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);
         notifyListeners(null);
       } else {
         notifyListeners(getLineBreak());
         notifyListenersOfLog();
-        setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
+        setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
         String html = getFormattedError(ex, true);
         notifyListeners(html);
         LOG.log(Level.SEVERE, "Error installing.", ex);
@@ -230,7 +231,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
     {
       notifyListeners(getLineBreak());
       notifyListenersOfLog();
-      setStatus(InstallProgressStep.FINISHED_WITH_ERROR);
+      setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
           ApplicationException.Type.BUG, getThrowableMsg("bug-msg", t), t);
       String msg = getFormattedError(ex, true);
@@ -498,6 +499,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
    * Uninstall what has already been installed.
    */
   private void uninstall() {
+    notifyListeners(getTaskSeparator());
+
     Installation installation = getInstallation();
     FileManager fm = new FileManager(this);
 
@@ -523,7 +526,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
   /**
    * {@inheritDoc}
    */
-  protected String getInstallationPath()
+  public String getInstallationPath()
   {
     return getUserData().getServerLocation();
   }

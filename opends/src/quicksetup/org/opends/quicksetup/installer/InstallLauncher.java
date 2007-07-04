@@ -138,9 +138,6 @@ public class InstallLauncher extends Launcher {
     System.out.println(getMsg("setup-launcher-launching-gui"));
     System.setProperty("org.opends.quicksetup.Application.class",
             "org.opends.quicksetup.installer.offline.OfflineInstaller");
-    // TO DELETE
-    System.setProperty("org.opends.quicksetup.Application.class",
-    "org.opends.quicksetup.installandupgrader.InstallAndUpgrader");
   }
 
   /**

@@ -259,16 +259,16 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   }
 
   /**
-   * Returns the HTML representation of an error message for a given exception.
+   * Returns the HTML representation of an error message for a given throwable.
    * This method applies a margin if the applyMargin parameter is
    * <CODE>true</CODE>.
-   * @param ex the exception.
+   * @param t the throwable.
    * @param applyMargin specifies whether we apply a margin or not to the
    * resulting HTML.
    * @return the HTML representation of an error message for the given
    * exception.
    */
-  public String getFormattedError(Exception ex, boolean applyMargin)
+  public String getFormattedError(Throwable t, boolean applyMargin)
   {
     String openDiv = "<div style=\"margin-left:5px; margin-top:10px\">";
     String hideText =
@@ -280,8 +280,8 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     String closeDiv = "</div>";
 
     StringBuilder stackBuf = new StringBuilder();
-    stackBuf.append(getHtmlStack(ex));
-    Throwable root = ex.getCause();
+    stackBuf.append(getHtmlStack(t));
+    Throwable root = t.getCause();
     while (root != null)
     {
       stackBuf.append(getHtml(getMsg("exception-root-cause")))
@@ -294,14 +294,14 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
 
     StringBuilder buf = new StringBuilder();
 
-    String msg = ex.getMessage();
+    String msg = t.getMessage();
     if (msg != null)
     {
-      buf.append(UIFactory.applyFontToHtml(getHtml(ex.getMessage()),
+      buf.append(UIFactory.applyFontToHtml(getHtml(t.getMessage()),
               UIFactory.PROGRESS_ERROR_FONT)).append(Constants.HTML_LINE_BREAK);
     } else
     {
-      buf.append(ex.toString()).append(Constants.HTML_LINE_BREAK);
+      buf.append(t.toString()).append(Constants.HTML_LINE_BREAK);
     }
     buf.append(getErrorWithStackHtml(openDiv, hideText, showText, stackText,
         closeDiv, false));
