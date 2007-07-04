@@ -423,8 +423,6 @@ public class InstallReviewPanel extends ReviewPanel {
       gbc.anchor = GridBagConstraints.NORTHWEST;
       panel.add(getLabel(fieldNames[i]), gbc);
 
-      JPanel auxPanel = new JPanel(new GridBagLayout());
-      auxPanel.setOpaque(false);
       gbc.weightx = 1.0;
       gbc.fill = GridBagConstraints.HORIZONTAL;
       if (i > 0)
@@ -437,7 +435,8 @@ public class InstallReviewPanel extends ReviewPanel {
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
 
       gbc.gridwidth = GridBagConstraints.REMAINDER;
-      panel.add(getField(fieldNames[i]), gbc);    }
+      panel.add(getField(fieldNames[i]), gbc);
+    }
 
     return panel;
   }
