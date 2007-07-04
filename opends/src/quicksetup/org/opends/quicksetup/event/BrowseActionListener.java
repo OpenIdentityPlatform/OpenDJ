@@ -182,7 +182,7 @@ public class BrowseActionListener implements ActionListener
     switch (type)
     {
     case LOCATION_DIRECTORY:
-      returnVal = fc.showSaveDialog(parent);
+      returnVal = fc.showOpenDialog(parent);
       break;
 
     case OPEN_LDIF_FILE:
