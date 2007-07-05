@@ -40,6 +40,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 
@@ -974,7 +975,7 @@ public class LDAPPasswordModifyTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testLDAPNoOpUnsupportedCriticalControl()
+  public void testUnsupportedCriticalControl()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
@@ -1023,9 +1024,8 @@ public class LDAPPasswordModifyTestCase
       "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true"
     };
 
-    // FIXME -- Change this whenever the real LDAP No-Op result code is assigned
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+                 LDAPResultCode.NO_OPERATION);
   }
 
 
@@ -1055,9 +1055,8 @@ public class LDAPPasswordModifyTestCase
       "-J", "noop:true"
     };
 
-    // FIXME -- Change this whenever the real LDAP No-Op result code is assigned
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+                 LDAPResultCode.NO_OPERATION);
   }
 
 
@@ -1088,9 +1087,8 @@ public class LDAPPasswordModifyTestCase
       "-J", OID_PASSWORD_POLICY_CONTROL + ":true"
     };
 
-    // FIXME -- Change this whenever the real LDAP No-Op result code is assigned
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+                 LDAPResultCode.NO_OPERATION);
   }
 
 

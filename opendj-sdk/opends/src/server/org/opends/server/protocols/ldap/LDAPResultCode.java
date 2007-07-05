@@ -582,6 +582,21 @@ public class LDAPResultCode
 
 
   /**
+   * The LDAP result code for operations in which no action is taken because the
+   * request include the LDAP no-op control.
+   *
+   * FIXME -- This is a temporary result code for use until
+   *          draft-zeilenga-ldap-noop is updated and an official result code is
+   *          allocated for it.  In the meantime, this result appears to be the
+   *          one used by OpenLDAP as per the message at
+   *          http://www.openldap.org/lists/openldap-devel/200601/msg00143.html
+   *          (0x410e = 16654).
+   */
+  public static final int NO_OPERATION = 16654;
+
+
+
+  /**
    * Retrieves a string representation of the provided LDAP result code.
    *
    * @param  resultCode  The LDAP result code value for which to obtain the
@@ -786,6 +801,9 @@ public class LDAPResultCode
         break;
       case AUTHORIZATION_DENIED:
         msgID = MSGID_RESULT_AUTHORIZATION_DENIED;
+        break;
+      case NO_OPERATION:
+        msgID = MSGID_RESULT_NO_OPERATION;
         break;
       default:
         msgID = MSGID_RESULT_OTHER;

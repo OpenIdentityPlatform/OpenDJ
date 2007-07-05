@@ -6169,16 +6169,6 @@ public class CoreMessages
        CATEGORY_MASK_CORE | SEVERITY_MASK_NOTICE | 619;
 
 
-  /**
-   * The message ID for the message that will be used if a workflow is
-   * configured with no root workflow element. No root workflow element
-   * means no processing on the DIT attached to the workflow, which makes
-   * no sense.
-   */
-  public static final int MSGID_WARNING_ROOT_WORKFLOW_ELEMENT_NOT_DEFINED =
-    CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 620;
-
-
 
   /**
    * The message ID for the message that will be used if an attribute used an
@@ -6218,6 +6208,16 @@ public class CoreMessages
    */
   public static final int MSGID_ENTRYENCODECFG_INVALID_LENGTH =
        CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 623;
+
+
+
+  /**
+   * The message ID for the string representation of the result code that will
+   * be used to indicate no action was taken as a result of the LDAP no-op
+   * control.  This does not take any arguments.
+   */
+  public static final int MSGID_RESULT_NO_OPERATION =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 624;
 
 
 
@@ -6390,6 +6390,7 @@ public class CoreMessages
     registerMessage(MSGID_RESULT_CANNOT_CANCEL, "Cannot Cancel");
     registerMessage(MSGID_RESULT_ASSERTION_FAILED, "Assertion Failed");
     registerMessage(MSGID_RESULT_AUTHORIZATION_DENIED, "Authorization Denied");
+    registerMessage(MSGID_RESULT_NO_OPERATION, "No Operation");
 
 
     registerMessage(MSGID_UNKNOWN_ATTRIBUTE_USAGE,
@@ -8453,11 +8454,6 @@ public class CoreMessages
                     "The Directory Server is leaving lockdown mode and will " +
                     "resume normal operation");
 
-    registerMessage(MSGID_WARNING_ROOT_WORKFLOW_ELEMENT_NOT_DEFINED,
-        "The workflow with base DN \"%s\" has no root workflow " +
-        "element"
-        );
-
 
     registerMessage(MSGID_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN,
                     "Unable to decode the provided attribute because it " +
@@ -8473,10 +8469,6 @@ public class CoreMessages
     registerMessage(MSGID_ENTRYENCODECFG_INVALID_LENGTH,
                     "Unable to decode the provided entry encode " +
                     "configuration element because it has an invalid length");
-
-    registerMessage(MSGID_WARNING_ROOT_WORKFLOW_ELEMENT_NOT_DEFINED,
-                    "The workflow with base DN \"%s\" has no root workflow " +
-                    "element");
   }
 }
 
