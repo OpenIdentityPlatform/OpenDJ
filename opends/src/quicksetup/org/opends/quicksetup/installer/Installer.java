@@ -2229,6 +2229,15 @@ public abstract class Installer extends GuiApplication {
       serverProperties.put(ADSContext.ServerProperty.LDAPS_ENABLED, "false");
     }
 
+    if (sec.getEnableStartTLS())
+    {
+      serverProperties.put(ADSContext.ServerProperty.STARTTLS_ENABLED, "true");
+    }
+    else
+    {
+      serverProperties.put(ADSContext.ServerProperty.STARTTLS_ENABLED, "false");
+    }
+
     serverProperties.put(ADSContext.ServerProperty.JMX_PORT, "1689");
     serverProperties.put(ADSContext.ServerProperty.JMX_ENABLED, "false");
 
