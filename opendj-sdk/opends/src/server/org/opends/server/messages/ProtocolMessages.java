@@ -4609,13 +4609,12 @@ public class ProtocolMessages
 
   /**
    * The message ID for the message that will be used if an LDAP search filter
-   * is enclosed in apostrophes ("single-quotes").
-   * (FIXME -- This error is a workaround for
-   * https://opends.dev.java.net/issues/show_bug.cgi?id=1024. A correct fix
-   * is to validate the characters used in the attribute type.
+   * is enclosed in apostrophes ("single-quotes").  See issue #1024.
    */
   public static final int MSGID_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 427;
+
+
 
   /**
    * The message ID for the message that will be used as the description of the
@@ -4624,6 +4623,19 @@ public class ProtocolMessages
    */
   public static final int MSGID_JMX_CONNHANDLER_DESCRIPTION_ENABLE =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 428;
+
+
+
+  /**
+   * The message ID for the message that will be used if an LDAP search filter
+   * includes an invalid character in an attribute type.  This takes three
+   * arguments, which are the attribute type, the illegal character, and the
+   * position at which it occurred.
+   */
+  public static final int MSGID_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 429;
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -5410,6 +5422,12 @@ public class ProtocolMessages
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the NOT filter between positions %d and %d " +
                     "did not contain exactly one filter component");
+    registerMessage(MSGID_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES,
+                    "An LDAP filter enclosed in apostrophes is invalid:  %s");
+    registerMessage(MSGID_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE,
+                    "The provided search filter contains an invalid " +
+                    "attribute type '%s' with invalid character '%s' at " +
+                    "position %d");
 
 
     registerMessage(MSGID_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE,
@@ -6605,10 +6623,6 @@ public class ProtocolMessages
     registerMessage(MSGID_CANNOT_DECODE_GETEFFECTIVERIGHTS_AUTHZID_DN,
                     "Unable to decode authzid DN string \"%s\" as a valid " +
                     "distinguished name:  %s");
-
-
-    registerMessage(MSGID_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES,
-                    "An LDAP filter enclosed in apostrophes is invalid:  %s");
   }
 }
 

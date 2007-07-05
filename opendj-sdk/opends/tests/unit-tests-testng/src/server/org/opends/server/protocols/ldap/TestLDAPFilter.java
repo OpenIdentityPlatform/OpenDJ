@@ -70,6 +70,9 @@ public class TestLDAPFilter extends LdapTestCase
       { "(cn=billy bob", null },
       { "(|(!(title=sweep*)(l=Paris*)))", null },
       { "(|(!))", null },
+      { "((uid=user.0))", null },
+      { "(&&(uid=user.0))", null },
+      { "!uid=user.0", null },
 
     };
   }

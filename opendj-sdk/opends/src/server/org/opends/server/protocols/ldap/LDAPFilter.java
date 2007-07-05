@@ -367,10 +367,7 @@ public class LDAPFilter
     }
 
     // If the filter is enclosed in a pair of apostrophes ("single-quotes") it
-    // is invalid.
-    // (FIXME -- This error is a workaround for
-    //  https://opends.dev.java.net/issues/show_bug.cgi?id=1024. A correct fix
-    // is to validate the characters used in the attribute type.)
+    // is invalid (issue #1024).
     if (1 < filterString.length()
          && filterString.startsWith("'") && filterString.endsWith("'"))
     {
@@ -432,8 +429,8 @@ public class LDAPFilter
 
     if (equalPos <= startPos)
     {
-        int    msgID   = MSGID_LDAP_FILTER_NO_EQUAL_SIGN;
-        String message = getMessage(msgID, filterString, startPos, endPos);
+      int    msgID   = MSGID_LDAP_FILTER_NO_EQUAL_SIGN;
+      String message = getMessage(msgID, filterString, startPos, endPos);
       throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
     }
 
@@ -467,8 +464,110 @@ public class LDAPFilter
 
 
     // The part of the filter string before the equal sign should be the
-    // attribute type.
+    // attribute type.  Make sure that the characters it contains are acceptable
+    // for attribute types, including those allowed by attribute name
+    // exceptions (ASCII letters and digits, the dash, and the underscore).  We
+    // also need to allow attribute options, which includes the semicolon and
+    // the equal sign.
     String attrType = filterString.substring(startPos, attrEndPos);
+    for (int i=0; i < attrType.length(); i++)
+    {
+      switch (attrType.charAt(i))
+      {
+        case '-':
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case ';':
+        case '=':
+        case 'A':
+        case 'B':
+        case 'C':
+        case 'D':
+        case 'E':
+        case 'F':
+        case 'G':
+        case 'H':
+        case 'I':
+        case 'J':
+        case 'K':
+        case 'L':
+        case 'M':
+        case 'N':
+        case 'O':
+        case 'P':
+        case 'Q':
+        case 'R':
+        case 'S':
+        case 'T':
+        case 'U':
+        case 'V':
+        case 'W':
+        case 'X':
+        case 'Y':
+        case 'Z':
+        case '_':
+        case 'a':
+        case 'b':
+        case 'c':
+        case 'd':
+        case 'e':
+        case 'f':
+        case 'g':
+        case 'h':
+        case 'i':
+        case 'j':
+        case 'k':
+        case 'l':
+        case 'm':
+        case 'n':
+        case 'o':
+        case 'p':
+        case 'q':
+        case 'r':
+        case 's':
+        case 't':
+        case 'u':
+        case 'v':
+        case 'w':
+        case 'x':
+        case 'y':
+        case 'z':
+          // These are all OK.
+          break;
+
+        case '.':
+        case '/':
+        case ':':
+        case '<':
+        case '>':
+        case '?':
+        case '@':
+        case '[':
+        case '\\':
+        case ']':
+        case '^':
+        case '`':
+          // These are not allowed, but they are explicitly called out because
+          // they are included in the range of values between '-' and 'z', and
+          // making sure all possible characters are included can help make the
+          // switch statement more efficient.  We'll fall through to the default
+          // clause to reject them.
+        default:
+          int    msgID   = MSGID_LDAP_FILTER_INVALID_CHAR_IN_ATTR_TYPE;
+          String message = getMessage(msgID, attrType,
+                                      String.valueOf(attrType.charAt(i)), i);
+          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID,
+                                  message);
+      }
+    }
 
 
     // Get the attribute value.
