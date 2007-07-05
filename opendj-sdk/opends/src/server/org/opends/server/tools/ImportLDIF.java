@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
+import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.plugin.PluginType;
@@ -54,6 +55,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
@@ -67,9 +69,7 @@ import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
-import org.opends.server.admin.std.server.BackendCfg;
 
 
 /**
@@ -135,6 +135,7 @@ public class ImportLDIF
 
     // Define the command-line arguments that may be used with this program.
     BooleanArgument append                  = null;
+    BooleanArgument countRejects            = null;
     BooleanArgument displayUsage            = null;
     BooleanArgument isCompressed            = null;
     BooleanArgument isEncrypted             = null;
@@ -288,6 +289,12 @@ public class ImportLDIF
            new BooleanArgument("skipschema", 'S', "skipSchemaValidation",
                     MSGID_LDIFIMPORT_DESCRIPTION_SKIP_SCHEMA_VALIDATION);
       argParser.addArgument(skipSchemaValidation);
+
+
+      countRejects =
+           new BooleanArgument("countrejects", null, "countRejects",
+                               MSGID_LDIFIMPORT_DESCRIPTION_COUNT_REJECTS);
+      argParser.addArgument(countRejects);
 
 
       isCompressed =
@@ -510,7 +517,7 @@ public class ImportLDIF
         catch(Exception e)
         {
           System.err.println("Error installing the custom error logger: " +
-              StaticUtils.stackTraceToSingleLineString(e));
+                             stackTraceToSingleLineString(e));
         }
       }
 
@@ -1023,7 +1030,18 @@ public class ImportLDIF
     int retCode = 0;
     try
     {
-      backend.importLDIF(importConfig);
+      LDIFImportResult importResult = backend.importLDIF(importConfig);
+      if (countRejects.isPresent())
+      {
+        if (importResult.getEntriesRejected() > Integer.MAX_VALUE)
+        {
+          retCode = Integer.MAX_VALUE;
+        }
+        else
+        {
+          retCode = (int) importResult.getEntriesRejected();
+        }
+      }
     }
     catch (DirectoryException de)
     {

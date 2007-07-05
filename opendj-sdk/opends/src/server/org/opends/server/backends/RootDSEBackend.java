@@ -65,6 +65,7 @@ import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
@@ -1209,7 +1210,7 @@ public class RootDSEBackend
   /**
    * {@inheritDoc}
    */
-  public void importLDIF(LDIFImportConfig importConfig)
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     // This backend does not support LDIF imports.

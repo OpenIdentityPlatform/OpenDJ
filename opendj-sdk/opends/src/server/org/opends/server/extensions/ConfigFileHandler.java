@@ -88,8 +88,9 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
@@ -2326,7 +2327,7 @@ public class ConfigFileHandler
   /**
    * {@inheritDoc}
    */
-  public void importLDIF(LDIFImportConfig importConfig)
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     int msgID     =  MSGID_CONFIG_FILE_UNWILLING_TO_IMPORT;

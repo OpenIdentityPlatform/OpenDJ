@@ -93,8 +93,9 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
@@ -4230,7 +4231,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
-  public void importLDIF(LDIFImportConfig importConfig)
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     // This backend does not support LDIF imports.

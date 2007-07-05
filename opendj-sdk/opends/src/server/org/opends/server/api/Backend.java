@@ -51,6 +51,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.WritabilityMode;
@@ -492,10 +493,13 @@ public abstract class Backend
    * @param  importConfig  The configuration to use when performing
    *                       the import.
    *
+   * @return  Information about the result of the import processing.
+   *
    * @throws  DirectoryException  If a problem occurs while performing
    *                              the LDIF import.
    */
-  public abstract void importLDIF(LDIFImportConfig importConfig)
+  public abstract LDIFImportResult importLDIF(
+                                        LDIFImportConfig importConfig)
          throws DirectoryException;
 
 

@@ -1043,7 +1043,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
-  public void importLDIF(LDIFImportConfig importConfig)
+  public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
       throws DirectoryException
   {
     // If the backend already has the root container open, we must use the same
@@ -1100,7 +1100,7 @@ public class BackendImpl
       initializeRootContainer(envConfig);
 
       ImportJob importJob = new ImportJob(importConfig);
-      importJob.importLDIF(rootContainer);
+      return importJob.importLDIF(rootContainer);
     }
     catch (IOException ioe)
     {
