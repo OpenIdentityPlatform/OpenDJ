@@ -176,8 +176,27 @@ public class TargAttrFilters {
         String[] filterLists=
                 subExpression.split(secondOp, -1);
         if(filterLists.length > 2) {
-            int msgID =
-                    MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_MAX_FILTER_LISTS;
+          int msgID =
+                  MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_MAX_FILTER_LISTS;
+          String message = getMessage(msgID, expression);
+          throw new AciException(msgID, message);
+        } else if (filterLists.length == 1) {
+          //This check catches the case where there might not be a
+          //',' character between the first filter list and the second.
+          String sOp="del";
+          if(getMask(firstOp) == TARGATTRFILTERS_DELETE)
+            sOp="add";
+          String rg= sOp + "=";
+          if(subExpression.indexOf(rg) != -1) {
+            int msgID = MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION;
+            String message = getMessage(msgID, expression);
+            throw new AciException(msgID, message);
+          }
+        }
+        filterLists[0]=filterLists[0].trim();
+        //First filter list must end in an ')' character.
+        if(!filterLists[0].endsWith(")")) {
+            int msgID = MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION;
             String message = getMessage(msgID, expression);
             throw new AciException(msgID, message);
         }
@@ -185,8 +204,15 @@ public class TargAttrFilters {
                 TargAttrFilterList.decode(getMask(firstOp), filterLists[0]);
         TargAttrFilterList secondFilterList=null;
         //Handle the second filter list if there is one.
-        if(filterLists.length == 2) {
-            String temp2= filterLists[1].substring(1,filterLists[1].length());
+          if(filterLists.length == 2) {
+            String filterList=filterLists[1].trim();
+            //Second filter list must start with a '='.
+            if(!filterList.startsWith("=")) {
+              int msgID = MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION;
+              String message = getMessage(msgID, expression);
+              throw new AciException(msgID, message);
+            }
+            String temp2= filterList.substring(1,filterList.length());
             //Assume the first op is an "add" so this has to be a "del".
             String secondOp="del";
             //If the first op is a "del", the second has to be an "add".
