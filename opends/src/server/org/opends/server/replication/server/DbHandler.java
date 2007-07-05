@@ -83,6 +83,14 @@ public class DbHandler implements Runnable
   private boolean done = false;
   private DirectoryThread thread = null;
   private Object flushLock = new Object();
+
+  // The High and low water mark for the max size of the msgQueue.
+  // the threads calling add() method will be blocked if the size of
+  // msgQueue becomes larger than the  MSG_QUEUE_HIMARK and will resume
+  // only when the size of the msgQueue goes below MSG_QUEUE_LOWMARK.
+  final static int MSG_QUEUE_HIMARK = 5000;
+  final static int MSG_QUEUE_LOWMARK = 4000;
+
   /**
    * the trim age in milliseconds.
    */
@@ -130,7 +138,7 @@ public class DbHandler implements Runnable
     synchronized (msgQueue)
     {
       int size = msgQueue.size();
-      while (size > 5000)     /* TODO : max size should be configurable */
+      while (size > MSG_QUEUE_HIMARK)
       {
         try
         {
@@ -265,7 +273,7 @@ public class DbHandler implements Runnable
         msgQueue.remove();
         current++;
       }
-      if (msgQueue.size() < 5000)
+      if (msgQueue.size() < MSG_QUEUE_LOWMARK)
         msgQueue.notify();
     }
   }
