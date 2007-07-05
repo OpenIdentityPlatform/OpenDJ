@@ -48,10 +48,8 @@ import java.util.Set;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigAttribute;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.protocol.SocketSession;
@@ -77,8 +75,7 @@ import com.sleepycat.je.DatabaseException;
  * It is responsible for creating the replication server cache and managing it
  */
 public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
-  implements Runnable, ConfigurableComponent,
-             ConfigurationChangeListener<ReplicationServerCfg>
+  implements Runnable, ConfigurationChangeListener<ReplicationServerCfg>
 {
   private short serverId;
   private String serverURL;
@@ -154,42 +151,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     configuration.addChangeListener(this);
     configDn = configuration.dn();
     DirectoryServer.registerMonitorProvider(this);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public DN getConfigurableComponentEntryDN()
-  {
-    return configDn;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    return configAttributes ;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean hasAcceptableConfiguration(ConfigEntry configEntry,
-      List<String> unacceptableReasons)
-  {
-    // TODO NYI
-    return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyNewConfiguration(ConfigEntry configEntry,
-      boolean detailedResults)
-  {
-    // TODO NYI
-    return null;
   }
 
 
