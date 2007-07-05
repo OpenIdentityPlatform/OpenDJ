@@ -424,19 +424,18 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     shutdown = true;
 
     // shutdown the connect thread
-    try
+    if (myConnectThread != null)
     {
       myConnectThread.interrupt();
-    } catch (NullPointerException e)
-    {
-      // FIXME To be investigated the conditions
-      // where myConnectThread can be null here
     }
 
     // shutdown the listener thread
     try
     {
-      listenSocket.close();
+      if (listenSocket != null)
+      {
+        listenSocket.close();
+      }
     } catch (IOException e)
     {
       // replication Server service is closing anyway.
@@ -448,7 +447,10 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       replicationCache.shutdown();
     }
 
-    dbEnv.shutdown();
+    if (dbEnv != null)
+    {
+      dbEnv.shutdown();
+    }
     DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
   }
 
