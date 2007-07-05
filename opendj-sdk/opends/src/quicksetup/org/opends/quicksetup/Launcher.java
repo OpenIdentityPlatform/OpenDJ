@@ -68,15 +68,11 @@ public abstract class Launcher {
    */
   protected boolean shouldPrintUsage() {
     boolean printUsage = false;
-    if (!isCli() && args.length > 0) {
-      printUsage = true;
-    } else {
-      if ((args != null) && (args.length > 0)) {
-        for (String arg : args) {
-          if (arg.equalsIgnoreCase("-H") ||
-                  arg.equalsIgnoreCase("--help")) {
-            printUsage = true;
-          }
+    if ((args != null) && (args.length > 0)) {
+      for (String arg : args) {
+        if (arg.equalsIgnoreCase("-H") ||
+          arg.equalsIgnoreCase("--help")) {
+          printUsage = true;
         }
       }
     }
