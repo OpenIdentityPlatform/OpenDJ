@@ -39,7 +39,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -64,10 +63,8 @@ import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.JMXMBean;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -1651,41 +1648,6 @@ public class ConfigFileHandler
       }
 
 
-      // See if there are any configurable components associated with this
-      // entry.  If there are, then make sure they are all OK with the change.
-      JMXMBean mBean = DirectoryServer.getJMXMBean(entryDN);
-      CopyOnWriteArrayList<ConfigurableComponent> configurableComponents = null;
-      if (mBean != null)
-      {
-        configurableComponents = mBean.getConfigurableComponents();
-        LinkedList<String> unacceptableReasons = new LinkedList<String>();
-
-        for (ConfigurableComponent c : configurableComponents)
-        {
-          if (! c.hasAcceptableConfiguration(newEntry, unacceptableReasons))
-          {
-            if (! unacceptableReasons.isEmpty())
-            {
-              Iterator<String> iterator = unacceptableReasons.iterator();
-              unacceptableReason.append(iterator.next());
-
-              while (iterator.hasNext())
-              {
-                unacceptableReason.append("  ");
-                unacceptableReason.append(iterator.next());
-              }
-            }
-
-            int msgID = MSGID_CONFIG_FILE_MODIFY_REJECTED_BY_COMPONENT;
-            String message = getMessage(msgID, String.valueOf(entryDN),
-                                        String.valueOf(unacceptableReason));
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message, msgID);
-          }
-        }
-      }
-
-
       // At this point, it looks like the change is acceptable, so apply it.
       // We'll just overwrite the core entry in the current config entry so that
       // we keep all the registered listeners, references to the parent and
@@ -1700,19 +1662,6 @@ public class ConfigFileHandler
         handleConfigChangeResult(l.applyConfigurationChange(currentEntry),
                                  currentEntry.getDN(), l.getClass().getName(),
                                  "applyConfigurationChange");
-      }
-
-
-      // Notify all the configurable components of the update.
-      if (configurableComponents != null)
-      {
-        for (ConfigurableComponent c : configurableComponents)
-        {
-          handleConfigChangeResult(c.applyNewConfiguration(currentEntry,
-                                          DynamicConstants.DEBUG_BUILD),
-                                   currentEntry.getDN(), c.getClass().getName(),
-                                   "applyNewConfiguration");
-        }
       }
     }
     finally

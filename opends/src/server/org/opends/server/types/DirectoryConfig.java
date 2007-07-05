@@ -36,7 +36,6 @@ import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.InvokableComponent;
@@ -700,34 +699,6 @@ public final class DirectoryConfig
   public static final NameForm getNameForm(String lowerName)
   {
     return DirectoryServer.getNameForm(lowerName);
-  }
-
-
-
-  /**
-   * Registers the provided configurable component with the Directory
-   * Server.
-   *
-   * @param  component  The configurable component to register.
-   */
-  public static final void registerConfigurableComponent(
-                                ConfigurableComponent component)
-  {
-    DirectoryServer.registerConfigurableComponent(component);
-  }
-
-
-
-  /**
-   * Deregisters the provided configurable component with the
-   * Directory Server.
-   *
-   * @param  component  The configurable component to deregister.
-   */
-  public static final void deregisterConfigurableComponent(
-                                ConfigurableComponent component)
-  {
-    DirectoryServer.deregisterConfigurableComponent(component);
   }
 
 

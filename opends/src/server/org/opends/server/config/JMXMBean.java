@@ -50,7 +50,6 @@ import javax.management.ObjectName;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.ConfigurableComponent;
 import org.opends.server.api.DirectoryServerMBean;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.MonitorProvider;
@@ -64,7 +63,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InvokableMethod;
-import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 
@@ -75,16 +73,11 @@ import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.config.ConfigConstants.OPTION_PENDING_VALUES;
 import org.opends.server.protocols.jmx.JmxClientConnection;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.protocols.ldap.LDAPAttribute ;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
-import org.opends.server.core.ModifyOperationBasis ;
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.ModificationType;
 
 
 
@@ -111,9 +104,6 @@ public class JMXMBean
 
   // The set of alert generators for this MBean.
   private CopyOnWriteArrayList<AlertGenerator> alertGenerators;
-
-  // The set of configurable components for this MBean.
-  private CopyOnWriteArrayList<ConfigurableComponent> configurableComponents;
 
   // The set of invokable components for this MBean.
   private CopyOnWriteArrayList<InvokableComponent> invokableComponents;
@@ -205,8 +195,6 @@ public class JMXMBean
         this.configEntryDN = configEntryDN;
 
         alertGenerators = new CopyOnWriteArrayList<AlertGenerator>();
-        configurableComponents =
-                           new CopyOnWriteArrayList<ConfigurableComponent>();
         invokableComponents = new CopyOnWriteArrayList<InvokableComponent>();
         monitorProviders =
              new CopyOnWriteArrayList<MonitorProvider<
@@ -313,59 +301,6 @@ public class JMXMBean
     synchronized (alertGenerators)
     {
       return alertGenerators.remove(generator);
-    }
-  }
-
-
-
-  /**
-   * Retrieves the set of configurable components associated with this JMX
-   * MBean.
-   *
-   * @return  The set of configurable components associated with this JMX MBean.
-   */
-  public CopyOnWriteArrayList<ConfigurableComponent> getConfigurableComponents()
-  {
-    return configurableComponents;
-  }
-
-
-
-  /**
-   * Adds the provided configurable component to the set of components
-   * associated with this JMX MBean.
-   *
-   * @param  component  The component to add to the set of configurable
-   *                    components for this JMX MBean.
-   */
-  public void addConfigurableComponent(ConfigurableComponent component)
-  {
-    synchronized (configurableComponents)
-    {
-      if (! configurableComponents.contains(component))
-      {
-        configurableComponents.add(component);
-      }
-    }
-  }
-
-
-
-  /**
-   * Removes the provided configurable component from the set of components
-   * associated with this JMX MBean.
-   *
-   * @param  component  The component to remove from the set of configurable
-   *                    components for this JMX MBean.
-   *
-   * @return  <CODE>true</CODE> if the specified component was successfully
-   *          removed, or <CODE>false</CODE> if not.
-   */
-  public boolean removeConfigurableComponent(ConfigurableComponent component)
-  {
-    synchronized (configurableComponents)
-    {
-      return configurableComponents.remove(component);
     }
   }
 
@@ -485,69 +420,10 @@ public class JMXMBean
    * @return  The specified configuration attribute, or <CODE>null</CODE> if
    *          there is no such attribute.
    */
-  private ConfigAttribute getConfigAttribute(String name)
-  {
-    for (ConfigurableComponent component : configurableComponents)
-    {
-      for (ConfigAttribute attr : component.getConfigurationAttributes())
-      {
-        if (attr.getName().equalsIgnoreCase(name))
-        {
-          return attr;
-        }
-      }
-    }
-
-    return null;
-  }
-
-
-
-  /**
-   * Retrieves the specified configuration attribute.
-   *
-   * @param  name  The name of the configuration attribute to retrieve.
-   *
-   * @return  The specified configuration attribute, or <CODE>null</CODE> if
-   *          there is no such attribute.
-   */
   private Attribute getJmxAttribute(String name)
   {
-    String attributeName ;
-    String pendingString = ";" + OPTION_PENDING_VALUES ;
-    boolean pending = false ;
-    if (name.endsWith(pendingString ))
-    {
-        int index = name.indexOf(pendingString) ;
-        attributeName = name.substring(0,index) ;
-        pending = true ;
-    }
-    else
-    {
-        attributeName = name ;
-    }
-
-    for (ConfigurableComponent component : configurableComponents)
-    {
-      for (ConfigAttribute attr : component.getConfigurationAttributes())
-      {
-        if (attr.getName().equalsIgnoreCase(attributeName))
-        {
-          if (pending)
-          {
-            return attr.toJMXAttributePending();
-          }
-          else
-          {
-            return attr.toJMXAttribute() ;
-          }
-        }
-      }
-    }
-
-    //
-    // It's possible that this is a monitor attribute rather than a
-    // configurable one. Check all of those.
+    // It's possible that this is a monitor attribute rather than a configurable
+    // one. Check all of those.
     AttributeType attrType =
       DirectoryServer.getAttributeType(name.toLowerCase());
     if (attrType == null)
@@ -683,89 +559,10 @@ public class JMXMBean
     }
   }
 
-
   /**
-   * Convert an JMX attribute into an LDAP attribute.
-   *
-   * @param attribute
-   *        The JMX attribute which needs to be converted into an LDAP
-   *        attribute
-   * @param configEntry
-   *        The associated ConfigEntry
-   * @return The converted LDAP attribute
-   * @throws AttributeNotFoundException
-   * @throws InvalidAttributeValueException
-   */
-private LDAPAttribute getLdapAttributeFromJmx(
-      javax.management.Attribute attribute, ConfigEntry configEntry)
-      throws AttributeNotFoundException, InvalidAttributeValueException
-  {
-    String name = attribute.getName() ;
-    //
-    // Get a duplicated version of the config attribute
-    ConfigAttribute configAttribute;
-    try
-    {
-      configAttribute = getConfigAttribute(name).duplicate();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_JMX_ATTR_NO_ATTR;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  String.valueOf(name));
-
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.MILD_ERROR, message, msgID);
-      throw new AttributeNotFoundException(message);
-    }
-
-    //
-    // Update the config Attribute value
-    try
-    {
-      configAttribute.setValue(attribute);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.MILD_ERROR,
-          MSGID_CONFIG_JMX_ATTR_INVALID_VALUE,
-          configEntryDN.toString(),
-          String.valueOf(e));
-      throw new InvalidAttributeValueException();
-    }
-
-    //
-    // Update the config entry (and the entry)
-    configEntry.putConfigAttribute(configAttribute);
-
-    //
-    // Get the Ldap attribute associated with this name
-    AttributeType attrType =
-         DirectoryServer.getAttributeType(name.toLowerCase());
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(name, configAttribute
-          .getSyntax());
-    }
-
-    return new LDAPAttribute(configEntry.getEntry().getAttribute(attrType).get(
-        0));
-  }
-
-  /**
-   * Set the value of a specific attribute of the Dynamic MBean.
+   * Set the value of a specific attribute of the Dynamic MBean.  In this case,
+   * it will always throw {@code InvalidAttributeValueException} because setting
+   * attribute values over JMX is currently not allowed.
    *
    * @param  attribute  The identification of the attribute to be set and the
    *                    value it is to be set to.
@@ -779,69 +576,7 @@ private LDAPAttribute getLdapAttributeFromJmx(
   public void setAttribute(javax.management.Attribute attribute)
          throws AttributeNotFoundException, InvalidAttributeValueException
   {
-    ConfigEntry configEntry;
-    ConfigEntry newConfigEntry ;
-
-    //
-    // Get the associated ConfigEntry, and duplicate it
-    try
-    {
-      configEntry = DirectoryServer.getConfigHandler().getConfigEntry(
-          configEntryDN);
-      newConfigEntry = configEntry.duplicate();
-    } catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      int    msgID   = MSGID_CONFIG_JMX_CANNOT_GET_CONFIG_ENTRY;
-      String message = getMessage(msgID, String.valueOf(configEntryDN),
-                                  String.valueOf(e));
-
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.MILD_ERROR, message, msgID);
-      throw new AttributeNotFoundException(message);
-    }
-
-    //
-    // Get the jmx Client connection
-    JmxClientConnection jmxClientConnection = getClientConnection();
-    if (jmxClientConnection == null)
-    {
-      int    msgID   = MSGID_CONFIG_JMX_SET_ATTR_NO_CONNECTION;
-      String message = getMessage(msgID, attribute.getName(),
-                                  String.valueOf(configEntry.getDN()));
-      throw new AttributeNotFoundException(message);
-    }
-
-    //
-    // prepare the ldap modify
-    LDAPModification ldapModification = new LDAPModification(
-        ModificationType.REPLACE, getLdapAttributeFromJmx(
-            attribute,
-            newConfigEntry));
-    ArrayList<RawModification> ldapModList = new ArrayList<RawModification>();
-    ldapModList.add(ldapModification);
-
-    //
-    // Process the modify
-    ModifyOperationBasis op = jmxClientConnection.processModify(
-          new ASN1OctetString(configEntryDN.toString()),
-          ldapModList);
-
-    ResultCode rc = op.getResultCode();
-    if (rc != ResultCode.SUCCESS)
-    {
-      jmxClientConnection = null ;
-      throw new InvalidAttributeValueException();
-    }
-    //
-    // return part
-    jmxClientConnection = null ;
-    return ;
+    throw new InvalidAttributeValueException();
   }
 
   /**
@@ -973,100 +708,13 @@ monitorLoop:
    *                     attributes to be set and the values they are to be set
    *                     to.
    *
-   * @return  The list of attributes that were set with their new values.
+   * @return  The list of attributes that were set with their new values.  In
+   *          this case, the list will always be empty because we do not support
+   *          setting attribute values over JMX.
    */
   public AttributeList setAttributes(AttributeList attributes)
   {
-    AttributeList setAttrs = new AttributeList();
-
-    //
-    ConfigEntry configEntry;
-    ConfigEntry newConfigEntry ;
-
-    //
-    // Get the associated ConfigEntry, and duplicate it
-    try
-    {
-      configEntry = DirectoryServer.getConfigHandler().getConfigEntry(
-          configEntryDN);
-      newConfigEntry = configEntry.duplicate();
-    } catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      logError(
-          ErrorLogCategory.CONFIGURATION,
-          ErrorLogSeverity.MILD_ERROR,
-          MSGID_CONFIG_JMX_CANNOT_GET_CONFIG_ENTRY,
-          configEntryDN.toString(),
-          String.valueOf(e));
-      return setAttrs;
-    }
-
-    //
-    // Get the jmx Client connection
-    JmxClientConnection jmxClientConnection = getClientConnection();
-    if (jmxClientConnection == null)
-    {
-      return setAttrs;
-    }
-
-    //
-    // prepare the ldap modify
-    ArrayList<RawModification> ldapModList = new ArrayList<RawModification>();
-    for (Object o : attributes)
-    {
-      Attribute attribute = (Attribute) o;
-      try
-      {
-        LDAPModification ldapModification = new LDAPModification(
-            ModificationType.REPLACE, getLdapAttributeFromJmx(
-                attribute, newConfigEntry));
-                ldapModList.add(ldapModification);
-      }
-      catch (Exception e)
-      {
-        continue ;
-      }
-    }
-
-    //
-    // Process the modify
-    // TODO What about the return code?
-
-    jmxClientConnection.processModify(
-        new ASN1OctetString(configEntryDN.toString()),
-        ldapModList);
-
-    //
-    // return part
-    jmxClientConnection = null ;
-    for (Object o : attributes)
-    {
-      Attribute attribute = (Attribute) o;
-      ConfigAttribute configAttribute;
-      try
-      {
-        configAttribute = getConfigAttribute(attribute.getName());
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.MILD_ERROR,
-                 MSGID_CONFIG_JMX_ATTR_NO_ATTR, configEntryDN.toString(),
-                 attribute.getName());
-        continue;
-      }
-      configAttribute.toJMXAttribute(setAttrs);
-    }
-    return setAttrs;
+    return new AttributeList();
   }
 
 
@@ -1169,14 +817,6 @@ monitorLoop:
     }
 
     ArrayList<MBeanAttributeInfo> attrs = new ArrayList<MBeanAttributeInfo>();
-    for (ConfigurableComponent component : configurableComponents)
-    {
-      for (ConfigAttribute attr : component.getConfigurationAttributes())
-      {
-        attr.toJMXAttributeInfo(attrs);
-      }
-    }
-
     for (MonitorProvider<? extends MonitorProviderCfg> monitor :
          monitorProviders)
     {
