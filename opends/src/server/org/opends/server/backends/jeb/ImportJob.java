@@ -39,6 +39,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
@@ -138,12 +139,15 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
    * files to load the index databases.
    *
    * @param rootContainer The root container to import into.
+   *
+   * @return  Information about the result of the import.
+   *
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws IOException  If a problem occurs while opening the LDIF file for
    *                      reading, or while reading from the LDIF file.
    * @throws JebException If an error occurs in the JE backend.
    */
-  public void importLDIF(RootContainer rootContainer)
+  public LDIFImportResult importLDIF(RootContainer rootContainer)
       throws DatabaseException, IOException, JebException
   {
 
@@ -304,6 +308,10 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     message = getMessage(msgID, getEntryLimitExceededCount());
     logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
              message, msgID);
+
+    return new LDIFImportResult(reader.getEntriesRead(),
+                                reader.getEntriesRejected(),
+                                reader.getEntriesIgnored());
   }
 
   /**

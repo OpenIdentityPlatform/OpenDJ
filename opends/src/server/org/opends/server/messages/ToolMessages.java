@@ -8979,6 +8979,16 @@ public class ToolMessages
     CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1194;
 
 
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * countRejects argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFIMPORT_DESCRIPTION_COUNT_REJECTS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1195;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -9231,6 +9241,10 @@ public class ToolMessages
                     "Seed for the MakeLDIF random number generator");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_SKIP_SCHEMA_VALIDATION,
                     "Skip schema validation during the LDIF import");
+    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_COUNT_REJECTS,
+                    "Count the number of entries rejected by the server and " +
+                    "return that value as the exit code (values > 255 will " +
+                    "be reduced to 255 due to exit code restrictions)");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_IS_COMPRESSED,
                     "LDIF file is compressed");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_IS_ENCRYPTED,
@@ -9263,11 +9277,8 @@ public class ToolMessages
                     "None of the Directory Server backends are configured " +
                     "with the requested backend ID \"%s\"");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_IMPORT,
-                    "The Directory Server backend for base DN %s does " +
-                    "not provide a mechanism for performing LDIF imports. " +
-                    "The replication will proceed but it will not be " +
-                    "possible to perform total update on this " +
-                    "ReplicationDomain");
+                    "The Directory Server backend with backend ID %s does " +
+                    "not provide a mechanism for performing LDIF imports");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE,
                     "Unable to decode exclude branch string \"%s\" as a " +
                     "valid distinguished name:  %s");

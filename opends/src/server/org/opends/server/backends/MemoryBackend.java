@@ -50,6 +50,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
@@ -743,7 +744,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
-  public synchronized void importLDIF(LDIFImportConfig importConfig)
+  public synchronized LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     clearMemoryBackend();
@@ -800,6 +801,10 @@ public class MemoryBackend
           reader.rejectLastEntry(de.getErrorMessage());
         }
       }
+
+      return new LDIFImportResult(reader.getEntriesRead(),
+                                  reader.getEntriesRejected(),
+                                  reader.getEntriesIgnored());
     }
     catch (DirectoryException de)
     {
