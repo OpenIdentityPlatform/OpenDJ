@@ -9263,8 +9263,11 @@ public class ToolMessages
                     "None of the Directory Server backends are configured " +
                     "with the requested backend ID \"%s\"");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_IMPORT,
-                    "The Directory Server backend with backend ID %s does " +
-                    "not provide a mechanism for performing LDIF imports");
+                    "The Directory Server backend for base DN %s does " +
+                    "not provide a mechanism for performing LDIF imports. " +
+                    "The replication will proceed but it will not be " +
+                    "possible to perform total update on this " +
+                    "ReplicationDomain");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE,
                     "Unable to decode exclude branch string \"%s\" as a " +
                     "valid distinguished name:  %s");

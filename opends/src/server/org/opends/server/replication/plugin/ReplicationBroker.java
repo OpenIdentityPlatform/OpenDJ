@@ -176,10 +176,8 @@ public class ReplicationBroker implements InternalSearchListener
    * Start the ReplicationBroker.
    *
    * @param servers list of servers used
-   * @throws Exception : in case of errors
    */
   public void start(Collection<String> servers)
-                    throws Exception
   {
     /*
      * Open Socket to the ReplicationServer
@@ -207,7 +205,7 @@ public class ReplicationBroker implements InternalSearchListener
    * @throws NumberFormatException address was invalid
    * @throws IOException error during connection phase
    */
-  private void connect() throws NumberFormatException, IOException
+  private void connect()
   {
     ReplServerStartMessage startMsg;
 
@@ -399,7 +397,13 @@ public class ReplicationBroker implements InternalSearchListener
             {
               if (session != null)
               {
-                session.close();
+                try
+                {
+                  session.close();
+                } catch (IOException e)
+                {
+                  // The session was already closed, just ignore.
+                }
                 session = null;
               }
             }
