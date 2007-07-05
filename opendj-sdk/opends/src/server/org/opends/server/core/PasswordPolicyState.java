@@ -1342,7 +1342,10 @@ public class PasswordPolicyState
    */
   public void updateAuthFailureTimes()
   {
-    assert passwordPolicy.getLockoutFailureCount() > 0;
+    if (passwordPolicy.getLockoutFailureCount() <= 0)
+    {
+      return;
+    }
 
     if (debug)
     {

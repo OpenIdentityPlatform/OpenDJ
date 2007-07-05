@@ -51,6 +51,7 @@ import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -2423,6 +2424,158 @@ public class PasswordModifyExtendedOperationTestCase
                               new Attribute(attr, "false")));
     modifyOperation = conn.processModify(DN.decode(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Tests to ensure that if the user provides the correct old password, then
+   * the last login time will be updated if that feature is enabled.
+   *
+   * @throws  Exception  If an unexpected error occurs.
+   */
+  @Test()
+  public void testUpdateLastLoginTime()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    TestCaseUtils.applyModifications(
+      "dn: uid=test.user,o=test",
+      "changetype: add",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: oldpassword",
+      // FIXME -- I shouldn't have to add this ACI explicitly, but for some
+      //          reason the global ACIs are getting removed and never put back,
+      //          and without this ACI the user won't have permission to change
+      //          its own password.  If we ever change the access control syntax
+      //          then this will likely need to be updated, but I don't want to
+      //          have to give the user the bypass-acl privilege.
+      "aci: (targetattr=\"*\")(version 3.0; acl \"Self Modify Rights\"; " +
+           "allow (read,search,compare,write) userdn=\"ldap:///self\";)",
+      "",
+      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-last-login-time-attribute",
+      "ds-cfg-last-login-time-attribute: ds-pwp-last-login-time",
+      "-",
+      "replace: ds-cfg-last-login-time-format",
+      "ds-cfg-last-login-time-format: yyyyMMdd");
+
+    try
+    {
+      AttributeType lastLoginTimeAttr =
+           DirectoryServer.getAttributeType("ds-pwp-last-login-time", false);
+      assertNotNull(lastLoginTimeAttr);
+
+      DN userDN = DN.decode("uid=test.user,o=test");
+      Entry userEntry = DirectoryServer.getEntry(userDN);
+      assertNotNull(userEntry);
+      assertFalse(userEntry.hasAttribute(lastLoginTimeAttr));
+
+      String[] args =
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-a", "dn:uid=test.user,o=test",
+        "-c", "oldpassword",
+        "-n", "newpassword"
+      };
+
+      int exitCode = LDAPPasswordModify.mainPasswordModify(args, false, null,
+                                                           System.err);
+      assertEquals(exitCode, 0);
+
+      userEntry = DirectoryServer.getEntry(userDN);
+      assertNotNull(userEntry);
+      assertTrue(userEntry.hasAttribute(lastLoginTimeAttr));
+    }
+    finally
+    {
+      TestCaseUtils.applyModifications(
+        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-last-login-time-attribute",
+        "-",
+        "replace: ds-cfg-last-login-time-format");
+    }
+  }
+
+
+
+  /**
+   * Tests to ensure that if the user provides an incorrect old password, then
+   * the auth failure times will be updated if that feature is enabled.
+   *
+   * @throws  Exception  If an unexpected error occurs.
+   */
+  @Test()
+  public void testUpdateAuthFailureTimes()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    TestCaseUtils.applyModifications(
+      "dn: uid=test.user,o=test",
+      "changetype: add",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: oldpassword",
+      "",
+      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-lockout-failure-count",
+      "ds-cfg-lockout-failure-count: 3");
+
+    try
+    {
+      AttributeType authFailureTimesAttr =
+           DirectoryServer.getAttributeType("pwdfailuretime", false);
+      assertNotNull(authFailureTimesAttr);
+
+      DN userDN = DN.decode("uid=test.user,o=test");
+      Entry userEntry = DirectoryServer.getEntry(userDN);
+      assertNotNull(userEntry);
+      assertFalse(userEntry.hasAttribute(authFailureTimesAttr));
+
+      String[] args =
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-a", "dn:uid=test.user,o=test",
+        "-c", "wrongoldpassword",
+        "-n", "newpassword"
+      };
+
+      int exitCode = LDAPPasswordModify.mainPasswordModify(args, false, null,
+                                                           System.err);
+      assertFalse(exitCode == 0);
+
+      userEntry = DirectoryServer.getEntry(userDN);
+      assertNotNull(userEntry);
+      assertTrue(userEntry.hasAttribute(authFailureTimesAttr));
+    }
+    finally
+    {
+      TestCaseUtils.applyModifications(
+        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-lockout-failure-count",
+        "ds-cfg-lockout-failure-count: 0");
+    }
   }
 }
 

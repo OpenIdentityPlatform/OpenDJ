@@ -64,6 +64,8 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
@@ -72,6 +74,7 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -617,12 +620,26 @@ public class PasswordModifyExtendedOperation
           return;
         }
 
-        if (! pwPolicyState.passwordMatches(oldPassword))
+        if (pwPolicyState.passwordMatches(oldPassword))
+        {
+          pwPolicyState.setLastLoginTime();
+        }
+        else
         {
           operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
           int msgID = MSGID_EXTOP_PASSMOD_INVALID_OLD_PASSWORD;
           operation.appendAdditionalLogMessage(getMessage(msgID));
+
+          pwPolicyState.updateAuthFailureTimes();
+          List<Modification> mods = pwPolicyState.getModifications();
+          if (! mods.isEmpty())
+          {
+            InternalClientConnection conn =
+                 InternalClientConnection.getRootConnection();
+            conn.processModify(userDN, mods);
+          }
+
           return;
         }
       }
@@ -1097,11 +1114,6 @@ public class PasswordModifyExtendedOperation
       pwPolicyState.clearWarnedTime();
 
 
-      // Get the list of modifications from the password policy state and add
-      // them to the existing password modifications.
-      modList.addAll(pwPolicyState.getModifications());
-
-
       // If the LDAP no-op control was included in the request, then set the
       // appropriate response.  Otherwise, process the operation.
       if (noOpRequested)
@@ -1133,6 +1145,32 @@ public class PasswordModifyExtendedOperation
           operation.setErrorMessage(modifyOperation.getErrorMessage());
           operation.setReferralURLs(modifyOperation.getReferralURLs());
           return;
+        }
+
+
+        // If there were any password policy state changes, we need to apply
+        // them using a root connection because the end user may not have
+        // sufficient access to apply them.  This is less efficient than
+        // doing them all in the same modification, but it's safer.
+        List<Modification> pwPolicyMods = pwPolicyState.getModifications();
+        if (! pwPolicyMods.isEmpty())
+        {
+          InternalClientConnection rootConnection =
+               InternalClientConnection.getRootConnection();
+          ModifyOperation modOp =
+               rootConnection.processModify(userDN, pwPolicyMods);
+          if (modOp.getResultCode() != ResultCode.SUCCESS)
+          {
+            // At this point, the user's password is already changed so there's
+            // not much point in returning a non-success result.  However, we
+            // should at least log that something went wrong.
+            int    msgID   = MSGID_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE;
+            String message = getMessage(msgID, String.valueOf(userDN),
+                                        modOp.getResultCode(),
+                                        modOp.getErrorMessage());
+            logError(ErrorLogCategory.PASSWORD_POLICY,
+                     ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+          }
         }
 
 
