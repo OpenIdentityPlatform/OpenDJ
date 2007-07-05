@@ -94,31 +94,6 @@ public class InstallLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected boolean shouldPrintUsage() {
-    boolean displayUsage = false;
-    if ((args != null) && (args.length > 0)) {
-      if (!isCli()) {
-        if (args.length > 0) {
-          if (args.length == 2) {
-            /*
-             * Just ignore the -P argument that is passed by the setup command
-             * line.
-             */
-            if (!args[0].equals("-P")) {
-              displayUsage = true;
-            }
-          } else {
-            displayUsage = true;
-          }
-        }
-      }
-    }
-    return displayUsage;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   protected void guiLaunchFailed(String logFileName) {
     if (logFileName != null)
     {
