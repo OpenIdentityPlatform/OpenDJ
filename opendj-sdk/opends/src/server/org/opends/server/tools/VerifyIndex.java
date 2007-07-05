@@ -58,7 +58,6 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
 import org.opends.server.admin.std.server.BackendCfg;
 
@@ -88,7 +87,7 @@ public class VerifyIndex
 
     if(retCode != 0)
     {
-      System.exit(retCode);
+      System.exit(filterExitCode(retCode));
     }
   }
 
@@ -357,7 +356,7 @@ public class VerifyIndex
     catch(Exception e)
     {
       System.err.println("Error installing the custom error logger: " +
-          StaticUtils.stackTraceToSingleLineString(e));
+                         stackTraceToSingleLineString(e));
     }
 
 

@@ -59,6 +59,7 @@ import org.opends.server.util.args.StringArgument;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -107,7 +108,7 @@ public class LDIFDiff
     int exitCode = mainDiff(args, false);
     if (exitCode != 0)
     {
-      System.exit(exitCode);
+      System.exit(filterExitCode(exitCode));
     }
   }
 

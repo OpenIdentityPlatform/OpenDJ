@@ -109,7 +109,7 @@ public final class DSConfig {
     // Run the application.
     int exitCode = app.run(args);
     if (exitCode != 0) {
-      System.exit(exitCode);
+      System.exit(filterExitCode(exitCode));
     }
   }
 

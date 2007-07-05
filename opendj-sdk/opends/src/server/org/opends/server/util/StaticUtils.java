@@ -3784,5 +3784,36 @@ public final class StaticUtils
 
     return buffer.toString();
   }
+
+
+
+  /**
+   * Filters the provided value to ensure that it is appropriate for use as an
+   * exit code.  Exit code values are generally only allowed to be between 0 and
+   * 255, so any value outside of this range will be converted to 255, which is
+   * the typical exit code used to indicate an overflow value.
+   *
+   * @param  exitCode  The exit code value to be processed.
+   *
+   * @return  An integer value between 0 and 255, inclusive.  If the provided
+   *          exit code was already between 0 and 255, then the original value
+   *          will be returned.  If the provided value was out of this range,
+   *          then 255 will be returned.
+   */
+  public static int filterExitCode(int exitCode)
+  {
+    if (exitCode < 0)
+    {
+      return 255;
+    }
+    else if (exitCode > 255)
+    {
+      return 255;
+    }
+    else
+    {
+      return exitCode;
+    }
+  }
 }
 

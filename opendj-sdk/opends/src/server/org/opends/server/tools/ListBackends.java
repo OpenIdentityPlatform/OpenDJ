@@ -79,7 +79,7 @@ public class ListBackends
 
     if(retCode != 0)
     {
-      System.exit(retCode);
+      System.exit(filterExitCode(retCode));
     }
   }
 

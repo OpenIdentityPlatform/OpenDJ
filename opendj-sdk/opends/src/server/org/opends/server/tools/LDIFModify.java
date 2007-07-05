@@ -398,7 +398,7 @@ public class LDIFModify
     int returnCode = ldifModifyMain(args, false);
     if (returnCode != 0)
     {
-      System.exit(returnCode);
+      System.exit(filterExitCode(returnCode));
     }
   }
 

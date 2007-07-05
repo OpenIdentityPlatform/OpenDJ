@@ -137,7 +137,7 @@ public class InstallDS
     int exitCode = installMain(args);
     if (exitCode != 0)
     {
-      System.exit(exitCode);
+      System.exit(filterExitCode(exitCode));
     }
   }
 

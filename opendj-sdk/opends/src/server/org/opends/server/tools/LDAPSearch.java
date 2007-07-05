@@ -568,7 +568,7 @@ public class LDAPSearch
 
     if(retCode != 0)
     {
-      System.exit(retCode);
+      System.exit(filterExitCode(retCode));
     }
   }
 

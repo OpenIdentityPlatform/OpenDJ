@@ -34,6 +34,7 @@ import org.opends.server.types.NullOutputStream;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
   * This class is used to start the Windows service associated with this
@@ -65,7 +66,7 @@ public class StartWindowsService
   {
     int result = startWindowsService(System.out, System.err);
 
-    System.exit(result);
+    System.exit(filterExitCode(result));
   }
 
   /**
