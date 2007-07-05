@@ -667,7 +667,17 @@ public enum ResultCode
    * the client to use the requested authorization.
    */
   AUTHORIZATION_DENIED(LDAPResultCode.AUTHORIZATION_DENIED,
-                       MSGID_RESULT_AUTHORIZATION_DENIED);
+                       MSGID_RESULT_AUTHORIZATION_DENIED),
+
+
+
+  /**
+   * The result code that should be used if the server did not
+   * actually complete processing on the associated operation because
+   * the request included the LDAP No-Op control.
+   */
+  NO_OPERATION(LDAPResultCode.NO_OPERATION,
+               MSGID_RESULT_NO_OPERATION);
 
 
 
@@ -855,6 +865,10 @@ public enum ResultCode
         return ASSERTION_FAILED;
       case LDAPResultCode.AUTHORIZATION_DENIED:
         return AUTHORIZATION_DENIED;
+      case LDAPResultCode.NO_OPERATION:
+        // FIXME -- We will also need to handle the official result
+        //          code when it is allocated.
+        return NO_OPERATION;
       default:
         return ResultCode.OTHER;
     }

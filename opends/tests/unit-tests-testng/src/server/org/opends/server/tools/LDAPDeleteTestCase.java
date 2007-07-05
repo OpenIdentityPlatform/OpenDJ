@@ -40,6 +40,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.ResultCode;
@@ -890,7 +891,8 @@ public class LDAPDeleteTestCase
       "o=test"
     };
 
-    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err),
+                 LDAPResultCode.NO_OPERATION);
   }
 
 
@@ -917,7 +919,8 @@ public class LDAPDeleteTestCase
       "o=test"
     };
 
-    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err),
+                 LDAPResultCode.NO_OPERATION);
   }
 
 

@@ -2067,7 +2067,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
           {
             localOp.appendErrorMessage(getMessage(MSGID_MODIFY_NOOP));
 
-            // FIXME -- We must set a result code other than SUCCESS.
+            localOp.setResultCode(ResultCode.NO_OPERATION);
           }
           else
           {
@@ -2267,7 +2267,10 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             localOp.getResponseControls().add(responseControl);
           }
 
-          localOp.setResultCode(ResultCode.SUCCESS);
+          if (! noOp)
+          {
+            localOp.setResultCode(ResultCode.SUCCESS);
+          }
         }
         catch (DirectoryException de)
         {
@@ -5563,7 +5566,7 @@ addProcessing:
             {
               localOp.appendErrorMessage(getMessage(MSGID_ADD_NOOP));
 
-              // FIXME -- We must set a result code other than SUCCESS.
+              localOp.setResultCode(ResultCode.NO_OPERATION);
             }
             else
             {
@@ -5652,7 +5655,11 @@ addProcessing:
               localOp.addResponseControl(responseControl);
             }
 
-            localOp.setResultCode(ResultCode.SUCCESS);
+
+            if (! noOp)
+            {
+              localOp.setResultCode(ResultCode.SUCCESS);
+            }
           }
           catch (DirectoryException de)
           {
@@ -6387,7 +6394,7 @@ deleteProcessing:
           {
             localOp.appendErrorMessage(getMessage(MSGID_DELETE_NOOP));
 
-            // FIXME -- We must set a result code other than SUCCESS.
+            localOp.setResultCode(ResultCode.NO_OPERATION);
           }
           else
           {
@@ -6476,7 +6483,11 @@ deleteProcessing:
             localOp.addResponseControl(responseControl);
           }
 
-          localOp.setResultCode(ResultCode.SUCCESS);
+
+          if (! noOp)
+          {
+            localOp.setResultCode(ResultCode.SUCCESS);
+          }
         }
         catch (DirectoryException de)
         {

@@ -1819,7 +1819,7 @@ modifyDNProcessing:
           {
             appendErrorMessage(getMessage(MSGID_MODDN_NOOP));
 
-            // FIXME -- We must set a result code other than SUCCESS.
+            setResultCode(ResultCode.NO_OPERATION);
           }
           else
           {
@@ -1957,7 +1957,11 @@ modifyDNProcessing:
             responseControls.add(responseControl);
           }
 
-          setResultCode(ResultCode.SUCCESS);
+
+          if (! noOp)
+          {
+            setResultCode(ResultCode.SUCCESS);
+          }
         }
         catch (DirectoryException de)
         {

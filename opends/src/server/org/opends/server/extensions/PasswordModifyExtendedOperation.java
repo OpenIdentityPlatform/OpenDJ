@@ -1108,8 +1108,7 @@ public class PasswordModifyExtendedOperation
       {
         operation.appendErrorMessage(getMessage(MSGID_EXTOP_PASSMOD_NOOP));
 
-        // FIXME -- We must set a result code other than SUCCESS.
-        operation.setResultCode(ResultCode.SUCCESS);
+        operation.setResultCode(ResultCode.NO_OPERATION);
       }
       else
       {
