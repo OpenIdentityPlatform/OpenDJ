@@ -761,7 +761,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that the Replication sends back correctly WindowsUpdate
    * when we send a WindowProbe.
    */
-  @Test()
+  @Test(enabled=false)
   public void windowProbeTest() throws Exception
   {
     final int WINDOW = 10;
