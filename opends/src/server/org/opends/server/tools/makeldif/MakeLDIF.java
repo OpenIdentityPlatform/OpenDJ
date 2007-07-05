@@ -87,7 +87,7 @@ public class MakeLDIF
     int returnCode = makeLDIF.makeLDIFMain(args);
     if (returnCode != 0)
     {
-      System.exit(returnCode);
+      System.exit(filterExitCode(returnCode));
     }
   }
 

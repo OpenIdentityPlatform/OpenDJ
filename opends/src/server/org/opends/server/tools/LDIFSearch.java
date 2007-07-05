@@ -119,7 +119,7 @@ public class LDIFSearch
     int exitCode = mainSearch(args);
     if (exitCode != 0)
     {
-      System.exit(exitCode);
+      System.exit(filterExitCode(exitCode));
     }
   }
 

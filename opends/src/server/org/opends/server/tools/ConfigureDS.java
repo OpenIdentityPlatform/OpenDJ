@@ -135,7 +135,7 @@ public class ConfigureDS
     int exitCode = configMain(args);
     if (exitCode != 0)
     {
-      System.exit(exitCode);
+      System.exit(filterExitCode(exitCode));
     }
   }
 

@@ -493,7 +493,7 @@ public class ManageAccount
     int returnCode = main(args, System.out, System.err);
     if (returnCode != 0)
     {
-      System.exit(returnCode);
+      System.exit(filterExitCode(returnCode));
     }
   }
 

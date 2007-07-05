@@ -44,7 +44,7 @@ import org.opends.server.util.args.StringArgument;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.wrapText;
+import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 /**
@@ -153,7 +153,7 @@ public class ConfigureWindowsService
   {
     int result = configureWindowsService(args, System.out, System.err);
 
-    System.exit(result);
+    System.exit(filterExitCode(result));
   }
 
   /**

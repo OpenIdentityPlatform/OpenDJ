@@ -82,7 +82,7 @@ public class EncodePassword
     int returnCode = encodePassword(args, true, System.out, System.err);
     if (returnCode != 0)
     {
-      System.exit(returnCode);
+      System.exit(filterExitCode(returnCode));
     }
   }
 

@@ -42,7 +42,6 @@ import org.opends.server.loggers.ErrorLogger;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.LockFileManager;
@@ -83,7 +82,7 @@ public class RebuildIndex
 
     if(retCode != 0)
     {
-      System.exit(retCode);
+      System.exit(filterExitCode(retCode));
     }
   }
 
@@ -346,7 +345,7 @@ public class RebuildIndex
     catch(Exception e)
     {
       System.err.println("Error installing the custom error logger: " +
-          StaticUtils.stackTraceToSingleLineString(e));
+                         stackTraceToSingleLineString(e));
     }
 
     // Decode the base DN provided by the user.

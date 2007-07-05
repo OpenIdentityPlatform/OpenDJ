@@ -96,7 +96,7 @@ public class WaitForFileDelete
       int exitCode = mainWait(args);
       if (exitCode != EXIT_CODE_SUCCESS)
       {
-        System.exit(exitCode);
+        System.exit(filterExitCode(exitCode));
       }
     }
     catch (Exception e)

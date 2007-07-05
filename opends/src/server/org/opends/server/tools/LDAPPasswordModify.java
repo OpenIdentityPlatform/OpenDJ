@@ -103,7 +103,7 @@ public class LDAPPasswordModify
     int returnCode = mainPasswordModify(args, true, System.out, System.err);
     if (returnCode != 0)
     {
-      System.exit(returnCode);
+      System.exit(filterExitCode(returnCode));
     }
   }
 

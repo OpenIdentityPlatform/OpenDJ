@@ -136,7 +136,7 @@ public class StopDS
 
     if (result != LDAPResultCode.SUCCESS)
     {
-      System.exit(result);
+      System.exit(filterExitCode(result));
     }
   }
 

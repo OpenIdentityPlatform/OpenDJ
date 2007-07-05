@@ -104,7 +104,7 @@ public class ImportLDIF
 
     if(retCode != 0)
     {
-      System.exit(retCode);
+      System.exit(filterExitCode(retCode));
     }
   }
 

@@ -34,6 +34,7 @@ import org.opends.server.types.NullOutputStream;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 /**
@@ -69,7 +70,7 @@ public class StopWindowsService
   {
     int result = stopWindowsService(System.out, System.err);
 
-    System.exit(result);
+    System.exit(filterExitCode(result));
   }
 
   /**
