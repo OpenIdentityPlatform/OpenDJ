@@ -5480,6 +5480,18 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if an error occurs while
+   * attempting to update the password policy state information in the user's
+   * entry.  This takes three arguments, which are the target user DN and the
+   * result code and error message from the internal modify operation attempting
+   * to update the state information.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_WARNING | 528;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5771,6 +5783,11 @@ public class ExtensionsMessages
                     "The password modify operation was not actually " +
                     "performed in the Directory Server because the LDAP " +
                     "no-op control was present in the request");
+    registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE,
+                    "An error occurred while attempting to update the " +
+                    "password policy state information for user %s as part " +
+                    "of a password modify extended operation (result " +
+                    "code='%s', error message='%s')");
 
 
     registerMessage(MSGID_FILE_KEYMANAGER_DESCRIPTION_FILE,
