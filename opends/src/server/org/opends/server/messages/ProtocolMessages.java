@@ -4638,6 +4638,17 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used if a search filter string
+   * includes an extensible match component without either an attribute
+   * description or a matching rule ID.  This takes a single argument, which is
+   * the filter string.
+   */
+  public static final int MSGID_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 430;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5418,6 +5429,12 @@ public class ProtocolMessages
                     "because the extensible match component starting at " +
                     "position %d did not have a colon to denote the end of " +
                     "the attribute type name");
+    registerMessage(MSGID_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR,
+                    "The provided search filter \"%s\" could not be decoded " +
+                    "because the extensible match component starting at " +
+                    "position %d did not include either an attribute " +
+                    "description or a matching rule ID.  At least one of " +
+                    "them must be provided");
     registerMessage(MSGID_LDAP_FILTER_NOT_EXACTLY_ONE,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the NOT filter between positions %d and %d " +

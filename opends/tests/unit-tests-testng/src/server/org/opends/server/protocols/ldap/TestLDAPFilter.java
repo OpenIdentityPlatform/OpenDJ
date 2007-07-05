@@ -73,6 +73,7 @@ public class TestLDAPFilter extends LdapTestCase
       { "((uid=user.0))", null },
       { "(&&(uid=user.0))", null },
       { "!uid=user.0", null },
+      { "(:dn:=Sally)", null },
 
     };
   }
@@ -136,10 +137,6 @@ public class TestLDAPFilter extends LdapTestCase
                                                 null,
                                            new ASN1OctetString("\\John* (Doe)"),
                                                 false);
-    LDAPFilter extensible6 = LDAPFilter.createExtensibleFilter(null,
-                                                null,
-                                           new ASN1OctetString(""),
-                                                true);
 
     ArrayList<RawFilter> list1 = new ArrayList<RawFilter>();
     list1.add(equal);
@@ -185,8 +182,6 @@ public class TestLDAPFilter extends LdapTestCase
         { "(cn:dn:=\\5cJohn\\2a \\28Doe\\29)", extensible4 },
 
         { "(:2.4.6.8.19:=\\5cJohn\\2a \\28Doe\\29)", extensible5 },
-
-        { "(:dn:=)", extensible6 },
 
         { "(&(objectClass=\\5ctest\\2a\\28Value\\29)(sn~=\\5ctest\\2a\\28Value\\29))",
             LDAPFilter.createANDFilter(list1) },
@@ -296,7 +291,6 @@ public class TestLDAPFilter extends LdapTestCase
           "(cn=*n)" +
           "(cn=n*)" +
           "(cn=n*n)" +
-          "(:dn:=Sally)" +
           "(:dn:1.2.3.4:=Doe)" +
           "(cn:2.4.6.8.10:=)" +
         ")");

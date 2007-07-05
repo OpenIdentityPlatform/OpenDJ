@@ -30,6 +30,7 @@ package org.opends.server.types;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
@@ -521,13 +523,27 @@ public class SearchFilter
    *                         attributes for extensible match filters.
    *
    * @return  The constructed search filter.
+   *
+   * @throws  DirectoryException  If the provided information is not
+   *                              sufficient to create an extensible
+   *                              match filter.
    */
   public static SearchFilter createExtensibleMatchFilter(
                                   AttributeType attributeType,
                                   AttributeValue assertionValue,
                                   String matchingRuleID,
                                   boolean dnAttributes)
+         throws DirectoryException
   {
+    if ((attributeType == null) && (matchingRuleID == null))
+    {
+      int msgID =
+           MSGID_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR;
+      String message = getMessage(msgID);
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
+                                   msgID);
+    }
+
     return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
                             attributeType, null, assertionValue, null,
                             null, null, matchingRuleID, dnAttributes);
@@ -552,6 +568,10 @@ public class SearchFilter
    *                           filters.
    *
    * @return  The constructed search filter.
+   *
+   * @throws  DirectoryException  If the provided information is not
+   *                              sufficient to create an extensible
+   *                              match filter.
    */
   public static SearchFilter createExtensibleMatchFilter(
                                   AttributeType attributeType,
@@ -559,7 +579,17 @@ public class SearchFilter
                                   AttributeValue assertionValue,
                                   String matchingRuleID,
                                   boolean dnAttributes)
+         throws DirectoryException
   {
+    if ((attributeType == null) && (matchingRuleID == null))
+    {
+      int msgID =
+           MSGID_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR;
+      String message = getMessage(msgID);
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message,
+                                   msgID);
+    }
+
     return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
                             attributeType, attributeOptions,
                             assertionValue, null, null, null,
@@ -2078,8 +2108,43 @@ public class SearchFilter
       userValue = new ASN1OctetString(valueBytes);
     }
 
-    AttributeValue value = new AttributeValue(attributeType,
-                                              userValue);
+    // Make sure that the filter contains at least one of an attribute
+    // type or a matching rule ID.  Also, construct the appropriate
+    // attribute  value.
+    AttributeValue value;
+    if (attributeType == null)
+    {
+      if (matchingRuleID == null)
+      {
+        int msgID = MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR;
+        String message = getMessage(msgID, filterString, startPos);
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                     message, msgID);
+      }
+      else
+      {
+        MatchingRule mr = DirectoryServer.getMatchingRule(
+                               toLowerCase(matchingRuleID));
+        if (mr == null)
+        {
+          int msgID = MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_SUCH_MR;
+          String message = getMessage(msgID, filterString, startPos,
+                                      matchingRuleID);
+          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                       message, msgID);
+        }
+        else
+        {
+          value = new AttributeValue(userValue,
+                                     mr.normalizeValue(userValue));
+        }
+      }
+    }
+    else
+    {
+      value = new AttributeValue(attributeType, userValue);
+    }
+
     return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
                             attributeType, attributeOptions, value,
                             null, null, null, matchingRuleID,
@@ -3472,9 +3537,22 @@ outerComponentLoop:
         return notComponent.equals(f.notComponent);
       case EQUALITY:
         return (attributeType.equals(f.attributeType) &&
+                optionsEqual(attributeOptions, f.attributeOptions) &&
                 assertionValue.equals(f.assertionValue));
       case SUBSTRING:
         if (! attributeType.equals(f.attributeType))
+        {
+          return false;
+        }
+
+        SubstringMatchingRule smr =
+             attributeType.getSubstringMatchingRule();
+        if (smr == null)
+        {
+          return false;
+        }
+
+        if (! optionsEqual(attributeOptions, f.attributeOptions))
         {
           return false;
         }
@@ -3488,7 +3566,19 @@ outerComponentLoop:
         }
         else
         {
-          if (! subInitialElement.equals(f.subInitialElement))
+          try
+          {
+            ByteString nSI1 =
+                 smr.normalizeSubstring(subInitialElement);
+            ByteString nSI2 =
+                 smr.normalizeSubstring(f.subInitialElement);
+
+            if (! Arrays.equals(nSI1.value(), nSI2.value()))
+            {
+              return false;
+            }
+          }
+          catch (Exception e)
           {
             return false;
           }
@@ -3503,7 +3593,19 @@ outerComponentLoop:
         }
         else
         {
-          if (! subFinalElement.equals(f.subFinalElement))
+          try
+          {
+            ByteString nSF1 =
+                 smr.normalizeSubstring(subFinalElement);
+            ByteString nSF2 =
+                 smr.normalizeSubstring(f.subFinalElement);
+
+            if (! Arrays.equals(nSF1.value(), nSF2.value()))
+            {
+              return false;
+            }
+          }
+          catch (Exception e)
           {
             return false;
           }
@@ -3514,10 +3616,22 @@ outerComponentLoop:
           return false;
         }
 
-        for (int i = 0; i < subAnyElements.size(); i++) {
-          ByteString sub1 = subAnyElements.get(i);
-          ByteString sub2 = f.subAnyElements.get(i);
-          if (!sub1.equals(sub2)) {
+        for (int i = 0; i < subAnyElements.size(); i++)
+        {
+          try
+          {
+            ByteString nSA1 =
+                 smr.normalizeSubstring(subAnyElements.get(i));
+            ByteString nSA2 =
+                 smr.normalizeSubstring(f.subAnyElements.get(i));
+
+            if (! Arrays.equals(nSA1.value(), nSA2.value()))
+            {
+              return false;
+            }
+          }
+          catch (Exception e)
+          {
             return false;
           }
         }
@@ -3525,14 +3639,18 @@ outerComponentLoop:
         return true;
       case GREATER_OR_EQUAL:
         return (attributeType.equals(f.attributeType) &&
+                optionsEqual(attributeOptions, f.attributeOptions) &&
                 assertionValue.equals(f.assertionValue));
       case LESS_OR_EQUAL:
         return (attributeType.equals(f.attributeType) &&
+                optionsEqual(attributeOptions, f.attributeOptions) &&
                 assertionValue.equals(f.assertionValue));
       case PRESENT:
-        return (attributeType.equals(f.attributeType));
+        return (attributeType.equals(f.attributeType) &&
+                optionsEqual(attributeOptions, f.attributeOptions));
       case APPROXIMATE_MATCH:
         return (attributeType.equals(f.attributeType) &&
+                optionsEqual(attributeOptions, f.attributeOptions) &&
                 assertionValue.equals(f.assertionValue));
       case EXTENSIBLE_MATCH:
         if (attributeType == null)
@@ -3545,6 +3663,11 @@ outerComponentLoop:
         else
         {
           if (! attributeType.equals(f.attributeType))
+          {
+            return false;
+          }
+
+          if (! optionsEqual(attributeOptions, f.attributeOptions))
           {
             return false;
           }
@@ -3579,15 +3702,96 @@ outerComponentLoop:
         }
         else
         {
-          if (! assertionValue.equals(f.assertionValue))
+          if (matchingRuleID == null)
           {
-            return false;
+            if (! assertionValue.equals(f.assertionValue))
+            {
+              return false;
+            }
+          }
+          else
+          {
+            MatchingRule mr =
+                 DirectoryServer.getMatchingRule(
+                      toLowerCase(matchingRuleID));
+            if (mr == null)
+            {
+              return false;
+            }
+            else
+            {
+              try
+              {
+                ConditionResult cr = mr.valuesMatch(
+                     mr.normalizeValue(assertionValue.getValue()),
+                     mr.normalizeValue(f.assertionValue.getValue()));
+                if (cr != ConditionResult.TRUE)
+                {
+                  return false;
+                }
+              }
+              catch (Exception e)
+              {
+                return false;
+              }
+            }
           }
         }
 
         return true;
       default:
         return false;
+    }
+  }
+
+
+
+  /**
+   * Indicates whether the two provided sets of attribute options
+   * should be considered equal.
+   *
+   * @param  options1  The first set of attribute options for which to
+   *                   make the determination.
+   * @param  options2  The second set of attribute options for which
+   *                   to make the determination.
+   *
+   * @return  {@code true} if the sets of attribute options are equal,
+   *          or {@code false} if not.
+   */
+  private static boolean optionsEqual(Set<String> options1,
+                                      Set<String> options2)
+  {
+    if ((options1 == null) || options1.isEmpty())
+    {
+      return ((options2 == null) || options2.isEmpty());
+    }
+    else if ((options2 == null) || options2.isEmpty())
+    {
+      return false;
+    }
+    else
+    {
+      if (options1.size() != options2.size())
+      {
+        return false;
+      }
+
+      HashSet<String> lowerOptions =
+           new HashSet<String>(options1.size());
+      for (String option : options1)
+      {
+        lowerOptions.add(toLowerCase(option));
+      }
+
+      for (String option : options2)
+      {
+        if (! lowerOptions.remove(toLowerCase(option)))
+        {
+          return false;
+        }
+      }
+
+      return lowerOptions.isEmpty();
     }
   }
 
@@ -3618,22 +3822,60 @@ outerComponentLoop:
       case SUBSTRING:
         hashCode = attributeType.hashCode();
 
+        SubstringMatchingRule smr =
+             attributeType.getSubstringMatchingRule();
+
         if (subInitialElement != null)
         {
-          hashCode += subInitialElement.hashCode();
+          if (smr == null)
+          {
+            hashCode += subInitialElement.hashCode();
+          }
+          else
+          {
+            try
+            {
+              hashCode += smr.normalizeSubstring(
+                               subInitialElement).hashCode();
+            }
+            catch (Exception e) {}
+          }
         }
 
         if (subAnyElements != null)
         {
           for (ByteString e : subAnyElements)
           {
-            hashCode += e.hashCode();
+            if (smr == null)
+            {
+              hashCode += e.hashCode();
+            }
+            else
+            {
+              try
+              {
+                hashCode += smr.normalizeSubstring(e).hashCode();
+              }
+              catch (Exception e2) {}
+            }
           }
         }
 
         if (subFinalElement != null)
         {
-          hashCode += subFinalElement.hashCode();
+          if (smr == null)
+          {
+            hashCode += subFinalElement.hashCode();
+          }
+          else
+          {
+            try
+            {
+              hashCode +=
+                   smr.normalizeSubstring(subFinalElement).hashCode();
+            }
+            catch (Exception e) {}
+          }
         }
 
         return hashCode;

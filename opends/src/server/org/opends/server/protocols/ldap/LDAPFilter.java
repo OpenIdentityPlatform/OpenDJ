@@ -1740,6 +1740,17 @@ public class LDAPFilter
       value = new ASN1OctetString(valueBytes);
     }
 
+
+    // Make sure that the filter has at least one of an attribute description
+    // and/or a matching rule ID.
+    if ((attributeType == null) && (matchingRuleID == null))
+    {
+      int    msgID   = MSGID_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR;
+      String message = getMessage(msgID, filterString, startPos);
+      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+    }
+
+
     return new LDAPFilter(FilterType.EXTENSIBLE_MATCH, null, null,
                           attributeType, value, null, null, null,
                           matchingRuleID, dnAttributes);
