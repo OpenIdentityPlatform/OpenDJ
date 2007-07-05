@@ -114,10 +114,14 @@ public class ServerLoader extends Thread
     if (!isOver)
     {
       isInterrupted = true;
-      String ldapUrl = getLdapUrl(serverProperties);
+      String ldapUrl = getLdapsUrl(serverProperties);
       if (ldapUrl == null)
       {
-        ldapUrl = getLdapsUrl(serverProperties);
+        ldapUrl = getStartTlsLdapUrl(serverProperties);
+      }
+      if (ldapUrl == null)
+      {
+        ldapUrl = getLdapUrl(serverProperties);
       }
       lastException = new TopologyCacheException(
           TopologyCacheException.Type.TIMEOUT, null, trustManager, ldapUrl);
@@ -310,7 +314,7 @@ public class ServerLoader extends Thread
     "true".equalsIgnoreCase(v.toString());
     if (ldapEnabled && startTLSEnabled)
     {
-      ldapUrl = "ldaps://"+getHostNameForLdapUrl(serverProperties)+":"+
+      ldapUrl = "ldap://"+getHostNameForLdapUrl(serverProperties)+":"+
       serverProperties.get(ServerProperty.LDAP_PORT);
     }
     return ldapUrl;
