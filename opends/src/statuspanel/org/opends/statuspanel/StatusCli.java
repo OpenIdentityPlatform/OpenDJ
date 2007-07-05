@@ -30,8 +30,6 @@ package org.opends.statuspanel;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -53,8 +51,10 @@ import org.opends.statuspanel.ui.ListenersTableModel;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
+import org.opends.server.messages.MessageHandler;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
@@ -134,94 +134,83 @@ class StatusCli
 
     ArrayList<String> errors = new ArrayList<String>();
 
-    boolean printUsage = false;
-    boolean printVersion = false;
-
     String directoryManagerPwd = null;
     String directoryManagerPwdFile = null;
     String directoryManagerDn = null;
 
-    for (int i=0; i<args.length; i++)
+    ArgumentParser argParser =
+        new ArgumentParser(StatusPanelLauncher.class.getName(),
+          getI18n().getMsg("status-cli-usage-description"), false);
+    BooleanArgument showUsage;
+    StringArgument bindDN;
+    StringArgument bindPW;
+    FileBasedArgument bindPWFile;
+    String scriptName;
+    if (Utils.isWindows()) {
+      scriptName = Installation.WINDOWS_STATUSCLI_FILE_NAME;
+    } else {
+      scriptName = Installation.UNIX_STATUSCLI_FILE_NAME;
+    }
+    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    try
     {
-      if (args[i].equalsIgnoreCase("-H") ||
-          args[i].equalsIgnoreCase("--help") ||
-          args[i].equalsIgnoreCase("-?"))
-      {
-        printUsage = true;
-      }
-      else
-      if (args[i].equalsIgnoreCase("-" + OPTION_SHORT_PRODUCT_VERSION) ||
-          args[i].equalsIgnoreCase("--" + OPTION_LONG_PRODUCT_VERSION))
-      {
-        printVersion = true;
-      }
-      else if (args[i].equalsIgnoreCase("-D") ||
-          args[i].equalsIgnoreCase("--bindDN"))
-      {
-        if (i+1 >= args.length)
-        {
-          errors.add(getMsg("cli-status-root-user-dn-not-provided", true));
-        }
-        else
-        {
-          if (args[i+1].indexOf("-") == 0)
-          {
-            errors.add(getMsg("cli-status-root-user-dn-not-provided", true));
-          }
-          else
-          {
-            directoryManagerDn = args[i+1];
-            i++;
-          }
-        }
-      }
-      else if (args[i].equals("-" + OPTION_SHORT_BINDPWD) ||
-          args[i].equalsIgnoreCase("--" + OPTION_LONG_BINDPWD))
-      {
-        if (i+1 >= args.length)
-        {
-          errors.add(getMsg("cli-status-root-user-pwd-not-provided", true));
-        }
-        else
-        {
-          if (args[i+1].indexOf("-") == 0 && args[i+1].length() > 1)
-          {
-            errors.add(getMsg("cli-status-root-user-pwd-not-provided", true));
-          }
-          else
-          {
-            directoryManagerPwd = args[i+1];
-            i++;
-          }
-        }
-      }
-      else if (args[i].equals("-j") ||
-          args[i].equalsIgnoreCase("--bindPasswordFile"))
-      {
-        if (i+1 >= args.length)
-        {
-          errors.add(getMsg("cli-status-root-user-pwd-file-not-provided",
-              true));
-        }
-        else
-        {
-          if (args[i+1].indexOf("-") == 0)
-          {
-            errors.add(getMsg("cli-status-root-user-pwd-file-not-provided",
-                true));
-          }
-          else
-          {
-            directoryManagerPwdFile = args[i+1];
-            i++;
-          }
-        }
-      }
-      else
-      {
-        String[] arg = {args[i]};
-        errors.add(getMsg("cli-status-unknown-argument", arg, true));
-      }
+      bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
+          OPTION_LONG_BINDDN, false, false, true,
+          OPTION_VALUE_BINDDN, null, null,
+          MSGID_STOPDS_DESCRIPTION_BINDDN);
+      argParser.addArgument(bindDN);
+
+      bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
+          OPTION_LONG_BINDPWD, false, false,
+          true,
+          OPTION_VALUE_BINDPWD, null, null,
+          MSGID_STOPDS_DESCRIPTION_BINDPW);
+      argParser.addArgument(bindPW);
+
+      bindPWFile = new FileBasedArgument("bindpwfile",
+          OPTION_SHORT_BINDPWD_FILE,
+          OPTION_LONG_BINDPWD_FILE,
+          false, false,
+          OPTION_VALUE_BINDPWD_FILE,
+          null, null,
+          MSGID_STOPDS_DESCRIPTION_BINDPWFILE);
+      argParser.addArgument(bindPWFile);
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+          OPTION_LONG_HELP,
+          MSGID_DESCRIPTION_USAGE);
+      argParser.addArgument(showUsage);
+      argParser.setUsageArgument(showUsage);
+    }
+    catch (ArgumentException ae)
+    {
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
+      String message = MessageHandler.getMessage(msgID, ae.getMessage());
+      System.err.println(wrap(message));
+      return BUG;
+    }
+
+    try
+    {
+      argParser.parseArguments(args);
+      directoryManagerDn = bindDN.getValue();
+      directoryManagerPwd = bindPW.getValue();
+      directoryManagerPwdFile = bindPWFile.getValue();
+    }
+    catch (ArgumentException ae)
+    {
+      int    msgID   = MSGID_ERROR_PARSING_ARGS;
+      String message = MessageHandler.getMessage(msgID, ae.getMessage());
+
+      System.err.println(wrap(message));
+      System.err.println(argParser.getUsage());
+      return USER_DATA_ERROR;
+    }
+
+    //  If we should just display usage or version information,
+    // then print it and exit.
+    if (argParser.usageOrVersionDisplayed())
+    {
+      return SUCCESSFUL;
     }
 
     if ((directoryManagerPwdFile != null) && (directoryManagerPwd != null))
@@ -230,13 +219,13 @@ class StatusCli
     }
     else
     {
-      if(directoryManagerPwd != null && directoryManagerPwd.equals("-"))
+      if (directoryManagerPwd != null && directoryManagerPwd.equals("-"))
       {
         // read the password from stdin.
         try
         {
           System.out.print(getMsg("cli-status-ldapauth-password-prompt",
-                                  new String[] {directoryManagerDn}, false));
+              new String[] {directoryManagerDn}, false));
           char[] pwChars = PasswordReader.readPassword();
           directoryManagerPwd = new String(pwChars);
         } catch(Exception ex)
@@ -255,27 +244,12 @@ class StatusCli
       }
     }
 
-    if (printUsage)
-    {
-      printUsage(System.out);
-    }
-    else if(printVersion)
-    {
-      try
-      {
-        DirectoryServer.printVersion(System.out);
-      }
-      catch (IOException e)
-      {
-        // TODO Auto-generated catch block
-      }
-    }
-    else if (errors.size() > 0)
+    if (errors.size() > 0)
     {
       System.err.println(Utils.getStringFromCollection(errors,
           LINE_SEPARATOR+LINE_SEPARATOR));
       System.err.println();
-      printUsage(System.err);
+      System.err.println(argParser.getUsage());
       returnValue = USER_DATA_ERROR;
     }
     else
@@ -377,61 +351,6 @@ class StatusCli
   private static ResourceProvider getI18n()
   {
     return ResourceProvider.getInstance();
-  }
-
-  private void printUsage(PrintStream stream)
-  {
-    ArgumentParser argParser =
-      new ArgumentParser(StatusPanelLauncher.class.getName(),
-        getI18n().getMsg("status-cli-usage-description"), false);
-    BooleanArgument showUsage;
-    StringArgument bindDN;
-    StringArgument bindPW;
-    FileBasedArgument bindPWFile;
-    String scriptName;
-    if (Utils.isWindows()) {
-      scriptName = Installation.WINDOWS_STATUSCLI_FILE_NAME;
-    } else {
-      scriptName = Installation.UNIX_STATUSCLI_FILE_NAME;
-    }
-    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
-    try
-    {
-      bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
-          OPTION_LONG_BINDDN, false, false, true,
-          OPTION_VALUE_BINDDN, null, null,
-          MSGID_STOPDS_DESCRIPTION_BINDDN);
-      argParser.addArgument(bindDN);
-
-      bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
-          OPTION_LONG_BINDPWD, false, false,
-          true,
-          OPTION_VALUE_BINDPWD, null, null,
-          MSGID_STOPDS_DESCRIPTION_BINDPW);
-      argParser.addArgument(bindPW);
-
-      bindPWFile = new FileBasedArgument("bindpwfile",
-          OPTION_SHORT_BINDPWD_FILE,
-          OPTION_LONG_BINDPWD_FILE,
-          false, false,
-          OPTION_VALUE_BINDPWD_FILE,
-          null, null,
-          MSGID_STOPDS_DESCRIPTION_BINDPWFILE);
-      argParser.addArgument(bindPWFile);
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-        OPTION_LONG_HELP,
-        MSGID_DESCRIPTION_USAGE);
-      argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
-
-      String msg = argParser.getUsage();
-      stream.println(msg);
-    }
-    catch (Throwable t)
-    {
-      System.out.println("ERROR: "+t);
-      t.printStackTrace();
-    }
   }
 
   private ServerStatusDescriptor createServerStatusDescriptor(String dn,
