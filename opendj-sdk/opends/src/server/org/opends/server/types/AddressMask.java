@@ -30,19 +30,14 @@ import org.opends.server.config.ConfigException;
 import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import java.util.BitSet;
-
-//This import statements causes problems in checkstyles so
-//it has been turned off until issue #??? is fixed.
-//import sun.net.util.IPAddressUtil;
-//import java.net.Inet6Address;
-
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * This class defines an address mask, which can be used to perform
  * efficient comparisons against IP addresses to determine whether a
  * particular IP address is in a given range.
- * Currently IPV6 is not supported. Issue #670 will track IPV6
- * support.
  */
 
 public final class AddressMask
@@ -52,7 +47,7 @@ public final class AddressMask
      * Types of rules we have.
      *
      * IPv4 - ipv4 rule
-     * IPv6 - ipv6 rule (begin with '['). Not supported see issue #670
+     * IPv6 - ipv6 rule (begin with '[' or contains an ':').
      * HOST - hostname match (foo.sun.com)
      * HOSTPATTERN - host pattern match (begin with '.')
      * ALLWILDCARD - *.*.*.* (first HOST is applied then ipv4)
@@ -61,7 +56,7 @@ public final class AddressMask
 
      enum RuleType
     {
-        IPv4, IPv6, HOSTPATTERN, ALLWILDCARD, HOST;
+        IPv4, IPv6, HOSTPATTERN, ALLWILDCARD, HOST
     }
 
     // Type of rule determined
@@ -75,8 +70,8 @@ public final class AddressMask
     private  int IPV4MAXPREFIX = 32;
 
     // IPv6 values for number of bytes and max CIDR prefix
-    //private  int IN6ADDRSZ = 16;
-    //private  int IPV6MAXPREFIX = 128;
+    private  int IN6ADDRSZ = 16;
+    private  int IPV6MAXPREFIX = 128;
 
     //Holds binary representations of rule and mask respectively.
     private  byte[] ruleMask, prefixMask;
@@ -104,14 +99,14 @@ public final class AddressMask
         determineRuleType(rule);
         switch (ruleType)
         {
+        case IPv6:
+            processIPv6(rule);
+             break;
+
         case IPv4:
             processIpv4(rule);
             break;
 
-            /*            case IPv6:
-                processIPv6(rule);
-                break;
-             */
         case HOST:
             processHost(rule);
             break;
@@ -148,13 +143,10 @@ public final class AddressMask
         {
             ruleType=RuleType.HOSTPATTERN;
         }
-        else if(ruleString.startsWith("["))
+        else if(ruleString.startsWith("[") ||
+                (ruleString.indexOf(':') != -1))
         {
-            int msgID=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-            String message = getMessage(msgID);
-            throw new ConfigException(msgID, message);
-            //IPV6 is not supported see issue #670
-            //ruleType=RuleType.IPv6;
+           ruleType=RuleType.IPv6;
         }
         else
         {
@@ -164,17 +156,14 @@ public final class AddressMask
             // hostname (can't begin with digit) or ipv4 address.
             //Default to IPv4 ruletype.
             ruleType=RuleType.HOST;
-            for(int i=0;i<s.length;i++)
-            {
-                if(s[i].equals("*"))
-                {
+            for (String value : s) {
+                if (value.equals("*")) {
                     wildCount++;
                     continue;
                 }
                 //Looks like an ipv4 address
-                if(Character.isDigit(s[i].charAt(0)))
-                {
-                    ruleType=RuleType.IPv4;
+                if (Character.isDigit(value.charAt(0))) {
+                    ruleType = RuleType.IPv4;
                     break;
                 }
             }
@@ -196,10 +185,10 @@ public final class AddressMask
     private void processIpv4(String rule)
     throws ConfigException {
         String[] s = rule.split("/", -1);
-        ruleMask=new byte[IN4ADDRSZ];
-        prefixMask=new byte[IN4ADDRSZ];
+        this.ruleMask=new byte[IN4ADDRSZ];
+        this.prefixMask=new byte[IN4ADDRSZ];
         prefixMask(processPrefix(s,IPV4MAXPREFIX));
-        processIpv4Subnet((s.length == 0) ? rule : s[0]);
+        processIPv4Subnet((s.length == 0) ? rule : s[0]);
     }
 
     /**
@@ -266,13 +255,13 @@ public final class AddressMask
      */
     private void prefixMask(int prefix)
     {
-        int i=0;
+        int i;
         for( i=0;prefix > 8 ; i++)
         {
-            prefixMask[i] = (byte) 0xff;
+            this.prefixMask[i] = (byte) 0xff;
             prefix -= 8;
         }
-        prefixMask[i] = (byte) ((0xff) << (8 - prefix));
+        this.prefixMask[i] = (byte) ((0xff) << (8 - prefix));
     }
 
     /**
@@ -282,7 +271,7 @@ public final class AddressMask
      * @throws ConfigException If the subnet string is not a valid
      *         IPv4 subnet string.
      */
-    private void  processIpv4Subnet(String subnet)
+    private void  processIPv4Subnet(String subnet)
     throws ConfigException {
         String[] s = subnet.split("\\.", -1);
         try {
@@ -397,12 +386,11 @@ public final class AddressMask
      *         <CODE>false</CODE> if it does not.
      */
     public  static boolean maskListContains(byte[] remoteAddr,
-            String remoteName,
-            AddressMask[] masks)
+                                            String remoteName,
+                                            AddressMask[] masks)
     {
-        for(int i=0; i < masks.length; i++)
-        {
-            if(masks[i].match(remoteAddr, remoteName))
+        for (AddressMask mask : masks) {
+            if(mask.match(remoteAddr, remoteName))
                 return true;
         }
         return false;
@@ -431,6 +419,7 @@ public final class AddressMask
         boolean ret=false;
 
         switch(ruleType) {
+        case IPv6:
         case IPv4:
             //this Address mask is an IPv4 rule
             ret=matchAddress(remoteAddr);
@@ -441,15 +430,6 @@ public final class AddressMask
             ret=matchHostName(remoteName);
             break;
 
-            /*
-          case IPv6:
-              //IPv6 rule only valid of addr is an Inet6Address
-              if(addr instanceof Inet6Address) {
-                  Inet6Address addr6 = (Inet6Address) addr;
-                  ret=match(addr6.getAddress());
-              }
-              break;
-             */
         case HOSTPATTERN:
             //HOSTPATTERN rule
             ret=matchPattern(remoteName);
@@ -473,12 +453,8 @@ public final class AddressMask
      */
     private boolean matchPattern(String remoteHostName) {
         int len=remoteHostName.length() - hostPattern.length();
-        if(len > 0)
-        {
-            return remoteHostName.regionMatches(true,len,
-                    hostPattern,0,hostPattern.length());
-        }
-        return false;
+        return len > 0 && remoteHostName.regionMatches(true, len,
+                hostPattern, 0, hostPattern.length());
     }
 
     /**
@@ -532,48 +508,44 @@ public final class AddressMask
         return true;
     }
 
-    /* Turned off until IPV6 issue #670 is fixed.
-
-  private void processIPv6(String rule)
-  throws ConfigException {
-      String[] s = rule.split("/", -1);
-      //ipv6 rule must end with ']''
-      if(!s[0].endsWith("]"))
-      {
-          int msgID=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-          String message = getMessage(msgID);
-          throw new ConfigException(msgID,message);
-      }
-      String subnet  = s[0].substring(1, s[0].length() -1);
-      byte[] tmpMask=IPAddressUtil.textToNumericFormatV6(subnet);
-      //don't have a vaild ipv6 address bail
-      if (tmpMask == null)
-      {
-          int msgID=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-          String message = getMessage(msgID);
-          throw new ConfigException(msgID, message);remoteMask
-      }
-      //we were returned an ipv4-mapped address ::ffff:<ipv4 addr>
-      //make sure we don't have a prefix
-      if((tmpMask.length == IN4ADDRSZ)  &&
-              (s.length == 2)) {
-          int msgID = MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
-          String message = getMessage(msgID);
-          throw new ConfigException(msgID,  message);
-       //build a ipv4 structure using a 32-bit prefix
-      } else if (tmpMask.length == IN4ADDRSZ) {
-          setRuleType(Rtype.IPv4);
-          setRuleMask(tmpMask);
-          setPrefixMask(new byte[IN4ADDRSZ]);
-          prefixMask(32);
-      } else { //plain Ipv6 address
-          setRuleMask(tmpMask);
-          setPrefixMask(new byte[IN6ADDRSZ]);
-          prefixMask(processPrefix(s,IPV6MAXPREFIX));
-          setRuleType(Rtype.IPv6);
-      }
-  }
+    /**
+     * The rule string is an IPv6 rule. Build both the prefix
+     * mask array and rule mask from the string.
+     *
+     * @param rule The rule string containing the IPv6 rule.
+     * @throws ConfigException If the rule string is not a valid
+     *         IPv6 rule.
      */
+     private void processIPv6(String rule) throws ConfigException {
+        String[] s = rule.split("/", -1);
+        InetAddress addr;
+        try {
+            addr = InetAddress.getByName(s[0]);
+        } catch (UnknownHostException ex) {
+            int msgID=MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
+            String message = getMessage(msgID);
+            throw new ConfigException(msgID, message);
+        }
+        if(addr instanceof Inet6Address) {
+            this.ruleType=RuleType.IPv6;
+            Inet6Address addr6 = (Inet6Address) addr;
+            this.ruleMask=addr6.getAddress();
+            this.prefixMask=new byte[IN6ADDRSZ];
+            prefixMask(processPrefix(s,IPV6MAXPREFIX));
+        } else {
+           //The address might be an IPv4-compat address.
+           //Throw an error if the rule has a prefix.
+            if(s.length == 2) {
+                int msgID = MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR;
+                String message = getMessage(msgID);
+                throw new ConfigException(msgID,  message);
+            }
+            this.ruleMask=addr.getAddress();
+            this.ruleType=RuleType.IPv4;
+            this.prefixMask=new byte[IN4ADDRSZ];
+            prefixMask(processPrefix(s,IPV4MAXPREFIX));
+        }
+    }
 }
 
 

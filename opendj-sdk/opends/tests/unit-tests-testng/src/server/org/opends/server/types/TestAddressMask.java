@@ -26,11 +26,13 @@
  */
 package org.opends.server.types;
 
-import org.opends.server.types.AddressMask;
 import org.opends.server.config.ConfigException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class TestAddressMask extends TypesTestCase {
 
@@ -70,7 +72,6 @@ public class TestAddressMask extends TypesTestCase {
          {"129.**.56.67"},
          {"foo bar.com"},
          {"12foo.example.com"},
-         {"[2001:fecd:ba23:cd1f:dcb1:1010:9234:4088]/124"},
          {"123.45."},
          {".central.sun day.com"},
          {"129.34.45.45/4/3/"}
@@ -106,8 +107,8 @@ public class TestAddressMask extends TypesTestCase {
              "Invalid mask <" + mask + "> did not throw an exception.");
  }
 
- @DataProvider(name = "matchRules")
- public Object[][] ruleMatchData() {
+  @DataProvider(name = "matchRules")
+  public Object[][] ruleMatchData() {
      return new Object[][] {
              {
                  //Rules
@@ -121,7 +122,7 @@ public class TestAddressMask extends TypesTestCase {
                          "128.153.147.32/21",//7
                          "128.153.146.32/26",//8
                          "90.89.78.67/26"}, //9
-                //Addresses         
+                //Addresses
                 new String[] {
                          "128.153.147.45", //rule 7
                          "128.153.146.60", //rule 8
@@ -130,7 +131,7 @@ public class TestAddressMask extends TypesTestCase {
                          "148.45.45.47",    //host
                          "148.45.45.48",    //host
                          "90.89.78.65"},   //rule 5
-              //Hostnames           
+              //Hostnames
               new String[]  {
                          "some.host.name", //addr
                          "some.host.name", //addr
@@ -159,9 +160,9 @@ public class TestAddressMask extends TypesTestCase {
                      "128.153.147.32/21",//7
                      "128.153.146.32/26",//8
                      "90.89.78.67/26"}, //9
-                     //Addresses         
+                     //Addresses
                      new String[] {
-                              "128.153.140.45", 
+                              "128.153.140.45",
                               "128.153.143.255",
                               "148.45.45.46",
                               "126.56.78.22",
@@ -169,7 +170,7 @@ public class TestAddressMask extends TypesTestCase {
                               "148.45.45.48",
                               "90.89.78.128",
                               "148.45.45.49"},
-                   //Hostnames           
+                   //Hostnames
                    new String[]  {
                               "some.host.name",
                               "some.host.name",
@@ -191,12 +192,12 @@ public class TestAddressMask extends TypesTestCase {
                  //Rules
                  new String[] {
                          "*.*.*",
-                         "*.*.*.*"}, 
-                //Addresses         
+                         "*.*.*.*"},
+                //Addresses
                 new String[] {
                         "129.34.45.12",
-                        "129.34.45.13"},  
-              //Hostnames           
+                        "129.34.45.13"},
+              //Hostnames
               new String[]  {
                          "some.host.name" ,
                          "some.host.name"}
@@ -206,7 +207,7 @@ public class TestAddressMask extends TypesTestCase {
 
  @Test(dataProvider = "matchRules")
  public void testMatch(String[] rules, String[] addrs, String[]hostNames) {
-     boolean ret=true;
+     boolean ret;
      ret=match(rules,addrs,hostNames);
      assertTrue(ret);
  }
@@ -214,7 +215,7 @@ public class TestAddressMask extends TypesTestCase {
  @Test(dataProvider = "matchWCRules")
  public void testWildCardMatch(String[] rules, String[] addrs,
          String[]hostNames) {
-     boolean ret=true;
+     boolean ret;
      ret=match(rules,addrs,hostNames);
      assertTrue(ret);
  }
@@ -222,7 +223,7 @@ public class TestAddressMask extends TypesTestCase {
  @Test(dataProvider = "noMatchRules")
  public void testNoMatch(String[] rules, String[] addrs,
          String[] hostNames) {
-     boolean ret=false;
+     boolean ret;
      ret=match(rules,addrs,hostNames);
      assertFalse(ret);
  }
@@ -234,47 +235,130 @@ public class TestAddressMask extends TypesTestCase {
          assertEquals(rule, m.toString());
      } catch (ConfigException ce) {
          throw new RuntimeException(
-                 "Invalid mask <" + rule + 
+                 "Invalid mask <" + rule +
                  "> all data should be valid for this test");
      }
  }
 
- private byte[] getAddress(String remote) {
-     byte[] addr=new byte[AddressMask.IN4ADDRSZ];
-     String[] s = remote.split("\\.", -1);
-     try {
-         for(int i=0;i<AddressMask.IN4ADDRSZ;i++) {
-             long val = Integer.parseInt(s[i]);
-             addr[i] = (byte) (val & 0xff);
-         }
-     }  catch (NumberFormatException nfex) {
-         return addr;
-     }
-     return addr;
+  private boolean match(String[] rules, String[] addrs,  String[]hostNames) {
+    boolean ret=true;
+    int i=0;
+
+    AddressMask[] m = new AddressMask[rules.length];
+    try {
+      for (i = 0; i < rules.length; i++) {
+        m[i] = AddressMask.decode(rules[i]);
+      }
+    } catch (ConfigException ce) {
+      throw new RuntimeException(
+              "Invalid mask <" + rules[i] +
+                      "> all data must be valid for this test");
+    }
+    for(int j = 0; j < addrs.length; j++) {
+      try  {
+        InetAddress addr = InetAddress.getByName(addrs[j]);
+        if(!AddressMask.maskListContains(addr.getAddress(), hostNames[j], m)) {
+          ret=false;
+          break;
+        }
+      } catch (UnknownHostException ex) {
+        ret=false;
+      }
+    }
+    return ret;
+  }
+
+  /*
+    IPV6 data and tests.
+  */
+
+  //Invalid IPv6 expressions.
+  @DataProvider(name = "invalid6Rules")
+  public Object[][] inValid6Data() {
+        return new Object[][] {
+                {"2001:feca:ba23:cd1f:dcb1:1010:9234:4088///124"},
+                {"2001:feca:ba23:cd1f:dcb1:1010:9234:4088?124"},
+                {"2001:fecz:ba23:cd1f:dcb1:1010:9234:4088/124"},
+                {"2001:fecd:ba23:cd1ff:dcb1:1010:9234:4088/46"},
+                {"0:0:0:0:0:ffff:101..45.75.219"},
+                {"0:0:0:0:0:0:101.45.75.700"},
+                {"1080::8:800:200C:417A/500"},
+                {"1080::8:800:*:417A/66"},
+                 {"2001:fecd:ba23:cd1ff:dcb1:1010:202.45.66.20"},
+        };
+  }
+
+  //Valid IPv6 expressions.
+  @DataProvider(name = "valid6Rules")
+  public Object[][] valid6Data() {
+      return new Object[][] {
+              {"2001:fecd:ba23:cd1f:dcb1:1010:9234:4088/124"},
+              {"2001:fecd:ba23:cd1f:dcb1:1010:9234:4088"},
+              {"[2001:fecd:ba23:cd1f:dcb1:1010:9234:4088]/45"},
+              {"::/128"},
+              {"::1/128"},
+              {"::"},
+              {"0:0:0:0:0:ffff:101.45.75.219"},
+              {"1080::8:800:200C:417A"},
+              {"0:0:0:0:0:0:101.45.75.219"},
+              {"::101.45.75.219"}
+      };
+  }
+
+
+  @DataProvider(name = "match6Rules")
+  public Object[][] ruleMatch6Data() {
+     return new Object[][] {
+             {
+                 //IPV6 Rules
+                 new String[] {
+                         "[12ab:0:0:cd30::]/60",
+                         "::ffff:72.56.78.9",
+                         "::",
+                         "42ab:0:0:dd30::"},
+                //IPv6 Addresses
+                new String[] {
+                         "12ab:0:0:cd3f:0000:0000:23DC:DC30",
+                         "72.56.78.9",
+                         "::",
+                         "42ab:0000:0000:dd30:0000:0000:0000:0000"},
+              //ignored Hostnames
+              new String[]  {
+                         "ignored.host.name",
+                         "ignored.host.name",
+                         "ignored.host.name",
+                         "ignored.host.name"
+                         }
+             }
+     };
  }
 
- private boolean match(String[] rules, String[] addrs,
-         String[]hostNames) {
-     boolean ret=true;
-     int i=0;
+ @Test(dataProvider = "valid6Rules")
+  public void testValid6Decode(String mask)
+          throws Exception {
+    AddressMask.decode(mask);
+  }
 
-     AddressMask[] m = new AddressMask[rules.length];
-     try {
-         for (i = 0; i < rules.length; i++) {
-             m[i] = AddressMask.decode(rules[i]);
-         }
-     } catch (ConfigException ce) {
-         throw new RuntimeException(
-                 "Invalid mask <" + rules[i] + 
-                 "> all data must be valid for this test");
-     }
-     for(int j =0; j < addrs.length; j++) {
-         if(!AddressMask.maskListContains(getAddress(addrs[j]),
-                 hostNames[j],m)) {
-             ret=false;
-             break;
-         }
-     }
-     return ret;
- }
+  @Test(expectedExceptions=ConfigException.class, dataProvider="invalid6Rules")
+  public void testInvalid6Decode(String mask)
+          throws Exception {
+    try {
+      AddressMask.decode(mask);
+    } catch (ConfigException e) {
+      throw e;
+    } catch (Exception e) {
+      System.out.println(
+              "Invalid mask  <" + mask + "> threw wrong exception type.");
+      throw e;
+    }
+    throw new RuntimeException(
+            "Invalid mask <" + mask + "> did not throw an exception.");
+  }
+
+  @Test(dataProvider = "match6Rules")
+  public void testMatch6(String[] rules, String[] addrs, String[]hostNames) {
+      boolean ret;
+      ret=match(rules,addrs,hostNames);
+      assertTrue(ret);
+  }
 }
