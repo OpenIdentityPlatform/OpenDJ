@@ -151,7 +151,7 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
   
   /**
    * Generate a LDAPConnectionHandler from a entry. The listen port is
-   * determined automatiacally, so no ATTR_LISTEN_PORT should be in the
+   * determined automatically, so no ATTR_LISTEN_PORT should be in the
    * entry.
    * 
    * @param handlerEntry The entry to be used to configure the handle.
