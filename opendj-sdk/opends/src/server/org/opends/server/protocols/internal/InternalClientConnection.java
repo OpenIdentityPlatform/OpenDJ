@@ -57,6 +57,7 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.CancelRequest;
@@ -75,6 +76,7 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawFilter;
@@ -201,6 +203,23 @@ public class InternalClientConnection
 
       LinkedHashMap<AttributeType,List<Attribute>> operationalAttrs =
            new LinkedHashMap<AttributeType,List<Attribute>>();
+
+      AttributeType privType =
+           DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME,
+                                            true);
+
+      LinkedHashSet<AttributeValue> values =
+           new LinkedHashSet<AttributeValue>();
+      for (Privilege p : Privilege.getDefaultRootPrivileges())
+      {
+        values.add(new AttributeValue(privType, p.getName()));
+      }
+      Attribute privAttr =
+           new Attribute(privType, OP_ATTR_PRIVILEGE_NAME, values);
+      attrList = new LinkedList<Attribute>();
+      attrList.add(privAttr);
+
+      operationalAttrs.put(privType, attrList);
 
 
       DN internalUserDN = DN.decode(fullDNString);
