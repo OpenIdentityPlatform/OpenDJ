@@ -287,6 +287,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
             {"(sn=\\H1)"},
             {"(!(sn=test)(cn=test))"},
             {"(!)"},
+            {"(:dn:=Sally)"}
     };
   }
 
@@ -1024,10 +1025,10 @@ public class SearchFilterTests extends DirectoryServerTestCase {
           {"(sn:caseExactMatch:=Smith)", "(sn:caseExactMatch:=Smith)", true, true},
 
           // This demonstrates bug 704.
-//          {"(sn:caseExactMatch:=Smith)", "(sn:caseExactMatch:=smith)", false, false},
+          {"(sn:caseExactMatch:=Smith)", "(sn:caseExactMatch:=smith)", false, false},
 
-          // TODO: open a bug for this.
-//          {"(:dn:caseExactMatch:=example)", "(:DN:caseExactMatch:=example)", true, true}, // ? String not match
+          // Ensure that ":dn:" is treated in a case-insensitive manner.
+          {"(:dn:caseExactMatch:=example)", "(:DN:caseExactMatch:=example)", true, true}, // ? String not match
 
           // 2.5.4.4 is 'sn'
           {"(2.5.4.4=Smith)", "(2.5.4.4=Smith)", true, true},
@@ -1036,11 +1037,11 @@ public class SearchFilterTests extends DirectoryServerTestCase {
           {"(sn;lang-en=Smith)", "(sn;lang-en=Smith)", true, true},
 
           // This demonstrates bug 706
-//          {"(sn;lang-en=Smith)", "(sn=Smith)", false, false},
+          {"(sn;lang-en=Smith)", "(sn=Smith)", false, false},
 
 
           // This demonstrates bug 705.
-//          {"(sn=s*t*h)", "(sn=S*T*H)", true, false},
+          {"(sn=s*t*h)", "(sn=S*T*H)", true, false},
 
           // These should be case sensitive
           {"(labeledURI=http://opends.org)", "(labeledURI=http://OpenDS.org)", false, false},

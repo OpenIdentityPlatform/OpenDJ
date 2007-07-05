@@ -6222,6 +6222,41 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * create an extensible match search filter without providing either an
+   * attribute type or a matching rule ID.  This does not take any arguments.
+   */
+  public static final int
+       MSGID_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR =
+            CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 625;
+
+
+
+  /**
+   * The message ID for the message that will be used if a filter string cannot
+   * be decoded because it contained an extensible match component that did not
+   * include either an attribute description or a matching rule ID.  This takes
+   * two arguments, which are the filter string and the start position of the
+   * extensible match component within that filter string.
+   */
+  public static final int MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR =
+            CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 626;
+
+
+
+  /**
+   * The message ID for the message that will be used if a filter string cannot
+   * be decoded because it contained an extensible match component that
+   * referenced an unknown matching rule ID.  This takes three arguments, which
+   * are the filter string, the start position of the extensible match component
+   * within that filter string, and the unknown matching rule ID.
+   */
+  public static final int MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_SUCH_MR =
+            CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 627;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -6686,6 +6721,11 @@ public class CoreMessages
                     "exception was caught during processing:  %s");
 
 
+    registerMessage(MSGID_SEARCH_FILTER_CREATE_EXTENSIBLE_MATCH_NO_AT_OR_MR,
+                    "Unable to create an extensible match search filter " +
+                    "using the provided information because it did not " +
+                    "contain either an attribute type or a matching rule " +
+                    "ID.  At least one of these must be provided");
     registerMessage(MSGID_SEARCH_FILTER_NULL,
                     "Unable to decode the provided filter string as a search " +
                     "filter because the provided string was empty or null");
@@ -6729,6 +6769,16 @@ public class CoreMessages
                     "because the extensible match component starting at " +
                     "position %d did not have a colon to denote the end of " +
                     "the attribute type name");
+    registerMessage(MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR,
+                    "The provided search filter \"%s\" could not be decoded " +
+                    "because the extensible match component starting at " +
+                    "position %d did not contain either an attribute " +
+                    "description or a matching rule ID.  At least one of " +
+                    "these must be provided");
+    registerMessage(MSGID_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_SUCH_MR,
+                    "The provided search filter \"%s\" could not be decoded " +
+                    "because the extensible match component starting at " +
+                    "position %d referenced an unknown matching rule %s");
     registerMessage(MSGID_SEARCH_FILTER_NOT_EXACTLY_ONE,
                     "The provided search filter \"%s\" could not be decoded " +
                     "because the NOT filter between positions %d and %d " +
