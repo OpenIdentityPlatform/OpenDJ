@@ -111,8 +111,8 @@ public class UpgradeLauncher extends Launcher {
     try
     {
       file = new FileBasedArgument("file", 'f',
-          "{file}", false, false,
-          "file",
+          "file", false, false,
+          "{file}",
           null, null, MSGID_UPGRADE_DESCRIPTION_FILE);
       argParser.addArgument(file);
       interactive = new BooleanArgument("interactive", 'i', "interactive",
