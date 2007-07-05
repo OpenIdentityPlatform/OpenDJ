@@ -104,13 +104,18 @@ public class AnonymousSASLMechanismHandler
   public void processSASLBind(BindOperation bindOperation)
   {
     // See if the client provided SASL credentials including trace information.
-    // If so, then log it to the error log.
+    // If so, then write it to the access log as additional log information, and
+    // as an informational message to the error log.
     ByteString saslCredentials = bindOperation.getSASLCredentials();
     if (saslCredentials != null)
     {
       String credString = saslCredentials.stringValue();
       if (credString.length() > 0)
       {
+        bindOperation.appendAdditionalLogMessage("trace='");
+        bindOperation.appendAdditionalLogMessage(credString);
+        bindOperation.appendAdditionalLogMessage("'");
+
         logError(ErrorLogCategory.REQUEST_HANDLING,
                  ErrorLogSeverity.INFORMATIONAL, MSGID_SASLANONYMOUS_TRACE,
                  bindOperation.getConnectionID(),
