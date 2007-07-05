@@ -366,25 +366,22 @@ public class ReplicationDomain extends DirectoryThread
     /*
      * create the broker object used to publish and receive changes
      */
+    broker = new ReplicationBroker(state, baseDN, serverId, maxReceiveQueue,
+        maxReceiveDelay, maxSendQueue, maxSendDelay, window,
+        heartbeatInterval);
+
+    broker.start(replicationServers);
+
+    // Retrieves the related backend and its config entry
     try
     {
-      broker = new ReplicationBroker(state, baseDN, serverId, maxReceiveQueue,
-          maxReceiveDelay, maxSendQueue, maxSendDelay, window,
-          heartbeatInterval);
-      synchronized (broker)
-      {
-        broker.start(replicationServers);
-      }
-
-      // Retrieves the related backend and its config entry
       retrievesBackendInfos(baseDN);
-
-    } catch (Exception e)
+    } catch (DirectoryException e)
     {
-     /* TODO should mark that replicationServer service is
-      * not available, log an error and retry upon timeout
-      * should we stop the modifications ?
-      */
+      // The backend associated to this suffix is not able to
+      // perform export and import.
+      // The replication can continue but this replicationDomain
+      // won't be able to use total update.
     }
 
     /*
@@ -2076,18 +2073,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     state.loadState();
     disabled = false;
 
-    try
-    {
-      broker.start(replicationServers);
-    } catch (Exception e)
-    {
-      /* TODO should mark that replicationServer service is
-       * not available, log an error and retry upon timeout
-       * should we stop the modifications ?
-       */
-      e.printStackTrace();
-      return;
-    }
+    broker.start(replicationServers);
+
     createListeners();
   }
 
@@ -2394,22 +2381,21 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           ResultCode.OTHER, message, msgID, null);
     }
 
-    if (! domainBackend.supportsLDIFExport())
-    {
-      int    msgID   = MSGID_LDIFIMPORT_CANNOT_IMPORT;
-      String message = getMessage(msgID, domainBackend.getBackendID());
-      logError(ErrorLogCategory.BACKEND,
-          ErrorLogSeverity.SEVERE_ERROR, message, msgID);
-      throw new DirectoryException(
-          ResultCode.OTHER, message, msgID, null);
-    }
-
-
     this.backend = domainBackend;
     this.branches = new ArrayList<DN>(backendCfg.getBackendBaseDN().size());
     for (DN dn : backendCfg.getBackendBaseDN())
     {
       this.branches.add(dn);
+    }
+
+    if (! domainBackend.supportsLDIFImport())
+    {
+      int    msgID   = MSGID_LDIFIMPORT_CANNOT_IMPORT;
+      String message = getMessage(msgID, baseDN);
+      logError(ErrorLogCategory.SYNCHRONIZATION,
+          ErrorLogSeverity.NOTICE, message, msgID);
+      throw new DirectoryException(
+          ResultCode.OTHER, message, msgID, null);
     }
   }
 
