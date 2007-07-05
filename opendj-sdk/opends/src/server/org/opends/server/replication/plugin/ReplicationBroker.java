@@ -727,7 +727,10 @@ public class ReplicationBroker implements InternalSearchListener
   public void setSoTimeout(int timeout) throws SocketException
   {
     this.timeout = timeout;
-    session.setSoTimeout(timeout);
+    if (session != null)
+    {
+      session.setSoTimeout(timeout);
+    }
   }
 
   /**
