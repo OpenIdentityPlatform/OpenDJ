@@ -6531,7 +6531,7 @@ public class ProtocolMessages
             "Cannot decode the provided address mask because an prefix mask"+
             "was specified with an wild card \"*\" match character");
     registerMessage(MSGID_ADDRESSMASK_FORMAT_DECODE_ERROR,
-            "Cannot decode the provided address mask because the it has an" +
+            "Cannot decode the provided address mask because the it has an " +
             "invalid format");
 
 
