@@ -136,14 +136,11 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_3.ldif' % logsRemoteDataDir }
+                  'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_3.ldif' % logsRemoteDataDir ,
+                  'expectedRC'       : 65
+                }
               </call>
-      
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 65 }
-              </call>
+
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -161,14 +158,11 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_4.ldif' % logsRemoteDataDir }
+                  'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_4.ldif' % logsRemoteDataDir ,
+                  'expectedRC'       : 65
+                }
               </call>
-      
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 65 }
-              </call>
+
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -186,14 +180,11 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_5.ldif' % logsRemoteDataDir }
+                  'entryToBeAdded'   : '%s/schema/ldifs/rfc2247_5.ldif' % logsRemoteDataDir ,
+                  'expectedRC'       : 65
+                }
               </call>
-      
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 65 }
-              </call>
+
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>   
@@ -259,14 +250,11 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/schema/ldifs/rfc3045_1.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/schema/ldifs/rfc3045_1.ldif' % logsRemoteDataDir ,
+                  'expectedRC'       : 53
+                }
               </call>
-      
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 53 }
-              </call>
+
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -284,14 +272,11 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/schema/ldifs/rfc3045_2.ldif' % logsRemoteDataDir }
+                  'entryToBeModified'   : '%s/schema/ldifs/rfc3045_2.ldif' % logsRemoteDataDir ,
+                  'expectedRC'       : 53
+                }
               </call>
       
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 53 }
-              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -357,14 +342,11 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_3.ldif' % logsRemoteDataDir }
+                  'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_3.ldif' % logsRemoteDataDir ,
+                  'expectedRC'       : 65
+                }
               </call>
       
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 65 }
-              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>  
@@ -406,14 +388,11 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_5.ldif' % logsRemoteDataDir }
+                  'entryToBeAdded'   : '%s/schema/ldifs/rfc4403_5.ldif' % logsRemoteDataDir ,
+                  'expectedRC'       : 65
+                }
               </call>
-      
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 65 }
-              </call>
+
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -455,13 +434,9 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_2.ldif' % logsRemoteDataDir }
-              </call>
-                
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 65 }
+                  'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_2.ldif' % logsRemoteDataDir ,
+                  'expectedRC'       : 65
+                }
               </call>
               
               <call function="'testCase_Postamble'"/>
@@ -507,14 +482,11 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_4.ldif' % logsRemoteDataDir }
+                  'entryToBeAdded'   : '%s/schema/ldifs/rfc2307bis_4.ldif' % logsRemoteDataDir ,
+                  'expectedRC'       : 65
+                }
               </call>
       
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 65 }
-              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>  
@@ -724,14 +696,11 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/schema/ldifs/ldup_subentry_3.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/schema/ldifs/ldup_subentry_3.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 53
+              }
             </call>
     
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult  ,
-                  'expected'   : 53 }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>  
@@ -893,14 +862,11 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/schema/ldifs/ldap_cosine_3.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/schema/ldifs/ldap_cosine_3.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 65
+                }
             </call>
     
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 65 } 
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -959,14 +925,11 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/schema/ldifs/rfc2714.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/schema/ldifs/rfc2714.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 65
+                }
             </call>
             
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 65 }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
