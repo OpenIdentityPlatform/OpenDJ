@@ -2791,12 +2791,10 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=zuser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_bindtypes/replace_member_static3.ldif' % (logsRemoteDataDir) }
+                    'entryToBeModified'     : '%s/aci/aci_bindtypes/replace_member_static3.ldif' % (logsRemoteDataDir) ,
+                    'expectedRC'            : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite replace member, admin deleting selfwrite aci'
@@ -2968,12 +2966,10 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=zuser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_bindtypes/add_new_description_static4.ldif' % (logsRemoteDataDir) }
+                    'entryToBeModified'     : '%s/aci/aci_bindtypes/add_new_description_static4.ldif' % (logsRemoteDataDir) ,
+                    'expectedRC'            : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Bind Types: groupdn - selfwrite add description, admin deleting selfwrite aci'
@@ -5061,13 +5057,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'       : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -5105,13 +5097,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'       : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -5149,13 +5137,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'       : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -5193,13 +5177,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'       : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -5237,13 +5217,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'       : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -5281,15 +5257,11 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_bindtypes/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'       : 21
+                }
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>

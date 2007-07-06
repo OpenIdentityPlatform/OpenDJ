@@ -211,13 +211,11 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'uid=bhall,ou=People,ou=aci branch,o=Delete Tests,o=ACI Tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*'  }
+                  'dsFilter'         : 'objectclass=*' ,
+                  'expectedRC'       : 32
+                }
                 </call>
   
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - userdn equals all, user deleting entry from non-targeted branch'
                 </message>
@@ -227,12 +225,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - userdn equals all, admin deleting aci'
@@ -259,13 +255,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -347,13 +339,11 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'uid=tmason,ou=People,ou=aci branch,o=Delete Tests,o=ACI Tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*'  }
+                  'dsFilter'         : 'objectclass=*' ,
+                  'expectedRC'       : 32
+                }
                 </call>
   
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'ACI: Delete: Delete Entry - userdn equals a dn, user deleting entry from targeted branch with prohibited userdn'
                 </message>
@@ -363,12 +353,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - userdn equals a dn, user deleting entry from non-targeted branch'
@@ -379,12 +367,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry2a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - userdn equals a dn, admin deleting aci'
@@ -411,13 +397,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -499,12 +481,10 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'uid=jreuter,ou=People,ou=aci branch,o=Delete Tests,o=ACI Tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*'  }
+                  'dsFilter'         : 'objectclass=*' ,
+                  'expectedRC'       : 32
+                }
                 </call>
-  
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - userdn not equals a dn, prohibited user deleting entry from targeted branch'
@@ -515,12 +495,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry3.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry3.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - userdn not equals a dn, user deleting entry from non-targeted branch'
@@ -531,12 +509,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry3a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-delete_entry3a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - userdn not equals a dn, admin deleting aci'
@@ -563,13 +539,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -630,12 +602,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-write_entry1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_allow-write_entry1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - delete not allowed, admin deleting aci'
@@ -662,13 +632,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -749,12 +715,10 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'uid=rdaugherty,ou=People,ou=aci branch,o=Delete Tests,o=ACI Tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*'  }
+                  'dsFilter'         : 'objectclass=*' ,
+                  'expectedRC'       : 32
+                }
                 </call>
-  
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals one statement, user deleting entry from non-targeted branch'
@@ -765,12 +729,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals one statement, admin deleting aci'
@@ -797,13 +759,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -864,12 +822,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry2.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry2.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals three statements (or) all false, user deleting entry from non-targeted branch'
@@ -880,12 +836,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry2a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals three statements (or) all false, admin deleting aci'
@@ -912,13 +866,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -996,12 +946,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry3a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry3a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter not equals three statements (or) all false, admin deleting aci'
@@ -1028,13 +976,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1112,12 +1056,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry4a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry4a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals three statements (and) all true, admin deleting aci'
@@ -1144,13 +1086,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1212,12 +1150,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry5.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry5.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter contains attribute not present, user deleting entry from non-targeted branch'
@@ -1228,12 +1164,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry5a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetfilter_entry5a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter contains attribute not present, admin deleting aci'
@@ -1260,13 +1194,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1346,12 +1276,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetattr_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetattr_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals  three attributes, admin deleting aci'
@@ -1378,13 +1306,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1462,12 +1386,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetattr_entry2a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targetattr_entry2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetattr equals attribute not present, admin deleting aci'
@@ -1494,13 +1416,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1579,12 +1497,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targattrfilter_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_targattrfilter_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - targetfilter equals attr value, admin deleting aci'
@@ -1611,13 +1527,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1697,12 +1609,10 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'ou=extra branch 1, ou=aci branch,o=Delete Tests,o=ACI Tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*'  }
+                  'dsFilter'         : 'objectclass=*' ,
+                  'expectedRC'       : 32
+                }
                 </call>
-  
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - delete branch, user deleting branch from non-targeted branch'
@@ -1714,12 +1624,10 @@
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
                     'dsBaseDN'         : 'ou=extra branch 1, ou=non-aci branch, o=Delete Tests, o=ACI Tests,dc=example,dc=com' ,
-                    'extraParams'      : '-x'}
+                    'extraParams'      : '-x',
+                    'expectedRC'       : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - delete branch, admin deleting aci'
@@ -1797,12 +1705,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 1, user deleting entry from non-targeted branch'
@@ -1813,12 +1719,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 1, admin deleting aci'
@@ -1845,13 +1749,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1929,12 +1829,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry2a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 2, admin deleting aci'
@@ -1961,13 +1859,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2030,12 +1924,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 3, user deleting entry from targeted branch'
@@ -2062,12 +1954,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry3a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry3a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 3, admin deleting aci'
@@ -2094,13 +1984,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2178,12 +2064,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry4a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry4a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 4, admin deleting aci'
@@ -2210,13 +2094,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2279,12 +2159,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 5, user deleting entry from targeted branch'
@@ -2311,12 +2189,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry5a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_multi_aci_entry5a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Delete: Delete Entry - multi ACIs 5, admin deleting aci'
@@ -2343,13 +2219,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_delete_entry/del_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>

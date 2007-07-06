@@ -188,12 +188,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_allow-add_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_allow-add_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - userdn equals all, admin deleting aci'
@@ -220,13 +218,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -323,12 +317,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - userdn equals a dn, user adding entry in non-targeted branch'
@@ -339,12 +331,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_allow-add_entry2a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_allow-add_entry2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - userdn equals a dn, admin deleting aci'
@@ -371,13 +361,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -475,12 +461,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - userdn not equals a dn, user adding entry in non-targeted branch'
@@ -491,12 +475,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_allow-add_entry3a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_allow-add_entry3a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - userdn not equals a dn, admin deleting aci'
@@ -523,13 +505,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -589,12 +567,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_allow-delete_entry1.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_allow-delete_entry1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - userdn not equals a dn, admin deleting aci'
@@ -621,13 +597,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -724,12 +696,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targetfilter_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targetfilter_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - targetfilter equals one statement, admin deleting aci'
@@ -756,13 +726,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -823,12 +789,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targetfilter_entry2.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targetfilter_entry2.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - targetfilter with non-existent attribute, user adding entry in non-targeted branch'
@@ -839,12 +803,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targetfilter_entry2a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targetfilter_entry2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - targetfilter with non-existent attribute, admin deleting aci'
@@ -871,13 +833,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -975,12 +933,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targetattr_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targetattr_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - targetattr with one attribute, admin deleting aci'
@@ -1007,13 +963,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -1110,12 +1062,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targattrfilter_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targattrfilter_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - targattrfilter with add:,del:, admin deleting aci'
@@ -1142,13 +1092,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -1244,12 +1190,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targattrfilter_entry2a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targattrfilter_entry2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - targattrfilter with add: only, admin deleting aci'
@@ -1276,13 +1220,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -1343,12 +1283,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targattrfilter_entry3.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targattrfilter_entry3.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - targattrfilter with add: statement false, user adding entry in non-targeted branch'
@@ -1359,12 +1297,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targattrfilter_entry3a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_targattrfilter_entry3a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - targattrfilter with add: statement false, admin deleting aci'
@@ -1391,13 +1327,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -1459,12 +1391,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry1.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - Multi ACIs 1, user adding entry in non-targeted branch'
@@ -1475,12 +1405,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - Multi ACIs 1, admin deleting aci'
@@ -1507,13 +1435,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -1591,12 +1515,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry2a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - Multi ACIs 2, admin deleting aci'
@@ -1623,13 +1545,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -1708,12 +1626,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - Multi ACIs 3, user adding entry in non-targeted branch'
@@ -1724,12 +1640,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry3a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry3a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - Multi ACIs 3, admin deleting aci'
@@ -1756,13 +1670,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -1840,12 +1750,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry4a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry4a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - Multi ACIs 4, admin deleting aci'
@@ -1872,13 +1780,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -1957,12 +1861,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - Multi ACIs 5, user adding entry in non-targeted branch'
@@ -1973,12 +1875,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry5a.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_multi_aci_entry5a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Add: Add Entry - Multi ACIs 5, admin deleting aci'
@@ -2005,13 +1905,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeAdded'   : '%s/aci/aci_add_entry/add_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
               
                 <call function="'testCase_Postamble'"/>

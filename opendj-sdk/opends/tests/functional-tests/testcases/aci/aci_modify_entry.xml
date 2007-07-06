@@ -171,12 +171,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - userdn equals all, admin deleting aci'
@@ -203,13 +201,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -289,12 +283,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry2.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry2.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, user modifying entry from non-targeted branch'
@@ -305,12 +297,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry2a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr equals three attributes, admin deleting aci'
@@ -337,13 +327,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -423,13 +409,11 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry3.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry3.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
+
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, user modifying entry from non-targeted branch'
                 </message>
@@ -439,12 +423,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry3a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_entry3a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr not equals three attributes, admin deleting aci'
@@ -471,13 +453,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -539,12 +517,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_entry4.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_entry4.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - write not allowed, user modifying prohibited attr in entry from targeted branch'
@@ -555,12 +531,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_entry4.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_entry4.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - write not allowed, user modifying entry from non-targeted branch'
@@ -571,12 +545,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_entry4a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_entry4a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - write not allowed, admin deleting aci'
@@ -603,13 +575,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -691,12 +659,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying prohibited entry (by targattrfilter) from targeted branch'
@@ -707,12 +673,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.2.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.2.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying prohibited attr (by targetattr) in entry from targeted branch'
@@ -723,12 +687,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.3.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5.3.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, user modifying entry from non-targeted branch'
@@ -739,12 +701,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_entry5a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetattr and targattrfilter, overall allow, admin deleting aci'
@@ -771,13 +731,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -856,12 +812,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry6.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry6.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, user modifying entry from non-targeted branch'
@@ -872,12 +826,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry6a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry6a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetfilter with three statements with or, one statement true, admin deleting aci'
@@ -904,13 +856,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -989,12 +937,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry7.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry7.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , user modifying entry from non-targeted branch'
@@ -1005,12 +951,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry7a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_entry7a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - targetfilter not equals three statements with and, all statements true , admin deleting aci'
@@ -1037,13 +981,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1105,12 +1045,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry8.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry8.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 1, user modifying entry from non-targeted branch'
@@ -1121,12 +1059,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry8a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry8a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 1, admin deleting aci'
@@ -1153,13 +1089,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1237,12 +1169,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry9a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry9a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 2, admin deleting aci'
@@ -1269,13 +1199,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1338,12 +1264,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry10.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry10.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 3, user modifying entry from targeted branch'
@@ -1370,12 +1294,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry10a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry10a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 3, admin deleting aci'
@@ -1402,13 +1324,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1486,12 +1404,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry11a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry11a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 4, admin deleting aci'
@@ -1518,13 +1434,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1587,12 +1499,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 5, user modifying entry from targeted branch'
@@ -1619,12 +1529,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry12a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_multi_acis_entry12a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Modify Attribute Value - multiple ACIs 5, admin deleting aci'
@@ -1651,13 +1559,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1721,12 +1625,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - userdn equals dn, user modifying entry from targeted branch'
@@ -1753,12 +1655,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete1a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - userdn equals dn, admin deleting aci'
@@ -1785,13 +1685,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1871,12 +1767,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, user modifying entry from non-targeted branch'
@@ -1887,12 +1781,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr equals one attribute, admin deleting aci'
@@ -1919,13 +1811,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2005,12 +1893,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete3.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete3.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr not equals one attribute, user modifying entry from non-targeted branch'
@@ -2021,12 +1907,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_delete2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr not equals one attribute, admin deleting aci'
@@ -2053,13 +1937,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2121,12 +2001,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_delete4.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_delete4.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - write not allowed, user modifying prohibited attr in entry from targeted branch'
@@ -2137,12 +2015,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_delete4.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_delete4.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - write not allowed, user modifying entry from non-targeted branch'
@@ -2153,12 +2029,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_delete4a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_delete4a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - write not allowed, admin deleting aci'
@@ -2185,13 +2059,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2304,12 +2174,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5.3.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5.3.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, user modifying entry from non-targeted branch'
@@ -2320,12 +2188,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetattr and targattrfilter, overall allow, admin deleting aci'
@@ -2352,13 +2218,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2419,12 +2281,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete6.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete6.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetfilter with three statements with or, none true, user modifying entry from non-targeted branch'
@@ -2435,12 +2295,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete6a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete6a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetfilter with three statements with or, none true, admin deleting aci'
@@ -2467,13 +2325,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2534,12 +2388,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete7.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete7.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetfilter equals three statements with and, all statements false, user modifying entry from non-targeted branch'
@@ -2550,12 +2402,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete7a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete7a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Delete Attribute Value - targetfilter equals three statements with and, all statements false, admin deleting aci'
@@ -2582,13 +2432,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/del_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2652,12 +2498,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - userdn not equals dn, user modifying entry from targeted branch'
@@ -2684,12 +2528,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add1a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - userdn not equals dn, admin deleting aci'
@@ -2716,13 +2558,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2802,12 +2640,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add2.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add2.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, user modifying entry from non-targeted branch'
@@ -2818,12 +2654,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add2a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr equals one attribute not present, admin deleting aci'
@@ -2850,13 +2684,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2953,12 +2783,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add3.2.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add3.2.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, user modifying entry from non-targeted branch'
@@ -2969,12 +2797,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add3a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-write_add3a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr not equals attribute, add multi-values, admin deleting aci'
@@ -3001,13 +2827,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -3069,12 +2891,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_add4.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_add4.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - write not allowed, user modifying prohibited attr in entry from targeted branch'
@@ -3085,12 +2905,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_add4.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_add4.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - write not allowed, user modifying entry from non-targeted branch'
@@ -3101,12 +2919,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_add4a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_allow-read_add4a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - write not allowed, admin deleting aci'
@@ -3133,13 +2949,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -3220,12 +3032,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_add5.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_add5.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying prohibited entry (by targattrfilter) from targeted branch'
@@ -3252,12 +3062,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_add5.3.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_add5.3.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, user modifying entry from non-targeted branch'
@@ -3268,12 +3076,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targattrfilter_delete5a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetattr and targattrfilter, overall allow, admin deleting aci'
@@ -3300,13 +3106,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -3383,12 +3185,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete6a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_delete6a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with or, none true, admin deleting aci'
@@ -3415,13 +3215,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -3498,12 +3294,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_add7a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/mod_targetfilter_add7a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify: Add Attribute Value - targetfilter not equals three statements with and, all statements false, admin deleting aci'
@@ -3530,13 +3324,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_entry/add_common_prohibited_attr.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>

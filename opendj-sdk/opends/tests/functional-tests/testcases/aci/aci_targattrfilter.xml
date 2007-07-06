@@ -223,12 +223,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_title1a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_title1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals del:telephonenumber, user deleting roomnumber from targeted entry'
@@ -255,12 +253,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_title1b.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_title1b.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:title, admin deleting aci'
@@ -287,13 +283,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_carlicense1.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_carlicense1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -375,12 +367,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_title2.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_title2.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, user deleting roomnumber from targeted entry'
@@ -407,12 +397,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_roomnumber2a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_roomnumber2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals del:roomnumber, admin deleting aci'
@@ -439,13 +427,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_faxnumber2.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_faxnumber2.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -525,12 +509,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_mail3.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_mail3.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, user replacing l in non-targeted entry'
@@ -541,12 +523,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l3a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l3a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, admin deleting aci'
@@ -573,13 +553,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l3.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l3.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -643,12 +619,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_st4.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_st4.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, user replacing mail in targeted entry'
@@ -675,12 +649,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_st4a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_st4a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:st,del:st, admin deleting aci'
@@ -707,15 +679,11 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_st4.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_st4.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -809,12 +777,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l5a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l5a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:l,del:l, admin deleting aci'
@@ -841,13 +807,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l5.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_l5.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -926,12 +888,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_mail17.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_mail17.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:street,del:street wildcard only, street not present, user replacing street in non-targeted entry'
@@ -942,12 +902,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_street17a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_street17a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:street,del:street wildcard only, street not present, admin deleting aci'
@@ -974,15 +932,11 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_street17.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_street17.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -1043,12 +997,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_title6.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_title6.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards, user replacing title in non-targeted entry'
@@ -1059,12 +1011,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_title6a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_title6a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Targattrfilter: Targattrfilter equals add:title,del:title with wildcards, admin deleting aci'
@@ -1091,15 +1041,11 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_title6.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/replace_title6.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -1137,15 +1083,11 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                }
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -1183,13 +1125,9 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1229,13 +1167,11 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                  }
                 </call>
     
-                <if expr="RC != 21">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <!-- The following operation can be removed when Issue 1473 is fixed. -->
                 <message>
                    'ACI: Targattrfilter: Targattrfilter with mispelled del with add, admin deleting aci'
@@ -1291,12 +1227,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                  }
                 </call>
-    
-                <if expr="RC != 21">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <!-- The following operation can be removed when Issue 1473 is fixed. -->
                 <message>
@@ -1353,15 +1287,11 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                }
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -1399,12 +1329,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                  }
                 </call>
-    
-                <if expr="RC != 21">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <!-- The following operation can be removed when Issue 1473 is fixed. -->
                 <message>
@@ -1461,13 +1389,9 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1507,13 +1431,9 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1553,13 +1473,9 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1599,13 +1515,9 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1701,13 +1613,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_carlicense18.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/add_carlicense18.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>

@@ -197,16 +197,14 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'dsBaseDN'         : 'dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'extraParams'      : '-s base' }
+                    'extraParams'      : '-s base' ,
+                    'expectedRC'       : 49
+                  }
                 </call>
     
                 <script> 
                  returnString = STAXResult[0][1]
                 </script> 
-    
-                <if expr="RC != 49">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Import Tasks: import-ldif, user adding leave lockdown task'

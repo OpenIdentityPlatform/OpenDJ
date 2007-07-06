@@ -181,12 +181,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - userdn equals all, admin deleting aci'
@@ -214,15 +212,11 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
 
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -311,12 +305,10 @@
                     'dsInstanceDn'          : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                  'ACI: Compare: Compare Attr - userdn not equals a dn, user comparing attribute in non-targeted branch'
@@ -328,12 +320,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - userdn not equals a dn, admin deleting aci'
@@ -361,13 +351,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -430,12 +416,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                  'ACI: Compare: Compare Attr - userdn equals a branch dn, user comparing attribute in targeted branch'
@@ -447,12 +431,10 @@
                     'dsInstanceDn'          : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                  'ACI: Compare: Compare Attr - userdn equals a branch dn, user comparing attribute in non-targeted branch'
@@ -464,12 +446,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - userdn equals a branch dn, admin deleting aci'
@@ -497,13 +477,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -620,12 +596,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - userdn not equals a branch dn, admin deleting aci'
@@ -653,13 +627,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -776,12 +746,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - userdn equals two dns, admin deleting aci'
@@ -809,13 +777,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -878,12 +842,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                  'ACI: Compare: Compare Attr - userdn not equals two dns, user comparing attribute in targeted branch'
@@ -895,12 +857,10 @@
                     'dsInstanceDn'          : 'uid=buser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                <message>
                  'ACI: Compare: Compare Attr - userdn not equals two dns, user comparing attribute in non-targeted branch'
@@ -912,12 +872,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - userdn not equals two dns, admin deleting aci'
@@ -945,13 +903,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1012,12 +966,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                  'ACI: Compare: Compare Attr - userdn compare not allowed, user comparing attribute in non-targeted branch'
@@ -1029,12 +981,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - userdn compare not allowed, admin deleting aci'
@@ -1062,13 +1012,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1159,12 +1105,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'roomnumber:4376',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                  'ACI: Compare: Compare Attr - targetattr with one attribute, user comparing attribute in non-targeted branch'
@@ -1176,12 +1120,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - targetattr with one attribute, admin deleting aci'
@@ -1209,13 +1151,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1306,12 +1244,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'roomnumber:4376',
-                    'entryToBeCompared'     : 'uid=jrunner, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=jrunner, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                  <message>
                  'ACI: Compare: Compare Attr - targetfilter with one statement, user comparing attribute in non-targeted branch'
@@ -1323,12 +1259,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - targetfilter with one statement, admin deleting aci'
@@ -1356,13 +1290,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1479,12 +1409,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, admin deleting aci'
@@ -1512,13 +1440,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1635,12 +1559,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=non-aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - targetattrfilter with add:,del:, returns false, admin deleting aci'
@@ -1668,13 +1590,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1735,12 +1653,10 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Santa Clara',
-                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                    'entryToBeCompared'     : 'uid=tclow, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
-
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'ACI: Compare: Compare Attr - Multi ACIs 1, overall deny, admin deleting aci'
@@ -1768,13 +1684,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1879,13 +1791,9 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'attrToBeCompared'      : 'l:Cupertino',
-                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
-                </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeCompared'     : 'uid=jreuter, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                    'expectedRC'            : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>

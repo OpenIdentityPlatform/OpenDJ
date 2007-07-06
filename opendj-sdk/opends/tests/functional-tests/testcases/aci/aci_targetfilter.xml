@@ -2926,12 +2926,10 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'          : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter With Missing Quotes, user searching targeted entry'
@@ -2995,12 +2993,10 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'          : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter With Missing Quotes 2, user searching targeted entry'
@@ -3064,12 +3060,10 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'          : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter With Improperly Formatted Filter with or, user searching targeted entry'
@@ -3133,12 +3127,10 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_targetfilter/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'          : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetfilter: Targetfilter With Improperly Formatted Filter with and, user searching targeted entry'

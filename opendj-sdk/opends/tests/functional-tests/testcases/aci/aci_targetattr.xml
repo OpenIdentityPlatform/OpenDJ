@@ -1008,12 +1008,10 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'          : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetattr: Multiple Targets - check aci'
@@ -1074,12 +1072,10 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'          : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetattr: Keyword Targetattr Mispelled - check aci'
@@ -1140,12 +1136,10 @@
                   'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'          : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Targetattr: Targetattr With Missing Quotes - check aci'
@@ -1371,12 +1365,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Targetattr Not Equals Wildcard, user searching targeted entry'
@@ -1509,12 +1501,10 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_targetattr/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'          : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <call function="'testCase_Postamble'"/>
   

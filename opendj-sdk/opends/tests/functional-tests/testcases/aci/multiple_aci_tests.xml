@@ -3124,12 +3124,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_mail31.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_mail31.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with add:l and del:l, user replacing l in non-targeted entry'
@@ -3140,12 +3138,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l31a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l31a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with add:l and del:l, admin deleting aci'
@@ -3172,13 +3168,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l31.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l31.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -3240,12 +3232,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l32.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l32.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with deny add:l and allow del:l, user replacing mail in targeted entry'
@@ -3256,12 +3246,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_mail32.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_mail32.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with deny add:l and allow del:l, user replacing l in non-targeted entry'
@@ -3272,12 +3260,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l32a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l32a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with deny add:l and allow del:l, admin deleting aci'
@@ -3304,13 +3290,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l32.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l32.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -3372,12 +3354,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l33.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l33.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with allow add:l and deny del:l, user replacing mail in targeted entry'
@@ -3388,12 +3368,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_mail33.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_mail33.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with allow add:l and deny del:l, user replacing l in non-targeted entry'
@@ -3404,12 +3382,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l33a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l33a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targattrfilters with allow add:l and deny del:l, admin deleting aci'
@@ -3436,13 +3412,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l33.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l33.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -3518,12 +3490,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title34.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title34.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs, user modifying entry from non-targeted branch'
@@ -3534,12 +3504,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l34a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l34a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs, admin deleting aci'
@@ -3566,13 +3534,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -3697,13 +3661,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -3781,12 +3741,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title36.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title36.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with equals and not equals, user modifying prohibited attr in entry from targeted branch'
@@ -3797,12 +3755,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title36.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title36.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with equals and not equals, user modifying entry from non-targeted branch'
@@ -3813,12 +3769,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l36a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l36a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with equals and not equals, admin deleting aci'
@@ -3845,13 +3799,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -3929,12 +3879,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title37.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title37.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with not equals, user modifying prohibited attr in entry from targeted branch'
@@ -3945,12 +3893,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title37.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title37.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with not equals, user modifying entry from non-targeted branch'
@@ -3961,12 +3907,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l37a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l37a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with not equals, admin deleting aci'
@@ -3993,13 +3937,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -4076,12 +4016,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title38.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title38.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with deny, user modifying prohibited attr in entry from targeted branch'
@@ -4092,12 +4030,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title38.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title38.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with deny, user modifying entry from non-targeted branch'
@@ -4108,12 +4044,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l38a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l38a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs and targattrfilters with deny, admin deleting aci'
@@ -4140,13 +4074,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -4207,12 +4137,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l39.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l39.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with deny and targattrfilters , user modifying prohibited attr in entry from targeted branch'
@@ -4223,12 +4151,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title39.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title39.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with deny and targattrfilters , user modifying prohibited attr in entry from targeted branch'
@@ -4239,12 +4165,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title39.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_title39.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with deny and targattrfilters , user modifying entry from non-targeted branch'
@@ -4255,12 +4179,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l37a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/replace_l37a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Multiple ACIs: Separate targetattrs with deny and targattrfilters , admin deleting aci'
@@ -4287,13 +4209,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/multiple_aci_tests/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>

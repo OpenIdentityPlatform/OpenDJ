@@ -1024,13 +1024,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targetscope/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                 <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_targetscope/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1068,13 +1064,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targetscope/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                 <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_targetscope/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1112,13 +1104,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targetscope/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
-                </call>
-    
-                 <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 21 }
+                    'entryToBeModified'   : '%s/aci/aci_targetscope/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'          : 21
+                }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
