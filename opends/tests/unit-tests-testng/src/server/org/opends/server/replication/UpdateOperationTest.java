@@ -1283,6 +1283,20 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       if (found == false)
         fail("The modification has not been correctly replayed.");
+      
+      // Test that replication is able to add attribute that do
+      // not exist in the schema.
+      List<Modification> invalidMods = generatemods("badattribute", "value");
+      modMsg = new ModifyMsg(gen.newChangeNumber(), personWithUUIDEntry.getDN(),
+          invalidMods, user1entryUUID);
+      if (assured)
+        modMsg.setAssured();
+      broker.publish(modMsg);
+
+      found = checkEntryHasAttribute(
+          personWithUUIDEntry.getDN(), "badattribute", "value", 10000, true);
+      if (found == false)
+        fail("The modification has not been correctly replayed.");
 
       /*
        * Test the Reception of Modify Dn Msg

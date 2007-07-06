@@ -1501,9 +1501,11 @@ modifyDNProcessing:
           }
         }
 
-
-        // Make sure that the resulting entry is valid as per the server schema.
-        if (DirectoryServer.checkSchema())
+        // If the server is configured to check the schema and the
+        // operation is not a synchronization operation,
+        // make sure that the resulting entry is valid as per the server schema.
+        if ((DirectoryServer.checkSchema()) &&
+            (!isSynchronizationOperation()) )
         {
           StringBuilder invalidReason = new StringBuilder();
           if (! newEntry.conformsToSchema(null, false, true, true,

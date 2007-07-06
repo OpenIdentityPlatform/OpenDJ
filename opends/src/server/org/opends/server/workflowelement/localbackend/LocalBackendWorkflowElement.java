@@ -1250,10 +1250,12 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               break modifyProcessing;
             }
 
-
-            // Make sure that all the new values are valid according to the
+            // If the server is configured to check schema and the
+            // operation is not a synchronization operation,
+            // make sure that all the new values are valid according to the
             // associated syntax.
-            if (DirectoryServer.checkSchema())
+            if ((DirectoryServer.checkSchema()) &&
+                (!localOp.isSynchronizationOperation()) )
             {
               AcceptRejectWarn syntaxPolicy =
                 DirectoryServer.getSyntaxEnforcementPolicy();
@@ -1467,11 +1469,13 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               break;
             }
 
-
-            // Make sure that all the new values are valid according to the
+            // If the server is configured to check schema and the
+            // operation is not a synchronization operation,
+            // make sure that all the new values are valid according to the
             // associated syntax.
             newValues = a.getValues();
-            if (DirectoryServer.checkSchema())
+            if ((DirectoryServer.checkSchema()) &&
+                (!localOp.isSynchronizationOperation()) )
             {
               AcceptRejectWarn syntaxPolicy =
                 DirectoryServer.getSyntaxEnforcementPolicy();
@@ -1937,8 +1941,11 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             break modifyProcessing;
         }
 
-        // Make sure that the new entry is valid per the server schema.
-        if (DirectoryServer.checkSchema())
+        // If the server is configured to check the schema and the
+        // operation is not a sycnhronization operation,
+        // make sure that the new entry is valid per the server schema.
+        if ((DirectoryServer.checkSchema()) &&
+            (!localOp.isSynchronizationOperation()) )
         {
           StringBuilder invalidReason = new StringBuilder();
           if (! modifiedEntry.conformsToSchema(null, false, false, false,
@@ -4964,10 +4971,12 @@ addProcessing:
           }
         }
 
-
-        // Check to see if the entry is valid according to the server schema,
+        // If the server is configured to check schema and the
+        // operation is not a synchronization operation,
+        // check to see if the entry is valid according to the server schema,
         // and also whether its attributes are valid according to their syntax.
-        if (DirectoryServer.checkSchema())
+        if ((DirectoryServer.checkSchema()) &&
+            (!localOp.isSynchronizationOperation()) )
         {
           StringBuilder invalidReason = new StringBuilder();
           if (! entry.conformsToSchema(parentEntry, true, true, true,
