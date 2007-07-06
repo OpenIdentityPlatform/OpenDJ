@@ -56,24 +56,51 @@
                   'result'     : STAXResult }
             </call>
 
-            <!--- Unconfigure JKS Keystore -->
-            <message>
-               'Security: TLS: Postamble Step 2. Unconfiguring JKS Keystore'
-            </message>
+				
+     
+         <!--- Disable SSL Trust Manager Provider -->
+         <message>   'Disabling SSL Trust Manager Provider' </message>
 
-            <call function="'unconfigureTLS'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+         <call function="'modifyEntry'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'keystoreType'   : '%s' % 'startTLS' }
-            </call>
+                'entryToBeModified' : '%s/security/startTLS/teardown/disable_trust_mgr_provider.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }			 
+         </call>
 
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
 
+
+         <!--- Disable Key Manager Provider -->
+         <message>
+          'Disabling Key Manager Provider'
+         </message>
+
+         <call function="'modifyEntry'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+               'entryToBeModified' : '%s/security/startTLS/teardown/disable_key_mgr_provider.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }			 
+         </call>
+      
+					   
+         <!--- Disable StartTLS -->
+         <message>
+           'Disabling StartTLS'
+         </message>
+
+         <call function="'modifyEntry'">
+                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified' : '%s/security/startTLS/teardown/disable_startTLS.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }			 
+         </call>
+						
             <!--- Remove JKS Keystore -->
             <message>
                'Security: TLS: Postamble Step 3. Removing JKS Keystore'
@@ -103,11 +130,6 @@
                 'dsFilter'         : 'objectclass=*' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>

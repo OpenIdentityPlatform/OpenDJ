@@ -51,10 +51,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: TLS: Preamble Step 2. Admin Enabling Force Password On Add'
             </message>
@@ -68,11 +64,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -95,10 +86,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: TLS: User Searching With Password'
             </message>
@@ -110,15 +97,10 @@
                 'dsInstancePswd'   : 'pizza' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -q -X' }
+                'extraParams'      : '-s base -q -X' ,
+                'expectedRC'       : 19 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 19  }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -141,10 +123,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: TLS: User Searching With Password'
             </message>
@@ -159,11 +137,6 @@
                 'extraParams'      : '-s base -q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -186,10 +159,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: TLS: Postamble Step 2. Adding Single New User'
             </message>
@@ -202,10 +171,6 @@
                 'entryToBeAdded'   : '%s/security/startTLS/force_pwd_change/add_entry2.ldif' % logsRemoteDataDir ,
                 'extraParams'      : '-q -X' }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: TLS: Postamble Step 3. User Searching With Password'
@@ -221,11 +186,6 @@
                 'extraParams'      : '-s base -q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -248,10 +208,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: TLS: Preamble Step 2. Admin Enabling Force Password On Reset'
             </message>
@@ -265,11 +221,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -292,11 +243,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult  }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -318,15 +264,10 @@
                 'dsInstancePswd'   : 'pizza' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -q -X' }
+                'extraParams'      : '-s base -q -X' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49  }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -346,12 +287,9 @@
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
                 'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_add_attr.ldif' % logsRemoteDataDir ,
-                'extraParams'      : '-q -X' }
+                'extraParams'      : '-q -X' ,
+                'expectedRC'       : 49 }
             </call>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: TLS: Checking For Existence of User-added Attribute'
@@ -364,15 +302,9 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'attrToBeCompared'   : 'pager:+1 999 555-1212',
                 'entryToBeCompared'   : 'uid=mdog,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
-                'extraParams'      : '-q -X' }
+                'extraParams'      : '-q -X' ,
+                'expectedRC'       : 16 }
             </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 16  }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -392,12 +324,9 @@
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
                 'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_del_attr.ldif' % logsRemoteDataDir ,
-                'extraParams'      : '-q -X' }
+                'extraParams'      : '-q -X' ,
+                'expectedRC'       : 49 }
             </call>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: TLS: Checking For Existence of User-deleted Attribute'
@@ -413,11 +342,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -438,13 +362,8 @@
                 'dsInstancePswd'   : 'pizza' ,
                 'attrToBeCompared'   : 'l:Sunnyvale',
                 'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'extraParams'      : '-q -X' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49  }
+                'extraParams'      : '-q -X' ,
+                'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -467,13 +386,8 @@
                 'dsInstancePswd'   : 'adminpizza' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -q -X' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 19  }
+                'extraParams'      : '-s base -q -X' ,
+                'expectedRC'       : 19 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -498,10 +412,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: TLS: User Searching With Assigned Password'
             </message>
@@ -513,12 +423,10 @@
                 'dsInstancePswd'   : 'adminpizza' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -q -X' }
+                'extraParams'      : '-s base -q -X' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: TLS: User Searching With New Password'
@@ -534,11 +442,6 @@
                 'extraParams'      : '-s base -q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -561,11 +464,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -588,11 +486,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -615,10 +508,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: TLS: User Searching With Password'
             </message>
@@ -633,11 +522,6 @@
                 'extraParams'      : '-s base -q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -660,11 +544,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -687,11 +566,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -719,12 +593,9 @@
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'adminshortpizza' ,
                 'entryToBeModified'   : '%s/security/startTLS/force_pwd_change/user_change_pwd3.ldif' % logsRemoteDataDir ,
-                'extraParams'      : '-q -X' }
+                'extraParams'      : '-q -X' ,
+                'expectedRC'       : 49 }
             </call>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: TLS: User Searching With Password'
@@ -737,13 +608,8 @@
                 'dsInstancePswd'   : 'newshortpizza' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -q -X' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49  }
+                'extraParams'      : '-s base -q -X' ,
+                'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -768,10 +634,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: TLS: Postamble Step 2. Admin Disabling Force Password On Reset'
             </message>
@@ -785,11 +647,6 @@
                 'extraParams'      : '-q -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
