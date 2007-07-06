@@ -1426,7 +1426,7 @@
         else:
           stopDS='no'
       </script>
-      
+
       <!-- Do we need to start the DS -->
       <if expr="startDS == 'yes'">
         <sequence>
@@ -1486,13 +1486,9 @@
              'dsInstanceDn'   : mydn ,
              'dsInstancePswd' : mypswd ,
              'dsBaseDN'       : '%s' % missingEntry ,
-             'dsFilter'       : 'objectclass=*' 
+             'dsFilter'       : 'objectclass=*' ,
+             'expectedRC'     : 32
             }
-          </call>
-          <call function="'checktestRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult,
-              'expected'   : 32 }
           </call>
         </sequence>
       </iterate>
