@@ -89,7 +89,7 @@ public class UIFactory
   /**
    * Specifies the extra left inset for the sub-steps.
    */
-  public static final int LEFT_INSET_SUBSTEP = 10;
+  public static final int LEFT_INSET_SUBSTEP = 20;
   /**
    * Specifies the top inset for the instructions sub panel.
    */

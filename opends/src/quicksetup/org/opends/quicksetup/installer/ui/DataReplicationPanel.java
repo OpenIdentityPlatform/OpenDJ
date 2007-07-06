@@ -299,6 +299,33 @@ public class DataReplicationPanel extends QuickSetupStepPanel
   }
 
   /**
+   * {@inheritDoc}
+   */
+  protected String getTextForIcon(UIFactory.IconType iconType)
+  {
+    String text;
+    if ((iconType == UIFactory.IconType.WAIT) &&
+        rbReplicated.isSelected() && cbTopologyExists.isSelected())
+    {
+      text = getMsg("contacting-server-label");
+    }
+    else
+    {
+      text = super.getTextForIcon(iconType);
+    }
+    return text;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  protected boolean hasCheckingLabel()
+  {
+    return true;
+  }
+
+  /**
    * Returns the default value for the provided field Name.
    * @param fieldName the field name for which we want to get the default
    * value.

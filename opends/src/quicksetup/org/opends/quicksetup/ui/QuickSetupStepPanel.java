@@ -64,6 +64,7 @@ implements HyperlinkListener
 {
   private Component inputPanel;
 
+  private JLabel checkingLabel;
   private HashSet<ButtonActionListener> buttonListeners =
     new HashSet<ButtonActionListener>();
 
@@ -232,6 +233,39 @@ implements HyperlinkListener
   }
 
   /**
+   * This method sets up an icon on the bottom left side of the dialog.
+   * Generally this method is called with an animated gif that is passed to
+   * display progress.
+   * @param iconType the icon type to be set.
+   */
+  public void setIcon(UIFactory.IconType iconType)
+  {
+    checkingLabel.setIcon(UIFactory.getImageIcon(iconType));
+    checkingLabel.setText(getTextForIcon(iconType));
+  }
+
+  /**
+   * Returns the text to be displayed in the progress label for a give icon
+   * type.
+   * @param iconType the icon type.
+   * @return the text to be displayed in the progress label for a give icon
+   * type.
+   */
+  protected String getTextForIcon(UIFactory.IconType iconType)
+  {
+    String text;
+    if (iconType == UIFactory.IconType.WAIT)
+    {
+      text = getMsg("general-checking-data");
+    }
+    else
+    {
+      text = "";
+    }
+    return text;
+  }
+
+  /**
    * Notifies the button action listeners that an event occurred.
    * @param ev the button event to be notified.
    */
@@ -308,10 +342,22 @@ implements HyperlinkListener
       gbc.insets.left = 0;
       add(inputPanel, gbc);
       somethingAdded = true;
-
     } else
     {
       addVerticalGlue(this);
+    }
+
+    checkingLabel = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON, "",
+        UIFactory.TextStyle.PROGRESS);
+    if (hasCheckingLabel())
+    {
+      gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
+      gbc.insets.bottom = 0;
+      gbc.insets.left = 0;
+      gbc.weighty = 0.0;
+      gbc.anchor = GridBagConstraints.NORTHWEST;
+      gbc.fill = GridBagConstraints.HORIZONTAL;
+      add(checkingLabel, gbc);
     }
   }
 
@@ -349,6 +395,15 @@ implements HyperlinkListener
     panel.add(Box.createVerticalGlue(), gbc);
   }
 
+  /**
+   * Tells whether we must add a label at the bottom left of the panel
+   * containing an icon that will show that we are doing some checkings.
+   * @return true if the checking label must be added and false otherwise.
+   */
+  protected boolean hasCheckingLabel()
+  {
+    return false;
+  }
   /**
    * This method is called by the URLWorker when it has finished its task.
    * @param worker the URLWorker that finished its task.
@@ -543,3 +598,4 @@ implements HyperlinkListener
     worker.startBackgroundTask();
   }
 }
+

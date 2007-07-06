@@ -225,13 +225,27 @@ public class CurrentStepPanel extends QuickSetupPanel
   /**
    * Forwards the different panels the ProgressDescriptor so that they
    * can update their contents accordingly.
-   * @param descriptor the descriptor of the Uninstallation progress.
+   * @param descriptor the descriptor of the Application progress.
    */
   public void displayProgress(ProgressDescriptor descriptor)
   {
     for (WizardStep s : hmPanels.keySet())
     {
       getPanel(s).displayProgress(descriptor);
+    }
+  }
+
+  /**
+   * This method sets up an icon on the bottom left side of the dialog.
+   * Generally this method is called with an animated gif that is passed to
+   * display progress.
+   * @param iconType the icon type to be set.
+   */
+  public void setIcon(UIFactory.IconType iconType)
+  {
+    for (WizardStep s : hmPanels.keySet())
+    {
+      getPanel(s).setIcon(iconType);
     }
   }
 

@@ -39,6 +39,8 @@ import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.Utils;
 
 import javax.swing.*;
+
+import java.awt.Cursor;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.logging.Handler;
@@ -428,7 +430,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       public void backgroundTaskCompleted(Object returnValue,
           Throwable throwable)
       {
-        getDialog().workerFinished();
+        getDialog().getFrame().setCursor(
+            Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 
         if (throwable != null)
         {
@@ -436,7 +439,8 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
         }
       }
     };
-    getDialog().workerStarted();
+    getDialog().getFrame().setCursor(
+        Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     worker.startBackgroundTask();
   }
 
