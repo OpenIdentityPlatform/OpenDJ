@@ -219,14 +219,11 @@
                   'dsInstanceDn'     : server2.getRootDn() ,
                   'dsInstancePswd'   : server2.getRootPwd() ,
                   'dsBaseDN'         : entryDn,
-                  'dsFilter'         : 'objectclass=*' }                  
+                  'dsFilter'         : 'objectclass=*' ,
+                  'expectedRC'       : 32
+                }                  
               </call>
     
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 32 }
-              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
