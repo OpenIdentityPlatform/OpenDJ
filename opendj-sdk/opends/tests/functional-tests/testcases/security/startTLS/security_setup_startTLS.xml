@@ -42,26 +42,29 @@
                'Security: TLS: Preamble Step 1. Generating Server Certicate'
             </message>
 
-            <call function="'genServerJKSCert'">
-            </call>
-
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+           <call function="'genCertificate'">
+            { 'certAlias'        : 'server-cert' ,
+               'dname'           : "cn=client,O=Sun Microsystems,C=US",
+               'keystore'        : 'keystore',
+               'storepass'       : 'servercert',
+               'keypass'         : 'servercert',
+               'storetype'  	   : 'JKS' }
+           </call>  
 
             <!--- Self-Sign Server Cert -->
             <message>
                'Security: TLS: Preamble Step 2. Self-Signing Server Certicate'
             </message>
 
-            <call function="'selfSignServerJKSCert'">
-            </call>
 
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+           <call function="'SelfSignCertificate'">
+            { 'certAlias'        : 'server-cert' ,
+              'storepass'       : 'servercert',
+              'keypass'         : 'servercert',
+              'keystore'        : 'keystore',
+              'storetype'  	   : 'JKS' }
+            </call>			  
+   
 
             <!--- Configure JKS Keystore -->
             <message>
@@ -76,7 +79,7 @@
                 'keystoreType'   : '%s' % 'startTLS' }
             </call>
 
-            <call function="'checkRC'">
+            <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -96,11 +99,6 @@
                 'extraParams'  	   : '-q -X -s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
