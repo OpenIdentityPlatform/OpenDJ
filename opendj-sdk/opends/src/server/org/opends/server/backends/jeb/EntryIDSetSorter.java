@@ -131,10 +131,10 @@ public class EntryIDSetSorter
       if (vlvRequest.getTargetType() == VLVRequestControl.TYPE_TARGET_BYOFFSET)
       {
         int targetOffset = vlvRequest.getOffset();
-        int listOffset = targetOffset - 1; // VLV offsets start at 1, not 0.
-        int startPos = listOffset - beforeCount;
-        if (startPos < 0)
+        if (targetOffset < 0)
         {
+          // The client specified a negative target offset.  This should never
+          // be allowed.
           searchOperation.addResponseControl(
                new VLVResponseControl(targetOffset, sortMap.size(),
                                       LDAPResultCode.OFFSET_RANGE_ERROR));
@@ -144,17 +144,32 @@ public class EntryIDSetSorter
           throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR,
                                        message, msgID);
         }
+        else if (targetOffset == 0)
+        {
+          // This is an easy mistake to make, since VLV offsets start at 1
+          // instead of 0.  We'll assume the client meant to use 1.
+          targetOffset = 1;
+        }
+
+        int listOffset = targetOffset - 1; // VLV offsets start at 1, not 0.
+        int startPos = listOffset - beforeCount;
+        if (startPos < 0)
+        {
+          // This can happen if beforeCount >= offset, and in this case we'll
+          // just adjust the start position to ignore the range of beforeCount
+          // that doesn't exist.
+          startPos    = 0;
+          beforeCount = listOffset;
+        }
         else if (startPos >= sortMap.size())
         {
-          searchOperation.addResponseControl(
-               new VLVResponseControl(targetOffset, sortMap.size(),
-                                      LDAPResultCode.OFFSET_RANGE_ERROR));
-
-          int    msgID   = MSGID_ENTRYIDSORTER_OFFSET_TOO_LARGE;
-          String message = getMessage(msgID, vlvRequest.getOffset(),
-                                      sortMap.size());
-          throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR,
-                                       message, msgID);
+          // The start position is beyond the end of the list.  In this case,
+          // we'll assume that the start position was one greater than the
+          // size of the list and will only return the beforeCount entries.
+          targetOffset = sortMap.size() + 1;
+          listOffset   = sortMap.size();
+          startPos     = listOffset - beforeCount;
+          afterCount   = 0;
         }
 
         int count = 1 + beforeCount + afterCount;
@@ -253,14 +268,9 @@ public class EntryIDSetSorter
 
         if (! targetFound)
         {
-          searchOperation.addResponseControl(
-               new VLVResponseControl(sortMap.size(), sortMap.size(),
-                                      LDAPResultCode.OFFSET_RANGE_ERROR));
-
-          int    msgID   = MSGID_ENTRYIDSORTER_TARGET_VALUE_NOT_FOUND;
-          String message = getMessage(msgID);
-          throw new DirectoryException(ResultCode.VIRTUAL_LIST_VIEW_ERROR,
-                                       message, msgID);
+          // No entry was found to be greater than or equal to the sort key, so
+          // the target offset will be one greater than the content count.
+          targetOffset = sortMap.size() + 1;
         }
 
         sortedIDs = new long[listSize];
