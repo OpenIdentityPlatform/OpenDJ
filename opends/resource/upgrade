@@ -136,8 +136,7 @@ do
 done
 export CLASSPATH
 "${JAVA_BIN}" org.opends.quicksetup.upgrader.BuildExtractor "${@}"
-RETURN_CODE=$?
-if test ${RETURN_CODE} -eq 0
+if test $? -eq 0
 then
   # Configure the appropriate CLASSPATH.
   # Unlike BuildExtractor, the Upgrader uses
@@ -149,10 +148,6 @@ then
   done
   # Launch the upgrade process.
   "${JAVA_BIN}" org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
-elif test ${RETURN_CODE} -eq 50
-then
-  # Version info was on requested
-  exit 0
 else
   exit 101
 fi

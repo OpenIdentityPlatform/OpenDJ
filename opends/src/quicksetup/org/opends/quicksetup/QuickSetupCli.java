@@ -70,11 +70,6 @@ public class QuickSetupCli {
   static public int BUG = 5;
 
   /**
-   * Return code: It's not an error. Version info.
-   */
-  static public int VERSION_PRINT = 50;
-
-  /**
    * Return code for errors that are non-specified.
    */
   static public int UNKNOWN = 100;

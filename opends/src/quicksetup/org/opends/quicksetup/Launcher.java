@@ -305,23 +305,21 @@ public abstract class Launcher {
 
   /**
    * The main method which is called by the command lines.
-   *
-   * @return the error return code.
    */
-  public int launch() {
+  public void launch() {
     if (shouldPrintVersion())
     {
       printVersion();
-      return QuickSetupCli.VERSION_PRINT;
+      System.exit(QuickSetupCli.SUCCESSFUL);
     }
     else if (shouldPrintUsage()) {
       printUsage(false);
-      return QuickSetupCli.SUCCESSFUL;
+      System.exit(QuickSetupCli.SUCCESSFUL);
     } else if (isCli()) {
       CliApplication cliApp = createCliApplication();
       int exitCode = launchCli(args, cliApp);
       preExit(cliApp);
-      return exitCode;
+      System.exit(exitCode);
     } else {
       willLaunchGui();
       int exitCode = launchGui(args);
@@ -339,17 +337,10 @@ public abstract class Launcher {
         exitCode = launchCli(args, cliApp);
         if (exitCode != 0) {
           preExit(cliApp);
-          return exitCode;
+          System.exit(exitCode);
         }
       }
-      else
-      {
-        return exitCode ;
-      }
     }
-
-    // We should never reach this code
-    return QuickSetupCli.UNKNOWN;
   }
 
   private void preExit(CliApplication cliApp) {

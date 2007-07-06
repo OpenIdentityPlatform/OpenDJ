@@ -72,9 +72,7 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
               ResourceProvider.getInstance().getMsg("error-initializing-log"));
       t.printStackTrace();
     }
-    Launcher launcher = new BuildExtractor(args);
-    int returnCode = launcher.launch();
-    System.exit(returnCode);
+    new BuildExtractor(args).launch();
   }
 
   private BuildExtractorCliHelper helper = new BuildExtractorCliHelper();
