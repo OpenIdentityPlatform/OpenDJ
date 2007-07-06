@@ -74,9 +74,7 @@
           </sequence>
         </else>
       </if>
-      
       <return>RC</return>
-      
     </sequence>
   </function>
 
@@ -104,30 +102,34 @@
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
     </function-map-args>  
-    <sequence>
+    <sequence>		
       <if expr="returncode == expected">
         <sequence>
-          <tcstatus result="'pass'"/>
+          <if expr="STAXCurrentTestcase != None">
+            <sequence>
+              <tcstatus result="'pass'"/>				  
+            </sequence>
+          </if>  			
           <message log="1">
-            'RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+            'SUCCESS: RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
           </message>
           <script>
             RC=0
           </script>
         </sequence>
-        <else>
-          <sequence>
-            <tcstatus result="'fail'"/>
-            <message log="1" level="'Error'">
-              'RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
-            </message>
-            <script>
-              RC=1
-            </script>				  
-          </sequence>
-        </else>
+      <else>
+        <sequence>
+          <if expr="STAXCurrentTestcase != None">
+            <sequence>
+              <tcstatus result="'fail'"/>				  
+            </sequence>
+          </if>  			           
+          <message log="1" level="'Error'">
+            'ERROR : RC=%s, Expected %s, Result=%s' % (returncode,expected,result)
+          </message>
+        </sequence>
+      </else>
       </if>
-      <return>RC</return>		
     </sequence>
   </function>
 
@@ -326,7 +328,7 @@
         mydn=dsInstanceDn
         mypswd=dsInstancePswd
       </script>
-    
+
       <script>ldapRC=9999</script>
       <loop from="1" to="noOfLoops" while="ldapRC != 0">
         <sequence>
@@ -339,7 +341,8 @@
               'dsInstancePswd' : mypswd ,
               'dsScope'        : 'base' ,
               'dsBaseDN'       : 'cn=config' ,
-              'dsFilter'	   : 'objectclass=*' }
+              'dsFilter'	   : 'objectclass=*'
+            }
           </call>
 
           <script>
@@ -352,7 +355,7 @@
           
         </sequence>
       </loop>
-      
+
     </sequence>
   </function>
 
