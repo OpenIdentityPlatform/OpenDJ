@@ -49,9 +49,6 @@
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Change: Preamble Step 2. Admin Enabling Force Password On Add'
@@ -65,10 +62,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_force_pwd_add.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -89,10 +82,6 @@
                 'entryToBeAdded'   : '%s/security/pwd_policy/add_entry1.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Pwd Change: User Searching With Password'
             </message>
@@ -104,14 +93,10 @@
                 'dsInstancePswd'   : 'pizza' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+                'expectedRC'      : 19 }							
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 19  }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -132,9 +117,7 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_change_force_pwd.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
+         
 
             <message>
                'Security: Pwd Change: User Searching With Password'
@@ -150,10 +133,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -174,9 +153,7 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_add.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
+          
 
             <message>
                'Security: Pwd Change: Postamble Step 2. Adding Single New User'
@@ -190,9 +167,6 @@
                 'entryToBeAdded'   : '%s/security/pwd_policy/add_entry2.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Change: Postamble Step 3. User Searching With Password'
@@ -208,10 +182,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -232,10 +202,7 @@
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
+           
             <message>
                'Security: Pwd Change: Preamble Step 2. Admin Enabling Force Password On Reset'
             </message>
@@ -248,10 +215,7 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_force_pwd_reset.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+      
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -272,10 +236,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult  }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -295,14 +255,10 @@
                 'dsInstancePswd'   : 'pizza' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+                'expectedRC'       : 49 }							
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49  }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -320,12 +276,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_add_attr.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_add_attr.ldif' % logsRemoteDataDir,
+                'expectedRC'       : 49 }								
             </call>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Change: Checking For Existence of User-added Attribute'
@@ -337,14 +290,10 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'attrToBeCompared'   : 'pager:+1 999 555-1212',
-                'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' }
+                'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'expectedRC'       : 16 }								
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 16  }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -362,12 +311,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_del_attr.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_del_attr.ldif' % logsRemoteDataDir,
+                'expectedRC'       : 49 }								
             </call>
 
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Change: Checking For Existence of User-deleted Attribute'
@@ -382,10 +329,6 @@
                 'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -404,14 +347,10 @@
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
                 'attrToBeCompared'   : 'l:Sunnyvale',
-                'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' }
+                'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'expectedRC'       : 49 }								
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49  }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -431,14 +370,10 @@
                 'dsInstancePswd'   : 'adminpizza' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+                'expectedRC'       : 19 }								
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 19  }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -459,10 +394,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd3.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Pwd Change: User Searching With Assigned Password'
             </message>
@@ -474,12 +405,10 @@
                 'dsInstancePswd'   : 'adminpizza' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }								
             </call>
 
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Change: User Searching With New Password'
@@ -495,10 +424,7 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -519,10 +445,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_max_reset_age_long.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -543,10 +465,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd4.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -567,9 +485,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd7.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Change: User Searching With Password'
@@ -585,10 +500,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -609,10 +520,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_max_reset_age_short.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -633,10 +540,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd5.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -662,12 +565,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'adminshortpizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd8.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd8.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 49 }								
             </call>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Change: User Searching With Password'
@@ -680,14 +580,10 @@
                 'dsInstancePswd'   : 'newshortpizza' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+                'expectedRC'       : 49 }									
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49  }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -708,9 +604,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_max_reset_age.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Change: Postamble Step 2. Admin Disabling Force Password On Reset'
@@ -724,10 +617,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_reset.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

@@ -72,9 +72,6 @@
                 'entryToBeModified'   : '%s/security/pwd_storage/admin_add_many_schemes.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Deprecated Pwd Schemes: Preamble Step 2. User Change Password'
@@ -87,10 +84,6 @@
                 'dsInstancePswd'   : 'squatted' ,
                 'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_depr_schemes.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
              <message>
                'Security: Deprecating Pwd Schemes: Preamble Step 3. Checking for MD5 Scheme Before Deprecating'
@@ -150,10 +143,6 @@
                 'entryToBeModified'   : '%s/security/pwd_storage/admin_depr_MD5.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Deprecated Pwd Schemes: Admin Removing MD5 Scheme From Default'
             </message>
@@ -166,11 +155,6 @@
                 'entryToBeModified'   : '%s/security/pwd_storage/admin_delete_MD5.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
          
           </sequence>
@@ -207,11 +191,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
          
           </sequence>
@@ -379,11 +358,6 @@
                 'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
               
           </sequence>

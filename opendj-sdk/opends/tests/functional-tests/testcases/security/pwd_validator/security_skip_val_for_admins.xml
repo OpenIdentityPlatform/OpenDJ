@@ -52,9 +52,6 @@
                 'entryToBeAdded'   : '%s/security/pwd_validator/add_sales_admin.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <!--- Admin Enable Pwd Length Validator -->
             <message>
@@ -69,11 +66,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_enable_pwd_length_validator.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -92,12 +84,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/root_change_pwd_too_short.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_validator/root_change_pwd_too_short.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 53 }
             </call>
-
-            <if expr="RC != 53">
-                <tcstatus result="'fail'"/>
-            </if>
 
            <!--- Root Search With Password -->
            <message>
@@ -111,15 +100,10 @@
                 'dsInstancePswd'   : 'grape' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -141,10 +125,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_enable_bypass_pwd_validator.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
            <message>
                'Security: Root User Bypass Valid: Bypass Enabled 1 - Step 2. Root Changing Password - Too Short'
             </message>
@@ -156,10 +136,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/pwd_validator/root_change_pwd_too_short.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
            <!--- Root Search With Password -->
            <message>
@@ -176,11 +152,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -202,9 +173,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_change_min_pwd_length.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <!--- User Change Password - Too Short-->
             <message>
@@ -218,10 +186,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/pwd_validator/root_change_pwd_too_short2.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <!--- Root Search With Password -->
             <message>
@@ -238,11 +202,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -264,12 +223,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'cn=Sales Admin' ,
                 'dsInstancePswd'   : 'goo' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/root_change_pwd_too_short3.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_validator/root_change_pwd_too_short3.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 53 }
             </call>
-
-            <if expr="RC != 53">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <!--- Root Search With Password -->
             <message>
@@ -283,15 +239,10 @@
                 'dsInstancePswd'   : 'gaa' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -316,10 +267,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/delete_sales_admin.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <!--- Root Search With Original Password -->
             <message>
                'Security: Root User Bypass Valid: Postamble - Step 2. Admin Disabling Bypass For Pwd Validator'
@@ -333,10 +280,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_disable_bypass_pwd_validator.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
            <message>
                'Security: Root User Bypass Valid: Postamble - Step 3. Admin Resetting Minimum Pwd Length'
             </message>
@@ -348,10 +291,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_min_pwd_length.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Root User Bypass Valid: Postamble - Step 4. Admin Disabling Pwd Length Validator On Root Users'
@@ -365,11 +304,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_disable_pwd_length_validator.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>

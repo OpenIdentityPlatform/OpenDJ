@@ -69,10 +69,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_change_CLEAR.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: SASL CRAM-MD5: Preamble Step 2 - Admin Changing User Password'
             </message>
@@ -85,11 +81,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -123,11 +114,6 @@
                 'extraParams'      : '-o mech=CRAM-MD5 -o authid=u:jrunner -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -161,10 +147,6 @@
                 'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:uid=jrunner,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             
             <call function="'testCase_Postamble'"/>
             
@@ -196,15 +178,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=CRAM-MD5 -o authid=u:jcrawler -w frogleg' }
+                'extraParams'      : '-o mech=CRAM-MD5 -o authid=u:jcrawler -w frogleg' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -238,11 +215,6 @@
                 'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:uid=jcrawler,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -278,10 +250,6 @@
                 'dsBaseDN'         : 'uid=jcrawler,ou=People,ou=Level One,o=SASL Tests,dc=example,dc=com' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: SASL CRAM-MD5: User With Duplicate uid (u:) Binding With CRAM-MD5 SASL Mechanism'
             </message>
@@ -294,11 +262,6 @@
                 'extraParams'      : '-o mech=CRAM-MD5 -o authid=u:jcrawler -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -337,10 +300,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_change_SSHA.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: SASL CRAM-MD5: Postamble Step 2 - Admin Changing User Password'
             </message>
@@ -353,10 +312,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd2.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: SASL CRAM-MD5: Postamble Step 3 - User (dn:) Binding With CRAM-MD5 SASL Mechanism'
             </message>
@@ -366,15 +321,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:uid=jrunner,ou=People,o=SASL Tests,dc=example,dc=com" -w catleg' }
+                'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:uid=jrunner,ou=People,o=SASL Tests,dc=example,dc=com" -w catleg' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>

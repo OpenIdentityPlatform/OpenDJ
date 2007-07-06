@@ -79,15 +79,10 @@
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
               'attrToBeCompared'   : 'ds-cfg-password-generator-dn:cn=anything',
-              'entryToBeCompared'   : 'cn=Root Password Policy,cn=Password Policies,cn=config' }
+              'entryToBeCompared'   : 'cn=Root Password Policy,cn=Password Policies,cn=config',
+              'expectedRC'         : 16 }
           </call>
 
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult ,
-                'expected'   : 16 }
-          </call>
-          
           <call function="'testCase_Postamble'"/>
           
         </sequence>
