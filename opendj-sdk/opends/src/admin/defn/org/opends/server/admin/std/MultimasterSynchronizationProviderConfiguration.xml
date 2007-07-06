@@ -51,9 +51,6 @@
       <ldap:rdn-sequence>cn=domains</ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
-      <cli:relation operand-name="DOMAIN" />
-    </adm:profile>
-    <adm:profile name="cli">
       <cli:relation>
         <cli:default-property name="server-id" />
         <cli:default-property name="replication-server" />

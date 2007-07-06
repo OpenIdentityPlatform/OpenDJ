@@ -52,31 +52,6 @@
         </xsl:if>
       </xsl:for-each>
       <xsl:value-of select="'&#xa;'" />
-      <xsl:if test="adm:one-to-many">
-        <!--
-          Generate operand names for one-to-many relations.
-        -->
-        <xsl:variable name="operand">
-          <xsl:choose>
-            <xsl:when
-              test="adm:profile[@name='cli']/cli:relation/@operand-name">
-              <xsl:value-of
-                select="adm:profile[@name='cli']/cli:relation/@operand-name" />
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:if test="not($this-is-root)">
-                <xsl:message>
-                  <xsl:value-of
-                    select="concat('relation ', @name, ' in managed object definition ', $this-name,' does not specify a CLI operand name, defaulting to NAME.')" />
-                </xsl:message>
-              </xsl:if>
-              <xsl:value-of select="'NAME'" />
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:variable>
-        <xsl:value-of
-          select="concat('relation.', @name, '.operand-name=', $operand, '&#xa;')" />
-      </xsl:if>
     </xsl:for-each>
   </xsl:template>
 </xsl:stylesheet>
