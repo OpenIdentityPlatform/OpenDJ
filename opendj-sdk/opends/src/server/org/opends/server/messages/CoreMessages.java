@@ -6394,7 +6394,8 @@ public class CoreMessages
     registerMessage(MSGID_RESULT_VIRTUAL_LIST_VIEW_ERROR,
                     "Virtual List View Error");
     registerMessage(MSGID_RESULT_OTHER, "Other");
-    registerMessage(MSGID_RESULT_CLIENT_SIDE_SERVER_DOWN, "Server Down");
+    registerMessage(MSGID_RESULT_CLIENT_SIDE_SERVER_DOWN,
+                            "Server Connection Closed");
     registerMessage(MSGID_RESULT_CLIENT_SIDE_LOCAL_ERROR, "Local Error");
     registerMessage(MSGID_RESULT_CLIENT_SIDE_ENCODING_ERROR, "Encoding Error");
     registerMessage(MSGID_RESULT_CLIENT_SIDE_DECODING_ERROR, "Decoding Error");
