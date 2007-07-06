@@ -56,7 +56,9 @@ import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 
+import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.GuiApplication;
@@ -343,6 +345,9 @@ implements Comparator<SuffixDescriptor>
       public void actionPerformed(ActionEvent ev)
       {
         checkEnablingState();
+        ButtonEvent be = new ButtonEvent(ev.getSource(),
+            ButtonName.INPUT_PANEL_BUTTON);
+        notifyButtonListeners(be);
       }
     };
     rbCreateNewSuffix.addActionListener(l);

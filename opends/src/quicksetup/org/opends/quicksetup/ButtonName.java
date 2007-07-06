@@ -29,7 +29,7 @@ package org.opends.quicksetup;
 
 /**
  * This enumeration defines the logical names of the buttons that appear on the
- * bottom of the wizard dialog.
+ * the wizard dialog.
  */
 public enum ButtonName
 {
@@ -60,5 +60,11 @@ public enum ButtonName
   /**
    * The Launch Status Panel button.
    */
-  LAUNCH_STATUS_PANEL
+  LAUNCH_STATUS_PANEL,
+  /**
+   * Input panel button.  This is used to identify generic buttons inside
+   * the panels and the notifications are used for instance to update the
+   * visibility of the steps on the right.
+   */
+  INPUT_PANEL_BUTTON
 }

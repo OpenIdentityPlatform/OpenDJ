@@ -96,7 +96,22 @@ public class StepsPanel extends QuickSetupPanel
               UIFactory.TextStyle.NOT_CURRENT_STEP);
         }
       }
-      setStepVisible(s, getApplication().isVisible(s));
+      setStepVisible(s, getApplication().isVisible(s, userData));
+    }
+  }
+
+  /**
+   * Updates the visiblitiy of the steps depending on the current contents
+   * of the panels (uses the QuickSetup to know what is displayed in the
+   * panels).
+   *
+   * @param qs the QuickSetup object.
+   */
+  public void updateStepVisibility(QuickSetup qs)
+  {
+    for (WizardStep s : getApplication().getWizardSteps())
+    {
+      setStepVisible(s, getApplication().isVisible(s, qs));
     }
   }
 

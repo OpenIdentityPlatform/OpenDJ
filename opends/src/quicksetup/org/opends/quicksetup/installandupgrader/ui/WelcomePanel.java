@@ -28,8 +28,10 @@
 package org.opends.quicksetup.installandupgrader.ui;
 
 import org.opends.quicksetup.ui.*;
+import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.event.BrowseActionListener;
+import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.installandupgrader.InstallAndUpgradeUserData;
 import org.opends.quicksetup.installandupgrader.InstallAndUpgrader;
 import org.opends.server.util.DynamicConstants;
@@ -154,6 +156,9 @@ public class WelcomePanel extends QuickSetupStepPanel {
       public void actionPerformed(ActionEvent ev)
       {
         checkEnablingState();
+        ButtonEvent be = new ButtonEvent(ev.getSource(),
+            ButtonName.INPUT_PANEL_BUTTON);
+        notifyButtonListeners(be);
       }
     };
     rbInstall.addActionListener(l);
@@ -171,6 +176,7 @@ public class WelcomePanel extends QuickSetupStepPanel {
     gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
     p.add(rbUpgrade, gbc);
     gbc.insets.left = UIFactory.LEFT_INSET_RADIO_SUBORDINATE;
+
     p.add(createUpgraderPanel(), gbc);
 
     gbc.insets.top = 0;
