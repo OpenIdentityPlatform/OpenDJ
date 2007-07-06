@@ -1258,7 +1258,7 @@ public class TextAccessLogPublisher
     LinkedHashSet<String> attrs = searchOperation.getAttributes();
     if ((attrs == null) || attrs.isEmpty())
     {
-      buffer.append("\"");
+      buffer.append("\" attrs=\"ALL\"");
     }
     else
     {
