@@ -310,7 +310,7 @@ public class InstallAndUpgrader extends GuiApplication
   /**
    * {@inheritDoc}
    */
-  public boolean isVisible(WizardStep step)
+  public boolean isVisible(WizardStep step, UserData userData)
   {
     boolean isVisible;
     if (step == Step.WELCOME)
@@ -319,8 +319,37 @@ public class InstallAndUpgrader extends GuiApplication
     }
     else
     {
-      isVisible = getDelegateApplication().isVisible(step) &&
+      isVisible = getDelegateApplication().isVisible(step,
+          getDelegateApplication().getUserData()) &&
       getDelegateApplication().getWizardSteps().contains(step);
+    }
+    return isVisible;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isVisible(WizardStep step, QuickSetup qs)
+  {
+    boolean isVisible;
+    if (step == Step.WELCOME)
+    {
+      isVisible = true;
+    }
+    else
+    {
+      GuiApplication appl;
+      Boolean isUpgrade = (Boolean)qs.getFieldValue(FieldName.IS_UPGRADE);
+      if (Boolean.TRUE.equals(isUpgrade))
+      {
+        appl = upgrader;
+      }
+      else
+      {
+        appl = installer;
+      }
+      isVisible = appl.isVisible(step, qs) &&
+      appl.getWizardSteps().contains(step);
     }
     return isVisible;
   }

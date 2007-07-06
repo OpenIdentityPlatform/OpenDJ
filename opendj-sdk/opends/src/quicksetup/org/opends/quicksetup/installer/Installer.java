@@ -253,17 +253,17 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
-  public boolean isVisible(WizardStep step)
+  public boolean isVisible(WizardStep step, UserData userData)
   {
     boolean isVisible;
     if (step == CREATE_GLOBAL_ADMINISTRATOR)
     {
-       isVisible = getUserData().mustCreateAdministrator();
+       isVisible = userData.mustCreateAdministrator();
     }
     else if (step == NEW_SUFFIX_OPTIONS)
     {
       SuffixesToReplicateOptions suf =
-        getUserData().getSuffixesToReplicateOptions();
+        userData.getSuffixesToReplicateOptions();
       if (suf != null)
       {
         isVisible = suf.getType() !=
@@ -276,8 +276,7 @@ public abstract class Installer extends GuiApplication {
     }
     else if (step == SUFFIXES_OPTIONS)
     {
-      DataReplicationOptions repl =
-        getUserData().getReplicationOptions();
+      DataReplicationOptions repl = userData.getReplicationOptions();
       if (repl != null)
       {
         isVisible =
@@ -291,9 +290,9 @@ public abstract class Installer extends GuiApplication {
     }
     else if (step == REMOTE_REPLICATION_PORTS)
     {
-      isVisible = isVisible(SUFFIXES_OPTIONS) &&
-      (getUserData().getRemoteWithNoReplicationPort().size() > 0) &&
-      (getUserData().getSuffixesToReplicateOptions().getType() ==
+      isVisible = isVisible(SUFFIXES_OPTIONS, userData) &&
+      (userData.getRemoteWithNoReplicationPort().size() > 0) &&
+      (userData.getSuffixesToReplicateOptions().getType() ==
         SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES);
     }
     else
@@ -301,6 +300,14 @@ public abstract class Installer extends GuiApplication {
       isVisible = true;
     }
     return isVisible;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isVisible(WizardStep step, QuickSetup qs)
+  {
+    return isVisible(step, getUserData());
   }
 
   /**

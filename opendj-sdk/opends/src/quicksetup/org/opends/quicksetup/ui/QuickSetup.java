@@ -172,6 +172,10 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
       launchStatusPanelClicked();
       break;
 
+    case INPUT_PANEL_BUTTON:
+      inputPanelButtonClicked();
+      break;
+
     default:
       throw new IllegalArgumentException("Unknown button name: "
           + ev.getButtonName());
@@ -442,6 +446,17 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     getDialog().getFrame().setCursor(
         Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     worker.startBackgroundTask();
+  }
+
+  /**
+   * This method tries to update the visibility of the steps panel.  The
+   * contents are updated because the user clicked in one of the buttons
+   * that could make the steps panel to change.
+   *
+   */
+  private void inputPanelButtonClicked()
+  {
+    getDialog().getStepsPanel().updateStepVisibility(this);
   }
 
   /**

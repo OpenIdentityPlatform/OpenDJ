@@ -46,7 +46,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
+import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.ui.FieldName;
@@ -568,9 +570,12 @@ public class DataReplicationPanel extends QuickSetupStepPanel
   {
     final ActionListener l = new ActionListener()
     {
-      public void actionPerformed(ActionEvent e)
+      public void actionPerformed(ActionEvent ev)
       {
         checkEnablingState();
+        ButtonEvent be = new ButtonEvent(ev.getSource(),
+            ButtonName.INPUT_PANEL_BUTTON);
+        notifyButtonListeners(be);
       }
     };
     rbReplicated.addActionListener(l);

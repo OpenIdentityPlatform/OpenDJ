@@ -237,13 +237,31 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
-   * Indicates whether the provided <code>step</code> is visible or not.
+   * Indicates whether the provided <code>step</code> is visible or not
+   * depending on the contents of the UserData object that is provided.
    * @param step WizardStep for which the return value indicates whether
    * or not is visible.
+   * @param userData the UserData to be used to determine if the step is
+   * visible or not.
    * @return boolean where true indicates the provided <code>step</code> is
    * visible.
    */
-  public boolean isVisible(WizardStep step)
+  public boolean isVisible(WizardStep step, UserData userData)
+  {
+    return true;
+  }
+
+  /**
+   * Indicates whether the provided <code>step</code> is visible or not
+   * depending on the contents of the QuickSetup object that is provided.
+   * @param step WizardStep for which the return value indicates whether
+   * or not is visible.
+   * @param qs the QuickSetup to be used to determine if the step is
+   * visible or not.
+   * @return boolean where true indicates the provided <code>step</code> is
+   * visible.
+   */
+  public boolean isVisible(WizardStep step, QuickSetup qs)
   {
     return true;
   }
