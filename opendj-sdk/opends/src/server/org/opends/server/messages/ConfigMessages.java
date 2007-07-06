@@ -106,8 +106,8 @@ public class ConfigMessages
 
   /**
    * The message ID for the message that will be used if an attempt is made to
-   * assign an inappropriate value to a boolean attribute.  This takes a single
-   * argument, which is the provided invalid value.
+   * assign an inappropriate value to a boolean attribute.  This takes a two
+   * arguments, which are the attribute name and the provided invalid value.
    */
   public static final int MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE =
        CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 7;
