@@ -100,7 +100,7 @@ public class HistoricalCsnOrderingMatchingRule
   @Override
   public String getOID()
   {
-    return "2.1.5.6.7.8.9.11.22.33.44"; // TODO use valid OID
+    return "1.3.6.1.4.1.26027.1.4.4";
   }
 
   /**
@@ -120,7 +120,7 @@ public class HistoricalCsnOrderingMatchingRule
   @Override
   public String getSyntaxOID()
   {
-    return "2.1.5.6.7.8.9.11.22.33.445";  //TODO use valid OID
+    return "1.3.6.1.4.1.26027.1.3.5";
   }
 
   /**
