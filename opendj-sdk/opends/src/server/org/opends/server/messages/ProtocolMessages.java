@@ -4649,6 +4649,16 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used to indicate that an LDAPv2
+   * client tried to send a request that included request controls.  This does
+   * not take any arguments.
+   */
+  public static final int MSGID_LDAPV2_CONTROLS_NOT_ALLOWED =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 431;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6055,6 +6065,8 @@ public class ProtocolMessages
                     "extended operation request (LDAP message ID %d), which " +
                     "is not allowed for LDAPv2 clients.  The connection will " +
                     "be terminated");
+    registerMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED,
+                    "LDAPv2 clients are not allowed to use request controls");
 
 
 

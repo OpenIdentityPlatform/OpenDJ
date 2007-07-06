@@ -108,7 +108,6 @@ public class LDAPClientConnection
 
 
 
-
   // The next operation ID that should be used for this connection.
   private AtomicLong nextOperationID;
 
@@ -1857,6 +1856,19 @@ public class LDAPClientConnection
   private boolean processAddRequest(LDAPMessage message,
                                     ArrayList<Control> controls)
   {
+    if ((ldapVersion == 2) && (controls != null) && (! controls.isEmpty()))
+    {
+      // LDAPv2 clients aren't allowed to send controls.
+      AddResponseProtocolOp responseOp =
+           new AddResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
+                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
+      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
+                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+      return false;
+    }
+
     // Create the add operation and add it into the work queue.
     AddRequestProtocolOp protocolOp = message.getAddRequestProtocolOp();
     AddOperationBasis addOp =
@@ -1922,7 +1934,21 @@ public class LDAPClientConnection
                         getMessage(MSGID_LDAPV2_CLIENTS_NOT_ALLOWED));
           sendLDAPMessage(securityProvider,
                           new LDAPMessage(message.getMessageID(), responseOp));
-          disconnect(DisconnectReason.PROTOCOL_ERROR, false, null, -1);
+          disconnect(DisconnectReason.PROTOCOL_ERROR, false,
+                     MSGID_LDAPV2_CLIENTS_NOT_ALLOWED);
+          return false;
+        }
+
+        if ((controls != null) && (! controls.isEmpty()))
+        {
+          // LDAPv2 clients aren't allowed to send controls.
+          BindResponseProtocolOp responseOp =
+               new BindResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
+                        getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+          sendLDAPMessage(securityProvider,
+                          new LDAPMessage(message.getMessageID(), responseOp));
+          disconnect(DisconnectReason.PROTOCOL_ERROR, false,
+                     MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
           return false;
         }
 
@@ -2016,6 +2042,19 @@ public class LDAPClientConnection
   private boolean processCompareRequest(LDAPMessage message,
                                         ArrayList<Control> controls)
   {
+    if ((ldapVersion == 2) && (controls != null) && (! controls.isEmpty()))
+    {
+      // LDAPv2 clients aren't allowed to send controls.
+      CompareResponseProtocolOp responseOp =
+           new CompareResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
+                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
+      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
+                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+      return false;
+    }
+
     CompareRequestProtocolOp protocolOp = message.getCompareRequestProtocolOp();
     CompareOperation compareOp =
          new CompareOperation(this, nextOperationID.getAndIncrement(),
@@ -2066,6 +2105,19 @@ public class LDAPClientConnection
   private boolean processDeleteRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
+    if ((ldapVersion == 2) && (controls != null) && (! controls.isEmpty()))
+    {
+      // LDAPv2 clients aren't allowed to send controls.
+      DeleteResponseProtocolOp responseOp =
+           new DeleteResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
+                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
+      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
+                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+      return false;
+    }
+
     DeleteRequestProtocolOp protocolOp = message.getDeleteRequestProtocolOp();
     DeleteOperationBasis deleteOp =
          new DeleteOperationBasis(this, nextOperationID.getAndIncrement(),
@@ -2184,6 +2236,19 @@ public class LDAPClientConnection
   private boolean processModifyRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
+    if ((ldapVersion == 2) && (controls != null) && (! controls.isEmpty()))
+    {
+      // LDAPv2 clients aren't allowed to send controls.
+      ModifyResponseProtocolOp responseOp =
+           new ModifyResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
+                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
+      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
+                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+      return false;
+    }
+
     ModifyRequestProtocolOp protocolOp = message.getModifyRequestProtocolOp();
     ModifyOperationBasis modifyOp =
          new ModifyOperationBasis(this, nextOperationID.getAndIncrement(),
@@ -2232,6 +2297,19 @@ public class LDAPClientConnection
   private boolean processModifyDNRequest(LDAPMessage message,
                                          ArrayList<Control> controls)
   {
+    if ((ldapVersion == 2) && (controls != null) && (! controls.isEmpty()))
+    {
+      // LDAPv2 clients aren't allowed to send controls.
+      ModifyDNResponseProtocolOp responseOp =
+           new ModifyDNResponseProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
+                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
+      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
+                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+      return false;
+    }
+
     ModifyDNRequestProtocolOp protocolOp =
          message.getModifyDNRequestProtocolOp();
     ModifyDNOperation modifyDNOp =
@@ -2284,6 +2362,19 @@ public class LDAPClientConnection
   private boolean processSearchRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
+    if ((ldapVersion == 2) && (controls != null) && (! controls.isEmpty()))
+    {
+      // LDAPv2 clients aren't allowed to send controls.
+      SearchResultDoneProtocolOp responseOp =
+           new SearchResultDoneProtocolOp(LDAPResultCode.PROTOCOL_ERROR,
+                    getMessage(MSGID_LDAPV2_CONTROLS_NOT_ALLOWED));
+      sendLDAPMessage(securityProvider,
+                      new LDAPMessage(message.getMessageID(), responseOp));
+      disconnect(DisconnectReason.PROTOCOL_ERROR, false,
+                 MSGID_LDAPV2_CONTROLS_NOT_ALLOWED);
+      return false;
+    }
+
     SearchRequestProtocolOp protocolOp = message.getSearchRequestProtocolOp();
     SearchOperationBasis searchOp =
          new SearchOperationBasis(this, nextOperationID.getAndIncrement(),
