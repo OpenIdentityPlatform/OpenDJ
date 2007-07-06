@@ -1058,7 +1058,7 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
   // Remove the named managed object.
   private void removeManagedObject(ManagedObjectPath p)
       throws CommunicationException, AuthorizationException,
-      OperationRejectedException {
+      OperationRejectedException, ManagedObjectNotFoundException {
     LdapName dn = LDAPNameBuilder.create(p, context.getLDAPProfile());
     if (entryExists(dn)) {
       // Delete the entry and any subordinate entries.
@@ -1070,6 +1070,8 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
       } catch (NamingException e) {
         adaptNamingException(e);
       }
+    } else {
+      throw new ManagedObjectNotFoundException();
     }
   }
 

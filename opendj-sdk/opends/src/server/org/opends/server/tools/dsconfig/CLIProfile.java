@@ -33,7 +33,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinitionResource;
 import org.opends.server.admin.RelationDefinition;
 
@@ -83,23 +82,5 @@ public class CLIProfile {
     String s = resource.getString(r.getParentDefinition(), "relation."
         + r.getName() + ".list-properties");
     return new LinkedHashSet<String>(Arrays.asList(s.split(",")));
-  }
-
-
-
-  /**
-   * Gets the command line operand name which should be used to
-   * identify the names of managed objects associated with an
-   * instantiable relation.
-   *
-   * @param r
-   *          The instantiable relation definition.
-   * @return Returns the command line operand name which should be
-   *         used to identify the names of managed objects associated
-   *         with an instantiable relation.
-   */
-  public String getOperandName(InstantiableRelationDefinition<?, ?> r) {
-    return resource.getString(r.getParentDefinition(), "relation."
-        + r.getName() + ".operand-name");
   }
 }

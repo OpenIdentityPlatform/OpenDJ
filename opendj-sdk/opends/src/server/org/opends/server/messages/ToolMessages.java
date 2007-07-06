@@ -8990,6 +8990,17 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the
+   * description of the delete-xxx force argument. This takes a single
+   * argument which is the user-friendly plural name of the type of
+   * managed objects which can be deleted.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_FORCE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1196;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -11330,6 +11341,8 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_DESCRIPTION_RECORD,
                     "Modifies the display output to show one property " +
                     "value per line");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_FORCE, "Ignore non-existent %s");
 
     registerMessage(MSGID_DSCFG_DESCRIPTION_UNIT_TIME,
                     "Display time data using the specified unit. The value " +
