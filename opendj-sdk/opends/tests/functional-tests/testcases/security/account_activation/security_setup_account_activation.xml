@@ -46,13 +46,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/account_activation/account_activation_startup.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/account_activation/account_activation_startup.ldif' % logsRemoteDataDir,
+                'expectedRC'       : 0 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

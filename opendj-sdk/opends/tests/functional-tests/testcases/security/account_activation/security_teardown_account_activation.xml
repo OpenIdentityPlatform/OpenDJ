@@ -48,13 +48,10 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'o=Account Activation Tests,dc=example,dc=com' ,
-                'extraParams'      : '-x'}
+                'extraParams'      : '-x',
+                'expectedRC'      : 0 }				
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
 
             <call function="'testCase_Postamble'"/>
           </sequence>
