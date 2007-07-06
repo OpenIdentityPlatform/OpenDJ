@@ -79,6 +79,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+        </function-arg-def>		
     </function-map-args>
     <sequence>
     
@@ -129,13 +135,19 @@
         <returnstdout/>
       </process>
       
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
-            
+      <return>
+        STAXReason
+      </return>
     </sequence>
-    
   </function>
 
   <!-- ldapmodify Function With Script-->
@@ -347,7 +359,13 @@
           Directory Server Manager Password
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
-      </function-arg-def>          
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+        </function-arg-def>		
     </function-map-args>
     
     <sequence>
@@ -479,11 +497,18 @@
         <returnstdout/>
       </process>
       
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
-            
+      <return>
+        STAXReason
+      </return>
     </sequence>
   </function>
   
@@ -540,6 +565,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+        </function-arg-def>		
     </function-map-args>
     <sequence>
     
@@ -589,13 +620,19 @@
         <returnstdout/>
       </process>
       
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
-          
+      <return>
+        STAXReason
+      </return>
     </sequence>
-    
   </function>
 
   <!-- ldapsearch Function With Script-->
@@ -892,10 +929,10 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="expected" type="optional" default="0">
+      <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-	  expected value. Default is 0
-	</function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
         <function-arg-property name="type" value="integer"/>		  
         </function-arg-def>		
     </function-map-args>
@@ -1076,12 +1113,11 @@
       <call function="'checktestRC'">
         { 'returncode' : STAXCode ,
           'result'     : STAXReason,
-          'expected'   : expected }
+          'expected'   : expectedRC }
       </call>
       <return>
         STAXReason
       </return>
-      
     </sequence>
   </function>
   
@@ -1162,6 +1198,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="attributes"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+        </function-arg-def>		
     </function-map-args>
     <sequence>
     
@@ -1222,19 +1264,20 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
-      
-      <script>
-        SearchRC=RC
-        SearchResult=STAXResult
-      </script>
-      
-      <call function="'checkRC'">
-        { 'returncode' : SearchRC ,
-          'result'     : SearchResult }
-      </call>
-          
-      <return>SearchResult</return>
 
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason ,
+          'expected'   : expectedRC }
+      </call>
+      
+      <return>
+        STAXReason
+      </return>
     </sequence>
 
   </function>
@@ -1292,6 +1335,11 @@
         </function-arg-description>
         <function-arg-property name="type" value="filter"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          expected value. Default is 0
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <message>
@@ -1308,6 +1356,18 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
+      </call>
+      <return>
+        STAXReason
+      </return>
     </sequence>
   </function>
   
@@ -1358,6 +1418,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="filter"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+        </function-arg-def>		
     </function-map-args>
     <sequence>
       <message>
@@ -1375,17 +1441,17 @@
         <returnstdout/>
       </process>
       <script>
-        SearchRC=RC
-        SearchResult=STAXResult
+        STAXCode=RC
+        STAXReason=STAXResult
       </script>
-      
-      <call function="'checkRC'">
-        { 'returncode' : SearchRC ,
-          'result'     : SearchResult }
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
-          
-      <return>SearchResult</return>
-
+      <return>
+        STAXReason
+      </return>
     </sequence>
   </function>
   
@@ -1575,6 +1641,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="dn"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+      </function-arg-def>		
     </function-map-args>
     
     <sequence>
@@ -1692,11 +1764,18 @@
         <returnstdout/>
       </process>
       
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
-            
+      <return>
+        STAXReason
+      </return>
     </sequence>
   </function>
   
@@ -1753,6 +1832,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+      </function-arg-def>		
     </function-map-args>
     
     <sequence>
@@ -1802,16 +1887,19 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
-      
+
       <script>
         STAXCode=RC
         STAXReason=STAXResult
       </script>
       <call function="'checktestRC'">
         { 'returncode' : STAXCode ,
-          'result'     : STAXReason }
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
-      <return>STAXReason</return>
+      <return>
+        STAXReason
+      </return>
     </sequence>
     
   </function>
@@ -2008,6 +2096,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="dn"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+      </function-arg-def>		
     </function-map-args>
     
     <sequence>
@@ -2128,11 +2222,18 @@
         <returnstdout/>
       </process>
       
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
-            
+      <return>
+        STAXReason
+      </return>
     </sequence>
   </function>
   
@@ -2195,6 +2296,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+      </function-arg-def>		
     </function-map-args>
     <sequence>
     
@@ -2247,20 +2354,20 @@
       </process>
       
       <script>
-        SearchRC=RC
-        SearchResult=STAXResult
+        STAXCode=RC
+        STAXReason=STAXResult
       </script>
-      
-      <call function="'checkRC'">
-        { 'returncode' : SearchRC ,
-          'result'     : SearchResult }
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
-          
-      <return>SearchResult</return>
-
+      <return>
+        STAXReason
+      </return>
     </sequence>
-    
   </function>
+
   
   <function name="_ldapCommonArgs">
     <function-prolog>
@@ -2434,7 +2541,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>          
-
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+      </function-arg-def>		
     </function-map-args>
     
     <sequence>
@@ -2538,12 +2650,18 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
-      
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
       <call function="'checktestRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-       </call>        
-            
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
+      </call>
+      <return>
+        STAXReason
+      </return>
     </sequence>
   </function>
   
@@ -2628,14 +2746,14 @@
           Type of modification, can be delete, add, replace
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
-      </function-arg-def>
+    </function-arg-def>
 	 
-    <function-arg-def name="expectedErrorCode" type="optional">
-		<function-arg-description>
-			Expected Error code. Default value is 0
-		</function-arg-description>
-		<function-arg-property name="type" value="string"/>
-	</function-arg-def>			
+    <function-arg-def name="expectedRC" type="optional" default="0">
+      <function-arg-description>
+			  Expected return code value. Default value is 0
+      </function-arg-description>
+      <function-arg-property name="type" value="string"/>
+    </function-arg-def>			
 	
     </function-map-args>
     <sequence>
@@ -2681,9 +2799,6 @@
 
         if changetype:
           STAFCmdParamsList.append('-t "%s"' % changetype)
-		    
-        if expectedErrorCode:
-          STAFCmdParamsList.append('-E "%s"' % expectedErrorCode)
 		  		  
         STAFCmdParams=' '.join(STAFCmdParamsList)
 		  		 
@@ -2702,15 +2817,19 @@
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
+
       <script>
         STAXCode=RC
         STAXReason=STAXResult
       </script>
       <call function="'checktestRC'">
         { 'returncode' : STAXCode ,
-          'result'     : STAXReason }
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
-      <return>STAXReason</return>
+      <return>
+        STAXReason
+      </return>
     </sequence>
     
   </function>
@@ -2778,7 +2897,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-	
+
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          expected value. Default is 0
+        </function-arg-description>
+      </function-arg-def>	
     </function-map-args>
     <sequence>
     
@@ -2828,16 +2952,18 @@
       </process>
 
       <script>
-        AddRC=RC
-        AddResult=STAXResult
+        STAXCode=RC
+        STAXReason=STAXResult
       </script>
-       
       <call function="'checktestRC'">
-        { 'returncode' : AddRC ,
-          'result'     : AddResult }
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
       
-      <return>AddResult</return>
+      <return>
+        STAXReason
+      </return>
       
     </sequence>
     
@@ -2906,19 +3032,19 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 		
-	   <function-arg-def name="deleteOldRDN" type="optional">
+	    <function-arg-def name="deleteOldRDN" type="optional">
         <function-arg-description>
           1 : delete old rdn, 0 do not delete old rdn, default value is 1
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
   
-    <function-arg-def name="expectedErrorCode" type="optional">
-		<function-arg-description>
-			Expected Error code. Default value is 0
-		</function-arg-description>
-		<function-arg-property name="type" value="string"/>
-	</function-arg-def>			
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>		  
+      </function-arg-def>		
 	
     </function-map-args>
     <sequence>
@@ -2948,9 +3074,6 @@
 
         if deleteOldRDN:
           STAFCmdParamsList.append('-f "%s"' % deleteOldRDN)		  		  		  		  
-		    
-        if expectedErrorCode:
-          STAFCmdParamsList.append('-E "%s"' % expectedErrorCode)
 		  		  
         STAFCmdParams=' '.join(STAFCmdParamsList)
 		  		 
@@ -2975,15 +3098,16 @@
       </script>
       <call function="'checktestRC'">
         { 'returncode' : STAXCode ,
-          'result'     : STAXReason }
+          'result'     : STAXReason,
+          'expected'   : expectedRC }
       </call>
-      <return>STAXReason</return>
+      <return>
+        STAXReason
+      </return>
     </sequence>
-    
   </function>
-  
-  
-  
+
+          
   
     
   
