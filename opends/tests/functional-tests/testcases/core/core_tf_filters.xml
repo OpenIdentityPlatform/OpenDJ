@@ -115,14 +115,11 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'cn=bad,cn=monitor' ,
-                  'dsFilter'         : '&amp;' }
+                  'dsFilter'         : '&amp;' ,
+                  'expectedRC'       : 32
+                }
               </call>
     
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 32 }
-              </call>
               <call function="'testCase_Postamble'"/>
              </sequence>
           </testcase>
@@ -141,14 +138,11 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'cn=bad,cn=monitor' ,
-                  'dsFilter'         : '|' }
+                  'dsFilter'         : '|' ,
+                  'expectedRC'       : 32
+                }
               </call>
     
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 32 }
-              </call>
               <call function="'testCase_Postamble'"/>
              </sequence>
     
