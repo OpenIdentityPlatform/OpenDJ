@@ -353,7 +353,7 @@ public class BooleanConfigAttribute
     else
     {
       int    msgID   = MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE;
-      String message = getMessage(msgID, valueString);
+      String message = getMessage(msgID, getName(), valueString);
       throw new ConfigException(msgID, message);
     }
   }
@@ -483,7 +483,7 @@ public class BooleanConfigAttribute
             {
               // This is an illegal value.
               int msgID = MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE;
-              String message = getMessage(msgID, valueString);
+              String message = getMessage(msgID, getName(), valueString);
               throw new ConfigException(msgID, message);
             }
 
@@ -547,7 +547,7 @@ public class BooleanConfigAttribute
           {
             // This is an illegal value.
             int msgID = MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE;
-            String message = getMessage(msgID, valueString);
+            String message = getMessage(msgID, getName(), valueString);
             throw new ConfigException(msgID, message);
           }
 
@@ -718,15 +718,16 @@ public class BooleanConfigAttribute
       else
       {
         int    msgID   = MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE;
-        String message = getMessage(msgID, stringValue);
+        String message = getMessage(msgID, getName(), stringValue);
         throw new ConfigException(msgID, message);
       }
     }
     else
     {
       int    msgID   = MSGID_CONFIG_ATTR_INVALID_BOOLEAN_VALUE;
-      String message = getMessage(msgID, value.getClass().getName() + ":" +
-                                         String.valueOf(value));
+      String message = getMessage(msgID, getName(),
+                                  value.getClass().getName() + ":" +
+                                       String.valueOf(value));
       throw new ConfigException(msgID, message);
     }
   }
