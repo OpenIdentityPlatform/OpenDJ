@@ -1043,8 +1043,8 @@ public class UIFactory
             getIconPath(iconType)));
     String description = getIconDescription(iconType);
     String title = getIconTooltip(iconType);
-    return "<img src=\"" + url + "\" alt=\"" + description + " title=\""
-        + title + "\"/>";
+    return "<img src=\"" + url + "\" alt=\"" + description +
+    "\" align=\"middle\" title=\"" + title + "\" >";
   }
 
   /**
