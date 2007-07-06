@@ -48,13 +48,10 @@
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base' }
+              'extraParams'      : '-s base',
+              'expectedRC'          : 0  }
           </call>
 
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
@@ -72,13 +69,10 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeModified'   : '%s/security/account_activation/admin_expire_account.ldif' % logsRemoteDataDir }
+              'entryToBeModified'   : '%s/security/account_activation/admin_expire_account.ldif' % logsRemoteDataDir,
+              'expectedRC'          : 0  }			  
           </call>
 
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
@@ -98,14 +92,10 @@
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'   : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base' }
+              'extraParams'      : '-s base',
+              'expectedRC'       : 49  }	
           </call>
 
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult ,
-                'expected'   : 49 }
-          </call>
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
@@ -122,13 +112,10 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeModified'   : '%s/security/account_activation/admin_expire_account_future.ldif' % logsRemoteDataDir }
+              'entryToBeModified'   : '%s/security/account_activation/admin_expire_account_future.ldif' % logsRemoteDataDir,
+              'expectedRC'          : 0  }			  
           </call>
 
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
@@ -148,13 +135,10 @@
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'   : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base' }
+              'extraParams'      : '-s base',
+              'expectedRC'          : 0  }			  
           </call>
 
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
-          </call>
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
@@ -172,12 +156,9 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeModified'   : '%s/security/account_activation/admin_unexpire_account.ldif' % logsRemoteDataDir }
+              'entryToBeModified'   : '%s/security/account_activation/admin_unexpire_account.ldif' % logsRemoteDataDir ,
+              'expectedRC'          : 0  }				  
           </call>
-
-          <if expr="RC != 0">
-              <tcstatus result="'fail'"/>
-          </if>
 
           <message>
              'Security: Account Expiration Postamble Step 2.  Checking User Bind After Removing Expiration'
@@ -190,12 +171,8 @@
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'   : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base' }
-          </call>
-
-          <call function="'checktestRC'">
-              { 'returncode' : RC ,
-                'result'     : STAXResult }
+              'extraParams'      : '-s base',
+              'expectedRC'          : 0  }	
           </call>
           
           <call function="'testCase_Postamble'"/>
