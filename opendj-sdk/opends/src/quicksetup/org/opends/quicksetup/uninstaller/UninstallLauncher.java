@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.QuickSetupCli;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.ServerConstants;
@@ -74,7 +75,16 @@ public class UninstallLauncher extends Launcher {
       System.err.println("Unable to initialize log");
       t.printStackTrace();
     }
-    new UninstallLauncher(args).launch();
+    Launcher launcher = new UninstallLauncher(args);
+    int returnCode = launcher.launch();
+    if (returnCode == QuickSetupCli.VERSION_PRINT)
+    {
+      System.exit(QuickSetupCli.SUCCESSFUL);
+    }
+    else
+    {
+      System.exit(returnCode);
+    }
   }
 
   /**

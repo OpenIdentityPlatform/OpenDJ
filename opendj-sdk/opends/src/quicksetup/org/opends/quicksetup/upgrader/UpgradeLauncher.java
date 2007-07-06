@@ -33,6 +33,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.QuickSetupCli;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
@@ -73,7 +74,16 @@ public class UpgradeLauncher extends Launcher {
               ResourceProvider.getInstance().getMsg("error-initializing-log"));
       t.printStackTrace();
     }
-    new UpgradeLauncher(args).launch();
+    Launcher launcher = new UpgradeLauncher(args);
+    int returnCode = launcher.launch();
+    if (returnCode == QuickSetupCli.VERSION_PRINT)
+    {
+      System.exit(QuickSetupCli.SUCCESSFUL);
+    }
+    else
+    {
+      System.exit(returnCode);
+    }
   }
 
   /**
