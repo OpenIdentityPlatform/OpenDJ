@@ -1057,12 +1057,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'       : 21
+                  }
                 </call>
-    
-                <if expr="RC != 21">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN With Keyword self - check aci'
@@ -1127,12 +1125,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                    'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                    'expectedRC'       : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: Target Equals DN Above Entry - check aci'
@@ -1339,12 +1335,10 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'       : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Target: Multiple Targets - check aci'
@@ -1410,12 +1404,10 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'       : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Target: Keyword Target Misspelled - check aci'
@@ -1481,12 +1473,10 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'       : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Target: Missing leading ldap: - check aci'
@@ -1551,12 +1541,10 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                  'entryToBeModified'   : '%s/aci/aci_target/%s' % (logsRemoteDataDir,curr_aci_ldif_file) ,
+                  'expectedRC'       : 21
+                }
               </call>
-  
-              <if expr="RC != 21">
-                  <tcstatus result="'fail'"/>
-              </if>
   
               <message>
                  'ACI: Target: With ldap:all - check aci'
@@ -1622,7 +1610,7 @@
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : curr_aci ,
                     'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '21'}
+                    'expectedRC'             : 21}
               </call>
                 
               <if expr="RC != 0">
@@ -3306,12 +3294,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'      : 'sprain' ,
-                    'entryToBeModified'   : '%s/aci/aci_target/mod_entry31a.ldif' % (logsRemoteDataDir) }
+                    'entryToBeModified'   : '%s/aci/aci_target/mod_entry31a.ldif' % (logsRemoteDataDir) ,
+                    'expectedRC'          : 53
+                  }
                 </call>
-    
-                <if expr="RC != 53">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Target: userdn equals self - modify operational attributes, modify 3'
@@ -3322,12 +3308,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'      : 'sprain' ,
-                    'entryToBeModified'   : '%s/aci/aci_target/mod_entry31b.ldif' % (logsRemoteDataDir) }
+                    'entryToBeModified'   : '%s/aci/aci_target/mod_entry31b.ldif' % (logsRemoteDataDir) ,
+                    'expectedRC'          : 53
+                  }
                 </call>
-    
-                <if expr="RC != 53">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                <message>
                    'ACI: Target: userdn equals self - modify operational attributes, modify 4'

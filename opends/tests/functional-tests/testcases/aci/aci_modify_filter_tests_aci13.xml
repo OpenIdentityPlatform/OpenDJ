@@ -140,12 +140,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'      : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_filter_tests/mod3.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_filter_tests/mod3.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify Filter: ACI 13 - Mod 4'
@@ -188,12 +186,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'      : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_filter_tests/mod6.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_filter_tests/mod6.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify Filter: ACI 13 - Mod 7'
@@ -236,12 +232,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'      : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_filter_tests/mod9.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_filter_tests/mod9.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify Filter: ACI 13 - postamble, removing aci and entries'

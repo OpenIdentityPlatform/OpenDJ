@@ -654,13 +654,9 @@
                     'dsInstancePswd'   : 'ACIRules' ,
                     'dsBaseDN'         : 'cn=config' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : '+'}
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'attributes'       : '+' ,
+                    'expectedRC'       : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -864,13 +860,9 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/global_acis/mod_entry1.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'     : '%s/aci/global_acis/mod_entry1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'            : 50
+                  }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -903,13 +895,9 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/global_acis/del_entry1.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'     : '%s/aci/global_acis/del_entry1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'            : 50
+                  }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -942,13 +930,9 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/global_acis/modrdn_entry1.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'     : '%s/aci/global_acis/modrdn_entry1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'            : 50
+                  }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -982,11 +966,6 @@
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
                     'entryToBeModified'     : '%s/aci/global_acis/mod_entry2.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
                 </call>
               
                 <call function="'testCase_Postamble'"/>

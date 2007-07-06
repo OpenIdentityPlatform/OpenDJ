@@ -202,12 +202,10 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=tmorris, ou=People, ou=branch one, ou=aci branch, o=Modify RDN Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn'}
+                    'attributes'       : 'cn',
+                    'expectedRC'       : 32
+                  }
                 </call>
-    
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr=* and userdn=all, user modifying entry from non-targeted branch'
@@ -218,12 +216,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry1a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry1a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr=* and userdn=all, admin deleting aci'
@@ -250,15 +246,11 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -367,12 +359,10 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=kvaughan, ou=People, ou=branch one, ou=aci branch, o=Modify RDN Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn'}
+                    'attributes'       : 'cn',
+                    'expectedRC'       : 32
+                  }
                 </call>
-    
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr=* and userdn=all, user modifying entry from non-targeted branch'
@@ -383,12 +373,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry2a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry2a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr=* and userdn=all, user restoring branch in previously targeted branch'
@@ -431,15 +419,11 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -547,12 +531,10 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=dmiller, ou=People, ou=branch one, ou=aci branch, o=Modify RDN Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn'}
+                    'attributes'       : 'cn',
+                    'expectedRC'       : 32
+                  }
                 </call>
-    
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr equals three attributes with uid, user modifying entry from non-targeted branch'
@@ -563,12 +545,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry3a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry3a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr equals three attributes with uid, admin deleting aci'
@@ -595,13 +575,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -664,12 +640,10 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry4.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry4.ldif' % logsRemoteDataDir ,
+                    'expectedRC'            : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr equals three attributes without uid, user modifying entry from non-targeted branch'
@@ -680,12 +654,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry4a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry4a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr equals three attributes without uid, admin deleting aci'
@@ -712,13 +684,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -829,12 +797,10 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=kvaughan, ou=People, ou=branch one, ou=aci branch, o=Modify RDN Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn'}
+                    'attributes'       : 'cn',
+                    'expectedRC'       : 32
+                  }
                 </call>
-    
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr with three attributes equals ou, user modifying entry from non-targeted branch'
@@ -845,12 +811,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry5a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry5a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr with three attributes equals ou, user restoring branch in previously targeted branch'
@@ -893,13 +857,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -961,12 +921,10 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry6.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry6.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr with three attributes not equals ou, user modifying entry from non-targeted branch'
@@ -977,12 +935,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry6a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry6a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - targetattr with three attributes not equals ou, admin deleting aci'
@@ -1009,13 +965,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1126,12 +1078,10 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=trigden, ou=People, ou=branch one, ou=aci branch, o=Modify RDN Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn'}
+                    'attributes'       : 'cn',
+                    'expectedRC'       : 32
+                  }
                 </call>
-    
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - Multi ACIs, allow and deny, user modifying prohibited entry from targeted branch'
@@ -1142,12 +1092,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry7.1.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry7.1.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - Multi ACIs, allow and deny, user modifying entry from non-targeted branch'
@@ -1158,12 +1106,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry7a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry7a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - Multi ACIs, allow and deny, admin deleting aci'
@@ -1190,13 +1136,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1309,12 +1251,10 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=kvaughan, ou=People, ou=branch one, ou=aci branch, o=Modify RDN Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn'}
+                    'attributes'       : 'cn',
+                    'expectedRC'       : 32
+                  }
                 </call>
-    
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch, user modifying entry from non-targeted branch'
@@ -1325,12 +1265,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry8a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry8a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch, user restoring branch in previously targeted branch'
@@ -1341,12 +1279,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore3.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore3.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch, preamble replacing aci'
@@ -1405,13 +1341,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1474,12 +1406,10 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry9.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry9.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, delete old rdn, user modifying entry from non-targeted branch'
@@ -1490,12 +1420,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry9a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry9a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, delete old rdn, admin deleting aci'
@@ -1522,13 +1450,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1639,12 +1563,10 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=jwallace, ou=People, ou=branch one, ou=aci branch, o=Modify RDN Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn'}
+                    'attributes'       : 'cn',
+                    'expectedRC'       : 32
+                  }
                 </call>
-    
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, dont delete old rdn, user modifying entry from non-targeted branch'
@@ -1655,12 +1577,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry10a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry10a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals uid, dont delete old rdn, admin deleting aci'
@@ -1687,13 +1607,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1758,12 +1674,10 @@
                     'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'        : 'ACIRules' ,
-                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry11.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'     : '%s/aci/aci_modify_rdn/modrdn_entry11.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals sn and cn, dont delete old rdn, user modifying entry from non-targeted branch'
@@ -1774,12 +1688,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry11a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry11a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Leaf - targetattr with three attributes not equals sn and cn, dont delete old rdn, admin deleting aci'
@@ -1806,13 +1718,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -1923,12 +1831,10 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=kvaughan, ou=People, ou=branch one, ou=aci branch, o=Modify RDN Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn'}
+                    'attributes'       : 'cn',
+                    'expectedRC'       : 32
+                  }
                 </call>
-    
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou, user modifying entry from non-targeted branch'
@@ -1939,12 +1845,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry21a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry21a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou, user restoring branch in previously targeted branch'
@@ -1987,13 +1891,9 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
                 
                 <call function="'testCase_Postamble'"/>
@@ -2106,12 +2006,10 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=kvaughan, ou=People, ou=branch one, ou=aci branch, o=Modify RDN Tests,o=ACI Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn'}
+                    'attributes'       : 'cn',
+                    'expectedRC'       : 32
+                  }
                 </call>
-    
-                <if expr="RC != 32">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou 2, user modifying entry from non-targeted branch'
@@ -2122,12 +2020,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry22a.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_entry22a.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, targattrfilters add:ou, del:ou 2, user restoring branch in previously targeted branch'
@@ -2138,12 +2034,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore4.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/modrdn_restore4.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'ACI: Modify RDN: Branch - Multi ACIs, deny write on new branch, preamble replacing aci'
@@ -2202,15 +2096,11 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/aci/aci_modify_rdn/mod_common_prohibited_entry.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult ,
-                      'expected'   : 50 }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>

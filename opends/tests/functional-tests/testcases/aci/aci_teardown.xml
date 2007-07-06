@@ -92,10 +92,6 @@
                     'entryToBeModified'   : '%s/aci/aci_disable.ldif' % logsRemoteDataDir }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                  <message>
                    'ACI: ACI Teardown: Removing Initial Entries'
                 </message>
@@ -109,11 +105,6 @@
                     'extraParams'      : '-x'}
                 </call>
     
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
-                
                <call function="'testCase_Postamble'"/>
                 
               </sequence>
