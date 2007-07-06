@@ -49,9 +49,7 @@ import java.util.Iterator;
 /**
   *  modify an entry with an attribute 
   *  the operation can be a replace, delete or a add new attribute
-  *  if expectedErrorCode is set, we compare it with the ldap error code returned in the exception
-  *  the function returns 0 if the code are equals
-  *  otherwise, returns 1 
+  *  the function returns the ldap error code
   */
 
 public class modifyAnAttribute {
@@ -69,7 +67,7 @@ public class modifyAnAttribute {
      String errorCode=null;
      String errorMessage=null;
      String listAttributesToModify=null;
-     String expectedErrorCode="0";
+
      
      int ind1;
      String attributeName;
@@ -108,9 +106,6 @@ public class modifyAnAttribute {
     	 }
     	 if (opt1.equals("-t")) {
     		 changetype = val1;
-    	 }
-    	 if (opt1.equals("-E")) {
-    		 expectedErrorCode = val1;
     	 }
        	 if (opt1.equals("-l")) {
      		    listAttributesToModify = val1;
@@ -170,8 +165,8 @@ public class modifyAnAttribute {
 	try {
 
 		
-		CompositeName entryDN = new CompositeName (dnToModify);
-		System.out.println(changetype + " attribute " + attributeToModify + " for entry " + dnToModify);
+	    CompositeName entryDN = new CompositeName (dnToModify);
+		System.out.println("Modify the entry " + dnToModify);
 		
 		// connect to server
 		ctx = new InitialLdapContext(envLdap, null);
@@ -188,8 +183,9 @@ public class modifyAnAttribute {
 			 // add attribute
 			 ctx.modifyAttributes(entryDN, LdapContext.REMOVE_ATTRIBUTE , attributes);
 		 }
-		
+
         ctx.close();
+        
 	} catch (CommunicationException e1) {
 		errorMessage = e1.getMessage();
 
@@ -206,20 +202,13 @@ public class modifyAnAttribute {
     else {
     	System.out.println (errorMessage);
     	int ind=errorMessage.indexOf("-");
-    	errorCode=errorMessage.substring(18, ind-1);
-    }
-	// Compare the errorCode and the expected error Code
-    int diff=expectedErrorCode.compareTo(errorCode); 
-    
-    if (diff == 0 ){
-        // Got the expected error Code. The test is success
-    	System.exit(0);
-    }
-    else {
-    	System.out.println ("Error: modify request didn't return the expected error Code");
-    	System.out.println ("Expected " + expectedErrorCode + "; Got" + errorCode);
-    	System.exit(1);
+    	if ( ind > 0 ) {
+    	 errorCode=errorMessage.substring(18, ind-1);
+    	}
+    	else errorCode="0";
     }
  
-}
+    int RC = Integer.parseInt(errorCode);
+    System.exit(RC);
+    }    
 }

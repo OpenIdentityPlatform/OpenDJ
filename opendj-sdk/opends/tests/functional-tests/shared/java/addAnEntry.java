@@ -70,7 +70,8 @@ public class addAnEntry {
      String credential=null;
      String dnToAdd=null;
      String attributeToAdd=null;
-
+     String errorCode=null;
+     String errorMessage=null;
      
      int ind1;
      String attributeName;
@@ -156,20 +157,31 @@ public class addAnEntry {
 
         ctx.close();
         
-
+        
 	} catch (CommunicationException e1) {
-		String error = e1.getMessage();
+		errorMessage = e1.getMessage();
 
-        System.out.println(" Catch exception : " + e1.getMessage());
-        System.exit(1);
 	} catch (NamingException e2) {
-		 // resultCode = ; 
-        System.out.println(" Catch exception : " + e2.getMessage());
-        System.exit(1);
-    } catch (Exception e3) {
+		errorMessage = e2.getMessage();
 
-            System.out.println(" Catch exception : " + e3.getMessage());
-            System.exit(1);
+    } catch (Exception e3) {
+    	errorMessage= e3.getMessage();
 	}
-}
+    // No error, the modify is success 
+    if ( errorMessage == null ) {
+    	errorCode="0";
+    } 
+    else {
+    	System.out.println (errorMessage);
+    	int ind=errorMessage.indexOf("-");
+    	if ( ind > 0 ) {
+    	 errorCode=errorMessage.substring(18, ind-1);
+    	}
+    	else errorCode="0";
+    }
+ 
+    int RC = Integer.parseInt(errorCode);
+    System.exit(RC);
+    }    
+   
 }
