@@ -24,9 +24,6 @@
       <ldap:naming-attribute>ds-cfg-debug-scope</ldap:naming-attribute>
     </adm:profile>
     <adm:profile name="cli">
-      <cli:relation operand-name="TARGET" />
-    </adm:profile>
-    <adm:profile name="cli">
       <cli:relation>
         <cli:default-property name="debug-level" />
         <cli:default-property name="debug-category" />
