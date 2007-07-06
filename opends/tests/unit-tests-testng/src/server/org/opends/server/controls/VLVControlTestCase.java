@@ -469,12 +469,12 @@ public class VLVControlTestCase
 
   /**
    * Tests performing an internal search using the VLV control to retrieve a
-   * subset of the entries using an offset of zero.
+   * subset of the entries using an offset of one.
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test()
-  public void testInternalSearchByOffsetZeroOffset()
+  public void testInternalSearchByOffsetOneOffset()
          throws Exception
   {
     populateDB();
@@ -546,13 +546,91 @@ public class VLVControlTestCase
 
   /**
    * Tests performing an internal search using the VLV control to retrieve a
-   * subset of the entries using a nonzero offset that still is completely
-   * within the bounds of the result set.
+   * subset of the entries using an offset of zero, which should be treated like
+   * an offset of one.
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test()
-  public void testInternalSearchByOffsetNonZeroOffset()
+  public void testInternalSearchByOffsetZeroOffset()
+         throws Exception
+  {
+    populateDB();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    ArrayList<Control> requestControls = new ArrayList<Control>();
+    requestControls.add(new ServerSideSortRequestControl("givenName"));
+    requestControls.add(new VLVRequestControl(0, 3, 0, 0));
+
+    InternalSearchOperation internalSearch =
+         new InternalSearchOperation(conn, conn.nextOperationID(),
+                  conn.nextMessageID(), requestControls,
+                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  SearchFilter.createFilterFromString("(objectClass=person)"),
+                  null, null);
+
+    internalSearch.run();
+    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
+
+    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
+    expectedDNOrder.add(aaronZimmermanDN);  // Aaron
+    expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
+    expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
+
+    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
+    for (Entry e : internalSearch.getSearchEntries())
+    {
+      returnedDNOrder.add(e.getDN());
+    }
+
+    assertEquals(returnedDNOrder, expectedDNOrder);
+
+    List<Control> responseControls = internalSearch.getResponseControls();
+    assertNotNull(responseControls);
+    assertEquals(responseControls.size(), 2);
+
+    ServerSideSortResponseControl sortResponse = null;
+    VLVResponseControl            vlvResponse  = null;
+    for (Control c : responseControls)
+    {
+      if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
+      {
+        sortResponse = ServerSideSortResponseControl.decodeControl(c);
+      }
+      else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
+      {
+        vlvResponse = VLVResponseControl.decodeControl(c);
+      }
+      else
+      {
+        fail("Response control with unexpected OID " + c.getOID());
+      }
+    }
+
+    assertNotNull(sortResponse);
+    assertEquals(sortResponse.getResultCode(), 0);
+
+    assertNotNull(vlvResponse);
+    assertEquals(vlvResponse.getVLVResultCode(), 0);
+    assertEquals(vlvResponse.getTargetPosition(), 1);
+    assertEquals(vlvResponse.getContentCount(), 9);
+  }
+
+
+
+  /**
+   * Tests performing an internal search using the VLV control to retrieve a
+   * subset of the entries using an offset that isn't at the beginning of the
+   * result set but is still completely within the bounds of that set.
+   *
+   * @throws  Exception  If an unexpected problem occurred.
+   */
+  @Test()
+  public void testInternalSearchByOffsetThreeOffset()
          throws Exception
   {
     populateDB();
@@ -624,7 +702,58 @@ public class VLVControlTestCase
 
   /**
    * Tests performing an internal search using the VLV control with a negative
-   * start position.
+   * target offset.
+   *
+   * @throws  Exception  If an unexpected problem occurred.
+   */
+  @Test()
+  public void testInternalSearchByOffsetNegativeOffset()
+         throws Exception
+  {
+    populateDB();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    ArrayList<Control> requestControls = new ArrayList<Control>();
+    requestControls.add(new ServerSideSortRequestControl("givenName"));
+    requestControls.add(new VLVRequestControl(0, 3, -1, 0));
+
+    InternalSearchOperation internalSearch =
+         new InternalSearchOperation(conn, conn.nextOperationID(),
+                  conn.nextMessageID(), requestControls,
+                  DN.decode("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
+                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  SearchFilter.createFilterFromString("(objectClass=person)"),
+                  null, null);
+
+    internalSearch.run();
+
+    // It will be successful because it's not a critical control.
+    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
+
+    List<Control> responseControls = internalSearch.getResponseControls();
+    assertNotNull(responseControls);
+
+    VLVResponseControl vlvResponse  = null;
+    for (Control c : responseControls)
+    {
+      if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
+      {
+        vlvResponse = VLVResponseControl.decodeControl(c);
+      }
+    }
+
+    assertNotNull(vlvResponse);
+    assertEquals(vlvResponse.getVLVResultCode(),
+                 LDAPResultCode.OFFSET_RANGE_ERROR);
+  }
+
+
+
+  /**
+   * Tests performing an internal search using the VLV control with an offset of
+   * one but a beforeCount that puts the start position at a negative value.
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
@@ -667,8 +796,7 @@ public class VLVControlTestCase
     }
 
     assertNotNull(vlvResponse);
-    assertEquals(vlvResponse.getVLVResultCode(),
-                 LDAPResultCode.OFFSET_RANGE_ERROR);
+    assertEquals(vlvResponse.getVLVResultCode(), LDAPResultCode.SUCCESS);
   }
 
 
@@ -702,8 +830,20 @@ public class VLVControlTestCase
 
     internalSearch.run();
 
-    // It will be successful because it's not a critical control.
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
+
+    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
+    expectedDNOrder.add(maryJonesDN);       // Mary
+    expectedDNOrder.add(samZweckDN);        // Sam
+    expectedDNOrder.add(zorroDN);           // No first name
+
+    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
+    for (Entry e : internalSearch.getSearchEntries())
+    {
+      returnedDNOrder.add(e.getDN());
+    }
+
+    assertEquals(returnedDNOrder, expectedDNOrder);
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -718,8 +858,9 @@ public class VLVControlTestCase
     }
 
     assertNotNull(vlvResponse);
-    assertEquals(vlvResponse.getVLVResultCode(),
-                 LDAPResultCode.OFFSET_RANGE_ERROR);
+    assertEquals(vlvResponse.getVLVResultCode(), LDAPResultCode.SUCCESS);
+    assertEquals(vlvResponse.getTargetPosition(), 10);
+    assertEquals(vlvResponse.getContentCount(), 9);
   }
 
 
@@ -1164,7 +1305,9 @@ public class VLVControlTestCase
 
     assertNotNull(vlvResponse);
     assertEquals(vlvResponse.getVLVResultCode(),
-                 LDAPResultCode.OFFSET_RANGE_ERROR);
+                 LDAPResultCode.SUCCESS);
+    assertEquals(vlvResponse.getTargetPosition(), 10);
+    assertEquals(vlvResponse.getContentCount(), 9);
   }
 }
 
