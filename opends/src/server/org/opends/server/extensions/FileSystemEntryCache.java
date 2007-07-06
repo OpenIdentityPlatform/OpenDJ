@@ -1603,7 +1603,7 @@ public class FileSystemEntryCache
               stackTraceToSingleLineString(e),
               null,
               false,
-              ResultCode.OPERATIONS_ERROR
+              DirectoryServer.getServerErrorResultCode()
               );
         }
         jeCacheSize = newJECacheSize;
@@ -1624,7 +1624,7 @@ public class FileSystemEntryCache
               stackTraceToSingleLineString(e),
               null,
               false,
-              ResultCode.OPERATIONS_ERROR
+              DirectoryServer.getServerErrorResultCode()
               );
         }
         break;
