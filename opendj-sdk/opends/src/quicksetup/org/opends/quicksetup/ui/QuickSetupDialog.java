@@ -538,10 +538,7 @@ public class QuickSetupDialog
 
   private void displayWorkingProgressImage(boolean display)
   {
-    if (getFramePanel() instanceof FramePanel)
-    {
-      ((FramePanel)getFramePanel()).setProgressIcon(display ?
+    getCurrentStepPanel().setIcon(display ?
           UIFactory.IconType.WAIT : UIFactory.IconType.NO_ICON);
-    }
   }
 }
