@@ -344,13 +344,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema3.ldif' % logsRemoteDataDir }
-            </call>
-                
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 65 }
+                'entryToBeAdded'   : '%s/schema/ldifs/dynamic_schema3.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 65
+              }
             </call>
                      
             <call function="'testCase_Postamble'"/>
