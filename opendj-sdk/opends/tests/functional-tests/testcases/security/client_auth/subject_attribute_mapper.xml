@@ -62,7 +62,8 @@
              'DNToModify'	        :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
              'attributeName'        : 'ds-cfg-certificate-mapper-dn',
              'newAttributeValue'  : 'cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config',
-             'changetype' : 'replace' }
+             'changetype' : 'replace',
+             'expectedRC'           :  0 }			  
       </call>
    
 		            
@@ -114,7 +115,8 @@
              'DNToModify'	        :  'cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config',
              'attributeName'        : 'ds-cfg-certificate-subject-attribute-mapping',
              'newAttributeValue'  : 'uid:description',
-             'changetype' : 'replace' }
+             'changetype' : 'replace',
+             'expectedRC'           :  0 }			  
       </call>
 		   
 				  
@@ -129,7 +131,8 @@
     'DNToModify'	        : USER_1_DN,
     'attributeName'         : 'description',
     'newAttributeValue'    : USER_1_CERT,
-    'changetype'              : 'add' }
+    'changetype'              : 'add',
+    'expectedRC'           :  0 }			 
     </call>      
 
 	
@@ -146,7 +149,8 @@
     'DNToModify'	      : USER_2_DN,
     'attributeName'       : 'description',
     'newAttributeValue'  : 'bad-certificate',
-    'changetype'            : 'add' }
+    'changetype'            : 'add',
+    'expectedRC'           :  0 }			 
     </call>               
         
 		
@@ -167,7 +171,8 @@
           'dsTrustStorePath'       : CLIENT_KEYSTORE,
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
-          'dsScope'                 : 'base' }
+          'dsScope'                 : 'base',
+         'expectedRC'           :  0 }			 
      </call>    
 		
      <script>
@@ -195,7 +200,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expected'               : 49 }
+		  'expectedRC'               : 49 }
      </call>    
 		
 		
@@ -215,7 +220,8 @@
           'dsTrustStorePath'       : CLIENT_KEYSTORE,
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
-          'dsScope'                 : 'base' }
+          'dsScope'                 : 'base',
+          'expectedRC'           :  0 }			 
      </call>    
 		
      <script>
@@ -243,7 +249,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expected'               : 49 }
+		  'expectedRC'               : 49 }
      </call>    
 		
 

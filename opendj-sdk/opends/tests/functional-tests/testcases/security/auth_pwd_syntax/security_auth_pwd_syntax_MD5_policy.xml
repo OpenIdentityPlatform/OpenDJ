@@ -65,12 +65,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_MD5_policy.ldif' % logsRemoteDataDir }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_MD5_policy.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 0 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -107,12 +103,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_MD5_users.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_MD5_users.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 0 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: MD5 Policy - New User Binding with authPassword'
@@ -125,12 +119,9 @@
                 'dsInstancePswd'   : 'gosling' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+                'expectedRC'       : 0 }				
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: MD5 Policy - Old User Binding by userPassword'
@@ -143,14 +134,10 @@
                 'dsInstancePswd'   : 'forsook' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+                'expectedRC'       : 0 }				
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
      
           </sequence>
@@ -183,12 +170,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_MD5_user1.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_MD5_user1.ldif' % logsRemoteDataDir,
+                'expectedRC'       : 65 }				
             </call>
 
-            <if expr="RC != 65">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: MD5 Policy - New User Binding with authPassword'
@@ -201,14 +186,10 @@
                 'dsInstancePswd'   : 'hairball' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
             
             <call function="'testCase_Postamble'"/>
      
@@ -242,12 +223,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_MD5_user2.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_MD5_user2.ldif' % logsRemoteDataDir,
+                'expectedRC'       : 21 }				
             </call>
 
-            <if expr="RC != 21">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: MD5 Policy - New User Binding with authPassword'
@@ -260,14 +239,10 @@
                 'dsInstancePswd'   : 'hairball' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }				
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
             <call function="'testCase_Postamble'"/>
      
           </sequence>
@@ -300,12 +275,10 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'ou=MD5 auth tests,o=Auth Pwd Syntax Tests,dc=example,dc=com' ,
-                'extraParams'      : '-x'}
+                'extraParams'      : '-x',
+                'expectedRC'       : 0 }						
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: MD5 Policy Postamble - Admin deleting MD5 password policy'
@@ -316,13 +289,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_del_new_policy.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_del_new_policy.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 0 }						
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             
             <call function="'testCase_Postamble'"/>
           </sequence>

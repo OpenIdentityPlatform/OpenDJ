@@ -63,7 +63,8 @@
              'DNToModify'	        :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
              'attributeName'        : 'ds-cfg-certificate-mapper-dn',
              'newAttributeValue'  : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
-             'changetype' : 'replace' }
+             'changetype' : 'replace',
+             'expectedRC'           :  0 }		
     </call>
  
     <call function="'testCase_Postamble'"/>
@@ -159,7 +160,8 @@
     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
     'DNToModify'	        : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
     'listAttributes' : listAttr,
-    'changetype'              : 'replace' }
+    'changetype'              : 'replace',
+    'expectedRC'           :  0 }			 
     </call>          
    
    <!-- configure the user entries -->
@@ -175,7 +177,8 @@
     'DNToModify'	      : USER_1_DN,
     'attributeName'       : 'ds-certificate-fingerprint',
     'newAttributeValue'  : MD5_fingerprint_cert1,
-    'changetype'            : 'add' }
+    'changetype'            : 'add',
+    'expectedRC'           :  0 }			 
     </call>               
 
 
@@ -190,7 +193,8 @@
     'DNToModify'	      : USER_2_DN,
     'attributeName'       : 'ds-certificate-fingerprint',
     'newAttributeValue'  : SHA1_fingerprint_cert2,
-    'changetype'            : 'add' }
+    'changetype'            : 'add',
+    'expectedRC'           :  0 }			 
     </call>            
 		
     <!--  Check mapping is working -->         
@@ -211,7 +215,8 @@
        'dsTrustStorePath'       : CLIENT_KEYSTORE,
        'dsKeyStorePath'        : CLIENT_KEYSTORE,
        'dsReportAuthzID'   : ' ',
-       'dsScope'                 : 'base' }
+       'dsScope'                 : 'base',
+       'expectedRC'           :  0 }			 
      </call>    
 		
      <script>
@@ -240,7 +245,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expected'               : 49 }
+		  'expectedRC'               : 49 }
      </call>    
 		    
 		
@@ -261,7 +266,8 @@
           'dsTrustStorePath'       : CLIENT_KEYSTORE,
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
-          'dsScope'                 : 'base' }
+          'dsScope'                 : 'base',
+          'expectedRC'           :  0 }			
      </call>    
 		
      <script>
@@ -280,7 +286,7 @@
 	{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
 	  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,		 
           'dsBaseDN'         : DIRECTORY_INSTANCE_SFX,		 
-	  'dsFilter'		: 'objectclass=*'	,
+	      'dsFilter'		: 'objectclass=*'	,
           'dsKeyStorePassword'   :  CLIENT_STOREPASS,
           'dsUseStartTLS'             :  ' ',
           'dsUseSASLExternal'   :  ' ',
@@ -289,7 +295,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-	  'expected'               : 49 }
+	      'expectedRC'               : 49 }
      </call>    
 		
    <!-- 		Configure the mapper to map SHA1  fingerprint   -->
@@ -308,7 +314,8 @@
     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
     'DNToModify'	        : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
     'listAttributes' : listAttr,
-    'changetype'              : 'replace' }
+    'changetype'              : 'replace',
+    'expectedRC'           :  0 }			 
     </call>          		
 		
 		
@@ -328,7 +335,8 @@
        'dsTrustStorePath'       : CLIENT_KEYSTORE,
        'dsKeyStorePath'        : CLIENT_KEYSTORE,
        'dsReportAuthzID'   : ' ',
-       'dsScope'                 : 'base' }
+       'dsScope'                 : 'base',
+       'expectedRC'           :  0 }	
      </call>    
 		
      <script>
@@ -356,7 +364,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expected'               : 49 }
+		  'expectedRC'               : 49 }
      </call>    
 		        
 		
@@ -375,7 +383,8 @@
           'dsTrustStorePath'       : CLIENT_KEYSTORE,
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
-          'dsScope'                 : 'base' }
+          'dsScope'                 : 'base',
+          'expectedRC'           :  0 }			
      </call>    
 		
      <script>
@@ -403,7 +412,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-	  'expected'               : 49 }
+	      'expectedRC'               : 49 }
      </call>    
 					
      <!--  Restore initial users configuration -->   
@@ -417,7 +426,8 @@
     'DNToModify'	      : USER_1_DN,
     'attributeName'       : 'ds-certificate-fingerprint',
     'newAttributeValue'  : MD5_fingerprint_cert1,
-    'changetype'            : 'delete' }
+    'changetype'            : 'delete',
+    'expectedRC'           :  0 }			 
     </call>               
   
      <call function="'modifyAnAttribute'">
@@ -428,7 +438,8 @@
     'DNToModify'	      : USER_2_DN,
     'attributeName'       : 'ds-certificate-fingerprint',
     'newAttributeValue'  : SHA1_fingerprint_cert2,
-    'changetype'            : 'delete' }
+    'changetype'            : 'delete',
+    'expectedRC'           :  0 }			 
     </call>            
 				
 		
@@ -533,7 +544,8 @@
     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
     'DNToModify'	        : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
     'listAttributes' : listAttr,
-    'changetype'              : 'replace' }
+    'changetype'              : 'replace',
+    'expectedRC'           :  0 }			 
     </call>          
    
    <!-- configure the user entries -->
@@ -549,7 +561,8 @@
     'DNToModify'	      : USER_1_DN,
     'attributeName'       : 'description',
     'newAttributeValue'  : MD5_fingerprint_cert1,
-    'changetype'            : 'add' }
+    'changetype'            : 'add',
+    'expectedRC'           :  0 }			 
     </call>               
 
 
@@ -564,7 +577,8 @@
     'DNToModify'	      : USER_2_DN,
     'attributeName'       : 'description',
     'newAttributeValue'  : SHA1_fingerprint_cert2,
-    'changetype'            : 'add' }
+    'changetype'            : 'add' ,
+    'expectedRC'           :  0 }			 
     </call>            
 		
     <!--  Check mapping is working -->         
@@ -585,7 +599,8 @@
        'dsTrustStorePath'       : CLIENT_KEYSTORE,
        'dsKeyStorePath'        : CLIENT_KEYSTORE,
        'dsReportAuthzID'   : ' ',
-       'dsScope'                 : 'base' }
+       'dsScope'                 : 'base',
+       'expectedRC'           :  0 }			 
      </call>    
 		
      <script>
@@ -614,7 +629,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expected'               : 49 }
+		  'expectedRC'               : 49 }
      </call>    
 		    
 		
@@ -635,7 +650,8 @@
           'dsTrustStorePath'       : CLIENT_KEYSTORE,
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
-          'dsScope'                 : 'base' }
+          'dsScope'                 : 'base',
+          'expectedRC'           :  0 }			
      </call>    
 		
      <script>
@@ -663,7 +679,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-	  'expected'               : 49 }
+	      'expectedRC'               : 49 }
      </call>    
 		
    <!-- 		Configure the mapper to map SHA1  fingerprint   -->
@@ -682,7 +698,8 @@
     'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
     'DNToModify'	        : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
     'listAttributes' : listAttr,
-    'changetype'              : 'replace' }
+    'changetype'              : 'replace',
+    'expectedRC'           :  0 }			 
     </call>          		
 		
 		
@@ -702,7 +719,8 @@
        'dsTrustStorePath'       : CLIENT_KEYSTORE,
        'dsKeyStorePath'        : CLIENT_KEYSTORE,
        'dsReportAuthzID'   : ' ',
-       'dsScope'                 : 'base' }
+       'dsScope'                 : 'base',
+       'expectedRC'           :  0 }			 
      </call>    
 		
      <script>
@@ -730,7 +748,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-		  'expected'               : 49 }
+		  'expectedRC'               : 49 }
      </call>    
 		        
 		
@@ -749,7 +767,8 @@
           'dsTrustStorePath'       : CLIENT_KEYSTORE,
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
-          'dsScope'                 : 'base' }
+          'dsScope'                 : 'base',
+          'expectedRC'           :  0 }			
      </call>    
 		
      <script>
@@ -777,7 +796,7 @@
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
           'dsScope'                 : 'base',
-	  'expected'               : 49 }
+          'expectedRC'               : 49 }
      </call>    
 					
      <!--  Restore initial users configuration -->   
@@ -791,7 +810,8 @@
     'DNToModify'	      : USER_1_DN,
     'attributeName'       : 'description',
     'newAttributeValue'  : MD5_fingerprint_cert1,
-    'changetype'            : 'delete' }
+    'changetype'            : 'delete',
+    'expectedRC'           :  0 }			 
     </call>               
   
      <call function="'modifyAnAttribute'">
@@ -802,7 +822,8 @@
     'DNToModify'	      : USER_2_DN,
     'attributeName'       : 'description',
     'newAttributeValue'  : SHA1_fingerprint_cert2,
-    'changetype'            : 'delete' }
+    'changetype'            : 'delete',
+    'expectedRC'           :  0 }			 
     </call>            
 				
 					

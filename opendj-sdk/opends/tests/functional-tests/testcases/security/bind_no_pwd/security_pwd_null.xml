@@ -50,10 +50,6 @@
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -72,14 +68,10 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir,
+                'expectedRC'      : 53 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 53 }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -100,10 +92,6 @@
                 'entryToBeModified'   : '%s/security/bind_no_pwd/enable_bind_no_pwd.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -125,10 +113,6 @@
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -150,10 +134,6 @@
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -175,10 +155,7 @@
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -200,10 +177,6 @@
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -224,9 +197,6 @@
                 'entryToBeModified'   : '%s/security/bind_no_pwd/disable_bind_no_pwd.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Bind No Pwd: Reset - Step 2. Check Reset'
@@ -238,14 +208,10 @@
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
+                'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir,
+                'expectedRC'      : 53 }				
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 53 }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

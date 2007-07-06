@@ -77,7 +77,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified' : '%s/security/client_auth/teardown/disable_ldaps_conn_handler.ldif' % (logsRemoteDataDir) }
+                'entryToBeModified' : '%s/security/client_auth/teardown/disable_ldaps_conn_handler.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }			  
          </call>
 
      
@@ -89,7 +90,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified' : '%s/security/client_auth/teardown/disable_trust_mgr_provider.ldif' % (logsRemoteDataDir) }
+                'entryToBeModified' : '%s/security/client_auth/teardown/disable_trust_mgr_provider.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }			 
          </call>
 
 
@@ -104,7 +106,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-               'entryToBeModified' : '%s/security/client_auth/teardown/disable_key_mgr_provider.ldif' % (logsRemoteDataDir) }
+               'entryToBeModified' : '%s/security/client_auth/teardown/disable_key_mgr_provider.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }			 
          </call>
 
       
@@ -120,7 +123,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified' : '%s/security/client_auth/teardown/disable_startTLS.ldif' % (logsRemoteDataDir) }
+                'entryToBeModified' : '%s/security/client_auth/teardown/disable_startTLS.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }			 
          </call>
 
 			  
@@ -144,7 +148,7 @@
                 'filename' : '%s/../config/keystore' % OPENDS_BINPATH }
             </call>
 
-            <call function="'checkRC'">
+            <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -161,7 +165,8 @@
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'        :  DIRECTORY_INSTANCE_SFX ,
 				'dsScope'           :  'base',
-                'dsFilter'             : 'objectclass=*' }
+                'dsFilter'             : 'objectclass=*' ,
+                'expectedRC'           :  0 }				
             </call>
 
             <call function="'DeleteEntry'">
@@ -169,25 +174,20 @@
                       'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                        'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                       'dsBaseDN'	   : USER_1_DN}
+                       'dsBaseDN'	   : USER_1_DN,
+                       'expectedRC'           :  0 }				
              </call>
 	  
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
 			  			  
             <call function="'DeleteEntry'">
                    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                       'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                        'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
                        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                       'dsBaseDN'	   : USER_2_DN}
+                       'dsBaseDN'	   : USER_2_DN,
+                       'expectedRC'           :  0 }				
              </call>
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+         
 			  	
             <call function="'testCase_Postamble'"/>
           </sequence>

@@ -68,10 +68,6 @@
                 'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_policy.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -108,9 +104,6 @@
                 'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_users.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: SHA256 Policy - New User Binding with authPassword'
@@ -126,10 +119,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Auth Pwd Syntax: SHA256 Policy - Old User Binding by userPassword'
             </message>
@@ -144,10 +133,7 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+            
             <call function="'testCase_Postamble'"/>
      
           </sequence>
@@ -180,12 +166,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_user1.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_user1.ldif' % logsRemoteDataDir,
+                'expectedRC'         : 65 }				
             </call>
 
-            <if expr="RC != 65">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: SHA256 Policy - New User Binding with authPassword'
@@ -198,14 +182,10 @@
                 'dsInstancePswd'   : 'hairball' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+                'expectedRC'         : 49 } 	
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
             <call function="'testCase_Postamble'"/>
      
           </sequence>
@@ -238,12 +218,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_user2.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_SHA256_user2.ldif' % logsRemoteDataDir,
+                'expectedRC'         : 21 }				
             </call>
 
-            <if expr="RC != 21">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: SHA256 Policy - New User Binding with authPassword'
@@ -256,14 +234,10 @@
                 'dsInstancePswd'   : 'hairball' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+               'expectedRC'         : 49 }				
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
             <call function="'testCase_Postamble'"/>
      
           </sequence>
@@ -299,9 +273,6 @@
                 'extraParams'      : '-x'}
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: SHA256 Policy Postamble - Admin deleting SHA256 password policy'
@@ -315,10 +286,6 @@
                 'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_del_new_policy.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             
             <call function="'testCase_Postamble'"/>
           </sequence>

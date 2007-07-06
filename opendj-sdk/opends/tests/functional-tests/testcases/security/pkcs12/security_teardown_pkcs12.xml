@@ -73,11 +73,6 @@
                 'extraParams'      : '-Z -X -x' }
             </call>
 
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-
             <!--- Unconfigure PKCS12 Keystore -->
             <message>
                'Security: PKCS12: Postamble Step 2. Unconfiguring PKCS12 Keystore'
@@ -91,7 +86,7 @@
                 'keystoreType'   : '%s' % 'pkcs12' }
             </call>
 
-            <call function="'checkRC'">
+            <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult }
             </call>
@@ -125,10 +120,6 @@
                 'dsFilter'         : 'objectclass=*' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             
             <call function="'testCase_Postamble'"/>
             

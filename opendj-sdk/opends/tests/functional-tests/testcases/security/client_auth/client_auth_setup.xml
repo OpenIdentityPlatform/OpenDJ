@@ -313,7 +313,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,		  
-                'entryToBeModified' : '%s/security/client_auth/setup/enable_key_mgr_provider.ldif' % (logsRemoteDataDir) }
+                'entryToBeModified' : '%s/security/client_auth/setup/enable_key_mgr_provider.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }
       </call>
 
 		 
@@ -327,7 +328,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
-                'entryToBeModified' : '%s/security/client_auth/setup/enable_trust_mgr_provider.ldif' % (logsRemoteDataDir) }
+                'entryToBeModified' : '%s/security/client_auth/setup/enable_trust_mgr_provider.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }		  
       </call>
 
 
@@ -341,7 +343,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
-                'entryToBeModified' : '%s/security/ldaps_port.ldif' % (logsRemoteDataDir) }
+                'entryToBeModified' : '%s/security/ldaps_port.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }		  
       </call>
 
 	  <!--  Enabling LDAPS Connection Handler - Keystore type -->
@@ -354,7 +357,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
-                'entryToBeModified' : '%s/security/client_auth/setup/enable_ldaps_conn_handler.ldif' % (logsRemoteDataDir) }
+                'entryToBeModified' : '%s/security/client_auth/setup/enable_ldaps_conn_handler.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }		  
       </call>
 	
 
@@ -368,7 +372,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'  : '%s/security/client_auth/setup/enable_startTLS.ldif' % (logsRemoteDataDir) }
+                'entryToBeAdded'  : '%s/security/client_auth/setup/enable_startTLS.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }		  
       </call>
 	
 		 		 		
@@ -386,7 +391,8 @@
 			    'dsScope'           :  'base',
                 'dsFilter'         : 'objectclass=*' ,
                 'dsUseSSL'  	   : ' ',
-                'dsTrustAll' : ' ' }
+                'dsTrustAll' : ' ',
+                'expectedRC'           :  0 }
       </call>
 	  
 
@@ -404,7 +410,8 @@
 			    'dsScope'           :  'base',
                 'dsFilter'         : 'objectclass=*' ,
                 'dsUseStartTLS'  	   : ' ',
-                'dsTrustAll' : ' ' }
+                'dsTrustAll' : ' ',
+                'expectedRC'           :  0 }		  
       </call>
 
 			    			  			  
@@ -460,7 +467,8 @@
               'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
               'DNToAdd'	  : USER_1_DN,
-              'listAttributes' : listAttr }
+              'listAttributes' : listAttr,
+              'expectedRC'           :  0 }		  
     	</call>
    
 		  
@@ -506,7 +514,8 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'	  : '%s' % remoteUser1LdifFile }
+                    'entryToBeModified'	  : '%s' % remoteUser1LdifFile,
+                    'expectedRC'           :  0 }		  
 		</call>
 	 
       <!-- Create USER_2_DN : this used contains the objectclass  ds-certificate-user -->
@@ -534,7 +543,8 @@
              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
              'DNToAdd'	  : USER_2_DN,
-             'listAttributes' : listAttr }
+             'listAttributes' : listAttr,
+             'expectedRC'           :  0 }		  
   	  </call>
             	
 
@@ -584,7 +594,8 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'	  : '%s' % remoteUser2LdifFile }
+                    'entryToBeModified'	  : '%s' % remoteUser2LdifFile,
+                    'expectedRC'           :  0 }		  
 		</call>
 
 		  		  

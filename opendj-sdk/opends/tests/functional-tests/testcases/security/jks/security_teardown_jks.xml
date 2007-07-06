@@ -73,28 +73,50 @@
                 'extraParams'      : '-Z -X -x' }
             </call>
 
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+          <!--- Disable LDAPS Connection Handler -->
+           <message>
+             'Disabling LDAPS Connection Handler'
+          </message>
 
-            <!--- Unconfigure JKS Keystore -->
-            <message>
-               'Security: JKS: Postamble Step 2. Unconfiguring JKS Keystore'
-            </message>
-
-            <call function="'unconfigureSSL'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+          <call function="'modifyEntry'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'keystoreType'   : '%s' % 'jks' }
-            </call>
+                'entryToBeModified' : '%s/security/jks/teardown/disable_ldaps_conn_handler.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }			  
+         </call>
 
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+     
+         <!--- Disable SSL Trust Manager Provider -->
+         <message>   'Disabling SSL Trust Manager Provider' </message>
+
+         <call function="'modifyEntry'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'entryToBeModified' : '%s/security/jks/teardown/disable_trust_mgr_provider.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }			 
+         </call>
+
+
+
+         <!--- Disable Key Manager Provider -->
+         <message>
+          'Disabling Key Manager Provider'
+         </message>
+
+         <call function="'modifyEntry'">
+               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+               'entryToBeModified' : '%s/security/jks/teardown/disable_key_mgr_provider.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }			 
+         </call>
+
+								
 
             <!--- Remove JKS Keystore -->
             <message>
@@ -125,10 +147,6 @@
                 'dsFilter'         : 'objectclass=*' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
