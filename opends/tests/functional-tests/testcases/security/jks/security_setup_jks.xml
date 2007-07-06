@@ -68,26 +68,33 @@
                'Security: JKS: Preamble Step 1. Generating Server Certicate'
             </message>
 
-            <call function="'genServerJKSCert'">
-            </call>
-
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+	
+            <!-- create a server certificate -->           
+ 		    
+           <call function="'genCertificate'">
+            { 'certAlias'        : 'server-cert' ,
+               'dname'           : "cn=client,O=Sun Microsystems,C=US",
+               'keystore'        : 'keystore',
+               'storepass'       : 'servercert',
+               'keypass'         : 'servercert',
+               'storetype'  	   : 'JKS' }
+           </call>  
+ 			  
 
             <!--- Self-Sign Server Cert -->
             <message>
                'Security: JKS: Preamble Step 2. Self-Signing Server Certificate'
             </message>
 
-            <call function="'selfSignServerJKSCert'">
-            </call>
+           <call function="'SelfSignCertificate'">
+            { 'certAlias'        : 'server-cert' ,
+              'storepass'       : 'servercert',
+              'keypass'         : 'servercert',
+              'keystore'        : 'keystore',
+              'storetype'  	   : 'JKS' }
+            </call>			  
+   
 
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
 
             <!--- Configure JKS Keystore -->
             <message>
@@ -122,10 +129,6 @@
                 'extraParams'  	   : '-Z -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

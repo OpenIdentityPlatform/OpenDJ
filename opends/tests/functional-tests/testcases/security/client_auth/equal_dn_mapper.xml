@@ -62,7 +62,8 @@
              'DNToModify'	        :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
              'attributeName'        : 'ds-cfg-certificate-mapper-dn',
              'newAttributeValue'  : 'cn=Subject Equals DN,cn=Certificate Mappers,cn=config',
-             'changetype' : 'replace' }
+             'changetype' : 'replace',
+             'expectedRC'           :  0 }		  
       </call>
    
 		             
@@ -108,7 +109,8 @@
           'dsTrustStorePath'       : CLIENT_KEYSTORE,
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
-          'dsScope'                 : 'base' }
+          'dsScope'                 : 'base',
+          'expectedRC'           :  0 }		  		 
      </call>    
 		
      <script>
@@ -135,7 +137,8 @@
           'dsTrustStorePath'       : CLIENT_KEYSTORE,
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
-          'dsScope'                 : 'base' }
+          'dsScope'                 : 'base',
+          'expectedRC'           :  0 }		  		 
      </call>    
 		
      <script>
@@ -163,7 +166,8 @@
           'dsTrustStorePath'       : CLIENT_KEYSTORE,
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
-          'dsScope'                 : 'base' }
+          'dsScope'                 : 'base',
+          'expectedRC'           :  0 }		  		 
      </call>    
 
      <script>
@@ -190,7 +194,8 @@
           'dsTrustStorePath'       : CLIENT_KEYSTORE,
           'dsKeyStorePath'        : CLIENT_KEYSTORE,
           'dsReportAuthzID'   : ' ',
-          'dsScope'                 : 'base' }
+          'dsScope'                 : 'base',
+          'expectedRC'           :  0 }		       
      </call>    
      <script>
            STAXCode = RC

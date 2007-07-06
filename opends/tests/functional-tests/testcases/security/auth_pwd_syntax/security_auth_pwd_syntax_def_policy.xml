@@ -64,13 +64,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/auth_pwd_syntax/admin_mod_def_policy.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/auth_pwd_syntax/admin_mod_def_policy.ldif' % logsRemoteDataDir,
+                'expectedRC'      : 0 }				
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             
             <call function="'testCase_Postamble'"/>
      
@@ -108,12 +105,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_def_users.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/auth_pwd_syntax/admin_add_def_users.ldif' % logsRemoteDataDir,
+                'expectedRC'      : 0 }				
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: New Policy - New User Binding with authPassword'
@@ -126,12 +121,9 @@
                 'dsInstancePswd'   : 'gosling' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+                'expectedRC'      : 0 }				
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: New Policy - Old User Binding by userPassword'
@@ -144,14 +136,10 @@
                 'dsInstancePswd'   : 'forsook' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base',
+                'expectedRC'      : 49 }		
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
             
             <call function="'testCase_Postamble'"/>
      
@@ -185,12 +173,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/auth_pwd_syntax/admin_mod_def_policy2.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/auth_pwd_syntax/admin_mod_def_policy2.ldif' % logsRemoteDataDir,
+                'expectedRC'      : 0 }				
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: New Policy - New User Binding with authPassword'
@@ -203,12 +189,9 @@
                 'dsInstancePswd'   : 'gosling' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base', 
+                'expectedRC'      : 49 }		
             </call>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Auth Pwd Syntax: New Policy - Old User Binding by userPassword'
@@ -221,12 +204,8 @@
                 'dsInstancePswd'   : 'forsook' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                'extraParams'      : '-s base',
+                'expectedRC'      : 0 }				
             </call>
 
             <call function="'testCase_Postamble'"/>

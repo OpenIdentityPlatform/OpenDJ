@@ -69,26 +69,28 @@
                'Security: PKCS12: Preamble Step 1. Generating Server PKCS12 Certicate'
             </message>
 
-            <call function="'genServerPKCS12Cert'">
-            </call>
+			<call function="'genCertificate'">
+            { 'certAlias'        : 'server-cert' ,
+               'dname'           : "cn=client,O=Sun Microsystems,C=US",
+               'keystore'        : 'keystore',
+               'storepass'       : 'servercert',
+               'keypass'         : 'servercert',
+               'storetype'  	   : 'PKCS12' }
+           </call>
 
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
 
             <!--- Self-Sign Server Cert -->
             <message>
                'Security: PKCS12: Preamble Step 2. Self-Signing Server PKCS12 Certicate'
             </message>
+            <call function="'SelfSignCertificate'">
+            { 'certAlias'        : 'server-cert' ,
+              'storepass'       : 'servercert',
+              'keypass'         : 'servercert',
+              'keystore'        : 'keystore',
+              'storetype'  	   : 'PKCS12' }
+            </call>			
 
-            <call function="'selfSignServerPKCS12Cert'">
-            </call>
-
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
 
             <!--- Configure PKCS12 Keystore -->
             <message>
@@ -123,10 +125,7 @@
                 'extraParams'  	   : '-Z -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

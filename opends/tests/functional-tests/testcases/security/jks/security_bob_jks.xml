@@ -71,10 +71,6 @@
                 'extraParams'      : '-Z -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -110,10 +106,6 @@
                 'extraParams'      : '-Z -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -149,10 +141,6 @@
                 'extraParams'      : '-Z -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -188,10 +176,6 @@
                 'extraParams'      : '-Z -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -227,10 +211,6 @@
                 'extraParams'      : '-Z -X' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
