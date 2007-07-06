@@ -116,7 +116,7 @@ public class LDIFSearch
    */
   public static void main(String[] args)
   {
-    int exitCode = mainSearch(args);
+    int exitCode = mainSearch(args, true);
     if (exitCode != 0)
     {
       System.exit(filterExitCode(exitCode));
@@ -131,11 +131,13 @@ public class LDIFSearch
    *
    * @param  args  The command line arguments provided to this program.
    *
+   * @param initializeServer True if server initialization should be done.
+   * 
    * @return  The return code for this operation.  A value of zero indicates
    *          that all processing completed successfully.  A nonzero value
    *          indicates that some problem occurred during processing.
    */
-  public static int mainSearch(String[] args)
+  public static int mainSearch(String[] args, boolean initializeServer)
   {
     LinkedHashSet<String> scopeStrings = new LinkedHashSet<String>(4);
     scopeStrings.add(SCOPE_STRING_BASE);
@@ -272,7 +274,10 @@ public class LDIFSearch
     // way.
     boolean            allUserAttrs        = false;
     boolean            allOperationalAttrs = false;
-    LinkedList<String> attributeNames      = new LinkedList<String>();
+    //Return objectclass attribute unless analysis of the arguments determines
+    //otherwise.
+    boolean            includeObjectclassAttrs = true;
+    LinkedList<String> attributeNames;
     LinkedList<String> objectClassNames    = new LinkedList<String>();
     LinkedList<String> filterStrings;
     if (filterFile.isPresent())
@@ -359,20 +364,35 @@ public class LDIFSearch
       allUserAttrs = true;
     }
 
+    //Determine if objectclass attribute should be returned.
+    if(!allUserAttrs) {
+      //Single '+', never return objectclass.
+      if(allOperationalAttrs && objectClassNames.isEmpty() &&
+         attributeNames.isEmpty())
+        includeObjectclassAttrs=false;
+      //If "objectclass" isn't specified in the attributes to return, then
+      //don't include objectclass attribiute.
+      if(!attributeNames.isEmpty() && objectClassNames.isEmpty() &&
+         !attributeNames.contains("objectclass"))
+         includeObjectclassAttrs=false;
+    }
+
 
     // Bootstrap the Directory Server configuration for use as a client.
     DirectoryServer directoryServer = DirectoryServer.getInstance();
-    directoryServer.bootstrapClient();
-
 
     // If we're to use the configuration then initialize it, along with the
     // schema.
     boolean checkSchema = configFile.isPresent();
+
+    if(initializeServer) {
+     DirectoryServer.bootstrapClient();
+
     if (checkSchema)
     {
       try
       {
-        directoryServer.initializeJMX();
+        DirectoryServer.initializeJMX();
       }
       catch (Exception e)
       {
@@ -413,7 +433,7 @@ public class LDIFSearch
         return 1;
       }
     }
-
+    }
 
     // Choose the desired search scope.
     SearchScope searchScope;
@@ -466,7 +486,6 @@ public class LDIFSearch
          new LinkedHashSet<AttributeType>();
     LinkedHashSet<AttributeType> operationalAttributeTypes =
          new LinkedHashSet<AttributeType>();
-
     for (String attributeName : attributeNames)
     {
       AttributeType t = DirectoryServer.getAttributeType(attributeName, true);
@@ -598,12 +617,12 @@ public class LDIFSearch
     {
       if (overwriteExisting.isPresent())
       {
-        exportConfig = new LDIFExportConfig(outputFile.getName(),
+        exportConfig = new LDIFExportConfig(outputFile.getValue(),
                                             ExistingFileBehavior.OVERWRITE);
       }
       else
       {
-        exportConfig = new LDIFExportConfig(outputFile.getName(),
+        exportConfig = new LDIFExportConfig(outputFile.getValue(),
                                             ExistingFileBehavior.APPEND);
       }
     }
@@ -612,6 +631,7 @@ public class LDIFSearch
       exportConfig = new LDIFExportConfig(System.out);
     }
 
+    exportConfig.setIncludeObjectClasses(includeObjectclassAttrs);
     if (dontWrap.isPresent())
     {
       exportConfig.setWrapColumn(0);
@@ -804,4 +824,5 @@ public class LDIFSearch
     return resultCode;
   }
 }
+
 
