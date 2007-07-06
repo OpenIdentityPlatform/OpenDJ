@@ -582,6 +582,21 @@ public class LDIFExportConfig
 
 
   /**
+   * Specifies whether the  objectclasss attribute should be
+   * included in the export.
+   *
+   * @param  includeObjectClasses  Specifies whether the
+   *                                objectclass attribute
+   *                                should be included in the
+   *                                export.
+   */
+  public void setIncludeObjectClasses(
+                   boolean includeObjectClasses)
+  {
+    this.includeObjectClasses = includeObjectClasses;
+  }
+
+  /**
    * Specifies whether the set of operational attributes should be
    * included in the export.
    *
@@ -899,4 +914,5 @@ public class LDIFExportConfig
     }
   }
 }
+
 
