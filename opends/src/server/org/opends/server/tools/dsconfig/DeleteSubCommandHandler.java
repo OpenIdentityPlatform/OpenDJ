@@ -50,6 +50,7 @@ import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
@@ -63,6 +64,18 @@ import org.opends.server.util.args.SubCommandArgumentParser;
  * This sub-command implements the various delete-xxx sub-commands.
  */
 final class DeleteSubCommandHandler extends SubCommandHandler {
+
+  /**
+   * The value for the long option force.
+   */
+  private static final String OPTION_DSCFG_LONG_FORCE = "force";
+
+  /**
+   * The value for the short option force.
+   */
+  private static final char OPTION_DSCFG_SHORT_FORCE = 'f';
+
+
 
   /**
    * Creates a new delete-xxx sub-command for an instantiable
@@ -105,6 +118,9 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     return new DeleteSubCommandHandler(parser, p, r, p.child(r));
   }
 
+  // The argument which should be used to force deletion.
+  private final BooleanArgument forceArgument;
+
   // The sub-commands naming arguments.
   private final List<StringArgument> namingArgs;
 
@@ -129,12 +145,19 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
     // Create the sub-command.
     String name = "delete-" + r.getName();
+    String ufpn = r.getChildDefinition().getUserFriendlyPluralName();
     int descriptionID = MSGID_DSCFG_DESCRIPTION_SUBCMD_DELETE;
     this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
-        descriptionID, r.getChildDefinition().getUserFriendlyPluralName());
+        descriptionID, ufpn);
 
     // Create the naming arguments.
     this.namingArgs = createNamingArgs(subCommand, c);
+
+    // Create the --force argument which is used to force deletion.
+    this.forceArgument = new BooleanArgument(OPTION_DSCFG_LONG_FORCE,
+        OPTION_DSCFG_SHORT_FORCE, OPTION_DSCFG_LONG_FORCE,
+        MSGID_DSCFG_DESCRIPTION_FORCE, ufpn);
+    subCommand.addArgument(forceArgument);
 
     // Register the tags associated with the child managed objects.
     addTags(relation.getChildDefinition().getAllTags());
@@ -163,7 +186,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
     // Delete the child managed object.
     ManagementContext context = app.getManagementContext();
-    ManagedObject<?> parent;
+    ManagedObject<?> parent = null;
     try {
       parent = getManagedObject(context, path, names.subList(0,
           names.size() - 1));
@@ -194,65 +217,73 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
           msg);
     } catch (ManagedObjectNotFoundException e) {
-      int msgID = MSGID_DSCFG_ERROR_GET_PARENT_MONFE;
-      String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      String msg = getMessage(msgID, ufn);
-      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
+      // Ignore the error if the deletion is being forced.
+      if (!forceArgument.isPresent()) {
+        int msgID = MSGID_DSCFG_ERROR_GET_PARENT_MONFE;
+        String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
+        String msg = getMessage(msgID, ufn);
+        throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
+      }
     }
 
-    try {
-      // Confirm deletion.
-      String prompt = String.format(Messages.getString("delete.confirm"),
-          relation.getUserFriendlyName());
-      if (!app.confirmAction(prompt)) {
-        // Output failure message.
-        String msg = String.format(Messages.getString("delete.failed"),
+    if (parent != null) {
+      try {
+        // Confirm deletion.
+        String prompt = String.format(Messages.getString("delete.confirm"),
             relation.getUserFriendlyName());
-        app.displayVerboseMessage(msg);
-        return 1;
-      }
+        if (!app.confirmAction(prompt)) {
+          // Output failure message.
+          String msg = String.format(Messages.getString("delete.failed"),
+              relation.getUserFriendlyName());
+          app.displayVerboseMessage(msg);
+          return 1;
+        }
 
-      if (relation instanceof InstantiableRelationDefinition) {
-        InstantiableRelationDefinition<?, ?> irelation =
-          (InstantiableRelationDefinition<?, ?>) relation;
-        parent.removeChild(irelation, names.get(names.size() - 1));
-      } else if (relation instanceof OptionalRelationDefinition) {
-        OptionalRelationDefinition<?, ?> orelation =
-          (OptionalRelationDefinition<?, ?>) relation;
-        parent.removeChild(orelation);
+        if (relation instanceof InstantiableRelationDefinition) {
+          InstantiableRelationDefinition<?, ?> irelation =
+            (InstantiableRelationDefinition<?, ?>) relation;
+          parent.removeChild(irelation, names.get(names.size() - 1));
+        } else if (relation instanceof OptionalRelationDefinition) {
+          OptionalRelationDefinition<?, ?> orelation =
+            (OptionalRelationDefinition<?, ?>) relation;
+          parent.removeChild(orelation);
+        }
+      } catch (AuthorizationException e) {
+        int msgID = MSGID_DSCFG_ERROR_DELETE_AUTHZ;
+        String msg = getMessage(msgID, relation.getUserFriendlyName());
+        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+            msgID, msg);
+      } catch (OperationRejectedException e) {
+        int msgID = MSGID_DSCFG_ERROR_DELETE_ORE;
+        String msg = getMessage(msgID, relation.getUserFriendlyName(), e
+            .getMessage());
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
+            msg);
+      } catch (ManagedObjectNotFoundException e) {
+        // Ignore the error if the deletion is being forced.
+        if (!forceArgument.isPresent()) {
+          int msgID = MSGID_DSCFG_ERROR_DELETE_MONFE;
+          String msg = getMessage(msgID, relation.getUserFriendlyName());
+          throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
+        }
+      } catch (ConcurrentModificationException e) {
+        int msgID = MSGID_DSCFG_ERROR_DELETE_CME;
+        String msg = getMessage(msgID, relation.getUserFriendlyName());
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
+            msg);
+      } catch (CommunicationException e) {
+        int msgID = MSGID_DSCFG_ERROR_DELETE_CE;
+        String msg = getMessage(msgID, relation.getUserFriendlyName(), e
+            .getMessage());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+            msgID, msg);
       }
-
-      // Output success message.
-      String msg = String.format(Messages.getString("delete.done"),
-          relation.getUserFriendlyName());
-      app.displayVerboseMessage(msg);
-    } catch (AuthorizationException e) {
-      int msgID = MSGID_DSCFG_ERROR_DELETE_AUTHZ;
-      String msg = getMessage(msgID, relation.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-          msgID, msg);
-    } catch (OperationRejectedException e) {
-      int msgID = MSGID_DSCFG_ERROR_DELETE_ORE;
-      String msg = getMessage(msgID, relation.getUserFriendlyName(), e
-          .getMessage());
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
-          msg);
-    } catch (ManagedObjectNotFoundException e) {
-      int msgID = MSGID_DSCFG_ERROR_DELETE_MONFE;
-      String msg = getMessage(msgID, relation.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msgID, msg);
-    } catch (ConcurrentModificationException e) {
-      int msgID = MSGID_DSCFG_ERROR_DELETE_CME;
-      String msg = getMessage(msgID, relation.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
-          msg);
-    } catch (CommunicationException e) {
-      int msgID = MSGID_DSCFG_ERROR_DELETE_CE;
-      String msg = getMessage(msgID, relation.getUserFriendlyName(), e
-          .getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msgID,
-          msg);
     }
+
+    // Output success message.
+    String msg = String.format(Messages.getString("delete.done"), relation
+        .getUserFriendlyName());
+    app.displayVerboseMessage(msg);
 
     return 0;
   }
