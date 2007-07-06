@@ -67,15 +67,12 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*' ,
-                  'extraParams'	     : '-z 150' }
+                  'extraParams'	     : '-z 150' ,
+                  'expectedRC'       : 4
+                }
                   
               </call>
     
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 4 }
-              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -143,15 +140,12 @@
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' }
+                  'dsFilter'         : 'objectclass=*' ,
+                  'expectedRC'       : 4
+                }
                   
               </call>
     
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 4 }
-              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -242,15 +236,12 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
-                  'dsFilter'         : 'objectclass=*' }
+                  'dsFilter'         : 'objectclass=*' ,
+                  'expectedRC'       : 4
+                }
                   
               </call>
     
-              <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 4 }
-              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
