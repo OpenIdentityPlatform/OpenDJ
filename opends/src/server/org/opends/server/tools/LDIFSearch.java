@@ -132,7 +132,7 @@ public class LDIFSearch
    * @param  args  The command line arguments provided to this program.
    *
    * @param initializeServer True if server initialization should be done.
-   * 
+   *
    * @return  The return code for this operation.  A value of zero indicates
    *          that all processing completed successfully.  A nonzero value
    *          indicates that some problem occurred during processing.
