@@ -1089,6 +1089,23 @@ public class UpdateOperationTest extends ReplicationTestCase
     // check that unresolved conflict count has been incremented
     assertEquals(getMonitorDelta(), 1);
     
+    // Check that when an entry is deleted on a first master and
+    // renamed on a second master and the rename is replayed last
+    // this is correctly detected as a resolved conflict.
+    // To simulate this simply try a modifyDN on a non existent uid.
+    modDnMsg = new ModifyDNMsg(
+        "uid=new person,ou=People,dc=example,dc=com", gen.newChangeNumber(),
+        "33343333-3533-3633-3373-333333833333", baseUUID, false,
+        "uid=wrong, ou=people,dc=example,dc=com",
+        "uid=newrdn");
+    updateMonitorCount(baseDn, resolvedMonitorAttr);
+    broker.publish(modDnMsg);
+    // unfortunately it is difficult to check that the operation
+    // did not do anything.
+    // The only thing we can check is that resolved naminf conflict counter
+    // has correctly been incremented.
+    assertEquals(getMonitorDelta(), 1);
+    
     broker.stop();
   }
 

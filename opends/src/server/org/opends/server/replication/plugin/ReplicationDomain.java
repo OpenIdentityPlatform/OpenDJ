@@ -1612,6 +1612,17 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   // get the current DN of this entry in the database.
   DN currentDN = findEntryDN(entryUid);
 
+  if (currentDN == null)
+  {
+    // The entry targetted by the Modify DN is not in the database
+    // anymore.
+    // This is a conflict between a delete and this modify DN.
+    // The entry has been deleted anymore so we can safely assume
+    // that the operation is completed.
+    numResolvedNamingConflicts.incrementAndGet();
+    return true;
+  }
+
   // if the newDN and the current DN match then the operation
   // is a no-op (this was probably a second replay)
   // don't do anything.
