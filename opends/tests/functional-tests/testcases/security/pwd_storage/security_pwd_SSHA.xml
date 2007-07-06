@@ -70,11 +70,6 @@
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -157,10 +152,6 @@
                 'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_SSHA.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Pwd Storage SSHA: User Binding With New Password'
             </message>
@@ -174,10 +165,6 @@
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Storage SSHA: Checking for SSHA Scheme On New Password'
@@ -232,15 +219,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_change_BAD.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_storage/admin_change_BAD.ldif' % logsRemoteDataDir ,
+                'expectedRC'          : 53 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 53 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>

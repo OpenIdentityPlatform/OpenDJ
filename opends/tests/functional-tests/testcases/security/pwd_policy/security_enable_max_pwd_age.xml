@@ -50,10 +50,6 @@
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             
             <call function="'testCase_Postamble'"/>
 
@@ -76,10 +72,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_max_pwd_age.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

@@ -69,10 +69,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_change_CLEAR.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: SASL DIGEST-MD5: Preamble Step 2 - Admin Changing User Password'
             </message>
@@ -85,11 +81,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd3.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -120,13 +111,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jsprinter -w frogleg' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jsprinter -w frogleg' ,
+                'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -162,11 +148,6 @@
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -200,11 +181,6 @@
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jwalleye' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -235,13 +211,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jcarp' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jcarp' ,
+                'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -274,15 +245,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o authzid=jcarp -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o authzid=jcarp -w frogleg' ,
+                'expectedRC'       : 89 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 89 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -316,11 +282,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_change_authzid_attr.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -351,15 +312,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jwalleye' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jwalleye' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -393,11 +349,6 @@
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:Walleye -w frogleg -o authzid=Walleye' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -431,11 +382,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_reset_authzid_attr.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -469,11 +415,6 @@
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jwalleye' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -509,11 +450,6 @@
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -544,15 +480,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg -o authzid=jsprinter' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg -o authzid=jsprinter' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -586,11 +517,6 @@
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -624,11 +550,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_add_realm.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -660,13 +581,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jsprinter" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jsprinter" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' ,
+                'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -703,11 +619,6 @@
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jwalleye" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -742,11 +653,6 @@
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -781,11 +687,6 @@
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -821,11 +722,6 @@
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -o "realm=o=SASL Realm Tests,dc=example,dc=com -o "digest-uri=ldap:/auseng013.central.sun.com" " -w frogleg' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -858,15 +754,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jsprinter" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jsprinter" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -898,13 +789,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jwalleye" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jwalleye" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' ,
+                'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -938,15 +824,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -978,13 +859,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' ,
+                'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -1088,10 +964,6 @@
                     'changetype'             : 'delete' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal sasl, sasl authentication'
             </message>
@@ -1162,10 +1034,6 @@
                     'changetype'             : 'add' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal sasl, sasl authentication'
             </message>
@@ -1232,10 +1100,6 @@
                     'changetype'             : 'delete' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, put back global search ACI'
             </message>
@@ -1251,11 +1115,6 @@
                     'changetype'             : 'add' }
              </call>
                 
-             <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -1357,10 +1216,6 @@
                     'changetype'             : 'delete' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal simple, sasl authentication'
             </message>
@@ -1431,10 +1286,6 @@
                     'changetype'             : 'add' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal simple, sasl authentication'
             </message>
@@ -1501,10 +1352,6 @@
                     'changetype'             : 'delete' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, put back global search ACI'
             </message>
@@ -1520,11 +1367,6 @@
                     'changetype'             : 'add' }
              </call>
                 
-             <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -1626,10 +1468,6 @@
                     'changetype'             : 'delete' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod  not equals simple, sasl authentication'
             </message>
@@ -1700,10 +1538,6 @@
                     'changetype'             : 'add' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod  not equals simple, sasl authentication'
             </message>
@@ -1770,10 +1604,6 @@
                     'changetype'             : 'delete' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, put back global search ACI'
             </message>
@@ -1789,11 +1619,6 @@
                     'changetype'             : 'add' }
              </call>
                 
-             <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -1895,10 +1720,6 @@
                     'changetype'             : 'delete' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equals none, sasl authentication'
             </message>
@@ -1908,7 +1729,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w bad' }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w bad',
+                'expectedRC'      : 49 }
             </call>
 
             <script> 
@@ -1934,7 +1756,8 @@
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'bad' ,
                 'dsBaseDN'         : 'dc=example,dc=com' ,
-                'dsFilter'         : 'objectclass=*'  }
+                'dsFilter'         : 'objectclass=*' ,
+                'expectedRC'       : 49 }
             </call>
 
             <script> 
@@ -1969,10 +1792,6 @@
                     'changetype'             : 'add' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equals none, sasl authentication'
             </message>
@@ -2039,10 +1858,6 @@
                     'changetype'             : 'delete' }
              </call>
                 
-             <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-             </if>
-    
              <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, put back global search ACI'
             </message>
@@ -2058,11 +1873,6 @@
                     'changetype'             : 'add' }
              </call>
                 
-             <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -2104,10 +1914,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_change_SSHA.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: SASL DIGEST-MD5: Postamble Step 2 - Admin Changing User Password'
             </message>
@@ -2120,10 +1926,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd4.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: SASL DIGEST-MD5: Postamble Step 3 - Admin Deleting Realm'
             </message>
@@ -2135,10 +1937,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/sasl/admin_del_realm.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: SASL DIGEST-MD5: Postamble Step 4 - User (dn:) Binding With Simple Authentication'
@@ -2154,10 +1952,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: SASL DIGEST-MD5: Postamble Step 5 - User (dn:) Binding 2'
             </message>
@@ -2167,13 +1961,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w catleg' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
+                'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w catleg' ,
+                'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>

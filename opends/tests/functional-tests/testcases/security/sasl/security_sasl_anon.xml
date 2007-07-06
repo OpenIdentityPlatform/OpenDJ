@@ -67,11 +67,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_enable_sasl_anon.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -105,11 +100,6 @@
                 'extraParams'      : '-o mech=ANONYMOUS -o trace=Trace -s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -145,9 +135,6 @@
                 'entryToBeModified'   : '%s/security/sasl/admin_disable_sasl_anon.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: SASL ANON: Anonymous Bind After ANONYMOUS SASL Mechanism Disabled'
@@ -158,13 +145,8 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-o mech=ANONYMOUS -o trace=Trace -s base' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 7 }
+                'extraParams'      : '-o mech=ANONYMOUS -o trace=Trace -s base' ,
+                'expectedRC'       : 7 }
             </call>
             
             <call function="'testCase_Postamble'"/>

@@ -50,10 +50,6 @@
                 'entryToBeCompared'   : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <!--- Admin Enable Pwd Length Validator -->
             <message>
                'Security: Pwd Length Min: Preamble Step 2. Admin Enabling Pwd Length Validator'
@@ -67,11 +63,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_enable_pwd_length_validator.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -90,12 +81,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'oranges' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 53 }
             </call>
-
-            <if expr="RC != 53">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <!--- User Search With Password -->
             <message>
@@ -109,15 +97,10 @@
                 'dsInstancePswd'   : 'grape' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base', 
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -139,11 +122,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_change_min_pwd_length.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -162,12 +140,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'oranges' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short2.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short2.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 53 }
             </call>
-
-            <if expr="RC != 53">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <!--- User Search With Password -->
             <message>
@@ -181,13 +156,8 @@
                 'dsInstancePswd'   : 'goo' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -211,9 +181,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <!--- User Search With Password -->
             <message>
@@ -230,11 +197,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -256,11 +218,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_min_pwd_length.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -282,9 +239,6 @@
                 'entryToBeCompared'   : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <!--- Admin Change Maximum Pwd Length -->
             <message>
@@ -299,11 +253,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_change_max_pwd_length.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -322,12 +271,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'grape' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 53 }
             </call>
-
-            <if expr="RC != 53">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <!--- User Search With Password -->
             <message>
@@ -341,15 +287,10 @@
                 'dsInstancePswd'   : 'pomegranates' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -371,10 +312,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long2.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <!--- User Search With Password -->
             <message>
                'Security: Pwd Length Max: User Change Password Step 2. User Searching With Password'
@@ -390,11 +327,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -416,9 +348,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_max_pwd_length.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <!--- User Change Password -->
             <message>
@@ -433,11 +362,6 @@
                 'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>

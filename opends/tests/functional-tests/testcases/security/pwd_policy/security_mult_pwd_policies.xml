@@ -49,11 +49,6 @@
                 'entryToBeAdded'   : '%s/security/pwd_policy/sales_pwd_policy.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -75,10 +70,6 @@
                 'entryToBeAdded'   : '%s/security/pwd_policy/add_sales_person.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
              <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -88,10 +79,6 @@
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
              <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -103,11 +90,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -129,11 +111,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_cnt_sales.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -160,16 +137,10 @@
                   'dsInstancePswd'   : '%s' % pwds ,
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
               </call>
             </iterate>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49}
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -184,7 +155,7 @@
             </message>
 
             <script>
-                search_pwds = ['bad', 'bad', 'bad', 'cardreader']
+                search_pwds = ['bad', 'bad', 'bad']
             </script>
             
             <iterate var="pwds" in="search_pwds" indexvar="index">
@@ -195,15 +166,21 @@
                   'dsInstancePswd'   : '%s' % pwds ,
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
               </call>
             </iterate>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
+            <call function="'SearchObject'">
+		{ 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+		  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+		  'dsInstanceDn'	: 'uid=tclow,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+		  'dsInstancePswd'   : 'cardreaders' ,
+		  'dsBaseDN'   : 'dc=example,dc=com' ,
+		  'dsFilter'		: 'objectclass=*'	,
+		  'extraParams'		: '-s base' }
             </call>
-            
+
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -225,11 +202,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/rm_sales_pwd_policy.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -250,13 +222,8 @@
                 'dsInstancePswd'   : 'supergal' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 80 }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 80 }
             </call>
 
             <call function="'testCase_Postamble'"/>

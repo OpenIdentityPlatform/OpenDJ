@@ -68,11 +68,6 @@
                 'entryToBeModified'   : '%s/security/pwd_storage/admin_change_SHA.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -111,10 +106,6 @@
                 'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_SHA.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Pwd Storage SHA: User Binding With New Password'
             </message>
@@ -128,10 +119,6 @@
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Storage SHA: Checking for SHA Scheme On New Password'
@@ -190,11 +177,6 @@
                 'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
               
           </sequence>

@@ -49,10 +49,6 @@
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Lockout Duration: Preamble Step 2. Admin Changing Lockout Count'
             </message>
@@ -64,10 +60,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_cnt.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Lockout Duration: Preamble Step 3. User Lockout With Bad Pwd 3x'
@@ -85,13 +77,10 @@
                   'dsInstancePswd'   : '%s' % pwds,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
               </call>
             </iterate>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Lockout Duration: Preamble Step 4. Admin Resetting User Pwd'
@@ -105,10 +94,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd2.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Lockout Duration: Preamble Step 5. User Bind With New Password'
             </message>
@@ -123,11 +108,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -149,11 +129,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_dur_short.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -179,13 +154,10 @@
                   'dsInstancePswd'   : '%s' % pwds,
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
               </call>
             </iterate>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Lockout Duration: Short Lockout Duration - Sleeping'
@@ -207,10 +179,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd5.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Lockout Duration: Short Lockout Duration Step 3. User Bind With New Password'
             </message>
@@ -225,11 +193,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -251,11 +214,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_dur_long.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -279,10 +237,6 @@
                   'extraParams'      : '-s base' }
             </call>
     
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Lockout Duration: Long Lockout Duration Step 2. User Lockout With Bad Pwd 3x'
             </message>
@@ -299,13 +253,10 @@
                   'dsInstancePswd'   : '%s' % pwds,
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
               </call>
             </iterate>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Lockout Duration: Long Lockout Duration - Sleeping'
@@ -324,12 +275,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bjablons,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'strawberry' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd6.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd6.ldif' % logsRemoteDataDir ,
+                  'expectedRC'       : 49 }
             </call>
 
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Lockout Duration: Long Lockout Duration Step 4. User Bind With New Password'
@@ -342,15 +291,10 @@
                   'dsInstancePswd'   : 'newberry' ,
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base',
+                  'expectedRC'       : 49 } 
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -371,10 +315,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_lockout_dur.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Lockout Duration: Postamble Step 2. User Lockout With Bad Pwd 3x'
             </message>
@@ -391,13 +331,10 @@
                   'dsInstancePswd'   : '%s' % pwds,
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
               </call>
             </iterate>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Lockout Duration: Postamble Step 3. Admin Resetting User Pwd'
@@ -411,9 +348,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd3.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Lockout Duration: Postamble Step 4. User Bind With New Password'
@@ -429,10 +363,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Lockout Duration: Postamble Step 5. Admin Resetting Lockout Count'
             </message>
@@ -445,11 +375,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_lockout_cnt.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>

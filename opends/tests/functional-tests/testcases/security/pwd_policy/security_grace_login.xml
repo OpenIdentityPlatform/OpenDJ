@@ -58,11 +58,7 @@
                     'changetype'             : 'replace' }
             </call>
             
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
+  
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -91,12 +87,9 @@
                   'dsInstancePswd'   : 'trident',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 19 }
             </call>
-            
-            <if expr="RC != 19">
-                    <tcstatus result="'fail'"/>
-            </if>
     
             <message>
                'Security: Grace Login:  Search Bind 2'
@@ -109,12 +102,9 @@
                   'dsInstancePswd'   : 'trident',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base',
+                  'expectedRC'       : 19 }
             </call>
-            
-            <if expr="RC != 19">
-                    <tcstatus result="'fail'"/>
-            </if>
     
             <message>
                'Security: Grace Login:  Search Bind 3'
@@ -127,13 +117,9 @@
                   'dsInstancePswd'   : 'trident',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
             </call>
-            
-            <if expr="RC != 49">
-                    <tcstatus result="'fail'"/>
-            </if>
-    
             <message>
                'Security: Grace Login:  Search Bind 4'
             </message>
@@ -145,13 +131,8 @@
                   'dsInstancePswd'   : 'trident',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
-            </call>
-            
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49}
+                  'extraParams'      : '-s base',
+                  'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -174,12 +155,9 @@
                   'dsInstancePswd'   : 'forsook',
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 19 }
             </call>
-            
-            <if expr="RC != 19">
-                    <tcstatus result="'fail'"/>
-            </if>
     
             <message>
                'Security: Grace Login: Reset Pwd, User resetting password'
@@ -195,10 +173,6 @@
                     'newAttributeValue'      : 'newforsook' ,
                     'changetype'             : 'replace' }
             </call>
-                
-            <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-            </if>
     
             <message>
                'Security: Grace Login: Reset Pwd, Admin reset max password age'
@@ -215,10 +189,6 @@
                     'changetype'             : 'replace' }
             </call>
                 
-            <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-            </if>
-    
             <message>
                'Security: Grace Login: Reset Pwd, Search Bind 2'
             </message>
@@ -233,10 +203,6 @@
                   'extraParams'      : '-s base' }
             </call>
             
-            <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-            </if>
-    
             <message>
                'Security: Grace Login: Reset Pwd, Search Bind 3'
             </message>
@@ -249,11 +215,6 @@
                   'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
-            </call>
-            
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -284,11 +245,6 @@
                     'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
                     'listAttributes'         : listAttrs ,
                     'changetype'             : 'replace' }
-            </call>
-            
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
             </call>
             
             <call function="'testCase_Postamble'"/>

@@ -50,11 +50,6 @@
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -73,12 +68,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' % logsRemoteDataDir }
+                'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 19 }
             </call>
-
-            <if expr="RC != 19">
-                <tcstatus result="'fail'"/>
-            </if>
 
              <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -87,15 +79,10 @@
                 'dsInstancePswd'   : 'superguy' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49}
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -117,11 +104,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_preencoded_pwds.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -144,10 +126,6 @@
                 'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
              <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -158,11 +136,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -184,10 +157,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_preencoded_pwds.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
              <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -195,15 +164,10 @@
                 'dsInstancePswd'   : 'supergal' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49}
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
          </sequence>

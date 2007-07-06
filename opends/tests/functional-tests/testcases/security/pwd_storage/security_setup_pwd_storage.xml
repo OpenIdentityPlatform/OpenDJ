@@ -72,10 +72,6 @@
                 'entryToBeAdded'   : '%s/security/pwd_storage/pwd_storage_startup.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
             
             <call function="'testCase_Postamble'"/>
             

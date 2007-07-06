@@ -49,11 +49,6 @@
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -77,11 +72,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -102,15 +92,10 @@
                 'dsInstancePswd'   : 'newsprain' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -129,15 +114,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'BadPwd' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd.ldif' % logsRemoteDataDir,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49  }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -159,10 +139,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Pwd Policy: User Searching With Old Password'
             </message>
@@ -174,12 +150,9 @@
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Policy: User Searching With New Password'
@@ -195,11 +168,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -221,10 +189,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_policy.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Pwd Policy: User Resetting Password'
             </message>
@@ -234,15 +198,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'sprain' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_reset_pwd.ldif' % logsRemoteDataDir }
+                'entryToBeModified'   : '%s/security/pwd_policy/user_reset_pwd.ldif' % logsRemoteDataDir ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49}
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -264,10 +223,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_pwd_policy.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Pwd Policy: Postamble Step 2 - User Resetting Password'
             </message>
@@ -280,10 +235,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/user_reset_pwd.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Pwd Policy: Postamble Step 3 - User Searching With Old Password'
             </message>
@@ -295,12 +246,9 @@
                 'dsInstancePswd'   : 'newsprain' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Pwd Policy: Postamble Step 4 - User Searching With New Password'
@@ -316,11 +264,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
               
           </sequence>

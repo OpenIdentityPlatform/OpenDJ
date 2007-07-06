@@ -50,11 +50,6 @@
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -76,10 +71,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: User Binding With Password'
             </message>
@@ -93,10 +84,6 @@
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Checking for Absence of Last Login Time'
@@ -142,10 +129,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Admin Enable Last Login Format Only'
             </message>
@@ -157,10 +140,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-format.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: User Binding With Password'
@@ -175,10 +154,6 @@
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Checking for Absence of Last Login Time'
@@ -224,10 +199,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: User Binding With Password'
             </message>
@@ -241,10 +212,6 @@
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Checking for Absence of Last Login Time'
@@ -292,10 +259,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Long Idle Lockout Step 2. Admin Changing Idle Lockout Interval'
             </message>
@@ -307,10 +270,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout Step 3. User Binding Before Idle Lockout'
@@ -326,9 +285,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout Step 4. Sleep'
@@ -338,9 +294,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Long Idle Lockout Step 5. User Binding After Idle Lockout'
@@ -353,13 +306,8 @@
                   'dsInstancePswd'   : 'destroy' ,
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49}
+                  'extraParams'      : '-s base',
+                  'expectedRC'       : 49 }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -383,9 +331,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Reset Idle Lockout Step 2. User Binding'
@@ -401,9 +346,6 @@
                   'extraParams'      : '-s base' }
             </call>
   
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Reset Idle Lockout Step 3. Sleep'
@@ -413,10 +355,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 4. User Binding'
             </message>
@@ -431,11 +369,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -459,10 +392,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Long Idle Lockout - Password Change Override Step 2. Admin Changing Idle Lockout Interval'
             </message>
@@ -474,10 +403,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - Password Change Override Step 3. User Binding Before Idle Lockout'
@@ -493,9 +418,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout Step 4. Sleep'
@@ -505,9 +427,6 @@
               { 'sleepForMilliSeconds'   : 30000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Long Idle Lockout - Password Change Override Step 5. User Changing Password'
@@ -521,9 +440,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout Step 6. Sleep'
@@ -547,11 +463,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -573,9 +484,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Reset Idle Lockout 2 Step 2. User Binding'
@@ -591,10 +499,6 @@
                   'extraParams'      : '-s base' }
             </call>
   
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Reset Idle Lockout 2 Step 3. Sleep'
             </message>
@@ -603,10 +507,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Reset Idle Lockout 2 Step 4. User Binding'
             </message>
@@ -621,11 +521,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -649,9 +544,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - User Bind Reset Step 2. Admin Changing Idle Lockout Interval'
@@ -664,10 +556,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - User Bind Reset Step 3. User Binding Before Idle Lockout'
@@ -683,9 +571,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - User Bind Reset Step 4. Sleep'
@@ -695,10 +580,6 @@
               { 'sleepForMilliSeconds'   : 30000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Long Idle Lockout - User Bind Reset Step 5. User Bind To Reset Last Login Time'
             </message>
@@ -713,9 +594,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - User Bind Reset Step 6. Sleep'
@@ -739,11 +617,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -765,10 +638,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 2. User Binding'
             </message>
@@ -783,10 +652,6 @@
                   'extraParams'      : '-s base' }
             </call>
   
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Reset Idle Lockout Step 3. Sleep'
             </message>
@@ -795,10 +660,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 4. User Binding'
             </message>
@@ -813,11 +674,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -839,10 +695,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Long Idle Lockout - Disabled Last Login Step 2. Check User Bind'
             </message>
@@ -857,10 +709,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Long Idle Lockout - Disabled Last Login Step 3. Admin Changing Idle Lockout Interval'
             </message>
@@ -873,10 +721,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Long Idle Lockout - Disabled Last Login  Step 4. User Binding'
             </message>
@@ -888,15 +732,10 @@
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -918,10 +757,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Reset Idle Lockout Step 2. Admin Resetting Idle Lockout Interval'
             </message>
@@ -934,10 +769,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 3. User Binding'
             </message>
@@ -952,10 +783,6 @@
                   'extraParams'      : '-s base' }
             </call>
   
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Reset Idle Lockout Step 4. Sleep'
             </message>
@@ -964,10 +791,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 5. User Binding'
             </message>
@@ -982,11 +805,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -1008,10 +826,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-format.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Long Idle Lockout - Disabled Last Login 2 Step 2. Check User Bind'
             </message>
@@ -1026,10 +840,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Long Idle Lockout - Disabled Last Login 2 Step 3. Admin Changing Idle Lockout Interval'
             </message>
@@ -1042,10 +852,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Long Idle Lockout - Disabled Last Login  2 Step 4. User Binding'
             </message>
@@ -1057,15 +863,10 @@
                 'dsInstancePswd'   : 'newdestroy' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49 }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -1087,10 +888,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-format.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Reset Idle Lockout Step 2. Admin Resetting Idle Lockout Interval'
             </message>
@@ -1103,10 +900,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 3. User Binding'
             </message>
@@ -1121,9 +914,6 @@
                   'extraParams'      : '-s base' }
             </call>
   
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Reset Idle Lockout Step 4. Sleep'
@@ -1133,10 +923,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 5. User Binding'
             </message>
@@ -1151,11 +937,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -1179,10 +960,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Long Idle Lockout Step 2. Admin Changing Idle Lockout Interval'
             </message>
@@ -1195,9 +972,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout Step 3. User Binding Before Idle Lockout'
@@ -1213,9 +987,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout Step 4. Sleep'
@@ -1225,9 +996,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Long Idle Lockout Step 5. User Binding After Idle Lockout'
@@ -1240,15 +1008,10 @@
                   'dsInstancePswd'   : 'newdestroy' ,
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49}
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -1270,10 +1033,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 2. User Binding'
             </message>
@@ -1288,9 +1047,6 @@
                   'extraParams'      : '-s base' }
             </call>
   
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Reset Idle Lockout Step 3. Sleep'
@@ -1300,9 +1056,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Reset Idle Lockout Step 4. User Binding'
@@ -1318,11 +1071,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -1346,9 +1094,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 2. Admin Changing Idle Lockout Interval'
@@ -1361,10 +1106,6 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
-
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 3. User Binding Before Idle Lockout'
@@ -1380,9 +1121,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 4. Sleep'
@@ -1392,10 +1130,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-            
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 5. User Changing Password'
             </message>
@@ -1408,9 +1142,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login2.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 6. User Binding After Idle Lockout'
@@ -1426,11 +1157,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -1452,9 +1178,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Reset Idle Lockout Step 2. User Binding'
@@ -1470,9 +1193,6 @@
                   'extraParams'      : '-s base' }
             </call>
   
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Reset Idle Lockout Step 3. Sleep'
@@ -1482,9 +1202,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Reset Idle Lockout Step 4. User Binding'
@@ -1500,11 +1217,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -1526,9 +1238,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-format.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 2. Check User Bind'
@@ -1544,9 +1253,6 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 3. Admin Changing Idle Lockout Interval'
@@ -1560,10 +1266,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 4. User Binding Before Idle Lockout'
             </message>
@@ -1575,12 +1277,9 @@
                 'dsInstancePswd'   : 'anotherdestroy' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' }
+                'extraParams'      : '-s base' ,
+                'expectedRC'       : 49 }
             </call>
-
-            <if expr="RC != 49">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 5. Admin Changing Password'
@@ -1594,10 +1293,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login3.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Last Login: Pwd Override 3 Step 6. User Binding After Admin Pwd Change'
             </message>
@@ -1610,11 +1305,6 @@
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
-            </call>
-
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -1638,9 +1328,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Postamble Step 2. Admin Disabling Last Login Time Attribute'
@@ -1654,9 +1341,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_last-login-time-attr.ldif' % logsRemoteDataDir }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Postamble Step 3. User Binding'
@@ -1672,9 +1356,6 @@
                   'extraParams'      : '-s base' }
             </call>
   
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
 
             <message>
                'Security: Last Login: Postamble Step 4. Sleep'
@@ -1684,9 +1365,6 @@
               { 'sleepForMilliSeconds'   : 60000 }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
             
             <message>
                'Security: Last Login: Postamble Step 5. User Binding'
@@ -1702,11 +1380,6 @@
                   'extraParams'      : '-s base' }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>

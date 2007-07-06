@@ -50,16 +50,12 @@
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Lockout Fail Cnt: Preamble Step 2. Default Bind With Bad Pwd 3x'
             </message>
 
             <script>
-                search_pwds = ['bad', 'bad', 'bad', 'oranges']
+                search_pwds = ['bad', 'bad', 'bad']
             </script>
             
             <iterate var="pwds" in="search_pwds" indexvar="index">
@@ -70,15 +66,20 @@
                   'dsInstancePswd'   : '%s' % pwds,
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
               </call>
             </iterate>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'oranges',
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base' }
             </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -100,11 +101,6 @@
                 'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_cnt.ldif' % logsRemoteDataDir }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -130,16 +126,11 @@
                   'dsInstancePswd'   : '%s' % pwds,
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base' ,
+                  'expectedRC'       : 49 }
               </call>
             </iterate>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult ,
-                  'expected'   : 49}
-            </call>
-            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -176,16 +167,12 @@
                 'extraParams'      : '-s base' }
             </call>
 
-            <if expr="RC != 0">
-                <tcstatus result="'fail'"/>
-            </if>
-
             <message>
                'Security: Lockout Fail Cnt: Postamble Step 3. Check Bind With Bad Pwd 3x'
             </message>
 
             <script>
-                search_pwds = ['bad', 'bad', 'bad', 'ruling']
+                search_pwds = ['bad', 'bad', 'bad']
             </script>
             
             <iterate var="pwds" in="search_pwds" indexvar="index">
@@ -196,15 +183,21 @@
                   'dsInstancePswd'   : '%s' % pwds,
                   'dsBaseDN'   : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
-                  'extraParams'      : '-s base' }
+                  'extraParams'      : '-s base', 
+                  'expectedRC'       : 49 } 
               </call>
             </iterate>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
+            <call function="'SearchObject'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                  'dsInstanceDn'     : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                  'dsInstancePswd'   : 'ruling',
+                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsFilter'         : 'objectclass=*'  ,
+                  'extraParams'      : '-s base'}
             </call>
-            
+
             <call function="'testCase_Postamble'"/>
 
            </sequence>
