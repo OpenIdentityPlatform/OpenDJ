@@ -956,21 +956,10 @@ public final class ServerManagedObject<S extends Configuration> implements
       ConfigurationAddListener<M> listener) throws IllegalArgumentException,
       ConfigException {
     validateRelationDefinition(d);
-
     DN baseDN = DNBuilder.create(path, d);
-    ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
     ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
         listener);
-
-    if (relationEntry != null) {
-      relationEntry.registerAddListener(adaptor);
-    } else {
-      // The relation entry does not exist yet so register a delayed
-      // add listener.
-      ConfigAddListener delayedListener = new DelayedConfigAddListener(
-          configEntry.getDN(), baseDN, adaptor);
-      configEntry.registerAddListener(delayedListener);
-    }
+    registerAddListener(baseDN, adaptor);
   }
 
 
@@ -988,15 +977,18 @@ public final class ServerManagedObject<S extends Configuration> implements
    * @throws IllegalArgumentException
    *           If the optional relation definition is not associated
    *           with this managed object's definition.
+   * @throws ConfigException
+   *           If the configuration entry associated with the
+   *           optional relation could not be retrieved.
    */
   public <M extends Configuration> void registerAddListener(
       OptionalRelationDefinition<?, M> d, ConfigurationAddListener<M> listener)
-      throws IllegalArgumentException {
+      throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
-
+    DN baseDN = DNBuilder.create(path);
     ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
         listener);
-    configEntry.registerAddListener(adaptor);
+    registerAddListener(baseDN, adaptor);
   }
 
 
@@ -1039,21 +1031,10 @@ public final class ServerManagedObject<S extends Configuration> implements
       ConfigurationDeleteListener<M> listener) throws IllegalArgumentException,
       ConfigException {
     validateRelationDefinition(d);
-
     DN baseDN = DNBuilder.create(path, d);
-    ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
     ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
         listener);
-
-    if (relationEntry != null) {
-      relationEntry.registerDeleteListener(adaptor);
-    } else {
-      // The relation entry does not exist yet so register a delayed
-      // add listener.
-      ConfigAddListener delayedListener = new DelayedConfigAddListener(
-          configEntry.getDN(), baseDN, adaptor);
-      configEntry.registerAddListener(delayedListener);
-    }
+    registerDeleteListener(baseDN, adaptor);
   }
 
 
@@ -1071,15 +1052,19 @@ public final class ServerManagedObject<S extends Configuration> implements
    * @throws IllegalArgumentException
    *           If the optional relation definition is not associated
    *           with this managed object's definition.
+   * @throws ConfigException
+   *           If the configuration entry associated with the
+   *           optional relation could not be retrieved.
    */
   public <M extends Configuration> void registerDeleteListener(
       OptionalRelationDefinition<?, M> d,
-      ConfigurationDeleteListener<M> listener) throws IllegalArgumentException {
+      ConfigurationDeleteListener<M> listener) throws IllegalArgumentException,
+      ConfigException {
     validateRelationDefinition(d);
-
+    DN baseDN = DNBuilder.create(path);
     ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
         listener);
-    configEntry.registerDeleteListener(adaptor);
+    registerDeleteListener(baseDN, adaptor);
   }
 
 
@@ -1189,6 +1174,67 @@ public final class ServerManagedObject<S extends Configuration> implements
     }
 
     return configEntry;
+  }
+
+
+
+  // Register an instantiable or optional relation add listener.
+  private void registerAddListener(DN baseDN, ConfigAddListener adaptor)
+      throws IllegalArgumentException, ConfigException {
+    ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
+
+    if (relationEntry != null) {
+      relationEntry.registerAddListener(adaptor);
+    } else {
+      // The relation entry does not exist yet so register a delayed
+      // add listener.
+      ConfigAddListener delayedListener = new DelayedConfigAddListener(baseDN,
+          adaptor);
+      registerDelayedListener(baseDN, delayedListener);
+    }
+  }
+
+
+
+  // Register a delayed listener with the nearest existing parent
+  // entry to the provided base DN.
+  private void registerDelayedListener(DN baseDN,
+      ConfigAddListener delayedListener) throws ConfigException {
+    DN parentDN = baseDN.getParent();
+    while (parentDN != null) {
+      ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
+      if (relationEntry == null) {
+        delayedListener = new DelayedConfigAddListener(parentDN,
+            delayedListener);
+        parentDN = parentDN.getParent();
+      } else {
+        configEntry.registerAddListener(delayedListener);
+        return;
+      }
+    }
+
+    // No parent entry could be found.
+    int msgID = AdminMessages.MSGID_ADMIN_UNABLE_TO_REGISTER_LISTENER;
+    String message = getMessage(msgID, String.valueOf(baseDN));
+    throw new ConfigException(msgID, message);
+  }
+
+
+
+  // Register an instantiable or optional relation delete listener.
+  private void registerDeleteListener(DN baseDN, ConfigDeleteListener adaptor)
+      throws ConfigException {
+    ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
+
+    if (relationEntry != null) {
+      relationEntry.registerDeleteListener(adaptor);
+    } else {
+      // The relation entry does not exist yet so register a delayed
+      // add listener.
+      ConfigAddListener delayedListener = new DelayedConfigAddListener(baseDN,
+          adaptor);
+      registerDelayedListener(baseDN, delayedListener);
+    }
   }
 
 

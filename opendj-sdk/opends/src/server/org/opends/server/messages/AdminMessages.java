@@ -483,6 +483,15 @@ public final class AdminMessages {
   public static final int MSGID_ADMIN_ARG_BACKENDNAME_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 56;
 
+  /**
+   * The message ID for the message that will be used if an add or
+   * delete listener cannot be registered because the base entry does
+   * not exist and it does not have any ancestor entries. This takes a
+   * single argument which is the name of the base entry.
+   */
+  public static final int MSGID_ADMIN_UNABLE_TO_REGISTER_LISTENER =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_SEVERE_ERROR | 57;
+
   // Prevent instantiation.
   private AdminMessages() {
     // Do nothing.
@@ -656,6 +665,8 @@ public final class AdminMessages {
     registerMessage(MSGID_ADMIN_ARG_BACKENDNAME_DESCRIPTION,
         "The backen name is which the admin data will be registered. " +
         "This is a required argument");
-
+    registerMessage(MSGID_ADMIN_UNABLE_TO_REGISTER_LISTENER,
+        "Unable to register an add/delete listener against the entry %s " +
+        "because it does not exist in the configuration");
   }
 }
