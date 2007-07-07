@@ -77,8 +77,6 @@ final class DelayedConfigAddListener implements ConfigAddListener {
    * Create a new delayed add listener which will register an add
    * listener with the specified entry when it is added.
    *
-   * @param parent
-   *          The name of the parent entry.
    * @param child
    *          The name of the subordinate entry which should have an
    *          add listener registered with it when it is created.
@@ -86,9 +84,8 @@ final class DelayedConfigAddListener implements ConfigAddListener {
    *          The add listener to be added to the subordinate entry
    *          when it is added.
    */
-  public DelayedConfigAddListener(DN parent, DN child,
-      ConfigAddListener addListener) {
-    this.parent = parent;
+  public DelayedConfigAddListener(DN child, ConfigAddListener addListener) {
+    this.parent = child.getParent();
     this.child = child;
     this.delayedAddListener = addListener;
     this.delayedDeleteListener = null;
@@ -100,8 +97,6 @@ final class DelayedConfigAddListener implements ConfigAddListener {
    * Create a new delayed add listener which will register a delete
    * listener with the specified entry when it is added.
    *
-   * @param parent
-   *          The name of the parent entry.
    * @param child
    *          The name of the subordinate entry which should have a
    *          delete listener registered with it when it is created.
@@ -109,9 +104,9 @@ final class DelayedConfigAddListener implements ConfigAddListener {
    *          The delete listener to be added to the subordinate entry
    *          when it is added.
    */
-  public DelayedConfigAddListener(DN parent, DN child,
+  public DelayedConfigAddListener(DN child,
       ConfigDeleteListener deleteListener) {
-    this.parent = parent;
+    this.parent = child.getParent();
     this.child = child;
     this.delayedAddListener = null;
     this.delayedDeleteListener = deleteListener;
