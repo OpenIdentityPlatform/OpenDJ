@@ -39,8 +39,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.opends.server.extensions.BlindTrustManagerProvider;
+import org.opends.server.util.ExpirationCheckTrustManager;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
 import static org.opends.server.messages.ToolMessages.*;
@@ -107,8 +109,16 @@ public class SSLConnectionFactory
         trustManagers = PromptTrustManager.getTrustManagers();
       } else
       {
-        trustManagers = getTrustManagers(KeyStore.getDefaultType(),
-                            null, trustStorePath, trustStorePassword);
+        TrustManager[] tmpTrustManagers =
+             getTrustManagers(KeyStore.getDefaultType(), null, trustStorePath,
+                              trustStorePassword);
+        trustManagers = new TrustManager[tmpTrustManagers.length];
+        for (int i=0; i < trustManagers.length; i++)
+        {
+          trustManagers[i] =
+               new ExpirationCheckTrustManager((X509TrustManager)
+                                               tmpTrustManagers[i]);
+        }
       }
       if(keyStorePath != null)
       {

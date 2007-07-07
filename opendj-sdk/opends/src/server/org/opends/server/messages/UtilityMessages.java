@@ -1668,6 +1668,51 @@ public class UtilityMessages
        CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 158;
 
 
+
+  /**
+   * The message ID for the message that will be used if a client certificate is
+   * rejected because it is expired.  This takes two arguments, which are the
+   * subject DN of the certificate and a string representation of the notAfter
+   * date.
+   */
+  public static final int MSGID_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 159;
+
+
+
+  /**
+   * The message ID for the message that will be used if a client certificate is
+   * rejected because it is not yet valid.  This takes two arguments, which are
+   * the subject DN of the certificate and a string representation of the
+   * notBefore date.
+   */
+  public static final int MSGID_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 160;
+
+
+
+  /**
+   * The message ID for the message that will be used if a server certificate is
+   * rejected because it is expired.  This takes two arguments, which are the
+   * subject DN of the certificate and a string representation of the notAfter
+   * date.
+   */
+  public static final int MSGID_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 161;
+
+
+
+  /**
+   * The message ID for the message that will be used if a server certificate is
+   * rejected because it is not yet valid.  This takes two arguments, which are
+   * the subject DN of the certificate and a string representation of the
+   * notBefore date.
+   */
+  public static final int MSGID_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 162;
+
+
+
   /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
@@ -2222,6 +2267,19 @@ public class UtilityMessages
     registerMessage(MSGID_RENAMEFILE_CANNOT_RENAME,
                     "Failed to rename file %s to %s");
 
+
+    registerMessage(MSGID_EXPCHECK_TRUSTMGR_CLIENT_CERT_EXPIRED,
+                    "Refusing to trust client or issuer certificate '%s' " +
+                    "because it expired on %s");
+    registerMessage(MSGID_EXPCHECK_TRUSTMGR_CLIENT_CERT_NOT_YET_VALID,
+                    "Refusing to trust client or issuer certificate '%s' " +
+                    "because it is not valid until %s");
+    registerMessage(MSGID_EXPCHECK_TRUSTMGR_SERVER_CERT_EXPIRED,
+                    "Refusing to trust server or issuer certificate '%s' " +
+                    "because it expired on %s");
+    registerMessage(MSGID_EXPCHECK_TRUSTMGR_SERVER_CERT_NOT_YET_VALID,
+                    "Refusing to trust server or issuer certificate '%s' " +
+                    "because it is not valid until %s");
   }
 }
 

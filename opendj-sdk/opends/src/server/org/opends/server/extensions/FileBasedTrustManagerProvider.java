@@ -38,6 +38,7 @@ import java.security.*;
 import java.util.List;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedTrustManagerCfg;
@@ -49,6 +50,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.ExpirationCheckTrustManager;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -326,7 +328,14 @@ public class FileBasedTrustManagerProvider
       TrustManagerFactory trustManagerFactory =
            TrustManagerFactory.getInstance(trustManagerAlgorithm);
       trustManagerFactory.init(trustStore);
-      return trustManagerFactory.getTrustManagers();
+      TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+      TrustManager[] newTrustManagers = new TrustManager[trustManagers.length];
+      for (int i=0; i < trustManagers.length; i++)
+      {
+        newTrustManagers[i] = new ExpirationCheckTrustManager(
+                                       (X509TrustManager) trustManagers[i]);
+      }
+      return newTrustManagers;
     }
     catch (Exception e)
     {
