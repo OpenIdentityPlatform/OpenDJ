@@ -398,8 +398,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
     ManagementContext context = app.getManagementContext();
     ManagedObject<?> parent;
     try {
-      parent = getManagedObject(context, path, names.subList(0,
-          names.size() - 1));
+      parent = getManagedObject(context, path, names);
     } catch (AuthorizationException e) {
       int msgID = MSGID_DSCFG_ERROR_CREATE_AUTHZ;
       String msg = getMessage(msgID, d.getUserFriendlyName());

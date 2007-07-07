@@ -188,8 +188,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     ManagementContext context = app.getManagementContext();
     ManagedObject<?> parent = null;
     try {
-      parent = getManagedObject(context, path, names.subList(0,
-          names.size() - 1));
+      parent = getManagedObject(context, path, names);
     } catch (AuthorizationException e) {
       int msgID = MSGID_DSCFG_ERROR_DELETE_AUTHZ;
       String msg = getMessage(msgID, relation.getUserFriendlyName());
