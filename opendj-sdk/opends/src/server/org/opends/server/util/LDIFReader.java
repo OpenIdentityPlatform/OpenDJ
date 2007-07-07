@@ -54,6 +54,7 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -893,6 +894,31 @@ public final class LDIFReader
         return;
       }
 
+      if (checkSchema &&
+          (DirectoryServer.getSyntaxEnforcementPolicy() !=
+               AcceptRejectWarn.ACCEPT))
+      {
+        StringBuilder invalidReason = new StringBuilder(0);
+        if (! attrType.getSyntax().valueIsAcceptable(value, invalidReason))
+        {
+          int    msgID   = MSGID_LDIF_VALUE_VIOLATES_SYNTAX;
+          String message = getMessage(msgID, String.valueOf(entryDN),
+                                      lastEntryLineNumber, value.stringValue(),
+                                      attrName, invalidReason.toString());
+          if (DirectoryServer.getSyntaxEnforcementPolicy() ==
+                   AcceptRejectWarn.WARN)
+          {
+            logError(ErrorLogCategory.SCHEMA, ErrorLogSeverity.MILD_WARNING,
+                     message, msgID);
+          }
+          else
+          {
+            logToRejectWriter(lines, message);
+            throw new LDIFException(msgID, message, lastEntryLineNumber,
+                                    true);
+          }
+        }
+      }
 
       AttributeValue attributeValue = new AttributeValue(attrType, value);
       List<Attribute> attrList;

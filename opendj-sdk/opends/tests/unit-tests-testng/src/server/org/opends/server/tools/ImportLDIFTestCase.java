@@ -62,7 +62,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
   {
     TestCaseUtils.startServer();
     beID = "userRoot";
-	  configFilePath = DirectoryServer.getConfigFile();
+    configFilePath = DirectoryServer.getConfigFile();
     TaskUtils.disableBackend(beID);
 
     String entry =
@@ -82,10 +82,10 @@ public class ImportLDIFTestCase extends ToolsTestCase {
           "uid: user.0\n" +
           "mail: user.0@example.com\n" +
           "userPassword: password\n" +
-          "telephoneNumber: 380-535-2354\n" +
+          "telephoneNumber: +1 380-535-2354\n" +
           "description: This is the description for Aaccf Amar\n" +
-          "creatorsName: Import\n" +
-          "modifiersName: Import\n";
+          "creatorsName: cn=Import\n" +
+          "modifiersName: cn=Import\n";
 
     tempDir = TestCaseUtils.createTemporaryDirectory("importLDIFtest");
     homeDirName = tempDir.getAbsolutePath();
@@ -152,8 +152,8 @@ public class ImportLDIFTestCase extends ToolsTestCase {
 
     Attribute[]  opAttr =
     {
-      new Attribute ("creatorsname", "Import") ,
-      new Attribute("modifiersname","Import")
+      new Attribute ("creatorsname", "cn=Import") ,
+      new Attribute("modifiersname","cn=Import")
      }    ;
     //operational attributes shouldn't be present.
     assertEntry(opAttr,false);
@@ -190,8 +190,8 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       new Attribute ("description",
           "This is the description for Aaccf Amar"),
       new Attribute("mail","user.0@example.com"),
-      new Attribute ("creatorsname", "Import") ,
-      new Attribute("modifiersname","Import")
+      new Attribute ("creatorsname", "cn=Import") ,
+      new Attribute("modifiersname","cn=Import")
     }    ;
     assertEntry(attr,true);
   }
@@ -280,8 +280,8 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
     assertRejectedFile(reject,true);
     Attribute[] attrs = {
-       new Attribute ("creatorsname", "Import") ,
-       new Attribute("modifiersname","Import")
+       new Attribute ("creatorsname", "cn=Import") ,
+       new Attribute("modifiersname","cn=Import")
     };
     assertEntry(attrs,false);
   }
@@ -312,7 +312,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
     assertRejectedFile(reject,true);
     Attribute[] attrs = {
-       new Attribute ("creatorsname", "Import")
+       new Attribute ("creatorsname", "cn=Import")
     };
     assertEntry(attrs,true);
   }
@@ -346,7 +346,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
     assertRejectedFile(reject,true);
     Attribute[] attrsPr = {
-       new Attribute ("creatorsname", "Import")
+       new Attribute ("creatorsname", "cn=Import")
     };
     assertEntry(attrsPr,true);
     Attribute[] attrsAb = {
@@ -382,12 +382,12 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
     assertRejectedFile(reject,true);
     Attribute[] attrsPr = {
-       new Attribute ("modifiersname", "Import"),
+       new Attribute ("modifiersname", "cn=Import"),
        new Attribute("employeenumber","0")
     };
     assertEntry(attrsPr,true);
     Attribute[] attrsAb = {
-       new Attribute ("creatorsname", "Import"),
+       new Attribute ("creatorsname", "cn=Import"),
        new Attribute("givenname","Aaccf")
     };
     assertEntry(attrsAb,false);
