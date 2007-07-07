@@ -1714,6 +1714,19 @@ public class UtilityMessages
 
 
   /**
+   * The message ID for the warning message that will be used if an entry is
+   * read from an LDIF file that contains an attribute value that violates the
+   * associated syntax.  This takes five arguments, which are the DN of the
+   * entry, the starting line number for the entry, the invalid value, the name
+   * of the attribute, and a message explaining the reason that the value is not
+   * acceptable.
+   */
+  public static final int MSGID_LDIF_VALUE_VIOLATES_SYNTAX =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_MILD_WARNING | 163;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1780,6 +1793,10 @@ public class UtilityMessages
                     "Entry %s read from LDIF starting at line %d includes a " +
                     "duplicate objectclass value %s.  The second occurrence " +
                     "of that objectclass has been skipped");
+    registerMessage(MSGID_LDIF_VALUE_VIOLATES_SYNTAX,
+                    "Entry %s read from LDIF starting at line %d includes " +
+                    "value '%s' for attribute %s that is invalid according " +
+                    "to the associated syntax:  %s");
     registerMessage(MSGID_LDIF_DUPLICATE_ATTR,
                     "Entry %s read from LDIF starting at line %d includes a " +
                     "duplicate attribute %s with value %s.  The second " +
