@@ -673,16 +673,17 @@ public class RandomTag
         break;
 
       case RANDOM_TYPE_TELEPHONE:
+        buffer.append("+1 ");
         for (int i=0; i < 3; i++)
         {
           buffer.append(NUMERIC_CHARS[random.nextInt(NUMERIC_CHARS.length)]);
         }
-        buffer.append('-');
+        buffer.append(' ');
         for (int i=0; i < 3; i++)
         {
           buffer.append(NUMERIC_CHARS[random.nextInt(NUMERIC_CHARS.length)]);
         }
-        buffer.append('-');
+        buffer.append(' ');
         for (int i=0; i < 4; i++)
         {
           buffer.append(NUMERIC_CHARS[random.nextInt(NUMERIC_CHARS.length)]);
