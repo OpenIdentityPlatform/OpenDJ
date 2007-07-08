@@ -37,8 +37,10 @@ import static org.opends.server.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -571,9 +573,9 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
-  public void initializeConnectionHandler(
-      LDAPConnectionHandlerCfg config)
-      throws ConfigException, InitializationException {
+  public void initializeConnectionHandler(LDAPConnectionHandlerCfg config)
+         throws ConfigException, InitializationException
+  {
     // SSL and StartTLS are mutually exclusive.
     if (config.isAllowStartTLS() && config.isUseSSL()) {
       int msgID = MSGID_LDAP_CONNHANDLER_CANNOT_HAVE_SSL_AND_STARTTLS;
@@ -723,6 +725,50 @@ public final class LDAPConnectionHandler extends
     // Perform any additional initialization that might be required.
     statTracker = new LDAPStatistics(handlerName + " Statistics");
 
+
+    // Attempt to bind to the listen port on all configured addresses to
+    // verify whether the connection handler will be able to start.
+    LinkedList<ServerSocket> testListenSockets = new LinkedList<ServerSocket>();
+    try
+    {
+      for (InetAddress a : listenAddresses)
+      {
+        try
+        {
+          ServerSocket s = new ServerSocket();
+          s.setReuseAddress(true);
+          s.bind(new InetSocketAddress(a, listenPort));
+          testListenSockets.add(s);
+        }
+        catch (IOException e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          int    msgID   = MSGID_LDAP_CONNHANDLER_CANNOT_BIND;
+          String message = getMessage(msgID, String.valueOf(config.dn()),
+                                      a.getHostAddress(), listenPort,
+                                      getExceptionMessage(e));
+          logError(ErrorLogCategory.CONNECTION_HANDLING,
+                   ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+          throw new InitializationException(msgID, message);
+        }
+      }
+    }
+    finally
+    {
+      for (ServerSocket s : testListenSockets)
+      {
+        try
+        {
+          s.close();
+        } catch (Exception e) {}
+      }
+    }
+
+
     // Create and start the request handlers.
     requestHandlers = new LDAPRequestHandler[numRequestHandlers];
     for (int i = 0; i < numRequestHandlers; i++) {
@@ -732,6 +778,7 @@ public final class LDAPConnectionHandler extends
     for (int i = 0; i < numRequestHandlers; i++) {
       requestHandlers[i].start();
     }
+
 
     // Register this as a change listener.
     config.addLDAPChangeListener(this);
