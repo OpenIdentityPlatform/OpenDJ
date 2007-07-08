@@ -6824,6 +6824,39 @@ public class ConfigMessages
 
 
 
+  /**
+   * The message ID for the message that will be used if an error occurred when
+   * attempting to apply configuration changes after an entry had been added to
+   * the server configuration.  This takes a single argument, which is a message
+   * explaining the problem(s) that occurred.
+   */
+  public static final int MSGID_CONFIG_FILE_ADD_APPLY_FAILED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 676;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurred when
+   * attempting to apply configuration changes after an entry had been removed
+   * from the server configuration.  This takes a single argument, which is a
+   * message explaining the problem(s) that occurred.
+   */
+  public static final int MSGID_CONFIG_FILE_DELETE_APPLY_FAILED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 677;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurred when
+   * attempting to apply configuration changes after an entry had been updated
+   * in the server configuration.  This takes a single argument, which is a
+   * message explaining the problem(s) that occurred.
+   */
+  public static final int MSGID_CONFIG_FILE_MODIFY_APPLY_FAILED =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 678;
+
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -9731,6 +9764,28 @@ public class ConfigMessages
                     "An error occurred while attempting create a text writer " +
                     "for a Directory Server logger from the information " +
                     "in configuration entry %s:  %s");
+
+
+    registerMessage(MSGID_CONFIG_FILE_ADD_APPLY_FAILED,
+                    "The attempt to apply the configuration add failed.  The " +
+                    "preliminary checks were all successful and the entry " +
+                    "was added to the server configuration, but at least one " +
+                    "of the configuration add listeners reported an error " +
+                    "when attempting to apply the change:  %s");
+    registerMessage(MSGID_CONFIG_FILE_DELETE_APPLY_FAILED,
+                    "The attempt to apply the configuration delete failed.  " +
+                    "The preliminary checks were all successful and the " +
+                    "entry was removed from the server configuration, but at " +
+                    "least one of the configuration delete listeners " +
+                    "reported an error when attempting to apply the change:  " +
+                    "%s");
+    registerMessage(MSGID_CONFIG_FILE_MODIFY_APPLY_FAILED,
+                    "The attempt to apply the configuration modification " +
+                    "failed.  The preliminary checks were all successful and " +
+                    "the modified entry was written to the server " +
+                    "configuration, but at least one of the configuration " +
+                    "change listeners reported an error when attempting to " +
+                    "apply the change:  %s");
   }
 }
 

@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -1357,11 +1358,43 @@ public class ConfigFileHandler
 
 
       // Notify all the add listeners that the entry has been added.
+      ResultCode         resultCode = ResultCode.SUCCESS;
+      LinkedList<String> messages   = new LinkedList<String>();
       for (ConfigAddListener l : addListeners)
       {
-        handleConfigChangeResult(l.applyConfigurationAdd(newEntry),
-                                 newEntry.getDN(), l.getClass().getName(),
+        ConfigChangeResult result = l.applyConfigurationAdd(newEntry);
+        if (result.getResultCode() != ResultCode.SUCCESS)
+        {
+          if (resultCode == ResultCode.SUCCESS)
+          {
+            resultCode = result.getResultCode();
+          }
+
+          messages.addAll(result.getMessages());
+        }
+
+        handleConfigChangeResult(result, newEntry.getDN(),
+                                 l.getClass().getName(),
                                  "applyConfigurationAdd");
+      }
+
+      if (resultCode != ResultCode.SUCCESS)
+      {
+        StringBuilder buffer = new StringBuilder();
+        if (! messages.isEmpty())
+        {
+          Iterator<String> iterator = messages.iterator();
+          buffer.append(iterator.next());
+          while (iterator.hasNext())
+          {
+            buffer.append(".  ");
+            buffer.append(iterator.next());
+          }
+        }
+
+        int    msgID   = MSGID_CONFIG_FILE_ADD_APPLY_FAILED;
+        String message = getMessage(msgID, String.valueOf(buffer));
+        throw new DirectoryException(resultCode, message, msgID);
       }
     }
     finally
@@ -1505,11 +1538,43 @@ public class ConfigFileHandler
 
 
       // Notify all the delete listeners that the entry has been removed.
+      ResultCode         resultCode = ResultCode.SUCCESS;
+      LinkedList<String> messages   = new LinkedList<String>();
       for (ConfigDeleteListener l : deleteListeners)
       {
-        handleConfigChangeResult(l.applyConfigurationDelete(entry),
-                                 entry.getDN(), l.getClass().getName(),
+        ConfigChangeResult result = l.applyConfigurationDelete(entry);
+        if (result.getResultCode() != ResultCode.SUCCESS)
+        {
+          if (resultCode == ResultCode.SUCCESS)
+          {
+            resultCode = result.getResultCode();
+          }
+
+          messages.addAll(result.getMessages());
+        }
+
+        handleConfigChangeResult(result, entry.getDN(),
+                                 l.getClass().getName(),
                                  "applyConfigurationDelete");
+      }
+
+      if (resultCode != ResultCode.SUCCESS)
+      {
+        StringBuilder buffer = new StringBuilder();
+        if (! messages.isEmpty())
+        {
+          Iterator<String> iterator = messages.iterator();
+          buffer.append(iterator.next());
+          while (iterator.hasNext())
+          {
+            buffer.append(".  ");
+            buffer.append(iterator.next());
+          }
+        }
+
+        int    msgID   = MSGID_CONFIG_FILE_DELETE_APPLY_FAILED;
+        String message = getMessage(msgID, String.valueOf(buffer));
+        throw new DirectoryException(resultCode, message, msgID);
       }
     }
     finally
@@ -1658,11 +1723,43 @@ public class ConfigFileHandler
 
 
       // Notify all the change listeners of the update.
+      ResultCode         resultCode = ResultCode.SUCCESS;
+      LinkedList<String> messages   = new LinkedList<String>();
       for (ConfigChangeListener l : changeListeners)
       {
-        handleConfigChangeResult(l.applyConfigurationChange(currentEntry),
-                                 currentEntry.getDN(), l.getClass().getName(),
+        ConfigChangeResult result = l.applyConfigurationChange(newEntry);
+        if (result.getResultCode() != ResultCode.SUCCESS)
+        {
+          if (resultCode == ResultCode.SUCCESS)
+          {
+            resultCode = result.getResultCode();
+          }
+
+          messages.addAll(result.getMessages());
+        }
+
+        handleConfigChangeResult(result, newEntry.getDN(),
+                                 l.getClass().getName(),
                                  "applyConfigurationChange");
+      }
+
+      if (resultCode != ResultCode.SUCCESS)
+      {
+        StringBuilder buffer = new StringBuilder();
+        if (! messages.isEmpty())
+        {
+          Iterator<String> iterator = messages.iterator();
+          buffer.append(iterator.next());
+          while (iterator.hasNext())
+          {
+            buffer.append(".  ");
+            buffer.append(iterator.next());
+          }
+        }
+
+        int    msgID   = MSGID_CONFIG_FILE_MODIFY_APPLY_FAILED;
+        String message = getMessage(msgID, String.valueOf(buffer));
+        throw new DirectoryException(resultCode, message, msgID);
       }
     }
     finally
