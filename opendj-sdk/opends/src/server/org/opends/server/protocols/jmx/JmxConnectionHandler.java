@@ -31,7 +31,10 @@ package org.opends.server.protocols.jmx;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -308,9 +311,9 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
-  public void initializeConnectionHandler(
-      JMXConnectionHandlerCfg config)
-      throws ConfigException, InitializationException {
+  public void initializeConnectionHandler(JMXConnectionHandlerCfg config)
+         throws ConfigException, InitializationException
+  {
     // Validate the key manager provider DN.
     DN keyManagerProviderDN = config.getKeyManagerProviderDN();
     if (keyManagerProviderDN != null) {
@@ -339,6 +342,34 @@ public final class JmxConnectionHandler extends
 
     // Configuration is ok.
     currentConfig = config;
+
+
+    // Attempt to bind to the listen port to verify whether the connection
+    // handler will be able to start.
+    ServerSocket s = null;
+    try
+    {
+      s = new ServerSocket();
+      s.setReuseAddress(true);
+      s.bind(new InetSocketAddress(config.getListenPort()));
+    }
+    catch (Exception e)
+    {
+      int    msgID   = MSGID_JMX_CONNHANDLER_CANNOT_BIND;
+      String message = getMessage(msgID, String.valueOf(config.dn()),
+                                  config.getListenPort(),
+                                  getExceptionMessage(e));
+      logError(ErrorLogCategory.CONNECTION_HANDLING,
+               ErrorLogSeverity.SEVERE_ERROR, message, msgID);
+      throw new InitializationException(msgID, message);
+    }
+    finally
+    {
+      try
+      {
+        s.close();
+      } catch (Exception e) {}
+    }
 
     if (config.isUseSSL()) {
       protocol = "JMX+SSL";

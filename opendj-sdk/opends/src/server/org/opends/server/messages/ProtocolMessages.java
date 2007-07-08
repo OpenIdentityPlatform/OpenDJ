@@ -4659,6 +4659,28 @@ public class ProtocolMessages
 
 
   /**
+   * The message ID for the message that will be used if the LDAP connection
+   * handler cannot bind to a configured address:port.  This takes four
+   * arguments, which are the configuration entry DN, IP address, port  number,
+   * and a message explaining the problem that occurred.
+   */
+  public static final int MSGID_LDAP_CONNHANDLER_CANNOT_BIND =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 432;
+
+
+
+  /**
+   * The message ID for the message that will be used if the JMX connection
+   * handler cannot bind to a configured port.  This takes three arguments,
+   * which are the configuration entry DN, port  number, and a message
+   * explaining the problem that occurred.
+   */
+  public static final int MSGID_JMX_CONNHANDLER_CANNOT_BIND =
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 433;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5914,6 +5936,9 @@ public class ProtocolMessages
                     " of configuration entry %s has an invalid value %s " +
                     "which does not reference an enabled trust manager " +
                     "provider");
+    registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_BIND,
+                    "The LDAP connection handler defined in configuration " +
+                    "entry %s was unable to bind to %s:%d:  %s");
     registerMessage(MSGID_LDAP_CONNHANDLER_CANNOT_DETERMINE_TRUSTMANAGER_DN,
                     "An error occurred while processing the " +
                     ATTR_TRUSTMANAGER_DN + " attribute in configuration " +
@@ -6448,6 +6473,9 @@ public class ProtocolMessages
             ATTR_USE_SSL + " attribute in configuration entry %s, " +
             "which is used to indicate whether to use SSL when " +
             "accepting client connections:  %s");
+    registerMessage(MSGID_JMX_CONNHANDLER_CANNOT_BIND,
+            "The JMX connection handler defined in configuration entry %s " +
+            "was unable to bind to port %d:  %s");
     registerMessage(MSGID_JMX_CONNHANDLER_DESCRIPTION_SSL_CERT_NICKNAME,
             "Specifies the nickname of the certificate that the " +
             "connection handler should use when accepting SSL-based " +
