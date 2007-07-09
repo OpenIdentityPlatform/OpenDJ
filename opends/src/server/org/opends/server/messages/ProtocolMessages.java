@@ -4604,7 +4604,7 @@ public class ProtocolMessages
    * problem that was encountered.
    */
   public static final int MSGID_CANNOT_DECODE_GETEFFECTIVERIGHTS_AUTHZID_DN =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 426;
+       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_INFORMATIONAL | 426;
 
 
   /**

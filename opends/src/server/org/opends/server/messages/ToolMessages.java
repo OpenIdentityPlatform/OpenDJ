@@ -6641,7 +6641,7 @@ public class ToolMessages
    * windowsNetStop command-line argument.  This does not take any arguments.
    */
   public static final int MSGID_STOPDS_DESCRIPTION_WINDOWS_NET_STOP =
-       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 838;
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 838;
 
   /**
    * The message ID for the message that will be used as the description for the
