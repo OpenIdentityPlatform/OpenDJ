@@ -27,9 +27,12 @@
 package org.opends.server.api;
 
 
+import org.opends.server.admin.std.server.AccessControlHandlerCfg;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
+
 
 
 /**
@@ -38,9 +41,46 @@ import org.opends.server.workflowelement.localbackend.*;
  * methods in this class should take the entire request into account
  * when making the determination, including any request controls that
  * might have been provided.
+ *
+ * @param  <T>  The type of access control configuration handled by
+ *              this access control provider implementation.
  */
 public abstract class AccessControlHandler
+                      <T extends AccessControlHandlerCfg>
 {
+  /**
+   * Initializes the access control handler implementation based on
+   * the information in the provided configuration entry.
+   *
+   * @param  configuration  The configuration object that contains the
+   *                        information to use to initialize this
+   *                        access control handler.
+   *
+   * @throws  ConfigException  If an unrecoverable problem arises in
+   *                           the process of performing the
+   *                           initialization.
+   *
+   * @throws  InitializationException  If a problem occurs during
+   *                                   initialization that is not
+   *                                   related to the server
+   *                                   configuration.
+   */
+  public abstract void initializeAccessControlHandler(T configuration)
+
+         throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Performs any necessary finalization for the access control
+   * handler implementation. This will be called just after the
+   * handler has been deregistered with the server but before it has
+   * been unloaded.
+   */
+  public abstract void finalizeAccessControlHandler();
+
+
+
   /**
    * Indicates whether the provided add operation is allowed based on
    * the access control configuration.  This method should not alter
@@ -49,12 +89,11 @@ public abstract class AccessControlHandler
    * @param  addOperation  The operation for which to make the
    *                       determination.
    *
-   * @return  <CODE>true</CODE> if the operation should be allowed by
-   *          the access control configuration, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the operation should be allowed by the
+   *          access control configuration, or {@code false} if not.
    */
   public abstract boolean isAllowed(LocalBackendAddOperation
-      addOperation);
+                                         addOperation);
 
 
 
@@ -66,12 +105,11 @@ public abstract class AccessControlHandler
    * @param  bindOperation  The operation for which to make the
    *                        determination.
    *
-   * @return  <CODE>true</CODE> if the operation should be allowed by
-   *          the access control configuration, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the operation should be allowed by the
+   *          access control configuration, or {@code false} if not.
    */
   public abstract boolean isAllowed(LocalBackendBindOperation
-      bindOperation);
+                                         bindOperation);
 
 
 
@@ -83,9 +121,8 @@ public abstract class AccessControlHandler
    * @param  compareOperation  The operation for which to make the
    *                           determination.
    *
-   * @return  <CODE>true</CODE> if the operation should be allowed by
-   *          the access control configuration, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the operation should be allowed by the
+   *          access control configuration, or {@code false} if not.
    */
   public abstract boolean isAllowed(CompareOperation
                                          compareOperation);
@@ -100,12 +137,11 @@ public abstract class AccessControlHandler
    * @param  deleteOperation  The operation for which to make the
    *                          determination.
    *
-   * @return  <CODE>true</CODE> if the operation should be allowed by
-   *          the access control configuration, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the operation should be allowed by the
+   *          access control configuration, or {@code false} if not.
    */
   public abstract boolean isAllowed(LocalBackendDeleteOperation
-      deleteOperation);
+                                         deleteOperation);
 
 
 
@@ -117,9 +153,8 @@ public abstract class AccessControlHandler
    * @param  extendedOperation  The operation for which to make the
    *                            determination.
    *
-   * @return  <CODE>true</CODE> if the operation should be allowed by
-   *          the access control configuration, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the operation should be allowed by the
+   *          access control configuration, or {@code false} if not.
    */
   public abstract boolean isAllowed(ExtendedOperation
                                          extendedOperation);
@@ -134,12 +169,11 @@ public abstract class AccessControlHandler
    * @param  modifyOperation  The operation for which to make the
    *                          determination.
    *
-   * @return  <CODE>true</CODE> if the operation should be allowed by
-   *          the access control configuration, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the operation should be allowed by the
+   *          access control configuration, or {@code false} if not.
    */
   public abstract boolean isAllowed(LocalBackendModifyOperation
-      modifyOperation);
+                                         modifyOperation);
 
 
 
@@ -151,9 +185,8 @@ public abstract class AccessControlHandler
    * @param  modifyDNOperation  The operation for which to make the
    *                            determination.
    *
-   * @return  <CODE>true</CODE> if the operation should be allowed by
-   *          the access control configuration, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the operation should be allowed by the
+   *          access control configuration, or {@code false} if not.
    */
   public abstract boolean isAllowed(ModifyDNOperation
                                          modifyDNOperation);
@@ -171,12 +204,11 @@ public abstract class AccessControlHandler
    * @param  searchOperation  The operation for which to make the
    *                          determination.
    *
-   * @return  <CODE>true</CODE> if the operation should be allowed by
-   *          the access control configuration, or <CODE>false</CODE>
-   *          if not.
+   * @return  {@code true} if the operation should be allowed by the
+   *          access control configuration, or {@code false} if not.
    */
   public abstract boolean isAllowed(LocalBackendSearchOperation
-      searchOperation);
+                                         searchOperation);
 
 
 
@@ -190,13 +222,12 @@ public abstract class AccessControlHandler
    * @param  searchEntry      The search result entry for which to
    *                          make the determination.
    *
-   * @return  <CODE>true</CODE> if the operation should be allowed by
-   *          the access control configuration, or <CODE>false</CODE>
+   * @return  {@code true} if the access control configuration allows
+   *          the entry to be returned to the client, or {@code false}
    *          if not.
    */
-  public abstract boolean maySend(
-                         SearchOperation searchOperation,
-                         SearchResultEntry searchEntry);
+  public abstract boolean maySend(SearchOperation searchOperation,
+                                  SearchResultEntry searchEntry);
 
 
 
@@ -212,9 +243,9 @@ public abstract class AccessControlHandler
    * @return  Returns the entry with filtered attributes and values
    *          removed.
    */
-  public abstract SearchResultEntry filterEntry(
-                         SearchOperation searchOperation,
-                         SearchResultEntry searchEntry);
+  public abstract SearchResultEntry
+                       filterEntry(SearchOperation searchOperation,
+                                   SearchResultEntry searchEntry);
 
 
 
@@ -222,57 +253,56 @@ public abstract class AccessControlHandler
    * Indicates whether the provided search result reference may be
    * sent to the client.
    *
-   * @param searchOperation
-   *          The search operation with which the provided reference
-   *          is associated.
-   * @param searchReference
-   *          The search result reference for which to make the
-   *          determination.
-   * @return <CODE>true</CODE> if the operation should be allowed by
-   *         the access control configuration, or <CODE>false</CODE>
-   *         if not.
+   * @param  searchOperation  The search operation with which the
+   *                          provided reference is associated.
+   * @param  searchReference  The search result reference for which to
+   *                          make the determination.
+   *
+   * @return  {@code true} if the access control configuration allows
+   *          the reference to be returned to the client, or
+   *          {@code false} if not.
    */
-  public abstract boolean maySend(
-                          SearchOperation searchOperation,
-                          SearchResultReference searchReference);
+  public abstract boolean maySend(SearchOperation searchOperation,
+                               SearchResultReference searchReference);
 
 
 
   /**
    * Indicates whether a proxied authorization control is allowed
-   * based on the current operation and the new authorization
-   * entry.
+   * based on the current operation and the new authorization entry.
    *
-   * @param operation
-   *        The operation with which the proxied authorization
-   *        control is associated.
-   * @param newAuthorizationEntry
-   *        The new authorization entry related to the
-   *        proxied authorization control authorization ID.
-   * @return  <CODE>true</CODE> if the operation should be allowed by
-   *         the access control configuration, or <CODE>false</CODE>
-   *         if not.
+   * @param  operation              The operation with which the
+   *                                proxied authorization control is
+   *                                associated.
+   * @param  newAuthorizationEntry  The new authorization entry
+   *                                related to the proxied
+   *                                authorization control
+   *                                authorization ID.
+   *
+   * @return  {@code true} if the operation should be allowed to use
+   *          the proxied authorization control, or {@code false} if
+   *          not.
    */
   public abstract boolean isProxiedAuthAllowed(Operation operation,
-                                        Entry newAuthorizationEntry);
+                               Entry newAuthorizationEntry);
+
+
 
   /**
-   * Indicates whether a geteffectiverights control is allowed
+   * Indicates whether a getEffectiveRights control is allowed
    * based on the current operation and the control contents.
    *
-   * @param operation
-   *        The operation with which the geteffectiverights
-   *        control is associated. This is always a
-   *       SearchOperation.
-   * @param control
-   *        The control class containing the decoded
-   *        geteffectiverights control contents.
-   * @return  <CODE>true</CODE> if the operation should be allowed
-   *          by the access control configuration, or
-   *          <CODE>false</CODE> if not.
+   * @param  operation  The operation with which the
+   *                    getEffectiveRights control is associated.
+   *                    This is always a SearchOperation.
+   * @param  control    The control class containing the decoded
+   *                    getEffectiveRights control contents.
+   *
+   * @return  {@code true} if the use of the getEffectiveRights
+   *          control should be allowed, or {@code false} if not.
    */
-  public abstract
-  boolean isGetEffectiveRightsAllowed(Operation operation,
-                                      Control control);
+  public abstract boolean isGetEffectiveRightsAllowed(
+                               SearchOperation operation,
+                               Control control);
 }
 

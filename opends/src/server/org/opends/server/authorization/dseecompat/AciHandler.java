@@ -28,23 +28,15 @@
 package org.opends.server.authorization.dseecompat;
 
 
+
 import static org.opends.server.authorization.dseecompat.Aci.*;
-
-import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
-import org.opends.server.api.AccessControlHandler;
 import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
-import org.opends.server.core.*;
-
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DN_OID;
-import org.opends.server.types.*;
 import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.util.StaticUtils.toLowerCase;
@@ -52,103 +44,131 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
+import org.opends.server.api.AccessControlHandler;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.*;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
 
+
+
 /**
- * The AciHandler class performs the main processing for the
- * dseecompat package.
+ * The AciHandler class performs the main processing for the dseecompat package.
  */
-public class AciHandler extends AccessControlHandler {
+public class AciHandler
+       extends AccessControlHandler<DseeCompatAccessControlHandlerCfg>
+{
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
 
-    /*
-     * The list that holds that ACIs keyed by the DN of the entry
-     * holding the ACI.
-     */
-    private AciList aciList;
+  /**
+   * The list that holds that ACIs keyed by the DN of the entry
+   * holding the ACI.
+   */
+  private AciList aciList;
 
-    /*
-     * The listener that handles ACI changes caused by LDAP operations, ACI
-     * decode failure alert logging and backend initialization ACI list
-     * adjustment.
-     */
-    private AciListenerManager aciListenerMgr;
+  /**
+   * The listener that handles ACI changes caused by LDAP operations, ACI
+   * decode failure alert logging and backend initialization ACI list
+   * adjustment.
+   */
+  private AciListenerManager aciListenerMgr;
 
-    /**
-     * Attribute type corresponding to "aci" attribute.
-     */
-    public static AttributeType aciType;
+  /**
+   * Attribute type corresponding to "aci" attribute.
+   */
+  public static AttributeType aciType;
 
-    /**
-     * Attribute type corresponding to global "ds-cfg-global-aci" attribute.
-     */
-    public static AttributeType globalAciType;
+  /**
+   * Attribute type corresponding to global "ds-cfg-global-aci" attribute.
+   */
+  public static AttributeType globalAciType;
 
-    /**
-     * String used to save the original authorization entry in an operation
-     * attachment if a proxied authorization control was seen.
-     */
-    public static String ORIG_AUTH_ENTRY="origAuthorizationEntry";
+  /**
+   * String used to save the original authorization entry in an operation
+   * attachment if a proxied authorization control was seen.
+   */
+  public static String ORIG_AUTH_ENTRY="origAuthorizationEntry";
 
-   /**
-     * String used to save a resource entry containing all the attributes in
-     * the SearchOperation attachment list. This is only used during
-     * geteffectiverights read right processing when all of an entry'ss
-     * attributes need to examined.
-     */
-    public static String ALL_ATTRS_RESOURCE_ENTRY = "allAttrsResourceEntry";
+  /**
+   * String used to save a resource entry containing all the attributes in
+   * the SearchOperation attachment list. This is only used during
+   * geteffectiverights read right processing when all of an entry'ss
+   * attributes need to examined.
+   */
+  public static String ALL_ATTRS_RESOURCE_ENTRY = "allAttrsResourceEntry";
 
-    /**
-     * String used to indicate that the evaluating ACI had a all user attributes
-     * targetattr match (targetattr="*").
-     */
-     public static String ALL_USER_ATTRS_MATCHED = "allUserAttrsMatched";
+  /**
+   * String used to indicate that the evaluating ACI had a all user attributes
+   * targetattr match (targetattr="*").
+   */
+   public static String ALL_USER_ATTRS_MATCHED = "allUserAttrsMatched";
 
-    /**
-     * String used to indicate that the evaluating ACI had a all operational
-     * attributes targetattr match (targetattr="+").
-     */
-     public static String ALL_OP_ATTRS_MATCHED = "allOpAttrsMatched";
+  /**
+   * String used to indicate that the evaluating ACI had a all operational
+   * attributes targetattr match (targetattr="+").
+   */
+   public static String ALL_OP_ATTRS_MATCHED = "allOpAttrsMatched";
 
-    /**
-     * This constructor instantiates the ACI handler class that performs the
-     * main processing for the dseecompat ACI package. It does the following
-     * initializations:
-     *
-     *
-     *  - Instantiates the ACI list cache.
-     *
-     *  - Instantiates thr AciListenerManager.
-     *
-     *  - Processes all global attribute types found in the configuration entry
-     *    and adds them to the ACI list cache.
-     *
-     *  - Processes all "aci" attributes found in the "cn=config" naming
-     *    context and adds them to the ACI list cache.
-     *
-     * @param configuration The config handler containing the ACI
-     *  configuration information.
-     * @throws InitializationException if there is a problem processing the
-     * config entry or config naming context.
-    */
-    public AciHandler(DseeCompatAccessControlHandlerCfg configuration)
-    throws InitializationException  {
-        DN configurationDN=configuration.dn();
-        aciList = new AciList(configurationDN);
-        aciListenerMgr = new AciListenerManager(aciList, configurationDN);
-        if((aciType = DirectoryServer.getAttributeType("aci")) == null)
-            aciType = DirectoryServer.getDefaultAttributeType("aci");
-        if((globalAciType =
-               DirectoryServer.getAttributeType(ATTR_AUTHZ_GLOBAL_ACI)) == null)
-            globalAciType =
-                 DirectoryServer.getDefaultAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
-        processGlobalAcis(configuration);
-        processConfigAcis();
+
+
+  /**
+   * Creates a new DSEE-compatible access control handler.
+   */
+  public AciHandler()
+  {
+    // No implementation required.  All initialization should be done in the
+    // intializeAccessControlHandler method.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public void initializeAccessControlHandler(
+                   DseeCompatAccessControlHandlerCfg configuration)
+         throws ConfigException, InitializationException
+  {
+    DN configurationDN=configuration.dn();
+    aciList = new AciList(configurationDN);
+    aciListenerMgr = new AciListenerManager(aciList, configurationDN);
+    if((aciType = DirectoryServer.getAttributeType("aci")) == null)
+    {
+      aciType = DirectoryServer.getDefaultAttributeType("aci");
     }
+
+    if((globalAciType =
+           DirectoryServer.getAttributeType(ATTR_AUTHZ_GLOBAL_ACI)) == null)
+    {
+      globalAciType =
+           DirectoryServer.getDefaultAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
+    }
+
+    processGlobalAcis(configuration);
+    processConfigAcis();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public void finalizeAccessControlHandler()
+  {
+    // No implementation required.
+  }
+
+
 
     /**
      * Process all global ACI attribute types found in the configuration
@@ -1153,7 +1173,8 @@ public class AciHandler extends AccessControlHandler {
    * @param c  The request control to save.
    * @return  True if the control is allowed access.
    */
-  public boolean isGetEffectiveRightsAllowed(Operation operation, Control c) {
+  public boolean isGetEffectiveRightsAllowed(SearchOperation operation,
+                                             Control c) {
     operation.setAttachment(OID_GET_EFFECTIVE_RIGHTS, c);
     return true;
   }
@@ -1197,3 +1218,4 @@ public class AciHandler extends AccessControlHandler {
       return true;
   }
 }
+

@@ -68,7 +68,7 @@
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
-          org.opends.server.api.AccessControlProvider
+          org.opends.server.api.AccessControlHandler
         </adm:instance-of>
       </adm:java-class>
     </adm:syntax>
