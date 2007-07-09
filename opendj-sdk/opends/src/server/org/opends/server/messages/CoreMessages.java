@@ -3268,7 +3268,7 @@ public class CoreMessages
    * problem that occurred.
    */
   public static final int MSGID_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 342;
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 342;
 
 
 
@@ -3290,7 +3290,7 @@ public class CoreMessages
    * could not be released.
    */
   public static final int MSGID_CANNOT_RELEASE_EXCLUSIVE_SERVER_LOCK =
-       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 344;
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 344;
 
 
 
@@ -6001,7 +6001,7 @@ public class CoreMessages
    * are the filter string and the start and end position of the NOT filter.
    */
   public static final int MSGID_SEARCH_FILTER_NOT_EXACTLY_ONE =
-       CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 602;
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 602;
 
 
 

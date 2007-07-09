@@ -3726,7 +3726,7 @@ public class ConfigMessages
    * representation of the exception that was caught.
    */
   public static final int MSGID_CONFIG_BACKUP_CANNOT_GET_MAC =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 386;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 386;
 
 
 
@@ -3737,7 +3737,7 @@ public class ConfigMessages
    * string representation of the exception that was caught.
    */
   public static final int MSGID_CONFIG_BACKUP_CANNOT_GET_DIGEST =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 387;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 387;
 
 
 
@@ -3749,7 +3749,7 @@ public class ConfigMessages
    * caught.
    */
   public static final int MSGID_CONFIG_BACKUP_CANNOT_CREATE_ARCHIVE_FILE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 388;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 388;
 
 
 
@@ -3760,7 +3760,7 @@ public class ConfigMessages
    * representation of the exception that was caught.
    */
   public static final int MSGID_CONFIG_BACKUP_CANNOT_GET_CIPHER =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 389;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 389;
 
 
 
@@ -3770,7 +3770,7 @@ public class ConfigMessages
    * arguments, which are the Directory Server product name and the backup ID.
    */
   public static final int MSGID_CONFIG_BACKUP_ZIP_COMMENT =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 390;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 390;
 
 
 
@@ -3782,7 +3782,7 @@ public class ConfigMessages
    */
   public static final int
        MSGID_CONFIG_BACKUP_CANNOT_DETERMINE_CONFIG_FILE_LOCATION =
-            CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 391;
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 391;
 
 
 
@@ -3793,7 +3793,7 @@ public class ConfigMessages
    * that was caught.
    */
   public static final int MSGID_CONFIG_BACKUP_CANNOT_BACKUP_CONFIG_FILE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 392;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 392;
 
 
 
@@ -3804,7 +3804,7 @@ public class ConfigMessages
    * exception that was caught.
    */
   public static final int MSGID_CONFIG_BACKUP_CANNOT_BACKUP_ARCHIVED_CONFIGS =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 393;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 393;
 
 
 
@@ -3816,7 +3816,7 @@ public class ConfigMessages
    * exception that was caught.
    */
   public static final int MSGID_CONFIG_BACKUP_CANNOT_CLOSE_ZIP_STREAM =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 394;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 394;
 
 
 
@@ -3828,7 +3828,7 @@ public class ConfigMessages
    * caught.
    */
   public static final int MSGID_CONFIG_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 395;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 395;
 
 
 
@@ -3839,7 +3839,7 @@ public class ConfigMessages
    * directory.
    */
   public static final int MSGID_CONFIG_RESTORE_NO_SUCH_BACKUP =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 396;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 396;
 
 
 
@@ -3850,7 +3850,7 @@ public class ConfigMessages
    * path to the backup directory.
    */
   public static final int MSGID_CONFIG_RESTORE_NO_BACKUP_FILE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 397;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 397;
 
 
 
@@ -3861,7 +3861,7 @@ public class ConfigMessages
    * file.
    */
   public static final int MSGID_CONFIG_RESTORE_NO_SUCH_FILE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 398;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 398;
 
 
 
@@ -3872,7 +3872,7 @@ public class ConfigMessages
    * archive, and a string representation of the exception that was caught.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_CHECK_FOR_ARCHIVE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 399;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 399;
 
 
 
@@ -3882,7 +3882,7 @@ public class ConfigMessages
    * argument, which is the backup ID.
    */
   public static final int MSGID_CONFIG_RESTORE_UNKNOWN_DIGEST =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 400;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 400;
 
 
 
@@ -3892,7 +3892,7 @@ public class ConfigMessages
    * arguments, which are the backup ID and the digest algorithm.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_GET_DIGEST =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 401;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 401;
 
 
 
@@ -3902,7 +3902,7 @@ public class ConfigMessages
    * which is the backup ID.
    */
   public static final int MSGID_CONFIG_RESTORE_UNKNOWN_MAC =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 402;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 402;
 
 
 
@@ -3912,7 +3912,7 @@ public class ConfigMessages
    * arguments, which are the backup ID and the MAC algorithm.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_GET_MAC =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 403;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 403;
 
 
 
@@ -3923,7 +3923,7 @@ public class ConfigMessages
    * string representation of the exception that was caught.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_OPEN_BACKUP_FILE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 404;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 404;
 
 
 
@@ -3933,7 +3933,7 @@ public class ConfigMessages
    * is the backup ID.
    */
   public static final int MSGID_CONFIG_RESTORE_UNKNOWN_CIPHER =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 405;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 405;
 
 
 
@@ -3943,7 +3943,7 @@ public class ConfigMessages
    * which are the backup ID and the cipher algorithm.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_GET_CIPHER =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 406;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 406;
 
 
 
@@ -3955,7 +3955,7 @@ public class ConfigMessages
    * representation of the exception that was caught.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_BACKUP_EXISTING_CONFIG =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 407;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 407;
 
 
 
@@ -3966,7 +3966,7 @@ public class ConfigMessages
    * config directory.
    */
   public static final int MSGID_CONFIG_RESTORE_RESTORED_OLD_CONFIG =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_NOTICE | 408;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_NOTICE | 408;
 
 
 
@@ -3977,7 +3977,7 @@ public class ConfigMessages
    * to the directory containing the original config files.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_RESTORE_OLD_CONFIG =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 409;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 409;
 
 
 
@@ -3989,7 +3989,7 @@ public class ConfigMessages
    * caught.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_CREATE_CONFIG_DIRECTORY =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 410;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 410;
 
 
 
@@ -4000,7 +4000,7 @@ public class ConfigMessages
    * to the directory containing the original config files.
    */
   public static final int MSGID_CONFIG_RESTORE_OLD_CONFIG_SAVED =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 411;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 411;
 
 
 
@@ -4011,7 +4011,7 @@ public class ConfigMessages
    * string representation of the exception that was caught.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_GET_ZIP_ENTRY =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 412;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 412;
 
 
 
@@ -4022,7 +4022,7 @@ public class ConfigMessages
    * created, and a string representation of the exception that was caught.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_CREATE_FILE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 413;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 413;
 
 
 
@@ -4034,7 +4034,7 @@ public class ConfigMessages
    * caught.
    */
   public static final int MSGID_CONFIG_RESTORE_CANNOT_PROCESS_ARCHIVE_FILE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 414;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 414;
 
 
 
@@ -4045,7 +4045,7 @@ public class ConfigMessages
    * and a string representation of the exception that was caught.
    */
   public static final int MSGID_CONFIG_RESTORE_ERROR_ON_ZIP_STREAM_CLOSE =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 415;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 415;
 
 
 
@@ -4055,7 +4055,7 @@ public class ConfigMessages
    * arguments.
    */
   public static final int MSGID_CONFIG_RESTORE_UNSIGNED_HASH_VALID =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_NOTICE | 416;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_NOTICE | 416;
 
 
 
@@ -4065,7 +4065,7 @@ public class ConfigMessages
    * argument, which is the backup ID.
    */
   public static final int MSGID_CONFIG_RESTORE_UNSIGNED_HASH_INVALID =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 417;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 417;
 
 
 
@@ -4075,7 +4075,7 @@ public class ConfigMessages
    * arguments.
    */
   public static final int MSGID_CONFIG_RESTORE_SIGNED_HASH_VALID =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_NOTICE | 418;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_NOTICE | 418;
 
 
 
@@ -4085,7 +4085,7 @@ public class ConfigMessages
    * argument, which is the backup ID.
    */
   public static final int MSGID_CONFIG_RESTORE_SIGNED_HASH_INVALID =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 419;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 419;
 
 
 
@@ -4095,7 +4095,7 @@ public class ConfigMessages
    * arguments, which are the backup ID and the path to the backup directory.
    */
   public static final int MSGID_CONFIG_RESTORE_VERIFY_SUCCESSFUL =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_NOTICE | 420;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_NOTICE | 420;
 
 
 
@@ -4105,7 +4105,7 @@ public class ConfigMessages
    * arguments, which are the backup ID and the path to the backup directory.
    */
   public static final int MSGID_CONFIG_RESTORE_SUCCESSFUL =
-       CATEGORY_MASK_BACKEND | SEVERITY_MASK_NOTICE | 421;
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_NOTICE | 421;
 
 
 
@@ -5651,11 +5651,11 @@ public class ConfigMessages
 
   /**
    * The message ID of an error indicating that the file permissions for the
-   * database directory will result in an inaccessable database. The orginal or
-   * default value will be used instead
+   * database directory will result in an inaccessible database. The orginal or
+   * default value will be used instead.
    */
   public static final int MSGID_CONFIG_BACKEND_INSANE_MODE =
-      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_WARNING | 568;
+      CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_WARNING | 568;
 
 
 
@@ -9621,7 +9621,7 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_BACKEND_INSANE_MODE,
                    "Unable to set the requested file permissions to the " +
                    "backend database directory. The requested permissions " +
-                   "will result in an inaccessable database");
+                   "will result in an inaccessible database");
 
 
     registerMessage(MSGID_CONFIG_GROUP_CANNOT_GET_BASE,
