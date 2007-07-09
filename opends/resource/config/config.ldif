@@ -1433,6 +1433,7 @@ ds-cfg-syntax-enabled: true
 dn: cn=Attribute Type Description,cn=Syntaxes,cn=config
 objectClass: top
 objectClass: ds-cfg-attribute-syntax
+objectClass: ds-cfg-attribute-type-description-attribute-syntax
 cn: Attribute Type Description
 ds-cfg-syntax-class: org.opends.server.schema.AttributeTypeSyntax
 ds-cfg-syntax-enabled: true

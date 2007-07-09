@@ -34,7 +34,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.admin.std.server.*;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -42,17 +43,10 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeUsage;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -67,14 +61,18 @@ import static org.opends.server.util.StaticUtils.*;
  * syntax is defined in RFC 2252.
  */
 public class AttributeTypeSyntax
-       extends AttributeSyntax<AttributeSyntaxCfg>
-{
+    extends AttributeSyntax<AttributeTypeDescriptionAttributeSyntaxCfg>
+    implements
+       ConfigurationChangeListener<AttributeTypeDescriptionAttributeSyntaxCfg> {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
 
+  // The reference to the configuration for this attribute type description
+  // syntax.
+  private AttributeTypeDescriptionAttributeSyntaxCfg currentConfig;
 
 
   // The default equality matching rule for this syntax.
@@ -86,7 +84,8 @@ public class AttributeTypeSyntax
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
 
-
+  // If true strip the suggested minimum upper bound from the syntax OID.
+  private static boolean stripMinimumUpperBound=false;
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -104,7 +103,8 @@ public class AttributeTypeSyntax
   /**
    * {@inheritDoc}
    */
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
+  public void
+  initializeSyntax(AttributeTypeDescriptionAttributeSyntaxCfg configuration)
          throws ConfigException, InitializationException
   {
     defaultEqualityMatchingRule =
@@ -136,6 +136,19 @@ public class AttributeTypeSyntax
                                   SYNTAX_ATTRIBUTE_TYPE_NAME);
       throw new InitializationException(msgID, message);
     }
+
+    // This syntax is one of the Directory Server's core syntaxes and therefore
+    // it may be instantiated at times without a configuration entry.  If that
+    // is the case, then we'll exit now before doing anything that could require
+    // access to that entry.
+    if (configuration == null)
+    {
+      return;
+    }
+
+    currentConfig = configuration;
+    currentConfig.addAttributeTypeDescriptionChangeListener(this);
+    stripMinimumUpperBound=configuration.isStripSyntaxMinimumUpperBound();
   }
 
 
@@ -656,13 +669,13 @@ public class AttributeTypeSyntax
         // of characters that should be allowed in values of that type.  This
         // implementation will ignore any such length because it does not
         // impose any practical limit on the length of attribute values.
-        boolean inBrace         = false;
         boolean lastWasPeriod   = false;
+        int leftBracePos=0;
         StringBuilder oidBuffer = new StringBuilder();
         while (pos < length)
         {
           c = lowerStr.charAt(pos++);
-          if (inBrace)
+          if (leftBracePos != 0)
           {
             // The only thing we'll allow here will be numeric digits and the
             // closing curly brace.
@@ -678,7 +691,18 @@ public class AttributeTypeSyntax
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                msgID);
               }
-
+              //If option ds-cfg-strip-syntax-minimum-upper-bound is true,
+              //remove minimum number specification (including braces) because
+              //it breaks some syntax retrieval APIs such as JNDI's
+              //getAttributeSyntaxDefinition().
+              if(stripMinimumUpperBound) {
+                String firstPart=
+                         value.stringValue().substring(0,leftBracePos-1);
+                String secPart=value.stringValue().substring(pos);
+                StringBuilder tmpBuffer=
+                        new StringBuilder(firstPart).append(secPart);
+                value.setValue(tmpBuffer.toString().getBytes());
+              }
               break;
             }
             else if (! isDigit(c))
@@ -716,8 +740,10 @@ public class AttributeTypeSyntax
             }
             else if (c == '{')
             {
-              // It's the start of the length specification.
-              inBrace = true;
+              // It's the start of the length specification. Keep an index
+              //to this character because the specification will need to be
+              //removed.
+              leftBracePos=pos;
             }
             else if (c == ' ')
             {
@@ -1437,5 +1463,34 @@ public class AttributeTypeSyntax
 
     return startPos;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+              AttributeTypeDescriptionAttributeSyntaxCfg configuration)
+  {
+    currentConfig = configuration;
+    stripMinimumUpperBound = configuration.isStripSyntaxMinimumUpperBound();
+
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+                      AttributeTypeDescriptionAttributeSyntaxCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // The configuration will always be acceptable.
+    return true;
+  }
+
+
 }
 
