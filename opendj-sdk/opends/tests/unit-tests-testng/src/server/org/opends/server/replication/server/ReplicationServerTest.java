@@ -540,8 +540,8 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       for (int i =0; i< THREADS; i++)
       {
-        producer[i].join();
-        reader[i].join();
+        producer[i].join(60000);
+        reader[i].join(60000);
       }
     }
     finally
@@ -761,13 +761,25 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that the Replication sends back correctly WindowsUpdate
    * when we send a WindowProbe.
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void windowProbeTest() throws Exception
   {
     final int WINDOW = 10;
     /*
-     * Open a socket connection to the replication server
+     * Open a session to the replication server.
+     *
+     * Some other tests may have been running before and therefore
+     * may have pushed some changes to the Replication Server
+     * When a new session is opened, the Replication Server is therefore
+     * going to send all thoses old changes to this Replication Server.
+     * To avoid this, this test open a first session, save the
+     * ServerState from the ReplicationServer, close the session
+     * and re-open a new connection providing the ServerState it just
+     * received from the first session.
+     * This should guarantee that old changes are not perturbing this test.
      */
+
+    // open the first session to the
     InetSocketAddress ServerAddr = new InetSocketAddress(
         InetAddress.getByName("localhost"), replicationServerPort);
     Socket socket = new Socket();
@@ -776,34 +788,60 @@ public class ReplicationServerTest extends ReplicationTestCase
     socket.connect(ServerAddr, 500);
     SocketSession session = new SocketSession(socket);
 
-    /*
-     * Send our ServerStartMessage.
-     */
-    ServerStartMessage msg =
-      new ServerStartMessage((short) 1723, DN.decode("dc=example,dc=com"),
-          0, 0, 0, 0, WINDOW, (long) 5000, new ServerState(),
+    try
+    {
+      // send a ServerStartMessage with an empty ServerState.
+      ServerStartMessage msg =
+        new ServerStartMessage((short) 1723, DN.decode("dc=example,dc=com"),
+            0, 0, 0, 0, WINDOW, (long) 5000, new ServerState(),
+            ProtocolVersion.currentVersion());
+      session.publish(msg);
+
+      // Read the Replication Server state from the ReplServerStartMessage that
+      // comes back.
+      ReplServerStartMessage replStartMsg =
+        (ReplServerStartMessage) session.receive();
+      int serverwindow = replStartMsg.getWindowSize();
+      ServerState replServerState = replStartMsg.getServerState();
+
+      // close the session
+      session.close();
+
+      // open a new session to the replication Server
+      socket = new Socket();
+      socket.setReceiveBufferSize(1000000);
+      socket.setTcpNoDelay(true);
+      socket.connect(ServerAddr, 500);
+      session = new SocketSession(socket);
+
+      // send a ServerStartMessage containing the ServerState that was just
+      // received.
+      msg = new ServerStartMessage(
+          (short) 1724, DN.decode("dc=example,dc=com"),
+          0, 0, 0, 0, WINDOW, (long) 5000, replServerState,
           ProtocolVersion.currentVersion());
-    session.publish(msg);
+      session.publish(msg);
 
-    /*
-     * Read the ReplServerStartMessage that should come back.
-     */
-    session.setSoTimeout(10000);
-    ReplServerStartMessage replStartMsg =
-      (ReplServerStartMessage) session.receive();
-    int serverwindow = replStartMsg.getWindowSize();
+      // Read the ReplServerStartMessage that come back.
+      session.receive();
 
-    // push a WindowProbe message 
-    session.publish(new WindowProbe());
-    
-    WindowMessage windowMsg = (WindowMessage) session.receive();
-    assertEquals(serverwindow, windowMsg.getNumAck());
-    
-    // check that this did not change the window by sending a probe again.
-    session.publish(new WindowProbe());
-    
-    windowMsg = (WindowMessage) session.receive();
-    assertEquals(serverwindow, windowMsg.getNumAck());
+      // Now comes the real test : check that the Replication Server
+      // answers correctly to a WindowProbe Message.
+      session.publish(new WindowProbe());
+
+      WindowMessage windowMsg = (WindowMessage) session.receive();
+      assertEquals(serverwindow, windowMsg.getNumAck());
+
+      // check that this did not change the window by sending a probe again.
+      session.publish(new WindowProbe());
+
+      windowMsg = (WindowMessage) session.receive();
+      assertEquals(serverwindow, windowMsg.getNumAck());
+    }
+    finally
+    {
+      session.close();
+    }
   }
 
 
