@@ -109,6 +109,9 @@ public class LDIFImportConfig
   // The buffered writer to which rejected entries should be written.
   private BufferedWriter rejectWriter;
 
+  // The buffered writer to which rejected entries should be written.
+  private BufferedWriter skipWriter;
+
   // The input stream to use to read the data to import.
   private InputStream ldifInputStream;
 
@@ -184,6 +187,7 @@ public class LDIFImportConfig
     validateSchema         = true;
     reader                 = null;
     rejectWriter           = null;
+    skipWriter             = null;
     excludeAttributes      = new HashSet<AttributeType>();
     includeAttributes      = new HashSet<AttributeType>();
     includeAllUserAttrs    = false;
@@ -223,6 +227,7 @@ public class LDIFImportConfig
     validateSchema         = true;
     reader                 = null;
     rejectWriter           = null;
+    skipWriter             = null;
     excludeAttributes      = new HashSet<AttributeType>();
     includeAttributes      = new HashSet<AttributeType>();
     includeAllUserAttrs    = false;
@@ -260,6 +265,7 @@ public class LDIFImportConfig
     isEncrypted            = false;
     reader                 = null;
     rejectWriter           = null;
+    skipWriter             = null;
     excludeAttributes      = new HashSet<AttributeType>();
     includeAttributes      = new HashSet<AttributeType>();
     includeAllUserAttrs    = false;
@@ -295,6 +301,7 @@ public class LDIFImportConfig
     isEncrypted            = false;
     reader                 = getBufferedReader(ldifInputReader);
     rejectWriter           = null;
+    skipWriter             = null;
     excludeAttributes      = new HashSet<AttributeType>();
     includeAttributes      = new HashSet<AttributeType>();
     includeAllUserAttrs    = false;
@@ -437,7 +444,17 @@ public class LDIFImportConfig
     return rejectWriter;
   }
 
-
+  /**
+   * Retrieves the writer that should be used to write entries that
+   * are skipped because they don't match the criteri.
+   *
+   * @return  The skip writer, or <CODE>null</CODE> if none is to be
+   *          used.
+   */
+  public BufferedWriter getSkipWriter()
+  {
+    return skipWriter;
+  }
 
   /**
    * Indicates that rejected entries should be written to the
@@ -533,7 +550,97 @@ public class LDIFImportConfig
          new BufferedWriter(new OutputStreamWriter(outputStream));
   }
 
+  /**
+   * Indicates that skipped entries should be written to the
+   * specified file.  Note that this applies only to entries that are
+   * skipped because they matched exclude criteria.
+   *
+   * @param  skipFile              The path to the file to which
+   *                               skipped information should be
+   *                               written.
+   * @param  existingFileBehavior  Indicates how to treat an existing
+   *                               file.
+   *
+   * @throws  IOException  If a problem occurs while opening the
+   *                       skip file for writing.
+   */
+  public void writeSkippedEntries(String skipFile,
+                   ExistingFileBehavior existingFileBehavior)
+         throws IOException
+  {
+    if (skipFile == null)
+    {
+      if (skipWriter != null)
+      {
+        try
+        {
+          skipWriter.close();
+        } catch (Exception e) {}
 
+        skipWriter = null;
+      }
+
+      return;
+    }
+
+    switch (existingFileBehavior)
+    {
+      case APPEND:
+        skipWriter =
+             new BufferedWriter(new FileWriter(skipFile, true));
+        break;
+      case OVERWRITE:
+        skipWriter =
+             new BufferedWriter(new FileWriter(skipFile, false));
+        break;
+      case FAIL:
+        File f = new File(skipFile);
+        if (f.exists())
+        {
+          throw new IOException(getMessage(MSGID_SKIP_FILE_EXISTS,
+                                           skipFile));
+        }
+        else
+        {
+          skipWriter =
+               new BufferedWriter(new FileWriter(skipFile));
+        }
+        break;
+    }
+  }
+
+
+
+  /**
+   * Indicates that skipped entries should be written to the provided
+   * output stream.  Note that this does not apply to entries that are
+   * rejected because they are invalid (e.g., are malformed or don't
+   * conform to schema requirements), but only apply to entries that
+   * are skipped because they matched exclude criteria.
+   *
+   * @param  outputStream  The output stream to which skipped entries
+   *                       should be written.
+   */
+  public void writeSkippedEntries(OutputStream outputStream)
+  {
+    if (outputStream == null)
+    {
+      if (skipWriter != null)
+      {
+        try
+        {
+          skipWriter.close();
+        } catch (Exception e) {}
+
+        skipWriter = null;
+      }
+
+      return;
+    }
+
+    skipWriter =
+         new BufferedWriter(new OutputStreamWriter(outputStream));
+  }
 
   /**
    * Indicates whether to append to an existing data set or completely
@@ -1212,6 +1319,21 @@ public class LDIFImportConfig
       try
       {
         rejectWriter.close();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+
+    if (skipWriter != null)
+    {
+      try
+      {
+        skipWriter.close();
       }
       catch (Exception e)
       {

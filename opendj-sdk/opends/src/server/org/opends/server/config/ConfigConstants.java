@@ -3749,15 +3749,22 @@ public class ConfigConstants
        NAME_PREFIX_TASK + "import-reject-file";
 
 
+  /**
+   * The name of the attribute in an import task definition that specifies
+   * the path to a file into which skipped entries may be written if they
+   * do not match criteria during the import process.
+   */
+  public static final String ATTR_IMPORT_SKIP_FILE =
+       NAME_PREFIX_TASK + "import-skip-file";
+
 
   /**
    * The name of the attribute in an import task definition that specifies
-   * whether to overwrite an existing rejects file when performing an LDIF
-   * import rather than appending to it.
+   * whether to overwrite an existing rejects and/or skip file when performing
+   * an LDIF import rather than appending to it.
    */
-  public static final String ATTR_IMPORT_OVERWRITE_REJECTS =
+  public static final String ATTR_IMPORT_OVERWRITE =
        NAME_PREFIX_TASK + "import-overwrite-rejects";
-
 
 
   /**

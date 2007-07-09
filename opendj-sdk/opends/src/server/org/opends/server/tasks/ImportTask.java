@@ -77,11 +77,12 @@ public class ImportTask extends Task
   boolean append                  = false;
   boolean isCompressed            = false;
   boolean isEncrypted             = false;
-  boolean overwriteRejects        = false;
+  boolean overwrite               = false;
   boolean replaceExisting         = false;
   boolean skipSchemaValidation    = false;
   String  backendID               = null;
   String  rejectFile              = null;
+  String  skipFile                = null;
   ArrayList<String>  excludeAttributeStrings = null;
   ArrayList<String>  excludeBranchStrings    = null;
   ArrayList<String>  excludeFilterStrings    = null;
@@ -126,7 +127,8 @@ public class ImportTask extends Task
     AttributeType typeIncludeFilter;
     AttributeType typeExcludeFilter;
     AttributeType typeRejectFile;
-    AttributeType typeOverwriteRejects;
+    AttributeType typeSkipFile;
+    AttributeType typeOverwrite;
     AttributeType typeSkipSchemaValidation;
     AttributeType typeIsCompressed;
     AttributeType typeIsEncrypted;
@@ -153,8 +155,10 @@ public class ImportTask extends Task
          getAttributeType(ATTR_IMPORT_EXCLUDE_FILTER, true);
     typeRejectFile =
          getAttributeType(ATTR_IMPORT_REJECT_FILE, true);
-    typeOverwriteRejects =
-         getAttributeType(ATTR_IMPORT_OVERWRITE_REJECTS, true);
+    typeSkipFile =
+      getAttributeType(ATTR_IMPORT_SKIP_FILE, true);
+    typeOverwrite =
+         getAttributeType(ATTR_IMPORT_OVERWRITE, true);
     typeSkipSchemaValidation =
          getAttributeType(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION, true);
     typeIsCompressed =
@@ -197,8 +201,11 @@ public class ImportTask extends Task
     attrList = taskEntry.getAttribute(typeRejectFile);
     rejectFile = TaskUtils.getSingleValueString(attrList);
 
-    attrList = taskEntry.getAttribute(typeOverwriteRejects);
-    overwriteRejects = TaskUtils.getBoolean(attrList, false);
+    attrList = taskEntry.getAttribute(typeSkipFile);
+    skipFile = TaskUtils.getSingleValueString(attrList);
+
+    attrList = taskEntry.getAttribute(typeOverwrite);
+    overwrite = TaskUtils.getBoolean(attrList, false);
 
     attrList = taskEntry.getAttribute(typeSkipSchemaValidation);
     skipSchemaValidation = TaskUtils.getBoolean(attrList, false);
@@ -444,7 +451,7 @@ public class ImportTask extends Task
       try
       {
         ExistingFileBehavior existingBehavior;
-        if (overwriteRejects)
+        if (overwrite)
         {
           existingBehavior = ExistingFileBehavior.OVERWRITE;
         }
@@ -465,6 +472,31 @@ public class ImportTask extends Task
       }
     }
 
+    if (skipFile != null)
+    {
+      try
+      {
+        ExistingFileBehavior existingBehavior;
+        if (overwrite)
+        {
+          existingBehavior = ExistingFileBehavior.OVERWRITE;
+        }
+        else
+        {
+          existingBehavior = ExistingFileBehavior.APPEND;
+        }
+
+        importConfig.writeRejectedEntries(skipFile, existingBehavior);
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE;
+        String message = getMessage(msgID, skipFile, getExceptionMessage(e));
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+        return TaskState.STOPPED_BY_ERROR;
+      }
+    }
 
     // Get the set of base DNs for the backend as an array.
     DN[] baseDNs = new DN[defaultIncludeBranches.size()];

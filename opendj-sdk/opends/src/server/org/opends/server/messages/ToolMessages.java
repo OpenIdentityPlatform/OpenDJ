@@ -687,7 +687,7 @@ public class ToolMessages
    * The message ID for the message that will be used as the description of the
    * overwriteRejects argument.  This does not take any arguments.
    */
-  public static final int MSGID_LDIFIMPORT_DESCRIPTION_OVERWRITE_REJECTS =
+  public static final int MSGID_LDIFIMPORT_DESCRIPTION_OVERWRITE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 79;
 
 
@@ -8999,6 +8999,22 @@ public class ToolMessages
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1196;
 
 
+  /**
+   * The message ID for the message that will be used as the description of the
+   * skipFile argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFIMPORT_DESCRIPTION_SKIP_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1197;
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to open the skip file.  This takes two arguments, which are the
+   * path to the skip file and a string representation of the exception that
+   * was caught.
+   */
+  public static final int MSGID_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1198;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -9245,9 +9261,14 @@ public class ToolMessages
                     "import");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_REJECT_FILE,
                     "Write rejected entries to the specified file");
-    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_OVERWRITE_REJECTS,
-                    "Overwrite an existing rejects file rather than " +
-                    "appending to it");
+    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_SKIP_FILE,
+                    "Write skipped entries to the specified file");
+    registerMessage(MSGID_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE,
+                    "An error occurred while trying to open the skip " +
+                    "file %s for writing:  %s");
+    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_OVERWRITE,
+                    "Overwrite an existing rejects and/or skip file " +
+                    "rather than appending to it");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_RANDOM_SEED,
                     "Seed for the MakeLDIF random number generator");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_SKIP_SCHEMA_VALIDATION,

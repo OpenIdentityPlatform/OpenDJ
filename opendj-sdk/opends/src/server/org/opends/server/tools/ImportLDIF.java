@@ -139,7 +139,7 @@ public class ImportLDIF
     BooleanArgument displayUsage            = null;
     BooleanArgument isCompressed            = null;
     BooleanArgument isEncrypted             = null;
-    BooleanArgument overwriteRejects        = null;
+    BooleanArgument overwrite               = null;
     BooleanArgument quietMode               = null;
     BooleanArgument replaceExisting         = null;
     BooleanArgument skipSchemaValidation    = null;
@@ -155,6 +155,7 @@ public class ImportLDIF
     StringArgument  includeFilterStrings    = null;
     StringArgument  ldifFiles               = null;
     StringArgument  rejectFile              = null;
+    StringArgument  skipFile                = null;
     StringArgument  templateFile            = null;
 
 
@@ -270,10 +271,17 @@ public class ImportLDIF
       argParser.addArgument(rejectFile);
 
 
-      overwriteRejects =
-           new BooleanArgument("overwriterejects", 'O', "overwriteRejects",
-                               MSGID_LDIFIMPORT_DESCRIPTION_OVERWRITE_REJECTS);
-      argParser.addArgument(overwriteRejects);
+      skipFile =
+           new StringArgument("skipfile", 'K', "skipFile", false, false,
+                              true, "{skipFile}", null, null,
+                              MSGID_LDIFIMPORT_DESCRIPTION_SKIP_FILE);
+      argParser.addArgument(skipFile);
+
+
+      overwrite =
+           new BooleanArgument("overwrite", 'O', "overwrite",
+                               MSGID_LDIFIMPORT_DESCRIPTION_OVERWRITE);
+      argParser.addArgument(overwrite);
 
 
       randomSeed =
@@ -971,7 +979,7 @@ public class ImportLDIF
       try
       {
         ExistingFileBehavior existingBehavior;
-        if (overwriteRejects.isPresent())
+        if (overwrite.isPresent())
         {
           existingBehavior = ExistingFileBehavior.OVERWRITE;
         }
@@ -994,6 +1002,33 @@ public class ImportLDIF
       }
     }
 
+    if (skipFile != null)
+    {
+      try
+      {
+        ExistingFileBehavior existingBehavior;
+        if (overwrite.isPresent())
+        {
+          existingBehavior = ExistingFileBehavior.OVERWRITE;
+        }
+        else
+        {
+          existingBehavior = ExistingFileBehavior.APPEND;
+        }
+
+        importConfig.writeSkippedEntries(skipFile.getValue(),
+                                          existingBehavior);
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_LDIFIMPORT_CANNOT_OPEN_SKIP_FILE;
+        String message = getMessage(msgID, skipFile.getValue(),
+                                    getExceptionMessage(e));
+        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                 message, msgID);
+        return 1;
+      }
+    }
 
     // Get the set of base DNs for the backend as an array.
     DN[] baseDNs = new DN[defaultIncludeBranches.size()];

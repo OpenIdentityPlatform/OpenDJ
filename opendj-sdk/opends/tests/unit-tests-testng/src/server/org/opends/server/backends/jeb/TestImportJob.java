@@ -197,6 +197,36 @@ public class TestImportJob extends JebTestCase
       "postalAddress: Annalee Avard$43221 Hill Street$Charleston, CO  60918\n" +
       "description: This is the description for Annalee Bogard.\n";
 
+  private String skippedEntries =
+    "dn: dc=skipped,dc=importtest1,dc=com\n" +
+    "objectclass: top\n" +
+    "objectclass: domain\n" +
+    "dc: skipped\n" +
+    "\n" +
+    "dn: uid=user.446,dc=skipped,dc=importtest1,dc=com\n" +
+    "objectClass: top\n" +
+    "objectClass: person\n" +
+    "objectClass: organizationalPerson\n" +
+    "objectClass: inetOrgPerson\n" +
+    "givenName: Annalee\n" +
+    "sn: Bogard\n" +
+    "cn: Annalee Bogard\n" +
+    "initials: ANG\n" +
+    "employeeNumber: 446\n" +
+    "uid: user.446\n" +
+    "mail: user.446@example.com\n" +
+    "userPassword: password\n" +
+    "telephoneNumber: 875-335-8882\n" +
+    "homePhone: 181-995-6635\n" +
+    "pager: 586-905-4185\n" +
+    "mobile: 826-857-7592\n" +
+    "street: 43221 Hill Street\n" +
+    "l: Charleston\n" +
+    "st: CO\n" +
+    "postalCode: 60918\n" +
+    "postalAddress: Annalee Avard$43221 Hill Street$Charleston, CO  60918\n" +
+    "description: This is the description for Annalee Bogard.\n";
+  
 
   @BeforeClass
   public void setUp() throws Exception
@@ -231,6 +261,12 @@ public class TestImportJob extends JebTestCase
     writer.close();
     ldifFile.close();
 
+    ldifFile = new FileOutputStream(homeDirName + File.separator + "skipped.ldif");
+    writer = new PrintStream(ldifFile);
+
+    writer.println(skippedEntries);
+    writer.close();
+    ldifFile.close();
 
     baseDNs = new DN[]
     {
@@ -255,11 +291,13 @@ public class TestImportJob extends JebTestCase
     fileList.add(homeDirName + File.separator + "entries1.ldif");
 
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
+    ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
     LDIFImportConfig importConfig = new LDIFImportConfig(fileList);
     importConfig.setAppendToExistingData(false);
     importConfig.setReplaceExistingEntries(false);
     importConfig.setValidateSchema(true);
     importConfig.writeRejectedEntries(rejectedEntries);
+    importConfig.writeSkippedEntries(skippedEntries);
 
     be=(BackendImpl) DirectoryServer.getBackend(beID);
     TaskUtils.disableBackend(beID);
@@ -277,6 +315,7 @@ public class TestImportJob extends JebTestCase
     EntryContainer entryContainer;
 
     assertTrue(rejectedEntries.size() <= 0);
+    assertTrue(skippedEntries.size() <= 0);
     for(DN baseDN : baseDNs)
     {
       entryContainer = rootContainer.getEntryContainer(baseDN);
@@ -495,6 +534,33 @@ public class TestImportJob extends JebTestCase
     assertTrue(rejectedEntries.toString().contains("uid=user.446,dc=importtest1,dc=com"));
   }
 
+  @Test(dependsOnMethods = "testImportAll")
+  public void testImportSkip() throws Exception
+  {
+    ArrayList<DN> excludeBranches = new ArrayList<DN>();
+    excludeBranches.add(DN.decode("dc=skipped,dc=importtest1,dc=com"));
+    ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
+    LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName + File.separator + "skipped.ldif");
+    importConfig.setAppendToExistingData(false);
+    importConfig.setReplaceExistingEntries(true);
+    importConfig.setValidateSchema(true);
+    importConfig.setExcludeBranches(excludeBranches);
+    importConfig.writeSkippedEntries(skippedEntries);
+
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    TaskUtils.disableBackend(beID);
+    try
+    {
+      be.importLDIF(importConfig);
+    }
+    finally
+    {
+      TaskUtils.enableBackend(beID);
+    }
+    assertTrue(skippedEntries.toString().contains("dc=skipped,dc=importtest1,dc=com"));
+    assertTrue(skippedEntries.toString().contains("uid=user.446,dc=skipped,dc=importtest1,dc=com"));
+  }
+  
       /**
      * Builds an entry suitable for using in the verify job to gather statistics about
      * the verify.
