@@ -27,4 +27,3 @@ dn: cn=PKCS12,cn=Key Manager Providers,cn=config
 changetype: modify
 replace: ds-cfg-key-manager-provider-enabled
 ds-cfg-key-manager-provider-enabled: false
-

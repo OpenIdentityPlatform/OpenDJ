@@ -32,4 +32,3 @@ replace: ds-cfg-key-store-pin
 ds-cfg-key-store-pin: servercert
 -
 delete: ds-cfg-key-store-pin-file
-

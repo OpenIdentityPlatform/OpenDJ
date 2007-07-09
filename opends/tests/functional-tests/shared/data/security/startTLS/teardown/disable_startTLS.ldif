@@ -27,4 +27,8 @@ dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config
 changetype: modify
 replace: ds-cfg-allow-start-tls
 ds-cfg-allow-start-tls: false
+-
+delete: ds-cfg-trust-manager-provider-dn
+-
+delete: ds-cfg-key-manager-provider-dn
 
