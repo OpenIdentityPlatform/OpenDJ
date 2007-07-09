@@ -341,7 +341,8 @@
               'dsInstancePswd' : mypswd ,
               'dsScope'        : 'base' ,
               'dsBaseDN'       : 'cn=config' ,
-              'dsFilter'	   : 'objectclass=*'
+              'dsFilter'       : 'objectclass=*' ,
+              'expectedRC'     : 'noCheck'
             }
           </call>
 
