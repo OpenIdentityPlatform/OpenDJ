@@ -97,18 +97,69 @@
                'Security: PKCS12: Preamble Step 3. Configuring PKCS12 Keystore'
             </message>
 
-            <call function="'configureSSL'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+	  <!-- Configure SSL-->
+
+      <message>
+               '----  Configure SSL ----'
+      </message>	  
+
+     <!--- Enable Key Manager Provider -->
+      <message>
+       'Enabling Key Manager Provider'
+      </message>
+      <call function="'modifyEntry'">
+              {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'keystoreType'   : '%s' % 'pkcs12' }
-            </call>
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,		  
+                'entryToBeModified' : '%s/security/pkcs12/setup/enable_key_mgr_provider.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }
+      </call>
 
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
+		 
+     <!--- Enable Trust Manager Provider -->
+      <message>
+         'Enabling Trust Manager Provider'
+      </message>
+
+      <call function="'modifyEntry'">
+               {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
+                'entryToBeModified' : '%s/security/pkcs12/setup/enable_trust_mgr_provider.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }		  
+      </call>
+
+
+      <!--- Enable LDAPS Connection Handler -->
+      <message>
+       'Enabling LDAPS Connection Handler - Port number'
+      </message>
+
+      <call function="'modifyEntry'">
+             {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
+                'entryToBeModified' : '%s/security/ldaps_port.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }		  
+      </call>
+
+	  <!--  Enabling LDAPS Connection Handler - Keystore type -->
+      <message>
+       'Enabling LDAPS Connection Handler - Keystore type'
+      </message>
+
+      <call function="'modifyEntry'">
+             {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
+                'entryToBeModified' : '%s/security/pkcs12/setup/enable_ldaps_conn_handler.ldif' % (logsRemoteDataDir),
+                'expectedRC'           :  0 }		  
+      </call>
+	
 
             <!--- Initial Search With SSL -->
             <message>
