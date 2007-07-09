@@ -1667,8 +1667,6 @@ public class UtilityMessages
   public static final int MSGID_RENAMEFILE_CANNOT_DELETE_TARGET =
        CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 158;
 
-
-
   /**
    * The message ID for the message that will be used if a client certificate is
    * rejected because it is expired.  This takes two arguments, which are the
@@ -1723,6 +1721,28 @@ public class UtilityMessages
    */
   public static final int MSGID_LDIF_VALUE_VIOLATES_SYNTAX =
        CATEGORY_MASK_UTIL | SEVERITY_MASK_MILD_WARNING | 163;
+
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * write a skip file but the specified file already exists.  This takes a
+   * single argument, which is the name of the file.
+   */
+  public static final int MSGID_SKIP_FILE_EXISTS =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_SEVERE_ERROR | 164;
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * read an LDIF entry, but that entry does not match the criteria.
+   * This takes three arguments, which are the DN of the entry,
+   * the starting line number for the entry, and a message that explains why
+   * it does not match the criteria.
+   */
+  public static final int MSGID_LDIF_SKIP =
+       CATEGORY_MASK_UTIL | SEVERITY_MASK_MILD_ERROR | 165;
+
 
 
 
@@ -1812,6 +1832,10 @@ public class UtilityMessages
                     "Entry %s read from LDIF starting at line %d is not " +
                     "valid because it violates the server's schema " +
                     "configuration:  %s");
+    registerMessage(MSGID_LDIF_SKIP,
+                    "Skipping entry %s because the DN is not one that " +
+                    "should be included based on the include and " +
+                    "exclude branches");
     registerMessage(MSGID_LDIF_FILE_EXISTS,
                     "The specified LDIF file %s already exists and the " +
                     "export configuration indicates that no attempt should " +
@@ -1827,6 +1851,10 @@ public class UtilityMessages
                     "content:  %s");
     registerMessage(MSGID_REJECT_FILE_EXISTS,
                     "The specified reject file %s already exists and the " +
+                    "import configuration indicates that no attempt should " +
+                    "be made to append to or replace the file");
+    registerMessage(MSGID_SKIP_FILE_EXISTS,
+                    "The specified skip file %s already exists and the " +
                     "import configuration indicates that no attempt should " +
                     "be made to append to or replace the file");
     registerMessage(MSGID_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT,

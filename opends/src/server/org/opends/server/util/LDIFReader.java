@@ -224,6 +224,10 @@ public final class LDIFReader
                     entryDN);
         }
         entriesRead++;
+        int    msgID   = MSGID_LDIF_SKIP;
+        String message = getMessage(msgID, String.valueOf(entryDN),
+            lastEntryLineNumber);
+        logToSkipWriter(lines, message);
         entriesIgnored++;
         continue;
       }
@@ -269,6 +273,10 @@ public final class LDIFReader
                 "that should be included based on the include and exclude " +
                 "filters.", entryDN);
           }
+          int    msgID   = MSGID_LDIF_SKIP;
+          String message = getMessage(msgID, String.valueOf(entryDN),
+              lastEntryLineNumber);
+          logToSkipWriter(lines, message);
           entriesIgnored++;
           continue;
         }
@@ -294,6 +302,10 @@ public final class LDIFReader
              pluginConfigManager.invokeLDIFImportPlugins(importConfig, entry);
         if (! pluginResult.continueEntryProcessing())
         {
+          int    msgID   = MSGID_LDIF_SKIP;
+          String message = getMessage(msgID, String.valueOf(entryDN),
+              lastEntryLineNumber);
+          logToSkipWriter(lines, message);
           entriesIgnored++;
           continue;
         }
@@ -1738,8 +1750,6 @@ public final class LDIFReader
     return value;
   }
 
-
-
   /**
    * Log a message to the reject writer if one is configured.
    *
@@ -1754,18 +1764,56 @@ public final class LDIFReader
     BufferedWriter rejectWriter = importConfig.getRejectWriter();
     if (rejectWriter != null)
     {
+      logToWriter(rejectWriter, lines, message);
+    }
+  }
+
+  /**
+   * Log a message to the reject writer if one is configured.
+   *
+   * @param lines
+   *          The set of rejected lines.
+   * @param message
+   *          The associated error message.
+   */
+  private void logToSkipWriter(LinkedList<StringBuilder> lines,
+      String message) {
+
+    BufferedWriter skipWriter = importConfig.getSkipWriter();
+    if (skipWriter != null)
+    {
+      logToWriter(skipWriter, lines, message);
+    }
+  }
+
+  /**
+   * Log a message to the given writer.
+   *
+   * @param writer
+   *          The writer to write to.
+   * @param lines
+   *          The set of rejected lines.
+   * @param message
+   *          The associated error message.
+   */
+  private void logToWriter(BufferedWriter writer,
+      LinkedList<StringBuilder> lines,
+      String message)
+  {
+    if (writer != null)
+    {
       try
       {
-        rejectWriter.write("# ");
-        rejectWriter.write(message);
-        rejectWriter.newLine();
+        writer.write("# ");
+        writer.write(message);
+        writer.newLine();
         for (StringBuilder sb : lines)
         {
-          rejectWriter.write(sb.toString());
-          rejectWriter.newLine();
+          writer.write(sb.toString());
+          writer.newLine();
         }
 
-        rejectWriter.newLine();
+        writer.newLine();
       }
       catch (Exception e)
       {
@@ -1776,5 +1824,6 @@ public final class LDIFReader
       }
     }
   }
+
 }
 
