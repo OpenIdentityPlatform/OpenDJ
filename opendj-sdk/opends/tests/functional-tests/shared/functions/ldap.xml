@@ -1200,7 +1200,7 @@
       </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          Expected return code value. Default value is 0
+          Expected return code value. Default value is 0. Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>		  
         </function-arg-def>		
@@ -1269,12 +1269,13 @@
         STAXCode=RC
         STAXReason=STAXResult
       </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason ,
-          'expected'   : expectedRC }
-      </call>
-      
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checktestRC'">
+          { 'returncode' : STAXCode ,
+            'result'     : STAXReason ,
+            'expected'   : expectedRC }
+        </call>
+      </if>        
       <return>
         STAXReason
       </return>
