@@ -499,7 +499,13 @@ public final class JmxConnectionHandler extends
    * {@inheritDoc}
    */
   public void run() {
-    rmiConnector.initialize();
+    try
+    {
+      rmiConnector.initialize();
+    }
+    catch (RuntimeException e)
+    {
+    }
   }
 
 
