@@ -28,8 +28,6 @@ package org.opends.server.backends.jeb;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.LDIFImportConfig;
 
 import com.sleepycat.je.*;
@@ -49,7 +47,6 @@ import java.util.WeakHashMap;
 
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.JebMessages.*;
@@ -193,17 +190,21 @@ public class IndexMergeThread extends DirectoryThread
 
     if (files == null || files.length == 0)
     {
-      int msgID = MSGID_JEB_INDEX_MERGE_NO_DATA;
-      String message = getMessage(msgID, index.getName());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
+      if (debugEnabled())
+      {
+        int msgID = MSGID_JEB_INDEX_MERGE_NO_DATA;
+        String message = getMessage(msgID, index.getName());
+        TRACER.debugInfo(message);
+      }
       return;
     }
 
-    int msgID = MSGID_JEB_INDEX_MERGE_START;
-    String message = getMessage(msgID, files.length, index.getName());
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-             message, msgID);
+    if (debugEnabled())
+    {
+      int msgID = MSGID_JEB_INDEX_MERGE_START;
+      String message = getMessage(msgID, files.length, index.getName());
+      TRACER.debugInfo(message);
+    }
 
     MergeReader[] readers = new MergeReader[files.length];
 
@@ -343,10 +344,12 @@ public class IndexMergeThread extends DirectoryThread
       }
     }
 
-    msgID = MSGID_JEB_INDEX_MERGE_COMPLETE;
-    message = getMessage(msgID, index.getName());
-    logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-             message, msgID);
+    if (debugEnabled())
+    {
+      int msgID = MSGID_JEB_INDEX_MERGE_COMPLETE;
+      String message = getMessage(msgID, index.getName());
+      TRACER.debugInfo(message);
+    }
   }
 
   /**

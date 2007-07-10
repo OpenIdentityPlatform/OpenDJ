@@ -1426,7 +1426,7 @@ public class JebMessages
                     "Exported %d records and skipped %d " +
                     "(recent rate %.1f/sec)");
     registerMessage(MSGID_JEB_IMPORT_THREAD_COUNT,
-                    "Import thread count = %d");
+                    "Starting LDIF import (using %d threads)");
     registerMessage(MSGID_JEB_IMPORT_BUFFER_SIZE,
                     "Buffer size per thread = %,d");
     registerMessage(MSGID_JEB_IMPORT_LDIF_PROCESSING_TIME,

@@ -1162,10 +1162,12 @@ public class BackendImpl
         rootContainer = null;
 
         // Sync the environment to disk.
-        int msgID = MSGID_JEB_IMPORT_CLOSING_DATABASE;
-        String message = getMessage(msgID);
-        logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-                 message, msgID);
+        if (debugEnabled())
+        {
+          int msgID = MSGID_JEB_IMPORT_CLOSING_DATABASE;
+          String message = getMessage(msgID);
+          TRACER.debugInfo(message);
+        }
       }
       catch (DatabaseException de)
       {

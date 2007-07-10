@@ -173,19 +173,17 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
                message, msgID);
 
-      msgID = MSGID_JEB_IMPORT_BUFFER_SIZE;
-      message = getMessage(msgID, bufferSize);
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
+      if (debugEnabled())
+      {
+        msgID = MSGID_JEB_IMPORT_BUFFER_SIZE;
+        message = getMessage(msgID, bufferSize);
+        TRACER.debugInfo(message);
 
-      msgID = MSGID_JEB_IMPORT_ENVIRONMENT_CONFIG;
-      message = getMessage(msgID,
-                           rootContainer.getEnvironmentConfig().toString());
-      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.NOTICE,
-               message, msgID);
-
-      TRACER.debugInfo(
-          rootContainer.getEnvironmentConfig().toString());
+        msgID = MSGID_JEB_IMPORT_ENVIRONMENT_CONFIG;
+        message = getMessage(msgID,
+                             rootContainer.getEnvironmentConfig().toString());
+        TRACER.debugInfo(message);
+      }
 
       // Create the import contexts for each base DN.
       DN baseDN;
@@ -324,7 +322,6 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     // Create merge threads for each base DN.
     for (ImportContext importContext : importMap.values())
     {
-      String containerName = importContext.getContainerName();
       EntryContainer entryContainer = importContext.getEntryContainer();
 
       // For each configured attribute index.
