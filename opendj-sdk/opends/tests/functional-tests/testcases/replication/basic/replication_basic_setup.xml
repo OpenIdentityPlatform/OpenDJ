@@ -39,8 +39,10 @@
       </message>	  			
 	
       <script>
+        server1Path = '%s/%s' % (server1.getDir(),OPENDSNAME)
         synchroSuffix = server1.getSynchronizedSuffixList()[0].getSuffixDn()
         entryDn = 'uid=scarter,%s' % synchroSuffix
+        grandchildEntryDn = 'uid=scarter,ou=People,o=replication tests,%s' % synchroSuffix
         mod_type = 'replace'
         attr_type = 'roomnumber'
         attr_value = '1111'			  
@@ -109,7 +111,8 @@
           'destfile'   : '%s/%s' % (clientDataDir,filename),
           'remotehost' : client.getHostname() }
       </call>					
-      			
+	        
+              			
       <call function="'checkRC'">
         { 'returncode' : RC ,
           'result'     : STAXResult }

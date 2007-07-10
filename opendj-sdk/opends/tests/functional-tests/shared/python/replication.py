@@ -365,7 +365,35 @@ def write_replication_mod_ldif_file(path, dn, mod_type, attr_type, attr_value):
   ldifLines.append('dn: %s' % dn)
   ldifLines.append('changetype: modify')
   ldifLines.append('%s: %s' % (mod_type,attr_type))
-  ldifLines.append('%s: %s' % (attr_type,attr_value))
+  if attr_value != None :  
+    ldifLines.append('%s: %s' % (attr_type,attr_value))
+  
+  
+  # write out the ldif file
+  outfile = open(path,"w")
+          
+  for line in ldifLines:
+    outfile.write("%s\n" % line)
+          
+  outfile.close()  
+  
+
+
+# Define the function that writes a ldif file with the modify to operate
+# on an entry in a given suffix.
+def write_replication_mod_binary_ldif_file(path, dn, mod_type, attr_type, binary_value_path):
+  
+  # open file and read the binary value (which is encoded in base64)
+  binaryValueFile = open(binary_value_path, "r")
+  binaryValue = binaryValueFile.read()
+  binaryValueFile.close()
+
+  ldifLines = []
+
+  ldifLines.append('dn: %s' % dn)
+  ldifLines.append('changetype: modify')
+  ldifLines.append('%s: %s' % (mod_type,attr_type))
+  ldifLines.append('%s:: %s' % (attr_type,binaryValue))
   
   
   # write out the ldif file
@@ -377,3 +405,28 @@ def write_replication_mod_ldif_file(path, dn, mod_type, attr_type, attr_value):
   outfile.close()  
   
   
+
+
+# Define the function that writes a ldif file with the modDN to operate
+# on an entry in a given suffix.
+def write_replication_moddn_ldif_file(path, dn, newrdn, newsuperior, deleteoldrdn):
+  
+  ldifLines = []
+
+  ldifLines.append('dn: %s' % dn)
+  ldifLines.append('changetype: moddn')
+  ldifLines.append('newRDN: %s' % newrdn)
+  ldifLines.append('deleteOldRDN: %s' % deleteoldrdn)  
+  if newsuperior != None:
+    ldifLines.append('newSuperior: %s' % newsuperior)  
+
+  
+  
+  # write out the ldif file
+  outfile = open(path,"w")
+          
+  for line in ldifLines:
+    outfile.write("%s\n" % line)
+          
+  outfile.close()  
+

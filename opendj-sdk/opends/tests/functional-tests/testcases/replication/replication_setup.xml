@@ -30,23 +30,27 @@
   <defaultcall function="replication_setup"/>
 
   <function name="replication_setup">
-
+    <function-map-args>
+      <function-arg-def name="topologyFile" type="optional" default="'%s/config/replication/basic_topology.txt' % TESTS_DIR">
+        <function-arg-description>
+          Pathname to file describing the topology.
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    </function-map-args>		
+	  
     <sequence>
 
       <block name="'replication-setup'">
 
         <sequence>
-      			
-		  <script>
-			basicTopologyFile = '%s/config/replication/basic_topology.txt' % TESTS_DIR
-		  </script>
 			
           <message>
-             'Create DS topology as described in %s' % basicTopologyFile
+             'Create DS topology as described in %s' % topologyFile
           </message>
 			  
 		  <call function="'createTopology'">
-		    { 'topologyDescFile' : basicTopologyFile,
+		    { 'topologyDescFile' : topologyFile,
               'sharedDataFolder' : 'replication' }
 		  </call>  
 			

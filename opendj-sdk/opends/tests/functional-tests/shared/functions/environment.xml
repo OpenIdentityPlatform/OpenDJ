@@ -62,6 +62,8 @@
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/signals.xml' % (TESTS_FUNCTIONS_DIR)" />
 
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/tools.xml' % (TESTS_FUNCTIONS_DIR)" />
 				
 	</sequence>  
 	    
