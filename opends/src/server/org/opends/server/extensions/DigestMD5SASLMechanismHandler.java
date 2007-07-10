@@ -42,6 +42,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.DigestMD5SASLMechanismHandlerCfg;
+import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.IdentityMapper;
@@ -1593,11 +1594,27 @@ public class DigestMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(
+                      SASLMechanismHandlerCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    DigestMD5SASLMechanismHandlerCfg config =
+         (DigestMD5SASLMechanismHandlerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
                       DigestMD5SASLMechanismHandlerCfg configuration,
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
+    DN configEntryDN = configuration.dn();
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();

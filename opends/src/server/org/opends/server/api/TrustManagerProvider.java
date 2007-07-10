@@ -28,6 +28,7 @@ package org.opends.server.api;
 
 
 
+import java.util.List;
 import javax.net.ssl.TrustManager;
 
 import org.opends.server.admin.std.server.TrustManagerCfg;
@@ -67,6 +68,40 @@ public abstract class TrustManagerProvider<T extends TrustManagerCfg>
   public abstract void initializeTrustManagerProvider(
                             T configuration)
          throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Indicates whether the provided configuration is acceptable for
+   * this trust manager provider.  It should be possible to call this
+   * method on an uninitialized trust manager provider instance in
+   * order to determine whether the trust manager provider would be
+   * able to use the provided configuration.
+   * <BR><BR>
+   * Note that implementations which use a subclass of the provided
+   * configuration class will likely need to cast the configuration
+   * to the appropriate subclass type.
+   *
+   * @param  configuration        The trust manager provider
+   *                              configuration for which to make the
+   *                              determination.
+   * @param  unacceptableReasons  A list that may be used to hold the
+   *                              reasons that the provided
+   *                              configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is acceptable
+   *          for this trust manager provider, or {@code false} if
+   *          not.
+   */
+  public boolean isConfigurationAcceptable(
+                      TrustManagerCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // This default implementation does not perform any special
+    // validation.  It should be overridden by trust manager provider
+    // implementations that wish to perform more detailed validation.
+    return true;
+  }
 
 
 

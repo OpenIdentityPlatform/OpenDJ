@@ -39,6 +39,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.KeyManagerCfg;
 import org.opends.server.admin.std.server.PKCS11KeyManagerCfg;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.ConfigException;
@@ -275,11 +276,25 @@ public class PKCS11KeyManagerProvider
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(KeyManagerCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    PKCS11KeyManagerCfg config = (PKCS11KeyManagerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
                       PKCS11KeyManagerCfg configuration,
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
+    DN configEntryDN = configuration.dn();
 
 
     // Get the PIN needed to access the contents of the keystore file.

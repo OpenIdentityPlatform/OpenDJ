@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -126,7 +127,7 @@ public class KeyManagerProviderConfigManager
         try
         {
           KeyManagerProvider provider =
-               loadProvider(className, providerConfig);
+               loadProvider(className, providerConfig, true);
           providers.put(providerConfig.dn(), provider);
           DirectoryServer.registerKeyManagerProvider(providerConfig.dn(),
                                                      provider);
@@ -157,7 +158,7 @@ public class KeyManagerProviderConfigManager
       String className = configuration.getJavaImplementationClass();
       try
       {
-        loadProvider(className, null);
+        loadProvider(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -195,7 +196,7 @@ public class KeyManagerProviderConfigManager
     String className = configuration.getJavaImplementationClass();
     try
     {
-      provider = loadProvider(className, configuration);
+      provider = loadProvider(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -267,7 +268,7 @@ public class KeyManagerProviderConfigManager
       String className = configuration.getJavaImplementationClass();
       try
       {
-        loadProvider(className, null);
+        loadProvider(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -335,7 +336,7 @@ public class KeyManagerProviderConfigManager
     KeyManagerProvider provider = null;
     try
     {
-      provider = loadProvider(className, configuration);
+      provider = loadProvider(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -365,16 +366,20 @@ public class KeyManagerProviderConfigManager
    * @param  className      The fully-qualified name of the key manager
    *                        provider class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the key
-   *                        manager provider, or {@code null} if the provider
-   *                        should not be initialized.
+   *                        manager provider.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the key manager provider instance
+   *                        should be initialized.
    *
    * @return  The possibly initialized key manager provider.
    *
-   * @throws  InitializationException  If a problem occurred while attempting to
-   *                                   initialize the key manager provider.
+   * @throws  InitializationException  If the provided configuration is not
+   *                                   acceptable, or if a problem occured while
+   *                                   attempting to initialize the key manager
+   *                                   provider using that configuration.
    */
   private KeyManagerProvider loadProvider(String className,
-                                          KeyManagerCfg configuration)
+                                          KeyManagerCfg configuration,
+                                          boolean initialize)
           throws InitializationException
   {
     try
@@ -386,15 +391,49 @@ public class KeyManagerProviderConfigManager
            propertyDefinition.loadClass(className, KeyManagerProvider.class);
       KeyManagerProvider provider = providerClass.newInstance();
 
-      if (configuration != null)
+
+      if (initialize)
       {
         Method method =
              provider.getClass().getMethod("initializeKeyManagerProvider",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(provider, configuration);
       }
+      else
+      {
+        Method method =
+             provider.getClass().getMethod("isConfigurationAcceptable",
+                                           KeyManagerCfg.class, List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(provider, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_KEYMANAGER_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
+      }
 
       return provider;
+    }
+    catch (InitializationException ie)
+    {
+      throw ie;
     }
     catch (Exception e)
     {

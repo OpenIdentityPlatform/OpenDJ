@@ -63,8 +63,7 @@ import org.opends.server.types.SearchScope;
  * @param  <T>  The type of configuration handled by this group
  *              implementation.
  */
-public abstract class Group<T
-       extends GroupImplementationCfg>
+public abstract class Group<T extends GroupImplementationCfg>
 {
   /**
    * Initializes a "shell" instance of this group implementation that
@@ -85,6 +84,39 @@ public abstract class Group<T
    */
   public abstract void initializeGroupImplementation(T configuration)
          throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Indicates whether the provided configuration is acceptable for
+   * this group implementation.  It should be possible to call this
+   * method on an uninitialized group implementation instance in order
+   * to determine whether the group implementation would be able to
+   * use the provided configuration.
+   * <BR><BR>
+   * Note that implementations which use a subclass of the provided
+   * configuration class will likely need to cast the configuration
+   * to the appropriate subclass type.
+   *
+   * @param  configuration        The group implementation
+   *                              configuration for which to make the
+   *                              determination.
+   * @param  unacceptableReasons  A list that may be used to hold the
+   *                              reasons that the provided
+   *                              configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is acceptable
+   *          for this group implementation, or {@code false} if not.
+   */
+  public boolean isConfigurationAcceptable(
+                      GroupImplementationCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // This default implementation does not perform any special
+    // validation.  It should be overridden by group implementations
+    // that wish to perform more detailed validation.
+    return true;
+  }
 
 
 

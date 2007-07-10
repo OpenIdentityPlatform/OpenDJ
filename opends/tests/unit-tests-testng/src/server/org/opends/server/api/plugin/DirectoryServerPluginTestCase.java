@@ -555,6 +555,13 @@ public class DirectoryServerPluginTestCase
     sigList.add("void");
     expectedPublicMethods.add(sigList);
 
+    sigList = new LinkedList<String>();
+    sigList.add("isConfigurationAcceptable");
+    sigList.add("boolean");
+    sigList.add("org.opends.server.admin.std.server.PluginCfg");
+    sigList.add("java.util.List");
+    expectedPublicMethods.add(sigList);
+
 
     LinkedList<LinkedList<String>> newPublicMethods =
          new LinkedList<LinkedList<String>>();

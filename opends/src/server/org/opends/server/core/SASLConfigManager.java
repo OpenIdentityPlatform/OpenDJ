@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -129,7 +130,8 @@ public class SASLConfigManager implements
         try
         {
           SASLMechanismHandler handler = loadHandler(className,
-                                                     handlerConfiguration);
+                                                     handlerConfiguration,
+                                                     true);
           handlers.put(handlerConfiguration.dn(), handler);
         }
         catch (InitializationException ie)
@@ -159,7 +161,7 @@ public class SASLConfigManager implements
       String className = configuration.getHandlerClass();
       try
       {
-        loadHandler(className, null);
+        loadHandler(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -198,7 +200,7 @@ public class SASLConfigManager implements
     String className = configuration.getHandlerClass();
     try
     {
-      handler = loadHandler(className, configuration);
+      handler = loadHandler(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -269,7 +271,7 @@ public class SASLConfigManager implements
       String className = configuration.getHandlerClass();
       try
       {
-        loadHandler(className, null);
+        loadHandler(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -335,7 +337,7 @@ public class SASLConfigManager implements
     SASLMechanismHandler handler = null;
     try
     {
-      handler = loadHandler(className, configuration);
+      handler = loadHandler(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -363,9 +365,10 @@ public class SASLConfigManager implements
    *
    * @param  className      The fully-qualified name of the SASL mechanism
    *                        handler class to load, instantiate, and initialize.
-   * @param  configuration  The configuration to use to initialize the handler,
-   *                        or {@code null} if the SASL mechanism handler should
-   *                        not be initialized.
+   * @param  configuration  The configuration to use to initialize the handler.
+   *                        It must not be {@code null}.
+   * @param  initialize     Indicates whether the SASL mechanism handler
+   *                        instance should be initialized.
    *
    * @return  The possibly initialized SASL mechanism handler.
    *
@@ -374,7 +377,8 @@ public class SASLConfigManager implements
    */
   private SASLMechanismHandler loadHandler(String className,
                                            SASLMechanismHandlerCfg
-                                                configuration)
+                                                configuration,
+                                           boolean initialize)
           throws InitializationException
   {
     try
@@ -387,12 +391,42 @@ public class SASLConfigManager implements
            propertyDefinition.loadClass(className, SASLMechanismHandler.class);
       SASLMechanismHandler handler = handlerClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method =
              handler.getClass().getMethod("initializeSASLMechanismHandler",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(handler, configuration);
+      }
+      else
+      {
+        Method method =
+             handler.getClass().getMethod("isConfigurationAcceptable",
+                                          SASLMechanismHandlerCfg.class,
+                                          List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(handler, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_SASL_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return handler;

@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -127,7 +128,8 @@ public class PasswordValidatorConfigManager
         try
         {
           PasswordValidator<? extends PasswordValidatorCfg>
-               validator = loadValidator(className, validatorConfiguration);
+               validator = loadValidator(className, validatorConfiguration,
+                                         true);
           passwordValidators.put(validatorConfiguration.dn(), validator);
           DirectoryServer.registerPasswordValidator(validatorConfiguration.dn(),
                                                     validator);
@@ -159,7 +161,7 @@ public class PasswordValidatorConfigManager
       String className = configuration.getValidatorClass();
       try
       {
-        loadValidator(className, null);
+        loadValidator(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -199,7 +201,7 @@ public class PasswordValidatorConfigManager
     String className = configuration.getValidatorClass();
     try
     {
-      passwordValidator = loadValidator(className, configuration);
+      passwordValidator = loadValidator(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -275,7 +277,7 @@ public class PasswordValidatorConfigManager
       String className = configuration.getValidatorClass();
       try
       {
-        loadValidator(className, null);
+        loadValidator(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -346,7 +348,7 @@ public class PasswordValidatorConfigManager
          passwordValidator = null;
     try
     {
-      passwordValidator = loadValidator(className, configuration);
+      passwordValidator = loadValidator(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -377,8 +379,9 @@ public class PasswordValidatorConfigManager
    * @param  className      The fully-qualified name of the password validator
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the
-   *                        password validator, or {@code null} if the
-   *                        password validator should not be initialized.
+   *                        password validator.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the password validator instance
+   *                        should be initialized.
    *
    * @return  The possibly initialized password validator.
    *
@@ -387,7 +390,8 @@ public class PasswordValidatorConfigManager
    */
   private PasswordValidator<? extends PasswordValidatorCfg>
                loadValidator(String className,
-                             PasswordValidatorCfg configuration)
+                             PasswordValidatorCfg configuration,
+                             boolean initialize)
           throws InitializationException
   {
     try
@@ -402,12 +406,42 @@ public class PasswordValidatorConfigManager
            (PasswordValidator<? extends PasswordValidatorCfg>)
            validatorClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method =
              validator.getClass().getMethod("initializePasswordValidator",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(validator, configuration);
+      }
+      else
+      {
+        Method method =
+             validator.getClass().getMethod("isConfigurationAcceptable",
+                                            PasswordValidatorCfg.class,
+                                            List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(validator, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_PWVALIDATOR_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return validator;

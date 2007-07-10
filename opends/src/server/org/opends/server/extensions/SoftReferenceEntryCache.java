@@ -38,17 +38,20 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.EntryCacheCfg;
+import org.opends.server.admin.std.server.SoftReferenceEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.SoftReferenceEntryCacheCfg;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.CacheEntry;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -59,8 +62,6 @@ import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -857,6 +858,20 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    SoftReferenceEntryCacheCfg config =
+         (SoftReferenceEntryCacheCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
       SoftReferenceEntryCacheCfg configuration,
       List<String>               unacceptableReasons)
@@ -926,6 +941,8 @@ public class SoftReferenceEntryCache
     long                  newLockTimeout;
     HashSet<SearchFilter> newIncludeFilters = null;
     HashSet<SearchFilter> newExcludeFilters = null;
+
+    DN configEntryDN = configuration.dn();
 
     // Read configuration.
     newConfigEntryDN = configuration.dn();

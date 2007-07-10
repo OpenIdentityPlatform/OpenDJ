@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.LengthBasedPasswordValidatorCfg;
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
@@ -140,6 +141,20 @@ public class LengthBasedPasswordValidator extends
     }
 
     return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    LengthBasedPasswordValidatorCfg config =
+         (LengthBasedPasswordValidatorCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
 

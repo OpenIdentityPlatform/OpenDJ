@@ -324,7 +324,7 @@ public class PluginConfigManager
       {
         DirectoryServerPlugin<? extends PluginCfg> plugin =
              loadPlugin(pluginConfiguration.getPluginClass(), initTypes,
-                        pluginConfiguration);
+                        pluginConfiguration, true);
         registerPlugin(plugin, pluginConfiguration.dn(), initTypes);
       }
       catch (InitializationException ie)
@@ -351,8 +351,9 @@ public class PluginConfigManager
    *                        which the server is running in a special mode that
    *                        only uses a minimal set of plugins (e.g., LDIF
    *                        import or export).
-   * @param  configuration  The configuration to use to initialize the plugin,
-   *                        or {@code null} if the plugin should not be
+   * @param  configuration  The configuration to use to initialize the plugin.
+   *                        It must not be {@code null}.
+   * @param  initialize     Indicates whether the plugin instance should be
    *                        initialized.
    *
    * @return  The possibly initialized plugin.
@@ -362,7 +363,7 @@ public class PluginConfigManager
    */
   private DirectoryServerPlugin<? extends PluginCfg>
                loadPlugin(String className, Set<PluginType> pluginTypes,
-                          PluginCfg configuration)
+                          PluginCfg configuration, boolean initialize)
           throws InitializationException
   {
     try
@@ -377,7 +378,7 @@ public class PluginConfigManager
            (DirectoryServerPlugin<? extends PluginCfg>)
            pluginClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method = plugin.getClass().getMethod("initializeInternal",
                                                     DN.class, Set.class);
@@ -386,6 +387,35 @@ public class PluginConfigManager
         method = plugin.getClass().getMethod("initializePlugin", Set.class,
                       configuration.definition().getServerConfigurationClass());
         method.invoke(plugin, pluginTypes, configuration);
+      }
+      else
+      {
+        Method method = plugin.getClass().getMethod("isConfigurationAcceptable",
+                                                    PluginCfg.class,
+                                                    List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(plugin, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_PLUGIN_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return plugin;
@@ -4936,7 +4966,7 @@ public class PluginConfigManager
       String className = configuration.getPluginClass();
       try
       {
-        loadPlugin(className, pluginTypes, null);
+        loadPlugin(className, pluginTypes, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -4982,7 +5012,7 @@ public class PluginConfigManager
     String className = configuration.getPluginClass();
     try
     {
-      plugin = loadPlugin(className, pluginTypes, configuration);
+      plugin = loadPlugin(className, pluginTypes, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -5056,7 +5086,7 @@ public class PluginConfigManager
       String className = configuration.getPluginClass();
       try
       {
-        loadPlugin(className, pluginTypes, null);
+        loadPlugin(className, pluginTypes, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -5127,7 +5157,7 @@ public class PluginConfigManager
     DirectoryServerPlugin<? extends PluginCfg> plugin = null;
     try
     {
-      plugin = loadPlugin(className, pluginTypes, configuration);
+      plugin = loadPlugin(className, pluginTypes, configuration, true);
     }
     catch (InitializationException ie)
     {

@@ -327,6 +327,18 @@ public final class LastModPlugin
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(PluginCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
                       List<String> unacceptableReasons)
   {

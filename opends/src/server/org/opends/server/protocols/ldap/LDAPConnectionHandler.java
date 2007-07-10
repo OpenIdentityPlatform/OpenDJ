@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
@@ -782,6 +783,19 @@ public final class LDAPConnectionHandler extends
 
     // Register this as a change listener.
     config.addLDAPChangeListener(this);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    LDAPConnectionHandlerCfg config = (LDAPConnectionHandlerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
 

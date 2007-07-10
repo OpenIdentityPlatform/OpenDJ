@@ -37,6 +37,7 @@ import java.util.List;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.GSSAPISASLMechanismHandlerCfg;
+import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.SASLMechanismHandler;
@@ -376,11 +377,27 @@ public class GSSAPISASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(
+                      SASLMechanismHandlerCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    GSSAPISASLMechanismHandlerCfg config =
+         (GSSAPISASLMechanismHandlerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
                       GSSAPISASLMechanismHandlerCfg configuration,
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
+    DN configEntryDN = configuration.dn();
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();

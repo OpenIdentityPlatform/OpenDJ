@@ -34,6 +34,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.TaskBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigEntry;
@@ -43,12 +46,14 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CancelledOperationException;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
@@ -58,18 +63,13 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
+import org.opends.server.util.Validator;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.util.Validator;
-import org.opends.server.admin.std.server.TaskBackendCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.Configuration;
 
 
 /**
@@ -141,7 +141,8 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
-  public void configureBackend(Configuration config) throws ConfigException
+  public void configureBackend(Configuration config)
+         throws ConfigException
   {
     Validator.ensureNotNull(config);
     Validator.ensureTrue(config instanceof TaskBackendCfg);
@@ -1088,23 +1089,66 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(Configuration configuration,
+                                           List<String> unacceptableReasons)
+  {
+    TaskBackendCfg config = (TaskBackendCfg) configuration;
+    return isConfigAcceptable(config, unacceptableReasons, null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(TaskBackendCfg configEntry,
                                             List<String> unacceptableReasons)
+  {
+    return isConfigAcceptable(configEntry, unacceptableReasons,
+                              taskBackingFile);
+  }
+
+
+
+  /**
+   * Indicates whether the provided configuration is acceptable for this task
+   * backend.
+   *
+   * @param  config               The configuration for which to make the
+   *                              determination.
+   * @param  unacceptableReasons  A list into which the unacceptable reasons
+   *                              should be placed.
+   * @param  taskBackingFile      The currently-configured task backing file, or
+   *                              {@code null} if it should not be taken into
+   *                              account.
+   *
+   * @return  {@code true} if the configuration is acceptable, or {@code false}
+   *          if not.
+   */
+  private static boolean isConfigAcceptable(TaskBackendCfg config,
+                                            List<String> unacceptableReasons,
+                                            String taskBackingFile)
   {
     boolean configIsAcceptable = true;
 
 
     try
     {
-      String tmpBackingFile = configEntry.getTaskBackingFile();
-      if (! taskBackingFile.equals(tmpBackingFile))
+      String tmpBackingFile = config.getTaskBackingFile();
+      if ((taskBackingFile == null) ||
+          (! taskBackingFile.equals(tmpBackingFile)))
       {
         File f = getFileForPath(tmpBackingFile);
         if (f.exists())
         {
-          int msgID = MSGID_TASKBE_BACKING_FILE_EXISTS;
-          unacceptableReasons.add(getMessage(msgID, tmpBackingFile));
-          configIsAcceptable = false;
+          // This is only a problem if it's different from the active one.
+          if (taskBackingFile != null)
+          {
+            int msgID = MSGID_TASKBE_BACKING_FILE_EXISTS;
+            unacceptableReasons.add(getMessage(msgID, tmpBackingFile));
+            configIsAcceptable = false;
+          }
         }
         else
         {
@@ -1145,9 +1189,6 @@ public class TaskBackend
 
       configIsAcceptable = false;
     }
-
-
-
 
     return configIsAcceptable;
   }
@@ -1361,8 +1402,5 @@ public class TaskBackend
   {
     return taskScheduler.getRecurringTask(taskEntryDN);
   }
-
-
-
 }
 

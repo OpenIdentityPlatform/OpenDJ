@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedHashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -140,7 +141,7 @@ public class VirtualAttributeConfigManager
         try
         {
           VirtualAttributeProvider<? extends VirtualAttributeCfg> provider =
-               loadProvider(className, cfg);
+               loadProvider(className, cfg, true);
 
           LinkedHashSet<SearchFilter> filters =
                new LinkedHashSet<SearchFilter>();
@@ -220,7 +221,7 @@ public class VirtualAttributeConfigManager
       String className = configuration.getProviderClass();
       try
       {
-        loadProvider(className, null);
+        loadProvider(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -313,7 +314,7 @@ public class VirtualAttributeConfigManager
       String className = configuration.getProviderClass();
       try
       {
-        provider = loadProvider(className, configuration);
+        provider = loadProvider(className, configuration, true);
       }
       catch (InitializationException ie)
       {
@@ -389,7 +390,7 @@ public class VirtualAttributeConfigManager
       String className = configuration.getProviderClass();
       try
       {
-        loadProvider(className, null);
+        loadProvider(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -494,7 +495,7 @@ public class VirtualAttributeConfigManager
       String className = configuration.getProviderClass();
       try
       {
-        provider = loadProvider(className, configuration);
+        provider = loadProvider(className, configuration, true);
       }
       catch (InitializationException ie)
       {
@@ -536,8 +537,10 @@ public class VirtualAttributeConfigManager
    * @param  className      The fully-qualified name of the certificate mapper
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the
-   *                        certificate mapper, or {@code null} if the
-   *                        certificate mapper should not be initialized.
+   *                        virtual attribute provider.  It must not be
+   *                        {@code null}.
+   * @param  initialize     Indicates whether the virtual attribute provider
+   *                        instance should be initialized.
    *
    * @return  The possibly initialized certificate mapper.
    *
@@ -545,7 +548,8 @@ public class VirtualAttributeConfigManager
    *                                   initialize the certificate mapper.
    */
   private VirtualAttributeProvider<? extends VirtualAttributeCfg>
-               loadProvider(String className, VirtualAttributeCfg configuration)
+               loadProvider(String className, VirtualAttributeCfg configuration,
+                            boolean initialize)
           throws InitializationException
   {
     try
@@ -561,12 +565,42 @@ public class VirtualAttributeConfigManager
            (VirtualAttributeProvider<? extends VirtualAttributeCfg>)
            providerClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method =
              provider.getClass().getMethod("initializeVirtualAttributeProvider",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(provider, configuration);
+      }
+      else
+      {
+        Method method =
+             provider.getClass().getMethod("isConfigurationAcceptable",
+                                           VirtualAttributeCfg.class,
+                                           List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(provider, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return provider;

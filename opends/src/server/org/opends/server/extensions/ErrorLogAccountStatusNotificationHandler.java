@@ -31,22 +31,19 @@ package org.opends.server.extensions;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.messages.ExtensionsMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.
        ErrorLogAccountStatusNotificationHandlerCfgDefn;
+import org.opends.server.admin.std.server.AccountStatusNotificationHandlerCfg;
 import org.opends.server.admin.std.server.
        ErrorLogAccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
-import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.MultiChoiceConfigAttribute;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -132,43 +129,16 @@ public class ErrorLogAccountStatusNotificationHandler
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
+   * {@inheritDoc}
    */
-  public DN getConfigurableComponentEntryDN()
+  @Override()
+  public boolean isConfigurationAcceptable(
+                      AccountStatusNotificationHandlerCfg configuration,
+                      List<String> unacceptableReasons)
   {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-    LinkedList<String> typeNames = new LinkedList<String>();
-    for (AccountStatusNotificationType t : notificationTypes)
-    {
-      typeNames.add(t.getNotificationTypeName());
-    }
-
-    int msgID = MSGID_ERRORLOG_ACCTNOTHANDLER_DESCRIPTION_NOTIFICATION_TYPES;
-    attrList.add(new MultiChoiceConfigAttribute(ATTR_ACCT_NOTIFICATION_TYPE,
-                                                getMessage(msgID), true, true,
-                                                false, NOTIFICATION_TYPE_NAMES,
-                                                typeNames));
-
-    return attrList;
+    ErrorLogAccountStatusNotificationHandlerCfg config =
+         (ErrorLogAccountStatusNotificationHandlerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
 

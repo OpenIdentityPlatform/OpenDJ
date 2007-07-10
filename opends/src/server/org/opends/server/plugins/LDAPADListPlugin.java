@@ -196,6 +196,18 @@ public final class LDAPADListPlugin
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(PluginCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(PluginCfg configuration,
                       List<String> unacceptableReasons)
   {

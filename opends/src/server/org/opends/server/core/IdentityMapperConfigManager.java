@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -124,7 +125,8 @@ public class IdentityMapperConfigManager
         String className = mapperConfiguration.getMapperClass();
         try
         {
-          IdentityMapper mapper = loadMapper(className, mapperConfiguration);
+          IdentityMapper mapper = loadMapper(className, mapperConfiguration,
+                                             true);
           identityMappers.put(mapperConfiguration.dn(), mapper);
           DirectoryServer.registerIdentityMapper(mapperConfiguration.dn(),
                                                  mapper);
@@ -173,7 +175,7 @@ public class IdentityMapperConfigManager
       String className = configuration.getMapperClass();
       try
       {
-        loadMapper(className, null);
+        loadMapper(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -212,7 +214,7 @@ public class IdentityMapperConfigManager
     String className = configuration.getMapperClass();
     try
     {
-      identityMapper = loadMapper(className, configuration);
+      identityMapper = loadMapper(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -287,7 +289,7 @@ public class IdentityMapperConfigManager
       String className = configuration.getMapperClass();
       try
       {
-        loadMapper(className, null);
+        loadMapper(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -356,7 +358,7 @@ public class IdentityMapperConfigManager
     IdentityMapper identityMapper = null;
     try
     {
-      identityMapper = loadMapper(className, configuration);
+      identityMapper = loadMapper(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -387,8 +389,9 @@ public class IdentityMapperConfigManager
    * @param  className      The fully-qualified name of the identity mapper
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the identity
-   *                        mapper, or {@code null} if the identity mapper
-   *                        should not be initialized.
+   *                        mapper.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the identity mapper instance
+   *                        should be initialized.
    *
    * @return  The possibly initialized identity mapper.
    *
@@ -396,7 +399,8 @@ public class IdentityMapperConfigManager
    *                                   initialize the identity mapper.
    */
   private IdentityMapper loadMapper(String className,
-                                    IdentityMapperCfg configuration)
+                                    IdentityMapperCfg configuration,
+                                    boolean initialize)
           throws InitializationException
   {
     try
@@ -409,12 +413,41 @@ public class IdentityMapperConfigManager
            propertyDefinition.loadClass(className, IdentityMapper.class);
       IdentityMapper mapper = mapperClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method =
              mapper.getClass().getMethod("initializeIdentityMapper",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(mapper, configuration);
+      }
+      else
+      {
+        Method method = mapper.getClass().getMethod("isConfigurationAcceptable",
+                                                    IdentityMapperCfg.class,
+                                                    List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(mapper, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_IDMAPPER_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return mapper;

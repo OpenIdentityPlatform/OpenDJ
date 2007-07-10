@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.admin.Configuration;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -58,7 +59,6 @@ import org.opends.server.types.WritabilityMode;
 
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-import org.opends.server.admin.Configuration;
 
 
 /**
@@ -67,9 +67,6 @@ import org.opends.server.admin.Configuration;
  */
 public abstract class Backend
 {
-
-
-
   // The backend that holds a portion of the DIT that is
   // hierarchically above the information in this backend.
   private Backend parentBackend;
@@ -121,6 +118,37 @@ public abstract class Backend
    */
   public abstract void configureBackend(Configuration cfg)
          throws ConfigException;
+
+
+
+  /**
+   * Indicates whether the provided configuration is acceptable for
+   * this backend.  It should be possible to call this method on an
+   * uninitialized backend instance in order to determine whether the
+   * backend would be able to use the provided configuration.
+   * <BR><BR>
+   * Note that implementations which use a subclass of the provided
+   * configuration class will likely need to cast the configuration
+   * to the appropriate subclass type.
+   *
+   * @param  configuration        The backend configuration for which
+   *                              to make the determination.
+   * @param  unacceptableReasons  A list that may be used to hold the
+   *                              reasons that the provided
+   *                              configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is acceptable
+   *          for this backend, or {@code false} if not.
+   */
+  public boolean isConfigurationAcceptable(
+                      Configuration configuration,
+                      List<String> unacceptableReasons)
+  {
+    // This default implementation does not perform any special
+    // validation.  It should be overridden by backend implementations
+    // that wish to perform more detailed validation.
+    return true;
+  }
 
 
 

@@ -40,18 +40,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.EntryCacheCfg;
+import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
-import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.IntegerConfigAttribute;
 import org.opends.server.config.IntegerWithUnitConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.CacheEntry;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -62,8 +65,6 @@ import org.opends.server.types.SearchFilter;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -1283,6 +1284,19 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    FIFOEntryCacheCfg config = (FIFOEntryCacheCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
       FIFOEntryCacheCfg configuration,
       List<String>      unacceptableReasons
@@ -1434,6 +1448,8 @@ public class FIFOEntryCache
     long                  newMaxAllowedMemory;
     HashSet<SearchFilter> newIncludeFilters = null;
     HashSet<SearchFilter> newExcludeFilters = null;
+
+    DN configEntryDN = configuration.dn();
 
     // Read configuration.
     newConfigEntryDN = configuration.dn();

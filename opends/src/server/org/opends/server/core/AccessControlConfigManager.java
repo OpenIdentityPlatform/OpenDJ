@@ -37,6 +37,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -253,7 +254,7 @@ public final class AccessControlConfigManager
       {
         if (newConfiguration.isEnabled())
         {
-          newHandler = loadHandler(newHandlerClass, newConfiguration);
+          newHandler = loadHandler(newHandlerClass, newConfiguration, true);
         }
         else
         {
@@ -331,7 +332,7 @@ public final class AccessControlConfigManager
       // can load the access control handler class.
       if (configuration.isEnabled())
       {
-        loadHandler(configuration.getAclHandlerClass(), null);
+        loadHandler(configuration.getAclHandlerClass(), configuration, false);
       }
     }
     catch (InitializationException e)
@@ -413,23 +414,26 @@ public final class AccessControlConfigManager
 
 
   /**
-   * Loads the specified class, instantiates it as a AccessControlProvider, and
+   * Loads the specified class, instantiates it as a AccessControlHandler, and
    * optionally initializes that instance.
    *
    * @param  className      The fully-qualified name of the Access Control
    *                        provider class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the
-   *                        Access Control Provider, or {@code null} if the
-   *                        Access Control Provider should not be initialized.
+   *                        Access Control Handler.  It must not be
+   *                        {@code null}.
+   * @param  initialize     Indicates whether the access control handler
+   *                        instance should be initialized.
    *
-   * @return  The possibly initialized Access Control Provider.
+   * @return  The possibly initialized Access Control Handler.
    *
    * @throws  InitializationException  If a problem occurred while attempting to
-   *                                   initialize the Access Control Provider.
+   *                                   initialize the Access Control Handler.
    */
   private AccessControlHandler<? extends AccessControlHandlerCfg>
                loadHandler(String className,
-                           AccessControlHandlerCfg configuration)
+                           AccessControlHandlerCfg configuration,
+                           boolean initialize)
           throws InitializationException
   {
     try
@@ -450,6 +454,36 @@ public final class AccessControlConfigManager
           provider.getClass().getMethod("initializeAccessControlHandler",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(provider, configuration);
+      }
+      else
+      {
+        Method method =
+             provider.getClass().getMethod("isConfigurationAcceptable",
+                                           AccessControlHandlerCfg.class,
+                                           List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(provider, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return provider;

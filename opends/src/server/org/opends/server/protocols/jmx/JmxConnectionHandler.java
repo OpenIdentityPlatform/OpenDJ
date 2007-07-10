@@ -42,6 +42,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
@@ -421,6 +422,19 @@ public final class JmxConnectionHandler extends
    */
   public Collection<HostPort> getListeners() {
     return listeners;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    JMXConnectionHandlerCfg config = (JMXConnectionHandlerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
 

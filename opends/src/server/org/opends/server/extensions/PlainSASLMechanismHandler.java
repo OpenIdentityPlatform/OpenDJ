@@ -34,6 +34,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PlainSASLMechanismHandlerCfg;
+import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
@@ -596,11 +597,27 @@ public class PlainSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(
+                      SASLMechanismHandlerCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    PlainSASLMechanismHandlerCfg config =
+         (PlainSASLMechanismHandlerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
                       PlainSASLMechanismHandlerCfg configuration,
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
+    DN configEntryDN = configuration.dn();
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();

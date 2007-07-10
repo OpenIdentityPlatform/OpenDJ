@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 import org.opends.server.workflowelement.localbackend.*;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -80,6 +79,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
+
 /**
  * This class provides a mechanism for interacting with all groups defined in
  * the Directory Server.  It will handle all necessary processing at server
@@ -102,7 +102,6 @@ public class GroupManager
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
 
 
 
@@ -170,7 +169,7 @@ public class GroupManager
         String className = groupConfiguration.getGroupClass();
         try
         {
-          Group group = loadGroup(className, groupConfiguration);
+          Group group = loadGroup(className, groupConfiguration, true);
           groupImplementations.put(groupConfiguration.dn(), group);
         }
         catch (InitializationException ie)
@@ -200,7 +199,7 @@ public class GroupManager
       String className = configuration.getGroupClass();
       try
       {
-        loadGroup(className, null);
+        loadGroup(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -239,7 +238,7 @@ public class GroupManager
     String className = configuration.getGroupClass();
     try
     {
-      group = loadGroup(className, configuration);
+      group = loadGroup(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -323,7 +322,7 @@ public class GroupManager
       String className = configuration.getGroupClass();
       try
       {
-        loadGroup(className, null);
+        loadGroup(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -399,7 +398,7 @@ public class GroupManager
     Group group = null;
     try
     {
-      group = loadGroup(className, configuration);
+      group = loadGroup(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -431,8 +430,9 @@ public class GroupManager
    * @param  className      The fully-qualified name of the group implementation
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the group
-   *                        implementation, or {@code null} if the group
-   *                        implementation should not be initialized.
+   *                        implementation.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the key manager provider instance
+   *                        should be initialized.
    *
    * @return  The possibly initialized group implementation.
    *
@@ -440,7 +440,8 @@ public class GroupManager
    *                                   initialize the group implementation.
    */
   private Group loadGroup(String className,
-                          GroupImplementationCfg configuration)
+                          GroupImplementationCfg configuration,
+                          boolean initialize)
           throws InitializationException
   {
     try
@@ -453,12 +454,41 @@ public class GroupManager
            propertyDefinition.loadClass(className, Group.class);
       Group group = groupClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method =
              group.getClass().getMethod("initializeGroupImplementation",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(group, configuration);
+      }
+      else
+      {
+        Method method = group.getClass().getMethod("isConfigurationAcceptable",
+                                                   GroupImplementationCfg.class,
+                                                   List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(group, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return group;

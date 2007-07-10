@@ -31,6 +31,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.AccessLogPublisherCfg;
+import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AbandonOperation;
@@ -45,14 +48,12 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.types.*;
+import org.opends.server.util.TimeThread;
 
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
-import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import org.opends.server.util.TimeThread;
 
 
 /**
@@ -188,6 +189,47 @@ public class TextAccessLogPublisher
     config.addFileBasedAccessChangeListener(this);
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    FileBasedAccessLogPublisherCfg config =
+         (FileBasedAccessLogPublisherCfg) configuration;
+
+     // Validate retention and rotation policies.
+     for(DN dn : config.getRotationPolicyDN())
+     {
+       RotationPolicy policy = DirectoryServer.getRotationPolicy(dn);
+       if(policy == null)
+       {
+         int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
+         String message = getMessage(msgID, dn.toString(),
+                                     config.dn().toString());
+         unacceptableReasons.add(message);
+         return false;
+       }
+     }
+     for(DN dn: config.getRetentionPolicyDN())
+     {
+       RetentionPolicy policy = DirectoryServer.getRetentionPolicy(dn);
+       if(policy == null)
+       {
+         int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
+         String message = getMessage(msgID, dn.toString(),
+                                     config.dn().toString());
+         unacceptableReasons.add(message);
+         return false;
+       }
+     }
+
+     return true;
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -220,33 +262,7 @@ public class TextAccessLogPublisher
        return false;
      }
 
-     // Validate retention and rotation policies.
-     for(DN dn : config.getRotationPolicyDN())
-     {
-       RotationPolicy policy = DirectoryServer.getRotationPolicy(dn);
-       if(policy == null)
-       {
-         int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-         String message = getMessage(msgID, dn.toString(),
-                                     config.dn().toString());
-         unacceptableReasons.add(message);
-         return false;
-       }
-     }
-     for(DN dn: config.getRetentionPolicyDN())
-     {
-       RetentionPolicy policy = DirectoryServer.getRetentionPolicy(dn);
-       if(policy == null)
-       {
-         int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-         String message = getMessage(msgID, dn.toString(),
-                                     config.dn().toString());
-         unacceptableReasons.add(message);
-         return false;
-       }
-     }
-
-     return true;
+     return isConfigurationAcceptable(config, unacceptableReasons);
    }
 
   /**

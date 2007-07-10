@@ -27,6 +27,9 @@
 package org.opends.server.api;
 
 
+
+import java.util.List;
+
 import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
@@ -68,6 +71,40 @@ public abstract class AccessControlHandler
   public abstract void initializeAccessControlHandler(T configuration)
 
          throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Indicates whether the provided configuration is acceptable for
+   * this access control handler.  It should be possible to call this
+   * method on an uninitialized access control handler instance in
+   * order to determine whether the handler would be able to use the
+   * provided configuration.
+   * <BR><BR>
+   * Note that implementations which use a subclass of the provided
+   * configuration class will likely need to cast the configuration
+   * to the appropriate subclass type.
+   *
+   * @param  configuration        The access control handler
+   *                              configuration for which to make the
+   *                              determination.
+   * @param  unacceptableReasons  A list that may be used to hold the
+   *                              reasons that the provided
+   *                              configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is acceptable
+   *          for this access control handler, or {@code false} if
+   *          not.
+   */
+  public boolean isConfigurationAcceptable(
+                      AccessControlHandlerCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // This default implementation does not perform any special
+    // validation.  It should be overridden by access control handler
+    // implementations that wish to perform more detailed validation.
+    return true;
+  }
 
 
 

@@ -77,6 +77,41 @@ public abstract class
 
 
   /**
+   * Indicates whether the provided configuration is acceptable for
+   * this synchronization provider.  It should be possible to call
+   * this method on an uninitialized synchronization provider instance
+   * in order to determine whether the synchronization provider would
+   * be able to use the provided configuration.
+   * <BR><BR>
+   * Note that implementations which use a subclass of the provided
+   * configuration class will likely need to cast the configuration
+   * to the appropriate subclass type.
+   *
+   * @param  configuration        The synchronization provider
+   *                              configuration for which to make the
+   *                              the determination.
+   * @param  unacceptableReasons  A list that may be used to hold the
+   *                              reasons that the provided
+   *                              configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is acceptable
+   *          for this synchronization provider, or {@code false} if
+   *          not.
+   */
+  public boolean isConfigurationAcceptable(
+                      SynchronizationProviderCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // This default implementation does not perform any special
+    // validation.  It should be overridden by synchronization
+    // provider implementations that wish to perform more detailed
+    // validation.
+    return true;
+  }
+
+
+
+  /**
    * Performs any necessary finalization for this synchronization
    * provider.  This will be called just after the provider has been
    * deregistered with the server but before it has been unloaded.

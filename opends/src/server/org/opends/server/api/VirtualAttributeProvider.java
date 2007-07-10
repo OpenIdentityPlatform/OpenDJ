@@ -88,6 +88,37 @@ public abstract class VirtualAttributeProvider
 
 
   /**
+   * Indicates whether the provided configuration is acceptable for
+   * this virtual attribute provider.  It should be possible to call
+   * this method on an uninitialized virtual attribute provider
+   * instance in order to determine whether the virtual attribute
+   * provider would be able to use the provided configuration.
+   *
+   * @param  configuration        The virtual attribute provider
+   *                              configuration for which to make the
+   *                              determination.
+   * @param  unacceptableReasons  A list that may be used to hold the
+   *                              reasons that the provided
+   *                              configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is acceptable
+   *          for this virtual attribute provider, or {@code false} if
+   *          not.
+   */
+  public boolean isConfigurationAcceptable(
+                      VirtualAttributeCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // This default implementation does not perform any special
+    // validation.  It should be overridden by virtual attribute
+    // provider implementations that wish to perform more detailed
+    // validation.
+    return true;
+  }
+
+
+
+  /**
    * Performs any finalization that may be necessary whenever this
    * virtual attribute provider is taken out of service.
    */

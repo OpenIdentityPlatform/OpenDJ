@@ -41,6 +41,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.TrustManagerCfg;
 import org.opends.server.admin.std.server.FileBasedTrustManagerCfg;
 import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.config.ConfigException;
@@ -352,6 +353,21 @@ public class FileBasedTrustManagerProvider
     }
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(TrustManagerCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    FileBasedTrustManagerCfg config = (FileBasedTrustManagerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
   /**
    * {@inheritDoc}
    */
@@ -360,6 +376,36 @@ public class FileBasedTrustManagerProvider
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
+    DN configEntryDN = configuration.dn();
+
+
+    // Get the path to the trust store file.
+    String newTrustStoreFile = configuration.getTrustStoreFile();
+    try
+    {
+      File f = getFileForPath(newTrustStoreFile);
+      if (!(f.exists() && f.isFile()))
+      {
+        int msgID = MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE;
+        unacceptableReasons.add(getMessage(msgID,
+                                           String.valueOf(newTrustStoreFile),
+                                           String.valueOf(configEntryDN)));
+        configAcceptable = false;
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      int msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
+      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
+                                         getExceptionMessage(e)));
+      configAcceptable = false;
+    }
+
 
     // Check to see if the trust store type is acceptable.
     String storeType = configuration.getTrustStoreType();
