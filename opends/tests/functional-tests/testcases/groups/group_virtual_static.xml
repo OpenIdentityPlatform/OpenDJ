@@ -131,7 +131,7 @@
                 listAttr.append('objectclass:groupOfUniqueNames')
                 listAttr.append('objectclass:ds-virtual-static-group')
                 listAttr.append('description:this is the description of %s' % newVirtualStaticGroup)
-                listAttr.append('ds-target-group-dn:%s' % virtualStaticGroupDn)
+                listAttr.append('ds-target-group-dn:%s' % dynamicGroupDn)
                 
               </script>
               <message>
@@ -205,8 +205,16 @@
                 'dsInstancePswd'   : applicationPswd ,
                 'dsBaseDN'         : newVirtualStaticGroupDn ,
                 'dsFilter'         : 'objectclass=*' ,
-                'expected'         : 32 }
+                'expectedRC'       : 32 }
               </call>
+              <!-- ******************** -->
+              <call function="'CheckIsMemberOf'">
+                { 'baseDn'      : 'uid=user_02,ou=dynamic,dc=groups,dc=com' ,
+                  'string2find' : newVirtualStaticGroupDn ,
+                  'nbExpected'  : 0
+                }
+              </call>             
+              
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
@@ -235,7 +243,7 @@
                 'dsInstancePswd'   : applicationPswd ,
                 'dsBaseDN'         : virtualStaticGroupDn ,
                 'dsFilter'         : 'uniquemember=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <script>
                 ldapSearchResult=STAXResult[0][1]
@@ -322,10 +330,10 @@
                 'dsInstancePswd'   : applicationPswd ,
                 'dsBaseDN'         : virtualStaticGroupDn ,
                 'dsFilter'         : 'uniquemember=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <message>
-                '++++ Check the search return the added user'
+                '++++ Check the search returns the added user'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : user2AddDn ,
@@ -355,6 +363,7 @@
           #@TestPostamble
           #@TestResult
           -->
+<!--          
           <testcase name="'Group: Virtual Static: application rename entry that belong to a group'">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -371,7 +380,9 @@
                 'newRDN'     				: user2AddRenamed, 
                 'deleteOldRDN' 			: 1 }
               </call>
+-->  
               <!-- ******************** -->
+<!--          
               <message>
                 '++++ Application search the new user %s in the virtual static group entry (should be a member)' % user2Add
               </message>
@@ -382,10 +393,10 @@
                 'dsInstancePswd'   : applicationPswd ,
                 'dsBaseDN'         : virtualStaticGroupDn ,
                 'dsFilter'         : 'uniquemember=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <message>
-                '++++ Check the search return the added user'
+                '++++ Check the search returns the added user'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : user2AddRenamedDn ,
@@ -393,7 +404,9 @@
                 'nbExpected'    : 1
                 }
               </call>
+-->  
               <!-- ******************** -->
+<!--          
               <call function="'CheckIsMemberOf'">
                 { 'baseDn'      : user2AddRenamedDn ,
                   'string2find' : virtualStaticGroupDn ,
@@ -403,7 +416,7 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-          
+-->          
 
           <!--- Test Case information
           #@TestMarker          Virtual Static Group Tests
@@ -440,10 +453,10 @@
                 'dsInstancePswd'   : applicationPswd ,
                 'dsBaseDN'         : virtualStaticGroupDn ,
                 'dsFilter'         : 'uniquemember=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <message>
-                '++++ Check the search return the added user'
+                '++++ Check the search returns the added user'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : user2AddDn ,
@@ -498,7 +511,7 @@
                 'dsInstancePswd'   : applicationPswd ,
                 'dsBaseDN'         : virtualStaticGroupDn ,
                 'dsFilter'         : 'uniquemember=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <call function="'CheckMatches'">
                 { 'string2find' : 'uid=user_03,ou=dynamic,dc=groups,dc=com' ,
@@ -564,7 +577,7 @@
                 'dsInstancePswd'   : applicationPswd ,
                 'dsBaseDN'         : virtualStaticGroupDn ,
                 'dsFilter'         : 'uniquemember=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <call function="'CheckMatches'">
                 { 'string2find' : 'uid=user_09,ou=static,dc=groups,dc=com' ,
@@ -631,7 +644,7 @@
                 'dsInstancePswd'   : applicationPswd ,
                 'dsBaseDN'         : virtualStaticGroupDn ,
                 'dsFilter'         : 'uniquemember=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <call function="'CheckMatches'">
                 { 'string2find' : 'uid=user_09,ou=static,dc=groups,dc=com' ,
@@ -682,7 +695,7 @@
                 'changetype'        : 'delete' ,
                 'attributeName'     : 'ds-target-group-dn' ,
                 'newAttributeValue' : dynamicGroupDn ,
-                'expectedErrorCode' : 65 }
+                'expectedRC'        : 65 }
               </call>
               <!-- ******************** -->
               <message>
@@ -695,26 +708,12 @@
                 'dsInstancePswd'   : applicationPswd ,
                 'dsBaseDN'         : virtualStaticGroupDn ,
                 'dsFilter'         : 'uniquemember=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <call function="'CheckMatches'">
-                { 'string2find' : 'uid=user_02,ou=static,dc=groups,dc=com' ,
+                { 'string2find' : 'uid=user_02,ou=dynamic,dc=groups,dc=com' ,
                 'mainString'    : STAXResult[0][1] ,
                 'nbExpected'    : 1 }
-              </call>
-              <!-- ******************** -->
-              <message>
-                '++++ Application reset ds-target-group-dn attribute to default value %s' % (dynamicGroupDn)
-              </message>
-              <call function="'modifyAnAttribute'">
-                { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'      : applicationDn ,
-                'dsInstancePswd'    : applicationPswd ,
-                'DNToModify'        : virtualStaticGroupDn ,
-                'changetype'        : 'add' ,
-                'attributeName'     : 'ds-target-group-dn' ,
-                'newAttributeValue' : dynamicGroupDn }
               </call>
               
               <call function="'testCase_Postamble'"/>

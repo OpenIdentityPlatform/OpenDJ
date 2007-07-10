@@ -65,7 +65,7 @@
         'dsBaseDN'         : baseDn ,
         'dsFilter'         : 'objectclass=*'  ,
         'dsAttributes'     : 'isMemberOf',
-        'expected'				 : 0 }
+        'expectedRC'       : 0 }
       </call>
       
       <message>

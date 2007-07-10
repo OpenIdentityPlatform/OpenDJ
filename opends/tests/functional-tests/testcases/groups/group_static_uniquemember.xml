@@ -184,7 +184,7 @@
                 'dsBaseDN'         : newStaticGroupDn ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'dsAttributes'     : 'uniquemember',
-                'expected'				 : 32 }
+                'expectedRC'  		 : 32 }
               </call>
               <call function="'CheckIsMemberOf'">
                 { 'baseDn'      : user11Dn ,
@@ -221,7 +221,7 @@
                 'dsBaseDN'         : user11Dn ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'dsAttributes'     : 'uid',
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <call function="'CheckMatches'">
                 { 'string2find' : 'uid' ,
@@ -259,7 +259,7 @@
                 'dsBaseDN'         : user1Dn ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'dsAttributes'     : 'uid',
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <message>
                 '++++ Check the search return nothing'
@@ -374,7 +374,7 @@
               </script> 
               <!-- ******************** -->
               <message>
-                '++++ Check ldapsearch result return the new entry uid'
+                '++++ Check ldapsearch result returns the new entry uid'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : user11Dn ,
@@ -394,10 +394,10 @@
                 'dsBaseDN'         : user11Dn ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'dsAttributes'     : 'uid',
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <message>
-                '++++ Check the search return nothing'
+                '++++ Check the search returns nothing'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : 'dn' ,
@@ -463,7 +463,7 @@
               </script> 
               <!-- ******************** -->
               <message>
-                '++++ Check ldapsearch result still return the deleted entry uid as referential integrity plugin is disabled'
+                '++++ Check ldapsearch result still returns the deleted entry uid as referential integrity plugin is disabled'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : user11Dn ,
@@ -473,7 +473,7 @@
               </call>
               <!-- ******************** -->
               <message>
-                '++++ Check ldapsearch result return 11 entries'
+                '++++ Check ldapsearch result returns 11 entries'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : 'uniquemember' ,
@@ -564,7 +564,7 @@
               </script> 
               <!-- ******************** -->
               <message>
-                '++++ Check ldapsearch result should not return the deleted group entry'
+                '++++ Check ldapsearch result should not returns the deleted group entry'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : user11Dn ,
@@ -584,7 +584,7 @@
                 'dsBaseDN'         : user11Dn ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'dsAttributes'     : 'uid',
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <message>
                 '++++ Check the search returns entry'
