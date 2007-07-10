@@ -26,6 +26,7 @@
  */
 package org.opends.server.protocols.jmx;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import org.opends.server.TestCaseUtils;
@@ -58,8 +59,15 @@ public class postConnectedDisconnectTest extends JmxTestCase
     env.put("jmx.remote.x.client.connection.check.period",0);
     OpendsJmxConnector opendsConnector = new OpendsJmxConnector("localhost",
         TestCaseUtils.getServerJmxPort(), env);
-    opendsConnector.connect();
     assertNotNull(opendsConnector);
+    try
+    {
+      opendsConnector.connect();
+    }
+    catch (IOException e)
+    {
+      assertTrue(false, "JMX connection error: " + e.getMessage());
+    }
 
     // Check that number of postconnect has been incremented.
     // Don't wait more than 5 seconds
