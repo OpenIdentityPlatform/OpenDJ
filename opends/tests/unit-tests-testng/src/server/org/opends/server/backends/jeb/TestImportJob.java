@@ -541,7 +541,7 @@ public class TestImportJob extends JebTestCase
     excludeBranches.add(DN.decode("dc=skipped,dc=importtest1,dc=com"));
     ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
     LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName + File.separator + "skipped.ldif");
-    importConfig.setAppendToExistingData(false);
+    importConfig.setAppendToExistingData(true);
     importConfig.setReplaceExistingEntries(true);
     importConfig.setValidateSchema(true);
     importConfig.setExcludeBranches(excludeBranches);
