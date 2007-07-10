@@ -469,17 +469,16 @@ public class FileManager {
             LOG.log(Level.INFO, "copying file '" +
                     objectFile.getAbsolutePath() + "' to '" +
                     destination.getAbsolutePath() + "'");
+            FileInputStream fis = null;
+            FileOutputStream fos = null;
             try {
-              FileInputStream fis = new FileInputStream(objectFile);
-              FileOutputStream fos = new FileOutputStream(destination);
+              fis = new FileInputStream(objectFile);
+              fos = new FileOutputStream(destination);
               byte[] buf = new byte[1024];
               int i;
               while ((i = fis.read(buf)) != -1) {
                 fos.write(buf, 0, i);
               }
-              fis.close();
-              fos.close();
-
               if (destination.exists()) {
                 // TODO:  set the file's permissions.  This is made easier in
                 // Java 1.6 but until then use the TestUtilities methods
@@ -502,6 +501,21 @@ public class FileManager {
               throw new ApplicationException(
                       ApplicationException.Type.FILE_SYSTEM_ERROR,
                       errMsg, null);
+            } finally {
+              if (fis != null) {
+                try {
+                  fis.close();
+                } catch (IOException e) {
+                  // ignore;
+                }
+              }
+              if (fos != null) {
+                try {
+                  fos.close();
+                } catch (IOException e) {
+                  // ignore;
+                }
+              }
             }
           } else {
             String errMsg = getMsg("error-copying-file", args);
