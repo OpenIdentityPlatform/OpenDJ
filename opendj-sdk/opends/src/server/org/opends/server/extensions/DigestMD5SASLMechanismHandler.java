@@ -594,8 +594,23 @@ public class DigestMD5SASLMechanismHandler
       {
         responseDigestURI = tokenValue;
 
-        // FIXME -- Add the ability to validate this URI, at least to check the
-        // hostname.
+        String serverFQDN = config.getServerFqdn();
+        if ((serverFQDN != null) && (serverFQDN.length() > 0))
+        {
+          // If a server FQDN is populated, then we'll use it to validate the
+          // digest-uri, which should be in the form "ldap/serverfqdn".
+          String expectedDigestURI = "ldap/" + serverFQDN;
+          if (! expectedDigestURI.equalsIgnoreCase(responseDigestURI))
+          {
+            bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+            int    msgID   = MSGID_SASLDIGESTMD5_INVALID_DIGEST_URI;
+            String message = getMessage(msgID, responseDigestURI,
+                                        expectedDigestURI);
+            bindOperation.setAuthFailureReason(msgID, message);
+            return;
+          }
+        }
       }
       else if (tokenName.equals("response"))
       {

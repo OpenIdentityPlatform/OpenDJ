@@ -60,7 +60,7 @@
     <adm:description>
       Specifies the realm that should be used by the server for DIGEST-MD5
       authentication.  If this is not provided, then the server will default
-      to using a set of realm names that correspond to the defined suffixes. 
+      to using a set of realm names that correspond to the defined suffixes.
       Changes to this configuration attribute will take effect immediately.
     </adm:description>
     <adm:default-behavior>
@@ -99,6 +99,36 @@
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.148</ldap:oid>
         <ldap:name>ds-cfg-identity-mapper-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="server-fqdn" mandatory="false">
+    <adm:synopsis>
+      Specifies the fully-qualified domain name for the system.  This is the
+      value expected to be present in the host field of the digest-uri-value
+      element.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the DNS-resolvable fully-qualified domain name for the system.
+      If this is not provided, then the server will attempt to determine this
+      dynamically.  Changes to this configuration attribute will take effect
+      immediately.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The server will attempt to dynamically determine the fully-qualified
+          domain name.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.115</ldap:oid>
+        <ldap:name>ds-cfg-server-fqdn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
