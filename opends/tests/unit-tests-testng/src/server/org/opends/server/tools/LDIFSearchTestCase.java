@@ -119,7 +119,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
       "(objectclass=*)",
       "*", "+"
     };
-    assertEquals(LDIFSearch.mainSearch(args, false), 0);
+    assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
     LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
     ldifConfig.setValidateSchema(false);
     LDIFReader reader = new LDIFReader(ldifConfig);
@@ -145,7 +145,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
       "(objectclass=*)",
       "+"
     };
-    assertEquals(LDIFSearch.mainSearch(args, false), 0);
+    assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
     LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
     ldifConfig.setValidateSchema(false);
     LDIFReader reader = new LDIFReader(ldifConfig);
@@ -172,7 +172,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
       "(objectclass=*)",
       "+", "mail", "uid"
     };
-    assertEquals(LDIFSearch.mainSearch(args, false), 0);
+    assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
     LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
     ldifConfig.setValidateSchema(false);
     LDIFReader reader = new LDIFReader(ldifConfig);
@@ -203,7 +203,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
       "(objectclass=*)",
       "mail", "uid"
     };
-    assertEquals(LDIFSearch.mainSearch(args, false), 0);
+    assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
     LDIFImportConfig ldifConfig = new LDIFImportConfig(outLdifFilePath);
     ldifConfig.setValidateSchema(false);
     LDIFReader reader = new LDIFReader(ldifConfig);

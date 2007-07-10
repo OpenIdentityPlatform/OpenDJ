@@ -86,13 +86,13 @@ public class LDIFDiffTestCase
   public void testUsage()
   {
     String[] args = { "--help" };
-    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
 
     args = new String[] { "-H" };
-    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
 
     args = new String[] { "-?" };
-    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
   }
 
 
@@ -108,7 +108,7 @@ public class LDIFDiffTestCase
       "--invalid"
     };
 
-    assertFalse(LDIFDiff.mainDiff(args, true) == 0);
+    assertFalse(LDIFDiff.mainDiff(args, true, System.out, System.err) == 0);
   }
 
 
@@ -279,12 +279,12 @@ public class LDIFDiffTestCase
     if (normalDiffFile == null)
     {
       // We expect this to fail, so just make sure that it does.
-      assertFalse(LDIFDiff.mainDiff(args, true) == 0);
+      assertFalse(LDIFDiff.mainDiff(args, true, System.out, System.err) == 0);
       outputFile.delete();
       return;
     }
 
-    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
 
     long outputChecksum = 0L;
     BufferedReader reader = new BufferedReader(new FileReader(outputFile));
@@ -358,12 +358,12 @@ public class LDIFDiffTestCase
     if (singleValueDiffFile == null)
     {
       // We expect this to fail, so just make sure that it does.
-      assertFalse(LDIFDiff.mainDiff(args, true) == 0);
+      assertFalse(LDIFDiff.mainDiff(args, true, System.out, System.err) == 0);
       outputFile.delete();
       return;
     }
 
-    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
 
     long outputChecksum = 0L;
     BufferedReader reader = new BufferedReader(new FileReader(outputFile));
@@ -438,7 +438,7 @@ public class LDIFDiffTestCase
       "-o", diffOutputFile.getAbsolutePath()
     };
 
-    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
 
 
     // Use LDIFModify to generate a new target file.
@@ -453,7 +453,8 @@ public class LDIFDiffTestCase
       "-t", newTargetFile.getAbsolutePath()
     };
 
-    assertEquals(LDIFModify.ldifModifyMain(args, true), 0);
+    assertEquals(LDIFModify.ldifModifyMain(args, true, System.out, System.err),
+                 0);
 
 
     // Use LDIFDiff again to verify that there are effectively no differences
@@ -468,7 +469,7 @@ public class LDIFDiffTestCase
       "-o", newDiffFile.getAbsolutePath()
     };
 
-    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
 
 
     // Read the contents of the new diff file and make sure it matches the
@@ -549,7 +550,7 @@ public class LDIFDiffTestCase
       "-S"
     };
 
-    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
 
 
     // Use LDIFModify to generate a new target file.
@@ -564,7 +565,8 @@ public class LDIFDiffTestCase
       "-t", newTargetFile.getAbsolutePath()
     };
 
-    assertEquals(LDIFModify.ldifModifyMain(args, true), 0);
+    assertEquals(LDIFModify.ldifModifyMain(args, true, System.out, System.err),
+                 0);
 
 
     // Use LDIFDiff again to verify that there are effectively no differences
@@ -579,7 +581,7 @@ public class LDIFDiffTestCase
       "-o", newDiffFile.getAbsolutePath()
     };
 
-    assertEquals(LDIFDiff.mainDiff(args, true), 0);
+    assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 0);
 
 
     // Read the contents of the new diff file and make sure it matches the

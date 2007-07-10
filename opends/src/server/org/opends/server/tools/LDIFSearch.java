@@ -28,6 +28,8 @@ package org.opends.server.tools;
 
 
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -42,6 +44,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
@@ -116,7 +119,7 @@ public class LDIFSearch
    */
   public static void main(String[] args)
   {
-    int exitCode = mainSearch(args, true);
+    int exitCode = mainSearch(args, true, System.out, System.err);
     if (exitCode != 0)
     {
       System.exit(filterExitCode(exitCode));
@@ -129,16 +132,41 @@ public class LDIFSearch
    * Parses the provided command line arguments and performs the appropriate
    * search operation.
    *
-   * @param  args  The command line arguments provided to this program.
-   *
-   * @param initializeServer True if server initialization should be done.
+   * @param  args              The command line arguments provided to this
+   *                           program.
+   * @param  initializeServer  True if server initialization should be done.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           {@code null} if standard output is not needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           {@code null} if standard error is not needed.
    *
    * @return  The return code for this operation.  A value of zero indicates
    *          that all processing completed successfully.  A nonzero value
    *          indicates that some problem occurred during processing.
    */
-  public static int mainSearch(String[] args, boolean initializeServer)
+  public static int mainSearch(String[] args, boolean initializeServer,
+                               OutputStream outStream, OutputStream errStream)
   {
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
     LinkedHashSet<String> scopeStrings = new LinkedHashSet<String>(4);
     scopeStrings.add(SCOPE_STRING_BASE);
     scopeStrings.add(SCOPE_STRING_ONE);
@@ -240,7 +268,7 @@ public class LDIFSearch
     {
       int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -255,8 +283,8 @@ public class LDIFSearch
       int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
-      System.err.println(argParser.getUsage());
+      err.println(message);
+      err.println(argParser.getUsage());
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -321,7 +349,7 @@ public class LDIFSearch
       {
         int    msgID   = MSGID_LDIFSEARCH_NO_FILTER;
         String message = getMessage(msgID);
-        System.err.println(message);
+        err.println(message);
         return 1;
       }
       else
@@ -400,7 +428,7 @@ public class LDIFSearch
         String message = getMessage(msgID,
                                     String.valueOf(configFile.getValue()),
                                     e.getMessage());
-        System.err.println(message);
+        err.println(message);
         return 1;
       }
 
@@ -415,7 +443,7 @@ public class LDIFSearch
         String message = getMessage(msgID,
                                     String.valueOf(configFile.getValue()),
                                     e.getMessage());
-        System.err.println(message);
+        err.println(message);
         return 1;
       }
 
@@ -429,7 +457,7 @@ public class LDIFSearch
         String message = getMessage(msgID,
                                     String.valueOf(configFile.getValue()),
                                     e.getMessage());
-        System.err.println(message);
+        err.println(message);
         return 1;
       }
     }
@@ -475,7 +503,7 @@ public class LDIFSearch
       {
         int    msgID   = MSGID_LDIFSEARCH_CANNOT_PARSE_FILTER;
         String message = getMessage(msgID, filterString, e.getMessage());
-        System.err.println(message);
+        err.println(message);
         return 1;
       }
     }
@@ -542,7 +570,7 @@ public class LDIFSearch
         {
           int    msgID   = MSGID_LDIFSEARCH_CANNOT_PARSE_BASE_DN;
           String message = getMessage(msgID, dnString, e.getMessage());
-          System.err.println(message);
+          err.println(message);
           return 1;
         }
       }
@@ -570,7 +598,7 @@ public class LDIFSearch
     {
       int    msgID   = MSGID_LDIFSEARCH_CANNOT_PARSE_TIME_LIMIT;
       String message = getMessage(msgID, String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -592,7 +620,7 @@ public class LDIFSearch
     {
       int    msgID   = MSGID_LDIFSEARCH_CANNOT_PARSE_SIZE_LIMIT;
       String message = getMessage(msgID, String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -628,7 +656,7 @@ public class LDIFSearch
     }
     else
     {
-      exportConfig = new LDIFExportConfig(System.out);
+      exportConfig = new LDIFExportConfig(out);
     }
 
     exportConfig.setIncludeObjectClasses(includeObjectclassAttrs);
@@ -653,7 +681,7 @@ public class LDIFSearch
     {
       int    msgID   = MSGID_LDIFSEARCH_CANNOT_CREATE_READER;
       String message = getMessage(msgID, String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -670,7 +698,7 @@ public class LDIFSearch
 
       int    msgID   = MSGID_LDIFSEARCH_CANNOT_CREATE_WRITER;
       String message = getMessage(msgID, String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -689,7 +717,7 @@ public class LDIFSearch
 
         int    msgID   = MSGID_LDIFSEARCH_TIME_LIMIT_EXCEEDED;
         String message = getMessage(msgID);
-        System.err.println(message);
+        err.println(message);
         break;
       }
 
@@ -777,7 +805,7 @@ public class LDIFSearch
 
           int    msgID   = MSGID_LDIFSEARCH_SIZE_LIMIT_EXCEEDED;
           String message = getMessage(msgID);
-          System.err.println(message);
+          err.println(message);
           break;
         }
       }
@@ -787,13 +815,13 @@ public class LDIFSearch
         {
           int    msgID   = MSGID_LDIFSEARCH_CANNOT_READ_ENTRY_RECOVERABLE;
           String message = getMessage(msgID, le.getMessage());
-          System.err.println(message);
+          err.println(message);
         }
         else
         {
           int    msgID   = MSGID_LDIFSEARCH_CANNOT_READ_ENTRY_FATAL;
           String message = getMessage(msgID, le.getMessage());
-          System.err.println(message);
+          err.println(message);
           resultCode = LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
           break;
         }
@@ -802,7 +830,7 @@ public class LDIFSearch
       {
         int    msgID   = MSGID_LDIFSEARCH_ERROR_DURING_PROCESSING;
         String message = getMessage(msgID, String.valueOf(e));
-        System.err.println(message);
+        err.println(message);
         resultCode = LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
         break;
       }
@@ -824,5 +852,4 @@ public class LDIFSearch
     return resultCode;
   }
 }
-
 

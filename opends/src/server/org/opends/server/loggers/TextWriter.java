@@ -26,6 +26,7 @@
  */
 package org.opends.server.loggers;
 
+import java.io.OutputStream;
 import java.io.PrintWriter;
 
 /**
@@ -106,6 +107,58 @@ public interface TextWriter
   {
     private MeteredStream stream = new MeteredStream(System.err, 0);
     private PrintWriter writer = new PrintWriter(stream, true);
+
+    /**
+     * {@inheritDoc}
+     */
+    public void writeRecord(String record)
+    {
+      writer.println(record);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void flush()
+    {
+      writer.flush();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void shutdown()
+    {
+      // Should never close the system error stream.
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public long getBytesWritten()
+    {
+      return stream.written;
+    }
+  }
+
+  /**
+   * A TextWriter implementation which writes to a given output stream.
+   */
+  public class STREAM implements TextWriter
+  {
+    private MeteredStream stream;
+    private PrintWriter writer;
+
+    /**
+     * Creates a new text writer that will write to the provided output stream.
+     *
+     * @param  outputStream  The output stream to which
+     */
+    public STREAM(OutputStream outputStream)
+    {
+      stream = new MeteredStream(outputStream, 0);
+      writer = new PrintWriter(stream, true);
+    }
 
     /**
      * {@inheritDoc}

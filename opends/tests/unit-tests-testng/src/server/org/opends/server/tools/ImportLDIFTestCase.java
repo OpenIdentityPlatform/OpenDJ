@@ -119,7 +119,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       "-n", beID,
       "-i", "+"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
+    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
     //Expecting a non-empty reject file.
     assertRejectedFile(reject,false);
   }
@@ -146,7 +146,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       "-n", beID,
       "-i", "*"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
+    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
     //Expecting an empty reject file.
     assertRejectedFile(reject,true);
 
@@ -181,7 +181,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       "-n", beID,
       "-R", rejectFilePath
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false),0);
+    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
     //Reject file should be empty.
     assertRejectedFile(reject,true);
     //check the presence of some random attributes.
@@ -221,7 +221,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       "-e", "description"
     };
 
-    assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
+    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
     assertRejectedFile(reject,true);
     Attribute[] attr =
      {
@@ -252,7 +252,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       "-e", "*"
     };
 
-    assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
+    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
     assertRejectedFile(reject,false);
   }
 
@@ -277,7 +277,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       "-R",rejectFilePath,
       "-e", "+"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
+    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
     assertRejectedFile(reject,true);
     Attribute[] attrs = {
        new Attribute ("creatorsname", "cn=Import") ,
@@ -309,7 +309,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       "-i", "*",
       "-i","creatorsname"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
+    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
     assertRejectedFile(reject,true);
     Attribute[] attrs = {
        new Attribute ("creatorsname", "cn=Import")
@@ -343,7 +343,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       "-i", "sn",
       "-i","creatorsname"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
+    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
     assertRejectedFile(reject,true);
     Attribute[] attrsPr = {
        new Attribute ("creatorsname", "cn=Import")
@@ -379,7 +379,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       "-e", "givenName",
       "-e","creatorsname"
     };
-    assertEquals(ImportLDIF.mainImportLDIF(args,false), 0);
+    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
     assertRejectedFile(reject,true);
     Attribute[] attrsPr = {
        new Attribute ("modifiersname", "cn=Import"),

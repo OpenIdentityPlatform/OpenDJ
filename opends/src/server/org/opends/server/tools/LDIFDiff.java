@@ -29,6 +29,8 @@ package org.opends.server.tools;
 
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -48,6 +50,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
@@ -105,7 +108,7 @@ public class LDIFDiff
    */
   public static void main(String[] args)
   {
-    int exitCode = mainDiff(args, false);
+    int exitCode = mainDiff(args, false, System.out, System.err);
     if (exitCode != 0)
     {
       System.exit(filterExitCode(exitCode));
@@ -123,13 +126,38 @@ public class LDIFDiff
    * @param  serverInitialized  Indicates whether the Directory Server has
    *                            already been initialized (and therefore should
    *                            not be initialized a second time).
+   * @param  outStream          The output stream to use for standard output, or
+   *                            {@code null} if standard output is not needed.
+   * @param  errStream          The output stream to use for standard error, or
+   *                            {@code null} if standard error is not needed.
    *
    * @return  The return code for this operation.  A value of zero indicates
    *          that all processing completed successfully.  A nonzero value
    *          indicates that some problem occurred during processing.
    */
-  public static int mainDiff(String[] args, boolean serverInitialized)
+  public static int mainDiff(String[] args, boolean serverInitialized,
+                             OutputStream outStream, OutputStream errStream)
   {
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
     BooleanArgument overwriteExisting;
     BooleanArgument showUsage;
     BooleanArgument singleValueChanges;
@@ -195,7 +223,7 @@ public class LDIFDiff
     {
       int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -210,8 +238,8 @@ public class LDIFDiff
       int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
-      System.err.println(argParser.getUsage());
+      err.println(message);
+      err.println(argParser.getUsage());
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -246,7 +274,7 @@ public class LDIFDiff
           String message = getMessage(msgID,
                                       String.valueOf(configFile.getValue()),
                                       e.getMessage());
-          System.err.println(message);
+          err.println(message);
           return 1;
         }
 
@@ -261,7 +289,7 @@ public class LDIFDiff
           String message = getMessage(msgID,
                                       String.valueOf(configFile.getValue()),
                                       e.getMessage());
-          System.err.println(message);
+          err.println(message);
           return 1;
         }
 
@@ -275,7 +303,7 @@ public class LDIFDiff
           String message = getMessage(msgID,
                                       String.valueOf(configFile.getValue()),
                                       e.getMessage());
-          System.err.println(message);
+          err.println(message);
           return 1;
         }
       }
@@ -294,7 +322,7 @@ public class LDIFDiff
       int    msgID   = MSGID_LDIFDIFF_CANNOT_OPEN_SOURCE_LDIF;
       String message = getMessage(msgID, sourceLDIF.getValue(),
                                   String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -317,7 +345,7 @@ public class LDIFDiff
       int    msgID   = MSGID_LDIFDIFF_ERROR_READING_SOURCE_LDIF;
       String message = getMessage(msgID, sourceLDIF.getValue(),
                                   String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
     finally
@@ -340,7 +368,7 @@ public class LDIFDiff
       int    msgID   = MSGID_LDIFDIFF_CANNOT_OPEN_TARGET_LDIF;
       String message = getMessage(msgID, targetLDIF.getValue(),
                                   String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -363,7 +391,7 @@ public class LDIFDiff
       int    msgID   = MSGID_LDIFDIFF_ERROR_READING_TARGET_LDIF;
       String message = getMessage(msgID, targetLDIF.getValue(),
                                   String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
     finally
@@ -395,7 +423,7 @@ public class LDIFDiff
       }
       else
       {
-        exportConfig = new LDIFExportConfig(System.out);
+        exportConfig = new LDIFExportConfig(out);
       }
 
       writer = new LDIFWriter(exportConfig);
@@ -404,7 +432,7 @@ public class LDIFDiff
     {
       int    msgID   = MSGID_LDIFDIFF_CANNOT_OPEN_OUTPUT;
       String message = getMessage(msgID, String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -581,7 +609,7 @@ public class LDIFDiff
     {
       int    msgID   = MSGID_LDIFDIFF_ERROR_WRITING_OUTPUT;
       String message = getMessage(msgID, String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
     finally
