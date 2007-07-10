@@ -70,7 +70,8 @@ public abstract class Launcher {
     boolean printUsage = false;
     if ((args != null) && (args.length > 0)) {
       for (String arg : args) {
-        if (arg.equalsIgnoreCase("-H") ||
+        if (arg.equals("-?") ||
+          arg.equalsIgnoreCase("-H") ||
           arg.equalsIgnoreCase("--help")) {
           printUsage = true;
         }
@@ -310,7 +311,7 @@ public abstract class Launcher {
     if (shouldPrintVersion())
     {
       printVersion();
-      System.exit(QuickSetupCli.SUCCESSFUL);
+      System.exit(QuickSetupCli.PRINT_VERSION);
     }
     else if (shouldPrintUsage()) {
       printUsage(false);

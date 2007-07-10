@@ -118,3 +118,12 @@ fi
 
 # Launch the uninstall process.
 "${JAVA_BIN}" org.opends.quicksetup.uninstaller.UninstallLauncher "${@}"
+
+RETURN_CODE=$?
+if test ${RETURN_CODE} -eq 50
+then
+  # Version info was on requested
+  exit 0
+else
+  exit ${RETURN_CODE}
+fi
