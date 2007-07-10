@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+
+    
+  <!-- This function uses make ldif to generate LDIF data files -->
+  <function name="MakeLdif">
+    <function-prolog>
+      This function uses make ldif to generate LDIF data files
+    </function-prolog>
+
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="version" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="templateFile" type="optional">
+        <function-arg-description>
+          Path to the template file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="ldifFile" type="optional">
+        <function-arg-description>
+          Path to the LDIF file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="randomSeed " type="optional">
+        <function-arg-description>
+          The seed to use to initialize the random number generator
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="Help" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/make-ldif%s' % (dsBinPath,fileExt)
+         
+        if version:
+          STAFCmdParamsList.append('-V')
+         
+        if templateFile:
+          STAFCmdParamsList.append('-t %s' % templateFile)
+         
+        if ldifFile:
+          STAFCmdParamsList.append('-o "%s"' % ldifFile)
+
+        if randomSeed:
+          STAFCmdParamsList.append('-s "%s"' % randomSeed)
+         
+        if Help:
+          STAFCmdParamsList.append('-H')
+
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+        
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+        
+      <process name="'Make Ldif Script'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+
+      <script>
+        STAXCode, STAXReason=STAXResult
+      </script>
+      <if expr="STAXCode != 0">
+        <sequence>
+          <message level="'error'">
+            'make-ldif failed (Code=%s,Reason=%s).' % (STAXCode,STAXReason)
+          </message>
+        </sequence>
+      </if>
+        
+      <return>[STAXCode, STAXReason]</return>
+    </sequence>
+  </function> 
+        
+    
+
+  <!-- This function starts DS using the start-ds script -->
+  <function name="LdifDiffWithScript">
+    <function-prolog>
+      This function  compares two LDIF files and reports the differences in LDIF format
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+     <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="version" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>        
+      <function-arg-def name="sourceLdif" type="required">
+        <function-arg-description>
+          LDIF file to use as the source data
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      <function-arg-def name="targetLdif" type="required">
+        <function-arg-description>
+          LDIF file to use as the target data
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="outputLdif" type="required">
+        <function-arg-description>
+          File to which the diffs should be written
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="overwriteExisting" type="optional" default="True">
+        <function-arg-description>
+          Overwrite existing output file rather than append to it
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>        
+      <function-arg-def name="singleValueChanges" type="optional">
+        <function-arg-description>
+          Write each attribute-level change as a separate modification 
+          per attribute value rather than one modification per entry
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>                        
+      <function-arg-def name="Help" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>        
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldif-diff%s' % (dsBinPath,fileExt)
+
+        if version:
+          STAFCmdParamsList.append('-V')                  
+                  
+        if sourceLdif:
+          STAFCmdParamsList.append('-s %s' % sourceLdif)
+        
+        if targetLdif:
+          STAFCmdParamsList.append('-t %s' % targetLdif)
+          
+        if outputLdif:
+          STAFCmdParamsList.append('-o %s' % outputLdif)
+
+        if overwriteExisting:
+          STAFCmdParamsList.append('-O')                    
+
+        if singleValueChanges:
+          STAFCmdParamsList.append('-S')                    
+                    
+        if Help:
+          STAFCmdParamsList.append('-H')                    
+         
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+      
+      <process name="'LDIF Diff Script'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>          
+        <returnfile>outputLdif</returnfile>          
+      </process>
+
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>        
+      <script>
+        diffsInfo = STAXReason[1]
+        diffs = diffsInfo[1]           
+        if (diffsInfo[0] == 0) and (diffs.startswith("# No differences were detected between the source and target LDIF files")) :
+          diffRC = 0
+        else:
+          diffRC = 1
+      </script>
+          
+      <return> diffRC </return>
+          
+    </sequence>
+    
+  </function>
+
+
+                                	     
+    
+  <function name="verifyTrees">
+    <function-prolog>
+      This function verifies that the trees in a group of ldap servers are synchronized.
+    </function-prolog>
+
+    <function-list-args>        
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+     <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>        
+      <function-arg-def name="referenceServer" type="required">
+        <function-arg-description>
+          Server that should be taken as reference.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server"/>          
+      </function-arg-def>
+      <function-arg-def name="serverList" type="required">
+        <function-arg-description>
+          List of the servers to verify against the referenceServer.
+        </function-arg-description>
+        <function-arg-property name="type" value="Server-list"/>
+      </function-arg-def>
+      <function-arg-def name="treeSuffix" type="required">
+        <function-arg-description>
+          Suffix of the tree to verify.
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+    </function-list-args>                
+      
+      
+      
+    <sequence>
+
+      <script>
+        myRC = 0
+        failedServers = []
+        failingServerList = ''
+        referenceTree = 'referenceTree.ldif'
+        sampleTree = 'sampleTree.ldif'
+        treeDiffs = 'treeDiffs.ldif'
+      </script>
+        
+      
+      <!-- Retrieve the tree from the reference server -->
+      <call function="'ldapSearchWithScript'">
+        { 'location'         : location,
+          'dsPath'           : dsPath,
+          'dsInstanceHost'  : referenceServer.getHostname() ,
+          'dsInstancePort'  : referenceServer.getPort() ,
+          'dsInstanceDn'  : referenceServer.getRootDn() ,
+          'dsInstancePswd'  : referenceServer.getRootPwd() ,
+          'dsBaseDN'  : treeSuffix,
+          'dsFilter'  : 'objectclass=*',
+          'outputFile'  : referenceTree }                  
+      </call>	
+      
+      <if expr="RC != 0">
+        <!-- If the reference tree could not be retrieved, return an error -->  
+        <return> [1, None] </return>
+      </if>        
+
+                
+ 	  <iterate var="server" in="serverList">
+        <sequence>
+          <!-- Retrieve the same tree for every other server in the list -->  
+          <call function="'ldapSearchWithScript'">
+            { 'location'         : location,
+              'dsPath'           : dsPath,
+              'dsInstanceHost'  : server.getHostname() ,
+              'dsInstancePort'  : server.getPort() ,
+              'dsInstanceDn'  : server.getRootDn() ,
+              'dsInstancePswd'  : server.getRootPwd() ,
+              'dsBaseDN'  : treeSuffix,
+              'dsFilter'  : 'objectclass=*',
+              'outputFile'  : sampleTree }                  
+          </call>						
+           
+          <if expr="RC == 0">
+            <sequence>
+      
+              <!-- Compare this tree to the reference one -->  
+              <call function="'LdifDiffWithScript'">
+                { 'location'  : location,
+                  'dsPath'  : dsPath, 
+                  'sourceLdif'  : '%s/../%s' % (dsPath, sampleTree),
+                  'targetLdif'  : '%s/../%s' % (dsPath, referenceTree),
+                  'outputLdif' : '%s/../%s' % (dsPath, treeDiffs) }
+              </call>
+
+              <script>
+                if STAXResult != 0 :
+                  failedServers.append('%s:%s' % (server.getHostname(), server.getPort()))
+              </script>	                                                                      
+                                                                
+            </sequence>                                          
+          <else>
+            <script>
+              failedServers.append('%s:%s' % (server.getHostname(), server.getPort()))
+            </script>
+          </else>
+          </if>                    
+         	                      			            
+        </sequence>   
+ 	  </iterate>       
+        
+      <if expr="len(failedServers) > 0">
+        <!-- If at least one server failed to successfully compare to the reference tree,
+           !   return an error, along with the list of the servers that failed to do so -->  
+        <script>
+          myRC = 1
+          comma = ','  
+          failingServerList = 'List of non-synchronized servers (tree verify FAILED): %s ' % comma.join(failedServers)
+        </script>
+      <else>
+        <script>
+          failingServerList = 'All servers synchronized (tree verify SUCCEEDED).'
+        </script>
+      </else>
+      </if>
+
+        
+      <call function="'checktestRC'">
+        { 'returncode' : myRC,
+          'result'     : failingServerList ,
+          'expected'   : 0 }
+      </call>                   
+        
+      <return> [myRC, failedServers] </return>
+    </sequence>
+      
+  </function>        
+
+    
+    
+    
+    
+    
+    
+    		
+</stax>

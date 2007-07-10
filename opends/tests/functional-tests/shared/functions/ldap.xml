@@ -929,6 +929,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="outputFile" type="optional">
+        <function-arg-description>
+          Output file containing the search result in ldif format.
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -1103,9 +1109,11 @@
         <envs>
           ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
         </envs>         
+        <stdout if="outputFile != None" mode="'replace'">'%s/../%s' % (dsPath,outputFile)</stdout>
         <stderr mode="'stdout'"/>
         <returnstdout/>
       </process>
+
       <script>
         STAXCode=RC
         STAXReason=STAXResult
@@ -2796,7 +2804,7 @@
           STAFCmdParamsList.append('-a "%s"' % attributeName)
 
         if newAttributeValue:
-          STAFCmdParamsList.append('-v "%s"' % newAttributeValue)		  		  		  		  
+          STAFCmdParamsList.append('-v "%s"' % newAttributeValue)		  
 
         if changetype:
           STAFCmdParamsList.append('-t "%s"' % changetype)

@@ -35,11 +35,7 @@
 
       <block name="'replication-cleanup'">
 
-        <sequence>
-                			
-		  <script>
-			basicTopologyFile = '%s/config/replication/basic_topology.txt' % TESTS_DIR
-		  </script>
+        <sequence>                			
 			 		   		
           <!-- Stop the servers in the topology -->					           
           <iterate var="server" in="_topologyServerList">				
