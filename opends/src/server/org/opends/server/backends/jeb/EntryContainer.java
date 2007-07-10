@@ -635,8 +635,9 @@ public class EntryContainer
 
         int messageID = MSGID_JEB_SEARCH_NO_SUCH_OBJECT;
         String message = getMessage(messageID, baseDN.toString());
+        DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                                     message, messageID);
+            message, messageID, matchedDN, null);
       }
 
       if (!isManageDsaITOperation(searchOperation))
@@ -686,8 +687,9 @@ public class EntryContainer
       {
         int messageID = MSGID_JEB_SEARCH_NO_SUCH_OBJECT;
         String message = getMessage(messageID, baseDN.toString());
+        DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                                     message, messageID);
+            message, messageID, matchedDN, null);
       }
       DatabaseEntry baseIDData = baseID.getDatabaseEntry();
 
@@ -875,8 +877,9 @@ public class EntryContainer
 
         int messageID = MSGID_JEB_SEARCH_NO_SUCH_OBJECT;
         String message = getMessage(messageID, baseDN.toString());
+        DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                                     message, messageID);
+            message, messageID, matchedDN, null);
       }
 
       if (!manageDsaIT)
@@ -1335,8 +1338,9 @@ public class EntryContainer
       {
         int messageID = MSGID_JEB_SEARCH_NO_SUCH_OBJECT;
         String message = getMessage(messageID, baseDN.toString());
+        DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                                     message, messageID);
+            message, messageID, matchedDN, null);
       }
     }
 
@@ -1561,8 +1565,9 @@ public class EntryContainer
         {
           int msgID = MSGID_JEB_ADD_NO_SUCH_OBJECT;
           String message = getMessage(msgID, entry.getDN().toString());
+          DN matchedDN = getMatchedDN(baseDN);
           throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                                       message, msgID);
+              message, msgID, matchedDN, null);
         }
       }
 
@@ -1731,8 +1736,9 @@ public class EntryContainer
       // Do not expect to ever come through here.
       int msgID = MSGID_JEB_DELETE_NO_SUCH_OBJECT;
       String message = getMessage(msgID, leafDN.toString());
+      DN matchedDN = getMatchedDN(baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                                   message, msgID);
+          message, msgID, matchedDN, null);
     }
 
     // Update the referral database.
@@ -1836,8 +1842,9 @@ public class EntryContainer
     {
       int msgID = MSGID_JEB_DELETE_NO_SUCH_OBJECT;
       String message = getMessage(msgID, leafDN.toString());
+      DN matchedDN = getMatchedDN(baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                                   message, msgID);
+          message, msgID, matchedDN, null);
     }
 
     // Check that the entry exists in id2entry and read its contents.
@@ -1860,8 +1867,9 @@ public class EntryContainer
       // Do not expect to ever come through here.
       int msgID = MSGID_JEB_DELETE_NO_SUCH_OBJECT;
       String message = getMessage(msgID, leafDN.toString());
+      DN matchedDN = getMatchedDN(baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                                   message, msgID);
+          message, msgID, matchedDN, null);
     }
 
     // Update the referral database.
@@ -2524,7 +2532,9 @@ public class EntryContainer
         // The entry does not exist.
         int msgID = MSGID_JEB_MODIFY_NO_SUCH_OBJECT;
         String message = getMessage(msgID, entry.getDN().toString());
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, msgID);
+        DN matchedDN = getMatchedDN(baseDN);
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+            message, msgID, matchedDN, null);
       }
 
       // Read id2entry for the original entry.
@@ -2717,8 +2727,9 @@ public class EntryContainer
 
         int messageID = MSGID_JEB_MODIFYDN_NO_SUCH_OBJECT;
         String message = getMessage(messageID, oldApexDN.toString());
+        DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                                     message, messageID);
+            message, messageID, matchedDN, null);
       }
 
       Entry oldApexEntry = id2entry.get(txn, oldApexID);
@@ -2750,7 +2761,9 @@ public class EntryContainer
         {
           int msgID = MSGID_JEB_NEW_SUPERIOR_NO_SUCH_OBJECT;
           String msg = getMessage(msgID, newSuperiorDN.toString());
-          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, msg, msgID);
+          DN matchedDN = getMatchedDN(baseDN);
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+              msg, msgID, matchedDN, null);
         }
 
         if (newSuperiorID.compareTo(oldApexID) > 0)
@@ -3920,5 +3933,31 @@ public class EntryContainer
           "index %s", count, index.getAttributeType().getNameOrOID());
     }
     return count;
+  }
+
+
+  /**
+   * Finds an existing entry whose DN is the closest ancestor of a given baseDN.
+   *
+   * @param baseDN  the DN for which we are searching a matched DN
+   * @return the DN of the closest ancestor of the baseDN
+   * @throws DirectoryException If an error prevented the check of an
+   * existing entry from being performed
+   */
+  private DN getMatchedDN(DN baseDN)
+    throws DirectoryException
+  {
+    DN matchedDN = null;
+    DN parentDN  = baseDN.getParentDNInSuffix();
+    while ((parentDN != null) && parentDN.isDescendantOf(getBaseDN()))
+    {
+      if (entryExists(parentDN))
+      {
+        matchedDN = parentDN;
+        break;
+      }
+      parentDN = parentDN.getParentDNInSuffix();
+    }
+    return matchedDN;
   }
 }
