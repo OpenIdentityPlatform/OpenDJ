@@ -180,7 +180,7 @@
                 'dsInstancePswd'   : applicationPswd ,
                 'dsBaseDN'         : newDynamicGroupDn ,
                 'dsFilter'         : 'objectclass=*' ,
-                'expected'         : 32 }
+                'expectedRC'       : 32 }
               </call>
               <!-- ******************** -->
               <call function="'CheckIsMemberOf'">
@@ -216,7 +216,7 @@
                 'dsInstancePswd'   : user1Pswd ,
                 'dsBaseDN'         : user1Dn ,
                 'dsFilter'         : 'objectclass=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <!-- ******************** -->
               <call function="'CheckIsMemberOf'">
@@ -253,10 +253,10 @@
                 'dsInstancePswd'   : user2Pswd ,
                 'dsBaseDN'         : user2Dn ,
                 'dsFilter'         : 'objectclass=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <message>
-                '++++ Check the search return nothing'
+                '++++ Check the search returns nothing'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : 'dn' ,
@@ -324,10 +324,10 @@
                 'dsInstancePswd'   : user2AddPswd ,
                 'dsBaseDN'         : user2AddDn ,
                 'dsFilter'         : 'objectclass=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <message>
-                '++++ Check the search return nothing'
+                '++++ Check the search returns nothing'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : 'dn' ,
@@ -357,7 +357,8 @@
           #@TestPostamble
           #@TestResult
           -->
-          <testcase name="'Group: Dynamic: application rename entry that belong to a group'">
+ <!---
+            <testcase name="'Group: Dynamic: application rename entry that belong to a group'">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -373,7 +374,9 @@
                 'newRDN'     				: user2AddRenamed, 
                 'deleteOldRDN' 			: 1 }
               </call>
+-->
               <!-- ******************** -->
+<!--          
               <message>
                 '++++ %s search itself (should be refused as dynamic group does not have permission)' % user2AddRenamed
               </message>
@@ -384,10 +387,10 @@
                 'dsInstancePswd'   : user2AddPswd ,
                 'dsBaseDN'         : user2AddRenamedDn ,
                 'dsFilter'         : 'objectclass=*' ,
-                'expected'         : 0 }
+                'expectedRC'       : 0 }
               </call>
               <message>
-                '++++ Check the search return nothing'
+                '++++ Check the search returns nothing'
               </message>
               <call function="'CheckMatches'">
                 { 'string2find' : 'dn' ,
@@ -395,7 +398,9 @@
                 'nbExpected'    : 0
                 }
               </call>
+-->  
               <!-- ******************** -->
+<!--          
               <call function="'CheckIsMemberOf'">
                 { 'baseDn'      : user2AddRenamedDn ,
                   'string2find' : dynamicGroupDn ,
@@ -405,7 +410,7 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-          
+-->          
 
           <!--- Test Case information
           #@TestMarker          Dynamic Group Tests
@@ -443,7 +448,7 @@
                 'dsBaseDN'         : user2AddDn ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'dsAttributes'     : 'dn',
-                'expected'				 : 32 }
+                'expectedRC'  		 : 32 }
               </call>
               <!-- ******************** -->
               <message>
@@ -456,7 +461,7 @@
                 'dsInstancePswd'   : user2AddPswd ,
                 'dsBaseDN'         : user2AddDn ,
                 'dsFilter'         : 'objectclass=*' ,
-                'expected'         : 49 }
+                'expectedRC'       : 49 }
               </call>
               <call function="'testCase_Postamble'"/>
             </sequence>

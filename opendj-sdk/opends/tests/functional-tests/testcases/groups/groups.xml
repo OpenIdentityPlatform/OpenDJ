@@ -44,12 +44,7 @@
           </script>
       
           <call function="'testGroup_Preamble'"/>
-<!--GA
-          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-            file="'%s/testcases/groups/mytest.xml' % (TESTS_DIR)"/>
-          <call function="'main_mytest'" />
--->
-<!--GA
+
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/groups/group_static_uniquemember.xml' % (TESTS_DIR)"/>
           <call function="'main_staticgroup_uniquemember'" />
@@ -61,7 +56,7 @@
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/groups/group_dynamic.xml' % (TESTS_DIR)"/>
           <call function="'main_dynamicgroup'" />
--->
+
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/groups/group_virtual_static.xml' % (TESTS_DIR)"/>
           <call function="'main_virtualStaticGroup'" />
