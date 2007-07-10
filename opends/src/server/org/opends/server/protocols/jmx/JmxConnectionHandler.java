@@ -156,7 +156,15 @@ public final class JmxConnectionHandler extends
       listeners.add(new HostPort(config.getListenPort()));
 
       rmiConnector.finalizeConnectionHandler(true, portChanged);
-      rmiConnector.initialize();
+      try
+      {
+        rmiConnector.initialize();
+      }
+      catch (RuntimeException e)
+      {
+        resultCode = ResultCode.OPERATIONS_ERROR;
+        messages.add(e.getMessage());
+      }
     }
 
     // Return configuration result.
