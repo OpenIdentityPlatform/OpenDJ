@@ -77,7 +77,14 @@ goto end
 
 :callJava
 "%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.InstallLauncher -P setup.bat %*
+
+rem return part
+if %errorlevel% == 50 goto version
 goto end
+
+:version
+rem version information was requested. Return code should be 0.
+exit /B 0
 
 :end
 

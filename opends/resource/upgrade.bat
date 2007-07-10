@@ -70,6 +70,7 @@ set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
 set CLASSPATH=%DIR_HOME%\classes;%CLASSPATH%
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.BuildExtractor %*
+if %errorlevel% == 50 goto version
 if not %errorlevel% == 0 goto end
 goto upgrader
 
@@ -78,5 +79,9 @@ set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\tmp\upgrade\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.UpgradeLauncher %*
 goto end
+
+:version
+rem version information was requested. Return code should be 0.
+exit /B 0
 
 :end
