@@ -38,6 +38,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.RootDSEBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
@@ -47,6 +50,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -57,6 +61,7 @@ import org.opends.server.types.CancelledOperationException;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -74,19 +79,14 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
 
 import static org.opends.server.config.ConfigConstants.*;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ConfigMessages.
      MSGID_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.admin.std.server.RootDSEBackendCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.Configuration;
 
 
 /**
@@ -165,7 +165,8 @@ public class RootDSEBackend
   /**
    * {@inheritDoc}
    */
-  public void configureBackend(Configuration config) throws ConfigException
+  public void configureBackend(Configuration config)
+         throws ConfigException
   {
     Validator.ensureNotNull(config);
     Validator.ensureTrue(config instanceof RootDSEBackendCfg);
@@ -1337,6 +1338,19 @@ public class RootDSEBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(Configuration configuration,
+                                           List<String> unacceptableReasons)
+  {
+    RootDSEBackendCfg config = (RootDSEBackendCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
        RootDSEBackendCfg cfg,
        List<String> unacceptableReasons)
@@ -1550,8 +1564,5 @@ public class RootDSEBackend
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
-
-
-
 }
 

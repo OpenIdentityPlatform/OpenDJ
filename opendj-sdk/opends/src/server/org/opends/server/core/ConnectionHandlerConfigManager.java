@@ -441,10 +441,11 @@ public class ConnectionHandlerConfigManager implements
         .getJavaImplementationClassPropertyDefinition();
 
     // Load the class and cast it to a connection handler.
+    ConnectionHandler connectionHandler = null;
     Class<? extends ConnectionHandler> theClass;
     try {
       theClass = pd.loadClass(className, ConnectionHandler.class);
-      theClass.newInstance();
+      connectionHandler = theClass.newInstance();
     } catch (Exception e) {
       if (debugEnabled())
       {
@@ -464,8 +465,16 @@ public class ConnectionHandlerConfigManager implements
       // Determine the initialization method to use: it must take a
       // single parameter which is the exact type of the configuration
       // object.
-      theClass.getMethod("initializeConnectionHandler", config.definition()
-          .getServerConfigurationClass());
+      Method method = theClass.getMethod("isConfigurationAcceptable",
+                                         ConnectionHandlerCfg.class,
+                                         List.class);
+      Boolean acceptable = (Boolean) method.invoke(connectionHandler, config,
+                                                   unacceptableReasons);
+
+      if (! acceptable)
+      {
+        return false;
+      }
     } catch (Exception e) {
       if (debugEnabled())
       {

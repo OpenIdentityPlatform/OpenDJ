@@ -38,6 +38,7 @@ import org.opends.server.types.*;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.LoggerMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.admin.std.server.FileBasedErrorLogPublisherCfg;
 import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -272,37 +273,17 @@ public class TextErrorLogPublisher
     config.addFileBasedErrorChangeListener(this);
   }
 
+
+
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(
-      FileBasedErrorLogPublisherCfg config, List<String> unacceptableReasons)
+  @Override()
+  public boolean isConfigurationAcceptable(ErrorLogPublisherCfg configuration,
+                                           List<String> unacceptableReasons)
   {
-    // Make sure the permission is valid.
-    try
-    {
-      if(!currentConfig.getLogFileMode().equalsIgnoreCase(
-          config.getLogFileMode()))
-      {
-        FilePermission.decodeUNIXMode(config.getLogFileMode());
-      }
-      if(!currentConfig.getLogFile().equalsIgnoreCase(config.getLogFile()))
-      {
-        File logFile = getFileForPath(config.getLogFile());
-        if(logFile.createNewFile())
-        {
-          logFile.delete();
-        }
-      }
-    }
-    catch(Exception e)
-    {
-      int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
-      String message = getMessage(msgID, config.dn().toString(),
-                                  stackTraceToSingleLineString(e));
-      unacceptableReasons.add(message);
-      return false;
-    }
+    FileBasedErrorLogPublisherCfg config =
+         (FileBasedErrorLogPublisherCfg) configuration;
 
     // Validate retention and rotation policies.
     for(DN dn : config.getRotationPolicyDN())
@@ -377,6 +358,41 @@ public class TextErrorLogPublisher
       }
     }
     return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      FileBasedErrorLogPublisherCfg config, List<String> unacceptableReasons)
+  {
+    // Make sure the permission is valid.
+    try
+    {
+      if(!currentConfig.getLogFileMode().equalsIgnoreCase(
+          config.getLogFileMode()))
+      {
+        FilePermission.decodeUNIXMode(config.getLogFileMode());
+      }
+      if(!currentConfig.getLogFile().equalsIgnoreCase(config.getLogFile()))
+      {
+        File logFile = getFileForPath(config.getLogFile());
+        if(logFile.createNewFile())
+        {
+          logFile.delete();
+        }
+      }
+    }
+    catch(Exception e)
+    {
+      int msgID = MSGID_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
+      String message = getMessage(msgID, config.dn().toString(),
+                                  stackTraceToSingleLineString(e));
+      unacceptableReasons.add(message);
+      return false;
+    }
+
+    return isConfigurationAcceptable(config, unacceptableReasons);
   }
 
   /**

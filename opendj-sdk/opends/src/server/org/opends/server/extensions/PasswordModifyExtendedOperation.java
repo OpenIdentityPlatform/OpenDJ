@@ -35,6 +35,10 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
+import org.opends.server.admin.std.server.
+            PasswordModifyExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.IdentityMapper;
@@ -47,6 +51,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicyState;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -61,6 +66,7 @@ import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Control;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -76,15 +82,10 @@ import org.opends.server.types.ResultCode;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.admin.std.server.
-     PasswordModifyExtendedOperationHandlerCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
 
 
 /**
@@ -102,7 +103,6 @@ public class PasswordModifyExtendedOperation
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
 
 
 
@@ -1300,6 +1300,21 @@ public class PasswordModifyExtendedOperation
 
       return null;
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(ExtendedOperationHandlerCfg
+                                                configuration,
+                                           List<String> unacceptableReasons)
+  {
+    PasswordModifyExtendedOperationHandlerCfg config =
+         (PasswordModifyExtendedOperationHandlerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
 

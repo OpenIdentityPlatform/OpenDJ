@@ -350,10 +350,11 @@ public class DebugLogger implements
     ClassPropertyDefinition pd =
         d.getJavaImplementationClassPropertyDefinition();
     // Load the class and cast it to a DebugLogPublisher.
+    DebugLogPublisher publisher = null;
     Class<? extends DebugLogPublisher> theClass;
     try {
       theClass = pd.loadClass(className, DebugLogPublisher.class);
-      theClass.newInstance();
+      publisher = theClass.newInstance();
     } catch (Exception e) {
       int    msgID   = MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS;
       String message = getMessage(msgID, className,
@@ -367,8 +368,16 @@ public class DebugLogger implements
       // Determine the initialization method to use: it must take a
       // single parameter which is the exact type of the configuration
       // object.
-      theClass.getMethod("initializeDebugLogPublisher", config.definition()
-          .getServerConfigurationClass());
+      Method method = theClass.getMethod("isConfigurationAcceptable",
+                                         DebugLogPublisherCfg.class,
+                                         List.class);
+      Boolean acceptable = (Boolean) method.invoke(publisher, config,
+                                                   unacceptableReasons);
+
+      if (! acceptable)
+      {
+        return false;
+      }
     } catch (Exception e) {
       int    msgID   = MSGID_CONFIG_LOGGER_INVALID_DEBUG_LOGGER_CLASS;
       String message = getMessage(msgID, className,

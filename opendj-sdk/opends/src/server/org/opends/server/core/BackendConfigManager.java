@@ -476,6 +476,12 @@ public class BackendConfigManager implements
                                           String.valueOf(backendDN)));
         return false;
       }
+
+      Backend b = (Backend) backendClass.newInstance();
+      if (! b.isConfigurationAcceptable(configEntry, unacceptableReason))
+      {
+        return false;
+      }
     }
     catch (Exception e)
     {

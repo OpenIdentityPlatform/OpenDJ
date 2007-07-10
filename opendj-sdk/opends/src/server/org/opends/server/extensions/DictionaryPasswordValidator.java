@@ -38,6 +38,7 @@ import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.DictionaryPasswordValidatorCfg;
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
@@ -234,6 +235,20 @@ public class DictionaryPasswordValidator
     }
 
     return dictionary;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    DictionaryPasswordValidatorCfg config =
+         (DictionaryPasswordValidatorCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
 

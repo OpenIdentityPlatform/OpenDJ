@@ -35,6 +35,7 @@ import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.server.ProfilerPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
@@ -246,11 +247,25 @@ public final class ProfilerPlugin
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(PluginCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    ProfilerPluginCfg config = (ProfilerPluginCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
                       ProfilerPluginCfg configuration,
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
+    DN configEntryDN = configuration.dn();
 
     // Make sure that the plugin is only registered as a startup plugin.
     if (configuration.getPluginType().isEmpty())
@@ -411,3 +426,4 @@ public final class ProfilerPlugin
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }
+

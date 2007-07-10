@@ -33,18 +33,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.reflect.Method;
 
-import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.config.ConfigException;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.getMessage;
+import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -52,8 +41,20 @@ import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.meta.ExtendedOperationHandlerCfgDefn;
-import org.opends.server.admin.ClassPropertyDefinition;
+import org.opends.server.api.ExtendedOperationHandler;
+import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DN;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ResultCode;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+
 
 
 /**
@@ -75,7 +76,6 @@ public class ExtendedOperationConfigManager implements
 
 
 
-
   // A mapping between the DNs of the config entries and the associated extended
   // operation handlers.
   private ConcurrentHashMap<DN,ExtendedOperationHandler> handlers;
@@ -87,7 +87,7 @@ public class ExtendedOperationConfigManager implements
    */
   public ExtendedOperationConfigManager()
   {
-    handlers      = new ConcurrentHashMap<DN,ExtendedOperationHandler>();
+    handlers = new ConcurrentHashMap<DN,ExtendedOperationHandler>();
   }
 
 
@@ -382,9 +382,8 @@ public class ExtendedOperationConfigManager implements
 
   // Determines whether or not the new configuration's implementation
   // class is acceptable.
-  private boolean isJavaClassAcceptable(
-      ExtendedOperationHandlerCfg config,
-      List<String> unacceptableReasons)
+  private boolean isJavaClassAcceptable(ExtendedOperationHandlerCfg config,
+                                        List<String> unacceptableReasons)
   {
     String className = config.getJavaImplementationClass();
     ExtendedOperationHandlerCfgDefn d =
@@ -396,13 +395,21 @@ public class ExtendedOperationConfigManager implements
     Class<? extends ExtendedOperationHandler> theClass;
     try {
       theClass = pd.loadClass(className, ExtendedOperationHandler.class);
-      theClass.newInstance();
+      ExtendedOperationHandler extOpHandler = theClass.newInstance();
 
       // Determine the initialization method to use: it must take a
       // single parameter which is the exact type of the configuration
       // object.
-      theClass.getMethod("initializeExtendedOperationHandler",
-                         config.definition().getServerConfigurationClass());
+      Method method = theClass.getMethod("isConfigurationAcceptable",
+                                         ExtendedOperationHandlerCfg.class,
+                                         List.class);
+      Boolean acceptable = (Boolean) method.invoke(extOpHandler, config,
+                                                   unacceptableReasons);
+
+      if (! acceptable)
+      {
+        return false;
+      }
     }
     catch (Exception e)
     {

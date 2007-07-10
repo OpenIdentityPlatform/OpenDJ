@@ -6857,6 +6857,181 @@ public class ConfigMessages
 
 
 
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_KEYMANAGER_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 679;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_TRUSTMANAGER_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 680;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 681;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_ACCTNOTHANDLER_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 682;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_SCHEMA_SYNTAX_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 683;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_CERTMAPPER_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 684;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 685;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 686;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_IDMAPPER_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 687;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_SCHEMA_MR_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 688;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_PWGENERATOR_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 689;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_PWSCHEME_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 690;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_PWVALIDATOR_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 691;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_PLUGIN_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 692;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_SASL_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 693;
+
+
+
+  /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 694;
+
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -8076,6 +8251,9 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_MRU,
                     "Matching rule %s cannot be disabled because it is in " +
                     "use by matching rule use %s");
+    registerMessage(MSGID_CONFIG_SCHEMA_MR_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the matching rule defined in " +
+                    "configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_GET_SYNTAX_BASE,
@@ -8165,6 +8343,9 @@ public class ConfigMessages
     registerMessage(MSGID_CONFIG_SCHEMA_CANNOT_DISABLE_SYNTAX_IN_USE,
                     "Attribute syntax %s cannot be disabled because it is in " +
                     "use by attribute type %s");
+    registerMessage(MSGID_CONFIG_SCHEMA_SYNTAX_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the attribute syntax defined in " +
+                    "configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(MSGID_CONFIG_SCHEMA_NO_SCHEMA_DIR,
@@ -8334,6 +8515,9 @@ public class ConfigMessages
                     "an instance of class %s for use as the Directory Server " +
                     "entry cache:  %s.  As a result, the entry cache will be " +
                     "disabled");
+    registerMessage(MSGID_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the entry cache defined in " +
+                    "configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(MSGID_CONFIG_LOGGER_NO_ROTATION_POLICY,
@@ -8482,6 +8666,9 @@ public class ConfigMessages
                     "applied.  This change will not take effect until the " +
                     "plugin is disabled and re-enabled or the Directory " +
                     "Server is restarted");
+    registerMessage(MSGID_CONFIG_PLUGIN_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the plugin defined in " +
+                    "configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(MSGID_CONFIG_EXTOP_INVALID_CLASS,
@@ -8566,6 +8753,12 @@ public class ConfigMessages
                     "according to its internal validation.  However, no " +
                     "specific information is available regarding the " +
                     "problem(s) with the entry");
+    registerMessage(MSGID_CONFIG_SASL_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the SASL mechanism handler " +
+                    "defined in configuration entry %s was not acceptable:  " +
+                    "%s");
+
+
     registerMessage(MSGID_CONFIG_LOGGER_INVALID_SUPPRESS_INT_OPERATION_VALUE,
         "Invalid value specified for attribute %s. " +
         "Allowed values are true or false");
@@ -8650,6 +8843,9 @@ public class ConfigMessages
                     "to its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
                     "the entry");
+    registerMessage(MSGID_CONFIG_KEYMANAGER_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the key manager provider defined " +
+                    "in configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(MSGID_CONFIG_TRUSTMANAGER_CANNOT_GET_BASE,
@@ -8729,6 +8925,10 @@ public class ConfigMessages
                     "according to its internal validation.  However, no " +
                     "specific information is available regarding the " +
                     "problem(s) with the entry");
+    registerMessage(MSGID_CONFIG_TRUSTMANAGER_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the trust manager provider " +
+                    "defined in configuration entry %s was not acceptable:  " +
+                    "%s");
 
 
     registerMessage(MSGID_CONFIG_CERTMAPPER_CANNOT_GET_BASE,
@@ -8806,6 +9006,9 @@ public class ConfigMessages
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
                     "the entry");
+    registerMessage(MSGID_CONFIG_CERTMAPPER_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the certificate mapper defined in " +
+                    "configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(MSGID_CONFIG_PWSCHEME_CANNOT_GET_BASE,
@@ -8880,6 +9083,10 @@ public class ConfigMessages
                     "according to its internal validation.  However, no " +
                     "specific information is available regarding the " +
                     "problem(s) with the entry");
+    registerMessage(MSGID_CONFIG_PWSCHEME_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the password storage scheme " +
+                    "defined in configuration entry %s was not acceptable:  " +
+                    "%s");
 
 
     registerMessage(MSGID_CONFIG_BACKUP_CANNOT_GET_MAC,
@@ -9108,6 +9315,9 @@ public class ConfigMessages
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
                     "the entry");
+    registerMessage(MSGID_CONFIG_IDMAPPER_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the identity mapper defined in " +
+                    "configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(MSGID_CONFIG_SYNCH_CANNOT_GET_CONFIG_BASE,
@@ -9262,6 +9472,9 @@ public class ConfigMessages
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
                     "the entry");
+    registerMessage(MSGID_CONFIG_PWVALIDATOR_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the password validator defined in " +
+                    "configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(MSGID_CONFIG_PWGENERATOR_CANNOT_GET_BASE,
@@ -9335,6 +9548,9 @@ public class ConfigMessages
                     "its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
                     "the entry");
+    registerMessage(MSGID_CONFIG_PWGENERATOR_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the password generator defined in " +
+                    "configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(MSGID_CONFIG_PWPOLICY_CANNOT_GET_BASE,
@@ -9452,6 +9668,10 @@ public class ConfigMessages
         "An error occurred while attempting to initialize the "
             + "Directory Server access control implementation referenced "
             + "in configuration entry %s:  %s");
+
+    registerMessage(MSGID_CONFIG_AUTHZ_CONFIG_NOT_ACCEPTABLE,
+        "The configuration for the trust manager provider defined in "
+            + "configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(MSGID_CONFIG_ROOTDN_CANNOT_GET_BASE,
@@ -9596,6 +9816,12 @@ public class ConfigMessages
                     "acceptable according to its internal validation.  " +
                     "However, no specific information is available regarding " +
                     "the problem(s) with the entry");
+    registerMessage(MSGID_CONFIG_ACCTNOTHANDLER_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the account status notification " +
+                    "handler defined in configuration entry %s was not " +
+                    "acceptable:  %s");
+
+
     registerMessage(MSGID_CONFIG_CORE_DESCRIPTION_LOOKTHROUGH_LIMIT,
                     "Specifies the default maximum number of candidate " +
                     "entries checked for matches when processing a search " +
@@ -9698,6 +9924,9 @@ public class ConfigMessages
                     "to its internal validation.  However, no specific " +
                     "information is available regarding the problem(s) with " +
                     "the entry");
+    registerMessage(MSGID_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the group implementation defined " +
+                    "in configuration entry %s was not acceptable:  %s");
 
 
     registerMessage(
@@ -9744,6 +9973,12 @@ public class ConfigMessages
                     "An error occurred while trying to load an instance " +
                     "of class %s referenced in configuration entry %s as a " +
                     "virtual attribute provider:  %s");
+    registerMessage(MSGID_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the virtual attribute provider " +
+                    "defined in configuration entry %s was not acceptable:  " +
+                    "%s");
+
+
     registerMessage(MSGID_CONFIG_ROTATION_POLICY_INVALID_CLASS,
                     "Class %s specified in attribute " + ATTR_LOGGER_CLASS +
                     " of configuration entry %s cannot be instantiated as " +

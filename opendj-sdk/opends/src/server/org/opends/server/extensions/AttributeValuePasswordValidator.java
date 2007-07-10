@@ -34,6 +34,7 @@ import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AttributeValuePasswordValidatorCfg;
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -154,6 +155,20 @@ public class AttributeValuePasswordValidator
 
     // If we've gotten here, then the password is acceptable.
     return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    AttributeValuePasswordValidatorCfg config =
+         (AttributeValuePasswordValidatorCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
 

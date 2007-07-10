@@ -34,6 +34,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -159,7 +160,7 @@ public class AccountStatusNotificationHandlerConfigManager
       try
       {
         // Load the class but don't initialize it.
-        loadNotificationHandler(className, null);
+        loadNotificationHandler(className, configuration, true);
       }
       catch (InitializationException ie)
       {
@@ -267,7 +268,7 @@ public class AccountStatusNotificationHandlerConfigManager
       try
       {
         // Load the class but don't initialize it.
-        loadNotificationHandler (className, null);
+        loadNotificationHandler (className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -373,7 +374,7 @@ public class AccountStatusNotificationHandlerConfigManager
     // Load the notification handler class...
     AccountStatusNotificationHandler
         <? extends AccountStatusNotificationHandlerCfg> handlerClass;
-    handlerClass = loadNotificationHandler (className, configuration);
+    handlerClass = loadNotificationHandler (className, configuration, true);
 
     // ... and install the entry cache in the server.
     DN configEntryDN = configuration.dn();
@@ -392,8 +393,9 @@ public class AccountStatusNotificationHandlerConfigManager
    * @param  className      The fully-qualified name of the notification handler
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the
-   *                        notification handler, or {@code null} if the
-   *                        notification handler should not be initialized.
+   *                        notification handler.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the key manager provider instance
+   *                        should be initialized.
    *
    * @return  The possibly initialized notification handler.
    *
@@ -405,8 +407,8 @@ public class AccountStatusNotificationHandlerConfigManager
        <? extends AccountStatusNotificationHandlerCfg>
     loadNotificationHandler(
        String className,
-       AccountStatusNotificationHandlerCfg configuration
-       )
+       AccountStatusNotificationHandlerCfg configuration,
+       boolean initialize)
        throws InitializationException
   {
     try
@@ -429,13 +431,44 @@ public class AccountStatusNotificationHandlerConfigManager
             <? extends AccountStatusNotificationHandlerCfg>)
         handlerClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method = notificationHandler.getClass().getMethod(
             "initializeStatusNotificationHandler",
             configuration.definition().getServerConfigurationClass()
             );
         method.invoke(notificationHandler, configuration);
+      }
+      else
+      {
+        Method method =
+             notificationHandler.getClass().getMethod(
+                  "isConfigurationAcceptable",
+                  AccountStatusNotificationHandlerCfg.class, List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(notificationHandler,
+                                                     configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_ACCTNOTHANDLER_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return notificationHandler;

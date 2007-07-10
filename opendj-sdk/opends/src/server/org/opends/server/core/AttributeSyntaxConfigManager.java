@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -127,7 +128,8 @@ public class AttributeSyntaxConfigManager
         String className = syntaxConfiguration.getSyntaxClass();
         try
         {
-          AttributeSyntax syntax = loadSyntax(className, syntaxConfiguration);
+          AttributeSyntax syntax = loadSyntax(className, syntaxConfiguration,
+                                              true);
 
           try
           {
@@ -172,7 +174,7 @@ public class AttributeSyntaxConfigManager
       String className = configuration.getSyntaxClass();
       try
       {
-        loadSyntax(className, null);
+        loadSyntax(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -211,7 +213,7 @@ public class AttributeSyntaxConfigManager
     String className = configuration.getSyntaxClass();
     try
     {
-      syntax = loadSyntax(className, configuration);
+      syntax = loadSyntax(className, configuration, true);
 
       try
       {
@@ -316,7 +318,7 @@ public class AttributeSyntaxConfigManager
       String className = configuration.getSyntaxClass();
       try
       {
-        loadSyntax(className, null);
+        loadSyntax(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -405,7 +407,7 @@ public class AttributeSyntaxConfigManager
     AttributeSyntax syntax = null;
     try
     {
-      syntax = loadSyntax(className, configuration);
+      syntax = loadSyntax(className, configuration, true);
 
       try
       {
@@ -447,8 +449,9 @@ public class AttributeSyntaxConfigManager
    * @param  className      The fully-qualified name of the attribute syntax
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the attribute
-   *                        syntax, or {@code null} if the attribute syntax
-   *                        should not be initialized.
+   *                        syntax.  It should not be {@code null}.
+   * @param  initialize     Indicates whether the key manager provider instance
+   *                        should be initialized.
    *
    * @return  The possibly initialized attribute syntax.
    *
@@ -456,7 +459,8 @@ public class AttributeSyntaxConfigManager
    *                                   initialize the attribute syntax.
    */
   private AttributeSyntax loadSyntax(String className,
-                                     AttributeSyntaxCfg configuration)
+                                     AttributeSyntaxCfg configuration,
+                                     boolean initialize)
           throws InitializationException
   {
     try
@@ -469,12 +473,41 @@ public class AttributeSyntaxConfigManager
            propertyDefinition.loadClass(className, AttributeSyntax.class);
       AttributeSyntax syntax = syntaxClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method =
              syntax.getClass().getMethod("initializeSyntax",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(syntax, configuration);
+      }
+      else
+      {
+        Method method = syntax.getClass().getMethod("isConfigurationAcceptable",
+                                                    AttributeSyntaxCfg.class,
+                                                    List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(syntax, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_SCHEMA_SYNTAX_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return syntax;

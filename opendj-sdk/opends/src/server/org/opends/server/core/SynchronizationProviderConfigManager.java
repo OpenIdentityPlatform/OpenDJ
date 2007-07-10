@@ -34,6 +34,7 @@ import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -440,11 +441,12 @@ public class SynchronizationProviderConfigManager
       d.getJavaImplementationClassPropertyDefinition();
 
     // Load the class and cast it to a synchronizationProvider.
+    SynchronizationProvider provider = null;
     Class<? extends SynchronizationProvider> theClass;
     try
     {
        theClass = pd.loadClass(className, SynchronizationProvider.class);
-       theClass.newInstance();
+       provider = theClass.newInstance();
     } catch (Exception e)
     {
        // Handle the exception: put a message in the unacceptable reasons.
@@ -461,8 +463,16 @@ public class SynchronizationProviderConfigManager
       // Determine the initialization method to use: it must take a
       // single parameter which is the exact type of the configuration
       // object.
-      theClass.getMethod("initializeSynchronizationProvider",
-                     configuration.definition().getServerConfigurationClass());
+      Method method = theClass.getMethod("isConfigurationAcceptable",
+                                         SynchronizationProviderCfg.class,
+                                         List.class);
+      Boolean acceptable = (Boolean) method.invoke(provider, configuration,
+                                                   unacceptableReasons);
+
+      if (! acceptable)
+      {
+        return false;
+      }
     } catch (Exception e)
     {
       // Handle the exception: put a message in the unacceptable reasons.

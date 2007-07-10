@@ -42,6 +42,7 @@ import javax.net.ssl.KeyManagerFactory;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedKeyManagerCfg;
+import org.opends.server.admin.std.server.KeyManagerCfg;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -321,11 +322,25 @@ public class FileBasedKeyManagerProvider
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(KeyManagerCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    FileBasedKeyManagerCfg config = (FileBasedKeyManagerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
                       FileBasedKeyManagerCfg configuration,
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
+    DN configEntryDN = configuration.dn();
 
 
     // Get the path to the key store file.

@@ -40,6 +40,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PasswordPolicyImportPluginCfg;
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.PasswordStorageScheme;
@@ -603,6 +604,20 @@ policyLoop:
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(PluginCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    PasswordPolicyImportPluginCfg config =
+         (PasswordPolicyImportPluginCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
                       PasswordPolicyImportPluginCfg configuration,
                       List<String> unacceptableReasons)
@@ -821,6 +836,12 @@ policyLoop:
         }
         i++;
       }
+    }
+
+    if (resultCode == ResultCode.SUCCESS)
+    {
+      defaultAuthPasswordSchemes = defaultAuthSchemes;
+      defaultUserPasswordSchemes = defaultUserSchemes;
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);

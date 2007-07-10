@@ -37,6 +37,7 @@ import java.util.StringTokenizer;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.PasswordGeneratorCfg;
 import org.opends.server.admin.std.server.RandomPasswordGeneratorCfg;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.config.ConfigAttribute;
@@ -353,11 +354,27 @@ public class RandomPasswordGenerator
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(PasswordGeneratorCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    RandomPasswordGeneratorCfg config =
+         (RandomPasswordGeneratorCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
       RandomPasswordGeneratorCfg configuration,
       List<String> unacceptableReasons)
   {
     int msgID;
+
+    DN configEntryDN = configuration.dn();
 
     // Get the character sets for use in generating the password. At
     // least one

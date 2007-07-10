@@ -34,6 +34,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -150,7 +151,7 @@ public class PasswordStorageSchemeConfigManager
       try
       {
         // Load the class but don't initialize it.
-        loadPasswordStorageScheme (className, null);
+        loadPasswordStorageScheme (className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -259,7 +260,7 @@ public class PasswordStorageSchemeConfigManager
       try
       {
         // Load the class but don't initialize it.
-        loadPasswordStorageScheme (className, null);
+        loadPasswordStorageScheme (className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -367,7 +368,7 @@ public class PasswordStorageSchemeConfigManager
     // Load the password storage scheme class...
     PasswordStorageScheme
         <? extends PasswordStorageSchemeCfg> schemeClass;
-    schemeClass = loadPasswordStorageScheme (className, configuration);
+    schemeClass = loadPasswordStorageScheme (className, configuration, true);
 
     // ... and install the password storage scheme in the server.
     DN configEntryDN = configuration.dn();
@@ -383,8 +384,9 @@ public class PasswordStorageSchemeConfigManager
    * @param  className      The fully-qualified name of the class
    *                        to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the
-   *                        class, or {@code null} if the
-   *                        class should not be initialized.
+   *                        class.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the password storage scheme
+   *                        instance should be initialized.
    *
    * @return  The possibly initialized password storage scheme.
    *
@@ -394,8 +396,8 @@ public class PasswordStorageSchemeConfigManager
   private PasswordStorageScheme <? extends PasswordStorageSchemeCfg>
     loadPasswordStorageScheme(
        String className,
-       PasswordStorageSchemeCfg configuration
-       )
+       PasswordStorageSchemeCfg configuration,
+       boolean initialize)
        throws InitializationException
   {
     try
@@ -416,13 +418,43 @@ public class PasswordStorageSchemeConfigManager
         (PasswordStorageScheme<? extends PasswordStorageSchemeCfg>)
             schemeClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method = passwordStorageScheme.getClass().getMethod(
             "initializePasswordStorageScheme",
             configuration.definition().getServerConfigurationClass()
             );
         method.invoke(passwordStorageScheme, configuration);
+      }
+      else
+      {
+        Method method = passwordStorageScheme.getClass().getMethod(
+                             "isConfigurationAcceptable",
+                             PasswordStorageSchemeCfg.class, List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(passwordStorageScheme,
+                                                     configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_PWSCHEME_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return passwordStorageScheme;

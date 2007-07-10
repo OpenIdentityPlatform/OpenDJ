@@ -55,6 +55,7 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.StatsConfig;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
+import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.config.ConfigException;
@@ -1347,6 +1348,17 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    FileSystemEntryCacheCfg config = (FileSystemEntryCacheCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
       FileSystemEntryCacheCfg configuration,
       List<String>      unacceptableReasons
@@ -1514,6 +1526,8 @@ public class FileSystemEntryCache
     boolean               newPersistentCache;
     String                newCacheType = DEFAULT_FSCACHE_TYPE;
     String                newCacheHome = DEFAULT_FSCACHE_HOME;
+
+    DN configEntryDN = configuration.dn();
 
     // Read configuration.
     newConfigEntryDN = configuration.dn();

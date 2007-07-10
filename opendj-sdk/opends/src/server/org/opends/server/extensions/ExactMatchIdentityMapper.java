@@ -38,6 +38,7 @@ import java.util.SortedSet;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
+import org.opends.server.admin.std.server.IdentityMapperCfg;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -290,6 +291,20 @@ public class ExactMatchIdentityMapper
     {
       return matchingEntry;
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    ExactMatchIdentityMapperCfg config =
+         (ExactMatchIdentityMapperCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
 

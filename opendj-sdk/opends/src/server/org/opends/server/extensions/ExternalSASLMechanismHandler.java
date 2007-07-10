@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExternalSASLMechanismHandlerCfg;
+import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionSecurityProvider;
@@ -466,11 +467,27 @@ public class ExternalSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(
+                      SASLMechanismHandlerCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    ExternalSASLMechanismHandlerCfg config =
+         (ExternalSASLMechanismHandlerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
                       ExternalSASLMechanismHandlerCfg configuration,
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
+    DN configEntryDN = configuration.dn();
 
     // Get the attribute type to use for validating the certificates.  If none
     // is provided, then default to the userCertificate type.

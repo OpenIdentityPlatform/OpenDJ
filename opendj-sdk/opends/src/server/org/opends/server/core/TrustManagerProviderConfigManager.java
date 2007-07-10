@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -127,7 +128,7 @@ public class TrustManagerProviderConfigManager
         try
         {
           TrustManagerProvider provider =
-               loadProvider(className, providerConfig);
+               loadProvider(className, providerConfig, true);
           providers.put(providerConfig.dn(), provider);
           DirectoryServer.registerTrustManagerProvider(providerConfig.dn(),
                                                        provider);
@@ -158,7 +159,7 @@ public class TrustManagerProviderConfigManager
       String className = configuration.getJavaImplementationClass();
       try
       {
-        loadProvider(className, null);
+        loadProvider(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -196,7 +197,7 @@ public class TrustManagerProviderConfigManager
     String className = configuration.getJavaImplementationClass();
     try
     {
-      provider = loadProvider(className, configuration);
+      provider = loadProvider(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -269,7 +270,7 @@ public class TrustManagerProviderConfigManager
       String className = configuration.getJavaImplementationClass();
       try
       {
-        loadProvider(className, null);
+        loadProvider(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -337,7 +338,7 @@ public class TrustManagerProviderConfigManager
     TrustManagerProvider provider = null;
     try
     {
-      provider = loadProvider(className, configuration);
+      provider = loadProvider(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -368,8 +369,9 @@ public class TrustManagerProviderConfigManager
    * @param  className      The fully-qualified name of the trust manager
    *                        provider class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the trust
-   *                        manager provider, or {@code null} if the provider
-   *                        should not be initialized.
+   *                        manager provider.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the trust manager provider
+   *                        instance should be initialized.
    *
    * @return  The possibly initialized trust manager provider.
    *
@@ -377,7 +379,8 @@ public class TrustManagerProviderConfigManager
    *                                   initialize the trust manager provider.
    */
   private TrustManagerProvider loadProvider(String className,
-                                            TrustManagerCfg configuration)
+                                            TrustManagerCfg configuration,
+                                            boolean initialize)
           throws InitializationException
   {
     try
@@ -389,12 +392,41 @@ public class TrustManagerProviderConfigManager
            propertyDefinition.loadClass(className, TrustManagerProvider.class);
       TrustManagerProvider provider = providerClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method =
              provider.getClass().getMethod("initializeTrustManagerProvider",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(provider, configuration);
+      }
+      else
+      {
+        Method method =
+             provider.getClass().getMethod("isConfigurationAcceptable",
+                                           TrustManagerCfg.class, List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(provider, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_TRUSTMANAGER_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return provider;

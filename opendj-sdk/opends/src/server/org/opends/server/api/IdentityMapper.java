@@ -28,6 +28,8 @@ package org.opends.server.api;
 
 
 
+import java.util.List;
+
 import org.opends.server.admin.std.server.IdentityMapperCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
@@ -68,6 +70,38 @@ public abstract class IdentityMapper
    */
   public abstract void initializeIdentityMapper(T configuration)
          throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Indicates whether the provided configuration is acceptable for
+   * this identity mapper.  It should be possible to call this method
+   * on an uninitialized identity mapper instance in order to
+   * determine whether the identity mapper would be able to use the
+   * provided configuration.
+   * <BR><BR>
+   * Note that implementations which use a subclass of the provided
+   * configuration class will likely need to cast the configuration
+   * to the appropriate subclass type.
+   *
+   * @param  configuration        The identity mapper configuration
+   *                              for which to make the determination.
+   * @param  unacceptableReasons  A list that may be used to hold the
+   *                              reasons that the provided
+   *                              configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is acceptable
+   *          for this identity mapper, or {@code false} if not.
+   */
+  public boolean isConfigurationAcceptable(
+                      IdentityMapperCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // This default implementation does not perform any special
+    // validation.  It should be overridden by identity mapper
+    // implementations that wish to perform more detailed validation.
+    return true;
+  }
 
 
 

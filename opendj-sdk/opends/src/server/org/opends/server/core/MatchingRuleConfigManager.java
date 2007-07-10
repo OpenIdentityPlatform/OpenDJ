@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -138,7 +139,7 @@ public class MatchingRuleConfigManager
         try
         {
           MatchingRule matchingRule =
-               loadMatchingRule(className, mrConfiguration);
+               loadMatchingRule(className, mrConfiguration, true);
 
           try
           {
@@ -182,7 +183,7 @@ public class MatchingRuleConfigManager
       String className = configuration.getMatchingRuleClass();
       try
       {
-        loadMatchingRule(className, null);
+        loadMatchingRule(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -220,7 +221,7 @@ public class MatchingRuleConfigManager
     String className = configuration.getMatchingRuleClass();
     try
     {
-      matchingRule = loadMatchingRule(className, configuration);
+      matchingRule = loadMatchingRule(className, configuration, true);
 
       try
       {
@@ -376,7 +377,7 @@ public class MatchingRuleConfigManager
       String className = configuration.getMatchingRuleClass();
       try
       {
-        loadMatchingRule(className, null);
+        loadMatchingRule(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -518,7 +519,7 @@ public class MatchingRuleConfigManager
     MatchingRule matchingRule = null;
     try
     {
-      matchingRule = loadMatchingRule(className, configuration);
+      matchingRule = loadMatchingRule(className, configuration, true);
 
       try
       {
@@ -560,8 +561,9 @@ public class MatchingRuleConfigManager
    * @param  className      The fully-qualified name of the attribute syntax
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the attribute
-   *                        syntax, or {@code null} if the attribute syntax
-   *                        should not be initialized.
+   *                        syntax.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the matching rule instance should
+   *                        be initialized.
    *
    * @return  The possibly initialized attribute syntax.
    *
@@ -569,7 +571,8 @@ public class MatchingRuleConfigManager
    *                                   initialize the attribute syntax.
    */
   private MatchingRule loadMatchingRule(String className,
-                                        MatchingRuleCfg configuration)
+                                        MatchingRuleCfg configuration,
+                                        boolean initialize)
           throws InitializationException
   {
     try
@@ -626,12 +629,43 @@ public class MatchingRuleConfigManager
                                  configuration.getClass().getName());
       }
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method =
              matchingRule.getClass().getMethod("initializeMatchingRule",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(matchingRule, configuration);
+      }
+      else
+      {
+        Method method =
+             matchingRule.getClass().getMethod("isConfigurationAcceptable",
+                                               MatchingRuleCfg.class,
+                                               List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(matchingRule,
+                                                     configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_SCHEMA_MR_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return matchingRule;

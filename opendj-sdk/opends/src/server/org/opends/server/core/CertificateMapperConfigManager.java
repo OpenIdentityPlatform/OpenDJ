@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -126,7 +127,8 @@ public class CertificateMapperConfigManager
         String className = mapperConfiguration.getMapperClass();
         try
         {
-          CertificateMapper mapper = loadMapper(className, mapperConfiguration);
+          CertificateMapper mapper = loadMapper(className, mapperConfiguration,
+                                                true);
           certificateMappers.put(mapperConfiguration.dn(), mapper);
           DirectoryServer.registerCertificateMapper(mapperConfiguration.dn(),
                                                     mapper);
@@ -158,7 +160,7 @@ public class CertificateMapperConfigManager
       String className = configuration.getMapperClass();
       try
       {
-        loadMapper(className, null);
+        loadMapper(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -197,7 +199,7 @@ public class CertificateMapperConfigManager
     String className = configuration.getMapperClass();
     try
     {
-      certificateMapper = loadMapper(className, configuration);
+      certificateMapper = loadMapper(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -273,7 +275,7 @@ public class CertificateMapperConfigManager
       String className = configuration.getMapperClass();
       try
       {
-        loadMapper(className, null);
+        loadMapper(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -343,7 +345,7 @@ public class CertificateMapperConfigManager
     CertificateMapper certificateMapper = null;
     try
     {
-      certificateMapper = loadMapper(className, configuration);
+      certificateMapper = loadMapper(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -374,8 +376,9 @@ public class CertificateMapperConfigManager
    * @param  className      The fully-qualified name of the certificate mapper
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the
-   *                        certificate mapper, or {@code null} if the
-   *                        certificate mapper should not be initialized.
+   *                        certificate mapper.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the certificate mapper instance
+   *                        should be initialized.
    *
    * @return  The possibly initialized certificate mapper.
    *
@@ -383,7 +386,8 @@ public class CertificateMapperConfigManager
    *                                   initialize the certificate mapper.
    */
   private CertificateMapper loadMapper(String className,
-                                 CertificateMapperCfg configuration)
+                                       CertificateMapperCfg configuration,
+                                       boolean initialize)
           throws InitializationException
   {
     try
@@ -396,12 +400,41 @@ public class CertificateMapperConfigManager
            propertyDefinition.loadClass(className, CertificateMapper.class);
       CertificateMapper mapper = mapperClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method =
              mapper.getClass().getMethod("initializeCertificateMapper",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(mapper, configuration);
+      }
+      else
+      {
+        Method method = mapper.getClass().getMethod("isConfigurationAcceptable",
+                                                    CertificateMapperCfg.class,
+                                                    List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(mapper, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_CERTMAPPER_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return mapper;

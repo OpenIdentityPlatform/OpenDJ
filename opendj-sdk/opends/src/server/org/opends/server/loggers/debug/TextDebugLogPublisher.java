@@ -35,6 +35,7 @@ import org.opends.server.util.TimeThread;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.ServerConstants.PROPERTY_DEBUG_TARGET;
+import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.admin.std.server.DebugTargetCfg;
 import org.opends.server.admin.std.server.FileBasedDebugLogPublisherCfg;
 import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
@@ -250,6 +251,47 @@ public class TextDebugLogPublisher
     config.addFileBasedDebugChangeListener(this);
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(DebugLogPublisherCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    FileBasedDebugLogPublisherCfg config =
+         (FileBasedDebugLogPublisherCfg) configuration;
+
+    // Validate retention and rotation policies.
+    for(DN dn : config.getRotationPolicyDN())
+    {
+      RotationPolicy policy = DirectoryServer.getRotationPolicy(dn);
+      if(policy == null)
+      {
+        int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
+        String message = getMessage(msgID, dn.toString(),
+                                    config.dn().toString());
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
+    for(DN dn: config.getRetentionPolicyDN())
+    {
+      RetentionPolicy policy = DirectoryServer.getRetentionPolicy(dn);
+      if(policy != null)
+      {
+        int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
+        String message = getMessage(msgID, dn.toString(),
+                                    config.dn().toString());
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -282,33 +324,7 @@ public class TextDebugLogPublisher
       return false;
     }
 
-    // Validate retention and rotation policies.
-    for(DN dn : config.getRotationPolicyDN())
-    {
-      RotationPolicy policy = DirectoryServer.getRotationPolicy(dn);
-      if(policy == null)
-      {
-        int msgID = MSGID_CONFIG_LOGGER_INVALID_ROTATION_POLICY;
-        String message = getMessage(msgID, dn.toString(),
-                                    config.dn().toString());
-        unacceptableReasons.add(message);
-        return false;
-      }
-    }
-    for(DN dn: config.getRetentionPolicyDN())
-    {
-      RetentionPolicy policy = DirectoryServer.getRetentionPolicy(dn);
-      if(policy != null)
-      {
-        int msgID = MSGID_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
-        String message = getMessage(msgID, dn.toString(),
-                                    config.dn().toString());
-        unacceptableReasons.add(message);
-        return false;
-      }
-    }
-
-    return true;
+    return isConfigurationAcceptable(config, unacceptableReasons);
   }
 
   /**

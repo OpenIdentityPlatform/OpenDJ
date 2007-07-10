@@ -39,6 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CramMD5SASLMechanismHandlerCfg;
+import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.SASLMechanismHandler;
@@ -617,11 +618,27 @@ public class CRAMMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(
+                      SASLMechanismHandlerCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    CramMD5SASLMechanismHandlerCfg config =
+         (CramMD5SASLMechanismHandlerCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
                       CramMD5SASLMechanismHandlerCfg configuration,
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
+    DN configEntryDN = configuration.dn();
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();

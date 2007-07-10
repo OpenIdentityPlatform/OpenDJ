@@ -30,25 +30,8 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-
-import org.opends.server.api.EntryCache;
-import org.opends.server.extensions.DefaultEntryCache;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.config.ConfigException;
-
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.messages.ConfigMessages.*;
-import static org.opends.server.messages.MessageHandler.*;
-import static org.opends.server.util.StaticUtils.*;
-
 
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -58,6 +41,24 @@ import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.meta.EntryCacheCfgDefn;
+import org.opends.server.api.EntryCache;
+import org.opends.server.config.ConfigException;
+import org.opends.server.extensions.DefaultEntryCache;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.ResultCode;
+
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.messages.ConfigMessages.*;
+import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.StaticUtils.*;
+
+
 
 
 
@@ -222,7 +223,7 @@ public class EntryCacheConfigManager
       try
       {
         // Load the class but don't initialize it.
-        loadEntryCache(className, null);
+        loadEntryCache(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -314,7 +315,7 @@ public class EntryCacheConfigManager
       try
       {
         // Load the class but don't initialize it.
-        loadEntryCache(className, null);
+        loadEntryCache(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -426,7 +427,7 @@ public class EntryCacheConfigManager
     throws InitializationException
   {
     // Load the entry cache class...
-    EntryCache entryCache = loadEntryCache (className, configuration);
+    EntryCache entryCache = loadEntryCache (className, configuration, true);
 
     // ... and install the entry cache in the server.
     DirectoryServer.setEntryCache(entryCache);
@@ -441,8 +442,9 @@ public class EntryCacheConfigManager
    * @param  className      The fully-qualified name of the entry cache
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the
-   *                        entry cache, or {@code null} if the
-   *                        entry cache should not be initialized.
+   *                        entry cache.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the key manager provider instance
+   *                        should be initialized.
    *
    * @return  The possibly initialized entry cache.
    *
@@ -451,7 +453,8 @@ public class EntryCacheConfigManager
    */
   private EntryCache<? extends EntryCacheCfg> loadEntryCache(
     String        className,
-    EntryCacheCfg configuration
+    EntryCacheCfg configuration,
+    boolean initialize
     )
     throws InitializationException
   {
@@ -467,13 +470,42 @@ public class EntryCacheConfigManager
       cacheClass = propertyDefinition.loadClass(className, EntryCache.class);
       cache = (EntryCache<? extends EntryCacheCfg>) cacheClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method = cache.getClass().getMethod(
             "initializeEntryCache",
             configuration.definition().getServerConfigurationClass()
             );
         method.invoke(cache, configuration);
+      }
+      else
+      {
+        Method method = cache.getClass().getMethod("isConfigurationAcceptable",
+                                                   EntryCacheCfg.class,
+                                                   List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(cache, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_ENTRYCACHE_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return cache;

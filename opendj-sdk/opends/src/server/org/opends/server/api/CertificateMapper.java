@@ -29,6 +29,7 @@ package org.opends.server.api;
 
 
 import java.security.cert.Certificate;
+import java.util.List;
 
 import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.config.ConfigException;
@@ -68,6 +69,38 @@ public abstract class CertificateMapper
    */
   public abstract void initializeCertificateMapper(T configuration)
          throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Indicates whether the provided configuration is acceptable for
+   * this certificate mapper.  It should be possible to call this
+   * method on an uninitialized certificate mapper instance in order
+   * to determine whether the certificate mapper would be able to use
+   * the provided configuration.
+   * <BR><BR>
+   * Note that implementations which use a subclass of the provided
+   * configuration class will likely need to cast the configuration
+   * to the appropriate subclass type.
+   *
+   * @param  configuration        The certificate mapper configuration
+   *                              for which to make the determination.
+   * @param  unacceptableReasons  A list that may be used to hold the
+   *                              reasons that the provided
+   *                              configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is acceptable
+   *          for this certificate mapper, or {@code false} if not.
+   */
+  public boolean isConfigurationAcceptable(
+                      CertificateMapperCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // This default implementation does not perform any special
+    // validation.  It should be overridden by certificate mapper
+    // implementations that wish to perform more detailed validation.
+    return true;
+  }
 
 
 

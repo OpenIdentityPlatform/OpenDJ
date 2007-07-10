@@ -36,6 +36,7 @@ import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CharacterSetPasswordValidatorCfg;
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
@@ -251,6 +252,20 @@ public class CharacterSetPasswordValidator
     }
 
     return characterSets;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    CharacterSetPasswordValidatorCfg config =
+         (CharacterSetPasswordValidatorCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
 

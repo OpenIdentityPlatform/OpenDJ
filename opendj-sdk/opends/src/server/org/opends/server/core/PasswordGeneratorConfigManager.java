@@ -30,6 +30,7 @@ package org.opends.server.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -125,7 +126,8 @@ public class PasswordGeneratorConfigManager
         try
         {
           PasswordGenerator<? extends PasswordGeneratorCfg>
-               generator = loadGenerator(className, generatorConfiguration);
+               generator = loadGenerator(className, generatorConfiguration,
+                                         true);
           passwordGenerators.put(generatorConfiguration.dn(), generator);
           DirectoryServer.registerPasswordGenerator(generatorConfiguration.dn(),
               generator);
@@ -155,7 +157,7 @@ public class PasswordGeneratorConfigManager
       String className = configuration.getGeneratorClass();
       try
       {
-        loadGenerator(className, null);
+        loadGenerator(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -225,7 +227,7 @@ public class PasswordGeneratorConfigManager
          passwordGenerator = null;
     try
     {
-      passwordGenerator = loadGenerator(className, configuration);
+      passwordGenerator = loadGenerator(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -260,7 +262,7 @@ public class PasswordGeneratorConfigManager
       String className = configuration.getGeneratorClass();
       try
       {
-        loadGenerator(className, null);
+        loadGenerator(className, configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -299,7 +301,7 @@ public class PasswordGeneratorConfigManager
     String className = configuration.getGeneratorClass();
     try
     {
-      passwordGenerator = loadGenerator(className, configuration);
+      passwordGenerator = loadGenerator(className, configuration, true);
     }
     catch (InitializationException ie)
     {
@@ -365,6 +367,8 @@ public class PasswordGeneratorConfigManager
    * @param  configuration  The configuration to use to initialize the
    *                        password generator, or {@code null} if the
    *                        password generator should not be initialized.
+   * @param  initialize     Indicates whether the password generator instance
+   *                        should be initialized.
    *
    * @return  The possibly initialized password generator.
    *
@@ -373,7 +377,8 @@ public class PasswordGeneratorConfigManager
    */
   private PasswordGenerator<? extends PasswordGeneratorCfg>
                loadGenerator(String className,
-                             PasswordGeneratorCfg configuration)
+                             PasswordGeneratorCfg configuration,
+                             boolean initialize)
           throws InitializationException
   {
     try
@@ -388,12 +393,42 @@ public class PasswordGeneratorConfigManager
            (PasswordGenerator<? extends PasswordGeneratorCfg>)
            generatorClass.newInstance();
 
-      if (configuration != null)
+      if (initialize)
       {
         Method method =
           generator.getClass().getMethod("initializePasswordGenerator",
                   configuration.definition().getServerConfigurationClass());
         method.invoke(generator, configuration);
+      }
+      else
+      {
+        Method method =
+             generator.getClass().getMethod("isConfigurationAcceptable",
+                                            PasswordGeneratorCfg.class,
+                                            List.class);
+
+        List<String> unacceptableReasons = new ArrayList<String>();
+        Boolean acceptable = (Boolean) method.invoke(generator, configuration,
+                                                     unacceptableReasons);
+        if (! acceptable)
+        {
+          StringBuilder buffer = new StringBuilder();
+          if (! unacceptableReasons.isEmpty())
+          {
+            Iterator<String> iterator = unacceptableReasons.iterator();
+            buffer.append(iterator.next());
+            while (iterator.hasNext())
+            {
+              buffer.append(".  ");
+              buffer.append(iterator.next());
+            }
+          }
+
+          int    msgID   = MSGID_CONFIG_PWGENERATOR_CONFIG_NOT_ACCEPTABLE;
+          String message = getMessage(msgID, String.valueOf(configuration.dn()),
+                                      buffer.toString());
+          throw new InitializationException(msgID, message);
+        }
       }
 
       return generator;

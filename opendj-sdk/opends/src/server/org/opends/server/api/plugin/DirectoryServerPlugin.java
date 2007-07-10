@@ -28,6 +28,7 @@ package org.opends.server.api.plugin;
 
 
 
+import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.std.server.PluginCfg;
@@ -78,6 +79,32 @@ public abstract class DirectoryServerPlugin
    */
   protected DirectoryServerPlugin()
   {
+  }
+
+
+
+  /**
+   * Indicates whether the provided configuration is acceptable for
+   * this plugin.  It should be possible to call this method on an
+   * uninitialized plugin instance in order to determine whether the
+   * plugin would be able to use the provided configuration.
+   *
+   * @param  configuration        The plugin configuration for which
+   *                              to make the determination.
+   * @param  unacceptableReasons  A list that may be used to hold the
+   *                              reasons that the provided
+   *                              configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is acceptable
+   *          for this plugin, or {@code false} if not.
+   */
+  public boolean isConfigurationAcceptable(PluginCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // This default implementation does not perform any special
+    // validation.  It should be overridden by plugin implementations
+    // that wish to perform more detailed validation.
+    return true;
   }
 
 

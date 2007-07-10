@@ -28,6 +28,8 @@ package org.opends.server.api;
 
 
 
+import java.util.List;
+
 import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ByteString;
@@ -70,6 +72,40 @@ public abstract class
   public abstract void initializePasswordStorageScheme(
          T configuration)
          throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Indicates whether the provided configuration is acceptable for
+   * this password storage scheme.  It should be possible to call this
+   * method on an uninitialized password storage scheme instance in
+   * order to determine whether the password storage scheme would be
+   * able to use the provided configuration.
+   * <BR><BR>
+   * Note that implementations which use a subclass of the provided
+   * configuration class will likely need to cast the configuration
+   * to the appropriate subclass type.
+   *
+   * @param  configuration        The password storage scheme
+   *                              configuration for which to make the
+   *                              determination.
+   * @param  unacceptableReasons  A list that may be used to hold the
+   *                              reasons that the provided
+   *                              configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is acceptable
+   *          for this password storage scheme, or {@code false} if
+   *          not.
+   */
+  public boolean isConfigurationAcceptable(
+                      PasswordStorageSchemeCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    // This default implementation does not perform any special
+    // validation.  It should be overridden by password storage scheme
+    // implementations that wish to perform more detailed validation.
+    return true;
+  }
 
 
 
