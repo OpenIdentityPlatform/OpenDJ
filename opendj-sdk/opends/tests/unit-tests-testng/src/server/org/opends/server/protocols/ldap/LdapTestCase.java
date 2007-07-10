@@ -164,6 +164,7 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
 	  serverLdapSocket.setReuseAddress(true);
 	  serverLdapSocket.bind(new InetSocketAddress(localHost, 0));
 	  long serverLdapPort = serverLdapSocket.getLocalPort();
+    serverLdapSocket.close();
 	  Attribute a=new Attribute(ATTR_LISTEN_PORT, String.valueOf(serverLdapPort));
 	  handlerEntry.addAttribute(a,null);
     LDAPConnectionHandlerCfg config =
