@@ -2281,7 +2281,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
       "--outputLDIF", diffLdifFile.getAbsolutePath()
     };
 
-    int retVal = LDIFDiff.mainDiff(args, true);
+    int retVal = LDIFDiff.mainDiff(args, true, System.out, System.err);
     assertEquals(retVal, 0, "LDIFDiff failed");
 
     if (diffLdifFile.exists()) {

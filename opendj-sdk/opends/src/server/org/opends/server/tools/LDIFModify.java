@@ -30,6 +30,8 @@ package org.opends.server.tools;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -51,6 +53,7 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RawModification;
 import org.opends.server.util.AddChangeRecordEntry;
@@ -395,7 +398,7 @@ public class LDIFModify
    */
   public static void main(String[] args)
   {
-    int returnCode = ldifModifyMain(args, false);
+    int returnCode = ldifModifyMain(args, false, System.out, System.err);
     if (returnCode != 0)
     {
       System.exit(filterExitCode(returnCode));
@@ -413,12 +416,38 @@ public class LDIFModify
    * @param  serverInitialized  Indicates whether the Directory Server has
    *                            already been initialized (and therefore should
    *                            not be initialized a second time).
+   * @param  outStream          The output stream to use for standard output, or
+   *                            {@code null} if standard output is not needed.
+   * @param  errStream          The output stream to use for standard error, or
+   *                            {@code null} if standard error is not needed.
    *
    * @return  A value of zero if everything completed properly, or nonzero if
    *          any problem(s) occurred.
    */
-  public static int ldifModifyMain(String[] args, boolean serverInitialized)
+  public static int ldifModifyMain(String[] args, boolean serverInitialized,
+                                   OutputStream outStream,
+                                   OutputStream errStream)
   {
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
     // Prepare the argument parser.
     BooleanArgument showUsage;
     StringArgument  changesFile;
@@ -477,7 +506,7 @@ public class LDIFModify
     {
       int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
-      System.err.println(message);
+      err.println(message);
       return 1;
     }
 
@@ -492,8 +521,8 @@ public class LDIFModify
       int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(message);
-      System.err.println(argParser.getUsage());
+      err.println(message);
+      err.println(argParser.getUsage());
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -528,7 +557,7 @@ public class LDIFModify
           String message = getMessage(msgID,
                                       String.valueOf(configFile.getValue()),
                                       e.getMessage());
-          System.err.println(message);
+          err.println(message);
           return 1;
         }
 
@@ -543,7 +572,7 @@ public class LDIFModify
           String message = getMessage(msgID,
                                       String.valueOf(configFile.getValue()),
                                       e.getMessage());
-          System.err.println(message);
+          err.println(message);
           return 1;
         }
 
@@ -557,7 +586,7 @@ public class LDIFModify
           String message = getMessage(msgID,
                                       String.valueOf(configFile.getValue()),
                                       e.getMessage());
-          System.err.println(message);
+          err.println(message);
           return 1;
         }
       }
@@ -570,7 +599,7 @@ public class LDIFModify
     {
       int    msgID   = MSGID_LDIFMODIFY_SOURCE_DOES_NOT_EXIST;
       String message = getMessage(msgID, sourceFile.getValue());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -585,7 +614,7 @@ public class LDIFModify
       int    msgID   = MSGID_LDIFMODIFY_CANNOT_OPEN_SOURCE;
       String message = getMessage(msgID, sourceFile.getValue(),
                                   String.valueOf(ioe));
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
 
@@ -595,7 +624,7 @@ public class LDIFModify
     {
       int    msgID   = MSGID_LDIFMODIFY_CHANGES_DOES_NOT_EXIST;
       String message = getMessage(msgID, changesFile.getValue());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
     }
 
@@ -609,7 +638,7 @@ public class LDIFModify
     {
       int    msgID   = MSGID_LDIFMODIFY_CANNOT_OPEN_CHANGES;
       String message = getMessage(msgID, sourceFile.getValue());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
 
@@ -626,7 +655,7 @@ public class LDIFModify
     {
       int    msgID   = MSGID_LDIFMODIFY_CANNOT_OPEN_TARGET;
       String message = getMessage(msgID, sourceFile.getValue());
-      System.err.println(message);
+      err.println(message);
       return LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR;
     }
 
@@ -643,7 +672,7 @@ public class LDIFModify
     {
       int    msgID   = MSGID_LDIFMODIFY_ERROR_PROCESSING_LDIF;
       String message = getMessage(msgID, String.valueOf(e));
-      System.err.println(message);
+      err.println(message);
 
       successful = false;
     }
@@ -665,7 +694,7 @@ public class LDIFModify
 
     for (String s : errorList)
     {
-      System.err.println(s);
+      err.println(s);
     }
     return (successful ? 0 : 1);
   }

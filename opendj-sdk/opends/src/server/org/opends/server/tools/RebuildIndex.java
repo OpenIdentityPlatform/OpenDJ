@@ -52,6 +52,8 @@ import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.jeb.RebuildConfig;
 import org.opends.server.admin.std.server.BackendCfg;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +75,7 @@ public class RebuildIndex
    */
   public static void main(String[] args)
   {
-    int retCode = mainRebuildIndex(args);
+    int retCode = mainRebuildIndex(args, true, System.out, System.err);
 
     if(errorLogPublisher != null)
     {
@@ -89,12 +91,40 @@ public class RebuildIndex
   /**
    * Processes the command-line arguments and invokes the rebuild process.
    *
-   * @param  args  The command-line arguments provided to this program.
+   * @param  args              The command-line arguments provided to this
+   *                           program.
+   * @param  initializeServer  Indicates whether to initialize the server.
+   * @param  outStream         The output stream to use for standard output, or
+   *                           {@code null} if standard output is not needed.
+   * @param  errStream         The output stream to use for standard error, or
+   *                           {@code null} if standard error is not needed.
    *
    * @return The error code.
    */
-  public static int mainRebuildIndex(String[] args)
+  public static int mainRebuildIndex(String[] args, boolean initializeServer,
+                                     OutputStream outStream,
+                                     OutputStream errStream)
   {
+    PrintStream out;
+    if (outStream == null)
+    {
+      out = NullOutputStream.printStream();
+    }
+    else
+    {
+      out = new PrintStream(outStream);
+    }
+
+    PrintStream err;
+    if (errStream == null)
+    {
+      err = NullOutputStream.printStream();
+    }
+    else
+    {
+      err = new PrintStream(errStream);
+    }
+
     // Define the command-line arguments that may be used with this program.
     StringArgument  configClass             = null;
     StringArgument  configFile              = null;
@@ -157,7 +187,7 @@ public class RebuildIndex
       int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -172,8 +202,8 @@ public class RebuildIndex
       int    msgID   = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
 
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.err.println(argParser.getUsage());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -192,7 +222,7 @@ public class RebuildIndex
     int numArgs = args.length;
     if (numArgs == 0)
     {
-      System.out.println(argParser.getUsage());
+      out.println(argParser.getUsage());
       return 1;
     }
 
@@ -202,8 +232,8 @@ public class RebuildIndex
       int    msgID   = MSGID_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX;
       String message = getMessage(msgID);
 
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      System.out.println(argParser.getUsage());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      out.println(argParser.getUsage());
       return 1;
     }
 
@@ -211,141 +241,144 @@ public class RebuildIndex
     // configuration.
     DirectoryServer directoryServer = DirectoryServer.getInstance();
 
-    try
+    if (initializeServer)
     {
-      DirectoryServer.bootstrapClient();
-      DirectoryServer.initializeJMX();
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
+      try
+      {
+        DirectoryServer.bootstrapClient();
+        DirectoryServer.initializeJMX();
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_SERVER_BOOTSTRAP_ERROR;
+        String message = getMessage(msgID, getExceptionMessage(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
-    try
-    {
-      directoryServer.initializeConfiguration(configClass.getValue(),
-                                              configFile.getValue());
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-
-
-
-    // Initialize the Directory Server schema elements.
-    try
-    {
-      directoryServer.initializeSchema();
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-      String message = getMessage(msgID, ce.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-
-
-    // Initialize the Directory Server core configuration.
-    try
-    {
-      CoreConfigManager coreConfigManager = new CoreConfigManager();
-      coreConfigManager.initializeCoreConfig();
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-      String message = getMessage(msgID, ce.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-
-
-    // Initialize the Directory Server crypto manager.
-    try
-    {
-      directoryServer.initializeCryptoManager();
-    }
-    catch (ConfigException ce)
-    {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-      String message = getMessage(msgID, ce.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (InitializationException ie)
-    {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-      String message = getMessage(msgID, ie.getMessage());
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
-    catch (Exception e)
-    {
-      int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
-      String message = getMessage(msgID, getExceptionMessage(e));
-      System.err.println(wrapText(message, MAX_LINE_WIDTH));
-      return 1;
-    }
+      try
+      {
+        directoryServer.initializeConfiguration(configClass.getValue(),
+                                                configFile.getValue());
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
+        String message = getMessage(msgID, ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_CANNOT_LOAD_CONFIG;
+        String message = getMessage(msgID, getExceptionMessage(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
 
 
-    // FIXME -- Install a custom logger to capture information about the state
-    // of the verify process.
-    try
-    {
-      errorLogPublisher =
-          new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
-                                                new TextWriter.STDOUT());
-      ErrorLogger.addErrorLogPublisher(errorLogPublisher);
+      // Initialize the Directory Server schema elements.
+      try
+      {
+        directoryServer.initializeSchema();
+      }
+      catch (ConfigException ce)
+      {
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
+        String message = getMessage(msgID, ce.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
+        String message = getMessage(msgID, ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_CANNOT_LOAD_SCHEMA;
+        String message = getMessage(msgID, getExceptionMessage(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
 
-    }
-    catch(Exception e)
-    {
-      System.err.println("Error installing the custom error logger: " +
-                         stackTraceToSingleLineString(e));
+
+      // Initialize the Directory Server core configuration.
+      try
+      {
+        CoreConfigManager coreConfigManager = new CoreConfigManager();
+        coreConfigManager.initializeCoreConfig();
+      }
+      catch (ConfigException ce)
+      {
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
+        String message = getMessage(msgID, ce.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
+        String message = getMessage(msgID, ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CORE_CONFIG;
+        String message = getMessage(msgID, getExceptionMessage(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+
+
+      // Initialize the Directory Server crypto manager.
+      try
+      {
+        directoryServer.initializeCryptoManager();
+      }
+      catch (ConfigException ce)
+      {
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        String message = getMessage(msgID, ce.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (InitializationException ie)
+      {
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        String message = getMessage(msgID, ie.getMessage());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_CANNOT_INITIALIZE_CRYPTO_MANAGER;
+        String message = getMessage(msgID, getExceptionMessage(e));
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+
+
+
+      // FIXME -- Install a custom logger to capture information about the state
+      // of the verify process.
+      try
+      {
+        errorLogPublisher =
+            new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
+                                                  new TextWriter.STREAM(out));
+        ErrorLogger.addErrorLogPublisher(errorLogPublisher);
+
+      }
+      catch(Exception e)
+      {
+        err.println("Error installing the custom error logger: " +
+                    stackTraceToSingleLineString(e));
+      }
     }
 
     // Decode the base DN provided by the user.
