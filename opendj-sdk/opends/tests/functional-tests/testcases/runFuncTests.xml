@@ -39,7 +39,6 @@
       <call function="'loadEnvironment'" />  
 
       <!-- The Functional Tests -->
-		
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/security/security.xml' % (TESTS_DIR)" />
       <call function="'main_security'" />
@@ -71,6 +70,13 @@
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/testcases/indexes/indexes.xml' % (TESTS_DIR)" />
       <call function="'indexes'" />
+
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/testcases/groups/groups.xml' % (TESTS_DIR)" />
+      <call function="'main_groups'" />					
+
+  
+      
     </sequence>
   </function>
 </stax>
