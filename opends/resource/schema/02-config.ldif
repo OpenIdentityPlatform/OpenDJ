@@ -1709,7 +1709,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.46
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.47
   NAME 'ds-cfg-digest-md5-sasl-mechanism-handler'
   SUP ds-cfg-sasl-mechanism-handler MUST ds-cfg-identity-mapper-dn
-  MAY ds-cfg-realm X-ORIGIN 'OpenDS Directory Server' )
+  MAY ( ds-cfg-realm $ ds-cfg-server-fqdn )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.48
   NAME 'ds-cfg-gssapi-sasl-mechanism-handler'
   SUP ds-cfg-sasl-mechanism-handler MAY ( ds-cfg-identity-mapper-dn $

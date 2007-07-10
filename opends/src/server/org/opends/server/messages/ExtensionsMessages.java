@@ -5492,6 +5492,16 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if the client request
+   * included an invalid digest URI.  This takes two arguments, which are the
+   * provided digest URI and the expected digest URI.
+   */
+  public static final int MSGID_SASLDIGESTMD5_INVALID_DIGEST_URI =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 529;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -6775,6 +6785,10 @@ public class ExtensionsMessages
                     "The DIGEST-MD5 credentials provided by the client " +
                     "requested an invalid quality of protection mechanism of " +
                     "%s");
+    registerMessage(MSGID_SASLDIGESTMD5_INVALID_DIGEST_URI,
+                    "The DIGEST-MD5 credentials provided by the client " +
+                    "requested an invalid digest URI of %s.  The expected " +
+                    "digest URI was %s");
     registerMessage(MSGID_SASLDIGESTMD5_CANNOT_PARSE_RESPONSE_DIGEST,
                     "The DIGEST-MD5 credentials provided by the client " +
                     "included a digest that could not be decoded as a " +
