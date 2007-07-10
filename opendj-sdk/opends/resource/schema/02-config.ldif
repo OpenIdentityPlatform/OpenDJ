@@ -1279,6 +1279,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.379
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.380 NAME 'ds-sync-conflict'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   USAGE directoryOperation X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.381
+  NAME 'ds-cfg-backend-subtree-delete-batch-size'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.382
   NAME 'ds-cfg-index-substring-length'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
@@ -1504,7 +1508,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6 NAME 'ds-cfg-je-backend'
   ds-cfg-backend-import-queue-size $ ds-cfg-backend-import-thread-count $
   ds-cfg-backend-entries-compressed $ ds-cfg-backend-deadlock-retry-limit $
   ds-cfg-backend-import-pass-size $ ds-cfg-backend-mode $
-  ds-cfg-database-cache-percent $
+  ds-cfg-database-cache-percent $ ds-cfg-backend-subtree-delete-batch-size $
   ds-cfg-database-cache-size $ ds-cfg-database-txn-no-sync $
   ds-cfg-database-txn-write-no-sync $ ds-cfg-database-run-cleaner $
   ds-cfg-database-cleaner-min-utilization $ ds-cfg-database-evictor-lru-only $
