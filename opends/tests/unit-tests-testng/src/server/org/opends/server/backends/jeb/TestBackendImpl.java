@@ -34,8 +34,6 @@ import org.opends.server.admin.std.server.JEIndexCfg;
 import org.opends.server.admin.std.meta.JEBackendCfgDefn;
 import org.opends.server.admin.std.meta.JEIndexCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -46,17 +44,17 @@ import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import static
     org.opends.server.util.ServerConstants.OID_SUBTREE_DELETE_CONTROL;
+
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterClass;
 
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertEquals;
 import com.sleepycat.je.DatabaseEntry;
 
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 
 /**
  * BackendImpl Tester.
@@ -722,7 +720,8 @@ public class TestBackendImpl extends JebTestCase {
   }
 
   @Test(dependsOnMethods = {"testAdd", "testSearchIndex",
-      "testSearchScope", "testSearchNotIndexed", "testModifyDNNewSuperior"})
+      "testSearchScope", "testSearchNotIndexed", "testModifyDNNewSuperior",
+      "testMatchedDN"})
   public void testDeleteSubtree() throws Exception {
     Control control = new Control(OID_SUBTREE_DELETE_CONTROL, false);
     ArrayList<Control> deleteSubTreeControl = new ArrayList<Control>();
@@ -754,7 +753,7 @@ public class TestBackendImpl extends JebTestCase {
   }
 
   @Test(dependsOnMethods = {"testAdd", "testSearchIndex",
-      "testSearchScope"})
+      "testSearchScope", "testMatchedDN"})
   public void testDeleteEntry() throws Exception {
     ArrayList<Control> noControls = new ArrayList<Control>(0);
     InternalClientConnection conn =
@@ -854,7 +853,8 @@ public class TestBackendImpl extends JebTestCase {
     }
   }
 
-  @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd", "testSearchIndex", "testSearchScope"})
+  @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd",
+      "testSearchIndex", "testSearchScope", "testMatchedDN"})
   public void testReplaceEntry() throws Exception {
     Entry entry;
     Entry oldEntry;
@@ -972,7 +972,8 @@ public class TestBackendImpl extends JebTestCase {
 
   }
 
-  @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd", "testSearchIndex", "testSearchScope"})
+  @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd",
+      "testSearchIndex", "testSearchScope", "testMatchedDN"})
   public void testModifyEntry() throws Exception {
     Entry entry;
     Entry newEntry;
@@ -1114,7 +1115,8 @@ public class TestBackendImpl extends JebTestCase {
 
   }
 
-  @Test(dependsOnMethods = {"testAdd", "testSearchIndex", "testSearchScope"})
+  @Test(dependsOnMethods = {"testAdd", "testSearchIndex", "testSearchScope",
+      "testMatchedDN"})
   public void testModifyDN() throws Exception {
     EntryContainer ec =
         backend.getRootContainer().getEntryContainer(DN.decode("dc=test,dc=com"));
@@ -1145,7 +1147,7 @@ public class TestBackendImpl extends JebTestCase {
 
   @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd", "testSearchIndex",
       "testSearchScope", "testModifyEntry", "testModifyDN", "testReplaceEntry",
-      "testDeleteEntry"})
+      "testDeleteEntry", "testMatchedDN"})
   public void testModifyDNNewSuperior() throws Exception {
     //Add the new superior entry we want to move to. Test to see if the child ID
     //always above parent invarient is preseved.
@@ -1200,7 +1202,7 @@ public class TestBackendImpl extends JebTestCase {
       "testModifyEntry", "testModifyDN", "testDeleteSubtree",
       "testDeleteEntry", "testAddNoParent", "testAdd",
       "testSearchNotIndexed",
-      "testModifyDNNewSuperior", "testApplyIndexConfig"})
+      "testModifyDNNewSuperior", "testApplyIndexConfig", "testMatchedDN"})
   public void testApplyConfig() throws Exception {
     Entry configEntry = TestCaseUtils.makeEntry(
         "dn: ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
@@ -1234,7 +1236,7 @@ public class TestBackendImpl extends JebTestCase {
       "testModifyEntry", "testModifyDN", "testDeleteSubtree",
       "testDeleteEntry", "testAddNoParent", "testAdd",
       "testSearchNotIndexed",
-      "testModifyDNNewSuperior"})
+      "testModifyDNNewSuperior", "testMatchedDN"})
   public void testApplyIndexConfig() throws Exception {
     Entry configEntry = TestCaseUtils.makeEntry(
         "dn: ds-cfg-index-attribute=givenName,cn=Index," +
@@ -1491,7 +1493,7 @@ public class TestBackendImpl extends JebTestCase {
 
 
   @Test(dependsOnMethods = {"testDeleteEntry", "testSearchScope",
-      "testSearchIndex"})
+      "testSearchIndex", "testMatchedDN"})
   public void testSearchNotIndexed() throws Exception {
     //Add 2 more entries to overflow the index entry limit.
     for (Entry entry : additionalEntries) {
@@ -1527,4 +1529,80 @@ public class TestBackendImpl extends JebTestCase {
     assertTrue(debugString.contains("NOT-INDEXED"));
 
   }
+
+
+  /**
+   * Provides a set of DNs for the matched DN test case.
+   *
+   * @return set of DNs
+   * @throws Exception  when DN.decode fails
+   */
+  @DataProvider(name = "MatchedDNs")
+  public Object[][] initMatchedDNs() throws Exception {
+
+    ResultCode success      = ResultCode.SUCCESS;
+    ResultCode noSuchObject = ResultCode.NO_SUCH_OBJECT;
+
+    DN testComDN            = null;
+    DN peopleTestComDN      = null;
+    DN dummyTestComDN       = null;
+    DN dummyPeopleTestComDN = null;
+
+    try
+    {
+      testComDN            = DN.decode(                   "dc=test,dc=com");
+      dummyTestComDN       = DN.decode(          "cn=dummy,dc=test,dc=com");
+      peopleTestComDN      = DN.decode(         "ou=people,dc=test,dc=com");
+      dummyPeopleTestComDN = DN.decode("cn=dummy,ou=people,dc=test,dc=com");
+    }
+    catch (DirectoryException de)
+    {
+      throw de;
+    }
+
+    // Sets of DNs
+    Object[][] myData =
+    {
+      {testComDN,            null,            success},
+      {peopleTestComDN,      null,            success},
+      {dummyTestComDN,       testComDN,       noSuchObject},
+      {dummyPeopleTestComDN, peopleTestComDN, noSuchObject},
+    };
+
+    return myData;
+  }
+
+
+  /**
+   * Executes an internal search operation and check the result code and
+   * matched DN field.
+   *
+   * @param searchBaseDN       the search base DN to use for the current test
+   * @param expectedResultCode the expected LDAP result code
+   * @param expectedMatchedDN  the expected matched DN, may be <code>null</code>
+   */
+  @Test(dataProvider = "MatchedDNs", dependsOnMethods = "testAdd")
+  public void testMatchedDN(
+    DN         searchBaseDN,
+    DN         expectedMatchedDN,
+    ResultCode expectedResultCode
+    ) throws Exception
+  {
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    // Filter for the search
+    SearchFilter filter = LDAPFilter.decode("(objectClass=*)").toSearchFilter();
+
+    // Test is performed with each and every scope
+    for (SearchScope scope: SearchScope.values())
+    {
+      InternalSearchOperation searchOperation =
+        conn.processSearch(searchBaseDN, scope, filter);
+
+      assertEquals(searchOperation.getResultCode(), expectedResultCode);
+      assertEquals(searchOperation.getMatchedDN(), expectedMatchedDN);
+    }
+  }
+
 }
