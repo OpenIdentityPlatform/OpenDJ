@@ -115,6 +115,7 @@ ds-cfg-backend-directory: db
 ds-cfg-backend-mode: 700
 ds-cfg-backend-index-entry-limit: 4000
 ds-cfg-backend-subtree-delete-size-limit: 100000
+ds-cfg-backend-subtree-delete-batch-size: 5000
 ds-cfg-backend-preload-time-limit: 0 seconds
 ds-cfg-backend-import-temp-directory: importTmp
 ds-cfg-backend-import-buffer-size: 256 megabytes

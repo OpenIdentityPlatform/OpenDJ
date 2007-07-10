@@ -182,6 +182,8 @@ public class EntryContainer
 
   private int subtreeDeleteSizeLimit;
 
+  private int subtreeDeleteBatchSize;
+
   private int indexEntryLimit;
 
   /**
@@ -215,6 +217,7 @@ public class EntryContainer
     this.rootContainer = rootContainer;
     this.deadlockRetryLimit = config.getBackendDeadlockRetryLimit();
     this.subtreeDeleteSizeLimit = config.getBackendSubtreeDeleteSizeLimit();
+    this.subtreeDeleteBatchSize = config.getBackendSubtreeDeleteBatchSize();
     this.indexEntryLimit = config.getBackendIndexEntryLimit();
 
     // Instantiate the attribute indexes.
@@ -1678,24 +1681,33 @@ public class EntryContainer
   {
     DeleteEntryTransaction operation =
         new DeleteEntryTransaction(entryDN, deleteOperation);
-
-    invokeTransactedOperation(operation);
-
-    if (operation.adminSizeLimitExceeded())
+    boolean isComplete = false;
+    while(!isComplete)
     {
-      String message = getMessage(MSGID_JEB_SUBTREE_DELETE_SIZE_LIMIT_EXCEEDED,
+      invokeTransactedOperation(operation);
+
+      if (operation.adminSizeLimitExceeded())
+      {
+        String message = getMessage(
+                MSGID_JEB_SUBTREE_DELETE_SIZE_LIMIT_EXCEEDED,
                                   operation.getDeletedEntryCount());
-      throw new DirectoryException(
+        throw new DirectoryException(
           ResultCode.ADMIN_LIMIT_EXCEEDED,
           message,
           MSGID_JEB_SUBTREE_DELETE_SIZE_LIMIT_EXCEEDED);
-    }
-
-    String message = getMessage(MSGID_JEB_DELETED_ENTRY_COUNT,
+      }
+      if(operation.batchSizeExceeded())
+      {
+        operation.resetBatchSize();
+        continue;
+      }
+      isComplete = true;
+      String message = getMessage(MSGID_JEB_DELETED_ENTRY_COUNT,
                                 operation.getDeletedEntryCount());
-    StringBuilder errorMessage = new StringBuilder();
-    errorMessage.append(message);
-    deleteOperation.setErrorMessage(errorMessage);
+      StringBuilder errorMessage = new StringBuilder();
+      errorMessage.append(message);
+      deleteOperation.setErrorMessage(errorMessage);
+    }
   }
 
   /**
@@ -1930,7 +1942,7 @@ public class EntryContainer
     private DeleteOperation deleteOperation;
 
     /**
-     * A list of the DNs of all entries deleted by this operation.
+     * A list of the DNs of all entries deleted by this operation in a batch.
      * The subtree delete control can cause multiple entries to be deleted.
      */
     private ArrayList<DN> deletedDNList;
@@ -1940,6 +1952,18 @@ public class EntryContainer
      * Indicates whether the subtree delete size limit has been exceeded.
      */
     private boolean adminSizeLimitExceeded = false;
+
+
+    /**
+     * Indicates whether the subtree delete batch size has been exceeded.
+     */
+    private boolean batchSizeExceeded = false;
+
+
+    /**
+     * Indicates the count of deleted DNs in the Delete Operation.
+     */
+    private int countDeletedDN;
 
     /**
      * Create a new Delete Entry Transaction.
@@ -1963,12 +1987,31 @@ public class EntryContainer
     }
 
     /**
+     * Determine whether the subtree delete batch size has been exceeded.
+     * @return true if the batch size has been exceeded.
+     */
+    public boolean batchSizeExceeded()
+    {
+      return batchSizeExceeded;
+    }
+
+    /**
+     * Resets the batchSizeExceeded parameter to reuse the object
+     * for multiple batches.
+     */
+    public void resetBatchSize()
+    {
+      batchSizeExceeded=false;
+      deletedDNList.clear();
+    }
+
+    /**
      * Get the number of entries deleted during the operation.
      * @return The number of entries deleted.
      */
     public int getDeletedEntryCount()
     {
-      return deletedDNList.size();
+      return countDeletedDN;
     }
 
     /**
@@ -1999,6 +2042,7 @@ public class EntryContainer
 
       // Determine whether this is a subtree delete.
       int adminSizeLimit = subtreeDeleteSizeLimit;
+      int deleteBatchSize = subtreeDeleteBatchSize;
       boolean isSubtreeDelete = false;
       List<Control> controls = deleteOperation.getRequestControls();
       if (controls != null)
@@ -2082,9 +2126,16 @@ public class EntryContainer
           }
 
           // Enforce any subtree delete size limit.
-          if (adminSizeLimit > 0 && deletedDNList.size() >= adminSizeLimit)
+          if (adminSizeLimit > 0 && countDeletedDN >= adminSizeLimit)
           {
             adminSizeLimitExceeded = true;
+            break;
+          }
+
+          // Enforce any subtree delete batch size.
+          if (deleteBatchSize > 0 && deletedDNList.size() >= deleteBatchSize)
+          {
+            batchSizeExceeded = true;
             break;
           }
 
@@ -2098,7 +2149,7 @@ public class EntryContainer
                      txn, subordinateDN, entryID);
 
           deletedDNList.add(subordinateDN);
-
+          countDeletedDN++;
           status = cursor.getPrev(key, data, LockMode.DEFAULT);
         }
       }
@@ -2109,12 +2160,17 @@ public class EntryContainer
 
       // Finally delete the target entry as it was not included
       // in the dn2id iteration.
-      if (!adminSizeLimitExceeded)
+      if (!adminSizeLimitExceeded && !batchSizeExceeded)
       {
         // Enforce any subtree delete size limit.
-        if (adminSizeLimit > 0 && deletedDNList.size() >= adminSizeLimit)
+        if (adminSizeLimit > 0 && countDeletedDN >= adminSizeLimit)
         {
           adminSizeLimitExceeded = true;
+        }
+        else if (deleteBatchSize > 0 &&
+                                      deletedDNList.size() >= deleteBatchSize)
+        {
+          batchSizeExceeded = true;
         }
         else
         {
@@ -2134,6 +2190,7 @@ public class EntryContainer
           deleteTarget(manageDsaIT, id2cBuffered, id2sBuffered, txn, entryDN);
 
           deletedDNList.add(entryDN);
+          countDeletedDN++;
         }
       }
 
@@ -3762,6 +3819,7 @@ public class EntryContainer
     this.config = cfg;
     this.deadlockRetryLimit = config.getBackendDeadlockRetryLimit();
     this.subtreeDeleteSizeLimit = config.getBackendSubtreeDeleteSizeLimit();
+    this.subtreeDeleteBatchSize = config.getBackendSubtreeDeleteBatchSize();
     this.indexEntryLimit = config.getBackendIndexEntryLimit();
     return new ConfigChangeResult(ResultCode.SUCCESS,
                                   adminActionRequired, messages);
