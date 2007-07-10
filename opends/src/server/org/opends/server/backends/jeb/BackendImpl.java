@@ -56,8 +56,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.Validator;
-import org.opends.server.util.StaticUtils;
-import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.*;
 
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -1391,12 +1390,42 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isConfigurationAcceptable(Configuration configuration,
+                                           List<String> unacceptableReasons)
+  {
+    JEBackendCfg config = (JEBackendCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationChangeAcceptable(
       JEBackendCfg cfg,
       List<String> unacceptableReasons)
   {
-    // This listener handles only the changes to the base DNs.
-    // The base DNs are checked by the backend config manager.
+    // Make sure that the logging level value is acceptable.
+    String loggingLevel = cfg.getDatabaseLoggingLevel();
+    if (! (loggingLevel.equals("OFF") ||
+           loggingLevel.equals("SEVERE") ||
+           loggingLevel.equals("WARNING") ||
+           loggingLevel.equals("INFO") ||
+           loggingLevel.equals("CONFIG") ||
+           loggingLevel.equals("FINE") ||
+           loggingLevel.equals("FINER") ||
+           loggingLevel.equals("FINEST") ||
+           loggingLevel.equals("OFF")))
+    {
+      int    msgID   = MSGID_JEB_INVALID_LOGGING_LEVEL;
+      String message = getMessage(msgID,
+                                  String.valueOf(cfg.getDatabaseLoggingLevel()),
+                                  String.valueOf(cfg.dn()));
+      unacceptableReasons.add(message);
+      return false;
+    }
 
     return true;
   }
@@ -1472,7 +1501,7 @@ public class BackendImpl
     }
     catch (Exception e)
     {
-      messages.add(StaticUtils.stackTraceToSingleLineString(e));
+      messages.add(stackTraceToSingleLineString(e));
       ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
                                    false, messages);
       return ccr;

@@ -1207,6 +1207,14 @@ public class JebMessages
   public static final int MSGID_JEB_IMPORT_CREATE_TMPDIR_ERROR =
       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 155;
 
+  /**
+   * The message ID of the message that will be used if an invalid logging level
+   * was requested.  This takes two arguments, which are the invalid logging
+   * level and the configuration entry DN.
+   */
+  public static final int MSGID_JEB_INVALID_LOGGING_LEVEL =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 156;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -1244,6 +1252,12 @@ public class JebMessages
                     "for ID %s");
     registerMessage(MSGID_JEB_DATABASE_EXCEPTION,
                     "Database exception: %s");
+    registerMessage(MSGID_JEB_INVALID_LOGGING_LEVEL,
+                    "The database logging level string '%s' provided for " +
+                    "configuration entry '%s' is invalid.  The value must " +
+                    "be one of OFF, SEVERE, WARNING, INFO, CONFIG, FINE, " +
+                    "FINER, FINEST, or ALL.  Note that these values are " +
+                    "case sensitive");
     registerMessage(MSGID_CONFIG_DESCRIPTION_INDEX_ATTRIBUTE,
                     "The attribute type name of the attribute index");
     registerMessage(MSGID_CONFIG_DESCRIPTION_INDEX_TYPE,
