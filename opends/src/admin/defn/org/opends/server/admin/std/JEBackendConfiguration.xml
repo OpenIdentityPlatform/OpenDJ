@@ -30,7 +30,8 @@
   package="org.opends.server.admin.std"
   extends="backend"
   xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap">
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     The primary backend provided by the OpenDS Directory Server uses the
     Berkeley DB Java Edition to store user-provided data in a local repository.
@@ -61,6 +62,11 @@
       <ldap:naming-attribute>
         ds-cfg-index-attribute
       </ldap:naming-attribute>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="index-type" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:property-override name="backend-class">
