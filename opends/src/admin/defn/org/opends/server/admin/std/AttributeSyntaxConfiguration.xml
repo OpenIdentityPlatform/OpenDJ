@@ -65,7 +65,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:profile>
   </adm:property>
 
-  <adm:property name="syntax-class" mandatory="true">
+  <adm:property name="syntax-class" mandatory="true" read-only="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
