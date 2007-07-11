@@ -1378,7 +1378,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
     File newConfigDir =
             getInstallation().getConfigurationDirectory();
     FileManager fm = new FileManager();
-    fm.synchronize(oldConfigDir, newConfigDir);
+
+    // Define a filter for files that we don't want to copy over
+    // from the old config directory.
+    final File oldConfigUpgradeDir = new File(oldConfigDir, "upgrade");
+    final File oldConfigSchemaDir = new File(oldConfigDir, "schema");
+    FileFilter filter = new FileFilter() {
+      public boolean accept(File f) {
+        return !Utils.isDescendant(f, oldConfigUpgradeDir) &&
+                !Utils.isDescendant(f, oldConfigSchemaDir);
+      }
+    };
+
+    fm.synchronize(oldConfigDir, newConfigDir, filter);
   }
 
   private boolean calculateConfigCustomizations() throws ApplicationException {
