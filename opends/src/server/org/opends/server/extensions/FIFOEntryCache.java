@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -45,11 +44,7 @@ import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
-import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.IntegerConfigAttribute;
-import org.opends.server.config.IntegerWithUnitConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.CacheEntry;
@@ -1198,90 +1193,6 @@ public class FIFOEntryCache
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
-   */
-  public DN getConfigurableComponentEntryDN()
-  {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-
-    int msgID = MSGID_FIFOCACHE_DESCRIPTION_MAX_MEMORY_PCT;
-    IntegerConfigAttribute maxMemoryPctAttr =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_MAX_MEMORY_PCT,
-                                    getMessage(msgID), true, false, false, true,
-                                    1, true, 100, maxMemoryPercent);
-    attrList.add(maxMemoryPctAttr);
-
-
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_MAX_ENTRIES;
-    IntegerConfigAttribute maxEntriesAttr =
-         new IntegerConfigAttribute(ATTR_FIFOCACHE_MAX_ENTRIES,
-                                    getMessage(msgID), true, false, false,
-                                    true, 0, false, 0, maxEntries);
-    attrList.add(maxEntriesAttr);
-
-
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerWithUnitConfigAttribute lockTimeoutAttr =
-         new IntegerWithUnitConfigAttribute(ATTR_FIFOCACHE_LOCK_TIMEOUT,
-                                            getMessage(msgID), false, timeUnits,
-                                            true, 0, false, 0, lockTimeout,
-                                            TIME_UNIT_MILLISECONDS_FULL);
-    attrList.add(lockTimeoutAttr);
-
-
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_INCLUDE_FILTERS;
-    ArrayList<String> includeStrings =
-         new ArrayList<String>(includeFilters.size());
-    for (SearchFilter f : includeFilters)
-    {
-      includeStrings.add(f.toString());
-    }
-    StringConfigAttribute includeAttr =
-         new StringConfigAttribute(ATTR_FIFOCACHE_INCLUDE_FILTER,
-                                   getMessage(msgID), false, true, false,
-                                   includeStrings);
-    attrList.add(includeAttr);
-
-
-    msgID = MSGID_FIFOCACHE_DESCRIPTION_EXCLUDE_FILTERS;
-    ArrayList<String> excludeStrings =
-         new ArrayList<String>(excludeFilters.size());
-    for (SearchFilter f : excludeFilters)
-    {
-      excludeStrings.add(f.toString());
-    }
-    StringConfigAttribute excludeAttr =
-         new StringConfigAttribute(ATTR_FIFOCACHE_EXCLUDE_FILTER,
-                                   getMessage(msgID), false, true, false,
-                                   excludeStrings);
-    attrList.add(excludeAttr);
-
-
-    return attrList;
-  }
-
-
-
-  /**
    * {@inheritDoc}
    */
   @Override()
@@ -1449,8 +1360,6 @@ public class FIFOEntryCache
     HashSet<SearchFilter> newIncludeFilters = null;
     HashSet<SearchFilter> newExcludeFilters = null;
 
-    DN configEntryDN = configuration.dn();
-
     // Read configuration.
     newConfigEntryDN = configuration.dn();
     newLockTimeout   = configuration.getLockTimeout();
@@ -1470,14 +1379,14 @@ public class FIFOEntryCache
           MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER,
           MSGID_FIFOCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
           MSGID_FIFOCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
           MSGID_FIFOCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       break;
     case PHASE_ACCEPTABLE:  // acceptable and apply are using the same
@@ -1487,14 +1396,14 @@ public class FIFOEntryCache
           MSGID_FIFOCACHE_INVALID_INCLUDE_FILTER,
           0,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
           MSGID_FIFOCACHE_INVALID_EXCLUDE_FILTER,
           0,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       break;
     }

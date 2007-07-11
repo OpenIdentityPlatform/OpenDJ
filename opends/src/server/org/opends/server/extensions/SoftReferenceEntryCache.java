@@ -33,7 +33,6 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -43,10 +42,7 @@ import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.SoftReferenceEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
-import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.IntegerWithUnitConfigAttribute;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.CacheEntry;
@@ -788,74 +784,6 @@ public class SoftReferenceEntryCache
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
-   */
-  public DN getConfigurableComponentEntryDN()
-  {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-
-    int msgID = MSGID_SOFTREFCACHE_DESCRIPTION_LOCK_TIMEOUT;
-    IntegerWithUnitConfigAttribute lockTimeoutAttr =
-         new IntegerWithUnitConfigAttribute(ATTR_SOFTREFCACHE_LOCK_TIMEOUT,
-                                            getMessage(msgID), false, timeUnits,
-                                            true, 0, false, 0, lockTimeout,
-                                            TIME_UNIT_MILLISECONDS_FULL);
-    attrList.add(lockTimeoutAttr);
-
-
-    msgID = MSGID_SOFTREFCACHE_DESCRIPTION_INCLUDE_FILTERS;
-    ArrayList<String> includeStrings =
-         new ArrayList<String>(includeFilters.size());
-    for (SearchFilter f : includeFilters)
-    {
-      includeStrings.add(f.toString());
-    }
-    StringConfigAttribute includeAttr =
-         new StringConfigAttribute(ATTR_SOFTREFCACHE_INCLUDE_FILTER,
-                                   getMessage(msgID), false, true, false,
-                                   includeStrings);
-    attrList.add(includeAttr);
-
-
-    msgID = MSGID_SOFTREFCACHE_DESCRIPTION_EXCLUDE_FILTERS;
-    ArrayList<String> excludeStrings =
-         new ArrayList<String>(excludeFilters.size());
-    for (SearchFilter f : excludeFilters)
-    {
-      excludeStrings.add(f.toString());
-    }
-    StringConfigAttribute excludeAttr =
-         new StringConfigAttribute(ATTR_SOFTREFCACHE_EXCLUDE_FILTER,
-                                   getMessage(msgID), false, true, false,
-                                   excludeStrings);
-    attrList.add(excludeAttr);
-
-
-    return attrList;
-  }
-
-
-
-  /**
    * {@inheritDoc}
    */
   @Override()
@@ -942,8 +870,6 @@ public class SoftReferenceEntryCache
     HashSet<SearchFilter> newIncludeFilters = null;
     HashSet<SearchFilter> newExcludeFilters = null;
 
-    DN configEntryDN = configuration.dn();
-
     // Read configuration.
     newConfigEntryDN = configuration.dn();
     newLockTimeout   = configuration.getLockTimeout();
@@ -957,14 +883,14 @@ public class SoftReferenceEntryCache
           MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTER,
           MSGID_SOFTREFCACHE_CANNOT_DECODE_ANY_INCLUDE_FILTERS,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
           MSGID_SOFTREFCACHE_CANNOT_DECODE_EXCLUDE_FILTER,
           MSGID_SOFTREFCACHE_CANNOT_DECODE_ANY_EXCLUDE_FILTERS,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       break;
     case PHASE_ACCEPTABLE:  // acceptable and apply are using the same
@@ -974,14 +900,14 @@ public class SoftReferenceEntryCache
           MSGID_SOFTREFCACHE_INVALID_INCLUDE_FILTER,
           0,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       newExcludeFilters = EntryCacheCommon.getFilters (
           configuration.getExcludeFilter(),
           MSGID_SOFTREFCACHE_INVALID_EXCLUDE_FILTER,
           0,
           errorHandler,
-          configEntryDN
+          newConfigEntryDN
           );
       break;
     }

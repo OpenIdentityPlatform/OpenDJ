@@ -262,7 +262,7 @@ public class SubjectDNToUserAttributeCertificateMapper
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
     // Make sure that the subject attribute is defined in the server schema.
     String attrName = configuration.getSubjectAttribute();
@@ -272,7 +272,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     if (newSubjectType == null)
     {
       unacceptableReasons.add(getMessage(MSGID_SDTUACM_NO_SUCH_ATTR,
-                                         String.valueOf(configEntryDN),
+                                         String.valueOf(cfgEntryDN),
                                          attrName));
       configAcceptable = false;
     }

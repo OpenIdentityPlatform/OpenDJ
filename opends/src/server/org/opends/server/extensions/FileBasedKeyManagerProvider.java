@@ -340,7 +340,7 @@ public class FileBasedKeyManagerProvider
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
 
     // Get the path to the key store file.
@@ -353,7 +353,7 @@ public class FileBasedKeyManagerProvider
         int msgID = MSGID_FILE_KEYMANAGER_NO_SUCH_FILE;
         unacceptableReasons.add(getMessage(msgID,
                                            String.valueOf(newKeyStoreFile),
-                                           String.valueOf(configEntryDN)));
+                                           String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
     }
@@ -365,7 +365,7 @@ public class FileBasedKeyManagerProvider
       }
 
       int msgID = MSGID_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
+      unacceptableReasons.add(getMessage(msgID, String.valueOf(cfgEntryDN),
                                          getExceptionMessage(e)));
       configAcceptable = false;
     }
@@ -387,7 +387,7 @@ public class FileBasedKeyManagerProvider
         int msgID = MSGID_FILE_KEYMANAGER_INVALID_TYPE;
         unacceptableReasons.add(getMessage(msgID,
              String.valueOf(configuration.getKeyStoreType()),
-             String.valueOf(configEntryDN), getExceptionMessage(kse)));
+             String.valueOf(cfgEntryDN), getExceptionMessage(kse)));
         configAcceptable = false;
       }
     }
@@ -412,7 +412,7 @@ public class FileBasedKeyManagerProvider
       {
         int msgID = MSGID_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET;
         unacceptableReasons.add(getMessage(msgID, String.valueOf(propertyName),
-                                           String.valueOf(configEntryDN)));
+                                           String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
     }
@@ -425,7 +425,7 @@ public class FileBasedKeyManagerProvider
       {
         int msgID = MSGID_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET;
         unacceptableReasons.add(getMessage(msgID, String.valueOf(enVarName),
-                                           String.valueOf(configEntryDN)));
+                                           String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
     }
@@ -438,7 +438,7 @@ public class FileBasedKeyManagerProvider
       {
         int msgID = MSGID_FILE_KEYMANAGER_PIN_NO_SUCH_FILE;
         unacceptableReasons.add(getMessage(msgID, String.valueOf(fileName),
-                                           String.valueOf(configEntryDN)));
+                                           String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
       else
@@ -453,7 +453,7 @@ public class FileBasedKeyManagerProvider
         {
           int msgID = MSGID_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ;
           unacceptableReasons.add(getMessage(msgID, String.valueOf(fileName),
-                                             String.valueOf(configEntryDN),
+                                             String.valueOf(cfgEntryDN),
                                              getExceptionMessage(ioe)));
           configAcceptable = false;
         }
@@ -469,7 +469,7 @@ public class FileBasedKeyManagerProvider
         {
           int msgID = MSGID_FILE_KEYMANAGER_PIN_FILE_EMPTY;
           unacceptableReasons.add(getMessage(msgID, String.valueOf(fileName),
-                                             String.valueOf(configEntryDN)));
+                                             String.valueOf(cfgEntryDN)));
           configAcceptable = false;
         }
       }
@@ -482,7 +482,7 @@ public class FileBasedKeyManagerProvider
     {
       // Pin wasn't defined anywhere.
       int msgID = MSGID_FILE_KEYMANAGER_NO_PIN;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN)));
+      unacceptableReasons.add(getMessage(msgID, String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 

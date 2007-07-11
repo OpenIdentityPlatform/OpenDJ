@@ -450,7 +450,7 @@ public class AttributeSyntaxConfigManager
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the attribute
    *                        syntax.  It should not be {@code null}.
-   * @param  initialize     Indicates whether the key manager provider instance
+   * @param  initialize     Indicates whether the attribute syntax instance
    *                        should be initialized.
    *
    * @return  The possibly initialized attribute syntax.

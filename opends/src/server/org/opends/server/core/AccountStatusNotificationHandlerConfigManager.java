@@ -394,8 +394,8 @@ public class AccountStatusNotificationHandlerConfigManager
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the
    *                        notification handler.  It must not be {@code null}.
-   * @param  initialize     Indicates whether the key manager provider instance
-   *                        should be initialized.
+   * @param  initialize     Indicates whether the account status notification
+   *                        handler instance should be initialized.
    *
    * @return  The possibly initialized notification handler.
    *

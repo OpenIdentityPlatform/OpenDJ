@@ -436,15 +436,15 @@ public class EntryCacheConfigManager
 
 
   /**
-   * Loads the specified class, instantiates it as an entry cache,
-   * and optionally initializes that instance.
+   * Loads the specified class, instantiates it as an entry cache, and
+   * optionally initializes that instance.
    *
-   * @param  className      The fully-qualified name of the entry cache
-   *                        class to load, instantiate, and initialize.
-   * @param  configuration  The configuration to use to initialize the
-   *                        entry cache.  It must not be {@code null}.
-   * @param  initialize     Indicates whether the key manager provider instance
-   *                        should be initialized.
+   * @param  className      The fully-qualified name of the entry cache class
+   *                        to load, instantiate, and initialize.
+   * @param  configuration  The configuration to use to initialize the entry
+   *                        cache.  It must not be {@code null}.
+   * @param  initialize     Indicates whether the entry cache instance should be
+   *                        initialized.
    *
    * @return  The possibly initialized entry cache.
    *
