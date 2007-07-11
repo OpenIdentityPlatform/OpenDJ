@@ -184,7 +184,7 @@ public class ServerSideSortRequestControl
 
       if (! sortKey.ascending())
       {
-        elementList.add(new ASN1Boolean(TYPE_REVERSE_ORDER, false));
+        elementList.add(new ASN1Boolean(TYPE_REVERSE_ORDER, true));
       }
 
       keyList.add(new ASN1Sequence(elementList));
