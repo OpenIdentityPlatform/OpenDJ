@@ -520,6 +520,7 @@ ds-cfg-logger-enabled: true
 ds-cfg-log-file: logs/access
 ds-cfg-log-file-mode: 640
 ds-cfg-suppress-internal-operations: true
+ds-cfg-suppress-synchronization-operations: false
 ds-cfg-asynchronous-writes: true
 ds-cfg-rotation-policy-dn: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-rotation-policy-dn: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
@@ -536,6 +537,7 @@ ds-cfg-logger-enabled: false
 ds-cfg-log-file: logs/audit
 ds-cfg-log-file-mode: 640
 ds-cfg-suppress-internal-operations: true
+ds-cfg-suppress-synchronization-operations: false
 ds-cfg-asynchronous-writes: true
 ds-cfg-rotation-policy-dn: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-rotation-policy-dn: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config

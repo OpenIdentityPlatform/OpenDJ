@@ -52,6 +52,12 @@ public abstract class AccessLogPublisher
    */
   protected boolean suppressInternalOperations = true;
 
+  /**
+   * Indicates if synchronization operations should be omited in the
+   * messages logged by this publisher.
+   */
+  protected boolean suppressSynchronizationOperations = false;
+
 
 
   /**

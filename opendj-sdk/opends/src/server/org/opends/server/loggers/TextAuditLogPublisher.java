@@ -167,6 +167,8 @@ public class TextAuditLogPublisher
     }
 
     suppressInternalOperations = config.isSuppressInternalOperations();
+    suppressSynchronizationOperations =
+      config.isSuppressSynchronizationOperations();
 
     currentConfig = config;
 
@@ -248,6 +250,8 @@ public class TextAuditLogPublisher
      ArrayList<String> messages = new ArrayList<String>();
 
      suppressInternalOperations = config.isSuppressInternalOperations();
+     suppressSynchronizationOperations =
+       config.isSuppressSynchronizationOperations();
 
      File logFile = getFileForPath(config.getLogFile());
      FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -274,7 +278,7 @@ public class TextAuditLogPublisher
 
        if(currentWriter instanceof MultifileTextWriter)
        {
-         MultifileTextWriter mfWriter = (MultifileTextWriter)writer;
+         MultifileTextWriter mfWriter = (MultifileTextWriter)currentWriter;
 
          mfWriter.setNamingPolicy(fnPolicy);
          mfWriter.setFilePermissions(perm);
@@ -435,9 +439,23 @@ public class TextAuditLogPublisher
   public void logAddResponse(AddOperation addOperation)
   {
     long connectionID = addOperation.getConnectionID();
-    if(connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (addOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     ResultCode code = addOperation.getResultCode();
 
@@ -554,9 +572,23 @@ public class TextAuditLogPublisher
   public void logDeleteResponse(DeleteOperation deleteOperation)
   {
     long connectionID = deleteOperation.getConnectionID();
-    if(connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (deleteOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     ResultCode code = deleteOperation.getResultCode();
 
@@ -618,9 +650,23 @@ public class TextAuditLogPublisher
   public void logModifyResponse(ModifyOperation modifyOperation)
   {
     long connectionID = modifyOperation.getConnectionID();
-    if(connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (modifyOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     ResultCode code = modifyOperation.getResultCode();
 
@@ -705,9 +751,23 @@ public class TextAuditLogPublisher
   public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
     long connectionID = modifyDNOperation.getConnectionID();
-    if(connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (modifyDNOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     ResultCode code = modifyDNOperation.getResultCode();
 
