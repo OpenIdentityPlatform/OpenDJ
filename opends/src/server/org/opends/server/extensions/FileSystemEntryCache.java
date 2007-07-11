@@ -67,11 +67,9 @@ import org.opends.server.types.EntryEncodeConfig;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockType;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.FilePermission;
-import org.opends.server.types.LockManager;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -166,9 +164,6 @@ public class FileSystemEntryCache
   private ReentrantReadWriteLock cacheLock;
   private Lock cacheReadLock;
   private Lock cacheWriteLock;
-
-  // The maximum length of time to try to obtain a lock before giving up.
-  private long lockTimeout;
 
   // The mapping between DNs and IDs. This is the main index map for this
   // cache, keyed to the underlying JE database where entries are stored.
@@ -729,246 +724,23 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
-  public Entry getEntry(DN entryDN, LockType lockType, List<Lock> lockList) {
+  protected DN getEntryDN(Backend backend, long entryID) {
 
-    Entry entry = getEntry(entryDN);
-    if (entry == null)
-    {
-      return null;
-    }
-
-    // Obtain a lock for the entry as appropriate.  If an error occurs, then
-    // make sure no lock is held and return null.  Otherwise, return the entry.
-    switch (lockType)
-    {
-      case READ:
-        // Try to obtain a read lock for the entry.
-        Lock readLock = LockManager.lockRead(entryDN, lockTimeout);
-        if (readLock == null)
-        {
-          // We couldn't get the lock, so we have to return null.
-          return null;
-        }
-        else
-        {
-          try
-          {
-            lockList.add(readLock);
-            return entry;
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            // The attempt to add the lock to the list failed, so we need to
-            // release the lock and return null.
-            try
-            {
-              LockManager.unlock(entryDN, readLock);
-            }
-            catch (Exception e2)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-              }
-            }
-
-            return null;
-          }
-        }
-
-      case WRITE:
-        // Try to obtain a write lock for the entry.
-        Lock writeLock = LockManager.lockWrite(entryDN, lockTimeout);
-        if (writeLock == null)
-        {
-          // We couldn't get the lock, so we have to return null.
-          return null;
-        }
-        else
-        {
-          try
-          {
-            lockList.add(writeLock);
-            return entry;
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            // The attempt to add the lock to the list failed, so we need to
-            // release the lock and return null.
-            try
-            {
-              LockManager.unlock(entryDN, writeLock);
-            }
-            catch (Exception e2)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-              }
-            }
-
-            return null;
-          }
-        }
-
-      case NONE:
-        // We don't need to obtain a lock, so just return the entry.
-        return entry;
-
-      default:
-        // This is an unknown type of lock, so we'll return null.
-        return null;
-    }
-  }
-
-  /**
-   * Retrieves the requested entry if it is present in the cache.
-   *
-   * @param  backend   The backend associated with the entry to retrieve.
-   * @param  entryID   The entry ID within the provided backend for the
-   *                   specified entry.
-   *
-   * @return  The requested entry if it is present in the cache, or
-   *          <CODE>null</CODE> if it is not present.
-   */
-  public Entry getEntry(Backend backend, long entryID) {
-
-    Entry entry = null;
+    DN entryDN = null;
     cacheReadLock.lock();
     try {
       // Get the map for the provided backend.  If it isn't present, then
       // return null.
       Map map = backendMap.get(backend);
       if ( !(map == null) ) {
-        // Get the entry from the map by its ID.  If it isn't present, then
-        // return null.
-        DN dn = (DN) map.get(entryID);
-        if ( !(dn == null) ) {
-          if (dnMap.containsKey(dn)) {
-            entry = getEntryFromDB(dn);
-          }
-        }
+        // Get the entry DN from the map by its ID.  If it isn't present,
+        // then return null.
+        entryDN = (DN) map.get(entryID);
       }
     } finally {
       cacheReadLock.unlock();
     }
-    return entry;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Entry getEntry(Backend backend, long entryID, LockType lockType,
-          List<Lock> lockList) {
-
-    Entry entry = getEntry(backend, entryID);
-    if (entry == null)
-    {
-      return null;
-    }
-
-    // Obtain a lock for the entry as appropriate.  If an error occurs, then
-    // make sure no lock is held and return null.  Otherwise, return the entry.
-    switch (lockType)
-    {
-      case READ:
-        // Try to obtain a read lock for the entry.
-        Lock readLock = LockManager.lockRead(entry.getDN(), lockTimeout);
-        if (readLock == null)
-        {
-          // We couldn't get the lock, so we have to return null.
-          return null;
-        }
-        else
-        {
-          try
-          {
-            lockList.add(readLock);
-            return entry;
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            // The attempt to add the lock to the list failed, so we need to
-            // release the lock and return null.
-            try
-            {
-              LockManager.unlock(entry.getDN(), readLock);
-            }
-            catch (Exception e2)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-              }
-            }
-
-            return null;
-          }
-        }
-
-      case WRITE:
-        // Try to obtain a write lock for the entry.
-        Lock writeLock = LockManager.lockWrite(entry.getDN(), lockTimeout);
-        if (writeLock == null)
-        {
-          // We couldn't get the lock, so we have to return null.
-          return null;
-        }
-        else
-        {
-          try
-          {
-            lockList.add(writeLock);
-            return entry;
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            // The attempt to add the lock to the list failed, so we need to
-            // release the lock and return null.
-            try
-            {
-              LockManager.unlock(entry.getDN(), writeLock);
-            }
-            catch (Exception e2)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-              }
-            }
-
-            return null;
-          }
-        }
-
-      case NONE:
-        // We don't need to obtain a lock, so just return the entry.
-        return entry;
-
-      default:
-        // This is an unknown type of lock, so we'll return null.
-        return null;
-    }
+    return entryDN;
   }
 
   /**
