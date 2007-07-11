@@ -27,10 +27,10 @@
 
 
 # This script may be used to perform LDAP search operations.
-OPENDS_INVOKE_CLASS="org.opends.server.tools.PasswordPolicyState"
+OPENDS_INVOKE_CLASS="org.opends.server.tools.ManageAccount"
 export OPENDS_INVOKE_CLASS
 
-SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=password-policy-state"
+SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=manage-account"
 export SCRIPT_NAME_ARG
 
 SCRIPT_DIR=`dirname "${0}"`
