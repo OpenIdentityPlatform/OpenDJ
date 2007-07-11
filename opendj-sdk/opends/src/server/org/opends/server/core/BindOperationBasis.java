@@ -827,6 +827,7 @@ public class BindOperationBasis
 
         logBindRequest(this);
         logBindResponse(this);
+        clientConnection.setBindInProgress(false);
         return;
       }
       else if (preParseResult.sendResponseImmediately())
@@ -884,14 +885,16 @@ public class BindOperationBasis
       setProcessingStopTime();
       logBindResponse(this);
       invokePostResponsePlugins();
+      clientConnection.setBindInProgress(false);
       return;
     }
 
-    // Unset the "bind in progress" flag to allow other operations to be
-    // processed.
-    // FIXME -- Make sure this also gets unset at every possible point at which
-    // the bind could fail and this method could return early.
-    clientConnection.setBindInProgress(false);
+    // If the bind processing is finished, then unset the "bind in progress"
+    // flag to allow other operations to be processed on the connection.
+    if (getResultCode() != ResultCode.SASL_BIND_IN_PROGRESS)
+    {
+      clientConnection.setBindInProgress(false);
+    }
 
     // Stop the processing timer.
     setProcessingStopTime();
