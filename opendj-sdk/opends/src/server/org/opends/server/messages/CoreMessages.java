@@ -6257,6 +6257,18 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if a bind attempt is
+   * rejected because either the entire server or the user's backend has a
+   * writability mode of "disabled" and the server would not be able to update
+   * the authentication failure count or the last login time.  This takes a
+   * single argument, which is the target user DN.
+   */
+  public static final int MSGID_BIND_OPERATION_WRITABILITY_DISABLED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 628;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -8329,6 +8341,11 @@ public class CoreMessages
     registerMessage(MSGID_BIND_OPERATION_INSECURE_SIMPLE_BIND,
                     "Rejecting a simple bind request for user %s because the " +
                     "password policy requires secure authentication");
+    registerMessage(MSGID_BIND_OPERATION_WRITABILITY_DISABLED,
+                    "Rejecting a bind request for user %s because either " +
+                    "the entire server or the user's backend has a " +
+                    "writability mode of 'disabled' and password policy " +
+                    "state updates would not be allowed");
     registerMessage(MSGID_BIND_OPERATION_ACCOUNT_DISABLED,
                     "Rejecting a bind request for user %s because the " +
                     "account has been administrative disabled");

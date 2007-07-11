@@ -39,11 +39,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -57,9 +59,12 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConditionResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.Operation;
@@ -68,9 +73,8 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -4082,7 +4086,20 @@ public class PasswordPolicyState
       String message = getMessage(msgID, userDNString,
                             String.valueOf(internalModify.getErrorMessage()));
 
-      throw new DirectoryException(resultCode, message, msgID);
+      // If this is a root user, or if the password policy says that we should
+      // ignore these problems, then log a warning message.  Otherwise, cause
+      // the bind to fail.
+      if ((DirectoryServer.isRootDN(userEntry.getDN()) ||
+          (passwordPolicy.getStateUpdateFailurePolicy() ==
+           PasswordPolicyCfgDefn.StateUpdateFailurePolicy.IGNORE)))
+      {
+        logError(ErrorLogCategory.PASSWORD_POLICY,
+                 ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+      }
+      else
+      {
+        throw new DirectoryException(resultCode, message, msgID);
+      }
     }
   }
 }

@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ChangeNotificationListener;
@@ -108,13 +109,14 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SynchronizationProviderResult;
-import org.opends.server.types.Operation;
+import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.Validator;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
@@ -3313,8 +3315,8 @@ bindProcessing:
             // Check to see if the user has a password.  If not, then fail.
             // FIXME -- We need to have a way to enable/disable debugging.
             pwPolicyState = new PasswordPolicyState(userEntry, false, false);
-            AttributeType pwType
-                 = pwPolicyState.getPolicy().getPasswordAttribute();
+            PasswordPolicy policy = pwPolicyState.getPolicy();
+            AttributeType  pwType = policy.getPasswordAttribute();
 
             List<Attribute> pwAttr = userEntry.getAttribute(pwType);
             if ((pwAttr == null) || (pwAttr.isEmpty()))
@@ -3328,9 +3330,35 @@ bindProcessing:
             }
 
 
+            // If the password policy is configured to track authentication
+            // failures or keep the last login time and the associated backend
+            // is disabled, then we may need to reject the bind immediately.
+            if ((policy.getStateUpdateFailurePolicy() ==
+                 PasswordPolicyCfgDefn.StateUpdateFailurePolicy.PROACTIVE) &&
+                ((policy.getLockoutFailureCount() > 0) ||
+                 ((policy.getLastLoginTimeAttribute() != null) &&
+                  (policy.getLastLoginTimeFormat() != null))) &&
+                ((DirectoryServer.getWritabilityMode() ==
+                  WritabilityMode.DISABLED) ||
+                 (backend.getWritabilityMode() == WritabilityMode.DISABLED)))
+            {
+              // This policy isn't applicable to root users, so if it's a root
+              // user then ignore it.
+              if (! DirectoryServer.isRootDN(bindDN))
+              {
+                int    msgID   = MSGID_BIND_OPERATION_WRITABILITY_DISABLED;
+                String message = getMessage(msgID, String.valueOf(bindDN));
+
+                localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
+                localOp.setAuthFailureReason(msgID, message);
+                break bindProcessing;
+              }
+            }
+
+
             // Check to see if the authentication must be done in a secure
             // manner.  If so, then the client connection must be secure.
-            if (pwPolicyState.getPolicy().requireSecureAuthentication() &&
+            if (policy.requireSecureAuthentication() &&
                 (! clientConnection.isSecure()))
             {
               int    msgID   = MSGID_BIND_OPERATION_INSECURE_SIMPLE_BIND;
@@ -3429,8 +3457,7 @@ bindProcessing:
                 pwPolicyErrorType = PasswordPolicyErrorType.PASSWORD_EXPIRED;
               }
 
-              int maxGraceLogins
-                   = pwPolicyState.getPolicy().getGraceLoginCount();
+              int maxGraceLogins = policy.getGraceLoginCount();
               if ((maxGraceLogins > 0) && pwPolicyState.mayUseGraceLogin())
               {
                 List<Long> graceLoginTimes = pwPolicyState.getGraceLoginTimes();
@@ -3731,7 +3758,7 @@ bindProcessing:
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
               localOp.setAuthFailureReason(msgID, message);
 
-              if (pwPolicyState.getPolicy().getLockoutFailureCount() > 0)
+              if (policy.getLockoutFailureCount() > 0)
               {
                 pwPolicyState.updateAuthFailureTimes();
                 if (pwPolicyState.lockedDueToFailures())
@@ -3895,7 +3922,33 @@ bindProcessing:
           // regardless of whether the authentication was successful.
           if (pwPolicyState != null)
           {
-            if (pwPolicyState.isDisabled())
+            PasswordPolicy policy = pwPolicyState.getPolicy();
+
+            // If the password policy is configured to track authentication
+            // failures or keep the last login time and the associated backend
+            // is disabled, then we may need to reject the bind immediately.
+            if ((policy.getStateUpdateFailurePolicy() ==
+                 PasswordPolicyCfgDefn.StateUpdateFailurePolicy.PROACTIVE) &&
+                ((policy.getLockoutFailureCount() > 0) ||
+                 ((policy.getLastLoginTimeAttribute() != null) &&
+                  (policy.getLastLoginTimeFormat() != null))) &&
+                ((DirectoryServer.getWritabilityMode() ==
+                  WritabilityMode.DISABLED) ||
+                 (backend.getWritabilityMode() == WritabilityMode.DISABLED)))
+            {
+              // This policy isn't applicable to root users, so if it's a root
+              // user then ignore it.
+              if (! DirectoryServer.isRootDN(bindDN))
+              {
+                int    msgID   = MSGID_BIND_OPERATION_WRITABILITY_DISABLED;
+                String message = getMessage(msgID, userDNString);
+
+                localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
+                localOp.setAuthFailureReason(msgID, message);
+                break bindProcessing;
+              }
+            }
+            else if (pwPolicyState.isDisabled())
             {
               localOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -3919,7 +3972,7 @@ bindProcessing:
               break bindProcessing;
             }
 
-            if (pwPolicyState.getPolicy().requireSecureAuthentication() &&
+            if (policy.requireSecureAuthentication() &&
                 (! clientConnection.isSecure()) &&
                 (! saslHandler.isSecure(saslMechanism)))
             {
@@ -3996,8 +4049,7 @@ bindProcessing:
                   pwPolicyErrorType = PasswordPolicyErrorType.PASSWORD_EXPIRED;
                 }
 
-                int maxGraceLogins
-                     = pwPolicyState.getPolicy().getGraceLoginCount();
+                int maxGraceLogins = policy.getGraceLoginCount();
                 if ((maxGraceLogins > 0) && pwPolicyState.mayUseGraceLogin())
                 {
                   List<Long> graceLoginTimes =
@@ -5472,7 +5524,7 @@ addProcessing:
 
 
         // If the operation is not a synchronization operation,
-        // Invoke the pre-operation modify plugins.
+        // Invoke the pre-operation add plugins.
         if (!localOp.isSynchronizationOperation())
         {
           PreOperationPluginResult preOpResult =
