@@ -2128,7 +2128,19 @@ public class DirectoryServer
     // usable because it was all read before we had a schema (and therefore all
     // of the attribute types and objectclasses are bogus and won't let us find
     // anything).  So we have to re-read the configuration so that we can
-    // continue the necessary startup process.
+    // continue the necessary startup process.  In the process, we want to
+    // preserve any configuration add/delete/change listeners that might have
+    // been registered with the old configuration (which will primarily be
+    // schema elements) so they can be re-registered with the new configuration.
+    LinkedHashMap<String,List<ConfigAddListener>> addListeners =
+         new LinkedHashMap<String,List<ConfigAddListener>>();
+    LinkedHashMap<String,List<ConfigDeleteListener>> deleteListeners =
+         new LinkedHashMap<String,List<ConfigDeleteListener>>();
+    LinkedHashMap<String,List<ConfigChangeListener>> changeListeners =
+         new LinkedHashMap<String,List<ConfigChangeListener>>();
+    getChangeListeners(configHandler.getConfigRootEntry(), addListeners,
+                       deleteListeners, changeListeners);
+
     try
     {
       configHandler.finalizeConfigHandler();
@@ -2164,6 +2176,110 @@ public class DirectoryServer
       int    msgID   = MSGID_CANNOT_INITIALIZE_CONFIG_HANDLER;
       String message = getMessage(msgID, configClass, configFile, e);
       throw new InitializationException(msgID, message);
+    }
+
+
+    // Re-register all of the change listeners with the configuration.
+    for (String dnStr : addListeners.keySet())
+    {
+      try
+      {
+        DN dn = DN.decode(dnStr);
+        for (ConfigAddListener listener : addListeners.get(dnStr))
+        {
+          configHandler.getConfigEntry(dn).registerAddListener(listener);
+        }
+      }
+      catch (DirectoryException de)
+      {
+        // This should never happen, so we'll just re-throw it.
+        throw new InitializationException(de.getMessageID(),
+                                          de.getErrorMessage());
+      }
+    }
+
+    for (String dnStr : deleteListeners.keySet())
+    {
+      try
+      {
+        DN dn = DN.decode(dnStr);
+        for (ConfigDeleteListener listener : deleteListeners.get(dnStr))
+        {
+          configHandler.getConfigEntry(dn).registerDeleteListener(listener);
+        }
+      }
+      catch (DirectoryException de)
+      {
+        // This should never happen, so we'll just re-throw it.
+        throw new InitializationException(de.getMessageID(),
+                                          de.getErrorMessage());
+      }
+    }
+
+    for (String dnStr : changeListeners.keySet())
+    {
+      try
+      {
+        DN dn = DN.decode(dnStr);
+        for (ConfigChangeListener listener : changeListeners.get(dnStr))
+        {
+          configHandler.getConfigEntry(dn).registerChangeListener(listener);
+        }
+      }
+      catch (DirectoryException de)
+      {
+        // This should never happen, so we'll just re-throw it.
+        throw new InitializationException(de.getMessageID(),
+                                          de.getErrorMessage());
+      }
+    }
+  }
+
+
+
+  /**
+   * Gets all of the add, delete, and change listeners from the provided
+   * configuration entry and all of its descendants and puts them in the
+   * appropriate lists.
+   *
+   * @param  configEntry      The configuration entry to be processed, along
+   *                          with all of its descendants.
+   * @param  addListeners     The set of add listeners mapped to the DN of the
+   *                          corresponding configuration entry.
+   * @param  deleteListeners  The set of delete listeners mapped to the DN of
+   *                          the corresponding configuration entry.
+   * @param  changeListeners  The set of change listeners mapped to the DN of
+   *                          the corresponding configuration entry.
+   */
+  private void getChangeListeners(ConfigEntry configEntry,
+       LinkedHashMap<String,List<ConfigAddListener>> addListeners,
+       LinkedHashMap<String,List<ConfigDeleteListener>> deleteListeners,
+       LinkedHashMap<String,List<ConfigChangeListener>> changeListeners)
+  {
+    CopyOnWriteArrayList<ConfigAddListener> cfgAddListeners =
+         configEntry.getAddListeners();
+    if ((cfgAddListeners != null) && (cfgAddListeners.size() > 0))
+    {
+      addListeners.put(configEntry.getDN().toString(), cfgAddListeners);
+    }
+
+    CopyOnWriteArrayList<ConfigDeleteListener> cfgDeleteListeners =
+         configEntry.getDeleteListeners();
+    if ((cfgDeleteListeners != null) && (cfgDeleteListeners.size() > 0))
+    {
+      deleteListeners.put(configEntry.getDN().toString(), cfgDeleteListeners);
+    }
+
+    CopyOnWriteArrayList<ConfigChangeListener> cfgChangeListeners =
+         configEntry.getChangeListeners();
+    if ((cfgChangeListeners != null) && (cfgChangeListeners.size() > 0))
+    {
+      changeListeners.put(configEntry.getDN().toString(), cfgChangeListeners);
+    }
+
+    for (ConfigEntry child : configEntry.getChildren().values())
+    {
+      getChangeListeners(child, addListeners, deleteListeners, changeListeners);
     }
   }
 
