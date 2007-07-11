@@ -286,7 +286,7 @@ public final class AccessControlConfigManager
       }
 
       // If access control has been disabled put a warning in the log.
-      if (newHandlerClass.equals(DefaultAccessControlHandler.class))
+      if (newHandlerClass.equals(DefaultAccessControlHandler.class.getName()))
       {
         int msgID = MSGID_CONFIG_AUTHZ_DISABLED;
         String message = getMessage(msgID);
