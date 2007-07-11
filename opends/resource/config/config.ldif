@@ -1072,6 +1072,7 @@ ds-cfg-password-change-requires-current-password: false
 ds-cfg-require-secure-authentication: false
 ds-cfg-require-secure-password-changes: false
 ds-cfg-skip-validation-for-administrators: false
+ds-cfg-state-update-failure-policy: reactive
 
 dn: cn=Root Password Policy,cn=Password Policies,cn=config
 objectClass: top
@@ -1099,6 +1100,7 @@ ds-cfg-password-change-requires-current-password: true
 ds-cfg-require-secure-authentication: false
 ds-cfg-require-secure-password-changes: false
 ds-cfg-skip-validation-for-administrators: false
+ds-cfg-state-update-failure-policy: ignore
 
 dn: cn=Password Storage Schemes,cn=config
 objectClass: top

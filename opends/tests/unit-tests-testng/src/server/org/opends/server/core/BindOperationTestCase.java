@@ -51,6 +51,7 @@ import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.AuthenticationType;
@@ -1904,7 +1905,7 @@ public class BindOperationTestCase
    * cause the connection to no longer be associated with the previous identity.
    * This helps provide coverage for issue #1392.
    *
-   * @throws  Exception
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testRebindClearsAuthInfo()
@@ -1961,6 +1962,289 @@ public class BindOperationTestCase
     assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
 
     s.close();
+  }
+
+
+
+  /**
+   * Tests to ensure that the "ignore" password policy state update policy
+   * works as expected.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testIgnoreStateUpdateFailurePolicy()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    TestCaseUtils.applyModifications(
+      "dn: uid=test.user,o=test",
+      "changetype: add",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password",
+      "",
+      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-last-login-time-attribute",
+      "ds-cfg-last-login-time-attribute: ds-pwp-last-login-time",
+      "-",
+      "replace: ds-cfg-last-login-time-format",
+      "ds-cfg-last-login-time-format: yyyyMMdd",
+      "-",
+      "replace: ds-cfg-state-update-failure-policy",
+      "ds-cfg-state-update-failure-policy: ignore",
+      "",
+      "dn: cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-writability-mode",
+      "ds-cfg-writability-mode: disabled"
+    );
+
+    try
+    {
+      String[] args =
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "uid=test.user,o=test",
+        "-w", "password",
+        "-b", "",
+        "-s", "base",
+        "(objectClass=*)"
+      };
+
+      assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err),
+                   0);
+
+      args = new String[]
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "cn=Directory Manager",
+        "-w", "password",
+        "-b", "",
+        "-s", "base",
+        "(objectClass=*)"
+      };
+
+      assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err),
+                   0);
+    }
+    finally
+    {
+      TestCaseUtils.applyModifications(
+        "dn: cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-writability-mode",
+        "ds-cfg-writability-mode: enabled",
+        "",
+        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-last-login-time-attribute",
+        "-",
+        "replace: ds-cfg-last-login-time-format",
+        "-",
+        "replace: ds-cfg-state-update-failure-policy",
+        "ds-cfg-state-update-failure-policy: reactive"
+      );
+    }
+  }
+
+
+
+  /**
+   * Tests to ensure that the "reactive" password policy state update policy
+   * works as expected.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testReactiveStateUpdateFailurePolicy()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    TestCaseUtils.applyModifications(
+      "dn: uid=test.user,o=test",
+      "changetype: add",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password",
+      "",
+      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-last-login-time-attribute",
+      "ds-cfg-last-login-time-attribute: ds-pwp-last-login-time",
+      "-",
+      "replace: ds-cfg-last-login-time-format",
+      "ds-cfg-last-login-time-format: yyyyMMdd",
+      "-",
+      "replace: ds-cfg-state-update-failure-policy",
+      "ds-cfg-state-update-failure-policy: reactive",
+      "",
+      "dn: cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-writability-mode",
+      "ds-cfg-writability-mode: disabled"
+    );
+
+    try
+    {
+      String[] args =
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "uid=test.user,o=test",
+        "-w", "password",
+        "-b", "",
+        "-s", "base",
+        "(objectClass=*)"
+      };
+
+      int rc = LDAPSearch.mainSearch(args, false, System.out, System.err);
+      assertFalse(rc == 0);
+      assertFalse(rc == LDAPResultCode.INVALID_CREDENTIALS);
+
+      args = new String[]
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "cn=Directory Manager",
+        "-w", "password",
+        "-b", "",
+        "-s", "base",
+        "(objectClass=*)"
+      };
+
+      assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err),
+                   0);
+    }
+    finally
+    {
+      TestCaseUtils.applyModifications(
+        "dn: cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-writability-mode",
+        "ds-cfg-writability-mode: enabled",
+        "",
+        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-last-login-time-attribute",
+        "-",
+        "replace: ds-cfg-last-login-time-format",
+        "-",
+        "replace: ds-cfg-state-update-failure-policy",
+        "ds-cfg-state-update-failure-policy: reactive"
+      );
+    }
+  }
+
+
+
+  /**
+   * Tests to ensure that the "proactive" password policy state update policy
+   * works as expected.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testProactiveStateUpdateFailurePolicy()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    TestCaseUtils.applyModifications(
+      "dn: uid=test.user,o=test",
+      "changetype: add",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: password",
+      "",
+      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-last-login-time-attribute",
+      "ds-cfg-last-login-time-attribute: ds-pwp-last-login-time",
+      "-",
+      "replace: ds-cfg-last-login-time-format",
+      "ds-cfg-last-login-time-format: yyyyMMdd",
+      "-",
+      "replace: ds-cfg-state-update-failure-policy",
+      "ds-cfg-state-update-failure-policy: proactive",
+      "",
+      "dn: cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-writability-mode",
+      "ds-cfg-writability-mode: disabled"
+    );
+
+    try
+    {
+      String[] args =
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "uid=test.user,o=test",
+        "-w", "password",
+        "-b", "",
+        "-s", "base",
+        "(objectClass=*)"
+      };
+
+      assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err),
+                   LDAPResultCode.INVALID_CREDENTIALS);
+
+      args = new String[]
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "cn=Directory Manager",
+        "-w", "password",
+        "-b", "",
+        "-s", "base",
+        "(objectClass=*)"
+      };
+
+      assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err),
+                   0);
+    }
+    finally
+    {
+      TestCaseUtils.applyModifications(
+        "dn: cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-writability-mode",
+        "ds-cfg-writability-mode: enabled",
+        "",
+        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-last-login-time-attribute",
+        "-",
+        "replace: ds-cfg-last-login-time-format",
+        "-",
+        "replace: ds-cfg-state-update-failure-policy",
+        "ds-cfg-state-update-failure-policy: reactive"
+      );
+    }
   }
 }
 
