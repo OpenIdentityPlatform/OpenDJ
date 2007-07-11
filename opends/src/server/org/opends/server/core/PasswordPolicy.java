@@ -39,7 +39,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.admin.std.server.PasswordPolicyCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
@@ -215,11 +214,6 @@ public class PasswordPolicy
   // The set of previous last login time format strings.
   private CopyOnWriteArrayList<String> previousLastLoginTimeFormats =
        new CopyOnWriteArrayList<String>();
-
-  // The state update failure policy.
-  private PasswordPolicyCfgDefn.StateUpdateFailurePolicy
-       stateUpdateFailurePolicy =
-            PasswordPolicyCfgDefn.StateUpdateFailurePolicy.REACTIVE;
 
 
 
@@ -806,11 +800,6 @@ public class PasswordPolicy
 
     // Get the idle lockout duration.
     this.idleLockoutInterval = (int) configuration.getIdleLockoutInterval();
-
-
-    // Get the state update failure policy.
-    this.stateUpdateFailurePolicy = configuration.getStateUpdateFailurePolicy();
-
 
     /*
      *  Holistic validation.
@@ -1454,19 +1443,6 @@ public class PasswordPolicy
     }
 
     return idleLockoutInterval;
-  }
-
-
-
-  /**
-   * Retrieves the state update failure policy for this password policy.
-   *
-   * @return  The state update failure policy for this password policy.
-   */
-  public PasswordPolicyCfgDefn.StateUpdateFailurePolicy
-              getStateUpdateFailurePolicy()
-  {
-    return stateUpdateFailurePolicy;
   }
 
 
