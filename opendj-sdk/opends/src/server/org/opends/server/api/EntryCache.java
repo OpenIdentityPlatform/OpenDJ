@@ -36,7 +36,11 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockType;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.admin.std.server.EntryCacheCfg;
+import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
 
@@ -69,6 +73,21 @@ import org.opends.server.admin.std.server.EntryCacheCfg;
 public abstract class EntryCache
        <T extends EntryCacheCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+
+
+  /**
+   * The maximum length of time to try to obtain a lock
+   * before giving up.
+   */
+  protected long lockTimeout;
+
+
+
   /**
    * Initializes this entry cache implementation so that it will be
    * available for storing and retrieving entries.
@@ -136,6 +155,8 @@ public abstract class EntryCache
    * Indicates whether the entry cache currently contains the entry
    * with the specified DN.  This method may be called without holding
    * any locks if a point-in-time check is all that is required.
+   * Note that this method is called from @see #getEntry(DN entryDN,
+   * LockType lockType, List lockList)
    *
    * @param  entryDN  The DN for which to make the determination.
    *
@@ -151,6 +172,8 @@ public abstract class EntryCache
    * Retrieves the entry with the specified DN from the cache.  The
    * caller should have already acquired a read or write lock for the
    * entry if such protection is needed.
+   * Note that this method is called from @see #getEntry(DN entryDN,
+   * LockType lockType, List lockList)
    *
    * @param  entryDN  The DN of the entry to retrieve.
    *
@@ -162,27 +185,13 @@ public abstract class EntryCache
 
 
   /**
-   * Retrieves the entry ID for the entry with the specified DN from
-   * the cache.  The caller should have already acquired a read or
-   * write lock for the entry if such protection is needed.
-   *
-   * @param  entryDN  The DN of the entry for which to retrieve the
-   *                  entry ID.
-   *
-   * @return  The entry ID for the requested entry, or -1 if it is not
-   *          present in the cache.
-   */
-  public abstract long getEntryID(DN entryDN);
-
-
-
-  /**
    * Retrieves the entry with the specified DN from the cache,
    * obtaining a lock on the entry before it is returned.  If the
    * entry is present in the cache, then a lock will be obtained for
    * that entry and appended to the provided list before the entry is
    * returned.  If the entry is not present, then no lock will be
-   * obtained.
+   * obtained.  Note that although this method is declared non-final
+   * it is not recommended for subclasses to implement this method.
    *
    * @param  entryDN   The DN of the entry to retrieve.
    * @param  lockType  The type of lock to obtain (it may be
@@ -194,8 +203,131 @@ public abstract class EntryCache
    * @return  The requested entry if it is present in the cache, or
    *          <CODE>null</CODE> if it is not present.
    */
-  public abstract Entry getEntry(DN entryDN, LockType lockType,
-                                 List<Lock> lockList);
+  public Entry getEntry(DN entryDN,
+                        LockType lockType,
+                        List<Lock> lockList) {
+
+    if (!containsEntry(entryDN)) {
+      return null;
+    }
+
+    // Obtain a lock for the entry before actually retrieving the
+    // entry itself thus preventing any stale entries being returned,
+    // see Issue #1589 for more details.  If an error occurs, then
+    // make sure no lock is held and return null. Otherwise, return
+    // the entry.
+    switch (lockType)
+    {
+      case READ:
+        // Try to obtain a read lock for the entry.
+        Lock readLock = LockManager.lockRead(entryDN, lockTimeout);
+        if (readLock == null)
+        {
+          // We couldn't get the lock, so we have to return null.
+          return null;
+        }
+        else
+        {
+          try
+          {
+            lockList.add(readLock);
+            // and load.
+            Entry entry = getEntry(entryDN);
+            if (entry == null)
+            {
+              lockList.remove(readLock);
+              LockManager.unlock(entryDN, readLock);
+              return null;
+            }
+            return entry;
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+
+            // The attempt to add the lock to the list failed,
+            // so we need to release the lock and return null.
+            try
+            {
+              LockManager.unlock(entryDN, readLock);
+            }
+            catch (Exception e2)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
+              }
+            }
+
+            return null;
+          }
+        }
+
+      case WRITE:
+        // Try to obtain a write lock for the entry.
+        Lock writeLock = LockManager.lockWrite(entryDN, lockTimeout);
+        if (writeLock == null)
+        {
+          // We couldn't get the lock, so we have to return null.
+          return null;
+        }
+        else
+        {
+          try
+          {
+            lockList.add(writeLock);
+            // and load.
+            Entry entry = getEntry(entryDN);
+            if (entry == null)
+            {
+              lockList.remove(writeLock);
+              LockManager.unlock(entryDN, writeLock);
+              return null;
+            }
+            return entry;
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+
+            // The attempt to add the lock to the list failed,
+            // so we need to release the lock and return null.
+            try
+            {
+              LockManager.unlock(entryDN, writeLock);
+            }
+            catch (Exception e2)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e2);
+              }
+            }
+
+            return null;
+          }
+        }
+
+      case NONE:
+        // We don't need to obtain a lock, so just return the entry.
+        Entry entry = getEntry(entryDN);
+        if (entry == null)
+        {
+          return null;
+        }
+        return entry;
+
+      default:
+        // This is an unknown type of lock, so we'll return null.
+        return null;
+    }
+  }
 
 
 
@@ -205,7 +337,8 @@ public abstract class EntryCache
    * entry is present in the cache, then a lock  will be obtained for
    * that entry and appended to the provided list before the entry is
    * returned.  If the entry is not present, then no lock will be
-   * obtained.
+   * obtained.  Note that although this method is declared non-final
+   * it is not recommended for subclasses to implement this method.
    *
    * @param  backend   The backend associated with the entry to
    *                   retrieve.
@@ -220,9 +353,54 @@ public abstract class EntryCache
    * @return  The requested entry if it is present in the cache, or
    *          <CODE>null</CODE> if it is not present.
    */
-  public abstract Entry getEntry(Backend backend, long entryID,
+  public Entry getEntry(Backend backend, long entryID,
                                  LockType lockType,
-                                 List<Lock> lockList);
+                                 List<Lock> lockList) {
+
+    // Translate given backend/entryID pair to entryDN.
+    DN entryDN = getEntryDN(backend, entryID);
+    if (entryDN == null) {
+      return null;
+    }
+
+    // Delegate to by DN lock and load method.
+    return getEntry(entryDN, lockType, lockList);
+  }
+
+
+
+  /**
+   * Retrieves the entry ID for the entry with the specified DN from
+   * the cache.  The caller should have already acquired a read or
+   * write lock for the entry if such protection is needed.
+   *
+   * @param  entryDN  The DN of the entry for which to retrieve the
+   *                  entry ID.
+   *
+   * @return  The entry ID for the requested entry, or -1 if it is
+   *          not present in the cache.
+   */
+  public abstract long getEntryID(DN entryDN);
+
+
+
+  /**
+   * Retrieves the entry DN for the entry with the specified ID on
+   * the specific backend from the cache.  The caller should have
+   * already acquired a read or write lock for the entry if such
+   * protection is needed.
+   * Note that this method is called from @see #getEntry(Backend
+   * backend, long entryID, LockType lockType, List lockList)
+   *
+   * @param  backend  The backend associated with the entry for
+   *                  which to retrieve the entry DN.
+   * @param  entryID  The entry ID within the provided backend
+   *                  for which to retrieve the entry DN.
+   *
+   * @return  The entry DN for the requested entry, or
+   *          <CODE>null</CODE> if it is not present in the cache.
+   */
+  protected abstract DN getEntryDN(Backend backend, long entryID);
 
 
 
@@ -315,4 +493,3 @@ public abstract class EntryCache
    */
   public abstract void handleLowMemory();
 }
-

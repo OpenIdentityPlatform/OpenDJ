@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
@@ -41,7 +40,6 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LockType;
 import org.opends.server.types.ResultCode;
 
 
@@ -128,21 +126,9 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
-  public Entry getEntry(DN entryDN, LockType lockType, List<Lock> lockList)
+  protected DN getEntryDN(Backend backend, long entryID)
   {
-    // This implementation does not store entries.
-    return null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Entry getEntry(Backend backend, long entryID, LockType lockType,
-                        List<Lock> lockList)
-  {
-    // This implementation does not store entries.
+    // This implementation does not store any entries.
     return null;
   }
 
