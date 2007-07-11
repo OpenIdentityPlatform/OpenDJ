@@ -44,12 +44,17 @@
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property name="enabled" mandatory="true">
+  <adm:property name="enabled" mandatory="false">
     <adm:synopsis>
       Indicate whether the
       <adm:user-friendly-name />
       is enabled for use.
     </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
     <adm:syntax>
       <adm:boolean />
     </adm:syntax>
