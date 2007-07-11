@@ -415,6 +415,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.123
   NAME 'ds-cfg-suppress-internal-operations'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.436
+  NAME 'ds-cfg-suppress-synchronization-operations'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.124 NAME 'ds-cfg-syntax-class'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
@@ -1597,7 +1601,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.22 NAME 'ds-cfg-logger'
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.23 NAME 'ds-cfg-access-logger'
   SUP ds-cfg-logger
-  STRUCTURAL MAY ( ds-cfg-suppress-internal-operations )
+  STRUCTURAL MAY ( ds-cfg-suppress-internal-operations $ 
+  ds-cfg-suppress-synchronization-operations )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.24 NAME 'ds-cfg-error-logger'
   SUP ds-cfg-logger

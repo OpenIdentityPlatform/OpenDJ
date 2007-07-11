@@ -183,6 +183,8 @@ public class TextAccessLogPublisher
     }
 
     suppressInternalOperations = config.isSuppressInternalOperations();
+    suppressSynchronizationOperations =
+      config.isSuppressSynchronizationOperations();
 
     currentConfig = config;
 
@@ -277,6 +279,8 @@ public class TextAccessLogPublisher
      ArrayList<String> messages = new ArrayList<String>();
 
      suppressInternalOperations = config.isSuppressInternalOperations();
+     suppressSynchronizationOperations =
+       config.isSuppressSynchronizationOperations();
 
      File logFile = getFileForPath(config.getLogFile());
      FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -418,6 +422,7 @@ public class TextAccessLogPublisher
   public void logConnect(ClientConnection clientConnection)
   {
     long connectionID = clientConnection.getConnectionID();
+
     if (connectionID < 0 && suppressInternalOperations)
     {
       return;
@@ -491,9 +496,23 @@ public class TextAccessLogPublisher
   public void logAbandonRequest(AbandonOperation abandonOperation)
   {
     long connectionID = abandonOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (abandonOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
 
     StringBuilder buffer = new StringBuilder(50);
@@ -508,6 +527,8 @@ public class TextAccessLogPublisher
     buffer.append(abandonOperation.getMessageID());
     buffer.append(" idToAbandon=");
     buffer.append(abandonOperation.getIDToAbandon());
+    if (abandonOperation.isSynchronizationOperation())
+      buffer.append(" type=synchronization");
 
     writer.writeRecord(buffer.toString());
   }
@@ -522,9 +543,23 @@ public class TextAccessLogPublisher
   public void logAbandonResult(AbandonOperation abandonOperation)
   {
     long connectionID = abandonOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (abandonOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -572,9 +607,23 @@ public class TextAccessLogPublisher
   public void logAddRequest(AddOperation addOperation)
   {
     long connectionID = addOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (addOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -589,6 +638,9 @@ public class TextAccessLogPublisher
     buffer.append(" dn=\"");
     addOperation.getRawEntryDN().toString(buffer);
     buffer.append("\"");
+    if (addOperation.isSynchronizationOperation())
+      buffer.append(" type=synchronization");
+
 
     writer.writeRecord(buffer.toString());
   }
@@ -604,9 +656,23 @@ public class TextAccessLogPublisher
   public void logAddResponse(AddOperation addOperation)
   {
     long connectionID = addOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (addOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -660,9 +726,23 @@ public class TextAccessLogPublisher
   public void logBindRequest(BindOperation bindOperation)
   {
     long connectionID = bindOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (bindOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -693,6 +773,9 @@ public class TextAccessLogPublisher
     buffer.append(" dn=\"");
     bindOperation.getRawBindDN().toString(buffer);
     buffer.append("\"");
+    if (bindOperation.isSynchronizationOperation())
+      buffer.append(" type=synchronization");
+
 
     writer.writeRecord(buffer.toString());
   }
@@ -708,9 +791,23 @@ public class TextAccessLogPublisher
   public void logBindResponse(BindOperation bindOperation)
   {
     long connectionID = bindOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (bindOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -794,9 +891,23 @@ public class TextAccessLogPublisher
   public void logCompareRequest(CompareOperation compareOperation)
   {
     long connectionID = compareOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (compareOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -812,6 +923,9 @@ public class TextAccessLogPublisher
     compareOperation.getRawEntryDN().toString(buffer);
     buffer.append("\" attr=");
     buffer.append(compareOperation.getAttributeType());
+    if (compareOperation.isSynchronizationOperation())
+      buffer.append(" type=synchronization");
+
 
     writer.writeRecord(buffer.toString());
   }
@@ -827,9 +941,23 @@ public class TextAccessLogPublisher
   public void logCompareResponse(CompareOperation compareOperation)
   {
     long connectionID = compareOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (compareOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -882,9 +1010,23 @@ public class TextAccessLogPublisher
   public void logDeleteRequest(DeleteOperation deleteOperation)
   {
     long connectionID = deleteOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (deleteOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -899,6 +1041,9 @@ public class TextAccessLogPublisher
     buffer.append(" dn=\"");
     deleteOperation.getRawEntryDN().toString(buffer);
     buffer.append("\"");
+    if (deleteOperation.isSynchronizationOperation())
+      buffer.append(" type=synchronization");
+
 
 
     writer.writeRecord(buffer.toString());
@@ -915,9 +1060,23 @@ public class TextAccessLogPublisher
   public void logDeleteResponse(DeleteOperation deleteOperation)
   {
     long connectionID = deleteOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (deleteOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -971,9 +1130,23 @@ public class TextAccessLogPublisher
   public void logExtendedRequest(ExtendedOperation extendedOperation)
   {
     long connectionID = extendedOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (extendedOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -988,6 +1161,9 @@ public class TextAccessLogPublisher
     buffer.append(" oid=\"");
     buffer.append(extendedOperation.getRequestOID());
     buffer.append("\"");
+    if (extendedOperation.isSynchronizationOperation())
+      buffer.append(" type=synchronization");
+
 
     writer.writeRecord(buffer.toString());
   }
@@ -1004,9 +1180,23 @@ public class TextAccessLogPublisher
   public void logExtendedResponse(ExtendedOperation extendedOperation)
   {
     long connectionID = extendedOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (extendedOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -1062,9 +1252,23 @@ public class TextAccessLogPublisher
   public void logModifyRequest(ModifyOperation modifyOperation)
   {
     long connectionID = modifyOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (modifyOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -1079,6 +1283,9 @@ public class TextAccessLogPublisher
     buffer.append(" dn=\"");
     modifyOperation.getRawEntryDN().toString(buffer);
     buffer.append("\"");
+    if (modifyOperation.isSynchronizationOperation())
+      buffer.append(" type=synchronization");
+
 
     writer.writeRecord(buffer.toString());
   }
@@ -1095,9 +1302,23 @@ public class TextAccessLogPublisher
   public void logModifyResponse(ModifyOperation modifyOperation)
   {
     long connectionID = modifyOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // this is an internal operation
+      if (modifyOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -1151,9 +1372,23 @@ public class TextAccessLogPublisher
   public void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
   {
     long connectionID = modifyDNOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (modifyDNOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -1178,6 +1413,9 @@ public class TextAccessLogPublisher
       buffer.append(" newSuperior=\"");
       newSuperior.toString(buffer);
     }
+    if (modifyDNOperation.isSynchronizationOperation())
+      buffer.append(" type=synchronization");
+
 
     writer.writeRecord(buffer.toString());
   }
@@ -1195,9 +1433,23 @@ public class TextAccessLogPublisher
   public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
     long connectionID = modifyDNOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (modifyDNOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -1250,9 +1502,23 @@ public class TextAccessLogPublisher
   public void logSearchRequest(SearchOperation searchOperation)
   {
     long connectionID = searchOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (searchOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -1290,6 +1556,9 @@ public class TextAccessLogPublisher
 
       buffer.append("\"");
     }
+    if (searchOperation.isSynchronizationOperation())
+      buffer.append(" type=synchronization");
+
 
     writer.writeRecord(buffer.toString());
   }
@@ -1338,9 +1607,23 @@ public class TextAccessLogPublisher
   public void logSearchResultDone(SearchOperation searchOperation)
   {
     long connectionID = searchOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (searchOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -1399,9 +1682,23 @@ public class TextAccessLogPublisher
   public void logUnbind(UnbindOperation unbindOperation)
   {
     long connectionID = unbindOperation.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (connectionID < 0)
     {
-      return;
+      // This is an internal operation.
+      if (unbindOperation.isSynchronizationOperation())
+      {
+        if (suppressSynchronizationOperations)
+        {
+          return;
+        }
+      }
+      else
+      {
+        if (suppressInternalOperations)
+        {
+          return;
+        }
+      }
     }
     StringBuilder buffer = new StringBuilder(50);
     buffer.append("[");
@@ -1413,6 +1710,9 @@ public class TextAccessLogPublisher
     buffer.append(unbindOperation.getOperationID());
     buffer.append(" msgID=");
     buffer.append(unbindOperation.getMessageID());
+    if (unbindOperation.isSynchronizationOperation())
+      buffer.append(" type=synchronization");
+
 
     writer.writeRecord(buffer.toString());
   }
