@@ -298,7 +298,7 @@ public class FingerprintCertificateMapper
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
     // Make sure that the fingerprint attribute is defined in the server schema.
     String attrName = configuration.getFingerprintAttribute();
@@ -308,7 +308,7 @@ public class FingerprintCertificateMapper
     if (newFingerprintType == null)
     {
       unacceptableReasons.add(getMessage(MSGID_FCM_NO_SUCH_ATTR,
-                                         String.valueOf(configEntryDN),
+                                         String.valueOf(cfgEntryDN),
                                          attrName));
       configAcceptable = false;
     }

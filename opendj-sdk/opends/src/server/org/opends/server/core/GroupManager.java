@@ -431,7 +431,7 @@ public class GroupManager
    *                        class to load, instantiate, and initialize.
    * @param  configuration  The configuration to use to initialize the group
    *                        implementation.  It must not be {@code null}.
-   * @param  initialize     Indicates whether the key manager provider instance
+   * @param  initialize     Indicates whether the group implementation instance
    *                        should be initialized.
    *
    * @return  The possibly initialized group implementation.

@@ -1527,8 +1527,6 @@ public class FileSystemEntryCache
     String                newCacheType = DEFAULT_FSCACHE_TYPE;
     String                newCacheHome = DEFAULT_FSCACHE_HOME;
 
-    DN configEntryDN = configuration.dn();
-
     // Read configuration.
     newConfigEntryDN = configuration.dn();
     newLockTimeout   = configuration.getLockTimeout();

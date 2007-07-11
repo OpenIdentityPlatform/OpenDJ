@@ -376,7 +376,7 @@ public class FileBasedTrustManagerProvider
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
 
     // Get the path to the trust store file.
@@ -389,7 +389,7 @@ public class FileBasedTrustManagerProvider
         int msgID = MSGID_FILE_TRUSTMANAGER_NO_SUCH_FILE;
         unacceptableReasons.add(getMessage(msgID,
                                            String.valueOf(newTrustStoreFile),
-                                           String.valueOf(configEntryDN)));
+                                           String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
     }
@@ -401,7 +401,7 @@ public class FileBasedTrustManagerProvider
       }
 
       int msgID = MSGID_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
+      unacceptableReasons.add(getMessage(msgID, String.valueOf(cfgEntryDN),
                                          getExceptionMessage(e)));
       configAcceptable = false;
     }
@@ -424,7 +424,7 @@ public class FileBasedTrustManagerProvider
 
         int    msgID   = MSGID_FILE_TRUSTMANAGER_INVALID_TYPE;
         String message = getMessage(msgID, String.valueOf(storeType),
-                                    String.valueOf(configEntryDN),
+                                    String.valueOf(cfgEntryDN),
                                     getExceptionMessage(kse));
         unacceptableReasons.add(message);
         configAcceptable = false;
@@ -441,7 +441,7 @@ public class FileBasedTrustManagerProvider
       {
         int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET;
         String message = getMessage(msgID, String.valueOf(pinProp),
-                                    String.valueOf(configEntryDN));
+                                    String.valueOf(cfgEntryDN));
         unacceptableReasons.add(message);
         configAcceptable = false;
       }
@@ -457,7 +457,7 @@ public class FileBasedTrustManagerProvider
       {
         int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET;
         String message = getMessage(msgID, String.valueOf(pinEnVar),
-                                    String.valueOf(configEntryDN));
+                                    String.valueOf(cfgEntryDN));
         unacceptableReasons.add(message);
         configAcceptable = false;
       }
@@ -483,7 +483,7 @@ public class FileBasedTrustManagerProvider
         {
           int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ;
           String message = getMessage(msgID, String.valueOf(pinFile),
-                                      String.valueOf(configEntryDN),
+                                      String.valueOf(cfgEntryDN),
                                       getExceptionMessage(ioe));
           unacceptableReasons.add(message);
           configAcceptable = false;
@@ -500,7 +500,7 @@ public class FileBasedTrustManagerProvider
         {
           int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_FILE_EMPTY;
           String message =  getMessage(msgID, String.valueOf(pinFile),
-                                       String.valueOf(configEntryDN));
+                                       String.valueOf(cfgEntryDN));
           unacceptableReasons.add(message);
           configAcceptable = false;
         }
@@ -509,7 +509,7 @@ public class FileBasedTrustManagerProvider
       {
         int    msgID   = MSGID_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE;
         String message = getMessage(msgID, String.valueOf(pinFile),
-                                    String.valueOf(configEntryDN));
+                                    String.valueOf(cfgEntryDN));
         unacceptableReasons.add(message);
         configAcceptable = false;
       }

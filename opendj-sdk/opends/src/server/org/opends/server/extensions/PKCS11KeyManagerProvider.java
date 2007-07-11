@@ -294,7 +294,7 @@ public class PKCS11KeyManagerProvider
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
 
     // Get the PIN needed to access the contents of the keystore file.
@@ -317,7 +317,7 @@ public class PKCS11KeyManagerProvider
       {
         int msgID = MSGID_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET;
         unacceptableReasons.add(getMessage(msgID, String.valueOf(propertyName),
-                                           String.valueOf(configEntryDN)));
+                                           String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
     }
@@ -330,7 +330,7 @@ public class PKCS11KeyManagerProvider
       {
         int msgID = MSGID_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET;
         unacceptableReasons.add(getMessage(msgID, String.valueOf(enVarName),
-                                           String.valueOf(configEntryDN)));
+                                           String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
     }
@@ -343,7 +343,7 @@ public class PKCS11KeyManagerProvider
       {
         int msgID = MSGID_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE;
         unacceptableReasons.add(getMessage(msgID, String.valueOf(fileName),
-                                           String.valueOf(configEntryDN)));
+                                           String.valueOf(cfgEntryDN)));
         configAcceptable = false;
       }
       else
@@ -358,7 +358,7 @@ public class PKCS11KeyManagerProvider
         {
           int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ;
           unacceptableReasons.add(getMessage(msgID, String.valueOf(fileName),
-                                             String.valueOf(configEntryDN),
+                                             String.valueOf(cfgEntryDN),
                                              getExceptionMessage(ioe)));
           configAcceptable = false;
         }
@@ -374,7 +374,7 @@ public class PKCS11KeyManagerProvider
         {
           int msgID = MSGID_PKCS11_KEYMANAGER_PIN_FILE_EMPTY;
           unacceptableReasons.add(getMessage(msgID, String.valueOf(fileName),
-                                             String.valueOf(configEntryDN)));
+                                             String.valueOf(cfgEntryDN)));
           configAcceptable = false;
         }
       }
@@ -387,7 +387,7 @@ public class PKCS11KeyManagerProvider
     {
       // Pin wasn't defined anywhere.
       int msgID = MSGID_PKCS11_KEYMANAGER_NO_PIN;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN)));
+      unacceptableReasons.add(getMessage(msgID, String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 

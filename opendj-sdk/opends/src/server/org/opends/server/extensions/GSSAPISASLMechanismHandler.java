@@ -397,7 +397,7 @@ public class GSSAPISASLMechanismHandler
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
@@ -408,7 +408,7 @@ public class GSSAPISASLMechanismHandler
       int msgID = MSGID_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER;
       unacceptableReasons.add(getMessage(msgID,
                                          String.valueOf(identityMapperDN),
-                                         String.valueOf(configEntryDN)));
+                                         String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 

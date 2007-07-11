@@ -347,7 +347,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
               List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
     // Get and validate the subject attribute to user attribute mappings.
     LinkedHashMap<String,AttributeType> newAttributeMap =
@@ -360,7 +360,7 @@ mapLoop:
       if (colonPos <= 0)
       {
         int msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
-        unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
+        unacceptableReasons.add(getMessage(msgID, String.valueOf(cfgEntryDN),
                                            mapStr));
         configAcceptable = false;
         break;
@@ -371,7 +371,7 @@ mapLoop:
       if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
       {
         int msgID = MSGID_SATUACM_INVALID_MAP_FORMAT;
-        unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
+        unacceptableReasons.add(getMessage(msgID, String.valueOf(cfgEntryDN),
                                            mapStr));
         configAcceptable = false;
         break;
@@ -380,7 +380,7 @@ mapLoop:
       if (newAttributeMap.containsKey(certAttrName))
       {
         int msgID = MSGID_SATUACM_DUPLICATE_CERT_ATTR;
-        unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
+        unacceptableReasons.add(getMessage(msgID, String.valueOf(cfgEntryDN),
                                            certAttrName));
         configAcceptable = false;
         break;
@@ -392,7 +392,7 @@ mapLoop:
       {
         int msgID = MSGID_SATUACM_NO_SUCH_ATTR;
         unacceptableReasons.add(getMessage(msgID, mapStr,
-                                           String.valueOf(configEntryDN),
+                                           String.valueOf(cfgEntryDN),
                                            userAttrName));
         configAcceptable = false;
         break;
@@ -404,7 +404,7 @@ mapLoop:
         {
           int msgID = MSGID_SATUACM_DUPLICATE_USER_ATTR;
           unacceptableReasons.add(getMessage(msgID,
-                                             String.valueOf(configEntryDN),
+                                             String.valueOf(cfgEntryDN),
                                              attrType.getNameOrOID()));
           configAcceptable = false;
           break mapLoop;

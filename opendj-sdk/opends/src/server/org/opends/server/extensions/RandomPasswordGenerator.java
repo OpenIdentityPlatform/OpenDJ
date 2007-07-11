@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
@@ -40,9 +39,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PasswordGeneratorCfg;
 import org.opends.server.admin.std.server.RandomPasswordGeneratorCfg;
 import org.opends.server.api.PasswordGenerator;
-import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigException;
-import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringFactory;
@@ -300,58 +297,6 @@ public class RandomPasswordGenerator
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this component is
-   * associated.
-   *
-   * @return  The DN of the configuration entry with which this component is
-   *          associated.
-   */
-  public DN getConfigurableComponentEntryDN()
-  {
-    return configEntryDN;
-  }
-
-
-
-  /**
-   * Retrieves the set of configuration attributes that are associated with this
-   * configurable component.
-   *
-   * @return  The set of configuration attributes that are associated with this
-   *          configurable component.
-   */
-  public List<ConfigAttribute> getConfigurationAttributes()
-  {
-    LinkedList<ConfigAttribute> attrList = new LinkedList<ConfigAttribute>();
-
-    ArrayList<String> charsetValues = new ArrayList<String>();
-    for (int i=0; i < characterSets.length; i++)
-    {
-      String encodedValue = characterSets[i].encode();
-      if (! charsetValues.contains(encodedValue))
-      {
-        charsetValues.add(encodedValue);
-      }
-    }
-
-
-    int msgID = MSGID_RANDOMPWGEN_DESCRIPTION_CHARSET;
-    attrList.add(new StringConfigAttribute(ATTR_PASSWORD_CHARSET,
-                                           getMessage(msgID), true, true, false,
-                                           charsetValues));
-
-    msgID = MSGID_RANDOMPWGEN_DESCRIPTION_PWFORMAT;
-    attrList.add(new StringConfigAttribute(ATTR_PASSWORD_FORMAT,
-                                           getMessage(msgID), true, false,
-                                           false, formatString));
-
-
-    return attrList;
-  }
-
-
-
-  /**
    * {@inheritDoc}
    */
   @Override()
@@ -374,7 +319,7 @@ public class RandomPasswordGenerator
   {
     int msgID;
 
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
     // Get the character sets for use in generating the password. At
     // least one
@@ -387,7 +332,7 @@ public class RandomPasswordGenerator
       if (currentPasSet.size() == 0)
       {
         msgID = MSGID_RANDOMPWGEN_NO_CHARSETS;
-        String message = getMessage(msgID, String.valueOf(configEntryDN));
+        String message = getMessage(msgID, String.valueOf(cfgEntryDN));
         throw new ConfigException(msgID, message);
       }
 
@@ -397,7 +342,7 @@ public class RandomPasswordGenerator
         if (charsets.containsKey(s.getName()))
         {
           msgID = MSGID_RANDOMPWGEN_CHARSET_NAME_CONFLICT;
-          String message = getMessage(msgID, String.valueOf(configEntryDN), s
+          String message = getMessage(msgID, String.valueOf(cfgEntryDN), s
               .getName());
           unacceptableReasons.add(message);
           return false;

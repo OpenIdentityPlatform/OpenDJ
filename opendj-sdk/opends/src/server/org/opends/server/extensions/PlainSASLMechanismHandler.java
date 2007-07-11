@@ -617,7 +617,7 @@ public class PlainSASLMechanismHandler
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
@@ -628,7 +628,7 @@ public class PlainSASLMechanismHandler
       int msgID = MSGID_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER;
       unacceptableReasons.add(getMessage(msgID,
                                          String.valueOf(identityMapperDN),
-                                         String.valueOf(configEntryDN)));
+                                         String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 

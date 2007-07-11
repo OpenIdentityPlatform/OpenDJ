@@ -265,13 +265,13 @@ public final class ProfilerPlugin
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
     // Make sure that the plugin is only registered as a startup plugin.
     if (configuration.getPluginType().isEmpty())
     {
       int    msgID   = MSGID_PLUGIN_PROFILER_NO_PLUGIN_TYPES;
-      String message = getMessage(msgID, String.valueOf(configEntryDN));
+      String message = getMessage(msgID, String.valueOf(cfgEntryDN));
       unacceptableReasons.add(message);
       configAcceptable = false;
     }
@@ -282,7 +282,7 @@ public final class ProfilerPlugin
         if (t != PluginCfgDefn.PluginType.STARTUP)
         {
           int    msgID   = MSGID_PLUGIN_PROFILER_INVALID_PLUGIN_TYPE;
-          String message = getMessage(msgID, String.valueOf(configEntryDN),
+          String message = getMessage(msgID, String.valueOf(cfgEntryDN),
                                       String.valueOf(t));
           unacceptableReasons.add(message);
           configAcceptable = false;
@@ -299,7 +299,7 @@ public final class ProfilerPlugin
       int msgID = MSGID_PLUGIN_PROFILER_INVALID_PROFILE_DIR;
       unacceptableReasons.add(getMessage(msgID,
                                          profileDirectory.getAbsolutePath(),
-                                         String.valueOf(configEntryDN)));
+                                         String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 

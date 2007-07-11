@@ -487,7 +487,7 @@ public class ExternalSASLMechanismHandler
                       List<String> unacceptableReasons)
   {
     boolean configAcceptable = true;
-    DN configEntryDN = configuration.dn();
+    DN cfgEntryDN = configuration.dn();
 
     // Get the attribute type to use for validating the certificates.  If none
     // is provided, then default to the userCertificate type.
@@ -502,7 +502,7 @@ public class ExternalSASLMechanismHandler
     {
       int msgID = MSGID_SASLEXTERNAL_UNKNOWN_CERT_ATTR;
       unacceptableReasons.add(getMessage(msgID, String.valueOf(attrTypeName),
-                                         String.valueOf(configEntryDN)));
+                                         String.valueOf(cfgEntryDN)));
       configAcceptable = false;
     }
 
@@ -514,7 +514,7 @@ public class ExternalSASLMechanismHandler
     if (certificateMapper == null)
     {
       int msgID = MSGID_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN;
-      unacceptableReasons.add(getMessage(msgID, String.valueOf(configEntryDN),
+      unacceptableReasons.add(getMessage(msgID, String.valueOf(cfgEntryDN),
            String.valueOf(configuration.getCertificateMapperDN())));
       configAcceptable = false;
     }
