@@ -545,6 +545,13 @@ public class LDAPClientConnection
    */
   public void sendResponse(Operation operation)
   {
+    // Since this is the final response for this operation, we can go ahead and
+    // remove it from the "operations in progress" list.  It can't be canceled
+    // after this point, and this will avoid potential race conditions in which
+    // the client immediately sends another request with the same message ID as
+    // was used for this operation.
+    removeOperationInProgress(operation.getMessageID());
+
     LDAPMessage message = operationToResponseLDAPMessage(operation);
     if (message != null)
     {
