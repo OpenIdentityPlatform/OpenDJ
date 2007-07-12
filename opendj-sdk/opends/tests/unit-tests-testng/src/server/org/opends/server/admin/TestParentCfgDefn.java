@@ -29,7 +29,11 @@ package org.opends.server.admin;
 
 
 import java.util.Collection;
-
+import java.util.SortedSet;
+import org.opends.server.admin.AdministratorAction;
+import org.opends.server.admin.AttributeTypePropertyDefinition;
+import org.opends.server.admin.BooleanPropertyDefinition;
+import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
@@ -37,79 +41,149 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
+import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.DefaultBehaviorProvider;
+import org.opends.server.admin.DefinedDefaultBehaviorProvider;
+import org.opends.server.admin.DefinitionDecodingException;
+import org.opends.server.admin.DNPropertyDefinition;
+import org.opends.server.admin.InstantiableRelationDefinition;
+import org.opends.server.admin.ManagedObjectAlreadyExistsException;
+import org.opends.server.admin.ManagedObjectDefinition;
+import org.opends.server.admin.ManagedObjectNotFoundException;
+import org.opends.server.admin.OptionalRelationDefinition;
+import org.opends.server.admin.PropertyIsReadOnlyException;
+import org.opends.server.admin.PropertyOption;
+import org.opends.server.admin.PropertyProvider;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.admin.std.meta.RootCfgDefn;
+import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
+import org.opends.server.config.ConfigException;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 
 
 
 /**
- * A sample configuration definition class for testing.
+ * An interface for querying the Test Parent managed object definition
+ * meta information.
+ * <p>
+ * A configuration for testing components that have child components.
+ * It re-uses the virtual-attribute configuration LDAP profile.
  */
-public final class TestParentCfgDefn extends
-    ManagedObjectDefinition<TestParentCfgClient, TestParentCfg> {
+public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentCfgClient, TestParentCfg> {
 
   // The singleton configuration definition instance.
   private static final TestParentCfgDefn INSTANCE = new TestParentCfgDefn();
 
-  /**
-   * The relation between this definition and the root.
-   */
-  public static final InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> RD_TEST_PARENT;
+
+
+  // The "mandatory-boolean-property" property definition.
+  private static final BooleanPropertyDefinition PD_MANDATORY_BOOLEAN_PROPERTY;
+
+
+
+  // The "mandatory-class-property" property definition.
+  private static final ClassPropertyDefinition PD_MANDATORY_CLASS_PROPERTY;
+
+
+
+  // The "mandatory-read-only-attribute-type-property" property definition.
+  private static final AttributeTypePropertyDefinition PD_MANDATORY_READ_ONLY_ATTRIBUTE_TYPE_PROPERTY;
+
+
+
+  // The "optional-multi-valued-dn-property" property definition.
+  private static final DNPropertyDefinition PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY;
+
+
 
   // The "test-children" relation definition.
   private static final InstantiableRelationDefinition<TestChildCfgClient, TestChildCfg> RD_TEST_CHILDREN;
 
-  // The "maximum-length" property definition.
-  private static final IntegerPropertyDefinition PD_MAXIMUM_LENGTH;
 
-  // The "minimum-length" property definition.
-  private static final IntegerPropertyDefinition PD_MINIMUM_LENGTH;
 
-  // Build the "maximum-length" property definition.
+  // The "optional-test-child" relation definition.
+  private static final OptionalRelationDefinition<TestChildCfgClient, TestChildCfg> RD_OPTIONAL_TEST_CHILD;
+
+
+
+  // Build the "mandatory-boolean-property" property definition.
   static {
-    IntegerPropertyDefinition.Builder builder = IntegerPropertyDefinition
-        .createBuilder(INSTANCE, "maximum-length");
-    DefaultBehaviorProvider<Integer> provider = new DefinedDefaultBehaviorProvider<Integer>(
-        "456");
-    builder.setDefaultBehaviorProvider(provider);
-    builder.setLowerLimit(0);
-    PD_MAXIMUM_LENGTH = builder.getInstance();
-    INSTANCE.registerPropertyDefinition(PD_MAXIMUM_LENGTH);
+      BooleanPropertyDefinition.Builder builder = BooleanPropertyDefinition.createBuilder(INSTANCE, "mandatory-boolean-property");
+      builder.setOption(PropertyOption.MANDATORY);
+      builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, INSTANCE, "mandatory-boolean-property"));
+      builder.setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider<Boolean>());
+      PD_MANDATORY_BOOLEAN_PROPERTY = builder.getInstance();
+      INSTANCE.registerPropertyDefinition(PD_MANDATORY_BOOLEAN_PROPERTY);
   }
 
-  // Build the "minimum-length" property definition.
+
+
+  // Build the "mandatory-class-property" property definition.
   static {
-    IntegerPropertyDefinition.Builder builder = IntegerPropertyDefinition
-        .createBuilder(INSTANCE, "minimum-length");
-    DefaultBehaviorProvider<Integer> provider = new DefinedDefaultBehaviorProvider<Integer>(
-        "123");
-    builder.setDefaultBehaviorProvider(provider);
-    builder.setLowerLimit(0);
-    PD_MINIMUM_LENGTH = builder.getInstance();
-    INSTANCE.registerPropertyDefinition(PD_MINIMUM_LENGTH);
+      ClassPropertyDefinition.Builder builder = ClassPropertyDefinition.createBuilder(INSTANCE, "mandatory-class-property");
+      builder.setOption(PropertyOption.MANDATORY);
+      builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.COMPONENT_RESTART, INSTANCE, "mandatory-class-property"));
+      DefaultBehaviorProvider<String> provider = new DefinedDefaultBehaviorProvider<String>("org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
+      builder.setDefaultBehaviorProvider(provider);
+      builder.addInstanceOf("org.opends.server.api.VirtualAttributeProvider");
+      PD_MANDATORY_CLASS_PROPERTY = builder.getInstance();
+      INSTANCE.registerPropertyDefinition(PD_MANDATORY_CLASS_PROPERTY);
   }
 
-  // Register this as a relation against the root configuration.
+
+
+  // Build the "mandatory-read-only-attribute-type-property" property definition.
   static {
-    RD_TEST_PARENT = new InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg>(
-        INSTANCE, "test-parent", "test-parents", INSTANCE);
-    RootCfgDefn.getInstance().registerRelationDefinition(RD_TEST_PARENT);
+      AttributeTypePropertyDefinition.Builder builder = AttributeTypePropertyDefinition.createBuilder(INSTANCE, "mandatory-read-only-attribute-type-property");
+      builder.setOption(PropertyOption.READ_ONLY);
+      builder.setOption(PropertyOption.MANDATORY);
+      builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, INSTANCE, "mandatory-read-only-attribute-type-property"));
+      builder.setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider<AttributeType>());
+      PD_MANDATORY_READ_ONLY_ATTRIBUTE_TYPE_PROPERTY = builder.getInstance();
+      INSTANCE.registerPropertyDefinition(PD_MANDATORY_READ_ONLY_ATTRIBUTE_TYPE_PROPERTY);
   }
+
+
+
+  // Build the "optional-multi-valued-dn-property" property definition.
+  static {
+      DNPropertyDefinition.Builder builder = DNPropertyDefinition.createBuilder(INSTANCE, "optional-multi-valued-dn-property");
+      builder.setOption(PropertyOption.MULTI_VALUED);
+      builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.NONE, INSTANCE, "optional-multi-valued-dn-property"));
+      DefaultBehaviorProvider<DN> provider = new DefinedDefaultBehaviorProvider<DN>("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com");
+      builder.setDefaultBehaviorProvider(provider);
+      PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY = builder.getInstance();
+      INSTANCE.registerPropertyDefinition(PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY);
+  }
+
+
 
   // Build the "test-children" relation definition.
   static {
     RD_TEST_CHILDREN = new InstantiableRelationDefinition<TestChildCfgClient, TestChildCfg>(
-        INSTANCE, "test-child", "test-children", TestChildCfgDefn.getInstance());
+        INSTANCE, "multiple-children", "test-children", TestChildCfgDefn.getInstance());
     INSTANCE.registerRelationDefinition(RD_TEST_CHILDREN);
   }
 
 
 
+  // Build the "optional-test-child" relation definition.
+  static {
+    RD_OPTIONAL_TEST_CHILD = new OptionalRelationDefinition<TestChildCfgClient, TestChildCfg>(
+        INSTANCE, "optional-test-child", TestChildCfgDefn.getInstance());
+    INSTANCE.registerRelationDefinition(RD_OPTIONAL_TEST_CHILD);
+  }
+
+
+
   /**
-   * Get the definition singleton.
+   * Get the Test Parent configuration definition singleton.
    *
-   * @return Returns the definition singleton.
+   * @return Returns the Test Parent configuration definition
+   *         singleton.
    */
   public static TestParentCfgDefn getInstance() {
     return INSTANCE;
@@ -122,39 +196,6 @@ public final class TestParentCfgDefn extends
    */
   private TestParentCfgDefn() {
     super("test-parent", null);
-  }
-
-
-
-  /**
-   * Get the "maximum-length" property definition.
-   *
-   * @return Returns the "maximum-length" property definition.
-   */
-  public IntegerPropertyDefinition getMaximumLengthPropertyDefinition() {
-    return PD_MAXIMUM_LENGTH;
-  }
-
-
-
-  /**
-   * Get the "minimum-length" property definition.
-   *
-   * @return Returns the "minimum-length" property definition.
-   */
-  public IntegerPropertyDefinition getMinimumLengthPropertyDefinition() {
-    return PD_MINIMUM_LENGTH;
-  }
-
-
-
-  /**
-   * Get the "test-children" relation definition.
-   *
-   * @return Returns the "test-children" relation definition.
-   */
-  public InstantiableRelationDefinition<TestChildCfgClient, TestChildCfg> getTestChildrenRelationDefinition() {
-    return RD_TEST_CHILDREN;
   }
 
 
@@ -189,9 +230,85 @@ public final class TestParentCfgDefn extends
 
 
   /**
+   * Get the "mandatory-boolean-property" property definition.
+   * <p>
+   * A mandatory boolean property.
+   *
+   * @return Returns the "mandatory-boolean-property" property definition.
+   */
+  public BooleanPropertyDefinition getMandatoryBooleanPropertyPropertyDefinition() {
+    return PD_MANDATORY_BOOLEAN_PROPERTY;
+  }
+
+
+
+  /**
+   * Get the "mandatory-class-property" property definition.
+   * <p>
+   * A mandatory Java-class property requiring a component restart.
+   *
+   * @return Returns the "mandatory-class-property" property definition.
+   */
+  public ClassPropertyDefinition getMandatoryClassPropertyPropertyDefinition() {
+    return PD_MANDATORY_CLASS_PROPERTY;
+  }
+
+
+
+  /**
+   * Get the "mandatory-read-only-attribute-type-property" property definition.
+   * <p>
+   * A mandatory read-only attribute type property.
+   *
+   * @return Returns the "mandatory-read-only-attribute-type-property" property definition.
+   */
+  public AttributeTypePropertyDefinition getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition() {
+    return PD_MANDATORY_READ_ONLY_ATTRIBUTE_TYPE_PROPERTY;
+  }
+
+
+
+  /**
+   * Get the "optional-multi-valued-dn-property" property definition.
+   * <p>
+   * An optional multi-valued DN property with a defined default
+   * behavior.
+   *
+   * @return Returns the "optional-multi-valued-dn-property" property definition.
+   */
+  public DNPropertyDefinition getOptionalMultiValuedDNPropertyPropertyDefinition() {
+    return PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY;
+  }
+
+
+
+  /**
+   * Get the "test-children" relation definition.
+   *
+   * @return Returns the "test-children" relation definition.
+   */
+  public InstantiableRelationDefinition<TestChildCfgClient,TestChildCfg> getTestChildrenRelationDefinition() {
+    return RD_TEST_CHILDREN;
+  }
+
+
+
+  /**
+   * Get the "optional-test-child" relation definition.
+   *
+   * @return Returns the "optional-test-child" relation definition.
+   */
+  public OptionalRelationDefinition<TestChildCfgClient,TestChildCfg> getOptionalTestChildRelationDefinition() {
+    return RD_OPTIONAL_TEST_CHILD;
+  }
+
+
+
+  /**
    * Managed object client implementation.
    */
-  private static class TestParentCfgClientImpl implements TestParentCfgClient {
+  private static class TestParentCfgClientImpl implements
+    TestParentCfgClient {
 
     // Private implementation.
     private ManagedObject<? extends TestParentCfgClient> impl;
@@ -209,9 +326,8 @@ public final class TestParentCfgDefn extends
     /**
      * {@inheritDoc}
      */
-    public int getMaximumLength() {
-      return impl.getPropertyValue(INSTANCE
-          .getMaximumLengthPropertyDefinition());
+    public Boolean isMandatoryBooleanProperty() {
+      return impl.getPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition());
     }
 
 
@@ -219,9 +335,8 @@ public final class TestParentCfgDefn extends
     /**
      * {@inheritDoc}
      */
-    public void setMaximumLength(Integer value) {
-      impl.setPropertyValue(INSTANCE.getMaximumLengthPropertyDefinition(),
-          value);
+    public void setMandatoryBooleanProperty(boolean value) {
+      impl.setPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition(), value);
     }
 
 
@@ -229,9 +344,8 @@ public final class TestParentCfgDefn extends
     /**
      * {@inheritDoc}
      */
-    public int getMinimumLength() {
-      return impl.getPropertyValue(INSTANCE
-          .getMinimumLengthPropertyDefinition());
+    public String getMandatoryClassProperty() {
+      return impl.getPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition());
     }
 
 
@@ -239,9 +353,130 @@ public final class TestParentCfgDefn extends
     /**
      * {@inheritDoc}
      */
-    public void setMinimumLength(Integer value) {
-      impl.setPropertyValue(INSTANCE.getMinimumLengthPropertyDefinition(),
-          value);
+    public void setMandatoryClassProperty(String value) {
+      impl.setPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition(), value);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public AttributeType getMandatoryReadOnlyAttributeTypeProperty() {
+      return impl.getPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyIsReadOnlyException {
+      impl.setPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition(), value);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SortedSet<DN> getOptionalMultiValuedDNProperty() {
+      return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNPropertyPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setOptionalMultiValuedDNProperty(Collection<DN> values) {
+      impl.setPropertyValues(INSTANCE.getOptionalMultiValuedDNPropertyPropertyDefinition(), values);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String[] listTestChildren() throws ConcurrentModificationException,
+        AuthorizationException, CommunicationException {
+      return impl.listChildren(INSTANCE.getTestChildrenRelationDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public TestChildCfgClient getTestChild(String name)
+        throws DefinitionDecodingException, ManagedObjectDecodingException,
+        ManagedObjectNotFoundException, ConcurrentModificationException,
+        AuthorizationException, CommunicationException {
+      return impl.getChild(INSTANCE.getTestChildrenRelationDefinition(), name).getConfiguration();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <M extends TestChildCfgClient> M createTestChild(
+        ManagedObjectDefinition<M, ?> d, String name, Collection<DefaultBehaviorException> exceptions) {
+      return impl.createChild(INSTANCE.getTestChildrenRelationDefinition(), d, name, exceptions).getConfiguration();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void removeTestChild(String name)
+        throws ManagedObjectNotFoundException, ConcurrentModificationException,
+        OperationRejectedException, AuthorizationException, CommunicationException {
+      impl.removeChild(INSTANCE.getTestChildrenRelationDefinition(), name);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasOptionalTestChild() throws ConcurrentModificationException,
+        AuthorizationException, CommunicationException {
+      return impl.hasChild(INSTANCE.getOptionalTestChildRelationDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public TestChildCfgClient getOptionalChild()
+        throws DefinitionDecodingException, ManagedObjectDecodingException,
+        ManagedObjectNotFoundException, ConcurrentModificationException,
+        AuthorizationException, CommunicationException {
+      return impl.getChild(INSTANCE.getOptionalTestChildRelationDefinition()).getConfiguration();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <M extends TestChildCfgClient> M createOptionalTestChild(
+        ManagedObjectDefinition<M, ?> d, Collection<DefaultBehaviorException> exceptions) {
+      return impl.createChild(INSTANCE.getOptionalTestChildRelationDefinition(), d, exceptions).getConfiguration();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void removeOptionalTestChild()
+        throws ManagedObjectNotFoundException, ConcurrentModificationException,
+        OperationRejectedException, AuthorizationException, CommunicationException {
+      impl.removeChild(INSTANCE.getOptionalTestChildRelationDefinition());
     }
 
 
@@ -267,58 +502,11 @@ public final class TestParentCfgDefn extends
     /**
      * {@inheritDoc}
      */
-    public void commit() throws ConcurrentModificationException,
+    public void commit() throws ManagedObjectAlreadyExistsException,
+        MissingMandatoryPropertiesException, ConcurrentModificationException,
         OperationRejectedException, AuthorizationException,
-        CommunicationException, ManagedObjectAlreadyExistsException,
-        MissingMandatoryPropertiesException {
-      impl.commit();
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public <C extends TestChildCfgClient> C createTestChild(
-        ManagedObjectDefinition<C, ?> d, String name,
-        Collection<DefaultBehaviorException> exceptions) {
-      return impl.createChild(INSTANCE.getTestChildrenRelationDefinition(), d,
-          name, exceptions).getConfiguration();
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public TestChildCfgClient getTestChild(String name)
-        throws DefinitionDecodingException, ManagedObjectDecodingException,
-        ManagedObjectNotFoundException, ConcurrentModificationException,
-        AuthorizationException, CommunicationException {
-      return impl.getChild(INSTANCE.getTestChildrenRelationDefinition(), name)
-          .getConfiguration();
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public String[] listTestChildren() throws ConcurrentModificationException,
-        AuthorizationException, CommunicationException {
-      return impl.listChildren(INSTANCE.getTestChildrenRelationDefinition());
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public void removeTestChild(String name)
-        throws ManagedObjectNotFoundException, OperationRejectedException,
-        ConcurrentModificationException, AuthorizationException,
         CommunicationException {
-      impl.removeChild(INSTANCE.getTestChildrenRelationDefinition(), name);
+      impl.commit();
     }
 
   }
@@ -328,7 +516,8 @@ public final class TestParentCfgDefn extends
   /**
    * Managed object server implementation.
    */
-  private static class TestParentCfgServerImpl implements TestParentCfg {
+  private static class TestParentCfgServerImpl implements
+    TestParentCfg {
 
     // Private implementation.
     private ServerManagedObject<? extends TestParentCfg> impl;
@@ -336,8 +525,7 @@ public final class TestParentCfgDefn extends
 
 
     // Private constructor.
-    private TestParentCfgServerImpl(
-        ServerManagedObject<? extends TestParentCfg> impl) {
+    private TestParentCfgServerImpl(ServerManagedObject<? extends TestParentCfg> impl) {
       this.impl = impl;
     }
 
@@ -346,9 +534,9 @@ public final class TestParentCfgDefn extends
     /**
      * {@inheritDoc}
      */
-    public int getMaximumLength() {
-      return impl.getPropertyValue(INSTANCE
-          .getMaximumLengthPropertyDefinition());
+    public void addChangeListener(
+        ConfigurationChangeListener<TestParentCfg> listener) {
+      impl.registerChangeListener(listener);
     }
 
 
@@ -356,9 +544,161 @@ public final class TestParentCfgDefn extends
     /**
      * {@inheritDoc}
      */
-    public int getMinimumLength() {
-      return impl.getPropertyValue(INSTANCE
-          .getMinimumLengthPropertyDefinition());
+    public void removeChangeListener(
+        ConfigurationChangeListener<TestParentCfg> listener) {
+      impl.deregisterChangeListener(listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isMandatoryBooleanProperty() {
+      return impl.getPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getMandatoryClassProperty() {
+      return impl.getPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public AttributeType getMandatoryReadOnlyAttributeTypeProperty() {
+      return impl.getPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public SortedSet<DN> getOptionalMultiValuedDNProperty() {
+      return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNPropertyPropertyDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String[] listTestChildren() {
+      return impl.listChildren(INSTANCE.getTestChildrenRelationDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public TestChildCfg getTestChild(String name) throws ConfigException {
+      return impl.getChild(INSTANCE.getTestChildrenRelationDefinition(), name).getConfiguration();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void addTestChildAddListener(
+        ConfigurationAddListener<TestChildCfg> listener) throws ConfigException {
+      impl.registerAddListener(INSTANCE.getTestChildrenRelationDefinition(), listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void removeTestChildAddListener(
+        ConfigurationAddListener<TestChildCfg> listener) {
+      impl.deregisterAddListener(INSTANCE.getTestChildrenRelationDefinition(), listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void addTestChildDeleteListener(
+        ConfigurationDeleteListener<TestChildCfg> listener) throws ConfigException {
+      impl.registerDeleteListener(INSTANCE.getTestChildrenRelationDefinition(), listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void removeTestChildDeleteListener(
+        ConfigurationDeleteListener<TestChildCfg> listener) {
+      impl.deregisterDeleteListener(INSTANCE.getTestChildrenRelationDefinition(), listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasOptionalTestChild() {
+      return impl.hasChild(INSTANCE.getOptionalTestChildRelationDefinition());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public TestChildCfg getOptionalTestChild() throws ConfigException {
+      return impl.getChild(INSTANCE.getOptionalTestChildRelationDefinition()).getConfiguration();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void addOptionalTestChildAddListener(
+        ConfigurationAddListener<TestChildCfg> listener) throws ConfigException {
+      impl.registerAddListener(INSTANCE.getOptionalTestChildRelationDefinition(), listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void removeOptionalTestChildAddListener(
+        ConfigurationAddListener<TestChildCfg> listener) {
+      impl.deregisterAddListener(INSTANCE.getOptionalTestChildRelationDefinition(), listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void addOptionalChildTestDeleteListener(
+        ConfigurationDeleteListener<TestChildCfg> listener) throws ConfigException {
+      impl.registerDeleteListener(INSTANCE.getOptionalTestChildRelationDefinition(), listener);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void removeOptionalTestChildDeleteListener(
+        ConfigurationDeleteListener<TestChildCfg> listener) {
+      impl.deregisterDeleteListener(INSTANCE.getOptionalTestChildRelationDefinition(), listener);
     }
 
 

@@ -28,45 +28,106 @@ package org.opends.server.admin;
 
 
 
+import java.util.SortedSet;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ManagedObjectDefinition;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
 
 
 
 /**
- * A sample server-side configuration interface for testing.
+ * A server-side interface for querying Test Child settings.
+ * <p>
+ * A configuration for testing components that are subordinate to a
+ * parent component. It re-uses the virtual-attribute configuration
+ * LDAP profile.
  */
 public interface TestChildCfg extends Configuration {
 
   /**
-   * {@inheritDoc}
+   * Get the configuration definition associated with this Test Child.
+   *
+   * @return Returns the configuration definition associated with this Test Child.
    */
   ManagedObjectDefinition<? extends TestChildCfgClient, ? extends TestChildCfg> definition();
 
 
 
   /**
-   * Get the "heartbeat-interval" property.
+   * Register to be notified when this Test Child is changed.
    *
-   * @return Returns the value of the "heartbeat-interval" property.
+   * @param listener
+   *          The Test Child configuration change listener.
    */
-  long getHeartbeatInterval();
+  void addChangeListener(ConfigurationChangeListener<TestChildCfg> listener);
 
 
 
   /**
-   * Get the "maximum-length" property.
+   * Deregister an existing Test Child configuration change listener.
    *
-   * @return Returns the value of the "maximum-length" property.
+   * @param listener
+   *          The Test Child configuration change listener.
    */
-  int getMaximumLength();
+  void removeChangeListener(ConfigurationChangeListener<TestChildCfg> listener);
 
 
 
   /**
-   * Get the "minimum-length" property.
+   * Get the "mandatory-boolean-property" property.
+   * <p>
+   * A mandatory boolean property.
    *
-   * @return Returns the value of the "minimum-length" property.
+   * @return Returns the value of the "mandatory-boolean-property" property.
    */
-  int getMinimumLength();
+  boolean isMandatoryBooleanProperty();
+
+
+
+  /**
+   * Get the "mandatory-class-property" property.
+   * <p>
+   * A mandatory Java-class property requiring a component restart.
+   *
+   * @return Returns the value of the "mandatory-class-property" property.
+   */
+  String getMandatoryClassProperty();
+
+
+
+  /**
+   * Get the "mandatory-read-only-attribute-type-property" property.
+   * <p>
+   * A mandatory read-only attribute type property.
+   *
+   * @return Returns the value of the "mandatory-read-only-attribute-type-property" property.
+   */
+  AttributeType getMandatoryReadOnlyAttributeTypeProperty();
+
+
+
+  /**
+   * Get the "optional-multi-valued-dn-property1" property.
+   * <p>
+   * An optional multi-valued DN property which inherits its values
+   * from optional-multi-valued-dn-property in the parent.
+   *
+   * @return Returns the values of the "optional-multi-valued-dn-property1" property.
+   */
+  SortedSet<DN> getOptionalMultiValuedDNProperty1();
+
+
+
+  /**
+   * Get the "optional-multi-valued-dn-property2" property.
+   * <p>
+   * An optional multi-valued DN property which inherits its values
+   * from optional-multi-valued-dn-property1.
+   *
+   * @return Returns the values of the "optional-multi-valued-dn-property2" property.
+   */
+  SortedSet<DN> getOptionalMultiValuedDNProperty2();
+
 }

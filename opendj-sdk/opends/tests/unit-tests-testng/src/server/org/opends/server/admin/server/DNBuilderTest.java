@@ -28,25 +28,24 @@ package org.opends.server.admin.server;
 
 
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.InstantiableRelationDefinition;
+import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.MockLDAPProfile;
-import org.opends.server.admin.OptionalRelationDefinition;
+import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
+import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfg;
 import org.opends.server.admin.TestChildCfgClient;
 import org.opends.server.admin.TestChildCfgDefn;
-import org.opends.server.admin.TestParentCfg;
-import org.opends.server.admin.TestParentCfgClient;
 import org.opends.server.admin.TestParentCfgDefn;
-import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.types.DN;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -68,6 +67,17 @@ public final class DNBuilderTest extends AdminTestCase {
     // This test suite depends on having the schema available, so
     // we'll start the server.
     TestCaseUtils.startServer();
+    LDAPProfile.getInstance().pushWrapper(new MockLDAPProfile());
+  }
+
+
+
+  /**
+   * Tears down test environment.
+   */
+  @AfterClass
+  public void tearDown() {
+    LDAPProfile.getInstance().popWrapper();
   }
 
 
@@ -82,25 +92,19 @@ public final class DNBuilderTest extends AdminTestCase {
   @Test
   public void testCreateOneToMany() throws Exception {
     // First create the path.
-    ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath.emptyPath();
+    ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath
+        .emptyPath();
 
-    InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> r1 = new InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg>(
-        RootCfgDefn.getInstance(), "test-parent", "test-parents",
-        TestParentCfgDefn.getInstance());
-
-    InstantiableRelationDefinition<TestChildCfgClient, TestChildCfg> r2 = new InstantiableRelationDefinition<TestChildCfgClient, TestChildCfg>(
-        TestParentCfgDefn.getInstance(), "test-child",
-        "test-children", TestChildCfgDefn.getInstance());
-
-    path = path.child(r1, "test-parent-1");
-    path = path.child(r2, "test-child-1");
+    path = path.child(TestCfg.RD_TEST_ONE_TO_MANY_PARENT, "test-parent-1");
+    path = path.child(TestParentCfgDefn.getInstance()
+        .getTestChildrenRelationDefinition(), "test-child-1");
 
     // Now serialize it.
-    DNBuilder builder = new DNBuilder(new MockLDAPProfile());
+    DNBuilder builder = new DNBuilder();
     path.serialize(builder);
     DN actual = builder.getInstance();
     DN expected = DN
-        .decode("cn=test-child-1,cn=test-children,cn=test-parent-1,cn=test-parents");
+        .decode("cn=test-child-1,cn=test children,cn=test-parent-1,cn=test parents,cn=config");
 
     assertEquals(actual, expected);
   }
@@ -117,27 +121,44 @@ public final class DNBuilderTest extends AdminTestCase {
   @Test
   public void testCreateOneToOne() throws Exception {
     // First create the path.
-    ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath.emptyPath();
+    ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath
+        .emptyPath();
 
-    InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> r1 = new InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg>(
-        RootCfgDefn.getInstance(), "test-parent", "test-parents",
-        TestParentCfgDefn.getInstance());
-
-    SingletonRelationDefinition<TestChildCfgClient, TestChildCfg> r2 = new SingletonRelationDefinition<TestChildCfgClient, TestChildCfg>(
+    final SingletonRelationDefinition<TestChildCfgClient, TestChildCfg> r2 = new SingletonRelationDefinition<TestChildCfgClient, TestChildCfg>(
         TestParentCfgDefn.getInstance(), "singleton-test-child",
         TestChildCfgDefn.getInstance());
+    LDAPProfile.Wrapper wrapper = new LDAPProfile.Wrapper() {
 
-    path = path.child(r1, "test-parent-1");
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
+        if (r == r2) {
+          return "cn=singleton-test-child";
+        } else {
+          return null;
+        }
+      }
+
+    };
+
+    path = path.child(TestCfg.RD_TEST_ONE_TO_MANY_PARENT, "test-parent-1");
     path = path.child(r2);
 
     // Now serialize it.
-    DNBuilder builder = new DNBuilder(new MockLDAPProfile());
-    path.serialize(builder);
-    DN actual = builder.getInstance();
-    DN expected = DN
-        .decode("cn=singleton-test-child,cn=test-parent-1,cn=test-parents");
+    LDAPProfile.getInstance().pushWrapper(wrapper);
+    try {
+      DNBuilder builder = new DNBuilder();
+      path.serialize(builder);
+      DN actual = builder.getInstance();
+      DN expected = DN
+          .decode("cn=singleton-test-child,cn=test-parent-1,cn=test parents,cn=config");
 
-    assertEquals(actual, expected);
+      assertEquals(actual, expected);
+    } finally {
+      LDAPProfile.getInstance().popWrapper();
+    }
   }
 
 
@@ -152,25 +173,19 @@ public final class DNBuilderTest extends AdminTestCase {
   @Test
   public void testCreateOneToZeroOrOne() throws Exception {
     // First create the path.
-    ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath.emptyPath();
+    ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath
+        .emptyPath();
 
-    InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> r1 = new InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg>(
-        RootCfgDefn.getInstance(), "test-parent", "test-parents",
-        TestParentCfgDefn.getInstance());
-
-    OptionalRelationDefinition<TestChildCfgClient, TestChildCfg> r2 = new OptionalRelationDefinition<TestChildCfgClient, TestChildCfg>(
-        TestParentCfgDefn.getInstance(), "optional-test-child",
-        TestChildCfgDefn.getInstance());
-
-    path = path.child(r1, "test-parent-1");
-    path = path.child(r2);
+    path = path.child(TestCfg.RD_TEST_ONE_TO_MANY_PARENT, "test-parent-1");
+    path = path.child(TestParentCfgDefn.getInstance()
+        .getOptionalTestChildRelationDefinition());
 
     // Now serialize it.
-    DNBuilder builder = new DNBuilder(new MockLDAPProfile());
+    DNBuilder builder = new DNBuilder();
     path.serialize(builder);
     DN actual = builder.getInstance();
     DN expected = DN
-        .decode("cn=optional-test-child,cn=test-parent-1,cn=test-parents");
+        .decode("cn=optional test child,cn=test-parent-1,cn=test parents,cn=config");
 
     assertEquals(actual, expected);
   }
