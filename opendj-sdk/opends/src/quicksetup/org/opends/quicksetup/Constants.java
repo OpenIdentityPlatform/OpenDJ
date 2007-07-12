@@ -45,6 +45,12 @@ public class Constants {
   /** HTML bold close tag. */
   public static final String HTML_BOLD_CLOSE = "</b>";
 
+  /** HTML italics open tag. */
+  public static final String HTML_ITALICS_OPEN = "<i>";
+
+  /** HTML italics close tag. */
+  public static final String HTML_ITALICS_CLOSE = "</i>";
+
   /** Default dynamic name of directory manager. */
   public static final String DIRECTORY_MANAGER_DN = "cn=Directory Manager";
 

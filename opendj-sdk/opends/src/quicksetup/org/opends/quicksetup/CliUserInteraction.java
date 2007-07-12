@@ -95,9 +95,9 @@ public class CliUserInteraction extends CliApplicationHelper
     }
 
     println();
-    println(summary);
+    println(Utils.stripHtml(summary));
     println();
-    println(details);
+    println(Utils.stripHtml(details));
 
     String returnValue = null;
     while (returnValue == null) {

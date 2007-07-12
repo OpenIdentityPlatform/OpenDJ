@@ -81,11 +81,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 /**
  * QuickSetup application of upgrading the bits of an installation of
  * OpenDS.
  */
 public class Upgrader extends GuiApplication implements CliApplication {
+
   /**
    * Steps during the upgrade process.
    */
@@ -770,12 +772,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       checkAbort();
 
-      boolean schemaCustomizationPresent;
+      MigrationManager migration =
+              new MigrationManager(getInstallation(),
+                      getUpgradeBackupDirectory(),
+                      userInteraction());
       try {
         LOG.log(Level.INFO, "checking for schema customizations");
         setCurrentProgressStep(
                 UpgradeProgressStep.CALCULATING_SCHEMA_CUSTOMIZATIONS);
-        schemaCustomizationPresent = calculateSchemaCustomizations();
+        migration.calculateSchemaCustomizations();
         notifyListeners(formatter.getFormattedDone() +
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "check for schema customizations finished");
@@ -788,12 +793,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       checkAbort();
 
-      boolean configCustimizationPresent;
       try {
         LOG.log(Level.INFO, "checking for config customizations");
         setCurrentProgressStep(
                 UpgradeProgressStep.CALCULATING_CONFIGURATION_CUSTOMIZATIONS);
-        configCustimizationPresent = calculateConfigCustomizations();
+        migration.calculateConfigCustomizations();
         notifyListeners(formatter.getFormattedDone() +
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "check for config customizations finished");
@@ -865,10 +869,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
       //*  the server to be started 'in process'.
       // *******************************************
       LOG.log(Level.INFO, "schema customization " +
-              (schemaCustomizationPresent ? "":"not ") + "present");
+              (migration.isSchemaCustomized() ? "":"not ") + "present");
       LOG.log(Level.INFO, "config customization " +
-              (configCustimizationPresent ? "":"not ") + "present");
-      if (schemaCustomizationPresent || configCustimizationPresent) {
+              (migration.isConfigurationCustomized() ? "":"not ") + "present");
+      if (migration.isSchemaCustomized() ||
+              migration.isConfigurationCustomized()) {
         try {
           LOG.log(Level.INFO, "starting server");
           setCurrentProgressStep(
@@ -892,12 +897,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
         checkAbort();
 
-        if (schemaCustomizationPresent) {
+        if (migration.isSchemaCustomized()) {
           try {
-            LOG.log(Level.INFO, "applying schema customizatoin");
+            LOG.log(Level.INFO, "Applying schema customizations");
             setCurrentProgressStep(
                     UpgradeProgressStep.APPLYING_SCHEMA_CUSTOMIZATIONS);
-            applySchemaCustomizations();
+            migration.migrateSchema();
             notifyListeners(formatter.getFormattedDone() +
                     formatter.getLineBreak());
             LOG.log(Level.INFO, "custom schema application finished");
@@ -912,12 +917,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
         checkAbort();
 
-        if (configCustimizationPresent) {
+        if (migration.isConfigurationCustomized()) {
           try {
-            LOG.log(Level.INFO, "applying config customizatoin");
+            LOG.log(Level.INFO, "Applying config customizations");
             setCurrentProgressStep(
                     UpgradeProgressStep.APPLYING_CONFIGURATION_CUSTOMIZATIONS);
-            applyConfigurationCustomizations();
+            migration.migrateConfiguration();
             notifyListeners(formatter.getFormattedDone() +
                     formatter.getLineBreak());
             LOG.log(Level.INFO, "custom config application finished");
@@ -1078,6 +1083,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
       // to be an error.
       if (ae.getType() != ApplicationException.Type.CANCEL) {
         this.runError = ae;
+      } else {
+        this.abort = true;
       }
 
     } catch (Throwable t) {
@@ -1272,40 +1279,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   }
 
-  private void applyConfigurationCustomizations() throws ApplicationException {
-    try {
-      File configDiff = getCustomConfigDiffFile();
-      if (configDiff.exists()) {
-        new InProcessServerController(
-                getInstallation()).modify(configDiff);
 
-      }
-    } catch (ApplicationException ae) {
-      throw ae;
-    } catch (Exception e) {
-      String msg = getMsg("error-applying-custom-config");
-      LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              msg, e);
-    }
-  }
 
-  private void applySchemaCustomizations() throws ApplicationException {
-    try {
-      File schemaDiff = getCustomSchemaDiffFile();
-      if (schemaDiff.exists()) {
-        new InProcessServerController(
-                getInstallation()).modify(schemaDiff);
-      }
-    } catch (ApplicationException ae) {
-      throw ae;
-    } catch (Exception e) {
-      String msg = getMsg("error-applying-custom-schema");
-      LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              msg, e);
-    }
-  }
 
   private Long writeInitialHistoricalRecord(
           BuildInformation fromVersion,
@@ -1316,7 +1291,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
       HistoricalLog log =
               new HistoricalLog(getInstallation().getHistoryLogFile());
       id = log.append(fromVersion, toVersion,
-              HistoricalRecord.Status.STARTED, null);
+              HistoricalRecord.Status.STARTED,
+              "log file '" + QuickSetupLog.getLogFile().getPath() + "'");
     } catch (IOException e) {
       String msg = getMsg("error-logging-operation");
       throw ApplicationException.createFileSystemException(
@@ -1391,74 +1367,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
     };
 
     fm.synchronize(oldConfigDir, newConfigDir, filter);
-  }
-
-  private boolean calculateConfigCustomizations() throws ApplicationException {
-    boolean isCustom = false;
-    try {
-      if (getInstallation().getCurrentConfiguration().hasBeenModified()) {
-        isCustom = true;
-        LOG.log(Level.INFO, "Configuration contains customizations that will " +
-                "be migrated");
-        try {
-          ldifDiff(getInstallation().getBaseConfigurationFile(),
-                  getInstallation().getCurrentConfigurationFile(),
-                  getCustomConfigDiffFile());
-        } catch (ApplicationException ae) {
-          throw ae;
-        } catch (Exception e) {
-          throw ApplicationException.createFileSystemException(
-                  getMsg("error-determining-custom-config"), e);
-        }
-      } else {
-        LOG.log(Level.INFO, "No configuration customizations to migrate");
-      }
-    } catch (IOException e) {
-      throw ApplicationException.createFileSystemException(
-              getMsg("error-determining-custom-config"), e);
-    }
-    return isCustom;
-  }
-
-  private void ldifDiff(File source, File target, File output)
-          throws ApplicationException, IOException, InterruptedException {
-    ExternalTools et = new ExternalTools(getInstallation());
-    String[] args = new String[]{
-            "-o", Utils.getPath(output),
-            "-O",
-    };
-    OperationOutput oo = et.ldifDiff(source, target, args);
-    int ret = oo.getReturnCode();
-    if (ret != 0) {
-      throw new ApplicationException(
-              ApplicationException.Type.TOOL_ERROR,
-              getMsg("error-ldif-diff-tool-return-code",
-                      Integer.toString(ret)),
-              null);
-    }
-  }
-
-
-  private boolean calculateSchemaCustomizations() throws ApplicationException {
-    boolean isCustom = false;
-    if (getInstallation().getStatus().schemaHasBeenModified()) {
-      isCustom = true;
-      LOG.log(Level.INFO, "Schema contains customizations that will " +
-              "be migrated");
-      try {
-        ldifDiff(getInstallation().getBaseSchemaFile(),
-                getInstallation().getSchemaConcatFile(),
-                getCustomSchemaDiffFile());
-      } catch (ApplicationException ae) {
-        throw ae;
-      } catch (Exception e) {
-        throw ApplicationException.createFileSystemException(
-                getMsg("error-determining-custom-schema"), e);
-      }
-    } else {
-      LOG.log(Level.INFO, "No schema customizations to migrate");
-    }
-    return isCustom;
   }
 
   private void backupFilesytem() throws ApplicationException {
@@ -1731,14 +1639,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
       backupDirectory = getInstallation().createHistoryBackupDirectory();
     }
     return backupDirectory;
-  }
-
-  private File getCustomConfigDiffFile() throws IOException {
-    return new File(getUpgradeBackupDirectory(), "config.custom.diff");
-  }
-
-  private File getCustomSchemaDiffFile() throws IOException {
-    return new File(getUpgradeBackupDirectory(), "schema.custom.diff");
   }
 
   private BuildInformation getCurrentBuildInformation() {
