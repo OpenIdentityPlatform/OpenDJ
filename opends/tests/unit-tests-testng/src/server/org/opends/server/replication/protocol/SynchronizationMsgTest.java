@@ -31,7 +31,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -49,7 +48,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.PendingChange;
 import org.opends.server.replication.protocol.AckMessage;
 import org.opends.server.replication.protocol.AddContext;
 import org.opends.server.replication.protocol.AddMsg;
@@ -79,6 +77,8 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RDN;
 import org.opends.server.util.TimeThread;
+import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -189,8 +189,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
      * TODO : test that the generated mod equals the original mod.
      */
 
-    // Check pending change
-    testPendingChange(changeNumber,op,msg);
   }
 
   /**
@@ -260,8 +258,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
-    DeleteOperationBasis op = new DeleteOperationBasis(connection, 1, 1,null,
-                                             DN.decode(rawDN));
+    DeleteOperationBasis opBasis =
+      new DeleteOperationBasis(connection, 1, 1,null, DN.decode(rawDN));
+    LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(opBasis);
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),
       (short) 123, (short) 45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
@@ -392,7 +391,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Create an new Add Operation from the current addMsg
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
-    AddOperation addOp = msg.createOperation(connection, rawDN) ;
+    msg.createOperation(connection, rawDN) ;
     // TODO : should test that generated attributes match original attributes.
     // List<LDAPAttribute> rawAtt = addOp.getRawAttributes();
 
@@ -403,8 +402,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     //Create an Add operation and generate and Add msg from it
     DN dn = DN.decode(rawDN);
 
-    addOp = new AddOperationBasis(connection,
+    AddOperation addOpBasis = new AddOperationBasis(connection,
         (long) 1, 1, null, dn, objectClassList, userAttList, opList);
+    LocalBackendAddOperation addOp = new LocalBackendAddOperation(addOpBasis);
     OperationContext opCtx = new AddContext(cn, "thisIsaUniqueID",
         "parentUniqueId");
     addOp.setAttachment(SYNCHROCONTEXT, opCtx);
@@ -652,39 +652,4 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getMsgID(), newMsg.getMsgID());
     assertEquals(msg.getDetails(), newMsg.getDetails());
   }
-
-
-  /**
-   * Test PendingChange
-   * @throws UnsupportedEncodingException
-   */
-  private void testPendingChange(
-      ChangeNumber cn, Operation op, ReplicationMessage msg)
-      throws UnsupportedEncodingException
-  {
-    if (! (msg instanceof UpdateMessage))
-    {
-      return ;
-    }
-    UpdateMessage updateMsg = (UpdateMessage) msg;
-    PendingChange pendingChange = new PendingChange(cn,null,null);
-
-    pendingChange.setCommitted(false);
-    assertFalse(pendingChange.isCommitted()) ;
-    pendingChange.setCommitted(true);
-    assertTrue(pendingChange.isCommitted()) ;
-
-
-    assertTrue(cn.compareTo(pendingChange.getChangeNumber()) == 0);
-
-    assertEquals(pendingChange.getMsg(), null) ;
-    pendingChange.setMsg(updateMsg);
-    assertEquals(updateMsg.getBytes(), pendingChange.getMsg().getBytes());
-
-    assertEquals(pendingChange.getOp(), null) ;
-    pendingChange.setOp(op);
-    assertEquals(op.getClass(), op.getClass());
-
-  }
-
 }

@@ -39,9 +39,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.HashSet;
 
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.Attribute;
@@ -52,7 +50,8 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
 
 /**
  * This class is used to store historical information that is
@@ -116,7 +115,7 @@ public class Historical
    * @param modifiedEntry the entry that is being modified (before modification)
    * @return true if the replayed operation was in conflict
    */
-  public boolean replayOperation(ModifyOperation modifyOperation,
+  public boolean replayOperation(PreOperationModifyOperation modifyOperation,
                                  Entry modifiedEntry)
   {
     boolean bConflict = false;
@@ -146,7 +145,7 @@ public class Historical
    *
    * @param modifyOperation the modification.
    */
-  public void generateState(LocalBackendModifyOperation modifyOperation)
+  public void generateState(PreOperationModifyOperation modifyOperation)
   {
     List<Modification> mods = modifyOperation.getModifications();
     Entry modifiedEntry = modifyOperation.getModifiedEntry();
@@ -517,7 +516,7 @@ public class Historical
    * @param op The operation
    * @return The Entry Unique Id String form.
    */
-  public static String getEntryUuid(AddOperation op)
+  public static String getEntryUuid(PreOperationAddOperation op)
   {
     String uuidString = null;
     Map<AttributeType, List<Attribute>> attrs = op.getOperationalAttributes();

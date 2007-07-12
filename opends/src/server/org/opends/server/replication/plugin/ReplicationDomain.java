@@ -117,6 +117,13 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.operation.PluginOperation;
+import org.opends.server.types.operation.PostOperationOperation;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.types.operation.PreOperationOperation;
 import org.opends.server.workflowelement.localbackend.*;
 
 /**
@@ -419,7 +426,7 @@ public class ReplicationDomain extends DirectoryThread
    *         can continue.
    */
   public SynchronizationProviderResult handleConflictResolution(
-      LocalBackendDeleteOperation deleteOperation)
+         PreOperationDeleteOperation deleteOperation)
   {
     if ((!deleteOperation.isSynchronizationOperation())
         && (!brokerIsConnected(deleteOperation)))
@@ -477,7 +484,7 @@ public class ReplicationDomain extends DirectoryThread
    *         can continue.
    */
   public SynchronizationProviderResult handleConflictResolution(
-      AddOperation addOperation)
+      PreOperationAddOperation addOperation)
   {
     if ((!addOperation.isSynchronizationOperation())
         && (!brokerIsConnected(addOperation)))
@@ -553,7 +560,7 @@ public class ReplicationDomain extends DirectoryThread
    *          When false is returned the resultCode and the reponse message
    *          is also set in the Operation.
    */
-  private boolean brokerIsConnected(Operation op)
+  private boolean brokerIsConnected(PreOperationOperation op)
   {
     if (isolationpolicy.equals(IsolationPolicy.ACCEPT_ALL_UPDATES))
     {
@@ -596,7 +603,7 @@ public class ReplicationDomain extends DirectoryThread
    *         can continue.
    */
   public SynchronizationProviderResult handleConflictResolution(
-      ModifyDNOperation modifyDNOperation)
+      PreOperationModifyDNOperation modifyDNOperation)
   {
     if ((!modifyDNOperation.isSynchronizationOperation())
         && (!brokerIsConnected(modifyDNOperation)))
@@ -673,7 +680,7 @@ public class ReplicationDomain extends DirectoryThread
    * @return code indicating is operation must proceed
    */
   public SynchronizationProviderResult handleConflictResolution(
-      LocalBackendModifyOperation modifyOperation)
+         PreOperationModifyOperation modifyOperation)
   {
     if ((!modifyOperation.isSynchronizationOperation())
         && (!brokerIsConnected(modifyOperation)))
@@ -754,7 +761,7 @@ public class ReplicationDomain extends DirectoryThread
    *
    * @param addOperation The Add Operation.
    */
-  public void doPreOperation(AddOperation addOperation)
+  public void doPreOperation(PreOperationAddOperation addOperation)
   {
     AddContext ctx = new AddContext(generateChangeNumber(addOperation),
         Historical.getEntryUuid(addOperation),
@@ -897,7 +904,7 @@ public class ReplicationDomain extends DirectoryThread
    * Also update the list of pending changes and the server RUV
    * @param op the operation
    */
-  public void synchronize(Operation op)
+  public void synchronize(PostOperationOperation op)
   {
     ResultCode result = op.getResultCode();
     if ((result == ResultCode.SUCCESS) && op.isSynchronizationOperation())
@@ -1363,7 +1370,7 @@ public class ReplicationDomain extends DirectoryThread
    *                  generated.
    * @return The new change number.
    */
-  private ChangeNumber generateChangeNumber(Operation operation)
+  private ChangeNumber generateChangeNumber(PluginOperation operation)
   {
     return pendingChanges.putLocalOperation(operation);
   }
@@ -1945,7 +1952,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @param op the operation to be checked.
    * @return true if the operations must be processed as an assured operation.
    */
-  private boolean isAssured(Operation op)
+  private boolean isAssured(PostOperationOperation op)
   {
     // TODO : should have a filtering mechanism for checking
     // operation that are assured and operations that are not.
@@ -2854,12 +2861,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public void synchronizeModifications(List<Modification> modifications)
   {
-    Operation op =
+    ModifyOperation opBasis =
       new ModifyOperationBasis(InternalClientConnection.getRootConnection(),
                           InternalClientConnection.nextOperationID(),
                           InternalClientConnection.nextMessageID(),
                           null, DirectoryServer.getSchemaDN(),
                           modifications);
+    LocalBackendModifyOperation op = new LocalBackendModifyOperation(opBasis);
 
     ChangeNumber cn = generateChangeNumber(op);
     OperationContext ctx = new ModifyContext(cn, "schema");

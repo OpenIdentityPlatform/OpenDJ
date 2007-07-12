@@ -35,9 +35,10 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Operation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
 
 /**
  * Message used to send Modify DN information.
@@ -53,22 +54,23 @@ public class ModifyDNMsg extends UpdateMessage
   /**
    * construct a new Modify DN message.
    *
-   * @param op The operation to use for building the message
+   * @param operation The operation to use for building the message
    */
-  public ModifyDNMsg(ModifyDNOperation op)
+  public ModifyDNMsg(PostOperationModifyDNOperation operation)
   {
-    super((OperationContext) op.getAttachment(SYNCHROCONTEXT),
-        op.getRawEntryDN().stringValue());
+    super((OperationContext) operation.getAttachment(SYNCHROCONTEXT),
+        operation.getRawEntryDN().stringValue());
 
-    ModifyDnContext ctx = (ModifyDnContext) op.getAttachment(SYNCHROCONTEXT);
+    ModifyDnContext ctx =
+      (ModifyDnContext) operation.getAttachment(SYNCHROCONTEXT);
     newSuperiorId = ctx.getNewParentId();
 
-    deleteOldRdn = op.deleteOldRDN();
-    if (op.getRawNewSuperior() != null)
-      newSuperior = op.getRawNewSuperior().stringValue();
+    deleteOldRdn = operation.deleteOldRDN();
+    if (operation.getRawNewSuperior() != null)
+      newSuperior = operation.getRawNewSuperior().stringValue();
     else
       newSuperior = null;
-    newRDN = op.getRawNewRDN().stringValue();
+    newRDN = operation.getRawNewRDN().stringValue();
   }
 
   /**
@@ -148,8 +150,8 @@ public class ModifyDNMsg extends UpdateMessage
    * {@inheritDoc}
    */
   @Override
-  public Operation createOperation(InternalClientConnection connection,
-      String newDn)
+  public AbstractOperation createOperation(
+         InternalClientConnection connection, String newDn)
   {
     ModifyDNOperation moddn =  new ModifyDNOperation(connection,
                InternalClientConnection.nextOperationID(),

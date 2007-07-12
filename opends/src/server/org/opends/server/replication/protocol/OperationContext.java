@@ -28,6 +28,7 @@ package org.opends.server.replication.protocol;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.Operation;
+import org.opends.server.types.operation.PluginOperation;
 
 /**
  * This class describe the replication context that is attached
@@ -84,11 +85,30 @@ public abstract class OperationContext
   /**
    * Get the change number of an operation.
    *
-   * @param op The operation.
+   * @param  op The operation.
+   *
    * @return The change number of the provided operation, or null if there is
-   * no change number associated with the operation.
+   *         no change number associated with the operation.
    */
   public static ChangeNumber getChangeNumber(Operation op)
+  {
+    OperationContext ctx = (OperationContext)op.getAttachment(SYNCHROCONTEXT);
+    if (ctx == null)
+    {
+      return null;
+    }
+    return ctx.changeNumber;
+  }
+
+  /**
+   * Get the change number of an operation.
+   *
+   * @param  op The operation.
+   *
+   * @return The change number of the provided operation, or null if there is
+   *         no change number associated with the operation.
+   */
+  public static ChangeNumber getChangeNumber(PluginOperation op)
   {
     OperationContext ctx = (OperationContext)op.getAttachment(SYNCHROCONTEXT);
     if (ctx == null)

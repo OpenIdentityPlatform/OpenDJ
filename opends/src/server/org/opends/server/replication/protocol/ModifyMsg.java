@@ -28,7 +28,6 @@ package org.opends.server.replication.protocol;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
 
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -38,14 +37,15 @@ import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.plugin.Historical;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.Operation;
 import org.opends.server.types.RawModification;
+import org.opends.server.types.operation.PostOperationModifyOperation;
 
 
 import java.io.UnsupportedEncodingException;
@@ -67,7 +67,7 @@ public class ModifyMsg extends UpdateMessage
    *
    * @param op The operation to use for building the message
    */
-  public ModifyMsg(ModifyOperation op)
+  public ModifyMsg(PostOperationModifyOperation op)
   {
     super((OperationContext) op.getAttachment(OperationContext.SYNCHROCONTEXT),
           op.getRawEntryDN().stringValue());
@@ -127,7 +127,7 @@ public class ModifyMsg extends UpdateMessage
    * {@inheritDoc}
    */
   @Override
-  public Operation createOperation(InternalClientConnection connection,
+  public AbstractOperation createOperation(InternalClientConnection connection,
                    String newDn)
                    throws LDAPException, ASN1Exception, DataFormatException
   {

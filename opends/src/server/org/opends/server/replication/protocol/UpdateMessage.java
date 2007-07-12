@@ -30,15 +30,16 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.Operation;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostOperationOperation;
 
 /**
  * Abstract class that must be extended to define a message
@@ -107,31 +108,32 @@ public abstract class UpdateMessage extends ReplicationMessage
    * @param isAssured flag indicating if the operation is an assured operation.
    * @return The generated message.
    */
-  public static UpdateMessage generateMsg(Operation op, boolean isAssured)
+  public static UpdateMessage generateMsg(
+         PostOperationOperation op, boolean isAssured)
   {
     UpdateMessage msg = null;
     switch (op.getOperationType())
     {
     case MODIFY :
-      msg = new ModifyMsg((ModifyOperation) op);
+      msg = new ModifyMsg((PostOperationModifyOperation) op);
       if (isAssured)
         msg.setAssured();
       break;
 
     case ADD:
-      msg = new AddMsg((AddOperation) op);
+      msg = new AddMsg((PostOperationAddOperation) op);
       if (isAssured)
         msg.setAssured();
       break;
 
     case DELETE :
-      msg = new DeleteMsg((DeleteOperation) op);
+      msg = new DeleteMsg((PostOperationDeleteOperation) op);
       if (isAssured)
         msg.setAssured();
       break;
 
     case MODIFY_DN :
-      msg = new ModifyDNMsg((ModifyDNOperation) op);
+      msg = new ModifyDNMsg( (PostOperationModifyDNOperation) op);
       if (isAssured)
         msg.setAssured();
       break;
@@ -241,7 +243,7 @@ public abstract class UpdateMessage extends ReplicationMessage
    * @throws  ASN1Exception In case of ASN1 decoding exception.
    * @throws DataFormatException In case of bad msg format.
    */
-  public Operation createOperation(InternalClientConnection conn)
+  public AbstractOperation createOperation(InternalClientConnection conn)
          throws LDAPException, ASN1Exception, DataFormatException
   {
     return createOperation(conn, dn);
@@ -258,8 +260,8 @@ public abstract class UpdateMessage extends ReplicationMessage
    * @throws  ASN1Exception In case of ASN1 decoding exception.
    * @throws DataFormatException In case of bad msg format.
    */
-  public abstract Operation createOperation(InternalClientConnection conn,
-                                            String newDn)
+  public abstract AbstractOperation createOperation(
+         InternalClientConnection conn, String newDn)
          throws LDAPException, ASN1Exception, DataFormatException;
 
   /**

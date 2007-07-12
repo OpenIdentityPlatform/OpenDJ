@@ -42,7 +42,6 @@ import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -55,7 +54,16 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SynchronizationProviderResult;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.types.operation.PluginOperation;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostOperationOperation;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
 
 import static org.opends.server.messages.ReplicationMessages.*;
 
@@ -87,13 +95,14 @@ public class MultimasterReplication
    *             Can be null is the request has no associated operation.
    * @return     The domain for this DN.
    */
-  public static ReplicationDomain findDomain(DN dn, Operation op)
+  public static ReplicationDomain findDomain(DN dn, PluginOperation op)
   {
     /*
      * Don't run the special replication code on Operation that are
      * specifically marked as don't synchronize.
      */
-    if ((op != null) && op.dontSynchronize())
+    if ((op != null) && (op instanceof Operation) &&
+        (((Operation) op).dontSynchronize()))
       return null;
 
     ReplicationDomain domain = null;
@@ -212,7 +221,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   @Override
-  public void doPostOperation(LocalBackendAddOperation addOperation)
+  public void doPostOperation(PostOperationAddOperation addOperation)
   {
     DN dn = addOperation.getEntryDN();
     genericPostOperation(addOperation, dn);
@@ -223,7 +232,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   @Override
-  public void doPostOperation(LocalBackendDeleteOperation deleteOperation)
+  public void doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
     DN dn = deleteOperation.getEntryDN();
     genericPostOperation(deleteOperation, dn);
@@ -233,7 +242,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   @Override
-  public void doPostOperation(ModifyDNOperation modifyDNOperation)
+  public void doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {
     DN dn = modifyDNOperation.getEntryDN();
     genericPostOperation(modifyDNOperation, dn);
@@ -243,7 +252,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   @Override
-  public void doPostOperation(LocalBackendModifyOperation modifyOperation)
+  public void doPostOperation(PostOperationModifyOperation modifyOperation)
   {
     DN dn = modifyOperation.getEntryDN();
     genericPostOperation(modifyOperation, dn);
@@ -254,7 +263,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
-    LocalBackendModifyOperation modifyOperation)
+      PreOperationModifyOperation modifyOperation)
   {
     ReplicationDomain domain =
       findDomain(modifyOperation.getEntryDN(), modifyOperation);
@@ -269,7 +278,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
-      LocalBackendAddOperation addOperation) throws DirectoryException
+      PreOperationAddOperation addOperation) throws DirectoryException
   {
     ReplicationDomain domain =
       findDomain(addOperation.getEntryDN(), addOperation);
@@ -284,7 +293,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
-      LocalBackendDeleteOperation deleteOperation) throws DirectoryException
+      PreOperationDeleteOperation deleteOperation) throws DirectoryException
   {
     ReplicationDomain domain =
       findDomain(deleteOperation.getEntryDN(), deleteOperation);
@@ -299,7 +308,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
-      ModifyDNOperation modifyDNOperation) throws DirectoryException
+      PreOperationModifyDNOperation modifyDNOperation) throws DirectoryException
   {
     ReplicationDomain domain =
       findDomain(modifyDNOperation.getEntryDN(), modifyDNOperation);
@@ -314,7 +323,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult
-      doPreOperation(LocalBackendModifyOperation modifyOperation)
+         doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     DN operationDN = modifyOperation.getEntryDN();
     ReplicationDomain domain = findDomain(operationDN, modifyOperation);
@@ -341,7 +350,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult doPreOperation(
-      LocalBackendDeleteOperation deleteOperation) throws DirectoryException
+         PreOperationDeleteOperation deleteOperation) throws DirectoryException
   {
     return new SynchronizationProviderResult(true);
   }
@@ -351,7 +360,8 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult doPreOperation(
-      ModifyDNOperation modifyDNOperation) throws DirectoryException
+         PreOperationModifyDNOperation modifyDNOperation)
+         throws DirectoryException
   {
     return new SynchronizationProviderResult(true);
   }
@@ -361,7 +371,7 @@ public class MultimasterReplication
    */
   @Override
   public SynchronizationProviderResult doPreOperation(
-      LocalBackendAddOperation addOperation)
+         PreOperationAddOperation addOperation)
   {
     ReplicationDomain domain =
       findDomain(addOperation.getEntryDN(), addOperation);
@@ -550,7 +560,7 @@ public class MultimasterReplication
    * @param operation The Operation for which the post-operation is called.
    * @param dn The Dn for which the post-operation is called.
    */
-  private void genericPostOperation(Operation operation, DN dn)
+  private void genericPostOperation(PostOperationOperation operation, DN dn)
   {
     ReplicationDomain domain = findDomain(dn, operation);
     if (domain == null)

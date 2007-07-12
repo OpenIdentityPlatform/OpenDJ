@@ -34,7 +34,7 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMessage;
-import org.opends.server.types.Operation;
+import org.opends.server.types.operation.PluginOperation;
 
 /**
  * This class is use to store the list of local operations currently
@@ -155,7 +155,7 @@ public class PendingChanges
    *                  be added in the pending list.
    * @return The ChangeNumber now associated to the operation.
    */
-  public synchronized ChangeNumber putLocalOperation(Operation operation)
+  public synchronized ChangeNumber putLocalOperation(PluginOperation operation)
   {
     ChangeNumber changeNumber;
 
