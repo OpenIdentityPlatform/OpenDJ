@@ -47,35 +47,12 @@ public final class LDAPManagementContext extends ManagementContext {
    * connection.
    *
    * @param connection
-   *          The LDAP connectin.
+   *          The LDAP connection.
    * @return Returns the new management context.
    */
   public static ManagementContext createFromContext(LDAPConnection connection) {
     Validator.ensureNotNull(connection);
     return new LDAPManagementContext(connection, LDAPProfile.getInstance());
-  }
-
-
-
-  /**
-   * Create a new LDAP management context using the provided LDAP
-   * connection and LDAP profile.
-   * <p>
-   * This constructor is primarily intended for testing purposes so
-   * that unit tests can provide mock LDAP connections and LDAP
-   * profiles.
-   *
-   * @param connection
-   *          The LDAP connection.
-   * @param profile
-   *          The LDAP profile which should be used to construct LDAP
-   *          requests and decode LDAP responses.
-   * @return Returns the new management context.
-   */
-  public static ManagementContext createFromContext(LDAPConnection connection,
-      LDAPProfile profile) {
-    Validator.ensureNotNull(connection, profile);
-    return new LDAPManagementContext(connection, profile);
   }
 
   // The LDAP connection.

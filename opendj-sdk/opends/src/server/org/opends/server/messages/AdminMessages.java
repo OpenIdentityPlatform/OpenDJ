@@ -666,7 +666,7 @@ public final class AdminMessages {
         "The backen name is which the admin data will be registered. " +
         "This is a required argument");
     registerMessage(MSGID_ADMIN_UNABLE_TO_REGISTER_LISTENER,
-        "Unable to register an add/delete listener against the entry %s " +
+        "Unable to register an add/delete listener against the entry \"%s\" " +
         "because it does not exist in the configuration");
   }
 }
