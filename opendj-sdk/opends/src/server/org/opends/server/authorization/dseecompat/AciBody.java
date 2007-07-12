@@ -353,4 +353,13 @@ public class AciBody {
       return ACI_EXPORT;
     return ACI_NULL;
   }
+
+  /**
+   * Return version string of the ACI.
+   *
+   * @return The ACI version string.
+   */
+  public String getVersion () {
+    return version;
+  }
 }

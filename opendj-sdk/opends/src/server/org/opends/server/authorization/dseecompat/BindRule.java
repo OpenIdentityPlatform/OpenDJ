@@ -486,7 +486,7 @@ public class BindRule {
                                           EnumBindRuleKeyword keyword,
                                           EnumBindRuleType op)
             throws AciException  {
-        KeywordBindRule rule=null;
+        KeywordBindRule rule ;
         switch (keyword) {
             case USERDN:
             {

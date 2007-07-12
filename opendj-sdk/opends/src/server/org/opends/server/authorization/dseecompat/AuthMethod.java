@@ -58,6 +58,8 @@ public class AuthMethod implements KeywordBindRule {
      * Create a class representing an authmethod bind rule keyword from the
      * provided method and bind rule type.
      * @param type An enumeration representing the type of the expression.
+     * @param saslMech The string representation of the SASL Mechanism.
+     * @param method  An Enumeration of the authentication method.
      */
     private AuthMethod(EnumAuthMethod method, String saslMech,
                        EnumBindRuleType type) {

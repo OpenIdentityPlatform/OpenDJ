@@ -84,18 +84,18 @@ public class AciHandler
   /**
    * Attribute type corresponding to "aci" attribute.
    */
-  public static AttributeType aciType;
+  static AttributeType aciType;
 
   /**
    * Attribute type corresponding to global "ds-cfg-global-aci" attribute.
    */
-  public static AttributeType globalAciType;
+  static AttributeType globalAciType;
 
   /**
    * String used to save the original authorization entry in an operation
    * attachment if a proxied authorization control was seen.
    */
-  public static String ORIG_AUTH_ENTRY="origAuthorizationEntry";
+  public static final String ORIG_AUTH_ENTRY="origAuthorizationEntry";
 
   /**
    * String used to save a resource entry containing all the attributes in
@@ -103,21 +103,33 @@ public class AciHandler
    * geteffectiverights read right processing when all of an entry'ss
    * attributes need to examined.
    */
-  public static String ALL_ATTRS_RESOURCE_ENTRY = "allAttrsResourceEntry";
+  public static final String ALL_ATTRS_RESOURCE_ENTRY = "allAttrsResourceEntry";
 
   /**
    * String used to indicate that the evaluating ACI had a all user attributes
    * targetattr match (targetattr="*").
    */
-   public static String ALL_USER_ATTRS_MATCHED = "allUserAttrsMatched";
+   public static final String ALL_USER_ATTRS_MATCHED = "allUserAttrsMatched";
 
   /**
    * String used to indicate that the evaluating ACI had a all operational
    * attributes targetattr match (targetattr="+").
    */
-   public static String ALL_OP_ATTRS_MATCHED = "allOpAttrsMatched";
+   public static final String ALL_OP_ATTRS_MATCHED = "allOpAttrsMatched";
 
+   static {
+    if((aciType = DirectoryServer.getAttributeType("aci")) == null)
+    {
+      aciType = DirectoryServer.getDefaultAttributeType("aci");
+    }
 
+    if((globalAciType =
+            DirectoryServer.getAttributeType(ATTR_AUTHZ_GLOBAL_ACI)) == null)
+    {
+      globalAciType =
+              DirectoryServer.getDefaultAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
+    }
+   }
 
   /**
    * Creates a new DSEE-compatible access control handler.
@@ -141,18 +153,6 @@ public class AciHandler
     DN configurationDN=configuration.dn();
     aciList = new AciList(configurationDN);
     aciListenerMgr = new AciListenerManager(aciList, configurationDN);
-    if((aciType = DirectoryServer.getAttributeType("aci")) == null)
-    {
-      aciType = DirectoryServer.getDefaultAttributeType("aci");
-    }
-
-    if((globalAciType =
-           DirectoryServer.getAttributeType(ATTR_AUTHZ_GLOBAL_ACI)) == null)
-    {
-      globalAciType =
-           DirectoryServer.getDefaultAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
-    }
-
     processGlobalAcis(configuration);
     processConfigAcis();
   }
@@ -519,7 +519,7 @@ public class AciHandler
      * @return True if access checking can be skipped because
      * the operation client connection has BYPASS_ACL privileges.
      */
-    boolean skipAccessCheck(Operation operation) {
+    private boolean skipAccessCheck(Operation operation) {
         return operation.getClientConnection().
                 hasPrivilege(Privilege.BYPASS_ACL, operation);
     }
