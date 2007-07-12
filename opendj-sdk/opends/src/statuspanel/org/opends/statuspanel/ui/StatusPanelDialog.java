@@ -166,7 +166,7 @@ public class StatusPanelDialog extends JFrame
       setPreferredSize(new Dimension(minWidth, minHeight));
       pack();
     }
-    Utils.centerOnScreen(this);
+    Utilities.centerOnScreen(this);
 
     lastPackDescriptor = lastDescriptor;
 

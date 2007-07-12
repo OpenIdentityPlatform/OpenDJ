@@ -43,7 +43,6 @@ import javax.swing.text.JTextComponent;
 
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.WebBrowserException;
 
 /**
@@ -89,7 +88,7 @@ public class WebBrowserErrorDialog extends JDialog
     int minHeight = (int) getPreferredSize().getHeight();
     addComponentListener(new MinimumSizeComponentListener(this,
         minWidth, minHeight));
-    Utils.centerOnComponent(this, parent);
+    Utilities.centerOnComponent(this, parent);
     setVisible(true);
   }
 

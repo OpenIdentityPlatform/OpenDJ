@@ -41,6 +41,7 @@ import org.opends.server.core.DirectoryServer;
 
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
@@ -221,7 +222,8 @@ StatusPanelButtonListener
       if (!getProgressDialog().isVisible())
       {
         getProgressDialog().pack();
-        Utils.centerOnComponent(getProgressDialog(), getStatusPanelDialog());
+        Utilities.centerOnComponent(getProgressDialog(),
+                getStatusPanelDialog());
         getProgressDialog().setVisible(true);
       }
 
@@ -301,7 +303,8 @@ StatusPanelButtonListener
         if (!getProgressDialog().isVisible())
         {
           getProgressDialog().pack();
-          Utils.centerOnComponent(getProgressDialog(), getStatusPanelDialog());
+          Utilities.centerOnComponent(getProgressDialog(),
+                  getStatusPanelDialog());
           getProgressDialog().setVisible(true);
         }
 
@@ -382,7 +385,8 @@ StatusPanelButtonListener
         if (!getProgressDialog().isVisible())
         {
           getProgressDialog().pack();
-          Utils.centerOnComponent(getProgressDialog(), getStatusPanelDialog());
+          Utilities.centerOnComponent(getProgressDialog(),
+                  getStatusPanelDialog());
           getProgressDialog().setVisible(true);
         }
 
@@ -437,7 +441,7 @@ StatusPanelButtonListener
   public void authenticateClicked()
   {
     getLoginDialog().pack();
-    Utils.centerOnComponent(getLoginDialog(), getStatusPanelDialog());
+    Utilities.centerOnComponent(getLoginDialog(), getStatusPanelDialog());
     getLoginDialog().setVisible(true);
     if (!getLoginDialog().isCancelled())
     {
@@ -1134,7 +1138,7 @@ StatusPanelButtonListener
    */
   private boolean confirmStop()
   {
-    return Utils.displayConfirmation(getStatusPanelDialog(),
+    return Utilities.displayConfirmation(getStatusPanelDialog(),
         getMsg("confirm-stop-message"), getMsg("confirm-stop-title"));
   }
 
@@ -1146,7 +1150,7 @@ StatusPanelButtonListener
    */
   private boolean confirmRestart()
   {
-    return Utils.displayConfirmation(getStatusPanelDialog(),
+    return Utilities.displayConfirmation(getStatusPanelDialog(),
         getMsg("confirm-restart-message"), getMsg("confirm-restart-title"));
   }
 

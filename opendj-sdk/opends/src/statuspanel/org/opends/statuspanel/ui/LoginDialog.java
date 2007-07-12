@@ -51,6 +51,7 @@ import javax.swing.text.JTextComponent;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.Utils;
 
@@ -510,7 +511,7 @@ public class LoginDialog extends JDialog
    */
   private void displayError(String msg, String title)
   {
-    Utils.displayError(parent, msg, title);
+    Utilities.displayError(parent, msg, title);
     toFront();
 
   }
@@ -525,7 +526,7 @@ public class LoginDialog extends JDialog
    */
   private void displayInformationMessage(String msg, String title)
   {
-    Utils.displayInformationMessage(parent, msg, title);
+    Utilities.displayInformationMessage(parent, msg, title);
     toFront();
   }
 

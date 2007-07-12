@@ -60,6 +60,7 @@ import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.CertificateManager;
@@ -133,7 +134,7 @@ public class SecurityOptionsDialog extends JDialog
     });
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-    Utils.centerOnComponent(this, parent);
+    Utilities.centerOnComponent(this, parent);
   }
 
   /**
@@ -735,7 +736,7 @@ public class SecurityOptionsDialog extends JDialog
    */
   private void displayError(String msg, String title)
   {
-    Utils.displayError(this, msg, title);
+    Utilities.displayError(this, msg, title);
     toFront();
   }
 

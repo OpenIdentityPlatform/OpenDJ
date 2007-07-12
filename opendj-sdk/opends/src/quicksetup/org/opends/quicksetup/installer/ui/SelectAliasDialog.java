@@ -47,7 +47,7 @@ import javax.swing.text.JTextComponent;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.ui.UIFactory;
-import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.ui.Utilities;
 
 /**
  * This class is a dialog that appears when the user must choose the alias to
@@ -86,7 +86,7 @@ public class SelectAliasDialog extends JDialog
     });
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-    Utils.centerOnComponent(this, parent);
+    Utilities.centerOnComponent(this, parent);
     setModal(true);
   }
 
