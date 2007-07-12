@@ -127,6 +127,7 @@ import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.Configuration;
 import static org.opends.server.messages.ConfigMessages.*;
+import org.opends.server.protocols.asn1.ASN1OctetString;
 
 
 /**
@@ -238,7 +239,10 @@ public class SchemaBackend
   // The time that the schema was last modified.
   private long modifyTime;
 
+  //Regular expression used to strip minimum upper bound value from
+  //syntax Attribute Type Description. The value looks like: {count}.
 
+  private String stripMinUpperBoundRegEx = "\\{\\d+\\}";
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -709,8 +713,13 @@ public class SchemaBackend
     // Add the "attributeTypes" attribute.
     LinkedHashSet<AttributeValue> valueSet =
          DirectoryServer.getAttributeTypeSet();
-    Attribute attr = new Attribute(attributeTypesType, ATTR_ATTRIBUTE_TYPES,
-                                   valueSet);
+
+    Attribute attr;
+    if(AttributeTypeSyntax.isStripSyntaxMinimumUpperBound())
+        attr = stripMinUpperBoundValues(valueSet);
+   else
+        attr = new Attribute(attributeTypesType, ATTR_ATTRIBUTE_TYPES,
+              valueSet);
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
     if (attributeTypesType.isOperational() && (! showAllAttributes))
@@ -5446,7 +5455,37 @@ public class SchemaBackend
     return alerts;
   }
 
+  /**
+   * Returns an attribute that has the minimum upper bound value removed from
+   * all of its attribute values.
+   *
+   * @param valueSet The original valueset containing the
+   *                 attribute type definitions.
+   *
+   * @return  Attribute that with all of the minimum upper bound values removed
+   *          from its attribute values.
+   */
+  private Attribute
+  stripMinUpperBoundValues(LinkedHashSet<AttributeValue> valueSet) {
 
-
+    LinkedHashSet<AttributeValue> valueSetCopy =
+                                           new LinkedHashSet<AttributeValue>();
+    for(AttributeValue v : valueSet) {
+      //If it exists, strip the minimum upper bound value from the
+      //attribute value.
+      if(v.toString().indexOf('{') != -1) {
+        //Create an attribute value from the stripped string and add it to the
+        //valueset.
+        String strippedStr=
+                v.toString().replaceFirst(stripMinUpperBoundRegEx, "");
+        ASN1OctetString s=new ASN1OctetString(strippedStr);
+        AttributeValue strippedVal=new AttributeValue(s,s);
+        valueSetCopy.add(strippedVal);
+      } else
+        valueSetCopy.add(v);
+    }
+    return
+          new Attribute(attributeTypesType, ATTR_ATTRIBUTE_TYPES, valueSetCopy);
+  }
 }
 

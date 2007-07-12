@@ -1442,6 +1442,7 @@ objectClass: ds-cfg-attribute-type-description-attribute-syntax
 cn: Attribute Type Description
 ds-cfg-syntax-class: org.opends.server.schema.AttributeTypeSyntax
 ds-cfg-syntax-enabled: true
+ds-cfg-strip-syntax-minimum-upper-bound: false
 
 dn: cn=Authentication Password,cn=Syntaxes,cn=config
 objectClass: top

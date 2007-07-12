@@ -61,18 +61,21 @@ import static org.opends.server.util.StaticUtils.*;
  * syntax is defined in RFC 2252.
  */
 public class AttributeTypeSyntax
-    extends AttributeSyntax<AttributeTypeDescriptionAttributeSyntaxCfg>
-    implements
+       extends AttributeSyntax<AttributeTypeDescriptionAttributeSyntaxCfg>
+       implements
        ConfigurationChangeListener<AttributeTypeDescriptionAttributeSyntaxCfg> {
+
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
 
+
   // The reference to the configuration for this attribute type description
   // syntax.
   private AttributeTypeDescriptionAttributeSyntaxCfg currentConfig;
+
 
 
   // The default equality matching rule for this syntax.
@@ -86,6 +89,7 @@ public class AttributeTypeSyntax
 
   // If true strip the suggested minimum upper bound from the syntax OID.
   private static boolean stripMinimumUpperBound=false;
+
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -669,13 +673,13 @@ public class AttributeTypeSyntax
         // of characters that should be allowed in values of that type.  This
         // implementation will ignore any such length because it does not
         // impose any practical limit on the length of attribute values.
+        boolean inBrace         = false;
         boolean lastWasPeriod   = false;
-        int leftBracePos=0;
         StringBuilder oidBuffer = new StringBuilder();
         while (pos < length)
         {
           c = lowerStr.charAt(pos++);
-          if (leftBracePos != 0)
+          if (inBrace)
           {
             // The only thing we'll allow here will be numeric digits and the
             // closing curly brace.
@@ -691,18 +695,7 @@ public class AttributeTypeSyntax
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
                                msgID);
               }
-              //If option ds-cfg-strip-syntax-minimum-upper-bound is true,
-              //remove minimum number specification (including braces) because
-              //it breaks some syntax retrieval APIs such as JNDI's
-              //getAttributeSyntaxDefinition().
-              if(stripMinimumUpperBound) {
-                String firstPart=
-                         value.stringValue().substring(0,leftBracePos-1);
-                String secPart=value.stringValue().substring(pos);
-                StringBuilder tmpBuffer=
-                        new StringBuilder(firstPart).append(secPart);
-                value.setValue(tmpBuffer.toString().getBytes());
-              }
+
               break;
             }
             else if (! isDigit(c))
@@ -740,10 +733,8 @@ public class AttributeTypeSyntax
             }
             else if (c == '{')
             {
-              // It's the start of the length specification. Keep an index
-              //to this character because the specification will need to be
-              //removed.
-              leftBracePos=pos;
+              // It's the start of the length specification.
+              inBrace = true;
             }
             else if (c == ' ')
             {
@@ -1491,6 +1482,15 @@ public class AttributeTypeSyntax
     return true;
   }
 
+  /**
+   * Boolean that indicates that the minimum upper bound value should be
+   * stripped from the Attrbute Type Syntax Description.
+   *
+   * @return True if the minimum upper bound value should be stripped.
+   */
+  public static boolean isStripSyntaxMinimumUpperBound() {
+    return stripMinimumUpperBound;
+  }
 
 }
 
