@@ -27,6 +27,7 @@
 package org.opends.server.admin.server;
 
 
+
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 
@@ -117,8 +118,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationAdd(
-      ConfigEntry configEntry) {
+  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry) {
     if (configEntry.getDN().equals(child)) {
       // The subordinate entry matched our criteria so register the
       // listener(s).
@@ -158,6 +158,34 @@ final class DelayedConfigAddListener implements ConfigAddListener {
       StringBuilder unacceptableReason) {
     // Always acceptable.
     return true;
+  }
+
+
+
+  /**
+   * Gets the delayed add listener.
+   * <p>
+   * This method is provided for unit-testing.
+   *
+   * @return Returns the delayed add listener, or <code>null</code>
+   *         if this listener is delaying a delete listener.
+   */
+  ConfigAddListener getDelayedAddListener() {
+    return delayedAddListener;
+  }
+
+
+
+  /**
+   * Gets the delayed delete listener.
+   * <p>
+   * This method is provided for unit-testing.
+   *
+   * @return Returns the delayed delete listener, or <code>null</code>
+   *         if this listener is delaying a add listener.
+   */
+  ConfigDeleteListener getDelayedDeleteListener() {
+    return delayedDeleteListener;
   }
 
 }

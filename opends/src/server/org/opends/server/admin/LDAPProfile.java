@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.MissingResourceException;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 
@@ -40,23 +42,114 @@ import java.util.Set;
 /**
  * This class is used to map configuration elements to their LDAP
  * schema names.
+ * <p>
+ * It is possible to augment the core LDAP profile with additional
+ * profile mappings at run-time using instances of {@link Wrapper}.
+ * This is useful for unit tests which need to add and remove mock
+ * components.
  */
-public abstract class LDAPProfile {
-
-  // This class is abstract so that we can derive a mock LDAP profile
-  // for testing.
-
-  // The singleton instance.
-  private static final LDAPProfile INSTANCE = new MyLDAPProfile();
-
-
+public final class LDAPProfile {
 
   /**
-   * Protected default constructor.
+   * LDAP profile wrappers can be used to provide temporary LDAP
+   * profile information for components which do not have LDAP profile
+   * property files. These components are typically "mock" components
+   * used in unit-tests.
    */
-  protected LDAPProfile() {
-    // No implementation required.
+  public static abstract class Wrapper {
+
+    /**
+     * Default constructor.
+     */
+    protected Wrapper() {
+      // No implementation required.
+    }
+
+
+
+    /**
+     * Get the name of the LDAP attribute associated with the
+     * specified property definition.
+     * <p>
+     * The default implementation of this method is to return
+     * <code>null</code>.
+     *
+     * @param d
+     *          The managed object definition.
+     * @param pd
+     *          The property definition.
+     * @return Returns the name of the LDAP attribute associated with
+     *         the specified property definition, or <code>null</code>
+     *         if the property definition is not handled by this LDAP
+     *         profile wrapper.
+     */
+    public String getAttributeName(ManagedObjectDefinition<?, ?> d,
+        PropertyDefinition<?> pd) {
+      return null;
+    }
+
+
+
+    /**
+     * Gets the LDAP RDN attribute type for child entries of an
+     * instantiable relation.
+     * <p>
+     * The default implementation of this method is to return
+     * <code>null</code>.
+     *
+     * @param r
+     *          The instantiable relation.
+     * @return Returns the LDAP RDN attribute type for child entries
+     *         of an instantiable relation, or <code>null</code> if
+     *         the instantiable relation is not handled by this LDAP
+     *         profile wrapper.
+     */
+    public String getInstantiableRelationChildRDNType(
+        InstantiableRelationDefinition<?, ?> r) {
+      return null;
+    }
+
+
+
+    /**
+     * Get the principle object class associated with the specified
+     * definition.
+     * <p>
+     * The default implementation of this method is to return
+     * <code>null</code>.
+     *
+     * @param d
+     *          The managed object definition.
+     * @return Returns the principle object class associated with the
+     *         specified definition, or <code>null</code> if the
+     *         managed object definition is not handled by this LDAP
+     *         profile wrapper.
+     */
+    public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
+      return null;
+    }
+
+
+
+    /**
+     * Get an LDAP RDN sequence associatied with a relation.
+     * <p>
+     * The default implementation of this method is to return
+     * <code>null</code>.
+     *
+     * @param r
+     *          The relation.
+     * @return Returns the LDAP RDN sequence associatied with a
+     *         relation, or <code>null</code> if the relation is not
+     *         handled by this LDAP profile wrapper.
+     */
+    public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
+      return null;
+    }
   }
+
+  // The singleton instance.
+  private static final LDAPProfile INSTANCE = new LDAPProfile();
 
 
 
@@ -69,102 +162,45 @@ public abstract class LDAPProfile {
     return INSTANCE;
   }
 
+  // The list of profile wrappers.
+  private final LinkedList<Wrapper> profiles = new LinkedList<Wrapper>();;
+
+  // The LDAP profile property table.
+  private final ManagedObjectDefinitionResource resource =
+    ManagedObjectDefinitionResource.createForProfile("ldap");
+
+
+
+  // Prevent construction.
+  private LDAPProfile() {
+    // No implementation required.
+  }
+
 
 
   /**
-   * Concrete implementation.
+   * Get the name of the LDAP attribute associated with the specified
+   * property definition.
+   *
+   * @param d
+   *          The managed object definition.
+   * @param pd
+   *          The property definition.
+   * @return Returns the name of the LDAP attribute associated with
+   *         the specified property definition.
+   * @throws MissingResourceException
+   *           If the LDAP profile properties file associated with the
+   *           provided managed object definition could not be loaded.
    */
-  private static class MyLDAPProfile extends LDAPProfile {
-
-    // The LDAP profile property table.
-    private final ManagedObjectDefinitionResource resource;
-
-
-
-    // Private constructor.
-    private MyLDAPProfile() {
-      this.resource = ManagedObjectDefinitionResource
-          .createForProfile("ldap");
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getInstantiableRelationChildRDNType(
-        InstantiableRelationDefinition<?, ?> r) {
-      return resource.getString(r.getParentDefinition(),
-          "naming-attribute." + r.getName());
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public List<String> getInstantiableRelationObjectClasses(
-        InstantiableRelationDefinition<?, ?> r) {
-      return Arrays.asList(new String[] { "top", "ds-cfg-branch" });
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
-      return resource.getString(r.getParentDefinition(), "rdn."
-          + r.getName());
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getObjectClass(
-        AbstractManagedObjectDefinition<?, ?> d) {
-      return resource.getString(d, "objectclass");
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public List<String> getObjectClasses(
-        AbstractManagedObjectDefinition<?, ?> d) {
-      LinkedList<String> objectClasses = new LinkedList<String>();
-      Set<String> s = new HashSet<String>();
-
-      // Add the object classes from the parent hierarchy.
-      while (d != null) {
-        String oc = getObjectClass(d);
-        if (!s.contains(oc)) {
-          objectClasses.addFirst(oc);
-          s.add(oc);
-        }
-        d = d.getParent();
+  public String getAttributeName(ManagedObjectDefinition<?, ?> d,
+      PropertyDefinition<?> pd) throws MissingResourceException {
+    for (Wrapper profile : profiles) {
+      String attributeName = profile.getAttributeName(d, pd);
+      if (attributeName != null) {
+        return attributeName;
       }
-
-      // Make sure that we have top.
-      if (!s.contains("top")) {
-        objectClasses.addFirst("top");
-      }
-
-      return objectClasses;
     }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public String getAttributeName(ManagedObjectDefinition<?, ?> d,
-        PropertyDefinition<?> pd) {
-      return resource.getString(d, "attribute." + pd.getName());
-    }
+    return resource.getString(d, "attribute." + pd.getName());
   }
 
 
@@ -177,9 +213,21 @@ public abstract class LDAPProfile {
    *          The instantiable relation.
    * @return Returns the LDAP RDN attribute type for child entries of
    *         an instantiable relation.
+   * @throws MissingResourceException
+   *           If the LDAP profile properties file associated with the
+   *           provided managed object definition could not be loaded.
    */
-  public abstract String getInstantiableRelationChildRDNType(
-      InstantiableRelationDefinition<?, ?> r);
+  public String getInstantiableRelationChildRDNType(
+      InstantiableRelationDefinition<?, ?> r) throws MissingResourceException {
+    for (Wrapper profile : profiles) {
+      String rdnType = profile.getInstantiableRelationChildRDNType(r);
+      if (rdnType != null) {
+        return rdnType;
+      }
+    }
+    return resource.getString(r.getParentDefinition(), "naming-attribute."
+        + r.getName());
+  }
 
 
 
@@ -193,21 +241,10 @@ public abstract class LDAPProfile {
    * @return Returns the LDAP object classes associated with an
    *         instantiable relation branch.
    */
-  public abstract List<String> getInstantiableRelationObjectClasses(
-      InstantiableRelationDefinition<?, ?> r);
-
-
-
-  /**
-   * Get an LDAP RDN sequence associatied with a relation.
-   *
-   * @param r
-   *          The relation.
-   * @return Returns the LDAP RDN sequence associatied with a
-   *         relation.
-   */
-  public abstract String getRelationRDNSequence(
-      RelationDefinition<?, ?> r);
+  public List<String> getInstantiableRelationObjectClasses(
+      InstantiableRelationDefinition<?, ?> r) {
+    return Arrays.asList(new String[] { "top", "ds-cfg-branch" });
+  }
 
 
 
@@ -219,9 +256,20 @@ public abstract class LDAPProfile {
    *          The managed object definition.
    * @return Returns the principle object class associated with the
    *         specified definition.
+   * @throws MissingResourceException
+   *           If the LDAP profile properties file associated with the
+   *           provided managed object definition could not be loaded.
    */
-  public abstract String getObjectClass(
-      AbstractManagedObjectDefinition<?, ?> d);
+  public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d)
+      throws MissingResourceException {
+    for (Wrapper profile : profiles) {
+      String objectClass = profile.getObjectClass(d);
+      if (objectClass != null) {
+        return objectClass;
+      }
+    }
+    return resource.getString(d, "objectclass");
+  }
 
 
 
@@ -236,23 +284,82 @@ public abstract class LDAPProfile {
    *          The managed object definition.
    * @return Returns all the object classes associated with the
    *         specified definition.
+   * @throws MissingResourceException
+   *           If the LDAP profile properties file associated with the
+   *           provided managed object definition could not be loaded.
    */
-  public abstract List<String> getObjectClasses(
-      AbstractManagedObjectDefinition<?, ?> d);
+  public List<String> getObjectClasses(AbstractManagedObjectDefinition<?, ?> d)
+      throws MissingResourceException {
+    LinkedList<String> objectClasses = new LinkedList<String>();
+    Set<String> s = new HashSet<String>();
+
+    // Add the object classes from the parent hierarchy.
+    while (d != null) {
+      String oc = getObjectClass(d);
+      if (!s.contains(oc)) {
+        objectClasses.addFirst(oc);
+        s.add(oc);
+      }
+      d = d.getParent();
+    }
+
+    // Make sure that we have top.
+    if (!s.contains("top")) {
+      objectClasses.addFirst("top");
+    }
+
+    return objectClasses;
+  }
 
 
 
   /**
-   * Get the name of the LDAP attribute associated with the specified
-   * property definition.
+   * Get an LDAP RDN sequence associatied with a relation.
    *
-   * @param d
-   *          The managed object definition.
-   * @param pd
-   *          The property definition.
-   * @return Returns the name of the LDAP attribute associated with
-   *         the specified property definition.
+   * @param r
+   *          The relation.
+   * @return Returns the LDAP RDN sequence associatied with a
+   *         relation.
+   * @throws MissingResourceException
+   *           If the LDAP profile properties file associated with the
+   *           provided managed object definition could not be loaded.
    */
-  public abstract String getAttributeName(
-      ManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd);
+  public String getRelationRDNSequence(RelationDefinition<?, ?> r)
+      throws MissingResourceException {
+    for (Wrapper profile : profiles) {
+      String rdnSequence = profile.getRelationRDNSequence(r);
+      if (rdnSequence != null) {
+        return rdnSequence;
+      }
+    }
+    return resource.getString(r.getParentDefinition(), "rdn." + r.getName());
+  }
+
+
+
+  /**
+   * Removes the last LDAP profile wrapper added using
+   * {@link #pushWrapper(org.opends.server.admin.LDAPProfile.Wrapper)}.
+   *
+   * @throws NoSuchElementException
+   *           If there are no LDAP profile wrappers.
+   */
+  public void popWrapper() throws NoSuchElementException {
+    profiles.removeFirst();
+  }
+
+
+
+  /**
+   * Decorates the core LDAP profile with the provided LDAP profile
+   * wrapper. All profile requests will be directed to the provided
+   * wrapper before being forwarded onto the core profile if the
+   * request could not be satisfied.
+   *
+   * @param wrapper
+   *          The LDAP profile wrapper.
+   */
+  public void pushWrapper(Wrapper wrapper) {
+    profiles.addFirst(wrapper);
+  }
 }

@@ -598,7 +598,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       throws IllegalArgumentException {
     validateRelationDefinition(d);
 
-    DN baseDN = DNBuilder.create(path);
+    DN baseDN = DNBuilder.create(path, d).getParent();
     deregisterAddListener(baseDN, listener);
   }
 
@@ -666,7 +666,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       ConfigurationDeleteListener<M> listener) throws IllegalArgumentException {
     validateRelationDefinition(d);
 
-    DN baseDN = DNBuilder.create(path);
+    DN baseDN = DNBuilder.create(path, d).getParent();
     deregisterDeleteListener(baseDN, listener);
   }
 
@@ -985,7 +985,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       OptionalRelationDefinition<?, M> d, ConfigurationAddListener<M> listener)
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
-    DN baseDN = DNBuilder.create(path);
+    DN baseDN = DNBuilder.create(path, d).getParent();
     ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
         listener);
     registerAddListener(baseDN, adaptor);
@@ -1061,7 +1061,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       ConfigurationDeleteListener<M> listener) throws IllegalArgumentException,
       ConfigException {
     validateRelationDefinition(d);
-    DN baseDN = DNBuilder.create(path);
+    DN baseDN = DNBuilder.create(path, d).getParent();
     ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
         listener);
     registerDeleteListener(baseDN, adaptor);
@@ -1208,7 +1208,7 @@ public final class ServerManagedObject<S extends Configuration> implements
             delayedListener);
         parentDN = parentDN.getParent();
       } else {
-        configEntry.registerAddListener(delayedListener);
+        relationEntry.registerAddListener(delayedListener);
         return;
       }
     }
