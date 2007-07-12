@@ -66,7 +66,7 @@ public final class AddressMask
     /**
      * IPv4 address size.
      */
-    public static int IN4ADDRSZ = 4;
+    private static int IN4ADDRSZ = 4;
     private  int IPV4MAXPREFIX = 32;
 
     // IPv6 values for number of bytes and max CIDR prefix
