@@ -483,7 +483,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * by checking that : msg == new ServerStartMessage(msg.getBytes()).
    */
   @Test(dataProvider="serverStart")
-  public void ServerStartMessageTest(short serverId, DN baseDN, int window,
+  public void serverStartMessageTest(short serverId, DN baseDN, int window,
          ServerState state) throws Exception
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
@@ -516,7 +516,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * by checking that : msg == new ReplServerStartMessage(msg.getBytes()).
    */
   @Test(dataProvider="changelogStart")
-  public void ChangelogStartMessageTest(short serverId, DN baseDN, int window,
+  public void replserverStartMessageTest(short serverId, DN baseDN, int window,
          String url, ServerState state) throws Exception
   {
     state.update(new ChangeNumber((long)1, 1,(short)1));
@@ -537,7 +537,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * by checking that : msg == new WindowMessage(msg.getBytes()).
    */
   @Test()
-  public void WindowMessageTest() throws Exception
+  public void windowMessageTest() throws Exception
   {
     WindowMessage msg = new WindowMessage(123);
     WindowMessage newMsg = new WindowMessage(msg.getBytes());
@@ -557,11 +557,25 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   /**
+   * Test ReplServerInfoMessage encoding and decoding.
+   */
+  @Test()
+  public void replServerInfoMessageTest() throws Exception
+  {
+    List<String> connectedServers = new ArrayList<String>(0);
+    connectedServers.add("s1");
+    connectedServers.add("s2");
+    ReplServerInfoMessage msg = new ReplServerInfoMessage(connectedServers);
+    ReplServerInfoMessage newMsg = new ReplServerInfoMessage(msg.getBytes());
+    assertEquals(msg.getConnectedServers(), newMsg.getConnectedServers());
+  }
+
+  /**
    * Test that EntryMessage encoding and decoding works
    * by checking that : msg == new EntryMessageTest(msg.getBytes()).
    */
   @Test()
-  public void EntryMessageTest() throws Exception
+  public void entryMessageTest() throws Exception
   {
     String taskInitFromS2 = new String(
         "dn: ds-task-id=" + UUID.randomUUID() +
@@ -586,7 +600,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * Test that InitializeRequestMessage encoding and decoding works
    */
   @Test()
-  public void InitializeRequestMessageTest() throws Exception
+  public void initializeRequestMessageTest() throws Exception
   {
     short sender = 1;
     short target = 2;
@@ -602,7 +616,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * Test that InitializeTargetMessage encoding and decoding works
    */
   @Test()
-  public void InitializeTargetMessageTest() throws Exception
+  public void initializeTargetMessageTest() throws Exception
   {
     short senderID = 1;
     short targetID = 2;
@@ -631,7 +645,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * Test that DoneMessage encoding and decoding works
    */
   @Test()
-  public void DoneMessage() throws Exception
+  public void doneMessageTest() throws Exception
   {
     DoneMessage msg = new DoneMessage((short)1, (short)2);
     DoneMessage newMsg = new DoneMessage(msg.getBytes());
@@ -643,7 +657,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * Test that ErrorMessage encoding and decoding works
    */
   @Test()
-  public void ErrorMessage() throws Exception
+  public void errorMessageTest() throws Exception
   {
     ErrorMessage msg = new ErrorMessage((short)1, (short)2, 12, "details");
     ErrorMessage newMsg = new ErrorMessage(msg.getBytes());

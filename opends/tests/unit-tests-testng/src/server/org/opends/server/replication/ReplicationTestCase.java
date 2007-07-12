@@ -173,7 +173,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       {
         logError(ErrorLogCategory.SYNCHRONIZATION,
             ErrorLogSeverity.NOTICE,
-            "ReplicationTestCase/openChangelogSession" + e.getMessage(), 1);
+            "ReplicationTestCase/openChangelogSession " + e.getMessage()
+            + " when emptying old changes", 1);
       }
     }
     return broker;

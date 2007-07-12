@@ -46,6 +46,7 @@ import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.replication.protocol.WindowProbe;
+import org.opends.server.replication.protocol.ReplServerInfoMessage;
 import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -164,6 +165,11 @@ public class ServerReader extends DirectoryThread
         {
           WindowProbe windowProbeMsg = (WindowProbe) msg;
           handler.process(windowProbeMsg);
+        }
+        else if (msg instanceof ReplServerInfoMessage)
+        {
+          ReplServerInfoMessage infoMsg = (ReplServerInfoMessage)msg;
+          handler.setReplServerInfo(infoMsg);
         }
         else if (msg == null)
         {
