@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="test-parent" plural-name="test-parents"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    A configuration for testing components that have child components.
+    It re-uses the virtual-attribute configuration LDAP profile.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.91</ldap:oid>
+      <ldap:name>ds-cfg-virtual-attribute</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:relation name="test-child">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=multiple children</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="optional-test-child"
+    managed-object-name="test-child">
+    <adm:one-to-zero-or-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=optional child</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:property name="mandatory-boolean-property" mandatory="true">
+    <adm:synopsis>A mandatory boolean property.</adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.326</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="mandatory-class-property" mandatory="true">
+    <adm:synopsis>
+      A mandatory Java-class property requiring a component restart.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.UserDefinedVirtualAttributeProvider
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:java-class>
+        <adm:instance-of>
+          org.opends.server.api.VirtualAttributeProvider
+        </adm:instance-of>
+      </adm:java-class>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.325</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-class</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="mandatory-read-only-attribute-type-property"
+    mandatory="true" read-only="true">
+    <adm:synopsis>
+      A mandatory read-only attribute type property.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:attribute-type />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.327</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="optional-multi-valued-dn-property"
+    multi-valued="true">
+    <adm:synopsis>
+      An optional multi-valued DN property with a defined default
+      behavior.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>dc=domain1,dc=com</adm:value>
+        <adm:value>dc=domain2,dc=com</adm:value>
+        <adm:value>dc=domain3,dc=com</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.328</ldap:oid>
+        <ldap:name>ds-cfg-virtual-attribute-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

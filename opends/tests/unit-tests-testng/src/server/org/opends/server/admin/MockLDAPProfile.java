@@ -28,23 +28,10 @@ package org.opends.server.admin;
 
 
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.InstantiableRelationDefinition;
-import org.opends.server.admin.LDAPProfile;
-import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.RelationDefinition;
-
-
-
 /**
- * A mock LDAP profile for testing purposes.
+ * A mock LDAP profile wrapper for testing purposes.
  */
-public final class MockLDAPProfile extends LDAPProfile {
+public final class MockLDAPProfile extends LDAPProfile.Wrapper {
 
   /**
    * Creates a new mock LDAP profile.
@@ -61,7 +48,44 @@ public final class MockLDAPProfile extends LDAPProfile {
   @Override
   public String getAttributeName(ManagedObjectDefinition<?, ?> d,
       PropertyDefinition<?> pd) {
-    return "ds-cfg-" + pd.getName();
+    if (d == TestParentCfgDefn.getInstance()) {
+      TestParentCfgDefn td = TestParentCfgDefn.getInstance();
+
+      if (pd == td.getMandatoryBooleanPropertyPropertyDefinition()) {
+        return "ds-cfg-virtual-attribute-enabled";
+      } else if (pd == td.getMandatoryClassPropertyPropertyDefinition()) {
+        return "ds-cfg-virtual-attribute-class";
+      } else if (pd == td
+          .getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition()) {
+        return "ds-cfg-virtual-attribute-type";
+      } else if (pd == td.getOptionalMultiValuedDNPropertyPropertyDefinition()) {
+        return "ds-cfg-virtual-attribute-base-dn";
+      } else {
+        throw new RuntimeException("Unexpected test-parent property"
+            + pd.getName());
+      }
+    } else if (d == TestChildCfgDefn.getInstance()) {
+      TestChildCfgDefn td = TestChildCfgDefn.getInstance();
+
+      if (pd == td.getMandatoryBooleanPropertyPropertyDefinition()) {
+        return "ds-cfg-virtual-attribute-enabled";
+      } else if (pd == td.getMandatoryClassPropertyPropertyDefinition()) {
+        return "ds-cfg-virtual-attribute-class";
+      } else if (pd == td
+          .getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition()) {
+        return "ds-cfg-virtual-attribute-type";
+      } else if (pd == td.getOptionalMultiValuedDNProperty1PropertyDefinition()) {
+        return "ds-cfg-virtual-attribute-base-dn";
+      } else if (pd == td.getOptionalMultiValuedDNProperty2PropertyDefinition()) {
+        return "ds-cfg-virtual-attribute-group-dn";
+      } else {
+        throw new RuntimeException("Unexpected test-child property"
+            + pd.getName());
+      }
+    }
+
+    // Not known.
+    return null;
   }
 
 
@@ -72,18 +96,13 @@ public final class MockLDAPProfile extends LDAPProfile {
   @Override
   public String getInstantiableRelationChildRDNType(
       InstantiableRelationDefinition<?, ?> r) {
-    return "cn";
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public List<String> getInstantiableRelationObjectClasses(
-      InstantiableRelationDefinition<?, ?> r) {
-    return Arrays.asList(new String[] { "top", "ds-cfg-branch" });
+    if (r == TestCfg.RD_TEST_ONE_TO_MANY_PARENT
+        || r == TestParentCfgDefn.getInstance()
+            .getTestChildrenRelationDefinition()) {
+      return "cn";
+    } else {
+      return null;
+    }
   }
 
 
@@ -93,25 +112,14 @@ public final class MockLDAPProfile extends LDAPProfile {
    */
   @Override
   public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
-    return "ds-cfg-" + d.getName();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public List<String> getObjectClasses(AbstractManagedObjectDefinition<?, ?> d) {
-    LinkedList<String> objectClasses = new LinkedList<String>();
-    for (AbstractManagedObjectDefinition<?, ?> i = d; i != null; i = i
-        .getParent()) {
-      objectClasses.addFirst(getObjectClass(i));
+    if (d == TestParentCfgDefn.getInstance()) {
+      return "ds-cfg-virtual-attribute";
+    } else if (d == TestChildCfgDefn.getInstance()) {
+      return "ds-cfg-virtual-attribute";
+    } else {
+      // Not known.
+      return null;
     }
-
-    // Make sure that we have top.
-    objectClasses.addFirst("top");
-    return objectClasses;
   }
 
 
@@ -121,11 +129,18 @@ public final class MockLDAPProfile extends LDAPProfile {
    */
   @Override
   public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
-    if (r instanceof InstantiableRelationDefinition) {
-      InstantiableRelationDefinition<?, ?> i = (InstantiableRelationDefinition<?, ?>) r;
-      return "cn=" + i.getPluralName();
+    if (r == TestCfg.RD_TEST_ONE_TO_MANY_PARENT) {
+      return "cn=test parents,cn=config";
+    } else if (r == TestCfg.RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT) {
+      return "cn=optional test parent,cn=config";
+    } else if (r == TestParentCfgDefn.getInstance()
+        .getTestChildrenRelationDefinition()) {
+      return "cn=test children";
+    } else if (r == TestParentCfgDefn.getInstance()
+        .getOptionalTestChildRelationDefinition()) {
+      return "cn=optional test child";
     } else {
-      return "cn=" + r.getName();
+      return null;
     }
   }
 

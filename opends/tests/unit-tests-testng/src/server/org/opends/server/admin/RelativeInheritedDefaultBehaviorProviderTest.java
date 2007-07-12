@@ -46,7 +46,7 @@ public class RelativeInheritedDefaultBehaviorProviderTest {
 
   private static final TestParentCfgDefn d;
 
-  private RelativeInheritedDefaultBehaviorProvider<Integer> ridbp = null;
+  private RelativeInheritedDefaultBehaviorProvider<Boolean> ridbp = null;
 
   static
   {
@@ -63,8 +63,8 @@ public class RelativeInheritedDefaultBehaviorProviderTest {
    */
   @BeforeClass
   public void setUp() {
-    this.ridbp = new RelativeInheritedDefaultBehaviorProvider<Integer>(d, d
-        .getMaximumLengthPropertyDefinition().getName(), OFFSET);
+    this.ridbp = new RelativeInheritedDefaultBehaviorProvider<Boolean>(d, d
+        .getMandatoryBooleanPropertyPropertyDefinition().getName(), OFFSET);
   }
 
 
@@ -74,7 +74,7 @@ public class RelativeInheritedDefaultBehaviorProviderTest {
    */
   @Test
   public void testAccept() {
-    ridbp.accept(new DefaultBehaviorProviderVisitor<Integer, Object, Object>() {
+    ridbp.accept(new DefaultBehaviorProviderVisitor<Boolean, Object, Object>() {
 
       public Object visitAbsoluteInherited(
           AbsoluteInheritedDefaultBehaviorProvider d, Object o) {
@@ -127,7 +127,7 @@ public class RelativeInheritedDefaultBehaviorProviderTest {
   @Test
   public void testGetPropertyDefinition() {
     assertEquals(ridbp.getPropertyName(), d
-        .getMaximumLengthPropertyDefinition().getName());
+        .getMandatoryBooleanPropertyPropertyDefinition().getName());
   }
 
 
