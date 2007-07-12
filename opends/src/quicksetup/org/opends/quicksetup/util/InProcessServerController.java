@@ -38,7 +38,6 @@ import org.opends.server.loggers.TextAccessLogPublisher;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.InitializationException;
@@ -48,7 +47,6 @@ import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.util.LDIFException;
-import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ModifyChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.AddChangeRecordEntry;
@@ -64,7 +62,6 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.List;
 import java.util.ArrayList;
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -361,113 +358,100 @@ public class InProcessServerController {
   /**
    * Applies modifications contained in an LDIF file to the server.
    *
-   * @param ldifFile LDIF file to apply
+   * @param cre changes to apply to the directory data
    * @throws IOException if there is an IO Error
    * @throws LDIFException if there is an LDIF error
    * @throws ApplicationException if there is an application specific error
    */
-  public void modify(File ldifFile)
-          throws IOException, LDIFException,
-          ApplicationException {
-    try {
-      InternalClientConnection cc =
-              InternalClientConnection.getRootConnection();
-      LDIFImportConfig importCfg =
-              new LDIFImportConfig(
-                      Utils.getPath(ldifFile));
-      LDIFReader ldifReader =
-              new LDIFReader(importCfg);
-      ChangeRecordEntry cre;
-      while (null != (cre = ldifReader.readChangeRecord(false))) {
-        ByteString dnByteString =
-                ByteStringFactory.create(
-                        cre.getDN().toString());
-        ResultCode rc;
-        switch(cre.getChangeOperationType()) {
-        case MODIFY:
-          LOG.log(Level.INFO, "proparing to modify " + dnByteString);
-          ModifyChangeRecordEntry mcre =
-                  (ModifyChangeRecordEntry) cre;
-          ModifyOperation op =
-                  cc.processModify(dnByteString, mcre.getModifications());
-          rc = op.getResultCode();
-          if (rc.equals(ResultCode.
-                  SUCCESS)) {
-            LOG.log(Level.INFO, "processed server modification " +
-                            modListToString(op.getModifications()));
-          } else if (rc.equals(
-                  ResultCode.
-                          ATTRIBUTE_OR_VALUE_EXISTS)) {
-            // ignore this error
-            LOG.log(Level.INFO, "ignoring attribute that already exists: " +
-                    modListToString(op.getModifications()));
-          } else if (rc.equals(ResultCode.NO_SUCH_ATTRIBUTE)) {
-            // This can happen if for instance the old configuration was
-            // changed so that the value of an attribute matches the default
-            // value of the attribute in the new configuration.
-            // Just log it and move on.
-            LOG.log(Level.INFO, "Ignoring attribute not found: " +
-                    modListToString(op.getModifications()));
-          } else {
-            // report the error to the user
-            StringBuilder error = op.getErrorMessage();
-            throw new ApplicationException(
-                    ApplicationException.Type.IMPORT_ERROR,
-                    getMsg("error-apply-ldif-modify", dnByteString.toString(),
-                            error != null ? error.toString() : ""),
-                    null);
-          }
-          break;
-        case ADD:
-          LOG.log(Level.INFO, "proparing to add " + dnByteString);
-          AddChangeRecordEntry acre = (AddChangeRecordEntry) cre;
-          List<Attribute> attrs = acre.getAttributes();
-          ArrayList<RawAttribute> rawAttrs =
-                  new ArrayList<RawAttribute>(attrs.size());
-          for (Attribute a : attrs) {
-            rawAttrs.add(new LDAPAttribute(a));
-          }
-          AddOperation addOp = cc.processAdd(dnByteString, rawAttrs);
-          rc = addOp.getResultCode();
-          if (rc.equals(ResultCode.SUCCESS)) {
-            LOG.log(Level.INFO, "processed server add " + addOp.getEntryDN());
-          } else {
-            // report the error to the user
-            StringBuilder error = addOp.getErrorMessage();
-            throw new ApplicationException(
-                    ApplicationException.Type.IMPORT_ERROR,
-                    getMsg("error-apply-ldif-add", dnByteString.toString(),
-                            error != null ? error.toString() : ""),
-                    null);
-          }
-          break;
-        case DELETE:
-          LOG.log(Level.INFO, "proparing to delete " + dnByteString);
-          DeleteOperation delOp = cc.processDelete(dnByteString);
-          rc = delOp.getResultCode();
-          if (rc.equals(ResultCode.SUCCESS)) {
-            LOG.log(Level.INFO, "processed server delete " +
-                    delOp.getEntryDN());
-          } else {
-            // report the error to the user
-            StringBuilder error = delOp.getErrorMessage();
-            throw new ApplicationException(
-                    ApplicationException.Type.IMPORT_ERROR,
-                    getMsg("error-apply-ldif-delete", dnByteString.toString(),
-                            error != null ? error.toString() : ""),
-                    null);
-          }
-          break;
-        default:
-          LOG.log(Level.SEVERE, "Unexpected record type " + cre.getClass());
-          throw new ApplicationException(ApplicationException.Type.BUG,
-                  getMsg("bug-msg"),
+  public void modify(ChangeRecordEntry cre)
+          throws IOException, LDIFException, ApplicationException
+  {
+    InternalClientConnection cc =
+            InternalClientConnection.getRootConnection();
+    ByteString dnByteString =
+            ByteStringFactory.create(
+                    cre.getDN().toString());
+    ResultCode rc;
+    switch (cre.getChangeOperationType()) {
+      case MODIFY:
+        LOG.log(Level.INFO, "proparing to modify " + dnByteString);
+        ModifyChangeRecordEntry mcre =
+                (ModifyChangeRecordEntry) cre;
+        ModifyOperation op =
+                cc.processModify(dnByteString, mcre.getModifications());
+        rc = op.getResultCode();
+        if (rc.equals(ResultCode.
+                SUCCESS)) {
+          LOG.log(Level.INFO, "processed server modification " +
+                  modListToString(op.getModifications()));
+        } else if (rc.equals(
+                ResultCode.
+                        ATTRIBUTE_OR_VALUE_EXISTS)) {
+          // ignore this error
+          LOG.log(Level.INFO, "ignoring attribute that already exists: " +
+                  modListToString(op.getModifications()));
+        } else if (rc.equals(ResultCode.NO_SUCH_ATTRIBUTE)) {
+          // This can happen if for instance the old configuration was
+          // changed so that the value of an attribute matches the default
+          // value of the attribute in the new configuration.
+          // Just log it and move on.
+          LOG.log(Level.INFO, "Ignoring attribute not found: " +
+                  modListToString(op.getModifications()));
+        } else {
+          // report the error to the user
+          StringBuilder error = op.getErrorMessage();
+          throw new ApplicationException(
+                  ApplicationException.Type.IMPORT_ERROR,
+                  getMsg("error-apply-ldif-modify", dnByteString.toString(),
+                          error != null ? error.toString() : ""),
                   null);
         }
-      }
-    } catch (Throwable t) {
-      throw new ApplicationException(ApplicationException.Type.BUG,
-              getMsg("bug-msg"), t);
+        break;
+      case ADD:
+        LOG.log(Level.INFO, "preparing to add " + dnByteString);
+        AddChangeRecordEntry acre = (AddChangeRecordEntry) cre;
+        List<Attribute> attrs = acre.getAttributes();
+        ArrayList<RawAttribute> rawAttrs =
+                new ArrayList<RawAttribute>(attrs.size());
+        for (Attribute a : attrs) {
+          rawAttrs.add(new LDAPAttribute(a));
+        }
+        AddOperation addOp = cc.processAdd(dnByteString, rawAttrs);
+        rc = addOp.getResultCode();
+        if (rc.equals(ResultCode.SUCCESS)) {
+          LOG.log(Level.INFO, "processed server add " + addOp.getEntryDN());
+        } else {
+          // report the error to the user
+          StringBuilder error = addOp.getErrorMessage();
+          throw new ApplicationException(
+                  ApplicationException.Type.IMPORT_ERROR,
+                  getMsg("error-apply-ldif-add", dnByteString.toString(),
+                          error != null ? error.toString() : ""),
+                  null);
+        }
+        break;
+      case DELETE:
+        LOG.log(Level.INFO, "preparing to delete " + dnByteString);
+        DeleteOperation delOp = cc.processDelete(dnByteString);
+        rc = delOp.getResultCode();
+        if (rc.equals(ResultCode.SUCCESS)) {
+          LOG.log(Level.INFO, "processed server delete " +
+                  delOp.getEntryDN());
+        } else {
+          // report the error to the user
+          StringBuilder error = delOp.getErrorMessage();
+          throw new ApplicationException(
+                  ApplicationException.Type.IMPORT_ERROR,
+                  getMsg("error-apply-ldif-delete", dnByteString.toString(),
+                          error != null ? error.toString() : ""),
+                  null);
+        }
+        break;
+      default:
+        LOG.log(Level.SEVERE, "Unexpected record type " + cre.getClass());
+        throw new ApplicationException(ApplicationException.Type.BUG,
+                getMsg("bug-msg"),
+                null);
     }
   }
 

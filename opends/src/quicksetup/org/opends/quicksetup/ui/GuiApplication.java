@@ -307,7 +307,7 @@ public abstract class GuiApplication extends Application {
    * step from <code>step</code>
    */
   public boolean canGoForward(WizardStep step) {
-    return getNextWizardStep(step) != null;
+    return !step.isProgressStep() && getNextWizardStep(step) != null;
   }
 
   /**
@@ -595,7 +595,7 @@ public abstract class GuiApplication extends Application {
   /**
    * {@inheritDoc}
    */
-  protected UserInteraction userInteraction() {
+  public UserInteraction userInteraction() {
     UserInteraction ui = null;
     if (!getUserData().isSilent()) {
       if (Utils.isCli()) {

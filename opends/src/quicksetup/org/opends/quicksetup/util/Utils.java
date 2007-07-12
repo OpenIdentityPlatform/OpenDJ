@@ -1419,9 +1419,18 @@ public class Utils
     if (len <= 0)
       return d;
     if (len > maxll) {
-      int p = d.lastIndexOf(' ', maxll);
-      if (p <= 0)
-        p = d.indexOf(' ', maxll);
+      int p = d.lastIndexOf(Constants.HTML_LINE_BREAK, maxll);
+      if (p > 0 && p < len) {
+        return d.substring(0, p + Constants.HTML_LINE_BREAK.length()) +
+               breakHtmlString(
+                       d.substring(p + Constants.HTML_LINE_BREAK.length()),
+                       maxll);
+      } else {
+        p = d.lastIndexOf(' ', maxll);
+        if (p <= 0) {
+          p = d.indexOf(' ', maxll);
+        }
+      }
       if (p > 0 && p < len) {
         return d.substring(0, p) +
                 Constants.HTML_LINE_BREAK +
@@ -1432,6 +1441,25 @@ public class Utils
     } else {
       return d;
     }
+  }
+
+  /**
+   * Strips any potential HTML markup from a given string.
+   * @param s string to strip
+   * @return resulting string
+   */
+  static public String stripHtml(String s) {
+    String o = null;
+    if (s != null) {
+
+      // This is not a comprehensive solution but addresses
+      // the few tags that we have in Resources.properties
+      // at the moment.  See test class for cases that might
+      // cause problems.
+      o = s.replaceAll("\\<.*?\\>","");
+
+    }
+    return o;
   }
 
   /**
