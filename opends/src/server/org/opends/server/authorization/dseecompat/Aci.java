@@ -62,7 +62,7 @@ public class Aci  {
     /*
      * The DN of the entry containing this ACI.
      */
-    private DN dn;
+    private final DN dn;
 
     /**
      * Regular expression matching a word group.
@@ -89,7 +89,7 @@ public class Aci  {
     /**
      * Regular expression matching a white space at the end of a pattern.
      */
-    public static final String ZERO_OR_MORE_WHITESPACE_END_PATTERN =
+    private static final String ZERO_OR_MORE_WHITESPACE_END_PATTERN =
                                              ZERO_OR_MORE_WHITESPACE  + "$";
 
     /**

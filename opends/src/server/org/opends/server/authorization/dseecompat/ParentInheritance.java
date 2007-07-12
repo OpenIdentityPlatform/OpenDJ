@@ -55,13 +55,13 @@ public class ParentInheritance {
     /*
      * Pattern to match for parent inheritance.
      */
-    private String parentPat="parent[";
+    private final String parentPat="parent[";
 
     /*
      * Array used to hold the level information. Each slot corresponds to a
      * level parsed from the rule.
      */
-    private int[] levels=new int[MAX_LEVELS];
+    private final int[] levels=new int[MAX_LEVELS];
 
     /*
      * The number of levels parsed.
@@ -200,7 +200,7 @@ public class ParentInheritance {
               if(attrs.size() != 1) {
                 int msgID = MSGID_ACI_SYNTAX_INVALID_USERATTR_ATTR_URL;
                 String message = getMessage(msgID, pattern);
-                throw new AciException(msgID, pattern);
+                throw new AciException(msgID, message);
               }
               baseDN=url.getBaseDN();
               if(baseDN.isNullDN()){
@@ -237,7 +237,9 @@ public class ParentInheritance {
      * @return Return an array of levels.
      */
     public int[] getLevels() {
-        return levels;
+        int[] levelsCopy = new int[levels.length];
+        System.arraycopy(levels, 0, levelsCopy, 0, levels.length);
+        return levelsCopy;
     }
 
     /**

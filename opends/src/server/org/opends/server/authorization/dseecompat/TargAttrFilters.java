@@ -326,7 +326,6 @@ public class TargAttrFilters {
             return true;
         LinkedHashMap<AttributeType, SearchFilter> filterList  =
                 attrFilterList.getAttributeTypeFilterList();
-        Iterator<AttributeType> iterator=filterList.keySet().iterator();
         boolean attrMatched=true;
         //Get the resource entry.
         Entry resEntry=matchCtx.getResourceEntry();
@@ -334,9 +333,9 @@ public class TargAttrFilters {
         //the resource entry to see if it has that attribute type. If not
         //go to the next attribute type. If it is found, then check the entries
         //attribute type values against the filter.
-        for(;iterator.hasNext() && attrMatched;) {
-            AttributeType attrType=iterator.next();
-            SearchFilter f=filterList.get(attrType);
+      for(Map.Entry<AttributeType, SearchFilter> e : filterList.entrySet()) {
+            AttributeType attrType=e.getKey();
+            SearchFilter f=e.getValue();
             //Found a match in the entry, iterate over each attribute
             //type in the entry and check its values agaist the filter.
             if(resEntry.hasAttribute(attrType)) {
@@ -347,6 +346,8 @@ public class TargAttrFilters {
                     attrMatched=matchFilterAttributeValues(a, attrType, f);
                 }
             }
+            if(!attrMatched)
+              break;
         }
         if(op.equals(EnumTargetOperator.NOT_EQUALITY))
             attrMatched = !attrMatched;

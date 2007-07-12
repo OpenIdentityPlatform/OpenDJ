@@ -233,7 +233,6 @@ public class AciList {
           if(dn == DN.nullDN()) {
             msgDN=configDN;
           }
-            String t=value.getValue().toString();
           String message = getMessage(msgID, value.getValue().toString(),
                                             String.valueOf(msgDN),
                                             ex.getMessage());

@@ -157,7 +157,7 @@ public class AciTargets {
      * the ACI and check if the resource entry is a descendant of that.
      * @return The ACI target class.
      */
-    public Target getTarget() {
+    private Target getTarget() {
         return target;
     }
 
