@@ -39,12 +39,17 @@ import org.opends.server.messages.CoreMessages;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.DN;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.LDAPException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.messages.ProtocolMessages.*;
+
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
@@ -183,7 +188,7 @@ public class RmiAuthenticator implements JMXAuthenticator
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      SecurityException se = new SecurityException();
+      SecurityException se = new SecurityException(e.getMessage());
       se.initCause(e);
       throw se;
     }
@@ -277,6 +282,19 @@ public class RmiAuthenticator implements JMXAuthenticator
 
       authInfo = bindOp.getAuthenticationInfo();
       jmxClientConnection.setAuthenticationInfo(authInfo);
+
+      // Check JMX_READ privilege.
+      if (! jmxClientConnection.hasPrivilege(Privilege.JMX_READ, null))
+      {
+        int msgID = MSGID_JMX_INSUFFICIENT_PRIVILEGES;
+        String message = getMessage(msgID);
+
+        jmxClientConnection.disconnect(DisconnectReason.CONNECTION_REJECTED,
+            false, msgID);
+
+        SecurityException se = new SecurityException(message);
+        throw se;
+      }
       return jmxClientConnection;
     }
     else

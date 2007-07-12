@@ -24,10 +24,12 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
-package org.opends.server.types;
+package org.opends.server.protocols.jmx;
 
 
 
+import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.messages.ProtocolMessages.MSGID_JMX_INSUFFICIENT_PRIVILEGES;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -36,10 +38,13 @@ import static org.testng.Assert.assertTrue;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
@@ -56,11 +61,23 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.tools.LDAPSearch;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RDN;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -68,25 +85,14 @@ import org.testng.annotations.Test;
 
 
 
+
 /**
- * This class provides a set of test cases for the Directory Server privilege
- * subsystem.
- *
- * FIXME -- It will likely be necessary to also have access control rules in
- *          place to allow operations as necessary once that functionality has
- *          integrated into the server.
+ * This class provides a set of test cases for the Directory Server JMX 
+ * privilege subsystem.
  */
-public class PrivilegeTestCase
-       extends TypesTestCase
+public class JmxPrivilegeTestCase
+       extends JmxTestCase
 {
-  /**
-   * The DN of the user that is associated with the internal root connection.
-   */
-  private static final String INTERNAL_ROOT_DN =
-       "cn=Internal Client,cn=Root DNs,cn=config";
-
-
-
   // An array of boolean values that indicates whether config read operations
   // should be successful for users in the corresponding slots of the
   // connections array.
@@ -94,7 +100,7 @@ public class PrivilegeTestCase
 
   // The set of client connections that should be used when performing
   // operations.
-  private InternalClientConnection[] connections;
+  private JmxClientConnection[] connections;
 
 
 
@@ -108,7 +114,8 @@ public class PrivilegeTestCase
   public void setUp()
          throws Exception
   {
-    TestCaseUtils.startServer();
+    super.setUp();
+
 
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntries(
@@ -123,15 +130,29 @@ public class PrivilegeTestCase
       "sn: Root",
       "uid: unprivileged.root",
       "userPassword: password",
-      "ds-privilege-name: -config-read",
-      "ds-privilege-name: -config-write",
-      "ds-privilege-name: -password-reset",
-      "ds-privilege-name: -update-schema",
-      "ds-privilege-name: -ldif-import",
-      "ds-privilege-name: -ldif-export",
-      "ds-privilege-name: -backend-backup",
-      "ds-privilege-name: -backend-restore",
-      "ds-privilege-name: -unindexed-search",
+      "ds-privilege-name: config-read",
+      "ds-privilege-name: config-write",
+      "ds-privilege-name: password-reset",
+      "ds-privilege-name: update-schema",
+      "ds-privilege-name: ldif-import",
+      "ds-privilege-name: ldif-export",
+      "ds-privilege-name: backend-backup",
+      "ds-privilege-name: backend-restore",
+      "ds-privilege-name: unindexed-search",
+      "ds-privilege-name: -jmx-read",
+      "ds-privilege-name: -jmx-write",
+      "",
+      "dn: cn=Unprivileged JMX Root,cn=Root DNs,cn=config",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "objectClass: ds-cfg-root-dn",
+      "cn: Unprivileged Root",
+      "givenName: Unprivileged",
+      "sn: Root",
+      "uid: unprivileged.root",
+      "userPassword: password",
       "",
       "dn: cn=Proxy Root,cn=Root DNs,cn=config",
       "objectClass: top",
@@ -145,6 +166,9 @@ public class PrivilegeTestCase
       "uid: proxy.root",
       "userPassword: password",
       "ds-privilege-name: proxied-auth",
+      "ds-privilege-name: jmx-read",
+      "ds-privilege-name: jmx-write",
+      "",
       "",
       "dn: cn=Privileged User,o=test",
       "objectClass: top",
@@ -167,6 +191,8 @@ public class PrivilegeTestCase
       "ds-privilege-name: proxied-auth",
       "ds-privilege-name: bypass-acl",
       "ds-privilege-name: unindexed-search",
+      "ds-privilege-name: jmx-read",
+      "ds-privilege-name: jmx-write",
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config",
       "",
@@ -210,48 +236,43 @@ public class PrivilegeTestCase
 
 
     // Build the array of connections we will use to perform the tests.
-    ArrayList<InternalClientConnection> connList =
-         new ArrayList<InternalClientConnection>();
+    JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
+    ArrayList<JmxClientConnection> connList =
+         new ArrayList<JmxClientConnection>();
     ArrayList<Boolean> successList = new ArrayList<Boolean>();
+    String userDN ;
+    Entry userEntry ;
+    AuthenticationInfo authInfo;
 
-    connList.add(new InternalClientConnection(new AuthenticationInfo()));
+    connList.add(new JmxClientConnection(jmxCtx,new AuthenticationInfo()));
     successList.add(false);
-
-    connList.add(InternalClientConnection.getRootConnection());
-    successList.add(true);
-
-    String userDN = "cn=Directory Manager,cn=Root DNs,cn=config";
-    Entry userEntry = DirectoryServer.getEntry(DN.decode(userDN));
-    AuthenticationInfo authInfo = new AuthenticationInfo(userEntry, true);
-    connList.add(new InternalClientConnection(authInfo));
-    successList.add(true);
 
     userDN    = "cn=Unprivileged Root,cn=Root DNs,cn=config";
     userEntry = DirectoryServer.getEntry(DN.decode(userDN));
     authInfo  = new AuthenticationInfo(userEntry, true);
-    connList.add(new InternalClientConnection(authInfo));
+    connList.add(new JmxClientConnection(jmxCtx,authInfo));
     successList.add(false);
 
     userDN    = "cn=Proxy Root,cn=Root DNs,cn=config";
     userEntry = DirectoryServer.getEntry(DN.decode(userDN));
     authInfo  = new AuthenticationInfo(userEntry, true);
-    connList.add(new InternalClientConnection(authInfo));
+    connList.add(new JmxClientConnection(jmxCtx,authInfo));
     successList.add(true);
 
     userDN    = "cn=Unprivileged User,o=test";
     userEntry = DirectoryServer.getEntry(DN.decode(userDN));
     authInfo  = new AuthenticationInfo(userEntry, false);
-    connList.add(new InternalClientConnection(authInfo));
+    connList.add(new JmxClientConnection(jmxCtx,authInfo));
     successList.add(false);
 
     userDN    = "cn=Privileged User,o=test";
     userEntry = DirectoryServer.getEntry(DN.decode(userDN));
     authInfo  = new AuthenticationInfo(userEntry, false);
-    connList.add(new InternalClientConnection(authInfo));
+    connList.add(new JmxClientConnection(jmxCtx,authInfo));
     successList.add(true);
 
 
-    connections = new InternalClientConnection[connList.size()];
+    connections = new JmxClientConnection[connList.size()];
     successful  = new boolean[connections.length];
     for (int i=0; i < connections.length; i++)
     {
@@ -296,32 +317,31 @@ public class PrivilegeTestCase
   public void cleanUp()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = InternalClientConnection
+        .getRootConnection();
 
-    DeleteOperation deleteOperation =
-         conn.processDelete(
-              DN.decode("cn=Unprivileged Root,cn=Root DNs,cn=config"));
+    DeleteOperation deleteOperation = conn.processDelete(DN
+        .decode("cn=Unprivileged Root,cn=Root DNs,cn=config"));
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    
+    deleteOperation = conn.processDelete(DN
+        .decode("cn=Unprivileged JMX Root,cn=Root DNs,cn=config"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    deleteOperation =
-      conn.processDelete(
-           DN.decode("cn=Proxy Root,cn=Root DNs,cn=config"));
+    deleteOperation = conn.processDelete(DN
+        .decode("cn=Proxy Root,cn=Root DNs,cn=config"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    deleteOperation =
-      conn.processDelete(
-           DN.decode("cn=Privileged User,o=test"));
+    deleteOperation = conn.processDelete(DN
+        .decode("cn=Privileged User,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    deleteOperation =
-      conn.processDelete(
-           DN.decode("cn=UnPrivileged User,o=test"));
+    deleteOperation = conn.processDelete(DN
+        .decode("cn=UnPrivileged User,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    deleteOperation =
-      conn.processDelete(
-           DN.decode("cn=PWReset Target,o=test"));
+    deleteOperation = conn.processDelete(DN
+        .decode("cn=PWReset Target,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     deleteOperation = conn.processDelete(DN
@@ -363,66 +383,135 @@ public class PrivilegeTestCase
   }
 
 
+  /**
+   * Check that simple connection to the JMX service are
+   * accepted only if JMX_READ privilege is set.
+   */
+  @Test(enabled = true)
+  public void simpleConnectJmxPrivilege() throws Exception
+  {
+    OpendsJmxConnector opendsConnector;
+    int jmxPort = TestCaseUtils.getServerJmxPort() ;
+    HashMap<String, Object> env = new HashMap<String, Object>();
+    String user = "cn=Unprivileged JMX Root,cn=Root DNs,cn=config";
+    String password  = "password";
+    String[] credentials = new String[] { user, password };
+    env.put("jmx.remote.credentials", credentials);
+    env.put("jmx.remote.x.client.connection.check.period", 0);
+
+    // Try connection withoutJMX_READ privilege
+    // Expected result: failed
+    try
+    {
+      opendsConnector = new OpendsJmxConnector("localhost", jmxPort, env);
+      opendsConnector.connect();
+      opendsConnector.close() ;
+      assertTrue(false, "User \"cn=Unprivileged JMX Root,cn=Root "+
+          "DNs,cn=config\" doesn't have JMX_READ privilege but he's able " +
+          "to connect, which is not the correct behavior");
+    }
+    catch (SecurityException e)
+    {
+      int msgID = MSGID_JMX_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      assertEquals(message, e.getMessage());
+    }
+    catch (IOException e)
+    {
+      assertTrue(false, "Unexpected exception - error message: "
+          + e.getMessage());
+    }
+    
+    // Add JMX_READ privilege
+    InternalClientConnection rootConnection =
+      InternalClientConnection.getRootConnection();
+    ArrayList<Modification> mods = new ArrayList<Modification>();
+    mods.add(new Modification(ModificationType.ADD,
+                      new Attribute("ds-privilege-name", "jmx-read")));
+    ModifyOperation modifyOperation =
+         rootConnection.processModify(DN.decode(user), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    
+    //  Try connection withoutJMX_READ privilege
+    // Expected result: success
+    try
+    {
+      opendsConnector = new OpendsJmxConnector("localhost", jmxPort, env);
+      opendsConnector.connect();
+      opendsConnector.close() ;
+      assertTrue(true, "User \"cn=Unprivileged JMX Root,cn=Root "+
+          "DNs,cn=config\" has JMX_READ privilege and he's able " +
+          "to connect, which is the correct behavior.");
+    }
+    catch (SecurityException e)
+    {
+      assertTrue(true, "User \"cn=Unprivileged JMX Root,cn=Root " +
+          "DNs,cn=config\" has JMX_READ privilege and he's NOT able " +
+          "to connect, which is NOT the correct behavior.");
+    }
+    catch (IOException e)
+    {
+      assertTrue(false, "Unexpected exception - error message: "
+          + e.getMessage());
+    }
+    
+    // remove JMX_READ privilege
+    mods = new ArrayList<Modification>();
+    mods.add(new Modification(ModificationType.DELETE,
+                      new Attribute("ds-privilege-name", "jmx-read")));
+    modifyOperation =
+         rootConnection.processModify(DN.decode(user), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    
+    // Try connection withoutJMX_READ privilege
+    // Expected result: failed
+    try
+    {
+      opendsConnector = new OpendsJmxConnector("localhost", jmxPort, env);
+      opendsConnector.connect();
+      opendsConnector.close() ;
+      assertTrue(false, "User \"cn=Unprivileged JMX Root,cn=Root "+
+          "DNs,cn=config\" doesn't have JMX_READ privilege but he's able " +
+          "to connect, which is not the correct behavior");
+    }
+    catch (SecurityException e)
+    {
+      int msgID = MSGID_JMX_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      assertEquals(message, e.getMessage());
+    }
+    catch (IOException e)
+    {
+      assertTrue(false, "Unexpected exception - error message: "
+          + e.getMessage());
+    }
+  }
+  
 
   /**
    * Tests to ensure that search operations in the server configuration properly
-   * respect the CONFIG_READ privilege.
+   * respect the JMX_READ privilege.
    *
    * @param  conn          The client connection to use to perform the search
    *                       operation.
    * @param  hasPrivilege  Indicates whether the authenticated user is expected
-   *                       to have the CONFIG_READ privilege and therefore the
+   *                       to have the JMX_READ privilege and therefore the
    *                       search should succeed.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testConfigReadSearch(InternalClientConnection conn,
+  public void testConfigReadSearch(JmxClientConnection conn,
                                    boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.CONFIG_READ, null), hasPrivilege);
+    assertEquals(conn.hasPrivilege(Privilege.JMX_READ, null), hasPrivilege);
 
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("cn=config"), SearchScope.BASE_OBJECT,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
-    if (hasPrivilege)
-    {
-      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    }
-    else
-    {
-      assertEquals(searchOperation.getResultCode(),
-                   ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-    }
-  }
-
-  /**
-   * Tests to ensure that unindexed search operations properly respect the
-   * UNINDEXED_SEARCH privilege.
-   *
-   * @param conn The client connection to use to perform the search operation.
-   *
-   * @param hasPrivilege Indicates whether the authenticated user is expected
-   *                     to have the UNINDEXED_SEARCH privilege and therefore
-   *                     the search should succeed.
-   * @throws Exception If an unexpected problem occurs.
-   */
-  @Test(dataProvider = "testdata")
-  public void testUnindexedSearch(InternalClientConnection conn,
-                                  boolean hasPrivilege)
-         throws Exception
-  {
-    assertEquals(conn.hasPrivilege(Privilege.UNINDEXED_SEARCH, null), hasPrivilege);
-
-    for(DN dn : DirectoryServer.getBaseDNs().keySet())
-    {
-      System.out.println(dn.toString());
-    }
-
-    InternalSearchOperation searchOperation =
-        conn.processSearch(DN.decode("dc=unindexed,dc=jeb"), SearchScope.WHOLE_SUBTREE,
-             SearchFilter.createFilterFromString("(sn=test*)"));
+    ASN1OctetString dn = new ASN1OctetString(DN.decode("cn=config").toString());
+    LDAPFilter filter = new LDAPFilter(SearchFilter
+        .createFilterFromString("(objectClass=*)"));
+    InternalSearchOperation searchOperation = conn.processSearch(dn,
+        SearchScope.BASE_OBJECT, filter);
     if (hasPrivilege)
     {
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -438,27 +527,30 @@ public class PrivilegeTestCase
 
   /**
    * Tests to ensure that compare operations in the server configuration
-   * properly respect the CONFIG_READ privilege.
+   * properly respect the JMX_READ privilege.
    *
    * @param  conn          The client connection to use to perform the compare
    *                       operation.
    * @param  hasPrivilege  Indicates whether the authenticated user is expected
-   *                       to have the CONFIG_READ privilege and therefore the
+   *                       to have the JMX_READ privilege and therefore the
    *                       compare should succeed.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testConfigReadCompare(InternalClientConnection conn,
+  public void testConfigReadCompare(JmxClientConnection conn,
                                     boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.CONFIG_READ, null), hasPrivilege);
+    assertEquals(conn.hasPrivilege(Privilege.JMX_READ, null), hasPrivilege);
 
+    ASN1OctetString asn1 = new ASN1OctetString(DN.decode("cn=config")
+        .toString());
+    ASN1OctetString value = new ASN1OctetString("config");
     CompareOperation compareOperation =
-         conn.processCompare(DN.decode("cn=config"),
-                             DirectoryServer.getAttributeType("cn"),
-                             ByteStringFactory.create("config"));
+         conn.processCompare(asn1,
+                             "cn",
+                             value);
     if (hasPrivilege)
     {
       assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
@@ -485,11 +577,11 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testConfigWriteAddAndDelete(InternalClientConnection conn,
+  public void testConfigWriteAddAndDelete(JmxClientConnection conn,
                                           boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.CONFIG_WRITE, null), hasPrivilege);
+    assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null), hasPrivilege);
 
     Entry entry = TestCaseUtils.makeEntry(
       "dn: cn=Test Root,cn=Root DNs,cn=config",
@@ -542,11 +634,11 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testConfigWriteModify(InternalClientConnection conn,
+  public void testConfigWriteModify(JmxClientConnection conn,
                                     boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.CONFIG_WRITE, null), hasPrivilege);
+    assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null), hasPrivilege);
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
 
@@ -590,11 +682,11 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testConfigWriteModifyDN(InternalClientConnection conn,
+  public void testConfigWriteModifyDN(JmxClientConnection conn,
                                       boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.CONFIG_WRITE, null), hasPrivilege);
+    assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null), hasPrivilege);
 
     ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(DN.decode("cn=Work Queue,cn=config"),
@@ -615,158 +707,6 @@ public class PrivilegeTestCase
   }
 
 
-
-  /**
-   * Tests to ensure that modify operations which attempt to reset a user's
-   * password properly respect the PASSWORD_RESET privilege.
-   *
-   * @param  conn          The client connection to use to perform the password
-   *                       reset.
-   * @param  hasPrivilege  Indicates whether the authenticated user is expected
-   *                       to have the PASSWORD_RESET privilege and therefore
-   *                       the password reset should succeed.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test(dataProvider = "testdata")
-  public void testPasswordResetModify(InternalClientConnection conn,
-                                      boolean hasPrivilege)
-         throws Exception
-  {
-    // We've got to do this as an external operation rather than internal, so
-    // get the bind DN and password to use from the client connection.
-
-    String userDN;
-    String userPassword;
-    Entry  authNEntry = conn.getAuthenticationInfo().getAuthenticationEntry();
-    if (authNEntry == null)
-    {
-      userDN       = "";
-      userPassword = "";
-    }
-    else if (authNEntry.getDN().toString().equalsIgnoreCase(INTERNAL_ROOT_DN))
-    {
-      return;
-    }
-    else
-    {
-      userDN       = authNEntry.getDN().toString();
-      userPassword = "password";
-    }
-
-    assertEquals(conn.hasPrivilege(Privilege.PASSWORD_RESET, null),
-                 hasPrivilege);
-
-    String path = TestCaseUtils.createTempFile(
-      "dn: cn=PWReset Target,o=test",
-      "changetype: modify",
-      "replace: userPassword",
-      "userPassword: newpassword",
-      "",
-      "dn: cn=PWReset Target,o=test",
-      "changetype: modify",
-      "replace: userPassword",
-      "userPassword: password");
-
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", userDN,
-      "-w", userPassword,
-      "-f", path
-    };
-
-    int resultCode = LDAPModify.mainModify(args, false, null, null);
-    if (hasPrivilege)
-    {
-      assertEquals(resultCode, 0);
-    }
-    else
-    {
-      assertEquals(resultCode, 50);
-    }
-  }
-
-
-
-  /**
-   * Tests to ensure that password modify extended operations which attempt to
-   * reset a user's password properly respect the PASSWORD_RESET privilege.
-   *
-   * @param  conn          The client connection to use to perform the password
-   *                       reset.
-   * @param  hasPrivilege  Indicates whether the authenticated user is expected
-   *                       to have the PASSWORD_RESET privilege and therefore
-   *                       the password reset should succeed.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test(dataProvider = "testdata")
-  public void testPasswordResetExtOp(InternalClientConnection conn,
-                                     boolean hasPrivilege)
-         throws Exception
-  {
-    // We've got to do this as an external operation rather than internal, so
-    // get the bind DN and password to use from the client connection.
-
-    String userDN;
-    String userPassword;
-    Entry  authNEntry = conn.getAuthenticationInfo().getAuthenticationEntry();
-    if (authNEntry == null)
-    {
-      userDN       = "";
-      userPassword = "";
-    }
-    else if (authNEntry.getDN().toString().equalsIgnoreCase(INTERNAL_ROOT_DN))
-    {
-      return;
-    }
-    else
-    {
-      userDN       = authNEntry.getDN().toString();
-      userPassword = "password";
-    }
-
-    assertEquals(conn.hasPrivilege(Privilege.PASSWORD_RESET, null),
-                 hasPrivilege);
-
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", userDN,
-      "-w", userPassword,
-      "-a", "dn:cn=PWReset Target,o=test",
-      "-n", "newpassword"
-    };
-
-    int resultCode =
-             LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    if (hasPrivilege)
-    {
-      assertEquals(resultCode, 0);
-
-      args = new String[]
-      {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", userDN,
-        "-w", userPassword,
-        "-a", "dn:cn=PWReset Target,o=test",
-        "-n", "password"
-      };
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null,
-                                                         null), 0);
-    }
-    else
-    {
-      assertEquals(resultCode, 50);
-    }
-  }
-
-
-
   /**
    * Tests to ensure that attempts to update the schema with a modify operation
    * will properly respect the UPDATE_SCHEMA privilege.
@@ -780,11 +720,11 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testUpdateSchemaModify(InternalClientConnection conn,
+  public void testUpdateSchemaModify(JmxClientConnection conn,
                                boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.UPDATE_SCHEMA, null),
+    assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null),
                  hasPrivilege);
 
     String attrDefinition =
@@ -832,11 +772,11 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testUpdateSchemaAddSchemaFile(InternalClientConnection conn,
+  public void testUpdateSchemaAddSchemaFile(JmxClientConnection conn,
                                             boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.UPDATE_SCHEMA, null),
+    assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null),
                  hasPrivilege);
 
 
@@ -917,7 +857,7 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata", groups = { "slow" })
-  public void testBackupBackend(InternalClientConnection conn,
+  public void testBackupBackend(JmxClientConnection conn,
                                 boolean hasPrivilege)
          throws Exception
   {
@@ -925,7 +865,7 @@ public class PrivilegeTestCase
     // based on a timestamp and we don't want two in the same second.
     Thread.sleep(1100);
 
-    assertEquals(conn.hasPrivilege(Privilege.BACKEND_BACKUP, null),
+    assertEquals(conn.hasPrivilege(Privilege.JMX_READ, null),
                  hasPrivilege);
 
     Entry taskEntry = TestCaseUtils.makeEntry(
@@ -972,11 +912,11 @@ public class PrivilegeTestCase
    */
   @Test(enabled = false, dataProvider = "testdata", groups = { "slow" },
         dependsOnMethods = { "testBackupBackend" })
-  public void testRestoreBackend(InternalClientConnection conn,
+  public void testRestoreBackend(JmxClientConnection conn,
                                  boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.BACKEND_RESTORE, null),
+    assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null),
                  hasPrivilege);
 
     Entry taskEntry = TestCaseUtils.makeEntry(
@@ -1021,11 +961,11 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata", groups = { "slow" })
-  public void testLDIFExport(InternalClientConnection conn,
+  public void testLDIFExport(JmxClientConnection conn,
                              boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.LDIF_EXPORT, null), hasPrivilege);
+    assertEquals(conn.hasPrivilege(Privilege.JMX_READ, null), hasPrivilege);
 
     File   tempFile     = File.createTempFile("export-", ".ldif");
     String tempFilePath = tempFile.getAbsolutePath();
@@ -1076,11 +1016,11 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata", groups = { "slow" })
-  public void testLDIFImport(InternalClientConnection conn,
+  public void testLDIFImport(JmxClientConnection conn,
                              boolean hasPrivilege)
          throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.LDIF_IMPORT, null), hasPrivilege);
+    assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null), hasPrivilege);
 
     String path = TestCaseUtils.createTempFile(
       "dn: dc=example,dc=com",
@@ -1128,11 +1068,11 @@ public class PrivilegeTestCase
    * @throws Exception if an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata", groups = { "slow" })
-  public void testRebuildIndex(InternalClientConnection conn,
+  public void testRebuildIndex(JmxClientConnection conn,
                                boolean hasPrivilege)
       throws Exception
   {
-    assertEquals(conn.hasPrivilege(Privilege.LDIF_IMPORT, null), hasPrivilege);
+    assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null), hasPrivilege);
 
     Entry taskEntry = TestCaseUtils.makeEntry(
       "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
@@ -1179,7 +1119,7 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testProxyAuthV1Write(InternalClientConnection conn,
+  public void testProxyAuthV1Write(JmxClientConnection conn,
                                    boolean hasPrivilege)
          throws Exception
   {
@@ -1206,9 +1146,10 @@ public class PrivilegeTestCase
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                          controls, e.getDN(), e.getObjectClasses(),
-                          e.getUserAttributes(), e.getOperationalAttributes());
+         new AddOperationBasis(conn, conn
+        .nextOperationID(), conn.nextMessageID(), controls, e.getDN(), e
+        .getObjectClasses(), e.getUserAttributes(), e
+        .getOperationalAttributes());
     addOperation.run();
 
     if (hasProxyPrivilege)
@@ -1228,9 +1169,9 @@ public class PrivilegeTestCase
     mods.add(new Modification(ModificationType.REPLACE,
                               new Attribute("description", "foo")));
 
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             controls, e.getDN(), mods);
+    ModifyOperationBasis modifyOperation = new ModifyOperationBasis(conn,
+        conn.nextOperationID(), conn.nextMessageID(), controls, e.getDN(),
+        mods);
     modifyOperation.run();
 
     if (hasProxyPrivilege)
@@ -1268,8 +1209,8 @@ public class PrivilegeTestCase
     // Try to delete the operation.  If this fails, then delete it with a root
     // connection so it gets cleaned up.
     DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             controls, newEntryDN);
+         new DeleteOperationBasis(conn,
+        conn.nextOperationID(), conn.nextMessageID(), controls, newEntryDN);
     deleteOperation.run();
 
     if (hasProxyPrivilege)
@@ -1304,7 +1245,7 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testProxyAuthV1Read(InternalClientConnection conn,
+  public void testProxyAuthV1Read(JmxClientConnection conn,
                                   boolean hasPrivilege)
          throws Exception
   {
@@ -1374,7 +1315,7 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testProxyAuthV2Write(InternalClientConnection conn,
+  public void testProxyAuthV2Write(JmxClientConnection conn,
                                    boolean hasPrivilege)
          throws Exception
   {
@@ -1402,9 +1343,10 @@ public class PrivilegeTestCase
     // with a root connection so we can do other things with it.
     DN authDN = conn.getAuthenticationInfo().getAuthenticationDN();
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                          controls, e.getDN(), e.getObjectClasses(),
-                          e.getUserAttributes(), e.getOperationalAttributes());
+         new AddOperationBasis(conn, conn
+        .nextOperationID(), conn.nextMessageID(), controls, e.getDN(), e
+        .getObjectClasses(), e.getUserAttributes(), e
+        .getOperationalAttributes());
     addOperation.run();
 
     if (hasProxyPrivilege)
@@ -1427,8 +1369,9 @@ public class PrivilegeTestCase
                               new Attribute("description", "foo")));
 
     ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             controls, e.getDN(), mods);
+         new ModifyOperationBasis(conn,
+        conn.nextOperationID(), conn.nextMessageID(), controls, e.getDN(),
+        mods);
     modifyOperation.run();
 
     if (hasProxyPrivilege)
@@ -1470,8 +1413,8 @@ public class PrivilegeTestCase
     // Try to delete the operation.  If this fails, then delete it with a root
     // connection so it gets cleaned up.
     DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
-                             controls, newEntryDN);
+         new DeleteOperationBasis(conn,
+        conn.nextOperationID(), conn.nextMessageID(), controls, newEntryDN);
     deleteOperation.run();
 
     if (hasProxyPrivilege)
@@ -1508,7 +1451,7 @@ public class PrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testProxyAuthV2Read(InternalClientConnection conn,
+  public void testProxyAuthV2Read(JmxClientConnection conn,
                                   boolean hasPrivilege)
          throws Exception
   {
@@ -1564,739 +1507,6 @@ public class PrivilegeTestCase
   }
 
 
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform DIGEST-MD5 authentication when an
-   * anonymous authorization ID is specified with an authentication identity
-   * that has sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5AnonymousAuthzIDSuccessfulDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:cn=Privileged User,o=test",
-      "-o", "authzid=dn:",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will behave properly when attempting to
-   * perform DIGEST-MD5 authentication when an authorization ID equaling the
-   * authentication ID is specified with an authentication identity that has
-   * sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5SameAuthzIDSuccessfulDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:cn=Privileged User,o=test",
-      "-o", "authzid=dn:cn=Privileged User,o=test",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform DIGEST-MD5 authentication when an
-   * alternate authorization ID is specified with an authentication identity
-   * that has sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5DifferentAuthzIDSuccessfulDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:cn=Privileged User,o=test",
-      "-o", "authzid=dn:cn=Unprivileged User,o=test",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform DIGEST-MD5 authentication when an
-   * anonymous authorization ID is specified with an authentication identity
-   * that has sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5AnonymousAuthzIDSuccessfulUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:privileged.user",
-      "-o", "authzid=u:",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will behave properly when attempting to
-   * perform DIGEST-MD5 authentication when an authorization ID equaling the
-   * authentication ID is specified with an authentication identity that has
-   * sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5SameAuthzIDSuccessfulUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:privileged.user",
-      "-o", "authzid=u:privileged.user",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform DIGEST-MD5 authentication when an
-   * alternate authorization ID is specified with an authentication identity
-   * that has sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5DifferentAuthzIDSuccessfulUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:privileged.user",
-      "-o", "authzid=u:unprivileged.user",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform DIGEST-MD5 authentication when an
-   * anonymous authorization ID is specified with an authentication identity
-   * that does not have sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5AnonymousAuthzIDFailedDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:cn=Unprivileged User,o=test",
-      "-o", "authzid=dn:",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will behave properly when attempting to
-   * perform DIGEST-MD5 authentication when an authorization ID equaling the
-   * authentication ID is specified with an authentication identity that does
-   * not have sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5SameUnprivAuthzIDSuccessfulDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:cn=Unprivileged User,o=test",
-      "-o", "authzid=dn:cn=Unprivileged User,o=test",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform DIGEST-MD5 authentication when an
-   * alternate authorization ID is specified with an authentication identity
-   * that does not have sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5DifferentAuthzIDFailedDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:cn=Unprivileged User,o=test",
-      "-o", "authzid=dn:cn=Privileged User,o=test",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform DIGEST-MD5 authentication when an
-   * anonymous authorization ID is specified with an authentication identity
-   * that does not have sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5AnonymousAuthzIDFailedUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:unprivileged.user",
-      "-o", "authzid=u:",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will behave properly when attempting to
-   * perform DIGEST-MD5 authentication when an authorization ID equaling the
-   * authentication ID is specified with an authentication identity that does
-   * not have sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5SameUnprivAuthzIDSuccessfulUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:unprivileged.user",
-      "-o", "authzid=u:unprivileged.user",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform DIGEST-MD5 authentication when an
-   * alternate authorization ID is specified with an authentication identity
-   * that does not have sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testDIGESTMD5DifferentAuthzIDFailedUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:unprivileged.user",
-      "-o", "authzid=u:privileged.user",
-      "-o", "realm=o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform PLAIN authentication when an
-   * anonymous authorization ID is specified with an authentication identity
-   * that has sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINAnonymousAuthzIDSuccessfulDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=dn:cn=Privileged User,o=test",
-      "-o", "authzid=dn:",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will behave properly when attempting to
-   * perform PLAIN authentication when an authorization ID equaling the
-   * authentication ID is specified with an authentication identity that has
-   * sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINSameAuthzIDSuccessfulDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=dn:cn=Privileged User,o=test",
-      "-o", "authzid=dn:cn=Privileged User,o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform PLAIN authentication when an
-   * alternate authorization ID is specified with an authentication identity
-   * that has sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINDifferentAuthzIDSuccessfulDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=dn:cn=Privileged User,o=test",
-      "-o", "authzid=dn:cn=Unprivileged User,o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform PLAIN authentication when an
-   * anonymous authorization ID is specified with an authentication identity
-   * that has sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINAnonymousAuthzIDSuccessfulUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=u:privileged.user",
-      "-o", "authzid=u:",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will behave properly when attempting to
-   * perform PLAIN authentication when an authorization ID equaling the
-   * authentication ID is specified with an authentication identity that has
-   * sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINSameAuthzIDSuccessfulUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=u:privileged.user",
-      "-o", "authzid=u:privileged.user",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform PLAIN authentication when an
-   * alternate authorization ID is specified with an authentication identity
-   * that has sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINDifferentAuthzIDSuccessfulUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=u:privileged.user",
-      "-o", "authzid=u:unprivileged.user",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform PLAIN authentication when an
-   * anonymous authorization ID is specified with an authentication identity
-   * that does not have sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINAnonymousAuthzIDFailedDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=dn:cn=Unprivileged User,o=test",
-      "-o", "authzid=dn:",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will behave properly when attempting to
-   * perform PLAIN authentication when an authorization ID equaling the
-   * authentication ID is specified with an authentication identity that does
-   * not have sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINSameUnprivAuthzIDSuccessfulDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=dn:cn=Unprivileged User,o=test",
-      "-o", "authzid=dn:cn=Unprivileged User,o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform PLAIN authentication when an
-   * alternate authorization ID is specified with an authentication identity
-   * that does not have sufficient privileges and using the "dn:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINDifferentAuthzIDFailedDNColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=dn:cn=Unprivileged User,o=test",
-      "-o", "authzid=dn:cn=Privileged User,o=test",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform PLAIN authentication when an
-   * anonymous authorization ID is specified with an authentication identity
-   * that does not have sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINAnonymousAuthzIDFailedUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=u:unprivileged.user",
-      "-o", "authzid=u:",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will behave properly when attempting to
-   * perform PLAIN authentication when an authorization ID equaling the
-   * authentication ID is specified with an authentication identity that does
-   * not have sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINSameUnprivAuthzIDSuccessfulUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=u:unprivileged.user",
-      "-o", "authzid=u:unprivileged.user",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
-  }
-
-
-
-  /**
-   * Tests to ensure that the server will properly respect the PROXIED_AUTH
-   * privilege when attempting to perform PLAIN authentication when an
-   * alternate authorization ID is specified with an authentication identity
-   * that does not have sufficient privileges and using the "u:" syntax.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testPLAINDifferentAuthzIDFailedUColon()
-         throws Exception
-  {
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=PLAIN",
-      "-o", "authid=u:unprivileged.user",
-      "-o", "authzid=u:privileged.user",
-      "-w", "password",
-      "-b", "o=test",
-      "-s", "base",
-      "(objectClass=*)"
-    };
-
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
-  }
-
-
-
   /**
    * Tests the ability to update the set of privileges for a user on the fly
    * and have them take effect immediately.
@@ -2308,7 +1518,7 @@ public class PrivilegeTestCase
          throws Exception
   {
     InternalClientConnection rootConnection =
-         InternalClientConnection.getRootConnection();
+      InternalClientConnection.getRootConnection();
 
     TestCaseUtils.addEntry(
       "dn: cn=Test User,o=test",
@@ -2321,11 +1531,13 @@ public class PrivilegeTestCase
       "sn: User",
       "userPassword: password");
 
+
     Entry testEntry =
                DirectoryServer.getEntry(DN.decode("cn=Test User,o=test"));
     AuthenticationInfo authInfo = new AuthenticationInfo(testEntry, false);
-    InternalClientConnection testConnection =
-         new InternalClientConnection(authInfo);
+    JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
+    JmxClientConnection testConnection =
+         new JmxClientConnection(jmxCtx,authInfo);
 
 
     // Make sure the user starts out without any privileges.
@@ -2335,26 +1547,26 @@ public class PrivilegeTestCase
     }
 
 
-    // Modify the user entry to add the CONFIG_READ privilege and verify that
+    // Modify the user entry to add the JMX_READ privilege and verify that
     // the client connection reflects that.
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
-                      new Attribute("ds-privilege-name", "config-read")));
+                      new Attribute("ds-privilege-name", "jmx-read")));
     ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode("cn=Test User,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-    assertTrue(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
+    assertTrue(testConnection.hasPrivilege(Privilege.JMX_READ, null));
 
 
     // Take the privilege away from the user and verify that it is recognized
     // immediately.
     mods.clear();
     mods.add(new Modification(ModificationType.DELETE,
-                      new Attribute("ds-privilege-name", "config-read")));
+                      new Attribute("ds-privilege-name", "jmx-read")));
     modifyOperation =
          rootConnection.processModify(DN.decode("cn=Test User,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-    assertFalse(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
+    assertFalse(testConnection.hasPrivilege(Privilege.JMX_READ, null));
 
 
     DeleteOperation deleteOperation =
@@ -2379,14 +1591,15 @@ public class PrivilegeTestCase
     DN unprivRootDN = DN.decode("cn=Unprivileged Root,cn=Root DNs,cn=config");
     Entry unprivRootEntry = DirectoryServer.getEntry(unprivRootDN);
     AuthenticationInfo authInfo = new AuthenticationInfo(unprivRootEntry, true);
-    InternalClientConnection unprivRootConn =
-         new InternalClientConnection(authInfo);
+    JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
+    JmxClientConnection unprivRootConn =
+         new JmxClientConnection(jmxCtx,authInfo);
     assertFalse(unprivRootConn.hasPrivilege(Privilege.PROXIED_AUTH, null));
 
 
     // Update the set of root privileges to include proxied auth.
     InternalClientConnection internalRootConn =
-         InternalClientConnection.getRootConnection();
+      InternalClientConnection.getRootConnection();
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
@@ -2401,7 +1614,7 @@ public class PrivilegeTestCase
     // Get a new root connection and verify that it now has proxied auth.
     unprivRootEntry = DirectoryServer.getEntry(unprivRootDN);
     authInfo = new AuthenticationInfo(unprivRootEntry, true);
-    unprivRootConn = new InternalClientConnection(authInfo);
+    unprivRootConn = new JmxClientConnection(jmxCtx,authInfo);
     assertTrue(unprivRootConn.hasPrivilege(Privilege.PROXIED_AUTH, null));
 
 
@@ -2419,7 +1632,7 @@ public class PrivilegeTestCase
     // Get a new root connection and verify that it no longer has proxied auth.
     unprivRootEntry = DirectoryServer.getEntry(unprivRootDN);
     authInfo = new AuthenticationInfo(unprivRootEntry, true);
-    unprivRootConn = new InternalClientConnection(authInfo);
+    unprivRootConn = new JmxClientConnection(jmxCtx,authInfo);
     assertFalse(unprivRootConn.hasPrivilege(Privilege.PROXIED_AUTH, null));
   }
 

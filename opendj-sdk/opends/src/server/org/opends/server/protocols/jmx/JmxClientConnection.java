@@ -44,6 +44,8 @@ import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.protocols.internal.InternalSearchListener;
 
 import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
@@ -54,9 +56,14 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RDN;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
@@ -64,6 +71,7 @@ import org.opends.server.types.SearchScope;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ProtocolMessages.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
 
 
 /**
@@ -476,10 +484,95 @@ public class JmxClientConnection
          new AddOperationBasis(this, nextOperationID(), nextMessageID(),
                           new ArrayList<Control>(0), rawEntryDN, rawAttributes);
 
-    addOperation.run();
+    // Check if we have enough privilege
+    if (! hasPrivilege(Privilege.JMX_WRITE, null))
+    {
+      int msgID = MSGID_JMX_ADD_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      addOperation.setErrorMessage(new StringBuilder(message));
+      addOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
+    }
+    else
+    {
+      addOperation.run();
+    }
     return addOperation;
   }
 
+  /**
+   * Processes an internal add operation with the provided
+   * information.
+   *
+   * @param  entryDN                The entry DN for the add
+   *                                operation.
+   * @param  objectClasses          The set of objectclasses for the
+   *                                add operation.
+   * @param  userAttributes         The set of user attributes for the
+   *                                add operation.
+   * @param  operationalAttributes  The set of operational attributes
+   *                                for the add operation.
+   *
+   * @return  A reference to the add operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public AddOperation processAdd(DN entryDN,
+                           Map<ObjectClass,String> objectClasses,
+                           Map<AttributeType,List<Attribute>>
+                                userAttributes,
+                           Map<AttributeType,List<Attribute>>
+                                operationalAttributes)
+  {
+    AddOperationBasis addOperation =
+         new AddOperationBasis(this, nextOperationID(),
+                          nextMessageID(),
+                          new ArrayList<Control>(0), entryDN,
+                          objectClasses, userAttributes,
+                          operationalAttributes);
+    // Check if we have enough privilege
+    if (! hasPrivilege(Privilege.JMX_WRITE, null))
+    {
+      int msgID = MSGID_JMX_ADD_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      addOperation.setErrorMessage(new StringBuilder(message));
+      addOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
+    }
+    else
+    {
+      addOperation.run();
+    }
+    return addOperation;
+  }
+
+  /**
+   * Processes an internal delete operation with the provided
+   * information.
+   *
+   * @param  entryDN  The entry DN for the delete operation.
+   *
+   * @return  A reference to the delete operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public DeleteOperation processDelete(DN entryDN)
+  {
+    DeleteOperationBasis deleteOperation =
+         new DeleteOperationBasis(this, nextOperationID(),
+                             nextMessageID(),
+                             new ArrayList<Control>(0), entryDN);
+    // Check if we have enough privilege
+    if (! hasPrivilege(Privilege.JMX_WRITE, null))
+    {
+      int msgID = MSGID_JMX_DELETE_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      deleteOperation.setErrorMessage(new StringBuilder(message));
+      deleteOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
+    }
+    else
+    {
+      deleteOperation.run();
+    }
+    return deleteOperation;
+  }
 
 
   /**
@@ -501,7 +594,18 @@ public class JmxClientConnection
                               new ArrayList<Control>(0), rawEntryDN,
                               attributeType, assertionValue);
 
-    compareOperation.run();
+    // Check if we have enough privilege
+    if (! hasPrivilege(Privilege.JMX_READ, null))
+    {
+      int msgID = MSGID_JMX_SEARCH_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      compareOperation.setErrorMessage(new StringBuilder(message));
+      compareOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
+    }
+    else
+    {
+      compareOperation.run();
+    }
     return compareOperation;
   }
 
@@ -521,7 +625,18 @@ public class JmxClientConnection
          new DeleteOperationBasis(this, nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(0), rawEntryDN);
 
-    deleteOperation.run();
+    // Check if we have enough privilege
+    if (! hasPrivilege(Privilege.JMX_WRITE, null))
+    {
+      int msgID = MSGID_JMX_DELETE_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      deleteOperation.setErrorMessage(new StringBuilder(message));
+      deleteOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
+    }
+    else
+    {
+      deleteOperation.run();
+    }
     return deleteOperation;
   }
 
@@ -569,11 +684,54 @@ public class JmxClientConnection
                              new ArrayList<Control>(0), rawEntryDN,
                              rawModifications);
 
-    modifyOperation.run();
+    if (! hasPrivilege(Privilege.JMX_WRITE, null))
+    {
+      int msgID = MSGID_JMX_MODIFY_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      modifyOperation.setErrorMessage(new StringBuilder(message));
+      modifyOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
+    }
+    else
+    {
+      modifyOperation.run();
+    }
     return modifyOperation;
   }
 
 
+  /**
+   * Processes an internal modify operation with the provided
+   * information.
+   *
+   * @param  entryDN        The entry DN for this modify operation.
+   * @param  modifications  The set of modifications for this modify
+   *                        operation.
+   *
+   * @return  A reference to the modify operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public ModifyOperation processModify(DN entryDN,
+                              List<Modification> modifications)
+  {
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(this, nextOperationID(),
+                             nextMessageID(),
+                             new ArrayList<Control>(0), entryDN,
+                             modifications);
+    if (! hasPrivilege(Privilege.JMX_WRITE, null))
+    {
+      int msgID = MSGID_JMX_MODIFY_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      modifyOperation.setErrorMessage(new StringBuilder(message));
+      modifyOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
+    }
+    else
+    {
+      modifyOperation.run();
+    }
+    return modifyOperation;
+  }
 
   /**
    * Processes an Jmx modify DN operation with the provided information.
@@ -619,11 +777,59 @@ public class JmxClientConnection
                                new ArrayList<Control>(0), rawEntryDN, rawNewRDN,
                                deleteOldRDN, rawNewSuperior);
 
-    modifyDNOperation.run();
+    if (! hasPrivilege(Privilege.JMX_WRITE, null))
+    {
+      int msgID = MSGID_JMX_MODDN_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      modifyDNOperation.setErrorMessage(new StringBuilder(message));
+      modifyDNOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
+    }
+    else
+    {
+      modifyDNOperation.run();
+    }
     return modifyDNOperation;
   }
 
+  /**
+   * Processes an internal modify DN operation with the provided
+   * information.
+   *
+   * @param  entryDN       The current DN of the entry to rename.
+   * @param  newRDN        The new RDN to use for the entry.
+   * @param  deleteOldRDN  The flag indicating whether the old RDN
+   *                       value is to be removed from the entry.
+   * @param  newSuperior   The new superior for the modify DN
+   *                       operation, or <CODE>null</CODE> if the
+   *                       entry will remain below the same parent.
+   *
+   * @return  A reference to the modify DN operation that was
+   *          processed and contains information about the result of
+   *          the processing.
+   */
+  public ModifyDNOperation processModifyDN(DN entryDN, RDN newRDN,
+                                           boolean deleteOldRDN,
+                                           DN newSuperior)
+  {
+    ModifyDNOperation modifyDNOperation =
+         new ModifyDNOperation(this, nextOperationID(),
+                               nextMessageID(),
+                               new ArrayList<Control>(0), entryDN,
+                               newRDN, deleteOldRDN, newSuperior);
 
+    if (! hasPrivilege(Privilege.JMX_WRITE, null))
+    {
+      int msgID = MSGID_JMX_MODDN_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      modifyDNOperation.setErrorMessage(new StringBuilder(message));
+      modifyDNOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
+    }
+    else
+    {
+      modifyDNOperation.run();
+    }
+    return modifyDNOperation;
+  }
 
   /**
    * Processes an Jmx search operation with the provided information.
@@ -677,7 +883,17 @@ public class JmxClientConnection
                                      scope, derefPolicy, sizeLimit, timeLimit,
                                      typesOnly, filter, attributes, null);
 
-    searchOperation.run();
+    if (! hasPrivilege(Privilege.JMX_READ, null))
+    {
+      int msgID = MSGID_JMX_SEARCH_INSUFFICIENT_PRIVILEGES;
+      String message = getMessage(msgID);
+      searchOperation.setErrorMessage(new StringBuilder(message));
+      searchOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
+    }
+    else
+    {
+      searchOperation.run();
+    }
     return searchOperation;
   }
 
