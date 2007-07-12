@@ -38,7 +38,7 @@ import java.awt.Window;
 import javax.swing.SwingUtilities;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.ui.Utilities;
 
 /**
  * This is the class that displays a splash screen and in the background it will
@@ -112,7 +112,7 @@ public class SplashScreen extends Window
       int height = image.getHeight(this);
       setPreferredSize(new Dimension(width, height));
       setSize(width, height);
-      Utils.centerOnScreen(this);
+      Utilities.centerOnScreen(this);
 
     } catch (Exception ex)
     {

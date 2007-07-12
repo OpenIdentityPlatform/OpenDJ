@@ -46,7 +46,6 @@ import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ProgressDescriptor;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
-import org.opends.quicksetup.util.Utils;
 
 /**
  * This class represents the dialog used by quicksetup applications.
@@ -125,7 +124,7 @@ public class QuickSetupDialog
     frame.pack();
     int minWidth = (int) frame.getPreferredSize().getWidth();
     int minHeight = (int) frame.getPreferredSize().getHeight();
-    Utils.centerOnScreen(frame);
+    Utilities.centerOnScreen(frame);
     setFocusOnButton(application.getInitialFocusButtonName());
     frame.addComponentListener(new MinimumSizeComponentListener(frame,
         minWidth, minHeight));
@@ -146,7 +145,7 @@ public class QuickSetupDialog
     frame.getContentPane().removeAll();
     frame.getContentPane().add(getFramePanel());
     frame.pack();
-    Utils.centerOnScreen(frame);
+    Utilities.centerOnScreen(frame);
     setFocusOnButton(ButtonName.NEXT);
     int minWidth = (int) frame.getPreferredSize().getWidth();
     int minHeight = (int) frame.getPreferredSize().getHeight();
@@ -210,7 +209,7 @@ public class QuickSetupDialog
    */
   public void displayError(String msg, String title)
   {
-    Utils.displayError(getFrame(), msg, title);
+    Utilities.displayError(getFrame(), msg, title);
   }
 
   /**
@@ -225,7 +224,7 @@ public class QuickSetupDialog
    */
   public boolean displayConfirmation(String msg, String title)
   {
-    return Utils.displayConfirmation(getFrame(), msg, title);
+    return Utilities.displayConfirmation(getFrame(), msg, title);
   }
 
   /**

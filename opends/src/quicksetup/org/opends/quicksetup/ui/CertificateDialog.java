@@ -63,7 +63,6 @@ import javax.swing.event.HyperlinkListener;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.i18n.ResourceProvider;
-import org.opends.quicksetup.util.Utils;
 
 /**
  * This class is used to present the user a certificate to the user in order
@@ -121,7 +120,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     });
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-    Utils.centerOnComponent(this, parent);
+    Utilities.centerOnComponent(this, parent);
   }
 
   /**

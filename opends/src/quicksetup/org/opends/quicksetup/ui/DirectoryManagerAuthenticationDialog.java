@@ -124,7 +124,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
         500, 300));
     getRootPane().setDefaultButton(shutDownButton);
     pack();
-    Utils.centerOnComponent(this, parent);
+    Utilities.centerOnComponent(this, parent);
     tfPwd.requestFocusInWindow();
     setVisible(true);
   }
@@ -509,7 +509,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
    */
   private void displayError(String msg, String title)
   {
-    Utils.displayError(parent, msg, title);
+    Utilities.displayError(parent, msg, title);
   }
 
   /**
@@ -522,7 +522,7 @@ public class DirectoryManagerAuthenticationDialog extends JDialog
    */
   private void displayInformationMessage(String msg, String title)
   {
-    Utils.displayInformationMessage(parent, msg, title);
+    Utilities.displayInformationMessage(parent, msg, title);
   }
 
   /**
