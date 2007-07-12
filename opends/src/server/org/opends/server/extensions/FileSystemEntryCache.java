@@ -557,8 +557,8 @@ public class FileSystemEntryCache
     // already exist at this point all we have to do is to serialize cache
     // index maps @see FileSystemEntryCacheIndex and put them under indexkey
     // allowing for the index to be restored and cache contents reused upon
-    // the next initialization.
-    if (persistentCache) {
+    // the next initialization. If this cache is empty skip persisting phase.
+    if (persistentCache && !dnMap.isEmpty()) {
       FileSystemEntryCacheIndex entryCacheIndex =
           new FileSystemEntryCacheIndex();
       // There must be at least one backend at this stage.
@@ -892,13 +892,21 @@ public class FileSystemEntryCache
       if (entryID == null) {
         return;
       }
-      for (Map<Long,DN> map : backendMap.values()) {
+      Set<Backend> backendSet = backendMap.keySet();
+      Iterator<Backend> backendIterator = backendSet.iterator();
+      while (backendIterator.hasNext()) {
+        Map<Long,DN> map = backendMap.get(backendIterator.next());
         if ((map.get(entryID) != null) &&
             (map.get(entryID).equals(entryDN))) {
           map.remove(entryID);
+          // If this backend becomes empty now
+          // remove it from the backend map.
+          if (map.isEmpty()) {
+            backendIterator.remove();
+          }
+          break;
         }
       }
-
       dnMap.remove(entryDN);
       entryCacheDB.delete(null,
         new DatabaseEntry(entryDN.toNormalizedString().getBytes("UTF-8")));
@@ -1302,7 +1310,13 @@ public class FileSystemEntryCache
     // Read configuration.
     newConfigEntryDN = configuration.dn();
     newLockTimeout   = configuration.getLockTimeout();
-    newMaxEntries    = configuration.getMaxEntries();
+
+    // If the value of zero arrives make sure it is traslated
+    // to the maximum possible value we can cap maxEntries to.
+    newMaxEntries = configuration.getMaxEntries();
+    if (newMaxEntries <= 0) {
+      newMaxEntries = DEFAULT_FSCACHE_MAX_ENTRIES;
+    }
 
     // Maximum memory/space this cache can utilize.
     newMaxAllowedMemory = configuration.getMaxMemorySize();
@@ -1522,8 +1536,11 @@ public class FileSystemEntryCache
           new DatabaseEntry(
           entry.encode(encodeConfig))) == OperationStatus.SUCCESS) {
 
-        // Add the entry to the cache maps.
-        dnMap.put(entry.getDN(), entryID);
+        // Add the entry to the cache maps. The order in which maps
+        // are populated is important since invoking put on rotator
+        // map can cause the eldest map entry to be removed @see
+        // LinkedHashMapRotator.removeEldestEntry() therefore every
+        // cache map has to be up to date if / when that happens.
         Map<Long,DN> map = backendMap.get(backend);
         if (map == null) {
           map = new LinkedHashMap<Long,DN>();
@@ -1532,6 +1549,7 @@ public class FileSystemEntryCache
         } else {
           map.put(entryID, entry.getDN());
         }
+        dnMap.put(entry.getDN(), entryID);
       }
 
       // We'll always return true in this case, even if we didn't actually add
@@ -1626,14 +1644,24 @@ public class FileSystemEntryCache
         cacheWriteLock.lock();
         try {
           // Remove the the eldest entry from supporting maps.
-          cacheEntryKey.setData(
-              ((DN) eldest.getKey()).toNormalizedString().getBytes("UTF-8"));
+          DN entryDN = (DN) eldest.getKey();
           long entryID = ((Long) eldest.getValue()).longValue();
+          cacheEntryKey.setData(
+              entryDN.toNormalizedString().getBytes("UTF-8"));
           Set<Backend> backendSet = backendMap.keySet();
           Iterator<Backend> backendIterator = backendSet.iterator();
           while (backendIterator.hasNext()) {
             Map<Long,DN> map = backendMap.get(backendIterator.next());
-            map.remove(entryID);
+            if ((map.get(entryID) != null) &&
+                (map.get(entryID).equals(entryDN))) {
+              map.remove(entryID);
+              // If this backend becomes empty now
+              // remove it from the backend map.
+              if (map.isEmpty()) {
+                backendIterator.remove();
+              }
+              break;
+            }
           }
           // Remove the the eldest entry from the database.
           entryCacheDB.delete(null, cacheEntryKey);
