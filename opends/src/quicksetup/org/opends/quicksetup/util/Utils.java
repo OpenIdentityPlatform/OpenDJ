@@ -1194,14 +1194,18 @@ public class Utils
 
   /**
    * Inserts HTML break tags into <code>d</code> breaking it up
-   * so that no line is longer than <code>maxll</code>.
+   * so that ideally no line is longer than <code>maxll</code>
+   * assuming no single word is longer then <code>maxll</code>.
+   * If the string already contains HTML line breaks, they are
+   * respected by this method when calculating where to place
+   * new breaks to control the maximum line length.
+   *
    * @param d String to break
    * @param maxll int maximum line length
    * @return String representing <code>d</code> with HTML break
    *         tags inserted
    */
   static public String breakHtmlString(String d, int maxll) {
-    // Primitive line wrapping
     int len = d.length();
     if (len <= 0)
       return d;
