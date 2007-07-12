@@ -35,6 +35,7 @@ import static org.opends.server.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -61,6 +62,7 @@ import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.replication.protocol.WindowProbe;
+import org.opends.server.replication.protocol.ReplServerInfoMessage;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -128,6 +130,14 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
   private short replicationServerId;
 
   private short protocolVersion;
+
+
+  /**
+   * When this Handler is connected to a changelog server this collection
+   * will contain the list of LDAP servers connected to the remote changelog
+   * server.
+   */
+  private List<String> remoteLDAPservers = new ArrayList<String>();
 
   /**
    * The time in milliseconds between heartbeats from the replication
@@ -1342,16 +1352,68 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
   public void process(RoutableMessage msg)
   {
     if (debugEnabled())
-      TRACER.debugInfo("SH(" + replicationServerId + ") forwards " +
-                 msg + " to " + serverId);
-
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.SEVERE_ERROR,
-        "SH(" + replicationServerId + ") receives " + msg +
-            " from " + serverId, 1);
+      TRACER.debugInfo("SH(" + replicationServerId + ") receives " +
+                 msg + " from " + serverId);
 
     replicationCache.process(msg, this);
   }
+
+  /**
+   * Sends the provided ReplServerInfoMessage.
+   *
+   * @param info The ReplServerInfoMessage message to be sent.
+   * @throws IOException When it occurs while sending the message,
+   *
+   */
+   public void sendInfo(ReplServerInfoMessage info)
+   throws IOException
+   {
+     session.publish(info);
+   }
+
+   /**
+    *
+    * Sets the replication server from the message provided.
+    *
+    * @param infoMsg The information message.
+    */
+   public void setReplServerInfo(ReplServerInfoMessage infoMsg)
+   {
+     remoteLDAPservers = infoMsg.getConnectedServers();
+   }
+
+   /**
+    * When this handler is connected to a replication server, specifies if
+    * a wanted server is connected to this replication server.
+    *
+    * @param wantedServer The server we want to know if it is connected
+    * to the replication server represented by this handler.
+    * @return boolean True is the wanted server is connected to the server
+    * represented by this handler.
+    */
+   public boolean isRemoteLDAPServer(short wantedServer)
+   {
+     for (String server : remoteLDAPservers)
+     {
+       if (wantedServer == Short.valueOf(server))
+       {
+         return true;
+       }
+     }
+     return false;
+   }
+
+   /**
+    * When the handler is connected to a replication server, specifies the
+    * replication server has remote LDAP servers connected to it.
+    *
+    * @return boolean True is the replication server has remote LDAP servers
+    * connected to it.
+    */
+   public List<String> getRemoteLDAPServers()
+   {
+     return remoteLDAPservers;
+   }
 
   /**
    * Send an InitializeRequestMessage to the server connected through this
@@ -1365,12 +1427,6 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     if (debugEnabled())
       TRACER.debugInfo("SH(" + replicationServerId + ") forwards " +
                  msg + " to " + serverId);
-
-    logError(ErrorLogCategory.SYNCHRONIZATION,
-        ErrorLogSeverity.SEVERE_ERROR,
-        "SH(" + replicationServerId + ") forwards " +
-             msg + " to " + serverId, 1);
-
     session.publish(msg);
   }
 

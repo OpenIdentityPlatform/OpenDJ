@@ -53,6 +53,7 @@ public abstract class ReplicationMessage
   static final byte MSG_TYPE_DONE = 13;
   static final byte MSG_TYPE_ERROR = 14;
   static final byte MSG_TYPE_WINDOW_PROBE = 15;
+  static final byte MSG_TYPE_REPL_SERVER_INFO = 16;
   // Adding a new type of message here probably requires to
   // change accordingly generateMsg method below
 
@@ -73,6 +74,8 @@ public abstract class ReplicationMessage
    * MSG_TYPE_ENTRY
    * MSG_TYPE_DONE
    * MSG_TYPE_ERROR
+   * MSG_TYPE_WINDOW_PROBE
+   * MSG_TYPE_REPL_SERVER_INFO
    *
    * @return the byte[] representation of this message.
    * @throws UnsupportedEncodingException  When the encoding of the message
@@ -139,6 +142,9 @@ public abstract class ReplicationMessage
       break;
       case MSG_TYPE_WINDOW_PROBE:
         msg = new WindowProbe(buffer);
+      break;
+      case MSG_TYPE_REPL_SERVER_INFO:
+        msg = new ReplServerInfoMessage(buffer);
       break;
       default:
         throw new DataFormatException("received message with unknown type");

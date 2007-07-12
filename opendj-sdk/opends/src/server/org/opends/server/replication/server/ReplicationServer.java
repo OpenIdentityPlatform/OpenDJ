@@ -357,7 +357,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    * @param baseDn The base Dn for which the ReplicationCache must be returned.
    * @return The ReplicationCache associated to the base DN given in parameter.
    */
-  ReplicationCache getReplicationCache(DN baseDn)
+  public ReplicationCache getReplicationCache(DN baseDn)
   {
     ReplicationCache replicationCache;
 

@@ -450,6 +450,27 @@ public class ReplicationMessages {
     CATEGORY_MASK_SYNC | SEVERITY_MASK_NOTICE | 63;
 
   /**
+   * An error happened to send a ReplServerInfoMessage to another
+   * replication server.
+   */
+  public static final int MSGID_CHANGELOG_ERROR_SENDING_INFO =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 64;
+
+  /**
+   * An error happened to send an ErrorMessage to another
+   * replication server.
+   */
+  public static final int MSGID_CHANGELOG_ERROR_SENDING_ERROR =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 65;
+
+  /**
+   * An error happened to send a Message (probably a RoutableMessage)
+   * to another replication server.
+   */
+  public static final int MSGID_CHANGELOG_ERROR_SENDING_MSG =
+    CATEGORY_MASK_SYNC | SEVERITY_MASK_SEVERE_ERROR | 66;
+
+  /**
    * Register the messages from this class in the core server.
    *
    */
@@ -530,8 +551,8 @@ public class ReplicationMessages {
         "An unexpected error happened handling connection with %s." +
         "This connection is going to be closed. ");
     registerMessage(MSGID_CHANGELOG_ERROR_SENDING_ACK,
-        "An unexpected error happened sending an ack to %s." +
-        "This connection is going to be closed. ");
+        "An unexpected error occurred  while sending an ack to %s." +
+        "This connection is going to be closed and reopened. ");
     registerMessage(
         MSGID_EXCEPTION_RECEIVING_REPLICATION_MESSAGE,
         "An Exception was caught while receiving replication message : %s");
@@ -617,5 +638,15 @@ public class ReplicationMessages {
     registerMessage(MSGID_DISCONNECTED_FROM_CHANGELOG,
         "The connection to Replication Server %s has been dropped by the "
         + "Replication Server");
+    registerMessage(MSGID_CHANGELOG_ERROR_SENDING_INFO,
+        "An unexpected error occurred  while sending a Server " +
+        " Info message to %s. " +
+        "This connection is going to be closed and reopened");
+    registerMessage(MSGID_CHANGELOG_ERROR_SENDING_ERROR,
+        "An unexpected error occurred  while sending an Error Message to %s. "+
+        "This connection is going to be closed and reopened");
+    registerMessage(MSGID_CHANGELOG_ERROR_SENDING_MSG,
+        "An unexpected error occurred  while sending a Message to %s. "+
+        "This connection is going to be closed and reopened");
   }
 }
