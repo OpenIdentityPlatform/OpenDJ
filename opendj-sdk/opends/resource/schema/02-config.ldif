@@ -1762,8 +1762,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.56
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.57
   NAME 'ds-cfg-synchronization-provider' SUP top STRUCTURAL
-  MUST ( cn $ ds-cfg-synchronization-provider-class )
-  MAY  ( ds-cfg-synchronization-provider-enabled ) X-ORIGIN 'OpenDS Directory Server' )
+  MUST ( cn $ ds-cfg-synchronization-provider-class $
+  ds-cfg-synchronization-provider-enabled ) X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.58 NAME
   ( 'ds-cfg-replication-domain-config'
     'ds-cfg-synchronization-provider-config' ) SUP top
