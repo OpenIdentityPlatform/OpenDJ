@@ -38,7 +38,6 @@ import static org.testng.Assert.*;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
 
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
@@ -61,6 +60,8 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 
 /*
  * Test the conflict resolution for modify operations As a consequence,
@@ -694,17 +695,20 @@ public class ModifyConflictTest
     List<Modification> mods = new ArrayList<Modification>();
     mods.add(mod);
 
-    ModifyOperationBasis modOp = new ModifyOperationBasis(connection, 1, 1, null,
-        entry.getDN(), mods);
+    ModifyOperationBasis modOpBasis =
+      new ModifyOperationBasis(connection, 1, 1, null, entry.getDN(), mods);
+    LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
     ModifyContext ctx = new ModifyContext(t, "uniqueId");
     modOp.setAttachment(SYNCHROCONTEXT, ctx);
 
     hist.replayOperation(modOp, entry);
     if (mod.getModificationType() == ModificationType.ADD)
     {
-      AddOperationBasis addOp = new AddOperationBasis(connection, 1, 1, null, entry
+      AddOperationBasis addOpBasis =
+        new AddOperationBasis(connection, 1, 1, null, entry
           .getDN(), entry.getObjectClasses(), entry.getUserAttributes(),
           entry.getOperationalAttributes());
+      LocalBackendAddOperation addOp = new LocalBackendAddOperation(addOpBasis);
       testHistorical(hist, addOp);
     }
     else
@@ -745,7 +749,7 @@ public class ModifyConflictTest
    *
    */
   private void testHistorical(
-      Historical hist, AddOperation addOp)
+      Historical hist, LocalBackendAddOperation addOp)
   {
 
     // Get the historical uuid associated to the entry

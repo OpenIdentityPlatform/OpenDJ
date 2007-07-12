@@ -26,7 +26,6 @@
  */
 package org.opends.server.replication.protocol;
 
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1Element;
@@ -43,10 +42,12 @@ import java.util.zip.DataFormatException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawAttribute;
+import org.opends.server.types.operation.PostOperationAddOperation;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.StaticUtils.toLowerCase;
@@ -65,7 +66,7 @@ public class AddMsg extends UpdateMessage
    * Creates a new AddMessage.
    * @param op the operation to use when creating the message
    */
-  public AddMsg(AddOperation op)
+  public AddMsg(PostOperationAddOperation op)
   {
     super((AddContext) op.getAttachment(SYNCHROCONTEXT),
           op.getRawEntryDN().stringValue());
@@ -187,9 +188,9 @@ public class AddMsg extends UpdateMessage
    * {@inheritDoc}
    */
   @Override
-  public AddOperation createOperation(InternalClientConnection connection,
-                                      String newDn)
-                      throws LDAPException, ASN1Exception
+  public AbstractOperation createOperation(
+         InternalClientConnection connection, String newDn)
+         throws LDAPException, ASN1Exception
   {
     ArrayList<RawAttribute> attr = new ArrayList<RawAttribute>();
     ArrayList<ASN1Element> elems;

@@ -32,12 +32,11 @@ import java.util.List;
 
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SynchronizationProviderResult;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.types.operation.*;
 
 
 
@@ -141,9 +140,8 @@ public abstract class
    * @throws  DirectoryException  If a problem occurs during
    *                              synchronization processing.
    */
-  public SynchronizationProviderResult
-              handleConflictResolution(LocalBackendAddOperation
-                                                        addOperation)
+  public SynchronizationProviderResult handleConflictResolution(
+         PreOperationAddOperation addOperation)
          throws DirectoryException
   {
     // No processing is required by default.
@@ -169,9 +167,8 @@ public abstract class
    * @throws  DirectoryException  If a problem occurs during
    *                              synchronization processing.
    */
-  public abstract SynchronizationProviderResult
-                       doPreOperation(LocalBackendAddOperation
-                                                     addOperation)
+  public abstract SynchronizationProviderResult doPreOperation(
+         PreOperationAddOperation addOperation)
          throws DirectoryException;
 
 
@@ -188,8 +185,8 @@ public abstract class
    * @throws  DirectoryException  If a problem occurs during
    *                              synchronization processing.
    */
-  public abstract void doPostOperation(LocalBackendAddOperation
-                                                      addOperation)
+  public abstract void doPostOperation(
+         PostOperationAddOperation addOperation)
          throws DirectoryException;
 
 
@@ -213,8 +210,8 @@ public abstract class
    *                              synchronization processing.
    */
   public SynchronizationProviderResult
-       handleConflictResolution(LocalBackendDeleteOperation
-                                                 deleteOperation)
+         handleConflictResolution(
+         PreOperationDeleteOperation deleteOperation)
          throws DirectoryException
   {
     // No processing is required by default.
@@ -241,8 +238,7 @@ public abstract class
    *                              synchronization processing.
    */
   public abstract SynchronizationProviderResult
-              doPreOperation(LocalBackendDeleteOperation
-                                              deleteOperation)
+         doPreOperation(PreOperationDeleteOperation deleteOperation)
          throws DirectoryException;
 
 
@@ -260,8 +256,7 @@ public abstract class
    *                              synchronization processing.
    */
   public abstract void doPostOperation(
-                            LocalBackendDeleteOperation
-                                                deleteOperation)
+         PostOperationDeleteOperation deleteOperation)
          throws DirectoryException;
 
 
@@ -285,8 +280,8 @@ public abstract class
    *                              synchronization processing.
    */
   public SynchronizationProviderResult
-              handleConflictResolution(LocalBackendModifyOperation
-                                            modifyOperation)
+         handleConflictResolution(
+         PreOperationModifyOperation modifyOperation)
          throws DirectoryException
   {
     // No processing is required by default.
@@ -313,8 +308,7 @@ public abstract class
    *                              synchronization processing.
    */
   public abstract SynchronizationProviderResult
-                       doPreOperation(LocalBackendModifyOperation
-                                                     modifyOperation)
+         doPreOperation(PreOperationModifyOperation modifyOperation)
          throws DirectoryException;
 
 
@@ -332,8 +326,7 @@ public abstract class
    *                              synchronization processing.
    */
   public abstract void doPostOperation(
-                            LocalBackendModifyOperation
-                                            modifyOperation)
+         PostOperationModifyOperation modifyOperation)
          throws DirectoryException;
 
 
@@ -357,9 +350,8 @@ public abstract class
    * @throws  DirectoryException  If a problem occurs during
    *                              synchronization processing.
    */
-  public SynchronizationProviderResult
-              handleConflictResolution(ModifyDNOperation
-                                            modifyDNOperation)
+  public SynchronizationProviderResult handleConflictResolution(
+         PreOperationModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
     // No processing is required by default.
@@ -386,9 +378,8 @@ public abstract class
    * @throws  DirectoryException  If a problem occurs during
    *                              synchronization processing.
    */
-  public abstract SynchronizationProviderResult
-                       doPreOperation(ModifyDNOperation
-                                           modifyDNOperation)
+  public abstract SynchronizationProviderResult doPreOperation(
+         PreOperationModifyDNOperation modifyDNOperation)
          throws DirectoryException;
 
 
@@ -407,7 +398,7 @@ public abstract class
    *                              synchronization processing.
    */
   public abstract void doPostOperation(
-                            ModifyDNOperation modifyDNOperation)
+         PostOperationModifyDNOperation modifyDNOperation)
          throws DirectoryException;
 
   /**

@@ -31,7 +31,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Operation;
+import org.opends.server.types.operation.PluginOperation;
 
 /**
  * This class is use to store an operation currently
@@ -42,7 +42,7 @@ public class PendingChange implements Comparable<PendingChange>
   private ChangeNumber changeNumber;
   private boolean committed;
   private UpdateMessage msg;
-  private Operation op;
+  private PluginOperation op;
   private ServerState dependencyState = null;
   private DN targetDN = null;
 
@@ -53,7 +53,7 @@ public class PendingChange implements Comparable<PendingChange>
    * @param msg the message to use (can be null for local operations)
    */
   public PendingChange(ChangeNumber changeNumber,
-                       Operation op,
+                       PluginOperation op,
                        UpdateMessage msg)
   {
     this.changeNumber = changeNumber;
@@ -112,7 +112,7 @@ public class PendingChange implements Comparable<PendingChange>
    * Get the operation associated to the PendingChange.
    * @return the operation
    */
-  public Operation getOp()
+  public PluginOperation getOp()
   {
     return this.op;
   }
@@ -121,7 +121,7 @@ public class PendingChange implements Comparable<PendingChange>
    * Set the operation asociated to this PendingChange.
    * @param op The operation associated to this PendingChange.
    */
-  public void setOp(Operation op)
+  public void setOp(PluginOperation op)
   {
     this.op = op;
   }

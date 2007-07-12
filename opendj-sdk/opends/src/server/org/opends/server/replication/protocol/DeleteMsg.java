@@ -31,12 +31,12 @@ import static org.opends.server.replication.protocol.OperationContext.*;
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.Operation;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
 
 /**
  * Object used when sending delete information to replication servers.
@@ -48,12 +48,12 @@ public class DeleteMsg extends UpdateMessage
   /**
    * Creates a new delete message.
    *
-   * @param op the Operation from which the message must be created.
+   * @param operation the Operation from which the message must be created.
    */
-  public DeleteMsg(DeleteOperation op)
+  public DeleteMsg(PostOperationDeleteOperation operation)
   {
-    super((OperationContext) op.getAttachment(SYNCHROCONTEXT),
-           op.getRawEntryDN().stringValue());
+    super((OperationContext) operation.getAttachment(SYNCHROCONTEXT),
+           operation.getRawEntryDN().stringValue());
   }
 
   /**
@@ -88,8 +88,8 @@ public class DeleteMsg extends UpdateMessage
    * {@inheritDoc}
    */
   @Override
-  public Operation createOperation(InternalClientConnection connection,
-      String newDn)
+  public AbstractOperation createOperation(
+         InternalClientConnection connection, String newDn)
   {
     DeleteOperationBasis del =  new DeleteOperationBasis(connection,
                                InternalClientConnection.nextOperationID(),

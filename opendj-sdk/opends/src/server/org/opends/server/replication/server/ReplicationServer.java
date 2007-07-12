@@ -49,7 +49,6 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigAttribute;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.protocol.SocketSession;
@@ -96,9 +95,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   private String localURL = "null";
   private boolean shutdown = false;
   private short replicationServerId;
-  private DN configDn;
-  private List<ConfigAttribute> configAttributes =
-          new ArrayList<ConfigAttribute>();
   private ReplicationDbEnv dbEnv;
   private int rcvWindow;
   private int queueSize;
@@ -149,7 +145,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
 
     initialize(replicationServerId, replicationPort);
     configuration.addChangeListener(this);
-    configDn = configuration.dn();
     DirectoryServer.registerMonitorProvider(this);
   }
 

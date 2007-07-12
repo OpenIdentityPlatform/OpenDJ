@@ -45,6 +45,7 @@ import org.opends.server.replication.server.UpdateComparator;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.util.TimeThread;
+import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 
 
 
@@ -68,11 +69,12 @@ public class UpdateComparatorTest extends ReplicationTestCase
     // Create the update messgae
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
-    DeleteOperation op = null;
+    LocalBackendDeleteOperation op = null;
     try
     {
-      op = new DeleteOperationBasis(connection, 1, 1,null,
-                                               DN.decode("dc=com"));
+      DeleteOperation opBasis =
+        new DeleteOperationBasis(connection, 1, 1,null, DN.decode("dc=com"));
+      op = new LocalBackendDeleteOperation(opBasis);
     }
     catch (DirectoryException e)
     {
