@@ -202,7 +202,6 @@ public class ReplicationDomain extends DirectoryThread
 
   // The backend information necessary to make an import or export.
   private Backend backend;
-  private List<DN> branches = new ArrayList<DN>(0);
 
   private int listenerThreadNumber = 10;
 
@@ -2393,12 +2392,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
 
     this.backend = domainBackend;
-    this.branches = new ArrayList<DN>(backendCfg.getBackendBaseDN().size());
-    for (DN dn : backendCfg.getBackendBaseDN())
-    {
-      this.branches.add(dn);
-    }
-
     if (! domainBackend.supportsLDIFImport())
     {
       int    msgID   = MSGID_LDIFIMPORT_CANNOT_IMPORT;
@@ -2652,9 +2645,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // Stop saving state
     stateSavingDisabled = true;
 
-    // Clear the backend
-    clearJEBackend(false,backend.getBackendID(),null);
-
     // FIXME setBackendEnabled should be part of TaskUtils ?
     TaskUtils.disableBackend(backend.getBackendID());
 
@@ -2704,7 +2694,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       ieContext.ldifImportInputStream = new ReplLDIFInputStream(this);
       importConfig =
         new LDIFImportConfig(ieContext.ldifImportInputStream);
-      importConfig.setIncludeBranches(this.branches);
+      List<DN> includeBranches = new ArrayList<DN>();
+      includeBranches.add(this.baseDN);
+      importConfig.setIncludeBranches(includeBranches);
+      importConfig.setAppendToExistingData(false);
 
       // TODO How to deal with rejected entries during the import
       // importConfig.writeRejectedEntries("rejectedImport",
