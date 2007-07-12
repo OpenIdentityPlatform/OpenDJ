@@ -30,7 +30,13 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.plugins.InvocationCounterPlugin;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.types.DN;
+import org.opends.server.types.ResultCode;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
@@ -40,6 +46,63 @@ import static org.testng.Assert.*;
  */
 public class postConnectedDisconnectTest extends JmxTestCase
 {
+  
+  /**
+   * Set up the environment for performing the tests in this suite.
+   * 
+   * @throws Exception
+   *           If the environment could not be set up.
+   */
+  @BeforeClass
+  public void setUp() throws Exception
+  {
+    super.setUp();
+    
+    TestCaseUtils.addEntries(
+        "dn: cn=Privileged User,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: Privileged User",
+        "givenName: Privileged",
+        "sn: User",
+        "uid: privileged.user",
+        "userPassword: password",
+        "ds-privilege-name: config-read",
+        "ds-privilege-name: config-write",
+        "ds-privilege-name: password-reset",
+        "ds-privilege-name: update-schema",
+        "ds-privilege-name: ldif-import",
+        "ds-privilege-name: ldif-export",
+        "ds-privilege-name: backend-backup",
+        "ds-privilege-name: backend-restore",
+        "ds-privilege-name: proxied-auth",
+        "ds-privilege-name: bypass-acl",
+        "ds-privilege-name: unindexed-search",
+        "ds-privilege-name: jmx-read",
+        "ds-privilege-name: jmx-write",
+        "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
+             "cn=Password Policies,cn=config");
+  }
+  
+  /**
+   * Clean up the environment after performing the tests in this suite.
+   * 
+   * @throws Exception
+   *           If the environment could not be set up.
+   */
+  @AfterClass
+  public void afterClass() throws Exception
+  {
+    InternalClientConnection conn = InternalClientConnection
+        .getRootConnection();
+
+    DeleteOperation deleteOperation = conn.processDelete(DN
+        .decode("cn=Privileged User,o=test"));
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+  
   /**
    * Perform a simple connect.
    * @throws Exception If something wrong occurs.
@@ -54,7 +117,8 @@ public class postConnectedDisconnectTest extends JmxTestCase
 
     // Create a new client connection
     HashMap<String, Object> env = new HashMap<String, Object>();
-    String[] credentials = new String[] { "cn=directory manager" , "password"};
+    String[] credentials = new String[] { "cn=Privileged User,o=test",
+        "password" };
     env.put("jmx.remote.credentials", credentials);
     env.put("jmx.remote.x.client.connection.check.period",0);
     OpendsJmxConnector opendsConnector = new OpendsJmxConnector("localhost",

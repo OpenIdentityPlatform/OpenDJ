@@ -52,6 +52,7 @@ import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -59,6 +60,8 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -71,6 +74,94 @@ import static org.testng.Assert.*;
  * JMX get and set - configuration change
  */
 public class JmxConnectTest extends JmxTestCase {
+  
+  /**
+   * Set up the environment for performing the tests in this suite.
+   * 
+   * @throws Exception
+   *           If the environment could not be set up.
+   */
+  @BeforeClass
+  public void setUp() throws Exception
+  {
+    super.setUp();
+    
+    TestCaseUtils.addEntries(
+        "dn: cn=Privileged User,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: Privileged User",
+        "givenName: Privileged",
+        "sn: User",
+        "uid: privileged.user",
+        "userPassword: password",
+        "ds-privilege-name: config-read",
+        "ds-privilege-name: config-write",
+        "ds-privilege-name: password-reset",
+        "ds-privilege-name: update-schema",
+        "ds-privilege-name: ldif-import",
+        "ds-privilege-name: ldif-export",
+        "ds-privilege-name: backend-backup",
+        "ds-privilege-name: backend-restore",
+        "ds-privilege-name: proxied-auth",
+        "ds-privilege-name: bypass-acl",
+        "ds-privilege-name: unindexed-search",
+        "ds-privilege-name: jmx-read",
+        "ds-privilege-name: jmx-write",
+        "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
+             "cn=Password Policies,cn=config",
+        "",
+        "dn: cn=Unprivileged JMX User,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "cn: Privileged User",
+        "givenName: Privileged",
+        "sn: User",
+        "uid: privileged.user",
+        "userPassword: password",
+        "ds-privilege-name: config-read",
+        "ds-privilege-name: config-write",
+        "ds-privilege-name: password-reset",
+        "ds-privilege-name: update-schema",
+        "ds-privilege-name: ldif-import",
+        "ds-privilege-name: ldif-export",
+        "ds-privilege-name: backend-backup",
+        "ds-privilege-name: backend-restore",
+        "ds-privilege-name: proxied-auth",
+        "ds-privilege-name: bypass-acl",
+        "ds-privilege-name: unindexed-search",
+        "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
+             "cn=Password Policies,cn=config");
+  }
+  
+  
+  /**
+   * Clean up the environment after performing the tests in this suite.
+   * 
+   * @throws Exception
+   *           If the environment could not be set up.
+   */
+  @AfterClass
+  public void afterClass() throws Exception
+  {
+    InternalClientConnection conn = InternalClientConnection
+        .getRootConnection();
+
+    DeleteOperation deleteOperation = conn.processDelete(DN
+        .decode("cn=Privileged User,o=test"));
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    
+    deleteOperation = conn.processDelete(DN
+        .decode("cn=Unprivileged JMX User,o=test"));
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    
+  }
+  
+  
 
   /**
    * Build data for the simpleConnect test.
@@ -80,11 +171,12 @@ public class JmxConnectTest extends JmxTestCase {
   @DataProvider(name = "simpleConnect")
   Object[][] createCredentials() {
     return new Object[][] {
-        { "cn=directory manager", "password", true },
-        { "cn=directory manager", "wrongPassword", false },
+        { "cn=directory manager", "password", false }, // no JMX_READ privilege
+        { "cn=Privileged User,o=test", "password", true },
+        { "cn=Privileged User,o=test", "wrongPassword", false },
         { "cn=wrong user", "password", false },
         { "invalid DN", "password", false },
-        { "cn=directory manager", null, false },
+        { "cn=Privileged User,o=test", null, false },
         { null, "password", false }, { null, null, false }, };
   }
 
@@ -105,9 +197,7 @@ public class JmxConnectTest extends JmxTestCase {
       connector.close();
     }
   }
-
-
-
+  
   /**
    * Build some data for the simpleGet test.
    */
@@ -139,7 +229,7 @@ public class JmxConnectTest extends JmxTestCase {
   public void simpleGet(String dn, String attributeName, Object value)
       throws Exception {
 
-    OpendsJmxConnector connector = connect("cn=directory manager",
+    OpendsJmxConnector connector = connect("cn=Privileged User,o=test",
         "password", TestCaseUtils.getServerJmxPort());
     MBeanServerConnection jmxc = connector.getMBeanServerConnection();
     assertNotNull(jmxc);
@@ -163,7 +253,7 @@ public class JmxConnectTest extends JmxTestCase {
   //        the admin framework, and the cn=config entry is now governed by it.
   @Test(enabled = false)
   public void simpleSet() throws Exception {
-    OpendsJmxConnector connector = connect("cn=directory manager",
+    OpendsJmxConnector connector = connect("cn=Privileged User,o=test",
         "password", TestCaseUtils.getServerJmxPort());
     MBeanServerConnection jmxc = connector.getMBeanServerConnection();
     assertNotNull(jmxc);
@@ -231,12 +321,12 @@ public class JmxConnectTest extends JmxTestCase {
     addOp.run();
     Thread.sleep(200);
     OpendsJmxConnector newJmxConnector = connect(
-        "cn=directory manager", "password", serverJmxPort);
+        "cn=Privileged User,o=test", "password", serverJmxPort);
     assertNotNull(newJmxConnector);
     newJmxConnector.close();
 
     // Get the "old" connector
-    OpendsJmxConnector connector = connect("cn=directory manager",
+    OpendsJmxConnector connector = connect("cn=Privileged User,o=test",
         "password", TestCaseUtils.getServerJmxPort());
     MBeanServerConnection jmxc = connector.getMBeanServerConnection();
     assertNotNull(jmxc);
@@ -245,14 +335,14 @@ public class JmxConnectTest extends JmxTestCase {
     toggleEnableJmxConnector(connector, newJmxConnectionJmx.getDN(),
         false);
     Thread.sleep(100);
-    OpendsJmxConnector jmxcDisabled = connect("cn=directory manager",
+    OpendsJmxConnector jmxcDisabled = connect("cn=Privileged User,o=test",
         "password", serverJmxPort);
     assertNull(jmxcDisabled);
 
     toggleEnableJmxConnector(connector, newJmxConnectionJmx.getDN(),
         true);
     Thread.sleep(100);
-    jmxcDisabled = connect("cn=directory manager", "password",
+    jmxcDisabled = connect("cn=Privileged User,o=test", "password",
         serverJmxPort);
     assertNotNull(jmxcDisabled);
 
@@ -279,7 +369,7 @@ public class JmxConnectTest extends JmxTestCase {
     final String dn = "cn=JMX Connection Handler,cn=Connection Handlers,cn=config";
     final String attribute = "ds-cfg-listen-port";
 
-    OpendsJmxConnector connector = connect("cn=directory manager",
+    OpendsJmxConnector connector = connect("cn=Privileged User,o=test",
         "password", TestCaseUtils.getServerJmxPort());
     MBeanServerConnection jmxc = connector.getMBeanServerConnection();
     assertNotNull(jmxc);
@@ -309,7 +399,7 @@ public class JmxConnectTest extends JmxTestCase {
     configureJmx(entry);
 
     // connect the the JMX service using the new port
-    connector = connect("cn=directory manager", "password",
+    connector = connect("cn=Privileged User,o=test", "password",
         serverJmxPort);
     jmxc = connector.getMBeanServerConnection();
     assertNotNull(jmxc);
@@ -333,7 +423,7 @@ public class JmxConnectTest extends JmxTestCase {
     configureJmx(entry);
 
     // Check that the old port is ok
-    connector = connect("cn=directory manager", "password",
+    connector = connect("cn=Privileged User,o=test", "password",
         TestCaseUtils.getServerJmxPort());
     jmxc = connector.getMBeanServerConnection();
     assertNotNull(jmxc);
@@ -368,8 +458,9 @@ public class JmxConnectTest extends JmxTestCase {
 
     configureJmx(entry);
 
-    OpendsJmxConnector jmxc = sslConnect("cn=directory manager",
+    OpendsJmxConnector jmxc = sslConnect("cn=Privileged User,o=test",
         "password", initJmxPort);
+    assertNotNull(jmxc,"OpendsJmxConnector shouldn't be null");
     MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
     jmxc.close();
 
@@ -393,7 +484,7 @@ public class JmxConnectTest extends JmxTestCase {
       e.printStackTrace();
     }
 
-    jmxc = connect("cn=directory manager", "password", initJmxPort);
+    jmxc = connect("cn=Privileged User,o=test", "password", initJmxPort);
     jmxc.close();
     assertNotNull(jmxc);
   }
@@ -430,7 +521,7 @@ public class JmxConnectTest extends JmxTestCase {
    * Connect to the JMX service.
    */
   private OpendsJmxConnector connect(String user, String password,
-      long jmxPort) throws MalformedURLException, IOException {
+      long jmxPort) throws MalformedURLException, IOException{
     HashMap<String, Object> env = new HashMap<String, Object>();
 
     // Provide the credentials required by the server to successfully

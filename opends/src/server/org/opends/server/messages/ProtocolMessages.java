@@ -4678,6 +4678,56 @@ public class ProtocolMessages
   public static final int MSGID_JMX_CONNHANDLER_CANNOT_BIND =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 433;
 
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform an add operation through JMX but the user doesn't
+   * have the necessary privileges to do so.  This does not take any arguments.
+   */
+  public static final int MSGID_JMX_ADD_INSUFFICIENT_PRIVILEGES =
+    CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 434;
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a delete operation through JMX but the user doesn't
+   * have the necessary privileges to do so.  This does not take any arguments.
+   */
+  public static final int MSGID_JMX_DELETE_INSUFFICIENT_PRIVILEGES =
+    CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 435;
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a modify operation through JMX but the user doesn't
+   * have the necessary privileges to do so.  This does not take any arguments.
+   */
+  public static final int MSGID_JMX_MODIFY_INSUFFICIENT_PRIVILEGES =
+    CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 436;
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a modify DN operation through JMX but the user
+   * doesn't have the necessary privileges to do so.  This does not take any
+   * arguments.
+   */
+  public static final int MSGID_JMX_MODDN_INSUFFICIENT_PRIVILEGES =
+    CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 437;
+
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a search operation in the server configuration but the user doesn't
+   * have the necessary privileges to do so.  This does not take any arguments.
+   */
+  public static final int MSGID_JMX_SEARCH_INSUFFICIENT_PRIVILEGES =
+    CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 438;
+
+  /**
+   * The message ID for the message that will be used if an attempt is made to
+   * perform a search operation in the server configuration but the user doesn't
+   * have the necessary privileges to do so.  This does not take any arguments.
+   */
+  public static final int MSGID_JMX_INSUFFICIENT_PRIVILEGES =
+    CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_MILD_ERROR | 439;
 
 
   /**
@@ -6505,7 +6555,24 @@ public class ProtocolMessages
             ATTR_KEYMANAGER_DN + " attribute in configuration " +
             "entry %s, which is used to specify the DN of the key manager " +
             "provider to use for accepting SSL/TSL connections:  %s");
-
+    registerMessage(MSGID_JMX_ADD_INSUFFICIENT_PRIVILEGES,
+            "You do not have sufficient privileges to perform add " +
+            "operations through JMX");
+    registerMessage(MSGID_JMX_DELETE_INSUFFICIENT_PRIVILEGES,
+            "You do not have sufficient privileges to perform delete " +
+            "operations through JMX");
+    registerMessage(MSGID_JMX_MODIFY_INSUFFICIENT_PRIVILEGES,
+            "You do not have sufficient privileges to perform modify " +
+             "operations through JMX");
+    registerMessage(MSGID_JMX_MODDN_INSUFFICIENT_PRIVILEGES,
+            "You do not have sufficient privileges to perform modify " +
+            "DN operations through JMX");
+    registerMessage(MSGID_JMX_SEARCH_INSUFFICIENT_PRIVILEGES,
+            "You do not have sufficient privileges to perform search " +
+            "operations through JMX");
+    registerMessage(MSGID_JMX_INSUFFICIENT_PRIVILEGES,
+            "You do not have sufficient privileges to establish the " +
+            "connection through JMX. At least JMX_READ privilege is required");
 
     registerMessage(MSGID_PWPOLICYREQ_CONTROL_HAS_VALUE,
                     "Cannot decode the provided control as a password policy " +
