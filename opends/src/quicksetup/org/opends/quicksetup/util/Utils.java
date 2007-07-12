@@ -1454,8 +1454,11 @@ public class Utils
 
       // This is not a comprehensive solution but addresses
       // the few tags that we have in Resources.properties
-      // at the moment.  See test class for cases that might
-      // cause problems.
+      // at the moment.  Note that the following might strip
+      // out more than is intended for non-tags like
+      // '<your name here>' or for funky tags like
+      // '<tag attr="1 > 0">'. See test class for cases that
+      // might cause problems.
       o = s.replaceAll("\\<.*?\\>","");
 
     }
