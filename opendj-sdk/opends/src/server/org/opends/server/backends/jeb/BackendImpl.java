@@ -1185,6 +1185,7 @@ public class BackendImpl
    * Verify the integrity of the backend instance.
    * @param verifyConfig The verify configuration.
    * @param statEntry Optional entry to save stats into.
+   * @return The error count.
    * @throws  ConfigException  If an unrecoverable problem arises during
    *                           initialization.
    * @throws  InitializationException  If a problem occurs during initialization
@@ -1192,12 +1193,13 @@ public class BackendImpl
    *                                   configuration.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void verifyBackend(VerifyConfig verifyConfig, Entry statEntry)
+  public long verifyBackend(VerifyConfig verifyConfig, Entry statEntry)
       throws InitializationException, ConfigException, DirectoryException
   {
     // If the backend already has the root container open, we must use the same
     // underlying root container
     boolean openRootContainer = rootContainer == null;
+    long errorCount = 0 ;
 
     try
     {
@@ -1217,7 +1219,7 @@ public class BackendImpl
       }
 
       VerifyJob verifyJob = new VerifyJob(verifyConfig);
-      verifyJob.verifyBackend(rootContainer, statEntry);
+      errorCount = verifyJob.verifyBackend(rootContainer, statEntry);
     }
     catch (DatabaseException e)
     {
@@ -1260,6 +1262,7 @@ public class BackendImpl
         }
       }
     }
+    return errorCount;
   }
 
 

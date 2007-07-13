@@ -137,6 +137,7 @@ public class VerifyIndex
     StringArgument  baseDNString            = null;
     StringArgument  indexList               = null;
     BooleanArgument cleanMode               = null;
+    BooleanArgument countErrors             = null;
     BooleanArgument displayUsage            = null;
 
 
@@ -189,6 +190,10 @@ public class VerifyIndex
                                MSGID_VERIFYINDEX_DESCRIPTION_VERIFY_CLEAN);
       argParser.addArgument(cleanMode);
 
+      countErrors =
+           new BooleanArgument("counterrors", null, "countErrors",
+                               MSGID_VERIFYINDEX_DESCRIPTION_COUNT_ERRORS);
+      argParser.addArgument(countErrors);
 
       displayUsage =
            new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
@@ -521,10 +526,22 @@ public class VerifyIndex
 
 
     // Launch the verify process.
+    int returnCode = 0 ;
     try
     {
       BackendImpl jebBackend = (BackendImpl)backend;
-      jebBackend.verifyBackend(verifyConfig, null);
+      long errorCount = jebBackend.verifyBackend(verifyConfig, null);
+      if (countErrors.isPresent())
+      {
+        if (errorCount > Integer.MAX_VALUE)
+        {
+          returnCode = Integer.MAX_VALUE;
+        }
+        else
+        {
+          returnCode = (int) errorCount;
+        }
+      }
     }
     catch (Exception e)
     {
@@ -532,6 +549,7 @@ public class VerifyIndex
       String message = getMessage(msgID, getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
+      returnCode = 1;
     }
 
 
@@ -558,6 +576,6 @@ public class VerifyIndex
                message, msgID);
     }
 
-    return 0;
+    return returnCode;
   }
 }

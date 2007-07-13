@@ -9017,6 +9017,14 @@ public class ToolMessages
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1198;
 
   /**
+   * The message ID for the message that will be used as the description of the
+   * countErrors argument. This does not take any arguments.
+   */
+  public static final int MSGID_VERIFYINDEX_DESCRIPTION_COUNT_ERRORS =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1199;
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -9822,6 +9830,10 @@ public class ToolMessages
                     "shared lock for backend %s:  %s.  This lock should " +
                     "automatically be cleared when the verification process " +
                     "exits, so no further action should be required");
+    registerMessage(MSGID_VERIFYINDEX_DESCRIPTION_COUNT_ERRORS,
+                    "Count the number of errors found during the verification "+
+                    "and return that value as the exit code (values > 255 " +
+                    "will be reduced to 255 due to exit code restrictions)");
     registerMessage(MSGID_MULTIPLE_BACKENDS_FOR_BASE,
                     "Multiple Directory Server backends are configured to " +
                     "support base DN \"%s\"");

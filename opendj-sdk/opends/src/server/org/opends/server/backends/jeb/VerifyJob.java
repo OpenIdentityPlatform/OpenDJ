@@ -197,10 +197,11 @@ public class VerifyJob
    *
    * @param rootContainer The root container that holds the entries to verify.
    * @param statEntry Optional statistics entry.
+   * @return The error count.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws JebException If an error occurs in the JE backend.
    */
-  public void verifyBackend(RootContainer rootContainer, Entry statEntry) throws
+  public long verifyBackend(RootContainer rootContainer, Entry statEntry) throws
       DatabaseException, JebException
   {
     this.rootContainer = rootContainer;
@@ -416,6 +417,7 @@ public class VerifyJob
     {
       entryContainer.sharedLock.unlock();
     }
+    return errorCount;
   }
 
   /**
