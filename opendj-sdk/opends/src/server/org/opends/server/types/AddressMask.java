@@ -66,18 +66,18 @@ public final class AddressMask
     /**
      * IPv4 address size.
      */
-    private static int IN4ADDRSZ = 4;
-    private  int IPV4MAXPREFIX = 32;
+    private static final int IN4ADDRSZ = 4;
+    private static final int IPV4MAXPREFIX = 32;
 
     // IPv6 values for number of bytes and max CIDR prefix
-    private  int IN6ADDRSZ = 16;
-    private  int IPV6MAXPREFIX = 128;
+    private static final int IN6ADDRSZ = 16;
+    private static final int IPV6MAXPREFIX = 128;
 
     //Holds binary representations of rule and mask respectively.
     private  byte[] ruleMask, prefixMask;
 
     //Bit array that holds wildcard info for above binary arrays.
-    private  BitSet wildCard = new BitSet();
+    private final BitSet wildCard = new BitSet();
 
     //Array that holds each component of a hostname.
     private  String[] hostName;
