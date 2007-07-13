@@ -569,7 +569,7 @@ email.server.pwd=${email.server.pwd.input}
     <fail message="Could not run the functional tests"/>
   </target>
   <target name="run-tests"
-    depends="status-do,run-tests-check,run-tests-cant,run-tests-prepare" 
+    depends="status-do,run-tests-check,run-tests-cant,run-tests-prepare,run-my-tests-default-plan" 
     if="run-tests.proceed">
     <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_Functional_Tests SCRIPTFILE ${tests.config} SCRIPTFILE ${tests.python} WAIT CLEARLOGS"/>
     <condition property="tests.replay.script" value="replay.bat" else="replay.sh">
@@ -621,7 +621,77 @@ email.server.pwd=${email.server.pwd.input}
     <echo>${tests.run.dir}/${tests.run.time}/report/results.html</echo>
     <antcall target="send-mail"/>
   </target>
+  
+  <target name="run-my-tests-get-contrib-check">
+    <available file="ant-contrib.zip" property="ant-contrib.downloaded" />
+  </target>
+  <target name="run-my-tests-get-contrib" depends="run-my-tests-get-contrib-check,download-do-prepare-check-proxy,download-do-prepare-set-proxy" unless="ant-contrib.downloaded">
+    <get src="http://easynews.dl.sourceforge.net/sourceforge/ant-contrib/ant-contrib-1.0b3-bin.zip" dest="ant-contrib.zip"/>
+  </target>
+  <target name="run-my-tests-expand-check">
+    <available file="ant-contrib" property="ant-contrib.expanded" />
+  </target>
+  <target name="run-my-tests-expand" depends="run-my-tests-get-contrib,run-my-tests-expand-check" unless="ant-contrib.expanded">
+    <unzip src="ant-contrib.zip" dest="." />
+  </target>
 
+  <target name="run-my-tests-define" depends="run-my-tests-expand">
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath>
+        <fileset dir="ant-contrib"> 
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
+    </taskdef>
+  </target>
+  
+  <target name="run-my-tests" depends="run-my-tests-define">
+    <condition property="already.customized" value="true" else="false">
+      <available file="${test.plan.custom}" />
+    </condition>
+    <if>
+      <equals arg1="${already.customized}" arg2="true" />
+      <then>
+        <input message="A previously customized test plan was detected. Do you want to change the list of suites to run?" validargs="y,n" defaultvalue="n" addproperty="prompt.do" />
+      </then>
+      <else>
+        <echo>No previous customized test plan found.</echo>
+        <property name="prompt.do" value="y" />
+      </else>
+    </if>
+    
+    <if>
+      <equals arg1="${prompt.do}" arg2="y" />
+      <then>
+        <delete file="${test.plan.custom}" />
+        <foreach list="${test.plan.list}" param="test" target="run-my-tests-prompt"/>
+      </then>
+    </if>
+    
+    <echo>You may now run those tests simply by calling 'build run-tests'</echo>
+    <!-- <antcall target="run-tests" /> -->
+  </target>
+
+  <target name="run-my-tests-prompt">
+    <input message="Do you want to execute ${test}?" validargs="y,n" defaultvalue="y" addproperty="answer"/>
+    <if>
+      <equals arg1="${answer}" arg2="y" />
+      <then>
+        <echo file="${test.plan.custom}" append="true">${test}
+</echo>
+      </then>
+    </if>
+  </target>
+  <target name="run-my-tests-default-plan" depends="run-my-tests-define">
+    <delete file="${test.plan.default}"/>
+    <foreach list="${test.plan.list}" param="test" target="run-my-tests-default-plan-add"/>
+  </target>
+  <target name="run-my-tests-default-plan-add">
+    <echo file="${test.plan.default}" append="true">${test}
+</echo>
+  </target>
+  
+  
   <target name="send-mail-prepare">
     <condition property="test.successful">
       <available file="${staf.tmp.dir}/results.html"/>
@@ -700,28 +770,90 @@ email.server.pwd=${email.server.pwd.input}
   
   <target name="run-daily" depends="status-do,daily,download-daily,coverage-instrument,run-tests"/>
   
-  <target name="coverage-on">
+  <target name="coverage-init">
+    <path id="emma.lib">
+      <pathelement location="${project.home}/ext/emma/lib/emma.jar"     />
+      <pathelement location="${project.home}/ext/emma/lib/emma_ant.jar" />
+    </path>
+
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+  </target>
+  
+  <target name="coverage-on" depends="coverage-init">
     <property name="coverage.on" value="true"/>
   </target>
   
   <target name="coverage-instrument" depends="status-do,run-tests-get-pkg" if="coverage.on">
-    <mkdir dir="${staf.tmp.dir}/coverage-instr"/>
+    <delete dir="${staf.tmp.dir}/coverage-instr" />
+    <mkdir dir="${staf.tmp.dir}/coverage-instr" />
+    <!-- unzip the original package in a temporary location to make the
+         changes necessary so that the coverage tool is called
+     -->
     <unzip src="${product.package}" 
            dest="${staf.tmp.dir}/coverage-instr"/>
+
+    <!-- Add emma in the package along with the other librairies
+         this has the advantage of being automatically picked up by the scripts
+    -->
+    <copy file="${project.home}/ext/emma/lib/emma.jar" 
+          tofile="${staf.tmp.dir}/coverage-instr/${product.name}/lib/emma.jar"/>
+    
+    <!-- move the original product package to make room for the coverage 
+         enabled package 
+     -->
     <move file="${product.package}" tofile="${product.package}.nocov"/>
-    <replace file="${staf.tmp.dir}/coverage-instr/${product.name}/bin/start-ds.bat"
-             token="start &quot;OpenDS %DIR_HOME%&quot; /B &quot;%JAVA_BIN%&quot;"
-             value="start &quot;OpenDS %DIR_HOME%&quot; /B &quot;%JAVA_BIN%&quot; -cp &quot;${project.home}${file.separator}ext${file.separator}emma${file.separator}lib${file.separator}emma.jar&quot; emmarun -cp &quot;%CLASSPATH%&quot; -sp &quot;${project.home}${file.separator}src${file.separator}server&quot; -ix org.opends.server.* -r html"/>
-   <zip basedir="${staf.tmp.dir}/coverage-instr" destfile="${product.package}"/>
-   <delete dir="${staf.tmp.dir}/coverage-instr"/>
+    
+    <!-- intrument the OpenDS java archive to gather coverage -->
+    <java classpath="${staf.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}emma.jar"
+          classname="emma" fork="true">
+      <jvmarg value="-Demma.metadata.out.file=${staf.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}coverage.em" />
+      <arg value="instr" />
+      <arg value="-m" />
+      <arg value="overwrite" />
+      <arg value="-cp" />
+      <arg value="${staf.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}OpenDS.jar" />
+    </java>
+    <echo>Writing properties file</echo>
+    <echo file="${staf.tmp.dir}/coverage-instr/${product.name}/classes/emma.properties">coverage.out.file=${staf.tmp.dir}/emma.coverage</echo> 
+    <!-- Repackage the product with coverage enabled scripts -->          
+    <zip basedir="${staf.tmp.dir}/coverage-instr" destfile="${product.package}">
+      <zipfileset dir="${staf.tmp.dir}/coverage-instr" 
+                  includes="${product.name}/setup,${product.name}/uninstall,${product.name}/upgrade,${product.name}/bin/*,${product.name}/lib/*.sh"
+           filemode="755" dirmode="755" />
+    </zip>
+    <!-- <delete dir="${staf.tmp.dir}/coverage-instr"/> -->
   </target>
-  <target name="restore-pkg" if="coverage-on">
+  
+  <target name="coverage-report" if="coverage.on">
+    <delete dir="${staf.tmp.dir}/coverage" />
+    <mkdir dir="${staf.tmp.dir}/coverage" />
+    <emma enabled="${coverage.on}" >
+      <report >
+        <infileset dir="${staf.tmp.dir}" includes="**/*.em,**/*.coverage" />
+
+        <sourcepath>
+          <dirset dir="${project.home}" >
+            <include name="src" />
+          </dirset>
+        </sourcepath>
+
+        <html outfile="${staf.tmp.dir}/coverage/index.html"
+              columns="name, method, line"
+              sort="+line, +name"
+              metrics="line:80"
+        />
+      </report>
+    </emma>
+  </target>
+  
+  <target name="restore-pkg" if="coverage.on">
     <delete file="${product.package}"/>
     <move file="${product.package}.nocov" tofile="${product.package}"/> 
   </target>
-  <target name="daily-coverage" depends="coverage-on,run-daily,restore-pkg"/>
+
+  <target name="daily-coverage" depends="coverage-on,run-daily,restore-pkg,coverage-report"/>
   
-  <target name="testwithcoverage" depends="coverage-on,coverage-instrument,run-tests,restore-pkg"/> 
+  <target name="testwithcoverage" depends="coverage-on,coverage-instrument,run-tests,restore-pkg,coverage-report"/> 
 <!-- Run tests section - bottom -->
   
 <!-- Uninstallation section - top    -->
