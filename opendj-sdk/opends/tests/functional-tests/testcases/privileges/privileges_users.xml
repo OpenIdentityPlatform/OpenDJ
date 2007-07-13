@@ -923,12 +923,9 @@
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : 'bypass-acl' ,
                     'changetype'             : 'add' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: bypass-acl self-modify add, user searching entry'
@@ -1047,14 +1044,11 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: modify-acl - add aci, Admin adding privilege'
                 </message>
@@ -1086,14 +1080,11 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: modify-acl - add aci, Admin adding write ACI'
                 </message>
@@ -1171,13 +1162,10 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search2_aci ,
-                    'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: modify-acl - add aci, Admin deleting write ACI'
@@ -1233,8 +1221,9 @@
                     'DNToModify'             : 'uid=scarter, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search3_aci ,
-                    'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
                 <call function="'checktestRC'">
@@ -1289,13 +1278,10 @@
                     'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: modify-acl - replace aci, Admin adding write ACI'
@@ -1332,13 +1318,10 @@
                     'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: modify-acl - replace aci, Admin adding privilege'
@@ -1409,13 +1392,10 @@
                     'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: modify-acl - replace aci, Admin deleting privilege'
@@ -1448,8 +1428,9 @@
                     'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
                 <call function="'checktestRC'">
@@ -1502,13 +1483,10 @@
                     'DNToModify'             : 'uid=dmiller, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : write_aci_dmiller ,
-                    'changetype'             : 'delete' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: modify-acl - delete aci, Admin adding privilege'
@@ -1541,13 +1519,10 @@
                     'DNToModify'             : 'uid=dmiller, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : write_aci_dmiller ,
-                    'changetype'             : 'delete' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: modify-acl - delete aci, Admin adding write ACI'
@@ -1670,13 +1645,11 @@
                     'dsBaseDN'         : 'cn=config' ,
                     'dsFilter'         : 'objectclass=*'  ,
                     'attributes'       : 'ds-cfg-check-schema' ,
-                    'extraParams'      : '-s base' }
+                    'extraParams'      : '-s base' ,
+                    'expectedRC'       : 50
+                  }
                 </call>
     
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: config-read, Admin adding privilege'
                 </message>
@@ -1824,14 +1797,11 @@
                     'DNToModify'             : 'cn=config' ,
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: config-write, Admin adding privilege'
                 </message>
@@ -1863,14 +1833,11 @@
                     'DNToModify'             : 'cn=config' ,
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: config-write, Admin adding privilege'
                 </message>
@@ -1902,8 +1869,9 @@
                     'DNToModify'             : 'cn=config' ,
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
                 <if expr="RC != 0">
@@ -1983,14 +1951,11 @@
                     'DNToModify'             : 'cn=config' ,
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: config-write, Admin deleting privilege'
                 </message>
@@ -2022,13 +1987,10 @@
                     'DNToModify'             : 'cn=config' ,
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: modify-acl - add aci, Admin deleting write ACI'
@@ -2061,8 +2023,9 @@
                     'DNToModify'             : 'cn=config' ,
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
                 <call function="'checktestRC'">
@@ -2122,13 +2085,10 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: config-write - add global aci, Admin adding privilege'
@@ -2161,14 +2121,11 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: config-write - add global aci, Admin adding privilege'
                 </message>
@@ -2200,13 +2157,10 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: config-write - add global aci, Admin adding write ACI'
@@ -2285,13 +2239,10 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global2_aci ,
-                    'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: config-write - add global aci, Admin deleting privilege'
@@ -2324,14 +2275,11 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global2_aci ,
-                    'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: config-write - add global aci, Admin deleting write ACI'
                 </message>
@@ -2382,8 +2330,9 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global2_aci ,
-                    'changetype'             : 'add' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
                 <call function="'checktestRC'">
@@ -2456,13 +2405,10 @@
                     'DNToModify'             : 'uid=bhall, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'bananas' ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: password-reset, Admin adding privilege'
@@ -2569,8 +2515,9 @@
                     'DNToModify'             : 'uid=bhall, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'bananas' ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
                 <if expr="RC != 0">
@@ -2608,8 +2555,9 @@
                     'DNToModify'             : 'uid=bhall, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'bananas' ,
-                    'changetype'             : 'replace' , 
-                    'expectedErrorCode'      : '50' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 50
+                  }
                 </call>
                 
                 <call function="'checktestRC'">
@@ -2679,12 +2627,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'      : 'ACIRules'  ,
-                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: update-schema, Admin adding entry that uses new object class'
@@ -2695,12 +2641,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 65
+                  }
                 </call>
-    
-                <if expr="RC != 65">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: update-schema, Admin adding privilege'

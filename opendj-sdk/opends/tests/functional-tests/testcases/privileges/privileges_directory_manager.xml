@@ -99,13 +99,11 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Directory Manager: bypass-acl, DM searching entry'
                 </message>
@@ -154,12 +152,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-bypass-acl' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: bypass-acl, DM searching entry'
@@ -172,7 +168,9 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn sn uid'}
+                    'attributes'       : 'cn sn uid',
+                    'expectedRC'       : 0
+                  }
                 </call>
     
                 <script> 
@@ -200,12 +198,10 @@
                     'DNToModify'            : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'         : 'ds-privilege-name' ,
                     'newAttributeValue'     : '-bypass-acl' ,
-                    'changetype'            : 'delete' }
+                    'changetype'            : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: bypass-acl, DM searching entry'
@@ -255,13 +251,11 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                <message>
                    'Privileges: Directory Manager: bypass-acl, DM searching entry'
                 </message>
@@ -273,7 +267,9 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn sn uid'}
+                    'attributes'       : 'cn sn uid',
+                    'expectedRC'             : 0
+                  }
                 </call>
     
                 <script> 
@@ -328,12 +324,10 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: bypass-acl, alternate bind DN, DM searching entry'
@@ -346,7 +340,9 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn sn uid'}
+                    'attributes'       : 'cn sn uid',
+                    'expectedRC'       : 0
+                  }
                 </call>
     
                 <script> 
@@ -384,12 +380,9 @@
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-bypass-acl' ,
                     'changetype'             : 'add'  ,
-                    'expectedErrorCode'      : '32' }
+                    'expectedRC'             : 32
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager:  bypass-acl, alternate bind DN, alternate root user putting back global search ACI'
@@ -403,12 +396,10 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                <message>
                    'Privileges: Directory Manager: bypass-acl, alternate bind DN, DM searching entry'
@@ -421,7 +412,9 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn sn uid'}
+                    'attributes'       : 'cn sn uid',
+                    'expectedRC'       : 0
+                  }
                 </call>
     
                 <script> 
@@ -478,13 +471,11 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Directory Manager: modify-acl - add aci, alternate root user removing privilege'
                 </message>
@@ -497,12 +488,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: modify-acl - add aci, DM adding ACI'
@@ -521,12 +510,9 @@
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search2_aci ,
                     'changetype'             : 'add' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: modify-acl - add aci, alternate root user putting back privilege'
@@ -540,12 +526,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: modify-acl - add aci, DM adding ACI'
@@ -559,12 +543,10 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search2_aci ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: modify-acl - add aci, alternate root user deleting ACI'
@@ -578,12 +560,10 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: modify-acl - add aci, alternate root user deleting ACI'
@@ -648,12 +628,10 @@
                     'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'replace' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: modify-acl - replace aci, alternate root user removing privilege'
@@ -667,12 +645,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: modify-acl - replace aci, DM replacing ACI'
@@ -687,12 +663,9 @@
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
                     'changetype'             : 'replace' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: modify-acl - replace aci, alternate root user putting back privilege'
@@ -706,12 +679,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: modify-acl - replace aci, DM replacing ACI'
@@ -775,12 +746,10 @@
                     'DNToModify'             : 'uid=gfarmer, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: modify-acl - delete aci, alternate root user removing privilege'
@@ -794,12 +763,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: modify-acl - delete aci, DM delete ACI'
@@ -818,12 +785,9 @@
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search2_aci ,
                     'changetype'             : 'delete' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: modify-acl - delete aci, alternate root user putting back privilege'
@@ -922,12 +886,10 @@
                     'DNToModify'            : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'         : 'ds-privilege-name' ,
                     'newAttributeValue'     : '-config-read' ,
-                    'changetype'            : 'add' }
+                    'changetype'            : 'add' ,
+                    'expectedRC'            : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'Privileges: Directory Manager: config-read, DM searching cn=config'
@@ -941,12 +903,10 @@
                     'dsBaseDN'         : 'cn=config' ,
                     'dsFilter'         : 'objectclass=*'  ,
                     'attributes'       : 'ds-cfg-check-schema' ,
-                    'extraParams'      : '-s base' }
+                    'extraParams'      : '-s base' ,
+                    'expectedRC'       : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: config-read, alternate root user putting back privilege'
@@ -960,12 +920,10 @@
                     'DNToModify'            : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'         : 'ds-privilege-name' ,
                     'newAttributeValue'     : '-config-read' ,
-                    'changetype'            : 'delete' }
+                    'changetype'            : 'delete' ,
+                    'expectedRC'            : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'Privileges: Directory Manager: config-read, DM searching cn=config'
@@ -1034,12 +992,10 @@
                     'DNToModify'             : 'cn=config' ,
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
-                    'changetype'             : 'replace' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'Privileges: Directory Manager: config-write, alternate root user removing read privilege'
@@ -1053,12 +1009,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-read' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: config-write, DM modifying cn=config'
@@ -1073,12 +1027,9 @@
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
                     'changetype'             : 'replace' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: config-write, alternate root user removing write privilege'
@@ -1092,12 +1043,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-write' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: config-write, DM modifying cn=config'
@@ -1112,12 +1061,9 @@
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
                     'changetype'             : 'replace' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: config-write, alternate root user putting back read privilege'
@@ -1131,12 +1077,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-read' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: config-write, DM modifying cn=config'
@@ -1151,12 +1095,9 @@
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
                     'changetype'             : 'replace' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: config-write, alternate root user putting back write privilege'
@@ -1170,12 +1111,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-write' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: config-write, DM modifying cn=config'
@@ -1245,12 +1184,10 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: config-write - add global aci, alternate root user removing config-read privilege'
@@ -1264,12 +1201,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-read' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: config-write - add global aci, DM adding ACI'
@@ -1288,12 +1223,9 @@
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global2_aci ,
                     'changetype'             : 'add' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: config-write - add global aci, alternate user removing config-write privilege'
@@ -1307,12 +1239,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-write' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: config-write - add global aci, alternate root user putting back config-read privilege'
@@ -1326,12 +1256,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-read' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: config-write - add global aci, DM  adding global ACI'
@@ -1346,12 +1274,9 @@
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global2_aci ,
                     'changetype'             : 'add' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: config-write - add global aci, alternate root user putting back config-write privilege'
@@ -1365,12 +1290,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-write' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: config-write - add global aci, DM adding global ACI'
@@ -1384,12 +1307,10 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global2_aci ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: config-write - add global aci, alternate root user deleting write global ACI'
@@ -1403,12 +1324,10 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'Privileges: Directory Manager: config-write - add global aci, alternate root user deleting write global ACI'
@@ -1469,12 +1388,10 @@
                     'DNToModify'             : 'uid=tmason, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'pickles' ,
-                    'changetype'             : 'replace' }
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: password-reset, alternate root user removing privilege'
@@ -1488,12 +1405,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-password-reset' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: password-reset, DM resetting password'
@@ -1508,12 +1423,9 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'pickles' ,
                     'changetype'             : 'replace' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: password-reset, alternate root user putting back privilege'
@@ -1527,12 +1439,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-password-reset' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: password-reset, DM resetting password'
@@ -1592,12 +1502,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'cn=Aroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
-                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 65
+                  }
                 </call>
-    
-                <if expr="RC != 65">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: update-schema, alternate root user removing privilege'
@@ -1611,12 +1519,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-update-schema' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: update-schema, DM adding new schema object'
@@ -1627,12 +1533,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
-                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: update-schema, alternate root user putting back privilege'
@@ -1646,12 +1550,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-update-schema' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: update-schema, DM adding new schema object'
@@ -1662,12 +1564,10 @@
                     'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
-                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir }
+                    'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir ,
+                    'expectedRC'          : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: update-schema, alternate root user adding entry that users new object class'
@@ -1678,12 +1578,10 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'     : 'cn=Aroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
-                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir }
+                    'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir ,
+                    'expectedRC'       : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: update-schema, alternate root user searching entry'
@@ -1763,12 +1661,10 @@
                     'DNToModify'             : 'dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : write_aci ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'Privileges: Directory Manager: privilege-change, alternate root user removing privilege from DM'
@@ -1782,12 +1678,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-privilege-change' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: privilege-change, DM adding privilege to second user'
@@ -1802,12 +1696,9 @@
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : 'modify-acl' ,
                     'changetype'             : 'add' ,
-                    'expectedErrorCode'      : '50' }
+                    'expectedRC'             : 50
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Directory Manager: privilege-change, alternate root user putting back privilege to DM'
@@ -1821,12 +1712,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-privilege-change' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: privilege-change, DM adding privilege to second user'
@@ -1840,12 +1729,10 @@
                     'DNToModify'             : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : 'modify-acl' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: privilege-change, second user adding ACI'
@@ -1863,12 +1750,10 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'Privileges: Directory Manager: privilege-change, DM removing privilege to second user'
@@ -1882,12 +1767,10 @@
                     'DNToModify'             : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : 'modify-acl' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: privilege-change, alternate root user deleting ACI'
@@ -1901,12 +1784,10 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: privilege-change, alternate root user deleting write ACI'
@@ -1969,12 +1850,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-server-shutdown' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: server-shutdown, user adding server shutdown task'
@@ -2005,12 +1884,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-server-shutdown' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: server-shutdown, user adding server shutdown task'
@@ -2119,12 +1996,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-server-restart' ,
-                    'changetype'             : 'add' }
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: server-restart, DM adding server restart task'
@@ -2155,12 +2030,10 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-server-restart' ,
-                    'changetype'             : 'delete' }
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 0
+                  }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Directory Manager: server-restart, DM adding server restart task'
