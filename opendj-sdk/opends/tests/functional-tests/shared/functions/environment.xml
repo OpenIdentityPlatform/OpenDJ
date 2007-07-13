@@ -83,7 +83,7 @@
       <!-- Load in any standard python libraries -->
       <script>
         import re
-        import posixpath
+        import os
         import sys
       </script>
 
