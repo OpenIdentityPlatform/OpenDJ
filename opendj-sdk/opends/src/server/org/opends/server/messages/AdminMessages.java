@@ -663,7 +663,7 @@ public final class AdminMessages {
     registerMessage(MSGID_ADMIN_ARG_MEMBERNAME_DESCRIPTION,
        "The member's identifier. This is a required argument");
     registerMessage(MSGID_ADMIN_ARG_BACKENDNAME_DESCRIPTION,
-        "The backen name is which the admin data will be registered. " +
+        "The backend name is which the admin data will be registered. " +
         "This is a required argument");
     registerMessage(MSGID_ADMIN_UNABLE_TO_REGISTER_LISTENER,
         "Unable to register an add/delete listener against the entry \"%s\" " +
