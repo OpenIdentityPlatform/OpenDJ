@@ -497,6 +497,7 @@ public class RebuildIndex
     }
 
     // Launch the rebuild process.
+    int returnCode = 0;
     try
     {
       BackendImpl jebBackend = (BackendImpl)backend;
@@ -508,6 +509,7 @@ public class RebuildIndex
       String message = getMessage(msgID, getExceptionMessage(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
+      returnCode = 1;
     }
     finally
     {
@@ -535,6 +537,6 @@ public class RebuildIndex
       }
     }
 
-    return 0;
+    return returnCode;
   }
 }
