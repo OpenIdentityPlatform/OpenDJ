@@ -703,7 +703,7 @@
       <message>'Creating test log %s' % logfile</message>
      
       <script>
-        NewLogDir=posixpath.dirname(logfile)
+        NewLogDir=os.path.dirname(logfile)
       </script>
       
       <call function="'createFolder'">
