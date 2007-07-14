@@ -31,6 +31,7 @@ package org.opends.server.api;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -72,7 +73,21 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public abstract class EntryCache
        <T extends EntryCacheCfg>
+       implements BackendInitializationListener
 {
+  /**
+   * Default constructor which is implicitly called from all entry
+   * cache implementations.
+   */
+  public EntryCache()
+  {
+    // Register with backend initialization listener to clear cache
+    // entries belonging to given backend that about to go offline.
+    DirectoryServer.registerBackendInitializationListener(this);
+  }
+
+
+
   /**
    * The tracer object for the debug logger.
    */
@@ -492,4 +507,27 @@ public abstract class EntryCache
    * to avoid out of memory errors.
    */
   public abstract void handleLowMemory();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void performBackendInitializationProcessing(Backend backend)
+  {
+    // Do nothing.
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void performBackendFinalizationProcessing(Backend backend)
+  {
+    // Do not clear any backends if the server is shutting down.
+    if ( !(DirectoryServer.getInstance().isShuttingDown()) ) {
+      clearBackend(backend);
+    }
+  }
 }

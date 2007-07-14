@@ -8587,6 +8587,19 @@ public class DirectoryServer
   }
 
 
+
+  /**
+   * Indicates whether the server is currently in the process of shutting down.
+   * @return <CODE>true</CODE> if this server is currently in the process of
+   * shutting down and <CODE>false</CODE> otherwise.
+   */
+  public boolean isShuttingDown()
+  {
+    return shuttingDown;
+  }
+
+
+
   /**
    * Parses the provided command-line arguments and uses that information to
    * bootstrap and start the Directory Server.
