@@ -29,6 +29,7 @@ package org.opends.server.api;
 
 
 import java.util.List;
+import java.util.HashSet;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.core.DirectoryServer;
@@ -38,6 +39,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockType;
 import org.opends.server.types.LockManager;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -100,6 +102,22 @@ public abstract class EntryCache
    * before giving up.
    */
   protected long lockTimeout;
+
+
+
+  /**
+   * The set of filters that define the entries that should
+   * be excluded from the cache.
+   */
+  protected HashSet<SearchFilter> excludeFilters;
+
+
+
+  /**
+   * The set of filters that define the entries that should
+   * be included in the cache.
+   */
+  protected HashSet<SearchFilter> includeFilters;
 
 
 
@@ -507,6 +525,82 @@ public abstract class EntryCache
    * to avoid out of memory errors.
    */
   public abstract void handleLowMemory();
+
+
+
+  /**
+   * Indicates whether the current set of exclude and include filters
+   * allow caching of the specified entry.
+   * @param  entry  The entry to evaluate against exclude and include
+   *                filter sets.
+   * @return <CODE>true</CODE> if current set of filters allow caching
+   * the entry and <CODE>false</CODE> otherwise.
+   */
+  protected boolean filtersAllowCaching(Entry entry)
+  {
+    // If there is a set of exclude filters, then make sure that the
+    // provided entry doesn't match any of them.
+    if (! excludeFilters.isEmpty())
+    {
+      for (SearchFilter f : excludeFilters)
+      {
+        try
+        {
+          if (f.matchesEntry(entry))
+          {
+            return false;
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          // This shouldn't happen, but if it does then we can't be
+          // sure whether the entry should be excluded, so we will
+          // by default.
+          return false;
+        }
+      }
+    }
+
+    // If there is a set of include filters, then make sure that the
+    // provided entry matches at least one of them.
+    if (! includeFilters.isEmpty())
+    {
+      boolean matchFound = false;
+      for (SearchFilter f : includeFilters)
+      {
+        try
+        {
+          if (f.matchesEntry(entry))
+          {
+            matchFound = true;
+            break;
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          // This shouldn't happen, but if it does, then
+          // just ignore it.
+        }
+      }
+
+      if (! matchFound)
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
 
 
