@@ -881,7 +881,8 @@ public final class TestCaseUtils {
                                      entry.getObjectClasses(),
                                      entry.getUserAttributes(),
                                      entry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS, addOperation
+        .getErrorMessage().toString());
   }
 
 
