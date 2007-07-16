@@ -536,24 +536,6 @@
 
       <!--- Enable LDAPS Connection Handler -->
       <message>
-       'Enabling LDAPS Connection Handler - Port number'
-      </message>
-
-      <call function="'modifyEntry'">
-        { 'location'          : mylocation ,
-          'dsInstanceHost'    : myhost ,
-          'dsInstancePort'    : myport ,
-          'dsInstanceDn'      : mydn ,
-          'dsInstancePswd'    : mypswd ,
-          'entryToBeModified' : '%s/security/ldaps_port.ldif' % (logsRemoteDataDir) }
-      </call>
-
-      <call function="'checktestRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
-      </call>
-
-      <message>
        'Enabling LDAPS Connection Handler - Keystore type'
       </message>
 
@@ -564,6 +546,24 @@
           'dsInstanceDn'      : mydn ,
           'dsInstancePswd'    : mypswd ,
           'entryToBeModified' : '%s/security/%s/setup/enable_ldaps_conn_handler.ldif' % (logsRemoteDataDir,keystoreType) }
+      </call>
+
+      <call function="'checktestRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+
+      <message>
+       'Enabling LDAPS Connection Handler - Port number'
+      </message>
+
+      <call function="'modifyEntry'">
+        { 'location'          : mylocation ,
+          'dsInstanceHost'    : myhost ,
+          'dsInstancePort'    : myport ,
+          'dsInstanceDn'      : mydn ,
+          'dsInstancePswd'    : mypswd ,
+          'entryToBeModified' : '%s/security/ldaps_port.ldif' % (logsRemoteDataDir) }
       </call>
 
       <call function="'checktestRC'">
