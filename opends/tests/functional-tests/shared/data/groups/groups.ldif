@@ -1,0 +1,556 @@
+dn: dc=com
+objectclass: top
+objectclass: domain
+dc: com 
+aci: (target="ldap:///dc=groups,dc=com")(targetattr = "*")(version 3.0;acl "access for application";
+ allow (all)(userdn = "ldap:///uid=my_application,dc=groups,dc=com");)
+aci: (target="ldap:///ou=static,dc=groups,dc=com")(targetattr = "*")(version 3.0;acl "access for application";
+ deny (all)(groupdn = "ldap:///cn=my_staticgroup1,dc=groups,dc=com");)
+aci: (target="ldap:///ou=static,dc=groups,dc=com")(targetattr = "*")(version 3.0;acl "access for application";
+ deny (all)(groupdn = "ldap:///cn=my_staticgroup2,dc=groups,dc=com");)
+aci: (target="ldap:///ou=dynamic,dc=groups,dc=com")(targetattr = "*")(version 3.0;acl "access for application";
+ deny (all)(groupdn = "ldap:///cn=my_dynamicgroup1,dc=groups,dc=com");)
+aci: (target="ldap:///ou=dynamic,dc=groups,dc=com")(targetattr = "*")(version 3.0;acl "access for application";
+ deny (all)(groupdn = "ldap:///cn=my_dynamicgroup2,dc=groups,dc=com");)
+
+dn: dc=groups,dc=com
+objectclass: top
+objectclass: domain
+dc: groups
+
+dn: ou=static,dc=groups,dc=com
+objectClass: top
+objectClass: organizationalunit
+ou: static
+
+dn: ou=dynamic,dc=groups,dc=com
+objectClass: top
+objectClass: organizationalunit
+ou: dynamic
+
+dn: uid=my_application,dc=groups,dc=com
+uid: my_application
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: my_application
+sn: sn of my_application
+description: this is the description of my_application
+userPassword: pw_my_application
+
+dn: cn=my_staticgroup1,dc=groups,dc=com
+cn: my_staticgroup1
+objectclass: top
+objectclass: groupofuniquenames
+description: this is the description of my_staticgroup1
+uniquemember: uid=user_01,ou=static,dc=groups,dc=com
+uniquemember: uid=user_02,ou=static,dc=groups,dc=com
+uniquemember: uid=user_03,ou=static,dc=groups,dc=com
+uniquemember: uid=user_04,ou=static,dc=groups,dc=com
+uniquemember: uid=user_05,ou=static,dc=groups,dc=com
+uniquemember: uid=user_06,ou=static,dc=groups,dc=com
+uniquemember: uid=user_07,ou=static,dc=groups,dc=com
+uniquemember: uid=user_08,ou=static,dc=groups,dc=com
+uniquemember: uid=user_09,ou=static,dc=groups,dc=com
+uniquemember: uid=user_10,ou=static,dc=groups,dc=com
+
+dn: cn=my_staticgroup2,dc=groups,dc=com
+cn: my_staticgroup2
+objectclass: top
+objectClass: groupOfNames
+description: this is the description of my_staticgroup2
+member: uid=user_01,ou=static,dc=groups,dc=com
+member: uid=user_02,ou=static,dc=groups,dc=com
+member: uid=user_03,ou=static,dc=groups,dc=com
+member: uid=user_04,ou=static,dc=groups,dc=com
+member: uid=user_05,ou=static,dc=groups,dc=com
+member: uid=user_06,ou=static,dc=groups,dc=com
+member: uid=user_07,ou=static,dc=groups,dc=com
+member: uid=user_08,ou=static,dc=groups,dc=com
+member: uid=user_09,ou=static,dc=groups,dc=com
+member: uid=user_10,ou=static,dc=groups,dc=com
+
+dn: cn=my_dynamicgroup1,dc=groups,dc=com
+cn: my_dynamicgroup1
+objectclass: top
+objectclass: groupofurls
+description: this is the description of my_dynamicgroup1
+memberurl: ldap:///ou=dynamic,dc=groups,dc=com??sub?(&(objectclass=person)(uid=*2*))
+
+dn: cn=my_dynamicgroup2,dc=groups,dc=com
+cn: my_dynamicgroup2
+objectclass: top
+objectclass: groupofurls
+description: this is the description of my_dynamicgroup1
+memberurl: ldap:///ou=dynamic,dc=groups,dc=com??sub?(&(objectclass=person)(uid=*3*))
+
+dn: cn=my_virtualstaticgroup,dc=groups,dc=com
+objectClass: top
+objectClass: groupOfUniqueNames
+objectClass: ds-virtual-static-group
+cn: my_virtualstaticgroup
+ds-target-group-dn: cn=my_dynamicgroup1,dc=groups,dc=com
+
+dn: uid=user_00,ou=static,dc=groups,dc=com
+uid: user_00
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_00
+sn: sn of user user_00
+description: this is the description of user_00
+userPassword: pw_00
+l: TOWN_8
+
+dn: uid=user_01,ou=static,dc=groups,dc=com
+uid: user_01
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_01
+sn: sn of user user_01
+description: this is the description of user_01
+userPassword: pw_01
+l: TOWN_7
+
+dn: uid=user_02,ou=static,dc=groups,dc=com
+uid: user_02
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_02
+sn: sn of user user_02
+description: this is the description of user_02
+userPassword: pw_02
+l: TOWN_1
+
+dn: uid=user_03,ou=static,dc=groups,dc=com
+uid: user_03
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_03
+sn: sn of user user_03
+description: this is the description of user_03
+userPassword: pw_03
+l: TOWN_3
+
+dn: uid=user_04,ou=static,dc=groups,dc=com
+uid: user_04
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_04
+sn: sn of user user_04
+description: this is the description of user_04
+userPassword: pw_04
+l: TOWN_7
+
+dn: uid=user_05,ou=static,dc=groups,dc=com
+uid: user_05
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_05
+sn: sn of user user_05
+description: this is the description of user_05
+userPassword: pw_05
+l: TOWN_5
+
+dn: uid=user_06,ou=static,dc=groups,dc=com
+uid: user_06
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_06
+sn: sn of user user_06
+description: this is the description of user_06
+userPassword: pw_06
+l: TOWN_4
+
+dn: uid=user_07,ou=static,dc=groups,dc=com
+uid: user_07
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_07
+sn: sn of user user_07
+description: this is the description of user_07
+userPassword: pw_07
+l: TOWN_7
+
+dn: uid=user_08,ou=static,dc=groups,dc=com
+uid: user_08
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_08
+sn: sn of user user_08
+description: this is the description of user_08
+userPassword: pw_08
+l: TOWN_9
+
+dn: uid=user_09,ou=static,dc=groups,dc=com
+uid: user_09
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_09
+sn: sn of user user_09
+description: this is the description of user_09
+userPassword: pw_09
+l: TOWN_6
+
+dn: uid=user_10,ou=static,dc=groups,dc=com
+uid: user_10
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_10
+sn: sn of user user_10
+description: this is the description of user_10
+userPassword: pw_10
+l: TOWN_2
+
+dn: uid=user_11,ou=static,dc=groups,dc=com
+uid: user_11
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_11
+sn: sn of user user_11
+description: this is the description of user_11
+userPassword: pw_11
+l: TOWN_4
+
+dn: uid=user_12,ou=static,dc=groups,dc=com
+uid: user_12
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_12
+sn: sn of user user_12
+description: this is the description of user_12
+userPassword: pw_12
+l: TOWN_8
+
+dn: uid=user_13,ou=static,dc=groups,dc=com
+uid: user_13
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_13
+sn: sn of user user_13
+description: this is the description of user_13
+userPassword: pw_13
+l: TOWN_4
+
+dn: uid=user_14,ou=static,dc=groups,dc=com
+uid: user_14
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_14
+sn: sn of user user_14
+description: this is the description of user_14
+userPassword: pw_14
+l: TOWN_0
+
+dn: uid=user_15,ou=static,dc=groups,dc=com
+uid: user_15
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_15
+sn: sn of user user_15
+description: this is the description of user_15
+userPassword: pw_15
+l: TOWN_6
+
+dn: uid=user_16,ou=static,dc=groups,dc=com
+uid: user_16
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_16
+sn: sn of user user_16
+description: this is the description of user_16
+userPassword: pw_16
+l: TOWN_8
+
+dn: uid=user_17,ou=static,dc=groups,dc=com
+uid: user_17
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_17
+sn: sn of user user_17
+description: this is the description of user_17
+userPassword: pw_17
+l: TOWN_9
+
+dn: uid=user_18,ou=static,dc=groups,dc=com
+uid: user_18
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_18
+sn: sn of user user_18
+description: this is the description of user_18
+userPassword: pw_18
+l: TOWN_1
+
+dn: uid=user_19,ou=static,dc=groups,dc=com
+uid: user_19
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_19
+sn: sn of user user_19
+description: this is the description of user_19
+userPassword: pw_19
+l: TOWN_9
+
+dn: uid=user_20,ou=static,dc=groups,dc=com
+uid: user_20
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_20
+sn: sn of user user_20
+description: this is the description of user_20
+userPassword: pw_20
+l: TOWN_6
+
+dn: uid=user_00,ou=dynamic,dc=groups,dc=com
+uid: user_00
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_00
+sn: sn of user user_00
+description: this is the description of user_00
+userPassword: pw_00
+l: TOWN_8
+
+dn: uid=user_01,ou=dynamic,dc=groups,dc=com
+uid: user_01
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_01
+sn: sn of user user_01
+description: this is the description of user_01
+userPassword: pw_01
+l: TOWN_7
+
+dn: uid=user_02,ou=dynamic,dc=groups,dc=com
+uid: user_02
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_02
+sn: sn of user user_02
+description: this is the description of user_02
+userPassword: pw_02
+l: TOWN_1
+
+dn: uid=user_03,ou=dynamic,dc=groups,dc=com
+uid: user_03
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_03
+sn: sn of user user_03
+description: this is the description of user_03
+userPassword: pw_03
+l: TOWN_3
+
+dn: uid=user_04,ou=dynamic,dc=groups,dc=com
+uid: user_04
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_04
+sn: sn of user user_04
+description: this is the description of user_04
+userPassword: pw_04
+l: TOWN_7
+
+dn: uid=user_05,ou=dynamic,dc=groups,dc=com
+uid: user_05
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_05
+sn: sn of user user_05
+description: this is the description of user_05
+userPassword: pw_05
+l: TOWN_5
+
+dn: uid=user_06,ou=dynamic,dc=groups,dc=com
+uid: user_06
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_06
+sn: sn of user user_06
+description: this is the description of user_06
+userPassword: pw_06
+l: TOWN_4
+
+dn: uid=user_07,ou=dynamic,dc=groups,dc=com
+uid: user_07
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_07
+sn: sn of user user_07
+description: this is the description of user_07
+userPassword: pw_07
+l: TOWN_7
+
+dn: uid=user_08,ou=dynamic,dc=groups,dc=com
+uid: user_08
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_08
+sn: sn of user user_08
+description: this is the description of user_08
+userPassword: pw_08
+l: TOWN_9
+
+dn: uid=user_09,ou=dynamic,dc=groups,dc=com
+uid: user_09
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_09
+sn: sn of user user_09
+description: this is the description of user_09
+userPassword: pw_09
+l: TOWN_6
+
+dn: uid=user_10,ou=dynamic,dc=groups,dc=com
+uid: user_10
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_10
+sn: sn of user user_10
+description: this is the description of user_10
+userPassword: pw_10
+l: TOWN_2
+
+dn: uid=user_11,ou=dynamic,dc=groups,dc=com
+uid: user_11
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_11
+sn: sn of user user_11
+description: this is the description of user_11
+userPassword: pw_11
+l: TOWN_4
+
+dn: uid=user_12,ou=dynamic,dc=groups,dc=com
+uid: user_12
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_12
+sn: sn of user user_12
+description: this is the description of user_12
+userPassword: pw_12
+l: TOWN_8
+
+dn: uid=user_13,ou=dynamic,dc=groups,dc=com
+uid: user_13
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_13
+sn: sn of user user_13
+description: this is the description of user_13
+userPassword: pw_13
+l: TOWN_4
+
+dn: uid=user_14,ou=dynamic,dc=groups,dc=com
+uid: user_14
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_14
+sn: sn of user user_14
+description: this is the description of user_14
+userPassword: pw_14
+l: TOWN_0
+
+dn: uid=user_15,ou=dynamic,dc=groups,dc=com
+uid: user_15
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_15
+sn: sn of user user_15
+description: this is the description of user_15
+userPassword: pw_15
+l: TOWN_6
+
+dn: uid=user_16,ou=dynamic,dc=groups,dc=com
+uid: user_16
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_16
+sn: sn of user user_16
+description: this is the description of user_16
+userPassword: pw_16
+l: TOWN_8
+
+dn: uid=user_17,ou=dynamic,dc=groups,dc=com
+uid: user_17
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_17
+sn: sn of user user_17
+description: this is the description of user_17
+userPassword: pw_17
+l: TOWN_9
+
+dn: uid=user_18,ou=dynamic,dc=groups,dc=com
+uid: user_18
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_18
+sn: sn of user user_18
+description: this is the description of user_18
+userPassword: pw_18
+l: TOWN_1
+
+dn: uid=user_19,ou=dynamic,dc=groups,dc=com
+uid: user_19
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_19
+sn: sn of user user_19
+description: this is the description of user_19
+userPassword: pw_19
+l: TOWN_9
+
+dn: uid=user_20,ou=dynamic,dc=groups,dc=com
+uid: user_20
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_20
+sn: sn of user user_20
+description: this is the description of user_20
+userPassword: pw_20
+l: TOWN_6
+
+
