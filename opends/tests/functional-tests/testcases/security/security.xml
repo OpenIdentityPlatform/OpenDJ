@@ -42,11 +42,11 @@
           </script>
         
           <call function="'testGroup_Preamble'"/>
-			
+	  <!--		
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/security/client_auth/client_auth.xml' % (TESTS_DIR)"/>
           <call function="'client_auth'" />			
-		
+	  -->	
           <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
             file="'%s/testcases/security/jks/security_jks.xml' % (TESTS_DIR)"/>
           <call function="'security_jks'" />
