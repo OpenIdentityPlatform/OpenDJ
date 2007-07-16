@@ -1125,6 +1125,18 @@
       <isset property="test.diff.disable" />
     </condition>
 
+    <!-- The SVN revision to perform the diff against when calculating
+         the coverage diff.  It can be a revision number, a timestamp,
+         or a revision keyword (BASE, COMMITTED, and PREV make the
+         most sense).  The primary use case for this setting is to do
+         a coverage diff against the previous revision when there are
+         no changes in the working copy.  It defaults to BASE.  -->
+    <condition property="test.diff.from.revision" value="BASE">
+      <not>
+        <isset property="test.diff.from.revision" />
+      </not>
+    </condition>
+
     <mkdir dir="${cvgdiff.report.dir}" />
     <taskdef name="coveragediff" classname="org.opends.build.tools.CoverageDiff">
       <classpath>
@@ -1144,7 +1156,8 @@
                   outputpath="${cvgdiff.report.dir}"
                   diffpath="${test.diff.srcpath}"
                   enabled="${test.diff.enabled}"
-                  verbose="${test.diff.verbose}" />
+                  verbose="${test.diff.verbose}"
+                  fromrevision="${test.diff.from.revision}" />
 
   </target>
 
