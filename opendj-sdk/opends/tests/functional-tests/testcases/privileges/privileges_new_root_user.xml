@@ -142,10 +142,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: New Root User: bypass-acl, new root user searching entry'
                 </message>
@@ -197,10 +193,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: bypass-acl, new root user searching entry'
                 </message>
@@ -243,10 +235,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: bypass-acl, new root user searching entry'
                 </message>
@@ -298,11 +286,7 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-               <message>
+                <message>
                    'Privileges: New Root User: bypass-acl, new root user searching entry'
                 </message>
     
@@ -371,10 +355,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: New Root User: bypass-acl, alternate bind DN, new root user searching entry'
                 </message>
@@ -443,11 +423,7 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
-               <message>
+                <message>
                    'Privileges: New Root User: bypass-acl, alternate bind DN, new root user searching entry'
                 </message>
     
@@ -518,10 +494,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: New Root User: modify-acl - add aci, alternative root user removing privilege'
                 </message>
@@ -536,10 +508,6 @@
                     'newAttributeValue'      : '-modify-acl' ,
                     'changetype'             : 'add' }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: New Root User: modify-acl - add aci, new root user adding second ACI'
@@ -577,10 +545,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: modify-acl - add aci, new root user adding second ACI'
                 </message>
@@ -596,10 +560,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: modify-acl - add aci, alternative root user deleting ACI'
                 </message>
@@ -614,10 +574,6 @@
                     'newAttributeValue'      : search_aci ,
                     'changetype'             : 'delete' }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: New Root User: modify-acl - add aci, alternative root user deleting ACI'
@@ -685,10 +641,6 @@
                     'changetype'             : 'replace' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: New Root User: modify-acl - replace aci, alternative root user removing privilege'
                 </message>
@@ -703,10 +655,6 @@
                     'newAttributeValue'      : '-modify-acl' ,
                     'changetype'             : 'add' }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: New Root User: modify-acl - replace aci, new root user replacing ACI'
@@ -739,10 +687,6 @@
                     'newAttributeValue'      : '-modify-acl' ,
                     'changetype'             : 'delete' }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: New Root User: modify-acl - replace aci, new root user replacing ACI'
@@ -809,10 +753,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: New Root User: modify-acl - delete aci, alternative root user removing privilege'
                 </message>
@@ -827,10 +767,6 @@
                     'newAttributeValue'      : '-modify-acl' ,
                     'changetype'             : 'add' }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: New Root User: modify-acl - delete aci, new root user delete ACI'
@@ -953,10 +889,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: New Root User: config-read, new root user searching cn=config'
                 </message>
@@ -989,10 +921,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: New Root User: config-read, new root user searching cn=config'
                 </message>
@@ -1063,10 +991,6 @@
                     'changetype'             : 'replace' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: New Root User: config-write, alternative root user removing privilege'
                 </message>
@@ -1082,10 +1006,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: config-write, new root user modifying cn=config'
                 </message>
@@ -1118,10 +1038,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: config-write, new root user modifying cn=config'
                 </message>
@@ -1153,10 +1069,6 @@
                     'newAttributeValue'      : '-config-read' ,
                     'changetype'             : 'delete' }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: New Root User: config-write, new root user modifying cn=config'
@@ -1190,10 +1102,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: config-write, new root user modifying cn=config'
                 </message>
@@ -1265,10 +1173,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: New Root User: config-write - add global aci, alternative root user removing config-read privilege'
                 </message>
@@ -1284,10 +1188,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: config-write - add global aci, new root user adding ACI'
                 </message>
@@ -1324,10 +1224,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: config-write - add global aci, alternative root user putting back config-read privilege'
                 </message>
@@ -1343,10 +1239,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: config-write - add global aci, new root user adding global ACI'
                 </message>
@@ -1379,10 +1271,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: config-write - add global aci, new root user adding global ACI'
                 </message>
@@ -1398,10 +1286,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: New Root User: config-write - add global aci, new root user deleting write global ACI'
                 </message>
@@ -1417,10 +1301,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: New Root User: config-write - add global aci, new root user deleting write global ACI'
                 </message>
@@ -1483,10 +1363,6 @@
                     'changetype'             : 'replace' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: New Root User: password-reset, alternative root user adding privilege'
                 </message>
@@ -1502,10 +1378,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: password-reset, new root user resetting password'
                 </message>
@@ -1538,10 +1410,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: password-reset, new root user resetting password'
                 </message>
@@ -1620,10 +1488,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: update-schema, new root user adding new schema object'
                 </message>
@@ -1653,10 +1517,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: New Root User: update-schema, new root user adding new schema object'
                 </message>
@@ -1669,10 +1529,6 @@
                     'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: New Root User: update-schema, alternate root user adding entry that users new object class'
                 </message>
@@ -1684,10 +1540,6 @@
                     'dsInstancePswd'   : 'PrivsRule' ,
                     'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: New Root User: update-schema, alternate root user searching entry'
@@ -1770,10 +1622,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: New Root User: privilege-change, alternative root user removing privilege from new root user'
                 </message>
@@ -1789,10 +1637,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: privilege-change, new root user adding privilege to second user'
                 </message>
@@ -1825,10 +1669,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: privilege-change, new root user adding privilege to second user'
                 </message>
@@ -1844,10 +1684,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: privilege-change, second user adding ACI'
                 </message>
@@ -1867,10 +1703,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: New Root User: privilege-change, new root user removing privilege to second user'
                 </message>
@@ -1886,10 +1718,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: privilege-change, alternative root user deleting ACI'
                 </message>
@@ -1905,10 +1733,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: privilege-change, alternative root user deleting write ACI'
                 </message>
@@ -1918,8 +1742,8 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
                     'dsInstancePswd'         : 'PrivsRule' ,
-                    'DNToModify'         : 'dc=example,dc=com' ,
-                    'attributeName'  : 'aci' ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
                     'newAttributeValue'      : write_aci ,
                     'changetype'             : 'delete' }
                 </call>
@@ -1973,10 +1797,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: server-shutdown, new root user adding server shutdown task'
                 </message>
@@ -2009,10 +1829,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: server-shutdown, new root user adding server shutdown task'
                 </message>
@@ -2123,10 +1939,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: server-restart, new root user adding server restart task'
                 </message>
@@ -2159,10 +1971,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: New Root User: server-restart, new root user adding server restart task'
                 </message>

@@ -136,10 +136,6 @@
                     'entryToBeModified'     : '%s/privileges/privileges_restore_task/del_entry.ldif' % logsRemoteDataDir }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                   'Privileges: Restore Tasks: backend-restore, Admin searching entry'
                 </message>
@@ -171,10 +167,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                   'Privileges: Restore Tasks: backend-restore, user adding restore task'
                 </message>
@@ -212,10 +204,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                   'Privileges: Restore Tasks: backend-restore, user adding restore task'
                 </message>
@@ -249,10 +237,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                   'Privileges: Restore Tasks: backend-restore, Admin searching entry'
                 </message>
@@ -357,10 +341,6 @@
                     'entryToBeModified'     : '%s/privileges/privileges_restore_task/del_entry.ldif' % logsRemoteDataDir }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                   'Privileges: Restore Tasks: backend-restore, Directory Manager, alternative root user searching entry'
                 </message>
@@ -392,10 +372,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                   'Privileges: Restore Tasks: backend-restore, Directory Manager, DM adding restore task'
                 </message>
@@ -429,10 +405,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                   'Privileges: Restore Tasks: backend-restore, Directory Manager, DM adding restore task'
                 </message>
@@ -520,10 +492,6 @@
                     'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % logsRemoteDataDir }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Restore Tasks: backend-restore, New User Root, alternative root user adding import task to create entries'
                 </message>
@@ -572,10 +540,6 @@
                     'entryToBeModified'     : '%s/privileges/privileges_restore_task/del_entry.ldif' % logsRemoteDataDir }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                   'Privileges: Restore Tasks: backend-restore, New User Root, alternative root user searching entry'
                 </message>
@@ -607,10 +571,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                   'Privileges: Restore Tasks: backend-restore, New User Root, new root user adding restore task'
                 </message>
@@ -644,10 +604,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                   'Privileges: Restore Tasks: backend-restore, New User Root, new root user adding restore task'
                 </message>
