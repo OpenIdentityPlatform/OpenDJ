@@ -120,10 +120,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Export Tasks: export-ldif, user adding export task'
                 </message>
@@ -161,10 +157,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Export Tasks: export-ldif, user adding export task'
                 </message>
@@ -198,10 +190,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Export Tasks: export-ldif, Admin deleting global ACI'
                 </message>
@@ -217,10 +205,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Export Tasks: export-ldif, user adding export task'
                 </message>
@@ -303,10 +287,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Export Tasks: export-ldif, Directory Manager, DM adding export task'
                 </message>
@@ -340,10 +320,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Export Tasks: export-ldif, Directory Manager, DM adding export task'
                 </message>
@@ -404,10 +380,6 @@
                     'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % logsRemoteDataDir }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Export Tasks: export-ldif, New Root User, new root user adding export task'
                 </message>
@@ -441,10 +413,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Export Tasks: export-ldif,  New Root User, new root user adding export task'
                 </message>
@@ -478,10 +446,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Export Tasks: export-ldif,  New Root User, new root user adding export task'
                 </message>

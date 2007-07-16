@@ -99,8 +99,7 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -152,8 +151,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-bypass-acl' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -198,8 +196,7 @@
                     'DNToModify'            : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'         : 'ds-privilege-name' ,
                     'newAttributeValue'     : '-bypass-acl' ,
-                    'changetype'            : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'            : 'delete' 
                   }
                 </call>
                 
@@ -251,8 +248,7 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -324,8 +320,7 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
     
@@ -396,8 +391,7 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
     
@@ -471,8 +465,7 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -488,8 +481,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -526,8 +518,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -543,8 +534,7 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search2_aci ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -560,8 +550,7 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -628,8 +617,7 @@
                     'DNToModify'             : 'uid=tmorris, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'replace' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'replace' 
                   }
                 </call>
     
@@ -645,8 +633,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -679,8 +666,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -746,8 +732,7 @@
                     'DNToModify'             : 'uid=gfarmer, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
     
@@ -763,8 +748,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -886,8 +870,7 @@
                     'DNToModify'            : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'         : 'ds-privilege-name' ,
                     'newAttributeValue'     : '-config-read' ,
-                    'changetype'            : 'add' ,
-                    'expectedRC'            : 0
+                    'changetype'            : 'add' 
                   }
                 </call>
 
@@ -920,8 +903,7 @@
                     'DNToModify'            : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'         : 'ds-privilege-name' ,
                     'newAttributeValue'     : '-config-read' ,
-                    'changetype'            : 'delete' ,
-                    'expectedRC'            : 0
+                    'changetype'            : 'delete' 
                   }
                 </call>
 
@@ -992,8 +974,7 @@
                     'DNToModify'             : 'cn=config' ,
                     'attributeName'          : 'ds-cfg-check-schema' ,
                     'newAttributeValue'      : 'true' ,
-                    'changetype'             : 'replace' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'replace' 
                   }
                 </call>
 
@@ -1009,8 +990,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-read' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -1043,8 +1023,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-write' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -1077,8 +1056,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-read' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
     
@@ -1111,8 +1089,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-write' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -1184,8 +1161,7 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
     
@@ -1201,8 +1177,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-read' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -1239,8 +1214,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-write' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -1256,8 +1230,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-read' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -1290,8 +1263,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-config-write' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -1307,8 +1279,7 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global2_aci ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
     
@@ -1324,8 +1295,7 @@
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
                     'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
 
@@ -1388,8 +1358,7 @@
                     'DNToModify'             : 'uid=tmason, ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'pickles' ,
-                    'changetype'             : 'replace' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'replace' 
                   }
                 </call>
     
@@ -1405,8 +1374,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-password-reset' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -1439,8 +1407,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-password-reset' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -1519,8 +1486,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-update-schema' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -1550,8 +1516,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-update-schema' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
     
@@ -1661,8 +1626,7 @@
                     'DNToModify'             : 'dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : write_aci ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
 
@@ -1678,8 +1642,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-privilege-change' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -1712,8 +1675,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-privilege-change' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -1729,8 +1691,7 @@
                     'DNToModify'             : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : 'modify-acl' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -1750,8 +1711,7 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
 
@@ -1767,8 +1727,7 @@
                     'DNToModify'             : 'uid=buser,o=Privileges Tests,dc=example,dc=com' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : 'modify-acl' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -1784,8 +1743,7 @@
                     'DNToModify'             : 'ou=People, o=Privileges Tests, dc=example,dc=com' ,
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : search_aci ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -1850,8 +1808,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-server-shutdown' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -1884,8 +1841,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-server-shutdown' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 
@@ -1996,8 +1952,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-server-restart' ,
-                    'changetype'             : 'add' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'add' 
                   }
                 </call>
                 
@@ -2030,8 +1985,7 @@
                     'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-server-restart' ,
-                    'changetype'             : 'delete' ,
-                    'expectedRC'             : 0
+                    'changetype'             : 'delete' 
                   }
                 </call>
                 

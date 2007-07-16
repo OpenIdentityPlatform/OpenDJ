@@ -118,10 +118,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Backup Tasks: backend-backup, user adding backup task'
                 </message>
@@ -159,11 +155,7 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
-               <message>
+                <message>
                    'Privileges: Backup Tasks: backend-backup, user adding backup task'
                 </message>
     
@@ -196,10 +188,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Backup Tasks: backend-backup, Admin deleting global ACI'
                 </message>
@@ -215,11 +203,7 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
-               <message>
+                <message>
                    'Privileges: Backup Tasks: backend-backup, user adding backup task'
                 </message>
     
@@ -301,10 +285,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Backup Tasks: backend-backup, Directory Manager, DM adding backup task'
                 </message>
@@ -338,10 +318,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Backup Tasks: backend-backup, Directory Manager, DM adding backup task'
                 </message>
@@ -402,10 +378,6 @@
                     'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % logsRemoteDataDir }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Backup Tasks: backend-backup, New Root User, new root user adding backup task'
                 </message>
@@ -439,10 +411,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Backup Tasks: backend-backup, New Root User, new root user adding backup task'
                 </message>
@@ -476,10 +444,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Backup Tasks: backend-backup, New Root User, new root user adding backup task'
                 </message>

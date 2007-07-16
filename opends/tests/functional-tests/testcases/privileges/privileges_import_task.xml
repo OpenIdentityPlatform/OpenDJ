@@ -118,10 +118,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Import Tasks: import-ldif, user adding import task'
                 </message>
@@ -159,10 +155,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Import Tasks: import-ldif, user adding import task'
                 </message>
@@ -196,10 +188,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Import Tasks: bypass-acl, Admin searching entry'
                 </message>
@@ -269,10 +257,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Import Tasks: import-ldif, Directory Manager, DM adding import task'
                 </message>
@@ -306,10 +290,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Import Tasks: import-ldif, Directory Manager, DM adding import task'
                 </message>
@@ -394,10 +374,6 @@
                     'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % logsRemoteDataDir }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Import Tasks: import-ldif, New Root User, alternative root user removing privilege'
                 </message>
@@ -413,10 +389,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Import Tasks: import-ldif, New Root User, new root user adding import task'
                 </message>
@@ -450,10 +422,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Import Tasks: import-ldif, New Root User, new root user adding import task'
                 </message>

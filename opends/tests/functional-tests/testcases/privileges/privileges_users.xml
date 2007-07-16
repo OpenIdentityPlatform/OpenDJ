@@ -129,10 +129,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: bypass-acl, user searching entry'
                 </message>
@@ -175,10 +171,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: bypass-acl, user searching entry'
                 </message>
@@ -221,11 +213,7 @@
                     'changetype'             : 'delete' }
                 </call>
    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-               
-               <message>
+                <message>
                    'Privileges: Users: bypass-acl, user searching entry'
                 </message>
     
@@ -267,10 +255,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                  
                 <message>
                    'Privileges: Users: bypass-acl, user searching entry'
                 </message>
@@ -345,10 +329,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: bypass-acl with proxy, Admin adding privilege'
                 </message>
@@ -364,10 +344,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: bypass-acl with proxy, user searching entry'
                 </message>
@@ -441,10 +417,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                  <tcstatus result="'fail'"/>
-                </if>
-  
                 <message>
                  'Privileges: Users: bypass-acl with proxy, proxied user searching targeted entry'
                 </message>
@@ -487,10 +459,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: bypass-acl with proxy, Admin deleting privilege'
                 </message>
@@ -506,10 +474,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: bypass-acl with proxy, user searching entry'
                 </message>
@@ -552,10 +516,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: bypass-acl with proxy, user searching entry'
                 </message>
@@ -630,10 +590,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: bypass-acl with minus notation, Admin adding privilege'
                 </message>
@@ -649,10 +605,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: bypass-acl with minus notation, user searching entry'
                 </message>
@@ -695,10 +647,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: bypass-acl with minus notation, user searching entry'
                 </message>
@@ -741,10 +689,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: bypass-acl with minus notation, user searching entry'
                 </message>
@@ -787,10 +731,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: bypass-acl with minus notation, user searching entry'
                 </message>
@@ -833,10 +773,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: bypass-acl with minus notation, user searching entry'
                 </message>
@@ -906,10 +842,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: bypass-acl self-modify add, user adding privilege'
                 </message>
@@ -969,10 +901,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: bypass-acl self-modify add, user searching entry'
                 </message>
@@ -1064,10 +992,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: modify-acl - add aci, user adding ACI'
                 </message>
@@ -1104,10 +1028,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: modify-acl - add aci, user adding ACI'
                 </message>
@@ -1123,10 +1043,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: modify-acl - add aci, Admin deleting privilege'
                 </message>
@@ -1142,10 +1058,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: modify-acl - add aci, user adding second ACI'
                 </message>
@@ -1182,10 +1094,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: modify-acl - add aci, Admin deleting user-added ACI'
                 </message>
@@ -1201,10 +1109,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: modify-acl - add aci, user adding second ACI'
                 </message>
@@ -1302,10 +1206,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: modify-acl - replace aci, user replacing ACI'
                 </message>
@@ -1338,10 +1238,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: modify-acl - replace aci, user replacing ACI'
                 </message>
@@ -1357,10 +1253,6 @@
                     'changetype'             : 'replace' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: modify-acl - replace aci, Admin deleting write ACI'
                 </message>
@@ -1376,10 +1268,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: modify-acl - replace aci, user replacing ACI'
                 </message>
@@ -1412,10 +1300,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: modify-acl - replace aci, user replacing ACI'
                 </message>
@@ -1503,10 +1387,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: modify-acl - delete aci, user deleting ACI'
                 </message>
@@ -1543,10 +1423,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: modify-acl - delete aci, user deleting ACI'
                 </message>
@@ -1562,10 +1438,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: modify-acl - delete aci, Admin deleting write ACI'
                 </message>
@@ -1581,10 +1453,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: modify-acl - delete aci, Admin deleting privilege'
                 </message>
@@ -1665,10 +1533,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: config-read, user searching cn=config'
                 </message>
@@ -1721,10 +1585,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: config-read, user searching cn=config'
                 </message>
@@ -1737,7 +1597,8 @@
                     'dsBaseDN'         : 'cn=config' ,
                     'dsFilter'         : 'objectclass=*'  ,
                     'attributes'       : 'ds-cfg-check-schema' ,
-                    'extraParams'      : '-s base' }
+                    'extraParams'      : '-s base' ,
+                    'expectedRC'       : 50 }
                 </call>
     
                 <script> 
@@ -1817,10 +1678,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: config-write, user modifying cn=config'
                 </message>
@@ -1853,10 +1710,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: config-write, user modifying cn=config'
                 </message>
@@ -1874,10 +1727,6 @@
                   }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: config-write, Admin adding write ACI'
                 </message>
@@ -1897,10 +1746,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: config-write, user modifying cn=config'
                 </message>
@@ -1916,10 +1761,6 @@
                     'changetype'             : 'replace' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: config-write, Admin deleting privilege'
                 </message>
@@ -1935,10 +1776,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: config-write, user modifying cn=config'
                 </message>
@@ -1971,10 +1808,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: config-write, user modifying cn=config'
                 </message>
@@ -2007,10 +1840,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: config-write, user modifying cn=config'
                 </message>
@@ -2105,10 +1934,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: config-write - add global aci, user adding ACI'
                 </message>
@@ -2141,10 +1966,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: config-write - add global aci, user adding ACI'
                 </message>
@@ -2181,10 +2002,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: config-write - add global aci, user adding ACI'
                 </message>
@@ -2200,10 +2017,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: config-write - add global aci, Admin deleting privilege'
                 </message>
@@ -2219,10 +2032,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: config-write - add global aci, user adding ACI'
                 </message>
@@ -2259,10 +2068,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: config-write - add global aci, user adding ACI'
                 </message>
@@ -2295,10 +2100,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: config-write - add global aci, Admin deleting write ACI'
                 </message>
@@ -2314,10 +2115,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: config-write - add global aci, user adding ACI'
                 </message>
@@ -2389,10 +2186,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: password-reset, check default privilege'
                 </message>
@@ -2425,10 +2218,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: password-reset, user resetting password'
                 </message>
@@ -2443,10 +2232,6 @@
                     'newAttributeValue'      : 'bananas' ,
                     'changetype'             : 'replace' }
                 </call>
-                
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: password-reset, user searching entry'
@@ -2499,10 +2284,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: password-reset, user resetting password'
                 </message>
@@ -2520,10 +2301,6 @@
                   }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: password-reset, Admin deleting privilege'
                 </message>
@@ -2539,10 +2316,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: password-reset, user resetting password'
                 </message>
@@ -2614,10 +2387,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: update-schema, check default privilege, user adding new schema object'
                 </message>
@@ -2661,10 +2430,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: update-schema, user adding new schema object'
                 </message>
@@ -2676,10 +2441,6 @@
                     'dsInstancePswd'      : 'ACIRules'  ,
                     'entryToBeModified'   : '%s/privileges/addmozobj.ldif' % logsRemoteDataDir }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
     
                 <message>
                    'Privileges: Users: update-schema, Admin adding entry that users new object class'
@@ -2716,10 +2477,6 @@
                     'entryToBeAdded'   : '%s/privileges/add_entry_with_new_objclass.ldif' % logsRemoteDataDir }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: password-reset, user searching entry'
                 </message>
@@ -2771,10 +2528,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
                 <message>
                    'Privileges: Users: update-schema, Admin deleting privilege'
                 </message>
@@ -2842,10 +2595,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: privilege-change, Admin adding privilege to first user'
                 </message>
@@ -2861,10 +2610,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: privilege-change, first user adding privilege to second user'
                 </message>
@@ -2880,10 +2625,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: privilege-change, second user adding ACI'
                 </message>
@@ -2903,10 +2644,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: privilege-change, Admin deleting privilege'
                 </message>
@@ -2922,10 +2659,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: privilege-change, Admin deleting privilege'
                 </message>
@@ -2941,10 +2674,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: privilege-change, Admin deleting ACI'
                 </message>
@@ -2960,10 +2689,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: privilege-change, Admin deleting write ACI'
                 </message>
@@ -3049,10 +2774,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: server-shutdown, user adding server shutdown task'
                 </message>
@@ -3089,10 +2810,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: server-shutdown, user adding server shutdown task'
                 </message>
@@ -3151,10 +2868,6 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: server-shutdown, user adding server shutdown task'
                 </message>
@@ -3187,10 +2900,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: server-shutdown, user adding server shutdown task'
                 </message>
@@ -3275,10 +2984,6 @@
                     'changetype'             : 'add' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
                 <message>
                    'Privileges: Users: server-restart, user adding server restart task'
                 </message>
@@ -3315,10 +3020,6 @@
                     'changetype'             : 'add' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: server-restart, user adding server restart task'
                 </message>
@@ -3351,10 +3052,7 @@
                     'changetype'             : 'delete' }
                 </call>
     
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-                
+                <!--
                 <message>
                    'Privileges: Users: server-restart, user adding server restart task'
                 </message>
@@ -3387,10 +3085,6 @@
                     'changetype'             : 'delete' }
                 </call>
                 
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-
                 <message>
                    'Privileges: Users: server-restart, user adding server restart task'
                 </message>
@@ -3409,7 +3103,7 @@
                     'result'     : STAXResult ,
                     'expected'   : 50 }
                 </call>
-                     
+                -->     
                 <call function="'testCase_Postamble'"/>
     
             </sequence>
