@@ -34,6 +34,8 @@
           <script>
             CurrentTestPath={}
             envAlreadyLoaded='true'
+            CurrentTestPath['group']='indexes'
+            CurrentTestPath['suite']=STAXCurrentBlock
           </script>
           
           <call function="'testGroup_Preamble'" />
