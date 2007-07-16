@@ -38,11 +38,14 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 
 import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
+import org.tmatesoft.svn.core.wc.SVNWCUtil;
 
 public class CoverageDiff extends Task {
 
+  private static final String EOL = System.getProperty("line.separator");
 
   private boolean verbose = false;
   private boolean enabled = true;
@@ -109,6 +112,14 @@ public class CoverageDiff extends Task {
   private File outputPath;
   private String diffPath;
 
+  //   The SVN revision to perform the diff against when calculating
+  //   the coverage diff.  It can be a revision number, a timestamp,
+  //   or a revision keyword (BASE, COMMITTED, and PREV make the
+  //   most sense).  The primary use case for this setting is to do
+  //   a coverage diff against the previous revision when there are
+  //   no changes in the working copy.  It defaults to BASE.
+  private String fromRevision;
+
   public void setEmmaDataPath(String file)
   {
     emmaDataPath = new File(file);
@@ -134,6 +145,11 @@ public class CoverageDiff extends Task {
     enabled = bol.toLowerCase().equals("true");
   }
 
+  public void setFromRevision(String fromRevision)
+  {
+    this.fromRevision = fromRevision;
+  }
+
   public void execute() throws BuildException {
     try {
       innerExecute();
@@ -157,12 +173,19 @@ public class CoverageDiff extends Task {
     {
       throw new BuildException("outputPath attribute is not set. It must be set to a valid directory where the report will be generated");
     }
+    if(fromRevision == null)
+    {
+      throw new BuildException("fromRevision attribute is not set. It must be set to the revision from which the diff is generated (e.g. BASE).");
+    }
 
     if(!enabled)
     {
       return;
     }
 
+    // So we can go over http:// and https:// when diff'ing against previous versions
+    DAVRepositoryFactory.setup();
+    
     IReportDataView emmaDataView = null;
     try
     {
@@ -182,6 +205,7 @@ public class CoverageDiff extends Task {
     catch(IOException ie)
     {
       System.out.println("ERROR: An error occurred while processing diff output: " + ie.toString() + " Quitting...");
+      ie.printStackTrace();
       return;
     }
     System.out.println("Coverage diff completed in " + (System.currentTimeMillis() - start) + " ms.");
@@ -276,10 +300,13 @@ public class CoverageDiff extends Task {
 
     SVNDiffClient svnClient = new SVNDiffClient(null, null);
 
-    File diffFile = File.createTempFile("coverage", "diff");
-    diffFile.deleteOnExit();
+    File diffFile = new File(outputPath, "svn.diff");
 
-    svnClient.doDiff(workspaceRoot, SVNRevision.BASE, workspaceRoot,
+    // Most often this will be 'BASE' but it could also be 'PREVIOUS'
+    SVNRevision baseRevision = SVNRevision.parse(fromRevision);
+    System.out.println("Doing coverage diff from revision: " + baseRevision.toString());
+
+    svnClient.doDiff(workspaceRoot, baseRevision, workspaceRoot,
                      SVNRevision.WORKING, true, false,
                      new FileOutputStream(diffFile));
 
@@ -503,7 +530,7 @@ public class CoverageDiff extends Task {
       revisionStr = secondFileLine.substring(secondFileLine.lastIndexOf("("));
     }
 
-    if(firstFileLine.endsWith("(revision 0)") &&
+    if(firstFileLine.endsWith("(revision 0)") ||
         secondFileLine.endsWith("(revision 0)"))
     {
       workingCopyFlag = "+";
@@ -512,7 +539,9 @@ public class CoverageDiff extends Task {
 
     if(workingCopyFlag == null || otherCopyFlag == null)
     {
-      throw new IOException("Error occurred while parsing diff output");
+      throw new IOException("Error occurred while parsing diff output." + EOL +
+        "firstFileLine= '" + firstFileLine + "'" + EOL +
+        "secondFileLine= '" + secondFileLine + "'");
     }
     else
     {
@@ -593,7 +622,7 @@ public class CoverageDiff extends Task {
     }
     else
     {
-      html.addH(2, "Coverage Information Not Available", null);
+      html.addH(2, "Coverage Information Not Available (e.g. file is not in src/, is not java, is an interface, or was deleted)", null);
     }
 
     if(srcTable != null)
