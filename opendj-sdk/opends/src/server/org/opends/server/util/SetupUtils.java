@@ -272,14 +272,30 @@ public class SetupUtils
        * socket there is already someone listening to the port (is the case
        * of products as Sun DS 6.0).
        */
+      Socket s = null;
       try
       {
-        new Socket().connect(socketAddress, 1000);
+        s = new Socket();
+        s.connect(socketAddress, 1000);
         canUseAsPort = false;
 
-      } catch (IOException ioe)
+      } catch (Throwable t)
       {
       }
+      finally
+      {
+        if (s != null)
+        {
+          try
+          {
+            s.close();
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+      }
+
 
     } catch (IOException ex)
     {
