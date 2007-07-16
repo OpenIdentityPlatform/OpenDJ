@@ -74,6 +74,7 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
+import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -177,6 +178,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
       break;
     case MODIFY:
       processModify((ModifyOperation) operation);
+      break;
+    case COMPARE:
+      processCompare((CompareOperation) operation);
       break;
     default:
       // jdemendi - temporary code, just make sure that we don't fell into
@@ -5860,9 +5864,9 @@ addProcessing:
 
 
   /**
-   * Perform a delete operation against a local backend.
+   * Performs a delete operation against a local backend.
    *
-   * @param operation - The operation to perform
+   * @param operation the operation to perform
    */
   public void processDelete(DeleteOperation operation){
     LocalBackendDeleteOperation localOperation =
@@ -5871,9 +5875,9 @@ addProcessing:
   }
 
   /**
-   * Perform a local delete operation against a local backend.
+   * Performs a local delete operation against a local backend.
    *
-   * @param operation - The operation to perform
+   * @param operation the operation to perform
    */
   private void processLocalDelete(LocalBackendDeleteOperation localOp)
   {
@@ -6669,6 +6673,576 @@ deleteProcessing:
 
     // Stop the processing timer.
     localOp.setProcessingStopTime();
+  }
+
+
+  /**
+   * Perform a compare operation against a local backend.
+   *
+   * @param operation - The operation to perform
+   */
+  public void processCompare(CompareOperation operation)
+  {
+    LocalBackendCompareOperation localOperation =
+      new LocalBackendCompareOperation(operation);
+    processLocalCompare(localOperation);
+  }
+
+
+  /**
+   * Perform a local compare operation against a local backend.
+   *
+   * @param operation - The operation to perform
+   */
+  private void processLocalCompare(LocalBackendCompareOperation localOp)
+  {
+    // Get the plugin config manager that will be used for invoking plugins.
+    PluginConfigManager pluginConfigManager =
+         DirectoryServer.getPluginConfigManager();
+    boolean skipPostOperation = false;
+
+
+    // Get a reference to the client connection
+    ClientConnection clientConnection = localOp.getClientConnection();
+
+
+    // Check for and handle a request to cancel this operation.
+    if (localOp.getCancelRequest() != null)
+    {
+      return;
+    }
+
+
+    // Create a labeled block of code that we can break out of if a problem is
+    // detected.
+compareProcessing:
+    {
+      // Process the entry DN to convert it from the raw form to the form
+      // required for the rest of the compare processing.
+      DN entryDN = localOp.getEntryDN();
+      if (entryDN == null)
+      {
+        skipPostOperation = true;
+        break compareProcessing;
+      }
+
+
+      // If the target entry is in the server configuration, then make sure the
+      // requester has the CONFIG_READ privilege.
+      if (DirectoryServer.getConfigHandler().handlesEntry(entryDN) &&
+          (! clientConnection.hasPrivilege(Privilege.CONFIG_READ, localOp)))
+      {
+        int msgID = MSGID_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES;
+        localOp.appendErrorMessage(getMessage(msgID));
+        localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+        skipPostOperation = true;
+        break compareProcessing;
+      }
+
+
+      // Check for and handle a request to cancel this operation.
+      if (localOp.getCancelRequest() != null)
+      {
+        return;
+      }
+
+
+      // Grab a read lock on the entry.
+      Lock readLock = null;
+      for (int i=0; i < 3; i++)
+      {
+        readLock = LockManager.lockRead(entryDN);
+        if (readLock != null)
+        {
+          break;
+        }
+      }
+
+      if (readLock == null)
+      {
+        int    msgID   = MSGID_COMPARE_CANNOT_LOCK_ENTRY;
+        String message = getMessage(msgID, String.valueOf(entryDN));
+
+        localOp.setResultCode(DirectoryServer.getServerErrorResultCode());
+        localOp.appendErrorMessage(message);
+        skipPostOperation = true;
+        break compareProcessing;
+      }
+
+      Entry entry = null;
+      try
+      {
+        // Get the entry.  If it does not exist, then fail.
+        try
+        {
+          entry = DirectoryServer.getEntry(entryDN);
+          localOp.setEntryToCompare(entry);
+
+          if (entry == null)
+          {
+            localOp.setResultCode(ResultCode.NO_SUCH_OBJECT);
+            localOp.appendErrorMessage(getMessage(MSGID_COMPARE_NO_SUCH_ENTRY,
+                                          String.valueOf(entryDN)));
+
+            // See if one of the entry's ancestors exists.
+            DN parentDN = entryDN.getParentDNInSuffix();
+            while (parentDN != null)
+            {
+              try
+              {
+                if (DirectoryServer.entryExists(parentDN))
+                {
+                  localOp.setMatchedDN(parentDN);
+                  break;
+                }
+              }
+              catch (Exception e)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                }
+                break;
+              }
+
+              parentDN = parentDN.getParentDNInSuffix();
+            }
+
+            break compareProcessing;
+          }
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          localOp.setResultCode(de.getResultCode());
+          localOp.appendErrorMessage(de.getErrorMessage());
+          break compareProcessing;
+        }
+
+        // Check to see if there are any controls in the request.  If so, then
+        // see if there is any special processing required.
+        List<Control> requestControls = localOp.getRequestControls();
+        if ((requestControls != null) && (! requestControls.isEmpty()))
+        {
+          for (int i=0; i < requestControls.size(); i++)
+          {
+            Control c   = requestControls.get(i);
+            String  oid = c.getOID();
+
+            if (oid.equals(OID_LDAP_ASSERTION))
+            {
+              LDAPAssertionRequestControl assertControl;
+              if (c instanceof LDAPAssertionRequestControl)
+              {
+                assertControl = (LDAPAssertionRequestControl) c;
+              }
+              else
+              {
+                try
+                {
+                  assertControl = LDAPAssertionRequestControl.decodeControl(c);
+                  requestControls.set(i, assertControl);
+                }
+                catch (LDAPException le)
+                {
+                  if (debugEnabled())
+                  {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
+                  }
+
+                  localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
+                  localOp.appendErrorMessage(le.getMessage());
+
+                  break compareProcessing;
+                }
+              }
+
+              try
+              {
+                // FIXME -- We need to determine whether the current user has
+                //          permission to make this determination.
+                SearchFilter filter = assertControl.getSearchFilter();
+                if (! filter.matchesEntry(entry))
+                {
+                  localOp.setResultCode(ResultCode.ASSERTION_FAILED);
+
+                  localOp.appendErrorMessage(
+                      getMessage(MSGID_COMPARE_ASSERTION_FAILED,
+                      String.valueOf(entryDN)));
+
+                  break compareProcessing;
+                }
+              }
+              catch (DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                localOp.setResultCode(ResultCode.PROTOCOL_ERROR);
+
+                int msgID = MSGID_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER;
+                localOp.appendErrorMessage(
+                    getMessage(msgID, String.valueOf(entryDN),
+                    de.getErrorMessage()));
+
+                break compareProcessing;
+              }
+            }
+            else if (oid.equals(OID_PROXIED_AUTH_V1))
+            {
+              // The requester must have the PROXIED_AUTH privilige in order to
+              // be able to use this control.
+              if (! clientConnection.hasPrivilege(
+                       Privilege.PROXIED_AUTH, localOp))
+              {
+                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
+                break compareProcessing;
+              }
+
+
+              ProxiedAuthV1Control proxyControl;
+              if (c instanceof ProxiedAuthV1Control)
+              {
+                proxyControl = (ProxiedAuthV1Control) c;
+              }
+              else
+              {
+                try
+                {
+                  proxyControl = ProxiedAuthV1Control.decodeControl(c);
+                }
+                catch (LDAPException le)
+                {
+                  if (debugEnabled())
+                  {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
+                  }
+
+                  localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
+                  localOp.appendErrorMessage(le.getMessage());
+
+                  break compareProcessing;
+                }
+              }
+
+
+              Entry authorizationEntry;
+              try
+              {
+                authorizationEntry = proxyControl.getAuthorizationEntry();
+              }
+              catch (DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                localOp.setResultCode(de.getResultCode());
+                localOp.appendErrorMessage(de.getErrorMessage());
+
+                break compareProcessing;
+              }
+
+              if (AccessControlConfigManager.getInstance()
+                      .getAccessControlHandler().isProxiedAuthAllowed(localOp,
+                                                 authorizationEntry) == false) {
+                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+                int msgID = MSGID_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+                localOp.appendErrorMessage(
+                    getMessage(msgID, String.valueOf(entryDN)));
+
+                skipPostOperation = true;
+                break compareProcessing;
+              }
+              localOp.setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                localOp.setProxiedAuthorizationDN(DN.nullDN());
+              }
+              else
+              {
+                localOp.setProxiedAuthorizationDN(authorizationEntry.getDN());
+              }
+            }
+            else if (oid.equals(OID_PROXIED_AUTH_V2))
+            {
+              // The requester must have the PROXIED_AUTH privilige in order to
+              // be able to use this control.
+              if (! clientConnection.hasPrivilege(
+                       Privilege.PROXIED_AUTH, localOp))
+              {
+                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+                localOp.appendErrorMessage(getMessage(msgID));
+                localOp.setResultCode(ResultCode.AUTHORIZATION_DENIED);
+                break compareProcessing;
+              }
+
+
+              ProxiedAuthV2Control proxyControl;
+              if (c instanceof ProxiedAuthV2Control)
+              {
+                proxyControl = (ProxiedAuthV2Control) c;
+              }
+              else
+              {
+                try
+                {
+                  proxyControl = ProxiedAuthV2Control.decodeControl(c);
+                }
+                catch (LDAPException le)
+                {
+                  if (debugEnabled())
+                  {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
+                  }
+
+                  localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
+                  localOp.appendErrorMessage(le.getMessage());
+
+                  break compareProcessing;
+                }
+              }
+
+
+              Entry authorizationEntry;
+              try
+              {
+                authorizationEntry = proxyControl.getAuthorizationEntry();
+              }
+              catch (DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                localOp.setResultCode(de.getResultCode());
+                localOp.appendErrorMessage(de.getErrorMessage());
+
+                break compareProcessing;
+              }
+
+              if (AccessControlConfigManager.getInstance()
+                      .getAccessControlHandler().isProxiedAuthAllowed(localOp,
+                                                 authorizationEntry) == false) {
+                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+                int msgID = MSGID_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+                localOp.appendErrorMessage(
+                    getMessage(msgID, String.valueOf(entryDN)));
+
+                skipPostOperation = true;
+                break compareProcessing;
+              }
+              localOp.setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                localOp.setProxiedAuthorizationDN(DN.nullDN());
+              }
+              else
+              {
+                localOp.setProxiedAuthorizationDN(authorizationEntry.getDN());
+              }
+            }
+
+            // NYI -- Add support for additional controls.
+            else if (c.isCritical())
+            {
+              Backend backend = DirectoryServer.getBackend(entryDN);
+              if ((backend == null) || (! backend.supportsControl(oid)))
+              {
+                localOp.setResultCode(
+                    ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+
+                int msgID = MSGID_COMPARE_UNSUPPORTED_CRITICAL_CONTROL;
+                localOp.appendErrorMessage(
+                    getMessage(msgID, String.valueOf(entryDN), oid));
+
+                break compareProcessing;
+              }
+            }
+          }
+        }
+
+
+        // Check to see if the client has permission to perform the
+        // compare.
+
+        // FIXME: for now assume that this will check all permission
+        // pertinent to the operation. This includes proxy authorization
+        // and any other controls specified.
+
+        // FIXME: earlier checks to see if the entry already exists may
+        // have already exposed sensitive information to the client.
+        if (AccessControlConfigManager.getInstance()
+            .getAccessControlHandler().isAllowed(localOp) == false) {
+          localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+          int msgID = MSGID_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+          localOp.appendErrorMessage(
+              getMessage(msgID, String.valueOf(entryDN)));
+
+          skipPostOperation = true;
+          break compareProcessing;
+        }
+
+        // Check for and handle a request to cancel this operation.
+        if (localOp.getCancelRequest() != null)
+        {
+          return;
+        }
+
+
+        // Invoke the pre-operation compare plugins.
+        PreOperationPluginResult preOpResult =
+             pluginConfigManager.invokePreOperationComparePlugins(localOp);
+        if (preOpResult.connectionTerminated())
+        {
+          // There's no point in continuing with anything.  Log the request and
+          // result and return.
+          localOp.setResultCode(ResultCode.CANCELED);
+
+          int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
+          localOp.appendErrorMessage(getMessage(msgID));
+
+          return;
+        }
+        else if (preOpResult.sendResponseImmediately())
+        {
+          skipPostOperation = true;
+          break compareProcessing;
+        }
+        else if (preOpResult.skipCoreProcessing())
+        {
+          skipPostOperation = false;
+          break compareProcessing;
+        }
+
+
+        // Get the base attribute type and set of options.
+        String          baseName;
+        HashSet<String> options;
+        String rawAttributeType = localOp.getRawAttributeType();
+        int             semicolonPos = rawAttributeType.indexOf(';');
+        if (semicolonPos > 0)
+        {
+          baseName = toLowerCase(rawAttributeType.substring(0, semicolonPos));
+
+          options = new HashSet<String>();
+          int nextPos = rawAttributeType.indexOf(';', semicolonPos+1);
+          while (nextPos > 0)
+          {
+            options.add(rawAttributeType.substring(semicolonPos+1, nextPos));
+            semicolonPos = nextPos;
+            nextPos = rawAttributeType.indexOf(';', semicolonPos+1);
+          }
+
+          options.add(rawAttributeType.substring(semicolonPos+1));
+        }
+        else
+        {
+          baseName = toLowerCase(rawAttributeType);
+          options  = null;
+        }
+
+
+        // Actually perform the compare operation.
+        List<Attribute> attrList = null;
+        if (localOp.getAttributeType() == null)
+        {
+          localOp.setAttributeType(DirectoryServer.getAttributeType(baseName));
+        }
+        if (localOp.getAttributeType() == null)
+        {
+          attrList = entry.getAttribute(baseName, options);
+          localOp.setAttributeType(
+              DirectoryServer.getDefaultAttributeType(baseName));
+        }
+        else
+        {
+          attrList = entry.getAttribute(localOp.getAttributeType(), options);
+        }
+
+        if ((attrList == null) || attrList.isEmpty())
+        {
+          localOp.setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
+          if (options == null)
+          {
+            localOp.appendErrorMessage(getMessage(MSGID_COMPARE_OP_NO_SUCH_ATTR,
+                                          String.valueOf(entryDN), baseName));
+          }
+          else
+          {
+            localOp.appendErrorMessage(getMessage(
+                                    MSGID_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS,
+                                    String.valueOf(entryDN), baseName));
+          }
+        }
+        else
+        {
+          AttributeValue value = new AttributeValue(
+              localOp.getAttributeType(),
+              localOp.getAssertionValue());
+
+          boolean matchFound = false;
+          for (Attribute a : attrList)
+          {
+            if (a.hasValue(value))
+            {
+              matchFound = true;
+              break;
+            }
+          }
+
+          if (matchFound)
+          {
+            localOp.setResultCode(ResultCode.COMPARE_TRUE);
+          }
+          else
+          {
+            localOp.setResultCode(ResultCode.COMPARE_FALSE);
+          }
+        }
+      }
+      finally
+      {
+        LockManager.unlock(entryDN, readLock);
+      }
+    }
+
+
+    // Check for and handle a request to cancel this operation.
+    if (localOp.getCancelRequest() != null)
+    {
+      return;
+    }
+
+
+    // Invoke the post-operation compare plugins.
+    if (! skipPostOperation)
+    {
+      PostOperationPluginResult postOperationResult =
+           pluginConfigManager.invokePostOperationComparePlugins(localOp);
+      if (postOperationResult.connectionTerminated())
+      {
+        localOp.setResultCode(ResultCode.CANCELED);
+
+        int msgID = MSGID_CANCELED_BY_POSTOP_DISCONNECT;
+        localOp.appendErrorMessage(getMessage(msgID));
+
+        return;
+      }
+    }
   }
 
 

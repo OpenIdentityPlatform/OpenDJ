@@ -48,6 +48,7 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.CompareOperation;
+import org.opends.server.core.CompareOperationBasis;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
@@ -1319,8 +1320,8 @@ public class PrivilegeTestCase
 
 
     // Test a compare operation against the PWReset Target user.
-    CompareOperation compareOperation =
-         new CompareOperation(conn, conn.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(conn, conn.nextOperationID(),
                               conn.nextMessageID(), controls, targetDN,
                               DirectoryServer.getAttributeType("cn", true),
                               ByteStringFactory.create("PWReset Target"));
@@ -1524,8 +1525,8 @@ public class PrivilegeTestCase
 
 
     // Test a compare operation against the PWReset Target user.
-    CompareOperation compareOperation =
-         new CompareOperation(conn, conn.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(conn, conn.nextOperationID(),
                               conn.nextMessageID(), controls, targetDN,
                               DirectoryServer.getAttributeType("cn", true),
                               ByteStringFactory.create("PWReset Target"));
