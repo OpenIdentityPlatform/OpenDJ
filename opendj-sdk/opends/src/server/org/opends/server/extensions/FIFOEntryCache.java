@@ -100,7 +100,6 @@ public class FIFOEntryCache
 
 
 
-
   /**
    * The set of time units that will be used for expressing the task retention
    * time.
@@ -123,14 +122,6 @@ public class FIFOEntryCache
 
   // The mapping between entry backends/IDs and entries.
   private HashMap<Backend,HashMap<Long,CacheEntry>> idMap;
-
-  // The set of filters that define the entries that should be excluded from the
-  // cache.
-  private HashSet<SearchFilter> excludeFilters;
-
-  // The set of filters that define the entries that should be included in the
-  // cache.
-  private HashSet<SearchFilter> includeFilters;
 
   // The maximum percentage of JVM memory that should be used by the cache.
   private int maxMemoryPercent;
@@ -303,66 +294,10 @@ public class FIFOEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-    // If there is a set of exclude filters, then make sure that the provided
-    // entry doesn't match any of them.
-    if (! excludeFilters.isEmpty())
-    {
-      for (SearchFilter f : excludeFilters)
-      {
-        try
-        {
-          if (f.matchesEntry(entry))
-          {
-            return;
-          }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          // This shouldn't happen, but if it does then we can't be sure whether
-          // the entry should be excluded, so we will by default.
-          return;
-        }
-      }
+    // Check exclude and include filters first.
+    if (!filtersAllowCaching(entry)) {
+      return;
     }
-
-
-    // If there is a set of include filters, then make sure that the provided
-    // entry matches at least one of them.
-    if (! includeFilters.isEmpty())
-    {
-      boolean matchFound = false;
-      for (SearchFilter f : includeFilters)
-      {
-        try
-        {
-          if (f.matchesEntry(entry))
-          {
-            matchFound = true;
-            break;
-          }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          // This shouldn't happen, but if it does, then just ignore it.
-        }
-      }
-
-      if (! matchFound)
-      {
-        return;
-      }
-    }
-
 
     // Create the cache entry based on the provided information.
     CacheEntry cacheEntry = new CacheEntry(entry, backend, entryID);
@@ -475,66 +410,10 @@ public class FIFOEntryCache
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
-    // If there is a set of exclude filters, then make sure that the provided
-    // entry doesn't match any of them.
-    if (! excludeFilters.isEmpty())
-    {
-      for (SearchFilter f : excludeFilters)
-      {
-        try
-        {
-          if (f.matchesEntry(entry))
-          {
-            return true;
-          }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          // This shouldn't happen, but if it does then we can't be sure whether
-          // the entry should be excluded, so we will by default.
-          return false;
-        }
-      }
+    // Check exclude and include filters first.
+    if (!filtersAllowCaching(entry)) {
+      return true;
     }
-
-
-    // If there is a set of include filters, then make sure that the provided
-    // entry matches at least one of them.
-    if (! includeFilters.isEmpty())
-    {
-      boolean matchFound = false;
-      for (SearchFilter f : includeFilters)
-      {
-        try
-        {
-          if (f.matchesEntry(entry))
-          {
-            matchFound = true;
-            break;
-          }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          // This shouldn't happen, but if it does, then just ignore it.
-        }
-      }
-
-      if (! matchFound)
-      {
-        return true;
-      }
-    }
-
 
     // Create the cache entry based on the provided information.
     CacheEntry cacheEntry = new CacheEntry(entry, backend, entryID);
