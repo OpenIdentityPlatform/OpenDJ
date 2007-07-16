@@ -116,7 +116,7 @@ class DefaultAccessControlHandler
    * {@inheritDoc}
    */
   @Override
-  public boolean isAllowed(CompareOperation compareOperation)
+  public boolean isAllowed(LocalBackendCompareOperation compareOperation)
   {
     return true;
   }

@@ -48,7 +48,6 @@ import org.opends.server.plugins.InvocationCounterPlugin;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
-import static org.testng.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -138,7 +137,8 @@ public class CompareOperationTestCase extends OperationTestCase
 
     return new Operation[]
     {
-      new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+      new CompareOperationBasis(
+                           conn, InternalClientConnection.nextOperationID(),
                            InternalClientConnection.nextMessageID(),
                            new ArrayList<Control>(),
                            new ASN1OctetString(entry.getDN().toString()),
@@ -216,8 +216,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
                               new ASN1OctetString(entry.getDN().toString()),
@@ -240,8 +241,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
                               new ASN1OctetString(entry.getDN().toString()),
@@ -263,8 +265,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
                               new ASN1OctetString("o=nonexistent,o=test"),
@@ -285,8 +288,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
                               new ASN1OctetString("rogasawara,o=test"),
@@ -307,8 +311,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
                               new ASN1OctetString(entry.getDN().toString()),
@@ -330,8 +335,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
                               new ASN1OctetString(entry.getDN().toString()),
@@ -352,8 +358,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
                               new ASN1OctetString(entry.getDN().toString()),
@@ -371,8 +378,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
                               new ASN1OctetString(entry.getDN().toString()),
@@ -390,8 +398,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
                               new ASN1OctetString(entry.getDN().toString()),
@@ -409,8 +418,9 @@ public class CompareOperationTestCase extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               new ArrayList<Control>(),
                               new ASN1OctetString(entry.getDN().toString()),
@@ -436,8 +446,9 @@ public class CompareOperationTestCase extends OperationTestCase
     List<Control> controls = new ArrayList<Control>();
     controls.add(assertControl);
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
                               new ASN1OctetString(entry.getDN().toString()),
@@ -465,8 +476,9 @@ public class CompareOperationTestCase extends OperationTestCase
     List<Control> controls = new ArrayList<Control>();
     controls.add(assertControl);
 
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
                               new ASN1OctetString(entry.getDN().toString()),
@@ -490,8 +502,9 @@ public class CompareOperationTestCase extends OperationTestCase
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
 
-    CompareOperation compareOperation =
-         new CompareOperation(proxyUserConn,
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              proxyUserConn,
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
@@ -518,8 +531,9 @@ public class CompareOperationTestCase extends OperationTestCase
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV1Control);
 
-    CompareOperation compareOperation =
-         new CompareOperation(proxyUserConn,
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              proxyUserConn,
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
@@ -544,8 +558,9 @@ public class CompareOperationTestCase extends OperationTestCase
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
 
-    CompareOperation compareOperation =
-         new CompareOperation(proxyUserConn,
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              proxyUserConn,
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
@@ -570,8 +585,9 @@ public class CompareOperationTestCase extends OperationTestCase
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
 
-    CompareOperation compareOperation =
-         new CompareOperation(proxyUserConn,
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              proxyUserConn,
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
@@ -597,8 +613,9 @@ public class CompareOperationTestCase extends OperationTestCase
     List<Control> controls = new ArrayList<Control>();
     controls.add(authV2Control);
 
-    CompareOperation compareOperation =
-         new CompareOperation(proxyUserConn,
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              proxyUserConn,
                               InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
@@ -625,8 +642,9 @@ public class CompareOperationTestCase extends OperationTestCase
          new LDAPAssertionRequestControl("1.1.1.1.1.1", true, ldapFilter);
     List<Control> controls = new ArrayList<Control>();
     controls.add(assertControl);
-    CompareOperation compareOperation =
-         new CompareOperation(conn, InternalClientConnection.nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(
+                              conn, InternalClientConnection.nextOperationID(),
                               InternalClientConnection.nextMessageID(),
                               controls,
                               new ASN1OctetString(entry.getDN().toString()),

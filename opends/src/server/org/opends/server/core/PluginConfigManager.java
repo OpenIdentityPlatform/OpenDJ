@@ -82,21 +82,25 @@ import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationBindOperation;
+import org.opends.server.types.operation.PostOperationCompareOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostOperationSearchOperation;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseBindOperation;
+import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseSearchOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationBindOperation;
+import org.opends.server.types.operation.PreOperationCompareOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.types.operation.PreParseBindOperation;
+import org.opends.server.types.operation.PreParseCompareOperation;
 import org.opends.server.types.operation.PreParseDeleteOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.types.operation.PreParseSearchOperation;
@@ -1971,7 +1975,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse compare plugins.
    */
   public PreParsePluginResult invokePreParseComparePlugins(
-                                   CompareOperation compareOperation)
+    PreParseCompareOperation compareOperation)
   {
     PreParsePluginResult result = null;
 
@@ -2705,7 +2709,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-operation compare plugins.
    */
   public PreOperationPluginResult invokePreOperationComparePlugins(
-                                       CompareOperation compareOperation)
+     PreOperationCompareOperation compareOperation)
   {
     PreOperationPluginResult result = null;
 
@@ -3439,7 +3443,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation compare plugins.
    */
   public PostOperationPluginResult invokePostOperationComparePlugins(
-                                        CompareOperation compareOperation)
+      PostOperationCompareOperation compareOperation)
   {
     PostOperationPluginResult result = null;
 
@@ -4161,7 +4165,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-response compare plugins.
    */
   public PostResponsePluginResult invokePostResponseComparePlugins(
-                                       CompareOperation compareOperation)
+      PostResponseCompareOperation compareOperation)
   {
     PostResponsePluginResult result = null;
 

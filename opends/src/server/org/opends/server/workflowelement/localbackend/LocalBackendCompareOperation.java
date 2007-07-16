@@ -1,0 +1,86 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
+ */
+package org.opends.server.workflowelement.localbackend;
+
+
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.CompareOperationWrapper;
+import org.opends.server.types.Entry;
+import org.opends.server.types.operation.PostOperationCompareOperation;
+import org.opends.server.types.operation.PostResponseCompareOperation;
+import org.opends.server.types.operation.PreOperationCompareOperation;
+
+
+/**
+ * This class defines an operation that may be used to determine whether a
+ * specified entry in the Directory Server contains a given attribute-value
+ * pair.
+ */
+public class LocalBackendCompareOperation extends CompareOperationWrapper
+    implements PreOperationCompareOperation,
+               PostOperationCompareOperation,
+               PostResponseCompareOperation
+{
+  // The entry to be compared.
+  private Entry entry = null;
+
+
+  /**
+   * Creates a new compare operation based on the provided compare operation.
+   *
+   * @param compare  the compare operation
+   */
+  public LocalBackendCompareOperation(CompareOperation compare)
+  {
+    super(compare);
+    LocalBackendWorkflowElement.attachLocalOperation (compare, this);
+  }
+
+
+  /**
+   * Retrieves the entry to target with the compare operation.
+   *
+   * @return  The entry to target with the compare operation, or
+   *          <CODE>null</CODE> if the entry is not yet available.
+   */
+  public Entry getEntryToCompare()
+  {
+    return entry;
+  }
+
+
+  /**
+   * Set the entry to target with the compare operation.
+   *
+   * @param  entry   The entry to target with the compare operation.
+   */
+  public void setEntryToCompare(Entry entry)
+  {
+    this.entry = entry;
+  }
+
+}

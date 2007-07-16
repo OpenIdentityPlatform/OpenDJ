@@ -58,7 +58,9 @@ public class AciLDAPOperationContainer extends AciContainer  {
      * @param operation The compare operation to evaluate.
      * @param rights  The rights of a compare operation.
      */
-    public AciLDAPOperationContainer(CompareOperation operation, int rights) {
+    public AciLDAPOperationContainer(LocalBackendCompareOperation operation,
+        int rights)
+    {
         super(operation, rights, operation.getEntryToCompare());
     }
 

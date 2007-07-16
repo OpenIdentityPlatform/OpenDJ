@@ -880,7 +880,7 @@ public class AciHandler
      * @param operation The compare operation to check access on.
      * @return  True if access is allowed.
      */
-   public boolean isAllowed(CompareOperation operation) {
+   public boolean isAllowed(LocalBackendCompareOperation operation) {
        AciLDAPOperationContainer operationContainer =
                new AciLDAPOperationContainer(operation, ACI_COMPARE);
        String baseName;

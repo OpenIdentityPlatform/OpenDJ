@@ -589,8 +589,8 @@ public class JmxClientConnection
                                         String attributeType,
                                         ASN1OctetString assertionValue)
   {
-    CompareOperation compareOperation =
-         new CompareOperation(this, nextOperationID(), nextMessageID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(this, nextOperationID(), nextMessageID(),
                               new ArrayList<Control>(0), rawEntryDN,
                               attributeType, assertionValue);
 

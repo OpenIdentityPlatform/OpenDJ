@@ -56,7 +56,7 @@ import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.core.AbandonOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.BindOperationBasis;
-import org.opends.server.core.CompareOperation;
+import org.opends.server.core.CompareOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
@@ -2063,8 +2063,8 @@ public class LDAPClientConnection
     }
 
     CompareRequestProtocolOp protocolOp = message.getCompareRequestProtocolOp();
-    CompareOperation compareOp =
-         new CompareOperation(this, nextOperationID.getAndIncrement(),
+    CompareOperationBasis compareOp =
+         new CompareOperationBasis(this, nextOperationID.getAndIncrement(),
                               message.getMessageID(), controls,
                               protocolOp.getDN(), protocolOp.getAttributeType(),
                               protocolOp.getAssertionValue());

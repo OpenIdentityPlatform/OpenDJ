@@ -954,8 +954,8 @@ public class InternalClientConnection
                                          String attributeType,
                                          ByteString assertionValue)
   {
-    CompareOperation compareOperation =
-         new CompareOperation(this, nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(this, nextOperationID(),
                               nextMessageID(),
                               new ArrayList<Control>(0), rawEntryDN,
                               attributeType, assertionValue);
@@ -985,8 +985,8 @@ public class InternalClientConnection
                                          AttributeType attributeType,
                                          ByteString assertionValue)
   {
-    CompareOperation compareOperation =
-         new CompareOperation(this, nextOperationID(),
+    CompareOperationBasis compareOperation =
+         new CompareOperationBasis(this, nextOperationID(),
                               nextMessageID(),
                               new ArrayList<Control>(0), entryDN,
                               attributeType, assertionValue);
