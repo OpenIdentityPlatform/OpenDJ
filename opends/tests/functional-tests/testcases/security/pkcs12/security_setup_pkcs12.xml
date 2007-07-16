@@ -69,97 +69,45 @@
                'Security: PKCS12: Preamble Step 1. Generating Server PKCS12 Certicate'
             </message>
 
-			<call function="'genCertificate'">
+            <call function="'genCertificate'">
             { 'certAlias'        : 'server-cert' ,
                'dname'           : "cn=client,O=Sun Microsystems,C=US",
                'keystore'        : 'keystore',
                'storepass'       : 'servercert',
                'keypass'         : 'servercert',
-               'storetype'  	   : 'PKCS12' }
-           </call>
-
+               'storetype'  	 : 'PKCS12' }
+            </call>
 
             <!--- Self-Sign Server Cert -->
             <message>
                'Security: PKCS12: Preamble Step 2. Self-Signing Server PKCS12 Certicate'
             </message>
+
             <call function="'SelfSignCertificate'">
             { 'certAlias'        : 'server-cert' ,
-              'storepass'       : 'servercert',
-              'keypass'         : 'servercert',
-              'keystore'        : 'keystore',
-              'storetype'  	   : 'PKCS12' }
+              'storepass'        : 'servercert',
+              'keypass'          : 'servercert',
+              'keystore'         : 'keystore',
+              'storetype'  	 : 'PKCS12' }
             </call>			
-
 
             <!--- Configure PKCS12 Keystore -->
             <message>
                'Security: PKCS12: Preamble Step 3. Configuring PKCS12 Keystore'
             </message>
 
-	  <!-- Configure SSL-->
-
-      <message>
-               '----  Configure SSL ----'
-      </message>	  
-
-     <!--- Enable Key Manager Provider -->
-      <message>
-       'Enabling Key Manager Provider'
-      </message>
-      <call function="'modifyEntry'">
-              {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+            <call function="'configureSSL'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,		  
-                'entryToBeModified' : '%s/security/pkcs12/setup/enable_key_mgr_provider.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }
-      </call>
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'keystoreType'     : '%s' % 'pkcs12' }
+            </call>
 
-		 
-     <!--- Enable Trust Manager Provider -->
-      <message>
-         'Enabling Trust Manager Provider'
-      </message>
-
-      <call function="'modifyEntry'">
-               {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
-                'entryToBeModified' : '%s/security/pkcs12/setup/enable_trust_mgr_provider.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }		  
-      </call>
-
-
-      <!--- Enable LDAPS Connection Handler -->
-      <message>
-       'Enabling LDAPS Connection Handler - Port number'
-      </message>
-
-      <call function="'modifyEntry'">
-             {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
-                'entryToBeModified' : '%s/security/ldaps_port.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }		  
-      </call>
-
-	  <!--  Enabling LDAPS Connection Handler - Keystore type -->
-      <message>
-       'Enabling LDAPS Connection Handler - Keystore type'
-      </message>
-
-      <call function="'modifyEntry'">
-             {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
-                'entryToBeModified' : '%s/security/pkcs12/setup/enable_ldaps_conn_handler.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }		  
-      </call>
-	
+            <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+            </call>
 
             <!--- Initial Search With SSL -->
             <message>
@@ -171,11 +119,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*' ,
                 'extraParams'  	   : '-Z -X' }
             </call>
-
 
             <call function="'testCase_Postamble'"/>
           </sequence>
