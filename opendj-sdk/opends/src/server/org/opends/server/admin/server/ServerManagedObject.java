@@ -109,7 +109,7 @@ public final class ServerManagedObject<S extends Configuration> implements
    *          The type of the property.
    */
   private static class DefaultValueFinder<T> implements
-      DefaultBehaviorProviderVisitor<T, Collection<T>, ManagedObjectPath> {
+      DefaultBehaviorProviderVisitor<T, Collection<T>, Void> {
 
     /**
      * Get the default values for the specified property.
@@ -120,40 +120,40 @@ public final class ServerManagedObject<S extends Configuration> implements
      *          The managed object path of the current managed object.
      * @param pd
      *          The property definition.
+     * @param newConfigEntry
+     *          Optional new configuration entry which does not yet
+     *          exist in the configuration back-end.
      * @return Returns the default values for the specified property.
      * @throws DefaultBehaviorException
      *           If the default values could not be retrieved or
      *           decoded properly.
      */
     public static <T> Collection<T> getDefaultValues(ManagedObjectPath p,
-        PropertyDefinition<T> pd) throws DefaultBehaviorException {
-      DefaultValueFinder<T> v = new DefaultValueFinder<T>(pd);
-      Collection<T> values = pd.getDefaultBehaviorProvider().accept(v, p);
-
-      if (v.exception != null) {
-        throw v.exception;
-      }
-
-      if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
-        throw new DefaultBehaviorException(pd,
-            new PropertyIsSingleValuedException(pd));
-      }
-
-      return values;
+        PropertyDefinition<T> pd, ConfigEntry newConfigEntry)
+        throws DefaultBehaviorException {
+      DefaultValueFinder<T> v = new DefaultValueFinder<T>(newConfigEntry);
+      return v.find(p, pd);
     }
 
     // Any exception that occurred whilst retrieving inherited default
     // values.
     private DefaultBehaviorException exception = null;
 
-    // The property definition whose default values are required.
-    private final PropertyDefinition<T> pd;
+    // The path of the managed object containing the next property.
+    private ManagedObjectPath nextPath = null;
+
+    // The next property whose default values were required.
+    private PropertyDefinition<T> nextProperty = null;
+
+    // Optional new configuration entry which does not yet exist in
+    // the configuration back-end.
+    private ConfigEntry newConfigEntry;
 
 
 
     // Private constructor.
-    private DefaultValueFinder(PropertyDefinition<T> pd) {
-      this.pd = pd;
+    private DefaultValueFinder(ConfigEntry newConfigEntry) {
+      this.newConfigEntry = newConfigEntry;
     }
 
 
@@ -162,14 +162,14 @@ public final class ServerManagedObject<S extends Configuration> implements
      * {@inheritDoc}
      */
     public Collection<T> visitAbsoluteInherited(
-        AbsoluteInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath p) {
+        AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
       try {
         return getInheritedProperty(d.getManagedObjectPath(), d
             .getManagedObjectDefinition(), d.getPropertyName());
       } catch (DefaultBehaviorException e) {
-        exception = new DefaultBehaviorException(pd, e);
+        exception = e;
+        return Collections.emptySet();
       }
-      return Collections.emptySet();
     }
 
 
@@ -177,8 +177,7 @@ public final class ServerManagedObject<S extends Configuration> implements
     /**
      * {@inheritDoc}
      */
-    public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d,
-        ManagedObjectPath p) {
+    public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
       return Collections.emptySet();
     }
 
@@ -188,15 +187,15 @@ public final class ServerManagedObject<S extends Configuration> implements
      * {@inheritDoc}
      */
     public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d,
-        ManagedObjectPath p) {
+        Void p) {
       Collection<String> stringValues = d.getDefaultValues();
       List<T> values = new ArrayList<T>(stringValues.size());
 
       for (String stringValue : stringValues) {
         try {
-          values.add(pd.decodeValue(stringValue));
+          values.add(nextProperty.decodeValue(stringValue));
         } catch (IllegalPropertyValueStringException e) {
-          exception = new DefaultBehaviorException(pd, e);
+          exception = new DefaultBehaviorException(nextProperty, e);
           break;
         }
       }
@@ -210,14 +209,14 @@ public final class ServerManagedObject<S extends Configuration> implements
      * {@inheritDoc}
      */
     public Collection<T> visitRelativeInherited(
-        RelativeInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath p) {
+        RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
       try {
-        return getInheritedProperty(d.getManagedObjectPath(p), d
+        return getInheritedProperty(d.getManagedObjectPath(nextPath), d
             .getManagedObjectDefinition(), d.getPropertyName());
       } catch (DefaultBehaviorException e) {
-        exception = new DefaultBehaviorException(pd, e);
+        exception = e;
+        return Collections.emptySet();
       }
-      return Collections.emptySet();
     }
 
 
@@ -226,72 +225,104 @@ public final class ServerManagedObject<S extends Configuration> implements
      * {@inheritDoc}
      */
     public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
-        ManagedObjectPath p) {
+        Void p) {
       return Collections.emptySet();
     }
 
 
 
+    // Find the default values for the next path/property.
+    private Collection<T> find(ManagedObjectPath p, PropertyDefinition<T> pd)
+        throws DefaultBehaviorException {
+      nextPath = p;
+      nextProperty = pd;
+
+      Collection<T> values = nextProperty.getDefaultBehaviorProvider().accept(
+          this, null);
+
+      if (exception != null) {
+        throw exception;
+      }
+
+      if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
+        throw new DefaultBehaviorException(pd,
+            new PropertyIsSingleValuedException(pd));
+      }
+
+      return values;
+    }
+
+
+
     // Get an inherited property value.
+    @SuppressWarnings("unchecked")
     private Collection<T> getInheritedProperty(ManagedObjectPath target,
         AbstractManagedObjectDefinition<?, ?> d, String propertyName)
         throws DefaultBehaviorException {
-      try {
-        // First check that the requested type of managed object
-        // corresponds to the path.
-        AbstractManagedObjectDefinition<?, ?> supr = target
-            .getManagedObjectDefinition();
-        if (!supr.isParentOf(d)) {
-          throw new DefinitionDecodingException(Reason.WRONG_TYPE_INFORMATION);
-        }
+      // First check that the requested type of managed object
+      // corresponds to the path.
+      AbstractManagedObjectDefinition<?, ?> supr = target
+          .getManagedObjectDefinition();
+      if (!supr.isParentOf(d)) {
+        throw new DefaultBehaviorException(nextProperty,
+            new DefinitionDecodingException(Reason.WRONG_TYPE_INFORMATION));
+      }
 
+      // Save the current property in case of recursion.
+      PropertyDefinition<T> pd1 = nextProperty;
+
+      try {
         // Get the actual managed object definition.
         DN dn = DNBuilder.create(target);
-        ConfigEntry configEntry = getManagedObjectConfigEntry(dn);
+        ConfigEntry configEntry;
+        if (newConfigEntry != null && newConfigEntry.getDN().equals(dn)) {
+          configEntry = newConfigEntry;
+        } else {
+          configEntry = getManagedObjectConfigEntry(dn);
+        }
+
         DefinitionResolver resolver = new MyDefinitionResolver(configEntry);
         ManagedObjectDefinition<?, ?> mod = d
             .resolveManagedObjectDefinition(resolver);
 
-        PropertyDefinition<?> pd2;
+        PropertyDefinition<T> pd2;
         try {
-          pd2 = mod.getPropertyDefinition(propertyName);
+          PropertyDefinition<?> pdTmp = mod.getPropertyDefinition(propertyName);
+          pd2 = pd1.getClass().cast(pdTmp);
         } catch (IllegalArgumentException e) {
+          throw new PropertyNotFoundException(propertyName);
+        } catch (ClassCastException e) {
+          // FIXME: would be nice to throw a better exception here.
           throw new PropertyNotFoundException(propertyName);
         }
 
         List<String> stringValues = getAttribute(mod, pd2, configEntry);
         if (stringValues.isEmpty()) {
           // Recursively retrieve this property's default values.
-          Collection<?> tmp = getDefaultValues(target, pd2);
+          Collection<T> tmp = find(target, pd2);
           Collection<T> values = new ArrayList<T>(tmp.size());
-          for (Object o : tmp) {
-            T value;
-            try {
-              value = pd.castValue(o);
-            } catch (ClassCastException e) {
-              throw new IllegalPropertyValueException(pd, o);
-            }
-            pd.validateValue(value);
+          for (T value : tmp) {
+            pd1.validateValue(value);
             values.add(value);
           }
           return values;
         } else {
           Collection<T> values = new ArrayList<T>(stringValues.size());
           for (String s : stringValues) {
-            values.add(pd.decodeValue(s));
+            values.add(pd1.decodeValue(s));
           }
           return values;
         }
       } catch (DefinitionDecodingException e) {
-        throw new DefaultBehaviorException(pd, e);
+        throw new DefaultBehaviorException(pd1, e);
       } catch (PropertyNotFoundException e) {
-        throw new DefaultBehaviorException(pd, e);
+        throw new DefaultBehaviorException(pd1, e);
       } catch (IllegalPropertyValueException e) {
-        throw new DefaultBehaviorException(pd, e);
+        throw new DefaultBehaviorException(pd1, e);
       } catch (IllegalPropertyValueStringException e) {
-        throw new DefaultBehaviorException(pd, e);
+        throw new DefaultBehaviorException(pd1, e);
       } catch (ConfigException e) {
-        throw new DefaultBehaviorException(pd, e);
+        throw new DefaultBehaviorException(pd1, e);
       }
     }
   }
@@ -379,7 +410,7 @@ public final class ServerManagedObject<S extends Configuration> implements
     for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
       List<String> values = getAttribute(mod, pd, configEntry);
       try {
-        decodeProperty(properties, path, pd, values);
+        decodeProperty(properties, path, pd, values, configEntry);
       } catch (PropertyException e) {
         exceptions.add(e);
       }
@@ -423,7 +454,8 @@ public final class ServerManagedObject<S extends Configuration> implements
   private static <T> void decodeProperty(
       Map<PropertyDefinition<?>, SortedSet<?>> properties,
       ManagedObjectPath path, PropertyDefinition<T> pd,
-      List<String> stringValues) throws PropertyException {
+      List<String> stringValues, ConfigEntry newConfigEntry)
+      throws PropertyException {
     PropertyException exception = null;
     SortedSet<T> values = new TreeSet<T>(pd);
 
@@ -439,7 +471,8 @@ public final class ServerManagedObject<S extends Configuration> implements
     } else {
       // No values defined so get the defaults.
       try {
-        values.addAll(DefaultValueFinder.getDefaultValues(path, pd));
+        values.addAll(DefaultValueFinder.getDefaultValues(path, pd,
+            newConfigEntry));
       } catch (DefaultBehaviorException e) {
         exception = e;
       }
