@@ -7164,7 +7164,7 @@ public class DirectoryServer
           }
 
         case EXTENDED:
-         ExtendedOperation extOp = (ExtendedOperation) operation;
+         ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
          String   requestOID = extOp.getRequestOID();
          if (!((requestOID != null) &&
                  requestOID.equals(OID_START_TLS_REQUEST)))
@@ -7211,7 +7211,7 @@ public class DirectoryServer
         case EXTENDED:
           // We will only allow the password modify and StartTLS extended
           // operations.
-          ExtendedOperation extOp = (ExtendedOperation) operation;
+          ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
           String            requestOID = extOp.getRequestOID();
           if ((requestOID == null) ||
               ((! requestOID.equals(OID_PASSWORD_MODIFY_REQUEST)) &&

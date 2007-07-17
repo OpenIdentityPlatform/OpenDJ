@@ -59,7 +59,7 @@ import org.opends.server.core.BindOperationBasis;
 import org.opends.server.core.CompareOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
+import org.opends.server.core.ExtendedOperationBasis;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.PersistentSearch;
@@ -661,7 +661,7 @@ public class LDAPClientConnection
           return null;
         }
 
-        ExtendedOperation extOp = (ExtendedOperation) operation;
+        ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
         protocolOp = new ExtendedResponseProtocolOp(resultCode.getIntValue(),
                               errorMessage.toString(), matchedDN, referralURLs,
                               extOp.getResponseOID(), extOp.getResponseValue());
@@ -2195,8 +2195,8 @@ public class LDAPClientConnection
 
     ExtendedRequestProtocolOp protocolOp =
          message.getExtendedRequestProtocolOp();
-    ExtendedOperation extendedOp =
-         new ExtendedOperation(this, nextOperationID.getAndIncrement(),
+    ExtendedOperationBasis extendedOp =
+         new ExtendedOperationBasis(this, nextOperationID.getAndIncrement(),
                                message.getMessageID(), controls,
                                protocolOp.getOID(), protocolOp.getValue());
 

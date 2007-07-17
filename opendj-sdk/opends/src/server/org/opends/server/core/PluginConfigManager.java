@@ -84,6 +84,7 @@ import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationBindOperation;
 import org.opends.server.types.operation.PostOperationCompareOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationExtendedOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostOperationSearchOperation;
@@ -91,6 +92,7 @@ import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseBindOperation;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
+import org.opends.server.types.operation.PostResponseExtendedOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseSearchOperation;
@@ -98,6 +100,7 @@ import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationBindOperation;
 import org.opends.server.types.operation.PreOperationCompareOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.PreOperationExtendedOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
@@ -105,6 +108,7 @@ import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.types.operation.PreParseBindOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
 import org.opends.server.types.operation.PreParseDeleteOperation;
+import org.opends.server.types.operation.PreParseExtendedOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.types.operation.PreParseSearchOperation;
 import org.opends.server.workflowelement.localbackend.*;
@@ -2142,7 +2146,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse extended plugins.
    */
   public PreParsePluginResult invokePreParseExtendedPlugins(
-                                   ExtendedOperation extendedOperation)
+                                   PreParseExtendedOperation extendedOperation)
   {
     PreParsePluginResult result = null;
 
@@ -2876,7 +2880,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-operation extended plugins.
    */
   public PreOperationPluginResult invokePreOperationExtendedPlugins(
-                                       ExtendedOperation extendedOperation)
+                               PreOperationExtendedOperation extendedOperation)
   {
     PreOperationPluginResult result = null;
 
@@ -3610,7 +3614,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation extended plugins.
    */
   public PostOperationPluginResult invokePostOperationExtendedPlugins(
-                                        ExtendedOperation extendedOperation)
+                             PostOperationExtendedOperation extendedOperation)
   {
     PostOperationPluginResult result = null;
 
@@ -4316,7 +4320,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-response extended plugins.
    */
   public PostResponsePluginResult invokePostResponseExtendedPlugins(
-                                       ExtendedOperation extendedOperation)
+                              PostResponseExtendedOperation extendedOperation)
   {
     PostResponsePluginResult result = null;
 

@@ -1076,11 +1076,12 @@ public class InternalClientConnection
    *          and contains information about the result of the
    *          processing.
    */
-  public ExtendedOperation processExtendedOperation(String requestOID,
+  public ExtendedOperation processExtendedOperation(
+                                String requestOID,
                                 ASN1OctetString requestValue)
   {
-    ExtendedOperation extendedOperation =
-         new ExtendedOperation(this, nextOperationID(),
+    ExtendedOperationBasis extendedOperation =
+         new ExtendedOperationBasis(this, nextOperationID(),
                                nextMessageID(),
                                new ArrayList<Control>(0), requestOID,
                                requestValue);
