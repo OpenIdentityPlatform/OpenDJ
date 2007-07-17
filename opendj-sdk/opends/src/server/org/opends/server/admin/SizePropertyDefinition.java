@@ -317,7 +317,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
     // Cast to a long to remove fractional part (which should not be there
     // anyway as the best-fit unit should result in an exact conversion).
     builder.append((long) unit.fromBytes(value));
-
+    builder.append(' ');
     builder.append(unit.toString());
     return builder.toString();
   }

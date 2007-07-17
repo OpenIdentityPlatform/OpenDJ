@@ -82,15 +82,15 @@ public class DurationUnitTest {
     @DataProvider(name = "testToString")
     public Object[][] createToStringData() {
       return new Object[][]{
-              { 0L, "0ms" },
-              { 1L, "1ms" },
-              { 999L, "999ms" },
-              { 1000L, "1s" },
-              { 1001L, "1s1ms" },
-              { 59999L, "59s999ms" },
-              { 60000L, "1m" },
-              { 3599999L, "59m59s999ms" },
-              { 3600000L, "1h" }
+              { 0L, "0 ms" },
+              { 1L, "1 ms" },
+              { 999L, "999 ms" },
+              { 1000L, "1 s" },
+              { 1001L, "1 s 1 ms" },
+              { 59999L, "59 s 999 ms" },
+              { 60000L, "1 m" },
+              { 3599999L, "59 m 59 s 999 ms" },
+              { 3600000L, "1 h" }
       };
     }
 

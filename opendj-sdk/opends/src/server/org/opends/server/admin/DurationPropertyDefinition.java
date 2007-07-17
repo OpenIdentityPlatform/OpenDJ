@@ -499,6 +499,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
     // Encode the size value using the base unit.
     StringBuilder builder = new StringBuilder();
     builder.append(value);
+    builder.append(' ');
     builder.append(baseUnit.toString());
     return builder.toString();
   }
