@@ -187,7 +187,7 @@ public class JmxConnectTest extends JmxTestCase {
    * accepted when the given credentials are OK and refused when the
    * credentials are invalid.
    */
-  @Test(enabled = true, dataProvider = "simpleConnect")
+  @Test(enabled = false, dataProvider = "simpleConnect")
   public void simpleConnect(String user, String password,
       boolean expectedResult) throws Exception {
     OpendsJmxConnector connector = connect(user, password,
