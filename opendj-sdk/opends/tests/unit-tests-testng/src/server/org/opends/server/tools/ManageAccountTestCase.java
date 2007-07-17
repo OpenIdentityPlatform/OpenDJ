@@ -110,7 +110,9 @@ public class ManageAccountTestCase
       new Object[] { "get-password-changed-by-required-time" },
       new Object[] { "set-password-changed-by-required-time" },
       new Object[] { "clear-password-changed-by-required-time" },
-      new Object[] { "get-seconds-until-required-change-time" }
+      new Object[] { "get-seconds-until-required-change-time" },
+      new Object[] { "get-password-history" },
+      new Object[] { "clear-password-history" }
     };
   }
 
@@ -147,7 +149,8 @@ public class ManageAccountTestCase
       new Object[] { "get-grace-login-use-times" },
       new Object[] { "get-remaining-grace-login-count" },
       new Object[] { "get-password-changed-by-required-time" },
-      new Object[] { "get-seconds-until-required-change-time" }
+      new Object[] { "get-seconds-until-required-change-time" },
+      new Object[] { "get-password-history" }
     };
   }
 
@@ -219,7 +222,8 @@ public class ManageAccountTestCase
       new Object[] { "clear-last-login-time" },
       new Object[] { "clear-password-is-reset" },
       new Object[] { "clear-grace-login-use-times" },
-      new Object[] { "clear-password-changed-by-required-time" }
+      new Object[] { "clear-password-changed-by-required-time" },
+      new Object[] { "clear-password-history" }
     };
   }
 

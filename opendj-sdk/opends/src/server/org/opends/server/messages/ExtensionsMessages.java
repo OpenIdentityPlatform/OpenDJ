@@ -5502,6 +5502,16 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if a password change is
+   * rejected because the new password was found in the password history.  This
+   * does not take any arguments.
+   */
+  public static final int MSGID_EXTOP_PASSMOD_PW_IN_HISTORY =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 530;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -5786,6 +5796,9 @@ public class ExtensionsMessages
     registerMessage(MSGID_EXTOP_PASSMOD_UNACCEPTABLE_PW,
                     "The provided new password failed the validation checks " +
                     "defined in the server:  %s");
+    registerMessage(MSGID_EXTOP_PASSMOD_PW_IN_HISTORY,
+                    "The provided new password was already contained in the " +
+                    "password history");
     registerMessage(MSGID_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD,
                     "Unable to encode the provided password using the " +
                     "default scheme(s):  %s");

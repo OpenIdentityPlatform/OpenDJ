@@ -9036,6 +9036,33 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used as the label when
+   * displaying the password history state values.
+   */
+  public static final int MSGID_PWPSTATE_LABEL_PASSWORD_HISTORY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1200;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * get-password-history subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_HISTORY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1201;
+
+
+
+  /**
+   * The message ID for the message that will be used as the description for the
+   * clear-password-history subcommand.
+   */
+  public static final int MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_HISTORY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1202;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -11867,6 +11894,11 @@ public class ToolMessages
          "Display the length of time in seconds that the user has remaining " +
          "to change his or her password before the account becomes locked " +
          "due to the required change time");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_HISTORY,
+                    "Display password history state values for the user");
+    registerMessage(MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_HISTORY,
+                    "Clear password history state values for the user.  This " +
+                    "should be used only for testing purposes");
     registerMessage(MSGID_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS,
                     "ERROR:  You may not provide both the %s and the %s " +
                     "arguments");
@@ -11951,6 +11983,8 @@ public class ToolMessages
                     "Password Changed by Required Time");
     registerMessage(MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
                     "Seconds Until Required Change Time");
+    registerMessage(MSGID_PWPSTATE_LABEL_PASSWORD_HISTORY,
+                    "Password History");
     registerMessage(MSGID_PWPSTATE_INVALID_RESPONSE_OP_TYPE,
                     "Unrecognized or invalid operation type:  %s");
   }

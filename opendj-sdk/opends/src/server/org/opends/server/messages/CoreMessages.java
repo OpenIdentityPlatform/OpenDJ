@@ -6269,6 +6269,15 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if a new password is found
+   * in the password history.  This does not take any arguments.
+   */
+  public static final int MSGID_MODIFY_PW_IN_HISTORY =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 629;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -7504,6 +7513,9 @@ public class CoreMessages
     registerMessage(MSGID_MODIFY_PW_VALIDATION_FAILED,
                     "The provided password value was rejected by a password " +
                     "validator:  %s");
+    registerMessage(MSGID_MODIFY_PW_IN_HISTORY,
+                    "The provided new password was found in the password " +
+                    "history for the user");
     registerMessage(MSGID_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE,
                     "Entry %s cannot be modified because an attempt was " +
                     "made to increment the value of attribute %s but the " +

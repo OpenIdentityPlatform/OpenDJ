@@ -1869,6 +1869,33 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               }
             }
           }
+
+
+          // If we should check the password history, then do so now.
+          if (pwPolicyState.maintainHistory())
+          {
+            List<AttributeValue> newPasswords = localOp.getNewPasswords();
+            if (newPasswords != null)
+            {
+              for (AttributeValue v : newPasswords)
+              {
+                if (pwPolicyState.isPasswordInHistory(v.getValue()))
+                {
+                  if (selfChange || (! pwPolicyState.getPolicy().
+                                            skipValidationForAdministrators()))
+                  {
+                    localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                    int msgID = MSGID_MODIFY_PW_IN_HISTORY;
+                    localOp.appendErrorMessage(getMessage(msgID));
+                    break modifyProcessing;
+                  }
+                }
+              }
+
+              pwPolicyState.updatePasswordHistory();
+            }
+          }
         }
 
 

@@ -175,6 +175,12 @@ public class PasswordPolicy
   // The number of grace logins that a user may have.
   private int graceLoginCount = DEFAULT_PWPOLICY_GRACE_LOGIN_COUNT;
 
+  // The number of passwords to keep in the history.
+  private int historyCount = DEFAULT_PWPOLICY_HISTORY_COUNT;
+
+  // The maximum length of time in seconds to keep passwords in the history.
+  private int historyDuration = DEFAULT_PWPOLICY_HISTORY_DURATION;
+
   // The maximum length of time in seconds that an account may remain idle
   // before it is locked out.
   private int idleLockoutInterval = DEFAULT_PWPOLICY_IDLE_LOCKOUT_INTERVAL;
@@ -812,6 +818,11 @@ public class PasswordPolicy
     this.stateUpdateFailurePolicy = configuration.getStateUpdateFailurePolicy();
 
 
+    // Get the password history count and duration.
+    this.historyCount    = configuration.getPasswordHistoryCount();
+    this.historyDuration = (int) configuration.getPasswordHistoryDuration();
+
+
     /*
      *  Holistic validation.
      */
@@ -1110,6 +1121,34 @@ public class PasswordPolicy
   public PasswordGenerator getPasswordGenerator()
   {
     return passwordGenerator;
+  }
+
+
+
+  /**
+   * Retrieves the maximum number of previous passwords to maintain in the
+   * password history.
+   *
+   * @return  The maximum number of previous passwords to maintain in the
+   *          password history.
+   */
+  public int getPasswordHistoryCount()
+  {
+    return historyCount;
+  }
+
+
+
+  /**
+   * Retrieves the maximum length of time in seconds that previous passwords
+   * should remain in the password history.
+   *
+   * @return  The maximum length of time in seconds that previous passwords
+   *          should remain in the password history.
+   */
+  public int getPasswordHistoryDuration()
+  {
+    return historyDuration;
   }
 
 
@@ -1738,6 +1777,14 @@ public class PasswordPolicy
     buffer.append("Idle Lockout Interval:                 ");
     buffer.append(idleLockoutInterval);
     buffer.append(" seconds");
+    buffer.append(EOL);
+
+    buffer.append("History Count:                         ");
+    buffer.append(historyCount);
+    buffer.append(EOL);
+
+    buffer.append("Update Failure Policy:                 ");
+    buffer.append(stateUpdateFailurePolicy.toString());
     buffer.append(EOL);
   }
 }

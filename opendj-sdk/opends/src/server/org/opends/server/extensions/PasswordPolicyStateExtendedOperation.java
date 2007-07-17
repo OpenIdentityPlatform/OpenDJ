@@ -121,6 +121,8 @@ import static org.opends.server.util.StaticUtils.*;
  *           setPasswordChangedByRequiredTime             (36),
  *           clearPasswordChangedByRequiredTime           (37),
  *           getSecondsUntilRequiredChangeTime            (38),
+ *           getPasswordHistory                           (39),
+ *           clearPasswordHistory                         (40),
  *           ... },
  *      opValues     SEQUENCE OF OCTET STRING OPTIONAL }
  * </PRE>
@@ -417,6 +419,20 @@ public class PasswordPolicyStateExtendedOperation
    * The enumerated value for the getSecondsUntilRequiredChangeTime operation.
    */
   public static final int OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME = 38;
+
+
+
+  /**
+   * The enumerated value for the getPasswordHistory operation.
+   */
+  public static final int OP_GET_PASSWORD_HISTORY = 39;
+
+
+
+  /**
+   * The enumerated value for the clearPasswordHistory operation.
+   */
+  public static final int OP_CLEAR_PASSWORD_HISTORY = 40;
 
 
 
@@ -1225,6 +1241,15 @@ public class PasswordPolicyStateExtendedOperation
             returnTypes.add(OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME);
             break;
 
+          case OP_GET_PASSWORD_HISTORY:
+            returnTypes.add(OP_GET_PASSWORD_HISTORY);
+            break;
+
+          case OP_CLEAR_PASSWORD_HISTORY:
+            pwpState.clearPasswordHistory();
+            returnTypes.add(OP_GET_PASSWORD_HISTORY);
+            break;
+
           default:
             int msgID = MSGID_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
             operation.appendErrorMessage(getMessage(msgID, opType));
@@ -1602,6 +1627,12 @@ public class PasswordPolicyStateExtendedOperation
 
       opElements.add(encode(OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
                             secondsStr));
+    }
+
+    if (returnAll || returnTypes.contains(OP_GET_PASSWORD_HISTORY))
+    {
+      opElements.add(encode(OP_GET_PASSWORD_HISTORY,
+                            pwpState.getPasswordHistoryValues()));
     }
 
     ArrayList<ASN1Element> responseValueElements =

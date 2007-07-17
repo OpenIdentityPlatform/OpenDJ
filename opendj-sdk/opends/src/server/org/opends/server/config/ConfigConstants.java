@@ -1802,6 +1802,21 @@ public class ConfigConstants
 
 
   /**
+   * The default value for the password history count configuration attribute.
+   */
+  public static final int DEFAULT_PWPOLICY_HISTORY_COUNT = 0;
+
+
+
+  /**
+   * The default value for the password history duration configuration
+   * attribute, in seconds.
+   */
+  public static final int DEFAULT_PWPOLICY_HISTORY_DURATION = 0;
+
+
+
+  /**
    * The name of the configuration attribute that specifies the maximum length
    * of time an account may remain idle.
    */
@@ -3445,6 +3460,22 @@ public class ConfigConstants
    */
   public static final String OP_ATTR_PWPOLICY_FAILURE_TIME_LC =
        "pwdfailuretime";
+
+
+
+  /**
+   * The name of the operational attribute that is used to maintain the password
+   * history for the user.
+   */
+  public static final String OP_ATTR_PWPOLICY_HISTORY = "pwdHistory";
+
+
+
+  /**
+   * The name of the operational attribute that is used to maintain the password
+   * history for the user, in all lowercase characters.
+   */
+  public static final String OP_ATTR_PWPOLICY_HISTORY_LC = "pwdhistory";
 
 
 
