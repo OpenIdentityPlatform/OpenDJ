@@ -532,7 +532,7 @@ public class PersistentSearch
    * @param  oldEntry           The entry before the modify DN.
    * @param  newEntry           The entry after the modify DN.
    */
-  public void processModifyDN(ModifyDNOperation modifyDNOperation,
+  public void processModifyDN(LocalBackendModifyDNOperation modifyDNOperation,
                               Entry oldEntry, Entry newEntry)
   {
     // See if we care about modify DN operations.

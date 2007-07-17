@@ -40,7 +40,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteStringFactory;

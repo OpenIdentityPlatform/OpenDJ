@@ -31,7 +31,7 @@ import static org.opends.server.replication.protocol.OperationContext.*;
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
@@ -153,7 +153,7 @@ public class ModifyDNMsg extends UpdateMessage
   public AbstractOperation createOperation(
          InternalClientConnection connection, String newDn)
   {
-    ModifyDNOperation moddn =  new ModifyDNOperation(connection,
+    ModifyDNOperationBasis moddn =  new ModifyDNOperationBasis(connection,
                InternalClientConnection.nextOperationID(),
                InternalClientConnection.nextMessageID(), null,
                new ASN1OctetString(newDn), new ASN1OctetString(newRDN),

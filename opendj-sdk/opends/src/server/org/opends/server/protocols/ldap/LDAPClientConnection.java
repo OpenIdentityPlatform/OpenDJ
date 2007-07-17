@@ -60,7 +60,7 @@ import org.opends.server.core.CompareOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
@@ -2319,8 +2319,8 @@ public class LDAPClientConnection
 
     ModifyDNRequestProtocolOp protocolOp =
          message.getModifyDNRequestProtocolOp();
-    ModifyDNOperation modifyDNOp =
-         new ModifyDNOperation(this, nextOperationID.getAndIncrement(),
+    ModifyDNOperationBasis modifyDNOp =
+         new ModifyDNOperationBasis(this, nextOperationID.getAndIncrement(),
                                message.getMessageID(), controls,
                                protocolOp.getEntryDN(), protocolOp.getNewRDN(),
                                protocolOp.deleteOldRDN(),

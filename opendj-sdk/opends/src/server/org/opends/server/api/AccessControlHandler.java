@@ -225,7 +225,7 @@ public abstract class AccessControlHandler
    * @return  {@code true} if the operation should be allowed by the
    *          access control configuration, or {@code false} if not.
    */
-  public abstract boolean isAllowed(ModifyDNOperation
+  public abstract boolean isAllowed(LocalBackendModifyDNOperation
                                          modifyDNOperation);
 
 

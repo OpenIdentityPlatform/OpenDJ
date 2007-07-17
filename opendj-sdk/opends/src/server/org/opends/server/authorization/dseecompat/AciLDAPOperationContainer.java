@@ -104,7 +104,8 @@ public class AciLDAPOperationContainer extends AciContainer  {
      * @param rights  The rights of the modify DN operation.
      * @param entry  The entry to evalauted for this modify DN.
      */
-    public AciLDAPOperationContainer(ModifyDNOperation operation,  int rights,
+    public AciLDAPOperationContainer(LocalBackendModifyDNOperation operation,
+                                     int rights,
                                      Entry entry) {
         super(operation, rights,  entry);
     }

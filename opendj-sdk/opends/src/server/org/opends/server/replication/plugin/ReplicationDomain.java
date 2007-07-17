@@ -66,7 +66,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -1243,13 +1243,13 @@ public class ReplicationDomain extends DirectoryThread
               done = solveNamingConflict(newOp, addMsg);
             }
           }
-          else if (op instanceof ModifyDNOperation)
+          else if (op instanceof ModifyDNOperationBasis)
           {
             ModifyDNMsg newMsg = (ModifyDNMsg) msg;
             dependency = remotePendingChanges.checkDependencies(newMsg);
             if (!dependency)
             {
-              ModifyDNOperation newOp = (ModifyDNOperation) op;
+              ModifyDNOperationBasis newOp = (ModifyDNOperationBasis) op;
               done = solveNamingConflict(newOp, msg);
             }
           }
@@ -1570,7 +1570,7 @@ public class ReplicationDomain extends DirectoryThread
  * @return true if the process is completed, false if it must continue.
  * @throws Exception When the operation is not valid.
  */
-private boolean solveNamingConflict(ModifyDNOperation op,
+private boolean solveNamingConflict(ModifyDNOperationBasis op,
     UpdateMessage msg) throws Exception
 {
   ResultCode result = op.getResultCode();
@@ -1843,7 +1843,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation newOp = conn.processModifyDN(
+    ModifyDNOperationBasis newOp = conn.processModifyDN(
         dn, generateDeleteConflictDn(uid, dn),false, baseDN);
 
     if (newOp.getResultCode() != ResultCode.SUCCESS)

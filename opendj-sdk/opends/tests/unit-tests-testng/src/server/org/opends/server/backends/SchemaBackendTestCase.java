@@ -40,7 +40,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -309,8 +309,8 @@ public class SchemaBackendTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(),
                                conn.nextMessageID(), null,
                                currentSchemaDN, newSchemaDN.getRDN(),
                                true, null);

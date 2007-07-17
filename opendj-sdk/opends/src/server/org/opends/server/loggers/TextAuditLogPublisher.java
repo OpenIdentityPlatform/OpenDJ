@@ -43,7 +43,7 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.types.*;
@@ -738,7 +738,7 @@ public class TextAuditLogPublisher
    * {@inheritDoc}
    */
   @Override()
-  public void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
+  public void logModifyDNRequest(ModifyDNOperationBasis modifyDNOperation)
   {
   }
 
@@ -748,7 +748,7 @@ public class TextAuditLogPublisher
    * {@inheritDoc}
    */
   @Override()
-  public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
+  public void logModifyDNResponse(ModifyDNOperationBasis modifyDNOperation)
   {
     long connectionID = modifyDNOperation.getConnectionID();
     if (connectionID < 0)

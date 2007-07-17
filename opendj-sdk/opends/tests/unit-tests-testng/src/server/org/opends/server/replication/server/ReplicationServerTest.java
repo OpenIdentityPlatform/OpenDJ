@@ -42,7 +42,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
@@ -68,6 +68,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RDN;
 import org.opends.server.util.TimeThread;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -669,12 +670,14 @@ public class ReplicationServerTest extends ReplicationTestCase
 
         // - ModifyDN
         cn = new ChangeNumber(time, ts++, brokerIds[0]);
-        ModifyDNOperation op = new ModifyDNOperation(connection, 1, 1, null, DN
+        ModifyDNOperationBasis op = new ModifyDNOperationBasis(connection, 1, 1, null, DN
             .decode("o=test,dc=example,dc=com"), RDN.decode("o=test2"), true,
             null);
         op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(cn, "uniqueid",
         "newparentId"));
-        ModifyDNMsg modDNMsg = new ModifyDNMsg(op);
+        LocalBackendModifyDNOperation localOp =
+          new LocalBackendModifyDNOperation(op);
+        ModifyDNMsg modDNMsg = new ModifyDNMsg(localOp);
         broker1.publish(modDNMsg);
 
         if (itest > 0)

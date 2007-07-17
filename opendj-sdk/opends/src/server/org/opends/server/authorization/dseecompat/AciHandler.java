@@ -1025,7 +1025,8 @@ public class AciHandler
    * @param newRDN      The new RDN component.
    * @return True if access is allowed.
    */
-  private boolean aciCheckRDNs(ModifyDNOperation operation, RDN oldRDN,
+  private boolean aciCheckRDNs(LocalBackendModifyDNOperation operation,
+                               RDN oldRDN,
                                RDN newRDN) {
       boolean ret;
 
@@ -1078,7 +1079,8 @@ public class AciHandler
    * @throws DirectoryException  If a problem occurs while trying to
    *                             retrieve the new superior entry.
    */
-  private boolean aciCheckSuperiorEntry(DN superiorDN, ModifyDNOperation op)
+  private boolean aciCheckSuperiorEntry(DN superiorDN,
+      LocalBackendModifyDNOperation op)
   throws DirectoryException {
     boolean ret=false;
     Lock entryLock = null;
@@ -1115,7 +1117,7 @@ public class AciHandler
    * @return True if access is allowed.
    *
    */
-  public boolean isAllowed(ModifyDNOperation operation) {
+  public boolean isAllowed(LocalBackendModifyDNOperation operation) {
       boolean ret=true;
       DN newSuperiorDN;
       RDN oldRDN=operation.getOriginalEntry().getDN().getRDN();

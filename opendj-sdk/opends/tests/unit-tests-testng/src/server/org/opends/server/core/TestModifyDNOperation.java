@@ -165,7 +165,7 @@ public class TestModifyDNOperation extends OperationTestCase
    *
    * @param  modifyDNOperation  The operation to be tested.
    */
-  private void examineCompletedOperation(ModifyDNOperation modifyDNOperation)
+  private void examineCompletedOperation(ModifyDNOperationBasis modifyDNOperation)
   {
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
@@ -185,7 +185,7 @@ public class TestModifyDNOperation extends OperationTestCase
    *
    * @param  modifyDNOperation  The operation to be tested.
    */
-  private void examineIncompleteOperation(ModifyDNOperation modifyDNOperation)
+  private void examineIncompleteOperation(ModifyDNOperationBasis modifyDNOperation)
   {
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
@@ -206,7 +206,7 @@ public class TestModifyDNOperation extends OperationTestCase
    *
    * @param  modifyDNOperation  The operation to be tested.
    */
-  private void examineUnparsedOperation(ModifyDNOperation modifyDNOperation)
+  private void examineUnparsedOperation(ModifyDNOperationBasis modifyDNOperation)
   {
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
@@ -232,13 +232,13 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation[] modifies = new ModifyDNOperation[]
+    ModifyDNOperationBasis[] modifies = new ModifyDNOperationBasis[]
     {
-      new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                             noControls, new ASN1OctetString("cn=test,ou=test"),
                             new ASN1OctetString("cn=test2"), true,
                             new ASN1OctetString("dc=example,dc=com")),
-      new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                             noControls, DN.decode("cn=test,ou=test"),
                             RDN.decode("cn=test2"), true,
                             DN.decode("dc=example,dc=com"))
@@ -256,8 +256,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.test0"), false,
@@ -282,7 +282,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                new ASN1OctetString("uid=user.test0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.0"), true,
@@ -315,8 +315,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
@@ -341,7 +341,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("uid=user.test0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.0"), true,
@@ -374,8 +374,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.test0"), true,
@@ -400,7 +400,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                new ASN1OctetString("uid=user.test0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.0"), true,
@@ -433,8 +433,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), true,
@@ -459,7 +459,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("uid=user.test0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.0"), true,
@@ -492,8 +492,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.test0"), true,
@@ -518,7 +518,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                new ASN1OctetString("uid=user.test0,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.0"), true,
@@ -551,8 +551,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), true,
@@ -577,7 +577,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("uid=user.test0,dc=example,dc=com"),
                                RDN.decode("uid=user.0"), true,
@@ -610,8 +610,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("cn=Aaccf Amar Test"), true,
@@ -637,7 +637,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("cn=Aaccf Amar Test,dc=example,dc=com"),
                                RDN.decode("uid=user.0"), false,
@@ -673,8 +673,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("uid=user.invalid,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), true,
@@ -696,8 +696,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("invalid=invalid"), true,
@@ -719,8 +719,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), true,
@@ -742,8 +742,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                new ASN1OctetString("invalid DN"),
                                new ASN1OctetString("uid=user.test0"), true,
@@ -765,8 +765,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("invalid RDN"), true,
@@ -788,8 +788,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.test0"), true,
@@ -811,8 +811,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                noControls,
                                DN.decode("dc=example,dc=com"),
                                RDN.decode("dc=exampletest"), true,
@@ -834,8 +834,8 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV1Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(), controls,
                                new ASN1OctetString("uid=user.0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.test0"), false,
@@ -860,7 +860,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+         new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(), controls,
                                new ASN1OctetString("uid=user.test0,ou=People,dc=example,dc=com"),
                                new ASN1OctetString("uid=user.0"), true,
@@ -893,8 +893,8 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV1Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
@@ -919,7 +919,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+         new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(),
                                controls,
                                DN.decode("uid=user.test0,ou=People,dc=example,dc=com"),
@@ -953,8 +953,8 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV1Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
@@ -978,8 +978,8 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV2Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
@@ -1004,7 +1004,7 @@ public class TestModifyDNOperation extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     modifyDNOperation =
-         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+         new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.test0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.0"), true,
@@ -1037,8 +1037,8 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV2Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
@@ -1063,8 +1063,8 @@ public class TestModifyDNOperation extends OperationTestCase
     controls.add(authV2Control);
     InvocationCounterPlugin.resetAllCounters();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(proxyUserConn, proxyUserConn.nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(proxyUserConn, proxyUserConn.nextOperationID(),
                                proxyUserConn.nextMessageID(), controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,
@@ -1091,8 +1091,8 @@ public class TestModifyDNOperation extends OperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                                controls,
                                DN.decode("uid=user.0,ou=People,dc=example,dc=com"),
                                RDN.decode("uid=user.test0"), false,

@@ -1183,7 +1183,7 @@ public class InternalClientConnection
    *          processed and contains information about the result of
    *          the processing.
    */
-  public ModifyDNOperation processModifyDN(String rawEntryDN,
+  public ModifyDNOperationBasis processModifyDN(String rawEntryDN,
                                            String rawNewRDN,
                                            boolean deleteOldRDN)
   {
@@ -1207,7 +1207,7 @@ public class InternalClientConnection
    *          processed and contains information about the result of
    *          the processing.
    */
-  public ModifyDNOperation processModifyDN(ByteString rawEntryDN,
+  public ModifyDNOperationBasis processModifyDN(ByteString rawEntryDN,
                                            ByteString rawNewRDN,
                                            boolean deleteOldRDN)
   {
@@ -1232,7 +1232,7 @@ public class InternalClientConnection
    *          processed and contains information about the result of
    *          the processing.
    */
-  public ModifyDNOperation processModifyDN(String rawEntryDN,
+  public ModifyDNOperationBasis processModifyDN(String rawEntryDN,
                                            String rawNewRDN,
                                            boolean deleteOldRDN,
                                            String rawNewSuperior)
@@ -1261,13 +1261,13 @@ public class InternalClientConnection
    *          processed and contains information about the result of
    *          the processing.
    */
-  public ModifyDNOperation processModifyDN(ByteString rawEntryDN,
+  public ModifyDNOperationBasis processModifyDN(ByteString rawEntryDN,
                                            ByteString rawNewRDN,
                                            boolean deleteOldRDN,
                                            ByteString rawNewSuperior)
   {
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(this, nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(this, nextOperationID(),
                                nextMessageID(),
                                new ArrayList<Control>(0), rawEntryDN,
                                rawNewRDN, deleteOldRDN,
@@ -1293,7 +1293,8 @@ public class InternalClientConnection
    *          processed and contains information about the result of
    *          the processing.
    */
-  public ModifyDNOperation processModifyDN(DN entryDN, RDN newRDN,
+  public ModifyDNOperationBasis processModifyDN(DN entryDN,
+                                           RDN newRDN,
                                            boolean deleteOldRDN)
   {
     return processModifyDN(entryDN, newRDN, deleteOldRDN, null);
@@ -1317,12 +1318,13 @@ public class InternalClientConnection
    *          processed and contains information about the result of
    *          the processing.
    */
-  public ModifyDNOperation processModifyDN(DN entryDN, RDN newRDN,
+  public ModifyDNOperationBasis processModifyDN(DN entryDN,
+                                           RDN newRDN,
                                            boolean deleteOldRDN,
                                            DN newSuperior)
   {
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(this, nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(this, nextOperationID(),
                                nextMessageID(),
                                new ArrayList<Control>(0), entryDN,
                                newRDN, deleteOldRDN, newSuperior);

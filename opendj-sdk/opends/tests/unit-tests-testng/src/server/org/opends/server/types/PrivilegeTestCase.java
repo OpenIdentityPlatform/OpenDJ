@@ -52,7 +52,7 @@ import org.opends.server.core.CompareOperationBasis;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
@@ -597,7 +597,7 @@ public class PrivilegeTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_WRITE, null), hasPrivilege);
 
-    ModifyDNOperation modifyDNOperation =
+    ModifyDNOperationBasis modifyDNOperation =
          conn.processModifyDN(DN.decode("cn=Work Queue,cn=config"),
                               RDN.decode("cn=New RDN for Work Queue"), true,
                               null);
@@ -1246,8 +1246,8 @@ public class PrivilegeTestCase
 
 
     // Try to rename the entry.
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(),
                                conn.nextMessageID(), controls, e.getDN(),
                                RDN.decode("cn=Proxy V1 Test"), true, null);
     modifyDNOperation.run();
@@ -1256,7 +1256,7 @@ public class PrivilegeTestCase
     if (hasProxyPrivilege)
     {
       assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
-      newEntryDN = modifyDNOperation.getUpdatedEntry().getDN();
+      newEntryDN = modifyDNOperation.getNewDN();
     }
     else
     {
@@ -1446,8 +1446,8 @@ public class PrivilegeTestCase
 
 
     // Try to rename the entry.
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(conn, conn.nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(),
                                conn.nextMessageID(), controls, e.getDN(),
                                RDN.decode("cn=Proxy V2 Test"), true, null);
     modifyDNOperation.run();
@@ -1457,7 +1457,7 @@ public class PrivilegeTestCase
     {
       assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS,
                    "Unexpected moddn failure for user " + authDN);
-      newEntryDN = modifyDNOperation.getUpdatedEntry().getDN();
+      newEntryDN = modifyDNOperation.getNewDN();
     }
     else
     {
