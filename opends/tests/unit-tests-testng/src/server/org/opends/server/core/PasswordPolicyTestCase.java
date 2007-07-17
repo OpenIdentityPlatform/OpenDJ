@@ -4822,6 +4822,295 @@ public class PasswordPolicyTestCase
 
 
   /**
+   * Tests the Directory Server's password history maintenance capabilities
+   * using only the password history count configuration option.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testPasswordHistoryUsingCount()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
+      "dn: uid=test.user,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: originalPassword",
+      "ds-privilege-name: bypass-acl");
+
+    // Make sure that before we enable history features we can re-use the
+    // current password.
+    String origPWPath = TestCaseUtils.createTempFile(
+      "dn: uid=test.user,o=test",
+      "changetype: modify",
+      "replace: userPassword",
+      "userPassword: originalPassword");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "uid=test.user,o=test",
+      "-w", "originalPassword",
+      "-f", origPWPath
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
+
+    TestCaseUtils.applyModifications(
+      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-password-history-count",
+      "ds-cfg-password-history-count: 3");
+
+    try
+    {
+      // Make sure that we cannot re-use the original password as a new
+      // password.
+      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
+                  0);
+
+
+      // Change the password three times.
+      String newPWsPath = TestCaseUtils.createTempFile(
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: newPassword1",
+        "",
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: newPassword2",
+        "",
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: newPassword3");
+
+      args = new String[]
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "uid=test.user,o=test",
+        "-w", "originalPassword",
+        "-f", newPWsPath
+      };
+
+      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+                   0);
+
+
+      // Make sure that we still can't use the original password.
+      args = new String[]
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "uid=test.user,o=test",
+        "-w", "newPassword3",
+        "-f", origPWPath
+      };
+
+      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
+                  0);
+
+
+      // Change the password one more time and then verify that we can use the
+      // original password again.
+      String newPWsPath2 = TestCaseUtils.createTempFile(
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: newPassword4",
+        "",
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: originalPassword");
+
+      args = new String[]
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "uid=test.user,o=test",
+        "-w", "newPassword3",
+        "-f", newPWsPath2
+      };
+
+      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+                   0);
+
+
+      // Make sure that we can't use the first new password.
+      String firstPWPath = TestCaseUtils.createTempFile(
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: newPassword1");
+
+      args = new String[]
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "uid=test.user,o=test",
+        "-w", "originalPassword",
+        "-f", firstPWPath
+      };
+
+      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
+                  0);
+
+
+      // Reduce the password history count from 3 to 2 and verify that we can
+      // now use the first new password.
+      TestCaseUtils.applyModifications(
+        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-password-history-count",
+        "ds-cfg-password-history-count: 0");
+
+      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+                   0);
+    }
+    finally
+    {
+      TestCaseUtils.applyModifications(
+        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-password-history-count",
+        "ds-cfg-password-history-count: 0");
+    }
+  }
+
+
+
+  /**
+   * Tests the Directory Server's password history maintenance capabilities
+   * using only the password history duration configuration option.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(groups = "slow")
+  public void testPasswordHistoryUsingDuration()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
+      "dn: uid=test.user,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test.user",
+      "givenName: Test",
+      "sn: User",
+      "cn: Test User",
+      "userPassword: originalPassword",
+      "ds-privilege-name: bypass-acl");
+
+    // Make sure that before we enable history features we can re-use the
+    // current password.
+    String origPWPath = TestCaseUtils.createTempFile(
+      "dn: uid=test.user,o=test",
+      "changetype: modify",
+      "replace: userPassword",
+      "userPassword: originalPassword");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "uid=test.user,o=test",
+      "-w", "originalPassword",
+      "-f", origPWPath
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
+
+    TestCaseUtils.applyModifications(
+      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-password-history-duration",
+      "ds-cfg-password-history-duration: 5 seconds");
+
+    try
+    {
+      // Make sure that we can no longer re-use the original password as a new
+      // password.
+      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
+                  0);
+
+
+      // Change the password three times.
+      String newPWsPath = TestCaseUtils.createTempFile(
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: newPassword1",
+        "",
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: newPassword2",
+        "",
+        "dn: uid=test.user,o=test",
+        "changetype: modify",
+        "replace: userPassword",
+        "userPassword: newPassword3");
+
+      args = new String[]
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "uid=test.user,o=test",
+        "-w", "originalPassword",
+        "-f", newPWsPath
+      };
+
+      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+                   0);
+
+
+      // Make sure that we still can't use the original password.
+      args = new String[]
+      {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "uid=test.user,o=test",
+        "-w", "newPassword3",
+        "-f", origPWPath
+      };
+
+      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
+                  0);
+
+
+      // Sleep for six seconds and then verify that we can use the original
+      // password again.
+      Thread.sleep(6000);
+      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+                  0);
+    }
+    finally
+    {
+      TestCaseUtils.applyModifications(
+        "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+        "changetype: modify",
+        "replace: ds-cfg-password-history-duration",
+        "ds-cfg-password-history-duration: 0 seconds");
+    }
+  }
+
+
+
+  /**
    * Tests the <CODE>toString</CODE> methods with the default password policy.
    */
   @Test()

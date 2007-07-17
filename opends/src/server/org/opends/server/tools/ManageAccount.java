@@ -441,6 +441,23 @@ public class ManageAccount
 
 
   /**
+   * The name of the subcommand that will be used to get the password history
+   * state values.
+   */
+  private static final String SC_GET_PASSWORD_HISTORY = "get-password-history";
+
+
+
+  /**
+   * The name of the subcommand that will be used to clear the password history
+   * state values.
+   */
+  private static final String SC_CLEAR_PASSWORD_HISTORY =
+       "clear-password-history";
+
+
+
+  /**
    * The name of the argument that will be used for holding the value(s) to use
    * for the target operation.
    */
@@ -757,6 +774,11 @@ public class ManageAccount
 
           case OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME:
             msgID = MSGID_PWPSTATE_LABEL_SECONDS_UNTIL_REQUIRED_CHANGE_TIME;
+            printLabelAndValues(msgID, opValues);
+            break;
+
+          case OP_GET_PASSWORD_HISTORY:
+            msgID = MSGID_PWPSTATE_LABEL_PASSWORD_HISTORY;
             printLabelAndValues(msgID, opValues);
             break;
 
@@ -1130,6 +1152,13 @@ public class ManageAccount
       msgID = MSGID_DESCRIPTION_PWPSTATE_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME;
       new SubCommand(argParser, SC_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
                      msgID);
+
+      msgID = MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_HISTORY;
+      new SubCommand(argParser, SC_GET_PASSWORD_HISTORY, msgID);
+
+      msgID = MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_HISTORY;
+      sc = new SubCommand(argParser, SC_CLEAR_PASSWORD_HISTORY, msgID);
+      sc.setHidden(true);
     }
     catch (ArgumentException ae)
     {
@@ -1644,6 +1673,14 @@ public class ManageAccount
     {
       opElements.add(encode(OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME,
                             NO_VALUE));
+    }
+    else if (subCommandName.equals(SC_GET_PASSWORD_HISTORY))
+    {
+      opElements.add(encode(OP_GET_PASSWORD_HISTORY, NO_VALUE));
+    }
+    else if (subCommandName.equals(SC_CLEAR_PASSWORD_HISTORY))
+    {
+      opElements.add(encode(OP_CLEAR_PASSWORD_HISTORY, NO_VALUE));
     }
     else
     {

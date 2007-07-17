@@ -38,6 +38,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
@@ -77,6 +78,7 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -3946,6 +3948,625 @@ public class PasswordPolicyState
             "encoded with deprecated schemes with values encoded " +
             "with the default schemes.", userDNString);
       }
+    }
+  }
+
+
+
+  /**
+   * Indicates whether password history information should be matained for this
+   * user.
+   *
+   * @return  {@code true} if password history information should be maintained
+   *          for this user, or {@code false} if not.
+   */
+  public boolean maintainHistory()
+  {
+    return ((passwordPolicy.getPasswordHistoryCount() > 0) ||
+            (passwordPolicy.getPasswordHistoryDuration() > 0));
+  }
+
+
+
+  /**
+   * Indicates whether the provided password is equal to any of the current
+   * passwords, or any of the passwords in the history.
+   *
+   * @param  password  The password for which to make the determination.
+   *
+   * @return  {@code true} if the provided password is equal to any of the
+   *          current passwords or any of the passwords in the history, or
+   *          {@code false} if not.
+   */
+  public boolean isPasswordInHistory(ByteString password)
+  {
+    if (! maintainHistory())
+    {
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugInfo("Returning false because password history " +
+                           "checking is disabled.");
+        }
+      }
+
+      // Password history checking is disabled, so we don't care if it is in the
+      // list or not.
+      return false;
+    }
+
+
+    // Check to see if the provided password is equal to any of the current
+    // passwords.  If so, then we'll consider it to be in the history.
+    if (passwordMatches(password))
+    {
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugInfo("Returning true because the provided password " +
+                           "is currently in use.");
+        }
+      }
+
+      return true;
+    }
+
+
+    // Get the attribute containing the history and check to see if any of the
+    // values is equal to the provided password.  However, first prune the list
+    // by size and duration if necessary.
+    TreeMap<Long,AttributeValue> historyMap = getSortedHistoryValues(null);
+
+    int historyCount = passwordPolicy.getPasswordHistoryCount();
+    if ((historyCount > 0) && (historyMap.size() > historyCount))
+    {
+      int numToDelete = historyMap.size() - historyCount;
+      Iterator<Long> iterator = historyMap.keySet().iterator();
+      while ((iterator.hasNext()) && (numToDelete > 0))
+      {
+        iterator.next();
+        iterator.remove();
+        numToDelete--;
+      }
+    }
+
+    int historyDuration = passwordPolicy.getPasswordHistoryDuration();
+    if (historyDuration > 0)
+    {
+      long retainDate = currentTime - (1000 * historyDuration);
+      Iterator<Long> iterator = historyMap.keySet().iterator();
+      while (iterator.hasNext())
+      {
+        long historyDate = iterator.next();
+        if (historyDate < retainDate)
+        {
+          iterator.remove();
+        }
+        else
+        {
+          break;
+        }
+      }
+    }
+
+    for (AttributeValue v : historyMap.values())
+    {
+      if (historyValueMatches(password, v))
+      {
+        if (debug)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugInfo("Returning true because the password is in " +
+                             "the history.");
+          }
+        }
+
+        return true;
+      }
+    }
+
+
+    // If we've gotten here, then the password isn't in the history.
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Returning false because the password isn't in the " +
+                         "history.");
+      }
+    }
+
+    return false;
+  }
+
+
+
+  /**
+   * Gets a sorted list of the password history values contained in the user's
+   * entry.  The values will be sorted by timestamp.
+   *
+   * @param  removeAttrs  A list into which any values will be placed that could
+   *                      not be properly decoded.  It may be {@code null} if
+   *                      this is not needed.
+   */
+  private TreeMap<Long,AttributeValue> getSortedHistoryValues(List<Attribute>
+                                                                   removeAttrs)
+  {
+    TreeMap<Long,AttributeValue> historyMap =
+         new TreeMap<Long,AttributeValue>();
+    AttributeType historyType =
+         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC, true);
+    List<Attribute> attrList = userEntry.getAttribute(historyType);
+    if (attrList != null)
+    {
+      for (Attribute a : attrList)
+      {
+        for (AttributeValue v : a.getValues())
+        {
+          String histStr = v.getStringValue();
+          int    hashPos = histStr.indexOf('#');
+          if (hashPos <= 0)
+          {
+            if (debug)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugInfo("Found value " + histStr + " in the " +
+                                 "history with no timestamp.  Marking it " +
+                                 "for removal.");
+              }
+            }
+
+            LinkedHashSet<AttributeValue> values =
+                 new LinkedHashSet<AttributeValue>(1);
+            values.add(v);
+            if (removeAttrs != null)
+            {
+              removeAttrs.add(new Attribute(a.getAttributeType(), a.getName(),
+                                            values));
+            }
+          }
+          else
+          {
+            try
+            {
+              long timestamp =
+                   GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
+                        new ASN1OctetString(histStr.substring(0, hashPos)));
+              historyMap.put(timestamp, v);
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+
+                if (debug)
+                {
+                  TRACER.debugInfo("Could not decode the timestamp in " +
+                                   "history value " + histStr + " -- " + e +
+                                   ".  Marking it for removal.");
+                }
+              }
+
+              LinkedHashSet<AttributeValue> values =
+                   new LinkedHashSet<AttributeValue>(1);
+              values.add(v);
+              if (removeAttrs != null)
+              {
+                removeAttrs.add(new Attribute(a.getAttributeType(), a.getName(),
+                                              values));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return historyMap;
+  }
+
+
+
+  /**
+   * Indicates whether the provided password matches the given history value.
+   *
+   * @param  password      The clear-text password for which to make the
+   *                       determination.
+   * @param  historyValue  The encoded history value to compare against the
+   *                       clear-text password.
+   *
+   * @return  {@code true} if the provided password matches the history value,
+   *          or {@code false} if not.
+   */
+  private boolean historyValueMatches(ByteString password,
+                                      AttributeValue historyValue)
+  {
+    // According to draft-behera-ldap-password-policy, password history values
+    // should be in the format time#syntaxoid#encodedvalue.  In this method,
+    // we only care about the syntax OID and encoded password.
+    try
+    {
+      String histStr  = historyValue.getStringValue();
+      int    hashPos1 = histStr.indexOf('#');
+      if (hashPos1 <= 0)
+      {
+        if (debug)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugInfo("Returning false because the password history " +
+                             "value didn't include any hash characters.");
+          }
+        }
+
+        return false;
+      }
+
+      int hashPos2 = histStr.indexOf('#', hashPos1+1);
+      if (hashPos2 < 0)
+      {
+        if (debug)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugInfo("Returning false because the password history " +
+                             "value only had one hash character.");
+          }
+        }
+
+        return false;
+      }
+
+      String syntaxOID = toLowerCase(histStr.substring(hashPos1+1, hashPos2));
+      if (syntaxOID.equals(SYNTAX_AUTH_PASSWORD_OID))
+      {
+        StringBuilder[] authPWComponents =
+             AuthPasswordSyntax.decodeAuthPassword(
+                  histStr.substring(hashPos2+1));
+        PasswordStorageScheme scheme =
+             DirectoryServer.getAuthPasswordStorageScheme(
+                  authPWComponents[0].toString());
+        if (scheme.authPasswordMatches(password, authPWComponents[1].toString(),
+                                       authPWComponents[2].toString()))
+        {
+          if (debug)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugInfo("Returning true because the auth password " +
+                               "history value matched.");
+            }
+          }
+
+          return true;
+        }
+        else
+        {
+          if (debug)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugInfo("Returning false because the auth password " +
+                               "history value did not match.");
+            }
+          }
+
+          return false;
+        }
+      }
+      else if (syntaxOID.equals(SYNTAX_USER_PASSWORD_OID))
+      {
+        String[] userPWComponents =
+             UserPasswordSyntax.decodeUserPassword(
+                  histStr.substring(hashPos2+1));
+        PasswordStorageScheme scheme =
+             DirectoryServer.getPasswordStorageScheme(userPWComponents[0]);
+        if (scheme.passwordMatches(password,
+                                   new ASN1OctetString(userPWComponents[1])))
+        {
+          if (debug)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugInfo("Returning true because the user password " +
+                               "history value matched.");
+            }
+          }
+
+          return true;
+        }
+        else
+        {
+          if (debug)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugInfo("Returning false because the user password " +
+                               "history value did not match.");
+            }
+          }
+
+          return false;
+        }
+      }
+      else
+      {
+        if (debug)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugInfo("Returning false because the syntax OID " +
+                             syntaxOID + " didn't match for either the auth " +
+                             "or user password syntax.");
+          }
+        }
+
+        return false;
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+
+        if (debug)
+        {
+          TRACER.debugInfo("Returning false because of an exception:  " +
+                           stackTraceToSingleLineString(e));
+        }
+      }
+
+      return false;
+    }
+  }
+
+
+
+  /**
+   * Updates the password history information for this user by adding all
+   * current passwords to it.
+   */
+  public void updatePasswordHistory()
+  {
+    List<Attribute> attrList =
+         userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
+    if (attrList != null)
+    {
+      for (Attribute a : attrList)
+      {
+        for (AttributeValue v : a.getValues())
+        {
+          addPasswordToHistory(v.getStringValue());
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Adds the provided password to the password history.  If appropriate, one or
+   * more old passwords may be evicted from the list if the total size would
+   * exceed the configured count, or if passwords are older than the configured
+   * duration.
+   *
+   * @param  encodedPassword  The encoded password (in either user password or
+   *                          auth password format) to be added to the history.
+   */
+  private void addPasswordToHistory(String encodedPassword)
+  {
+    if (! maintainHistory())
+    {
+      if (debug)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugInfo("Not doing anything because password history " +
+                           "maintenance is disabled.");
+        }
+      }
+
+      return;
+    }
+
+
+    // Get a sorted list of the existing values to see if there are any that
+    // should be removed.
+    LinkedList<Attribute> removeAttrs = new LinkedList<Attribute>();
+    TreeMap<Long,AttributeValue> historyMap =
+         getSortedHistoryValues(removeAttrs);
+
+
+    // If there is a maximum number of values to retain and we would be over the
+    // limit with the new value, then get rid of enough values (oldest first)
+    // to satisfy the count.
+    AttributeType historyType =
+         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC, true);
+    int historyCount = passwordPolicy.getPasswordHistoryCount();
+    if  ((historyCount > 0) && (historyMap.size() >= historyCount))
+    {
+      int numToDelete = (historyMap.size() - historyCount) + 1;
+      LinkedHashSet<AttributeValue> removeValues =
+           new LinkedHashSet<AttributeValue>(numToDelete);
+      Iterator<AttributeValue> iterator = historyMap.values().iterator();
+      while (iterator.hasNext() && (numToDelete > 0))
+      {
+        AttributeValue v = iterator.next();
+        removeValues.add(v);
+        iterator.remove();
+        numToDelete--;
+
+        if (debug)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugInfo("Removing history value " + v.getStringValue() +
+                             " to preserve the history count.");
+          }
+        }
+      }
+
+      if (! removeValues.isEmpty())
+      {
+        removeAttrs.add(new Attribute(historyType, historyType.getPrimaryName(),
+                                      removeValues));
+      }
+    }
+
+
+    // If there is a maximum duration, then get rid of any values that would be
+    // over the duration.
+    int historyDuration = passwordPolicy.getPasswordHistoryDuration();
+    if (historyDuration > 0)
+    {
+      long minAgeToKeep = currentTime - (1000L * historyDuration);
+      Iterator<Long> iterator = historyMap.keySet().iterator();
+      LinkedHashSet<AttributeValue> removeValues =
+           new LinkedHashSet<AttributeValue>();
+      while (iterator.hasNext())
+      {
+        long timestamp = iterator.next();
+        if (timestamp < minAgeToKeep)
+        {
+          AttributeValue v = historyMap.get(timestamp);
+          removeValues.add(v);
+          iterator.remove();
+
+          if (debug)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugInfo("Removing history value " + v.getStringValue() +
+                               " to preserve the history duration.");
+            }
+          }
+        }
+        else
+        {
+          break;
+        }
+      }
+
+      if (! removeValues.isEmpty())
+      {
+        removeAttrs.add(new Attribute(historyType, historyType.getPrimaryName(),
+                                      removeValues));
+      }
+    }
+
+
+    // At this point, we can add the new value.  However, we want to make sure
+    // that its timestamp (which is the current time) doesn't conflict with any
+    // value already in the list.  If there is a conflict, then simply add one
+    // to it until we don't have any more conflicts.
+    long newTimestamp = currentTime;
+    while (historyMap.containsKey(newTimestamp))
+    {
+      newTimestamp++;
+    }
+    String newHistStr = GeneralizedTimeSyntax.format(newTimestamp) + "#" +
+                        passwordPolicy.getPasswordAttribute().getSyntaxOID() +
+                        "#" + encodedPassword;
+    LinkedHashSet<AttributeValue> newHistValues =
+         new LinkedHashSet<AttributeValue>(1);
+    newHistValues.add(new AttributeValue(historyType, newHistStr));
+    Attribute newHistAttr =
+         new Attribute(historyType, historyType.getPrimaryName(),
+                       newHistValues);
+
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Going to add history value " + newHistStr);
+      }
+    }
+
+
+    // Apply the changes, either by adding modifications or by directly updating
+    // the entry.
+    if (updateEntry)
+    {
+      LinkedList<AttributeValue> valueList = new LinkedList<AttributeValue>();
+      for (Attribute a : removeAttrs)
+      {
+        userEntry.removeAttribute(a, valueList);
+      }
+
+      userEntry.addAttribute(newHistAttr, valueList);
+    }
+    else
+    {
+      for (Attribute a : removeAttrs)
+      {
+        modifications.add(new Modification(ModificationType.DELETE, a, true));
+      }
+
+      modifications.add(new Modification(ModificationType.ADD, newHistAttr,
+                                         true));
+    }
+  }
+
+
+
+  /**
+   * Retrieves the password history state values for the user.  This is only
+   * intended for testing purposes.
+   *
+   * @return  The password history state values for the user.
+   */
+  public String[] getPasswordHistoryValues()
+  {
+    ArrayList<String> historyValues = new ArrayList<String>();
+    AttributeType historyType =
+         DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC, true);
+    List<Attribute> attrList = userEntry.getAttribute(historyType);
+    if (attrList != null)
+    {
+      for (Attribute a : attrList)
+      {
+        for (AttributeValue v : a.getValues())
+        {
+          historyValues.add(v.getStringValue());
+        }
+      }
+    }
+
+    String[] historyArray = new String[historyValues.size()];
+    return historyValues.toArray(historyArray);
+  }
+
+
+
+  /**
+   * Clears the password history state information for the user.  This is only
+   * intended for testing purposes.
+   */
+  public void clearPasswordHistory()
+  {
+    if (debug)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Clearing password history for user %s", userDNString);
+      }
+    }
+
+    AttributeType type = DirectoryServer.getAttributeType(
+                             OP_ATTR_PWPOLICY_HISTORY_LC, true);
+    if (updateEntry)
+    {
+      userEntry.removeAttribute(type);
+    }
+    else
+    {
+      modifications.add(new Modification(ModificationType.REPLACE,
+                                         new Attribute(type), true));
     }
   }
 

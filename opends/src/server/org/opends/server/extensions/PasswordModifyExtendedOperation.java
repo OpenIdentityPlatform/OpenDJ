@@ -861,6 +861,7 @@ public class PasswordModifyExtendedOperation
         }
         else
         {
+          // Run the new password through the set of password validators.
           if (selfChange ||
                (! pwPolicyState.getPolicy().skipValidationForAdministrators()))
           {
@@ -917,6 +918,33 @@ public class PasswordModifyExtendedOperation
               }
 
               return;
+            }
+          }
+
+
+          // Prepare to update the password history, if necessary.
+          if (pwPolicyState.maintainHistory())
+          {
+            if (pwPolicyState.isPasswordInHistory(newPassword))
+            {
+              if (oldPassword == null)
+              {
+                operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                int msgID = MSGID_EXTOP_PASSMOD_PW_IN_HISTORY;
+                operation.appendErrorMessage(getMessage(msgID));
+              }
+              else
+              {
+                operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+
+                int msgID = MSGID_EXTOP_PASSMOD_PW_IN_HISTORY;
+                operation.appendAdditionalLogMessage(getMessage(msgID));
+              }
+            }
+            else
+            {
+              pwPolicyState.updatePasswordHistory();
             }
           }
         }
