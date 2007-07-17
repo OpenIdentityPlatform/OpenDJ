@@ -30,9 +30,9 @@ uid negate (!(uid=jwallace)) 0 NOT-INDEXED
 uid negate (!(&(uid=jwallace))) 0 NOT-INDEXED
 uid negate (!(|(uid=jwallace))) 0 NOT-INDEXED
 uid complexAnd (uid=j*&l=sunnyvale) 0 INDEXED
-uid complexAnd &(uid=j*)(l=sunnyvale) 0 INDEXED
-uid complexAnd (&(uid=j*)(l=~sunyvale)) 0 INDEXED
-uid complexAnd (&(&(uid=j*)(l=~sunyvale))) 0 INDEXED
+uid complexAnd &(uid=j*)(l=sunnyvale) 0 NOT-INDEXED
+uid complexAnd (&(uid=j*)(l=~sunyvale)) 0 NOT-INDEXED
+uid complexAnd (&(&(uid=j*)(l=~sunyvale))) 0 NOT-INDEXED
 uid complexAnd (uid=j*&!l=cupertino) 0 INDEXED
 uid complexAnd (uid=j*&l=sun*) 0 INDEXED
 uid complexAnd (&(uid=j*)(l=sun*)) 0 INDEXED

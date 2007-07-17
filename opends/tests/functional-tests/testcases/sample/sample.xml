@@ -115,7 +115,6 @@
   <!-- Setup the instance for sample test -->
   <function name="sample_setup">
     <sequence>
-      <message>'That is the right setup being called here'</message>
       <call function="'runFunction'">
         { 'functionName'      : 'createTopology'                              ,
           'functionMessage'   : 'Create DS topology as described in config.py',
@@ -124,7 +123,7 @@
         }
       </call>
       <call function="'runFunction'">
-        { 'functionName'      : 'StartDSWithScript'                                      ,
+        { 'functionName'      : 'StartDsWithScript'                                      ,
           'functionMessage'   : 'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT) ,
           'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
         }
@@ -161,114 +160,4 @@
     </sequence>
   </function>
   
-  <function name="runFunction" scope="local">
-    <function-map-args>
-      <function-arg-def name="functionName" type="required">
-        <function-arg-description>
-          Name of the function to run
-        </function-arg-description>
-      </function-arg-def>
-
-      <function-arg-def name="functionArguments" type="optional">
-        <function-arg-description>
-          Arguments to be passed on to the called function.
-          This can be a map or a list of arguments, whatever the called function
-          expects will be carried on here.
-          . for a map, pass the arguments like this:
-            { 'argumentA' : 'argumentAvalue' ,
-              'argumentB' : 1 ,
-              ...
-            }
-          . for a list, pass the arguments like this:
-            [ 'argumentAvalue, 1, ... ]
-        </function-arg-description>
-      </function-arg-def>
-
-      <function-arg-def name="expectedRC" type="optional" default="0">
-        <function-arg-description>
-          The expected return code of the function to run.
-          This is then passed onto the checkRC function.
-          It is also used to throw an exception if the argument 
-          functionException is provided and set the test case status if the
-          argument functionSetsTCStatus is provided
-        </function-arg-description>
-        <function-arg-property name="type" value="integer"/>
-      </function-arg-def>
-
-      <function-arg-def name="functionException" type="optional">
-        <function-arg-description>
-          The exception to throw if the return code differs from the expected 
-          RC. The exception is appended to STAXException.
-        </function-arg-description>
-      </function-arg-def>
-      
-      <function-arg-def name="functionMessage" type="optional">
-        <function-arg-description>
-          An optional message to display before running the function
-        </function-arg-description>
-      </function-arg-def>
-      
-      <function-arg-def name="functionSetsTCStatus" type="optional">
-        <function-arg-description>
-          Whether the function to run sets the testcase status or not.
-          If this is set, the test case status is set according to whether
-          or not the function meets the expected return code.
-          True or False should be used for this argument.
-        </function-arg-description>
-      </function-arg-def>
-    </function-map-args>
-    <sequence>
-      <script>
-        throwException=False
-        if functionException:
-          throwException=True
-
-        displayMessage=False
-        if functionMessage:
-          displayMessage=True
-
-        tcStatus='fail'
-        doSetTCStatus=False
-        if functionSetsTCStatus:
-          doSetTCStatus=True
-      </script>
-      <message log="1" level="'info'" if="displayMessage == True">'%s' % functionMessage</message>
-      <message log="1" level="'debug'">'runFunction: %s: called with parameters [%s]' % (functionName,functionArguments)</message>
-      <call function="'%s' % functionName">functionArguments</call>
-      <message log="1" level="'debug'">'runFunction: %s: returned [%s]' % (functionName,RC)</message>
-      <script>
-        functionRC = RC
-      </script>
-      <call function="'checkRC'" >
-        { 'returncode' : RC ,
-          'result'     : STAXResult,
-          'expected'   : expectedRC
-        }
-      </call>
-
-      <!-- this section handles the optional case when we need to set the 
-           test case status
-       -->
-      <if expr="doSetTCStatus == True">
-        <sequence>
-          <if expr="functionRC == expectedRC">
-            <script>tcStatus='pass'</script>
-          </if>
-          <tcstatus result="tcStatus" />
-        </sequence>
-      </if>
-
-      <!-- this section handles the optional case when we need to throw an
-           exception upon unexpected function return code
-       -->
-      <if expr="throwException == True" >
-        <if expr="functionRC != expectedRC" >
-          <throw exception="'STAXException.%s' % functionException" />
-        </if>
-      </if>
-      
-      <!-- bubble the function return code up one level -->
-      <return>functionRC</return>
-    </sequence>
-  </function>
 </stax>

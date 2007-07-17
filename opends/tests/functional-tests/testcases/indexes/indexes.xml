@@ -29,31 +29,32 @@
   <defaultcall function="indexes" />
   <function name="indexes">
     <sequence>
-      <block name="'indexes'">
-        <sequence>
-          <script>
-            CurrentTestPath={}
-            envAlreadyLoaded='true'
-            CurrentTestPath['group']='indexes'
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-          
-          <call function="'testGroup_Preamble'" />
-          <call function="'testSuite_Preamble'"/>
-          <call function="'setup'" />
-          <call function="'search'" />
-          <call function="'cleanup'" />
-          <call function="'testSuite_Postamble'"/>
-          <call function="'testGroup_Postamble'" />
-          
-        </sequence>
-      </block>
+      <script>
+        CurrentTestPath={'group':'indexes','suite':'indexes'}
+        envAlreadyLoaded='true'
+      </script>
+      <try>
+        <iterate in="['testGroup_Preamble','testSuite_Preamble','indexes_setup','indexes_search']" var="testStep">
+          <call function="testStep" />
+        </iterate>
+        <catch exception="'STAXException.Topology.CreationException'">
+          <message log="1" level="'fatal'">'Could not create the topology. Bailing out.'</message>
+        </catch>
+        <catch exception="'STAXException.Topology.StartException'">
+          <message log="1" level="'fatal'">'Could not start at least one server in the topology. Bailing out.'</message>
+        </catch>
+        <finally>
+          <iterate in="['indexes_cleanup','testSuite_Postamble','testGroup_Postamble']" var="testStep">
+            <call function="'%s' % testStep" />
+          </iterate>
+        </finally>
+      </try>
     </sequence>
   </function>
   
-  <function name="search" >
+  <function name="indexes_search" >
     <sequence>
-      <message>
+      <message log="1" level="'info'">
         'starting the search tests'
       </message>
 
@@ -126,17 +127,18 @@
           <testcase name="'Indexes: 1.Search: %03d-%03d.%s: %s%02d' % ( len(indexTests)-iteration, iteration, test.getAttribute(), test.getName(), testNumber)" >
             <sequence>
               <call function="'testCase_Preamble'" />
-              <message>
+              <message log="1" level="'trace'">
                 'Searching attribute [%s] with filter[%s]' % (test.getAttribute(),test.getFilter())
               </message>
               <call function="'SearchObject'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT  ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST                            ,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT                            ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN                              ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD                            ,
                   'dsBaseDN'         : 'ou=People,dc=example,%s' % DIRECTORY_INSTANCE_SFX ,
-                  'dsFilter'         : '%s' % test.getFilter() ,
-                  'attributes'	     : 'debugsearchindex' }
+                  'dsFilter'         : '%s' % test.getFilter()                            ,
+                  'attributes'	     : 'debugsearchindex'                                 ,
+                  'expectedRC'       : 'noCheck'                                          }
               </call>
               <script>
                 searchReturnCode, searchResultString = STAXResult[0]
@@ -146,7 +148,7 @@
                   test.pass()
                     
               </script>
-              <message level="'debug'">'%s searchReturnCode=[%s] srt=[%s] searchResultString=[%s] string looked for=[%s]' % (test.desc(), searchReturnCode, srt, searchResultString, test.getSearchString())</message>
+              <message level="'trace'">'%s searchReturnCode=[%s] srt=[%s] searchResultString=[%s] string looked for=[%s]' % (test.desc(), searchReturnCode, srt, searchResultString, test.getSearchString())</message>
               <tcstatus result="'%s' % test.getStatus()" />
               <call function="'testCase_Postamble'" />
               <script>
@@ -160,87 +162,50 @@
   </function>
   
   <!-- Setup the instance for indexes tests -->
-  <function name="setup">
+  <function name="indexes_setup">
     <sequence>
-      <block name="'setup'">
-        <sequence>
-          <script>
-            CurrentTestPath['group']='indexes'
-          </script>
-          <block name="'Create OpenDS instance'">
-            <sequence>
-              <message>
-                 'Create DS topology as described in config.py'
-              </message>
-              <call function="'createTopology'">
-                { 'initialiseInstance' : True }
-              </call>
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-              </call>
-            </sequence>
-          </block>
-          <block name="'Start OpenDS'">
-            <sequence>
-              <message>
-                 'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-              </message>
-              <call function="'StartDsWithScript'">
-               { 'location'  : STAF_REMOTE_HOSTNAME }
-              </call>
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-              </call>
-              <call function="'isAlive'">
-                { 'noOfLoops'        : 5 ,
-                  'noOfMilliSeconds' : 2000 }
-              </call>
-            </sequence>
-          </block>
-        </sequence>
-      </block>
+      <call function="'runFunction'">
+        { 'functionName'      : 'createTopology'                              ,
+          'functionMessage'   : 'Create DS topology as described in config.py',
+          'functionException' : 'Topology.CreationException'                  ,
+          'functionArguments' : { 'initialiseInstance' : True }
+        }
+      </call>
+      <call function="'runFunction'">
+        { 'functionName'      : 'StartDsWithScript'                                      ,
+          'functionMessage'   : 'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT) ,
+          'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
+        }
+      </call>
+      <call function="'runFunction'">
+        { 'functionName'      : 'isAlive'                             ,
+          'functionMessage'   : 'Checking if the server is available' ,
+          'functionException' : 'Topology.StartException'             ,
+          'functionArguments' : { 'noOfLoops'        : 5    ,
+                                  'noOfMilliSeconds' : 2000 }
+        }
+      </call>
     </sequence>
   </function>
   
   <!-- cleanup after the tests -->
-  <function name="cleanup">
+  <function name="indexes_cleanup">
     <sequence>
-      <block name="'cleanup'">
-        <sequence>
-          <block name="'Block DS Process Stop'">				
-            <sequence>
-              <message>
-                'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
-              </message>
-              <call function="'StopDsWithScript'">
-                { 'location'  : STAF_REMOTE_HOSTNAME,
-                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
-              </call>
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-              </call>
-            </sequence>			  
-          </block>
-          <block name="'Block Remove DS Topology'">
-            <sequence>
-              <message>
-                'Remove DS topology created for the Test Suite'
-              </message>				  
-              <call function="'removeTopology'"/>
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-              </call>
-            </sequence>			  
-          </block>	  														  
-        </sequence>        
-      </block>
+      <call function="'runFunction'">
+        { 'functionName'      : 'StopDsWithScript' ,
+          'functionMessage'   : 'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT),
+          'functionArguments' : { 'location'  : STAF_REMOTE_HOSTNAME    ,
+                                  'dsHost'    : DIRECTORY_INSTANCE_HOST ,
+                                  'dsPort'    : DIRECTORY_INSTANCE_PORT ,
+                                  'dsBindDN'  : DIRECTORY_INSTANCE_DN   ,
+                                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+        }
+      </call>
+      <call function="'runFunction'">
+        { 'functionName'    : 'removeTopology',
+          'functionMessage' : 'Remove DS topology created for the Test Suite'
+        }
+      </call>
     </sequence>
   </function>
 </stax>
