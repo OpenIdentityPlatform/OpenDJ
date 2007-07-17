@@ -45,7 +45,7 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.UnbindOperation;
+import org.opends.server.core.UnbindOperationBasis;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
@@ -860,7 +860,7 @@ public class TextAuditLogPublisher
    * {@inheritDoc}
    */
   @Override()
-  public void logUnbind(UnbindOperation unbindOperation)
+  public void logUnbind(UnbindOperationBasis unbindOperation)
   {
   }
 

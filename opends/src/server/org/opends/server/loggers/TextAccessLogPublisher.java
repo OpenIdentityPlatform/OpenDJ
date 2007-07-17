@@ -46,7 +46,7 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.UnbindOperation;
+import org.opends.server.core.UnbindOperationBasis;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
@@ -1679,7 +1679,7 @@ public class TextAccessLogPublisher
    * @param  unbindOperation  The unbind operation containing the info to
    *                          use to log the unbind request.
    */
-  public void logUnbind(UnbindOperation unbindOperation)
+  public void logUnbind(UnbindOperationBasis unbindOperation)
   {
     long connectionID = unbindOperation.getConnectionID();
     if (connectionID < 0)

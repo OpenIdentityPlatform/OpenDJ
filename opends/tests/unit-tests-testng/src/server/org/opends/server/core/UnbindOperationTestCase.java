@@ -64,9 +64,9 @@ public class UnbindOperationTestCase
 
     return new Operation[]
     {
-      new UnbindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new UnbindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           null),
-      new UnbindOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new UnbindOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
                           new ArrayList<Control>())
     };
   }
@@ -79,7 +79,7 @@ public class UnbindOperationTestCase
    *
    * @param  unbindOperation  The operation to be tested.
    */
-  private void examineCompletedOperation(UnbindOperation unbindOperation)
+  private void examineCompletedOperation(UnbindOperationBasis unbindOperation)
   {
     assertTrue(unbindOperation.getProcessingStartTime() > 0);
     assertTrue(unbindOperation.getProcessingStopTime() > 0);
@@ -102,8 +102,8 @@ public class UnbindOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    UnbindOperation unbindOperation =
-         new UnbindOperation(conn, conn.nextOperationID(),
+    UnbindOperationBasis unbindOperation =
+         new UnbindOperationBasis(conn, conn.nextOperationID(),
                              conn.nextMessageID(), new ArrayList<Control>());
     unbindOperation.run();
     examineCompletedOperation(unbindOperation);
@@ -127,8 +127,8 @@ public class UnbindOperationTestCase
     CancelRequest cancelRequest =
          new CancelRequest(false, "Test Unbind Cancel");
 
-    UnbindOperation unbindOperation =
-         new UnbindOperation(conn, conn.nextOperationID(),
+    UnbindOperationBasis unbindOperation =
+         new UnbindOperationBasis(conn, conn.nextOperationID(),
                              conn.nextMessageID(), new ArrayList<Control>());
     assertEquals(unbindOperation.cancel(cancelRequest),
                  CancelResult.CANNOT_CANCEL);
@@ -148,8 +148,8 @@ public class UnbindOperationTestCase
     CancelRequest cancelRequest =
          new CancelRequest(false, "Test Unbind Cancel");
 
-    UnbindOperation unbindOperation =
-         new UnbindOperation(conn, conn.nextOperationID(),
+    UnbindOperationBasis unbindOperation =
+         new UnbindOperationBasis(conn, conn.nextOperationID(),
                              conn.nextMessageID(), new ArrayList<Control>());
     assertNull(unbindOperation.getCancelRequest());
 

@@ -2470,7 +2470,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse unbind plugins.
    */
   public PreParsePluginResult invokePreParseUnbindPlugins(
-                                   UnbindOperation unbindOperation)
+                                   UnbindOperationBasis unbindOperation)
   {
     PreParsePluginResult result = null;
 
@@ -3938,7 +3938,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation unbind plugins.
    */
   public PostOperationPluginResult invokePostOperationUnbindPlugins(
-                                        UnbindOperation unbindOperation)
+                                        UnbindOperationBasis unbindOperation)
   {
     PostOperationPluginResult result = null;
 

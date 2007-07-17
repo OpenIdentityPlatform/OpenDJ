@@ -66,7 +66,7 @@ import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.SearchOperationBasis;
-import org.opends.server.core.UnbindOperation;
+import org.opends.server.core.UnbindOperationBasis;
 import org.opends.server.extensions.NullConnectionSecurityProvider;
 import org.opends.server.extensions.TLSCapableConnection;
 import org.opends.server.extensions.TLSConnectionSecurityProvider;
@@ -2436,8 +2436,8 @@ public class LDAPClientConnection
   private boolean processUnbindRequest(LDAPMessage message,
                                        ArrayList<Control> controls)
   {
-    UnbindOperation unbindOp =
-         new UnbindOperation(this, nextOperationID.getAndIncrement(),
+    UnbindOperationBasis unbindOp =
+         new UnbindOperationBasis(this, nextOperationID.getAndIncrement(),
                               message.getMessageID(), controls);
 
     unbindOp.run();

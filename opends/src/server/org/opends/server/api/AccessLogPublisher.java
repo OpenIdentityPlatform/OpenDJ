@@ -424,7 +424,8 @@ public abstract class AccessLogPublisher
    *                          information to use to log the unbind
    *                          request.
    */
-  public abstract void logUnbind(UnbindOperation unbindOperation);
+  public abstract void logUnbind(UnbindOperationBasis
+      unbindOperation);
 
   /**
    * Gets the DN of the configuration entry for this access log
