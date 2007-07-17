@@ -83,7 +83,11 @@ public final class PropertyDefinitionUsageBuilder {
      */
     @Override
     public String visitBoolean(BooleanPropertyDefinition d, Void p) {
-      return "BOOLEAN";
+      if (isDetailed) {
+        return "false | true";
+      } else {
+        return "BOOLEAN";
+      }
     }
 
 

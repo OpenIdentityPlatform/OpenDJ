@@ -52,19 +52,9 @@ public final class BooleanPropertyDefinition extends
   static {
     VALUE_MAP = new HashMap<String, Boolean>();
 
-    VALUE_MAP.put("0", Boolean.FALSE);
-    VALUE_MAP.put("no", Boolean.FALSE);
-    VALUE_MAP.put("off", Boolean.FALSE);
+    // We could have more possibilities but decided against in issue 1960.
     VALUE_MAP.put("false", Boolean.FALSE);
-    VALUE_MAP.put("disable", Boolean.FALSE);
-    VALUE_MAP.put("disabled", Boolean.FALSE);
-
-    VALUE_MAP.put("1", Boolean.TRUE);
-    VALUE_MAP.put("yes", Boolean.TRUE);
-    VALUE_MAP.put("on", Boolean.TRUE);
     VALUE_MAP.put("true", Boolean.TRUE);
-    VALUE_MAP.put("enable", Boolean.TRUE);
-    VALUE_MAP.put("enabled", Boolean.TRUE);
   }
 
 
