@@ -477,7 +477,7 @@ public class JmxClientConnection
    * @return  A reference to the add operation that was processed and contains
    *          information about the result of the processing.
    */
-  public AddOperationBasis processAdd(ASN1OctetString rawEntryDN,
+  public AddOperation processAdd(ASN1OctetString rawEntryDN,
                                  ArrayList<RawAttribute> rawAttributes)
   {
     AddOperationBasis addOperation =
@@ -619,7 +619,7 @@ public class JmxClientConnection
    * @return  A reference to the delete operation that was processed and
    *          contains information about the result of the processing.
    */
-  public DeleteOperationBasis processDelete(ASN1OctetString rawEntryDN)
+  public DeleteOperation processDelete(ASN1OctetString rawEntryDN)
   {
     DeleteOperationBasis deleteOperation =
          new DeleteOperationBasis(this, nextOperationID(), nextMessageID(),
@@ -676,7 +676,7 @@ public class JmxClientConnection
    * @return  A reference to the modify operation that was processed and
    *          contains information about the result of the processing
    */
-  public ModifyOperationBasis processModify(ASN1OctetString rawEntryDN,
+  public ModifyOperation processModify(ASN1OctetString rawEntryDN,
                               ArrayList<RawModification> rawModifications)
   {
     ModifyOperationBasis modifyOperation =
@@ -744,7 +744,7 @@ public class JmxClientConnection
    * @return  A reference to the modify DN operation that was processed and
    *          contains information about the result of the processing.
    */
-  public ModifyDNOperationBasis processModifyDN(ASN1OctetString rawEntryDN,
+  public ModifyDNOperation processModifyDN(ASN1OctetString rawEntryDN,
                                            ASN1OctetString rawNewRDN,
                                            boolean deleteOldRDN)
   {
@@ -767,7 +767,7 @@ public class JmxClientConnection
    * @return  A reference to the modify DN operation that was processed and
    *          contains information about the result of the processing.
    */
-  public ModifyDNOperationBasis processModifyDN(ASN1OctetString rawEntryDN,
+  public ModifyDNOperation processModifyDN(ASN1OctetString rawEntryDN,
                                            ASN1OctetString rawNewRDN,
                                            boolean deleteOldRDN,
                                            ASN1OctetString rawNewSuperior)
@@ -807,7 +807,7 @@ public class JmxClientConnection
    *          processed and contains information about the result of
    *          the processing.
    */
-  public ModifyDNOperationBasis processModifyDN(DN entryDN, RDN newRDN,
+  public ModifyDNOperation processModifyDN(DN entryDN, RDN newRDN,
                                            boolean deleteOldRDN,
                                            DN newSuperior)
   {

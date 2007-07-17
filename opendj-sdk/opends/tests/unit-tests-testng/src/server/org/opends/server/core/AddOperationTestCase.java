@@ -182,7 +182,7 @@ public class AddOperationTestCase
    * @param  addOperation  The add operation to be tested.
    */
   @Test(dataProvider = "addOperations")
-  public void testGetAndSetRawEntryDN(AddOperationBasis addOperation)
+  public void testGetAndSetRawEntryDN(AddOperation addOperation)
   {
     ByteString originalDN = addOperation.getRawEntryDN();
     assertNotNull(originalDN);
@@ -298,7 +298,7 @@ public class AddOperationTestCase
    * @param  addOperation  The add operation to be tested.
    */
   @Test(dataProvider = "addOperations")
-  public void testGetAndSetRawAttributes(AddOperationBasis addOperation)
+  public void testGetAndSetRawAttributes(AddOperation addOperation)
   {
     List<RawAttribute> rawAttrs = addOperation.getRawAttributes();
     assertNotNull(rawAttrs);

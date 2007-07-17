@@ -47,7 +47,7 @@ import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -723,7 +723,7 @@ public class InternalClientConnectionTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ModifyDNOperationBasis modifyDNOperation =
+    ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(new ASN1OctetString("cn=test,o=test"),
                               new ASN1OctetString("cn=test2"), true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
@@ -756,7 +756,7 @@ public class InternalClientConnectionTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ModifyDNOperationBasis modifyDNOperation =
+    ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(new ASN1OctetString("cn=test,o=test"),
                               new ASN1OctetString("cn=test2"), true,
                               new ASN1OctetString("dc=example,dc=com"));
@@ -791,7 +791,7 @@ public class InternalClientConnectionTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ModifyDNOperationBasis modifyDNOperation =
+    ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(DN.decode("cn=test,o=test"),
                               RDN.decode("cn=test2"), true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
@@ -824,7 +824,7 @@ public class InternalClientConnectionTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ModifyDNOperationBasis modifyDNOperation =
+    ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(DN.decode("cn=test,o=test"),
                               RDN.decode("cn=test2"), true,
                               DN.decode("dc=example,dc=com"));

@@ -79,7 +79,7 @@ public class UnbindOperationTestCase
    *
    * @param  unbindOperation  The operation to be tested.
    */
-  private void examineCompletedOperation(UnbindOperationBasis unbindOperation)
+  private void examineCompletedOperation(UnbindOperation unbindOperation)
   {
     assertTrue(unbindOperation.getProcessingStartTime() > 0);
     assertTrue(unbindOperation.getProcessingStopTime() > 0);

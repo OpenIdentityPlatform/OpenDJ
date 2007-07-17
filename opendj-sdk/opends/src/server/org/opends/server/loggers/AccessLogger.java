@@ -710,8 +710,7 @@ public class AccessLogger implements
    * @param  modifyDNOperation  The modify DN operation containing the
    *                            information to use to log the modify DN request.
    */
-  public static void logModifyDNRequest(ModifyDNOperationBasis
-      modifyDNOperation)
+  public static void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
   {
     for (AccessLogPublisher publisher : accessPublishers)
     {
@@ -729,8 +728,7 @@ public class AccessLogger implements
    *                            information to use to log the modify DN
    *                            response.
    */
-  public static void logModifyDNResponse(ModifyDNOperationBasis
-      modifyDNOperation)
+  public static void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
     for (AccessLogPublisher publisher : accessPublishers)
     {
@@ -820,7 +818,7 @@ public class AccessLogger implements
    * @param  unbindOperation  The unbind operation containing the information to
    *                          use to log the unbind request.
    */
-  public static void logUnbind(UnbindOperationBasis unbindOperation)
+  public static void logUnbind(UnbindOperation unbindOperation)
   {
     for (AccessLogPublisher publisher : accessPublishers)
     {

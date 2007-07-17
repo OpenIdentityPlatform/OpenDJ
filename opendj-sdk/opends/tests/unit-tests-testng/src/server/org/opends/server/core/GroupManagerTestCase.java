@@ -689,7 +689,7 @@ public class GroupManagerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ModifyDNOperationBasis modifyDNOperation =
+    ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(groupDN, newRDN, true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
 

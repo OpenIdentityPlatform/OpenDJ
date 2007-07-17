@@ -66,6 +66,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
@@ -1570,7 +1571,7 @@ public class ReplicationDomain extends DirectoryThread
  * @return true if the process is completed, false if it must continue.
  * @throws Exception When the operation is not valid.
  */
-private boolean solveNamingConflict(ModifyDNOperationBasis op,
+private boolean solveNamingConflict(ModifyDNOperation op,
     UpdateMessage msg) throws Exception
 {
   ResultCode result = op.getResultCode();
@@ -1843,7 +1844,7 @@ private boolean solveNamingConflict(ModifyDNOperationBasis op,
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
-    ModifyDNOperationBasis newOp = conn.processModifyDN(
+    ModifyDNOperation newOp = conn.processModifyDN(
         dn, generateDeleteConflictDn(uid, dn),false, baseDN);
 
     if (newOp.getResultCode() != ResultCode.SUCCESS)

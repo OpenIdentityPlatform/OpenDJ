@@ -52,6 +52,7 @@ import org.opends.server.core.CompareOperationBasis;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
@@ -597,7 +598,7 @@ public class PrivilegeTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_WRITE, null), hasPrivilege);
 
-    ModifyDNOperationBasis modifyDNOperation =
+    ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(DN.decode("cn=Work Queue,cn=config"),
                               RDN.decode("cn=New RDN for Work Queue"), true,
                               null);

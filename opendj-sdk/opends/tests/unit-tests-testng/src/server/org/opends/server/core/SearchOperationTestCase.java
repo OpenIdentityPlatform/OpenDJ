@@ -203,7 +203,7 @@ public class SearchOperationTestCase extends OperationTestCase
    *
    * @param  searchOperation  The operation to be tested.
    */
-  private void examineCompletedOperation(SearchOperationBasis searchOperation)
+  private void examineCompletedOperation(SearchOperation searchOperation)
   {
     assertTrue(searchOperation.getProcessingStartTime() > 0);
     assertTrue(searchOperation.getProcessingStopTime() > 0);
