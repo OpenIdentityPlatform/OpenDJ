@@ -772,26 +772,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     // Display help for each managed object.
     boolean isFirstManagedObject = true;
     for (AbstractManagedObjectDefinition<?, ?> mod : defns) {
-      if (!isFirstManagedObject) {
-        out.println();
-        out.println(c1);
-        out.println();
-      }
-
-      // Display the title.
-      out.println(wrapText(String.format(HEADING_MANAGED_OBJECT, mod
-          .getUserFriendlyName()), MAX_LINE_WIDTH));
-
-      out.println();
-      out.println(wrapText(mod.getSynopsis(), MAX_LINE_WIDTH));
-      if (mod.getDescription() != null) {
-        out.println();
-        out.println(wrapText(mod.getDescription(), MAX_LINE_WIDTH));
-      }
-
       // Display help for each property.
       Set<PropertyDefinition<?>> pds =
         new TreeSet<PropertyDefinition<?>>(mod.getAllPropertyDefinitions());
+      boolean isFirstProperty = true;
       for (PropertyDefinition<?> pd : pds) {
         if (pd.hasOption(PropertyOption.HIDDEN)) {
           continue;
@@ -801,14 +785,37 @@ final class HelpSubCommandHandler extends SubCommandHandler {
           continue;
         }
 
+        if (isFirstProperty) {
+          // User has requested properties relating to this managed
+          // object definition, so display the summary of the managed
+          // object.
+          if (!isFirstManagedObject) {
+            out.println();
+            out.println(c1);
+            out.println();
+          } else {
+            isFirstManagedObject = false;
+          }
+
+          // Display the title.
+          out.println(wrapText(String.format(HEADING_MANAGED_OBJECT, mod
+              .getUserFriendlyName()), MAX_LINE_WIDTH));
+
+          out.println();
+          out.println(wrapText(mod.getSynopsis(), MAX_LINE_WIDTH));
+          if (mod.getDescription() != null) {
+            out.println();
+            out.println(wrapText(mod.getDescription(), MAX_LINE_WIDTH));
+          }
+        }
+
         out.println();
         out.println(c2);
         out.println();
 
         displayVerboseSingleProperty(mod, pd.getName(), out);
+        isFirstProperty = false;
       }
-
-      isFirstManagedObject = false;
     }
   }
 
