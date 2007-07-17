@@ -48,8 +48,10 @@ import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyException;
+import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
+import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
@@ -346,6 +348,16 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         pd = d.getPropertyDefinition(m);
       } catch (IllegalArgumentException e) {
         throw ArgumentExceptionFactory.unknownProperty(d, m);
+      }
+
+      // Mandatory properties which have no defined defaults cannot be
+      // reset.
+      if (pd.hasOption(PropertyOption.MANDATORY)) {
+        if (pd.getDefaultBehaviorProvider()
+            instanceof UndefinedDefaultBehaviorProvider) {
+          throw ArgumentExceptionFactory.unableToResetMandatoryProperty(d, m,
+              OPTION_DSCFG_LONG_SET);
+        }
       }
 
       // Save the modification type.
