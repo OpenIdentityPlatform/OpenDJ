@@ -182,9 +182,12 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
     case COMPARE:
       processCompare((CompareOperation) operation);
       break;
+    case ABANDON:
+      // There is no processing for an abandon operation.
+      break;
     default:
-      // jdemendi - temporary code, just make sure that we don't fell into
-      // that incomplete code...
+      // jdemendi - temporary code, just make sure that we are not falling
+      // into that incomplete code...
       Validator.ensureTrue(false);
       break;
     }

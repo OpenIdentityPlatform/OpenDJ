@@ -101,7 +101,8 @@ public class AbandonOperationTestCase
 
     return new Operation[]
     {
-      new AbandonOperation(conn, conn.nextOperationID(), conn.nextMessageID(),
+      new AbandonOperationBasis(conn, conn.nextOperationID(),
+                           conn.nextMessageID(),
                            new ArrayList<Control>(), 1)
     };
   }
@@ -117,8 +118,8 @@ public class AbandonOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    AbandonOperation abandonOperation =
-         new AbandonOperation(conn, conn.nextOperationID(),
+    AbandonOperationBasis abandonOperation =
+         new AbandonOperationBasis(conn, conn.nextOperationID(),
                   conn.nextMessageID(), new ArrayList<Control>(), 1);
     assertEquals(abandonOperation.getIDToAbandon(), 1);
   }
@@ -134,8 +135,8 @@ public class AbandonOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    AbandonOperation abandonOperation =
-         new AbandonOperation(conn, conn.nextOperationID(),
+    AbandonOperationBasis abandonOperation =
+         new AbandonOperationBasis(conn, conn.nextOperationID(),
                   conn.nextMessageID(), new ArrayList<Control>(), 1);
 
     CancelRequest cancelRequest = new CancelRequest(true, "Test Cancel");
@@ -154,8 +155,8 @@ public class AbandonOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    AbandonOperation abandonOperation =
-         new AbandonOperation(conn, conn.nextOperationID(),
+    AbandonOperationBasis abandonOperation =
+         new AbandonOperationBasis(conn, conn.nextOperationID(),
                   conn.nextMessageID(), new ArrayList<Control>(), 1);
     assertNull(abandonOperation.getCancelRequest());
   }
@@ -191,8 +192,8 @@ public class AbandonOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    AbandonOperation abandonOperation =
-         new AbandonOperation(conn, conn.nextOperationID(),
+    AbandonOperationBasis abandonOperation =
+         new AbandonOperationBasis(conn, conn.nextOperationID(),
                   conn.nextMessageID(), new ArrayList<Control>(), 1);
     abandonOperation.run();
     assertEquals(abandonOperation.getResultCode(),
