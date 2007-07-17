@@ -652,7 +652,7 @@ public class JmxClientConnection
    * @return  A reference to the extended operation that was processed and
    *          contains information about the result of the processing.
    */
-  public ExtendedOperationBasis processExtendedOperation(String requestOID,
+  public ExtendedOperation processExtendedOperation(String requestOID,
                                 ASN1OctetString requestValue)
   {
     ExtendedOperationBasis extendedOperation =
