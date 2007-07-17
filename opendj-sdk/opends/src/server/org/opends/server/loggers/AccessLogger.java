@@ -820,7 +820,7 @@ public class AccessLogger implements
    * @param  unbindOperation  The unbind operation containing the information to
    *                          use to log the unbind request.
    */
-  public static void logUnbind(UnbindOperation unbindOperation)
+  public static void logUnbind(UnbindOperationBasis unbindOperation)
   {
     for (AccessLogPublisher publisher : accessPublishers)
     {

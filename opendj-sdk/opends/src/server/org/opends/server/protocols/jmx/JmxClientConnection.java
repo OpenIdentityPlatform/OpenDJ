@@ -1039,8 +1039,10 @@ public class JmxClientConnection
     // unbind the underlying connection
     try
     {
-      UnbindOperation unbindOp = new UnbindOperation((ClientConnection) this,
-          this.nextOperationID(), this.nextMessageID(), null);
+      UnbindOperationBasis unbindOp = new UnbindOperationBasis(
+          (ClientConnection) this,
+          this.nextOperationID(),
+          this.nextMessageID(), null);
 
       unbindOp.run();
     }
