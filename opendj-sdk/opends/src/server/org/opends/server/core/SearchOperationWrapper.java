@@ -26,36 +26,32 @@
  */
 package org.opends.server.core;
 
+
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-
-import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
-import org.opends.server.types.OperationType;
 import org.opends.server.types.RawFilter;
-import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
+
 
 /**
  * This abstract class wraps/decorates a given search operation.
  * This class will be extended by sub-classes to enhance the
  * functionnality of the SearchOperationBasis.
  */
-public abstract class SearchOperationWrapper implements SearchOperation
+public abstract class SearchOperationWrapper extends OperationWrapper
+       implements SearchOperation
 {
+  // The wrapped operation.
   private SearchOperation search;
 
   /**
@@ -63,314 +59,10 @@ public abstract class SearchOperationWrapper implements SearchOperation
    *
    * @param search The search operation to wrap
    */
-  protected SearchOperationWrapper(SearchOperation search){
+  protected SearchOperationWrapper(SearchOperation search)
+  {
+    super(search);
     this.search = search;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void addRequestControl(Control control)
-  {
-    search.addRequestControl(control);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void addResponseControl(Control control)
-  {
-    search.addResponseControl(control);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void appendAdditionalLogMessage(String message)
-  {
-    search.appendAdditionalLogMessage(message);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void appendErrorMessage(String message)
-  {
-    search.appendErrorMessage(message);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public CancelResult cancel(CancelRequest cancelRequest)
-  {
-    return search.cancel(cancelRequest);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void disconnectClient(DisconnectReason disconnectReason,
-      boolean sendNotification, String message, int messageID)
-  {
-    search.disconnectClient(disconnectReason, sendNotification, message,
-        messageID);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean dontSynchronize()
-  {
-    return search.dontSynchronize();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public StringBuilder getAdditionalLogMessage()
-  {
-    return search.getAdditionalLogMessage();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Object getAttachment(String name)
-  {
-    return search.getAttachment(name);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Map<String, Object> getAttachments()
-  {
-    return search.getAttachments();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public DN getAuthorizationDN()
-  {
-    return search.getAuthorizationDN();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Entry getAuthorizationEntry()
-  {
-    return search.getAuthorizationEntry();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public CancelRequest getCancelRequest()
-  {
-    return search.getCancelRequest();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public CancelResult getCancelResult()
-  {
-    return search.getCancelResult();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ClientConnection getClientConnection()
-  {
-    return search.getClientConnection();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public String[][] getCommonLogElements()
-  {
-    return search.getCommonLogElements();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getConnectionID()
-  {
-    return search.getConnectionID();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public StringBuilder getErrorMessage()
-  {
-    return search.getErrorMessage();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public DN getMatchedDN()
-  {
-    return search.getMatchedDN();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public int getMessageID()
-  {
-    return search.getMessageID();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getOperationID()
-  {
-    return search.getOperationID();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public OperationType getOperationType()
-  {
-    return search.getOperationType();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getProcessingStartTime()
-  {
-    return search.getProcessingStartTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getProcessingStopTime()
-  {
-    return search.getProcessingStopTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getProcessingTime()
-  {
-    return search.getProcessingTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public List<String> getReferralURLs()
-  {
-    return search.getReferralURLs();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public List<Control> getRequestControls()
-  {
-    return search.getRequestControls();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public String[][] getRequestLogElements()
-  {
-    return search.getRequestLogElements();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public List<Control> getResponseControls()
-  {
-    return search.getResponseControls();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public String[][] getResponseLogElements()
-  {
-    return search.getResponseLogElements();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultCode getResultCode()
-  {
-    return search.getResultCode();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void indicateCancelled(CancelRequest cancelRequest)
-  {
-    search.indicateCancelled(cancelRequest);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isInternalOperation()
-  {
-    return search.isInternalOperation();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isSynchronizationOperation()
-  {
-    return search.isSynchronizationOperation();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void operationCompleted()
-  {
-    search.operationCompleted();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Object removeAttachment(String name)
-  {
-    return search.removeAttachment(name);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void removeRequestControl(Control control)
-  {
-    search.removeRequestControl(control);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void removeResponseControl(Control control)
-  {
-    search.removeResponseControl(control);
   }
 
   /**
@@ -392,145 +84,9 @@ public abstract class SearchOperationWrapper implements SearchOperation
   /**
    * {@inheritDoc}
    */
-  public void setAdditionalLogMessage(StringBuilder additionalLogMessage)
-  {
-    search.setAdditionalLogMessage(additionalLogMessage);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Object setAttachment(String name, Object value)
-  {
-    return search.setAttachment(name, value);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setAttachments(Map<String, Object> attachments)
-  {
-    search.setAttachments(attachments);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setAuthorizationEntry(Entry authorizationEntry)
-  {
-    search.setAuthorizationEntry(authorizationEntry);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    return search.setCancelRequest(cancelRequest);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setCancelResult(CancelResult cancelResult)
-  {
-    search.setCancelResult(cancelResult);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setDontSynchronize(boolean dontSynchronize)
-  {
-    search.setDontSynchronize(dontSynchronize);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setErrorMessage(StringBuilder errorMessage)
-  {
-    search.setErrorMessage(errorMessage);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setInternalOperation(boolean isInternalOperation)
-  {
-    search.setInternalOperation(isInternalOperation);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setMatchedDN(DN matchedDN)
-  {
-    search.setMatchedDN(matchedDN);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setProcessingStartTime()
-  {
-    search.setProcessingStartTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setProcessingStopTime()
-  {
-    search.setProcessingStopTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setReferralURLs(List<String> referralURLs)
-  {
-    search.setReferralURLs(referralURLs);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setResponseData(DirectoryException directoryException)
-  {
-    search.setResponseData(directoryException);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setResultCode(ResultCode resultCode)
-  {
-    search.setResultCode(resultCode);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setSynchronizationOperation(boolean isSynchronizationOperation)
-  {
-    search.setSynchronizationOperation(isSynchronizationOperation);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public String toString()
   {
     return search.toString();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void toString(StringBuilder buffer)
-  {
-    search.toString(buffer);
   }
 
   /**
