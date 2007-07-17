@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <defaultcall function="sample" />
+  <function name="sample">
+    <sequence>
+      <script>
+        CurrentTestPath={ 'group' : 'sample', 'suite' : 'sample' }
+        envAlreadyLoaded='true'
+      </script>
+      
+      <!---
+        #@TestSuiteName             Sample
+        #@TestSuitePurpose          Illustrate how to easily contribute functional tests
+        #@TestSuiteGroup            Sample
+        #@TestScript                aci_add_entry.xml
+      -->
+      
+      <!-- Try/catch/finally structure are a handy way to alter the execution
+           flow of a suite in front of unexpected conditions
+       -->
+      <try>
+        <!-- this is an example of how to loop through a list of functions to 
+             run instead of duplicating calls 
+         -->
+        <iterate in="['testGroup_Preamble','testSuite_Preamble','sample_setup','sample_test']" var="testStep">
+          <!-- the sequence tag is superfluous here since there is only a 
+               single instruction to execute within the iterate block 
+           -->
+          <call function="'%s' % testStep" />
+        </iterate>
+        <catch exception="'STAFException.Topology.CreationException'">
+          <!-- it is a good idea to make sure that the messages getting
+               sent to the gui also make their way in the logs for easier 
+               after-the-fact log mining. Use log="1" wherever it makes sense
+               Setting the log level to an appropriate value will also make 
+               troubleshooting and debugging easier.
+               Level values can be (among others):
+                . fatal
+                . error
+                . warning
+                . info
+                . trace
+                . debug
+           -->
+          <message log="1" level="'fatal'">'Could not create the topology. Bailing out.'</message>
+        </catch>
+        <catch exception="'STAXException.Topology.StartException'">
+          <message log="1" level="'fatal'">'Could not start at least one server in the topology. Bailing out.'</message>
+        </catch>
+        <finally>
+          <iterate in="['sample_cleanup','testSuite_Postamble','testGroup_Postamble']" var="testStep">
+            <call function="'%s' % testStep" />
+          </iterate>
+        </finally>
+      </try>
+    </sequence>
+  </function>
+  
+  <!-- the test -->
+  <function name="sample_test">
+    <!---
+      Place test-specific test information here.
+      The tag, TestMarker, must be the same as the tag, TestSuiteName.
+      #@TestMarker                Sample
+      #@TestName                  sample_test
+      #@TestIssue                 xyz
+      #@TestPurpose               Illustrate how to issue a query on OpenDS
+      #@TestPreamble              none
+      #@TestStep                  Fetch all the entries in the server
+      #@TestPostamble             none
+      #@TestResult                Success if OpenDS returns 0
+    -->
+    <testcase name="'%s' % STAXCurrentFunction">
+      <sequence>
+        <call function="'testCase_Preamble'" />
+        <call function="'SearchObject'">
+        { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN   ,
+          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+          'dsBaseDN'         : DIRECTORY_INSTANCE_SFX  ,
+          'dsFilter'         : 'objectclass=*'         }
+        </call>
+        <call function="'testCase_Postamble'" />
+      </sequence>
+    </testcase>
+  </function>
+  
+  <!-- Setup the instance for sample test -->
+  <function name="sample_setup">
+    <sequence>
+      <message>'That is the right setup being called here'</message>
+      <call function="'runFunction'">
+        { 'functionName'      : 'createTopology'                              ,
+          'functionMessage'   : 'Create DS topology as described in config.py',
+          'functionException' : 'Topology.CreationException'                  ,
+          'functionArguments' : { 'initialiseInstance' : True }
+        }
+      </call>
+      <call function="'runFunction'">
+        { 'functionName'      : 'StartDSWithScript'                                      ,
+          'functionMessage'   : 'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT) ,
+          'functionArguments' : { 'location' : STAF_REMOTE_HOSTNAME }
+        }
+      </call>
+      <call function="'runFunction'">
+        { 'functionName'      : 'isAlive'                             ,
+          'functionMessage'   : 'Checking if the server is available' ,
+          'functionException' : 'Topology.StartException'             ,
+          'functionArguments' : { 'noOfLoops'        : 5    ,
+                                  'noOfMilliSeconds' : 2000 }
+        }
+      </call>
+    </sequence>
+  </function>
+  
+  <!-- cleanup after the test -->
+  <function name="sample_cleanup">
+    <sequence>
+      <call function="'runFunction'">
+        { 'functionName'      : 'StopDsWithScript' ,
+          'functionMessage'   : 'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT),
+          'functionArguments' : { 'location'  : STAF_REMOTE_HOSTNAME    ,
+                                  'dsHost'    : DIRECTORY_INSTANCE_HOST ,
+                                  'dsPort'    : DIRECTORY_INSTANCE_PORT ,
+                                  'dsBindDN'  : DIRECTORY_INSTANCE_DN   ,
+                                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+        }
+      </call>
+      <call function="'runFunction'">
+        { 'functionName'    : 'removeTopology',
+          'functionMessage' : 'Remove DS topology created for the Test Suite'
+        }
+      </call>
+    </sequence>
+  </function>
+  
+  <function name="runFunction" scope="local">
+    <function-map-args>
+      <function-arg-def name="functionName" type="required">
+        <function-arg-description>
+          Name of the function to run
+        </function-arg-description>
+      </function-arg-def>
+
+      <function-arg-def name="functionArguments" type="optional">
+        <function-arg-description>
+          Arguments to be passed on to the called function.
+          This can be a map or a list of arguments, whatever the called function
+          expects will be carried on here.
+          . for a map, pass the arguments like this:
+            { 'argumentA' : 'argumentAvalue' ,
+              'argumentB' : 1 ,
+              ...
+            }
+          . for a list, pass the arguments like this:
+            [ 'argumentAvalue, 1, ... ]
+        </function-arg-description>
+      </function-arg-def>
+
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          The expected return code of the function to run.
+          This is then passed onto the checkRC function.
+          It is also used to throw an exception if the argument 
+          functionException is provided and set the test case status if the
+          argument functionSetsTCStatus is provided
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+
+      <function-arg-def name="functionException" type="optional">
+        <function-arg-description>
+          The exception to throw if the return code differs from the expected 
+          RC. The exception is appended to STAXException.
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionMessage" type="optional">
+        <function-arg-description>
+          An optional message to display before running the function
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionSetsTCStatus" type="optional">
+        <function-arg-description>
+          Whether the function to run sets the testcase status or not.
+          If this is set, the test case status is set according to whether
+          or not the function meets the expected return code.
+          True or False should be used for this argument.
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        throwException=False
+        if functionException:
+          throwException=True
+
+        displayMessage=False
+        if functionMessage:
+          displayMessage=True
+
+        tcStatus='fail'
+        doSetTCStatus=False
+        if functionSetsTCStatus:
+          doSetTCStatus=True
+      </script>
+      <message log="1" level="'info'" if="displayMessage == True">'%s' % functionMessage</message>
+      <message log="1" level="'debug'">'runFunction: %s: called with parameters [%s]' % (functionName,functionArguments)</message>
+      <call function="'%s' % functionName">functionArguments</call>
+      <message log="1" level="'debug'">'runFunction: %s: returned [%s]' % (functionName,RC)</message>
+      <script>
+        functionRC = RC
+      </script>
+      <call function="'checkRC'" >
+        { 'returncode' : RC ,
+          'result'     : STAXResult,
+          'expected'   : expectedRC
+        }
+      </call>
+
+      <!-- this section handles the optional case when we need to set the 
+           test case status
+       -->
+      <if expr="doSetTCStatus == True">
+        <sequence>
+          <if expr="functionRC == expectedRC">
+            <script>tcStatus='pass'</script>
+          </if>
+          <tcstatus result="tcStatus" />
+        </sequence>
+      </if>
+
+      <!-- this section handles the optional case when we need to throw an
+           exception upon unexpected function return code
+       -->
+      <if expr="throwException == True" >
+        <if expr="functionRC != expectedRC" >
+          <throw exception="'STAXException.%s' % functionException" />
+        </if>
+      </if>
+      
+      <!-- bubble the function return code up one level -->
+      <return>functionRC</return>
+    </sequence>
+  </function>
+</stax>
