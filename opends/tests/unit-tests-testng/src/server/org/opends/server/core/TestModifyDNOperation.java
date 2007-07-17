@@ -165,7 +165,7 @@ public class TestModifyDNOperation extends OperationTestCase
    *
    * @param  modifyDNOperation  The operation to be tested.
    */
-  private void examineCompletedOperation(ModifyDNOperationBasis modifyDNOperation)
+  private void examineCompletedOperation(ModifyDNOperation modifyDNOperation)
   {
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
@@ -185,7 +185,7 @@ public class TestModifyDNOperation extends OperationTestCase
    *
    * @param  modifyDNOperation  The operation to be tested.
    */
-  private void examineIncompleteOperation(ModifyDNOperationBasis modifyDNOperation)
+  private void examineIncompleteOperation(ModifyDNOperation modifyDNOperation)
   {
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);
@@ -206,7 +206,7 @@ public class TestModifyDNOperation extends OperationTestCase
    *
    * @param  modifyDNOperation  The operation to be tested.
    */
-  private void examineUnparsedOperation(ModifyDNOperationBasis modifyDNOperation)
+  private void examineUnparsedOperation(ModifyDNOperation modifyDNOperation)
   {
     assertTrue(modifyDNOperation.getProcessingStartTime() > 0);
     assertTrue(modifyDNOperation.getProcessingStopTime() > 0);

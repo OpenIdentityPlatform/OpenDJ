@@ -80,6 +80,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.operation.PostOperationAbandonOperation;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationBindOperation;
 import org.opends.server.types.operation.PostOperationCompareOperation;
@@ -88,6 +89,7 @@ import org.opends.server.types.operation.PostOperationExtendedOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostOperationSearchOperation;
+import org.opends.server.types.operation.PostOperationUnbindOperation;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseBindOperation;
 import org.opends.server.types.operation.PostResponseCompareOperation;
@@ -104,13 +106,18 @@ import org.opends.server.types.operation.PreOperationExtendedOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
+import org.opends.server.types.operation.PreParseAbandonOperation;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.types.operation.PreParseBindOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
 import org.opends.server.types.operation.PreParseDeleteOperation;
+import org.opends.server.types.operation.PreParseModifyDNOperation;
 import org.opends.server.types.operation.PreParseExtendedOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.types.operation.PreParseSearchOperation;
+import org.opends.server.types.operation.PreParseUnbindOperation;
+import org.opends.server.types.operation.SearchEntrySearchOperation;
+import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -1740,7 +1747,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse abandon plugins.
    */
   public PreParsePluginResult invokePreParseAbandonPlugins(
-                                   AbandonOperationBasis abandonOperation)
+                                   PreParseAbandonOperation abandonOperation)
   {
     PreParsePluginResult result = null;
 
@@ -2310,7 +2317,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse modify DN plugins.
    */
   public PreParsePluginResult invokePreParseModifyDNPlugins(
-                                   ModifyDNOperationBasis modifyDNOperation)
+                                   PreParseModifyDNOperation modifyDNOperation)
   {
     PreParsePluginResult result = null;
 
@@ -2474,7 +2481,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse unbind plugins.
    */
   public PreParsePluginResult invokePreParseUnbindPlugins(
-                                   UnbindOperationBasis unbindOperation)
+                                   PreParseUnbindOperation unbindOperation)
   {
     PreParsePluginResult result = null;
 
@@ -3208,7 +3215,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation abandon plugins.
    */
   public PostOperationPluginResult invokePostOperationAbandonPlugins(
-                                        AbandonOperationBasis abandonOperation)
+                              PostOperationAbandonOperation abandonOperation)
   {
     PostOperationPluginResult result = null;
 
@@ -3942,7 +3949,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation unbind plugins.
    */
   public PostOperationPluginResult invokePostOperationUnbindPlugins(
-                                        UnbindOperationBasis unbindOperation)
+                                 PostOperationUnbindOperation unbindOperation)
   {
     PostOperationPluginResult result = null;
 
@@ -4685,8 +4692,8 @@ public class PluginConfigManager
    * @return  The result of processing the search result entry plugins.
    */
   public SearchEntryPluginResult invokeSearchResultEntryPlugins(
-                                      SearchOperationBasis searchOperation,
-                                      SearchResultEntry searchEntry)
+      SearchEntrySearchOperation searchOperation,
+      SearchResultEntry searchEntry)
   {
     SearchEntryPluginResult result = null;
 
@@ -4825,8 +4832,8 @@ public class PluginConfigManager
    * @return  The result of processing the search result reference plugins.
    */
   public SearchReferencePluginResult invokeSearchResultReferencePlugins(
-                                          SearchOperationBasis searchOperation,
-                                          SearchResultReference searchReference)
+      SearchReferenceSearchOperation searchOperation,
+      SearchResultReference searchReference)
   {
     SearchReferencePluginResult result = null;
 

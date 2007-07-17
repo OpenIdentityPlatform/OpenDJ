@@ -341,7 +341,7 @@ public abstract class AccessLogPublisher
    *                            DN request.
    */
   public abstract void logModifyDNRequest(
-                            ModifyDNOperationBasis modifyDNOperation);
+                            ModifyDNOperation modifyDNOperation);
 
 
 
@@ -355,7 +355,7 @@ public abstract class AccessLogPublisher
    *                            DN response.
    */
   public abstract void logModifyDNResponse(
-                            ModifyDNOperationBasis modifyDNOperation);
+                            ModifyDNOperation modifyDNOperation);
 
 
 
@@ -424,8 +424,7 @@ public abstract class AccessLogPublisher
    *                          information to use to log the unbind
    *                          request.
    */
-  public abstract void logUnbind(UnbindOperationBasis
-      unbindOperation);
+  public abstract void logUnbind(UnbindOperation unbindOperation);
 
   /**
    * Gets the DN of the configuration entry for this access log
