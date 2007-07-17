@@ -45,7 +45,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.plugins.ShortCircuitPlugin;
@@ -975,7 +975,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
 
     // - MODDN parent entry 1 to baseDn2 in the LDAP server
-    ModifyDNOperation modDNOp = new ModifyDNOperation(connection,
+    ModifyDNOperationBasis modDNOp = new ModifyDNOperationBasis(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
         .nextMessageID(), null,
         DN.decode("ou=baseDn1,"+baseDn),
@@ -1206,7 +1206,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Modify the entry DN
       DN newDN = DN.decode("uid= new person,ou=People,dc=example,dc=com") ;
-      ModifyDNOperation modDNOp = new ModifyDNOperation(connection,
+      ModifyDNOperationBasis modDNOp = new ModifyDNOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
           .nextMessageID(), null, personEntry.getDN(), RDN
           .decode("uid=new person"), true, DN

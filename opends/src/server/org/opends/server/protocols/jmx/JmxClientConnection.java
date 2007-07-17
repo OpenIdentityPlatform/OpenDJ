@@ -744,7 +744,7 @@ public class JmxClientConnection
    * @return  A reference to the modify DN operation that was processed and
    *          contains information about the result of the processing.
    */
-  public ModifyDNOperation processModifyDN(ASN1OctetString rawEntryDN,
+  public ModifyDNOperationBasis processModifyDN(ASN1OctetString rawEntryDN,
                                            ASN1OctetString rawNewRDN,
                                            boolean deleteOldRDN)
   {
@@ -767,13 +767,13 @@ public class JmxClientConnection
    * @return  A reference to the modify DN operation that was processed and
    *          contains information about the result of the processing.
    */
-  public ModifyDNOperation processModifyDN(ASN1OctetString rawEntryDN,
+  public ModifyDNOperationBasis processModifyDN(ASN1OctetString rawEntryDN,
                                            ASN1OctetString rawNewRDN,
                                            boolean deleteOldRDN,
                                            ASN1OctetString rawNewSuperior)
   {
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(this, nextOperationID(), nextMessageID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(this, nextOperationID(), nextMessageID(),
                                new ArrayList<Control>(0), rawEntryDN, rawNewRDN,
                                deleteOldRDN, rawNewSuperior);
 
@@ -807,12 +807,12 @@ public class JmxClientConnection
    *          processed and contains information about the result of
    *          the processing.
    */
-  public ModifyDNOperation processModifyDN(DN entryDN, RDN newRDN,
+  public ModifyDNOperationBasis processModifyDN(DN entryDN, RDN newRDN,
                                            boolean deleteOldRDN,
                                            DN newSuperior)
   {
-    ModifyDNOperation modifyDNOperation =
-         new ModifyDNOperation(this, nextOperationID(),
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(this, nextOperationID(),
                                nextMessageID(),
                                new ArrayList<Control>(0), entryDN,
                                newRDN, deleteOldRDN, newSuperior);

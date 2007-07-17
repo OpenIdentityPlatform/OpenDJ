@@ -40,7 +40,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Group;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.extensions.DynamicGroup;
 import org.opends.server.extensions.StaticGroup;
 import org.opends.server.extensions.VirtualStaticGroup;
@@ -689,7 +689,7 @@ public class GroupManagerTestCase
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
-    ModifyDNOperation modifyDNOperation =
+    ModifyDNOperationBasis modifyDNOperation =
          conn.processModifyDN(groupDN, newRDN, true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
 

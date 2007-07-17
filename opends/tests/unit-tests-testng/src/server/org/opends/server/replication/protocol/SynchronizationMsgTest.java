@@ -42,7 +42,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
@@ -79,6 +79,7 @@ import org.opends.server.types.RDN;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -305,8 +306,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
-    ModifyDNOperation op =
-      new ModifyDNOperation(connection, 1, 1, null,
+    ModifyDNOperationBasis op =
+      new ModifyDNOperationBasis(connection, 1, 1, null,
                   DN.decode(rawDN), RDN.decode(newRdn), deleteOldRdn,
                   (newSuperior.length() != 0 ? DN.decode(newSuperior) : null));
 
@@ -314,11 +315,13 @@ public class SynchronizationMsgTest extends ReplicationTestCase
                                       (short) 123, (short) 45);
     op.setAttachment(SYNCHROCONTEXT,
         new ModifyDnContext(cn, "uniqueid", "newparentId"));
-    ModifyDNMsg msg = new ModifyDNMsg(op);
+    LocalBackendModifyDNOperation localOp =
+      new LocalBackendModifyDNOperation(op);
+    ModifyDNMsg msg = new ModifyDNMsg(localOp);
     ModifyDNMsg generatedMsg = (ModifyDNMsg) ReplicationMessage
         .generateMsg(msg.getBytes());
     Operation generatedOperation = generatedMsg.createOperation(connection);
-    ModifyDNOperation mod2 = (ModifyDNOperation) generatedOperation;
+    ModifyDNOperationBasis mod2 = (ModifyDNOperationBasis) generatedOperation;
 
     assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
     assertEquals(op.getRawEntryDN(), mod2.getRawEntryDN());
@@ -327,7 +330,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(op.getRawNewSuperior(), mod2.getRawNewSuperior());
 
     // Create an update message from this op
-    ModifyDNMsg updateMsg = (ModifyDNMsg) UpdateMessage.generateMsg(op, true);
+    ModifyDNMsg updateMsg = (ModifyDNMsg) UpdateMessage.generateMsg(localOp,
+        true);
     assertEquals(msg.getChangeNumber(), updateMsg.getChangeNumber());
   }
 

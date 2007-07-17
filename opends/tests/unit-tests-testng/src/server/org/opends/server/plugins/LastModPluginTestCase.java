@@ -46,7 +46,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -390,7 +390,7 @@ public class LastModPluginTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    ModifyDNOperation modifyDNOperation =
+    ModifyDNOperationBasis modifyDNOperation =
          conn.processModifyDN(e.getDN(), RDN.decode("cn=test2"), false);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
 

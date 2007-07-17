@@ -34,7 +34,7 @@ import org.opends.server.admin.std.server.JEIndexCfg;
 import org.opends.server.admin.std.meta.JEBackendCfgDefn;
 import org.opends.server.admin.std.meta.JEIndexCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -1167,7 +1167,7 @@ public class TestBackendImpl extends JebTestCase {
       InternalClientConnection conn =
           InternalClientConnection.getRootConnection();
 
-      ModifyDNOperation modifyDN = new ModifyDNOperation(conn,
+      ModifyDNOperationBasis modifyDN = new ModifyDNOperationBasis(conn,
           conn.nextOperationID(),
           conn.nextMessageID(),
           noControls,

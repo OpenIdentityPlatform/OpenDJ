@@ -341,7 +341,7 @@ public abstract class AccessLogPublisher
    *                            DN request.
    */
   public abstract void logModifyDNRequest(
-                            ModifyDNOperation modifyDNOperation);
+                            ModifyDNOperationBasis modifyDNOperation);
 
 
 
@@ -355,7 +355,7 @@ public abstract class AccessLogPublisher
    *                            DN response.
    */
   public abstract void logModifyDNResponse(
-                            ModifyDNOperation modifyDNOperation);
+                            ModifyDNOperationBasis modifyDNOperation);
 
 
 

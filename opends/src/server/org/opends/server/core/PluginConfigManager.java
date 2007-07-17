@@ -84,18 +84,21 @@ import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationBindOperation;
 import org.opends.server.types.operation.PostOperationCompareOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostOperationSearchOperation;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseBindOperation;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
+import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseSearchOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationBindOperation;
 import org.opends.server.types.operation.PreOperationCompareOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.PreParseAddOperation;
@@ -2303,7 +2306,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse modify DN plugins.
    */
   public PreParsePluginResult invokePreParseModifyDNPlugins(
-                                   ModifyDNOperation modifyDNOperation)
+                                   ModifyDNOperationBasis modifyDNOperation)
   {
     PreParsePluginResult result = null;
 
@@ -3037,7 +3040,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-operation modify DN plugins.
    */
   public PreOperationPluginResult invokePreOperationModifyDNPlugins(
-                                       ModifyDNOperation modifyDNOperation)
+                              PreOperationModifyDNOperation modifyDNOperation)
   {
     PreOperationPluginResult result = null;
 
@@ -3771,7 +3774,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation modify DN plugins.
    */
   public PostOperationPluginResult invokePostOperationModifyDNPlugins(
-                                        ModifyDNOperation modifyDNOperation)
+                             PostOperationModifyDNOperation modifyDNOperation)
   {
     PostOperationPluginResult result = null;
 
@@ -4461,7 +4464,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-response modify DN plugins.
    */
   public PostResponsePluginResult invokePostResponseModifyDNPlugins(
-                                       ModifyDNOperation modifyDNOperation)
+                               PostResponseModifyDNOperation modifyDNOperation)
   {
     PostResponsePluginResult result = null;
 

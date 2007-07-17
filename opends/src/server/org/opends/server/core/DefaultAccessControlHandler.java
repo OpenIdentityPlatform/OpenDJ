@@ -160,7 +160,7 @@ class DefaultAccessControlHandler
    * {@inheritDoc}
    */
   @Override
-  public boolean isAllowed(ModifyDNOperation modifyDNOperation)
+  public boolean isAllowed(LocalBackendModifyDNOperation modifyDNOperation)
   {
     return true;
   }

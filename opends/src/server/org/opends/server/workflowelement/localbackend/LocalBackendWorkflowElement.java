@@ -77,6 +77,7 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PasswordPolicyState;
@@ -178,6 +179,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
       break;
     case MODIFY:
       processModify((ModifyOperation) operation);
+      break;
+    case MODIFY_DN:
+      processModifyDN((ModifyDNOperation) operation);
       break;
     case COMPARE:
       processCompare((CompareOperation) operation);
@@ -6679,6 +6683,7 @@ deleteProcessing:
   }
 
 
+
   /**
    * Perform a compare operation against a local backend.
    *
@@ -7246,6 +7251,1301 @@ compareProcessing:
         return;
       }
     }
+  }
+
+  /**
+   * Perform a moddn operation against a local backend.
+   *
+   * @param op The operation to perform
+   */
+  public void processModifyDN(ModifyDNOperation op)
+  {
+    LocalBackendModifyDNOperation localOp =
+      new LocalBackendModifyDNOperation(op);
+    processLocalModifyDN(localOp);
+  }
+
+  /**
+   * Perform a local moddn operation against the local backend.
+   *
+   * @param operation - The operation to perform
+   */
+  private void processLocalModifyDN(LocalBackendModifyDNOperation op)
+  {
+
+    ClientConnection clientConnection = op.getClientConnection();
+
+    // Get the plugin config manager that will be used for invoking plugins.
+    PluginConfigManager pluginConfigManager =
+         DirectoryServer.getPluginConfigManager();
+    boolean skipPostOperation = false;
+
+    // Check for and handle a request to cancel this operation.
+    if (op.getCancelRequest() != null)
+    {
+      op.indicateCancelled(op.getCancelRequest());
+      return;
+    }
+
+    // Create a labeled block of code that we can break out of if a problem is
+    // detected.
+modifyDNProcessing:
+    {
+      // Process the entry DN, newRDN, and newSuperior elements from their raw
+      // forms as provided by the client to the forms required for the rest of
+      // the modify DN processing.
+      DN entryDN = op.getEntryDN();
+
+      RDN newRDN = op.getNewRDN();
+      if (newRDN == null)
+      {
+        skipPostOperation = true;
+        break modifyDNProcessing;
+      }
+
+      DN newSuperior = op.getNewSuperior();
+      if ((newSuperior == null) &&
+          (op.getRawNewSuperior() != null))
+      {
+        skipPostOperation = true;
+        break modifyDNProcessing;
+      }
+
+      // Construct the new DN to use for the entry.
+      DN parentDN;
+      if (newSuperior == null)
+      {
+        parentDN = entryDN.getParentDNInSuffix();
+      }
+      else
+      {
+        parentDN = newSuperior;
+      }
+
+      if ((parentDN == null) || parentDN.isNullDN())
+      {
+        op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        op.appendErrorMessage(getMessage(MSGID_MODDN_NO_PARENT,
+                                      String.valueOf(entryDN)));
+        break modifyDNProcessing;
+      }
+
+      DN newDN = parentDN.concat(newRDN);
+
+      // Get the backend for the current entry, and the backend for the new
+      // entry.  If either is null, or if they are different, then fail.
+      Backend currentBackend = backend;
+      if (currentBackend == null)
+      {
+        op.setResultCode(ResultCode.NO_SUCH_OBJECT);
+        op.appendErrorMessage(getMessage(
+                                      MSGID_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY,
+                                      String.valueOf(entryDN)));
+        break modifyDNProcessing;
+      }
+
+      Backend newBackend = DirectoryServer.getBackend(newDN);
+      if (newBackend == null)
+      {
+        op.setResultCode(ResultCode.NO_SUCH_OBJECT);
+        op.appendErrorMessage(getMessage(MSGID_MODDN_NO_BACKEND_FOR_NEW_ENTRY,
+                                      String.valueOf(entryDN),
+                                      String.valueOf(newDN)));
+        break modifyDNProcessing;
+      }
+      else if (! currentBackend.equals(newBackend))
+      {
+        op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        op.appendErrorMessage(getMessage(MSGID_MODDN_DIFFERENT_BACKENDS,
+                                      String.valueOf(entryDN),
+                                      String.valueOf(newDN)));
+        break modifyDNProcessing;
+      }
+
+
+      // Check for and handle a request to cancel this operation.
+      if (op.getCancelRequest() != null)
+      {
+        op.indicateCancelled(op.getCancelRequest());
+        return;
+      }
+
+
+      // Acquire write locks for the current and new DN.
+      Lock currentLock = null;
+      for (int i=0; i < 3; i++)
+      {
+        currentLock = LockManager.lockWrite(entryDN);
+        if (currentLock != null)
+        {
+          break;
+        }
+      }
+
+      if (currentLock == null)
+      {
+        op.setResultCode(DirectoryServer.getServerErrorResultCode());
+        op.appendErrorMessage(getMessage(MSGID_MODDN_CANNOT_LOCK_CURRENT_DN,
+                                      String.valueOf(entryDN)));
+
+        skipPostOperation = true;
+        break modifyDNProcessing;
+      }
+
+      Lock newLock = null;
+      try
+      {
+        for (int i=0; i < 3; i++)
+        {
+          newLock = LockManager.lockWrite(newDN);
+          if (newLock != null)
+          {
+            break;
+          }
+        }
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        LockManager.unlock(entryDN, currentLock);
+
+        if (newLock != null)
+        {
+          LockManager.unlock(newDN, newLock);
+        }
+
+        op.setResultCode(DirectoryServer.getServerErrorResultCode());
+        op.appendErrorMessage(getMessage(MSGID_MODDN_EXCEPTION_LOCKING_NEW_DN,
+                                      String.valueOf(entryDN),
+                                      String.valueOf(newDN),
+                                      getExceptionMessage(e)));
+
+        skipPostOperation = true;
+        break modifyDNProcessing;
+      }
+
+      if (newLock == null)
+      {
+        LockManager.unlock(entryDN, currentLock);
+
+        op.setResultCode(DirectoryServer.getServerErrorResultCode());
+        op.appendErrorMessage(getMessage(MSGID_MODDN_CANNOT_LOCK_NEW_DN,
+                                      String.valueOf(entryDN),
+                                      String.valueOf(newDN)));
+
+        skipPostOperation = true;
+        break modifyDNProcessing;
+      }
+
+      Entry currentEntry = null;
+      try
+      {
+        // Check for and handle a request to cancel this operation.
+        if (op.getCancelRequest() != null)
+        {
+          op.indicateCancelled(op.getCancelRequest());
+          return;
+        }
+
+
+        // Get the current entry from the appropriate backend.  If it doesn't
+        // exist, then fail.
+        try
+        {
+          currentEntry = currentBackend.getEntry(entryDN);
+          op.setOriginalEntry(currentEntry);
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          op.setResultCode(de.getResultCode());
+          op.appendErrorMessage(de.getErrorMessage());
+          op.setMatchedDN(de.getMatchedDN());
+          op.setReferralURLs(de.getReferralURLs());
+
+          break modifyDNProcessing;
+        }
+
+        if (op.getOriginalEntry() == null)
+        {
+          // See if one of the entry's ancestors exists.
+          parentDN = entryDN.getParentDNInSuffix();
+          while (parentDN != null)
+          {
+            try
+            {
+              if (DirectoryServer.entryExists(parentDN))
+              {
+                op.setMatchedDN(parentDN);
+                break;
+              }
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+              break;
+            }
+
+            parentDN = parentDN.getParentDNInSuffix();
+          }
+
+          op.setResultCode(ResultCode.NO_SUCH_OBJECT);
+          op.appendErrorMessage(getMessage(MSGID_MODDN_NO_CURRENT_ENTRY,
+                                        String.valueOf(entryDN)));
+
+          break modifyDNProcessing;
+        }
+
+
+        // Invoke any conflict resolution processing that might be needed by the
+        // synchronization provider.
+        for (SynchronizationProvider provider :
+             DirectoryServer.getSynchronizationProviders())
+        {
+          try
+          {
+            SynchronizationProviderResult result =
+                 provider.handleConflictResolution(op);
+            if (! result.continueOperationProcessing())
+            {
+              break modifyDNProcessing;
+            }
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            logError(ErrorLogCategory.SYNCHRONIZATION,
+                     ErrorLogSeverity.SEVERE_ERROR,
+                     MSGID_MODDN_SYNCH_CONFLICT_RESOLUTION_FAILED,
+                     op.getConnectionID(), op.getOperationID(),
+                     getExceptionMessage(de));
+
+            op.setResponseData(de);
+            break modifyDNProcessing;
+          }
+        }
+
+
+        // Check to see if there are any controls in the request.  If so, then
+        // see if there is any special processing required.
+        boolean                    noOp            = false;
+        LDAPPreReadRequestControl  preReadRequest  = null;
+        LDAPPostReadRequestControl postReadRequest = null;
+        List<Control> requestControls = op.getRequestControls();
+        if ((requestControls != null) && (! requestControls.isEmpty()))
+        {
+          for (int i=0; i < requestControls.size(); i++)
+          {
+            Control c   = requestControls.get(i);
+            String  oid = c.getOID();
+
+            if (oid.equals(OID_LDAP_ASSERTION))
+            {
+              LDAPAssertionRequestControl assertControl;
+              if (c instanceof LDAPAssertionRequestControl)
+              {
+                assertControl = (LDAPAssertionRequestControl) c;
+              }
+              else
+              {
+                try
+                {
+                  assertControl = LDAPAssertionRequestControl.decodeControl(c);
+                  requestControls.set(i, assertControl);
+                }
+                catch (LDAPException le)
+                {
+                  if (debugEnabled())
+                  {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
+                  }
+
+                  op.setResultCode(ResultCode.valueOf(le.getResultCode()));
+                  op.appendErrorMessage(le.getMessage());
+
+                  break modifyDNProcessing;
+                }
+              }
+
+              try
+              {
+                // FIXME -- We need to determine whether the current user has
+                //          permission to make this determination.
+                SearchFilter filter = assertControl.getSearchFilter();
+                if (! filter.matchesEntry(currentEntry))
+                {
+                  op.setResultCode(ResultCode.ASSERTION_FAILED);
+
+                  op.appendErrorMessage(getMessage(MSGID_MODDN_ASSERTION_FAILED,
+                                                String.valueOf(entryDN)));
+
+                  break modifyDNProcessing;
+                }
+              }
+              catch (DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                op.setResultCode(ResultCode.PROTOCOL_ERROR);
+
+                int msgID = MSGID_MODDN_CANNOT_PROCESS_ASSERTION_FILTER;
+                op.appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
+                                              de.getErrorMessage()));
+
+                break modifyDNProcessing;
+              }
+            }
+            else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
+            {
+              noOp = true;
+            }
+            else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
+            {
+              if (c instanceof LDAPAssertionRequestControl)
+              {
+                preReadRequest = (LDAPPreReadRequestControl) c;
+              }
+              else
+              {
+                try
+                {
+                  preReadRequest = LDAPPreReadRequestControl.decodeControl(c);
+                  requestControls.set(i, preReadRequest);
+                }
+                catch (LDAPException le)
+                {
+                  if (debugEnabled())
+                  {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
+                  }
+
+                  op.setResultCode(ResultCode.valueOf(le.getResultCode()));
+                  op.appendErrorMessage(le.getMessage());
+
+                  break modifyDNProcessing;
+                }
+              }
+            }
+            else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
+            {
+              if (c instanceof LDAPAssertionRequestControl)
+              {
+                postReadRequest = (LDAPPostReadRequestControl) c;
+              }
+              else
+              {
+                try
+                {
+                  postReadRequest = LDAPPostReadRequestControl.decodeControl(c);
+                  requestControls.set(i, postReadRequest);
+                }
+                catch (LDAPException le)
+                {
+                  if (debugEnabled())
+                  {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
+                  }
+
+                  op.setResultCode(ResultCode.valueOf(le.getResultCode()));
+                  op.appendErrorMessage(le.getMessage());
+
+                  break modifyDNProcessing;
+                }
+              }
+            }
+            else if (oid.equals(OID_PROXIED_AUTH_V1))
+            {
+              // The requester must have the PROXIED_AUTH privilige in order to
+              // be able to use this control.
+              if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, op))
+              {
+                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+                op.appendErrorMessage(getMessage(msgID));
+                op.setResultCode(ResultCode.AUTHORIZATION_DENIED);
+                break modifyDNProcessing;
+              }
+
+
+              ProxiedAuthV1Control proxyControl;
+              if (c instanceof ProxiedAuthV1Control)
+              {
+                proxyControl = (ProxiedAuthV1Control) c;
+              }
+              else
+              {
+                try
+                {
+                  proxyControl = ProxiedAuthV1Control.decodeControl(c);
+                }
+                catch (LDAPException le)
+                {
+                  if (debugEnabled())
+                  {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
+                  }
+
+                  op.setResultCode(ResultCode.valueOf(le.getResultCode()));
+                  op.appendErrorMessage(le.getMessage());
+
+                  break modifyDNProcessing;
+                }
+              }
+
+
+              Entry authorizationEntry;
+              try
+              {
+                authorizationEntry = proxyControl.getAuthorizationEntry();
+              }
+              catch (DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                op.setResultCode(de.getResultCode());
+                op.appendErrorMessage(de.getErrorMessage());
+
+                break modifyDNProcessing;
+              }
+
+              if (AccessControlConfigManager.getInstance()
+                      .getAccessControlHandler().isProxiedAuthAllowed(op,
+                      authorizationEntry) == false) {
+                op.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+                int msgID = MSGID_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+                op.appendErrorMessage(getMessage(msgID,
+                    String.valueOf(entryDN)));
+
+                skipPostOperation = true;
+                break modifyDNProcessing;
+              }
+              op.setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                op.setProxiedAuthorizationDN(DN.nullDN());
+              }
+              else
+              {
+                op.setProxiedAuthorizationDN(authorizationEntry.getDN());
+              }
+            }
+            else if (oid.equals(OID_PROXIED_AUTH_V2))
+            {
+              // The requester must have the PROXIED_AUTH privilige in order to
+              // be able to use this control.
+              if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, op))
+              {
+                int msgID = MSGID_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
+                op.appendErrorMessage(getMessage(msgID));
+                op.setResultCode(ResultCode.AUTHORIZATION_DENIED);
+                break modifyDNProcessing;
+              }
+
+
+              ProxiedAuthV2Control proxyControl;
+              if (c instanceof ProxiedAuthV2Control)
+              {
+                proxyControl = (ProxiedAuthV2Control) c;
+              }
+              else
+              {
+                try
+                {
+                  proxyControl = ProxiedAuthV2Control.decodeControl(c);
+                }
+                catch (LDAPException le)
+                {
+                  if (debugEnabled())
+                  {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, le);
+                  }
+
+                  op.setResultCode(ResultCode.valueOf(le.getResultCode()));
+                  op.appendErrorMessage(le.getMessage());
+
+                  break modifyDNProcessing;
+                }
+              }
+
+
+              Entry authorizationEntry;
+              try
+              {
+                authorizationEntry = proxyControl.getAuthorizationEntry();
+              }
+              catch (DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                op.setResultCode(de.getResultCode());
+                op.appendErrorMessage(de.getErrorMessage());
+
+                break modifyDNProcessing;
+              }
+              if (AccessControlConfigManager.getInstance()
+                  .getAccessControlHandler().isProxiedAuthAllowed(op,
+                                                authorizationEntry) == false) {
+                op.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+                int msgID = MSGID_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+                op.appendErrorMessage(getMessage(msgID,
+                    String.valueOf(entryDN)));
+
+                skipPostOperation = true;
+                break modifyDNProcessing;
+              }
+
+
+              op.setAuthorizationEntry(authorizationEntry);
+              if (authorizationEntry == null)
+              {
+                op.setProxiedAuthorizationDN(DN.nullDN());
+              }
+              else
+              {
+                op.setProxiedAuthorizationDN(authorizationEntry.getDN());
+              }
+            }
+
+            // NYI -- Add support for additional controls.
+            else if (c.isCritical())
+            {
+              Backend backend = DirectoryServer.getBackend(entryDN);
+              if ((backend == null) || (! backend.supportsControl(oid)))
+              {
+                op.setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+
+                int msgID = MSGID_MODDN_UNSUPPORTED_CRITICAL_CONTROL;
+                op.appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
+                                              oid));
+
+                break modifyDNProcessing;
+              }
+            }
+          }
+        }
+
+
+        // Check to see if the client has permission to perform the
+        // modify DN.
+
+        // FIXME: for now assume that this will check all permission
+        // pertinent to the operation. This includes proxy authorization
+        // and any other controls specified.
+
+        // FIXME: earlier checks to see if the entry or new superior
+        // already exists may have already exposed sensitive information
+        // to the client.
+        if (AccessControlConfigManager.getInstance()
+            .getAccessControlHandler().isAllowed(op) == false) {
+          op.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+          int msgID = MSGID_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
+          op.appendErrorMessage(getMessage(msgID, String.valueOf(entryDN)));
+
+          skipPostOperation = true;
+          break modifyDNProcessing;
+        }
+
+        // Duplicate the entry and set its new DN.  Also, create an empty list
+        // to hold the attribute-level modifications.
+        Entry newEntry = currentEntry.duplicate(false);
+        newEntry.setDN(newDN);
+        op.setUpdatedEntry(newEntry);
+
+        // init the modifications
+        op.addModification(null);
+        List<Modification> modifications = op.getModifications();
+
+
+        // If we should delete the old RDN values from the entry, then do so.
+        if (op.deleteOldRDN())
+        {
+          RDN currentRDN = entryDN.getRDN();
+          int numValues  = currentRDN.getNumValues();
+          for (int i=0; i < numValues; i++)
+          {
+            LinkedHashSet<AttributeValue> valueSet =
+                 new LinkedHashSet<AttributeValue>(1);
+            valueSet.add(currentRDN.getAttributeValue(i));
+
+            Attribute a = new Attribute(currentRDN.getAttributeType(i),
+                                        currentRDN.getAttributeName(i),
+                                        valueSet);
+
+            // If the associated attribute type is marked NO-USER-MODIFICATION,
+            // then refuse the update.
+            if (a.getAttributeType().isNoUserModification())
+            {
+              if (! (op.isInternalOperation() ||
+                  op.isSynchronizationOperation()))
+              {
+                op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                int msgID = MSGID_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD;
+                op.appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
+                                              a.getName()));
+                break modifyDNProcessing;
+              }
+            }
+
+            LinkedList<AttributeValue> missingValues =
+                 new LinkedList<AttributeValue>();
+            newEntry.removeAttribute(a, missingValues);
+
+            if (missingValues.isEmpty())
+            {
+              modifications.add(new Modification(ModificationType.DELETE, a));
+            }
+          }
+        }
+
+
+        // Add the new RDN values to the entry.
+        int newRDNValues = newRDN.getNumValues();
+        for (int i=0; i < newRDNValues; i++)
+        {
+          LinkedHashSet<AttributeValue> valueSet =
+               new LinkedHashSet<AttributeValue>(1);
+          valueSet.add(newRDN.getAttributeValue(i));
+
+          Attribute a = new Attribute(newRDN.getAttributeType(i),
+                                      newRDN.getAttributeName(i),
+                                      valueSet);
+
+          LinkedList<AttributeValue> duplicateValues =
+               new LinkedList<AttributeValue>();
+          newEntry.addAttribute(a, duplicateValues);
+
+          if (duplicateValues.isEmpty())
+          {
+            // If the associated attribute type is marked NO-USER-MODIFICATION,
+            // then refuse the update.
+            if (a.getAttributeType().isNoUserModification())
+            {
+              if (! (op.isInternalOperation() ||
+                  op.isSynchronizationOperation()))
+              {
+                op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+
+                int msgID = MSGID_MODDN_NEW_RDN_ATTR_IS_NO_USER_MOD;
+                op.appendErrorMessage(getMessage(msgID, String.valueOf(entryDN),
+                                              a.getName()));
+                break modifyDNProcessing;
+              }
+            }
+            else
+            {
+              modifications.add(new Modification(ModificationType.ADD, a));
+            }
+          }
+        }
+
+        // If the server is configured to check the schema and the
+        // operation is not a synchronization operation,
+        // make sure that the resulting entry is valid as per the server schema.
+        if ((DirectoryServer.checkSchema()) &&
+            (!op.isSynchronizationOperation()) )
+        {
+          StringBuilder invalidReason = new StringBuilder();
+          if (! newEntry.conformsToSchema(null, false, true, true,
+                                          invalidReason))
+          {
+            op.setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
+            op.appendErrorMessage(getMessage(MSGID_MODDN_VIOLATES_SCHEMA,
+                                          String.valueOf(entryDN),
+                                          String.valueOf(invalidReason)));
+            break modifyDNProcessing;
+          }
+
+          for (int i=0; i < newRDNValues; i++)
+          {
+            AttributeType at = newRDN.getAttributeType(i);
+            if (at.isObsolete())
+            {
+              op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+              op.appendErrorMessage(getMessage(
+                                            MSGID_MODDN_NEWRDN_ATTR_IS_OBSOLETE,
+                                            String.valueOf(entryDN),
+                                            at.getNameOrOID()));
+              break modifyDNProcessing;
+            }
+          }
+        }
+
+
+        // Check for and handle a request to cancel this operation.
+        if (op.getCancelRequest() != null)
+        {
+          op.indicateCancelled(op.getCancelRequest());
+          return;
+        }
+
+
+        // Get a count of the current number of modifications.  The
+        // pre-operation plugins may alter this list, and we need to be able to
+        // identify which changes were made after they're done.
+        int modCount = op.getModifications().size();
+
+
+        // If the operation is not a synchronization operation,
+        // Invoke the pre-operation modify DN plugins.
+        if (!op.isSynchronizationOperation())
+        {
+          PreOperationPluginResult preOpResult =
+            pluginConfigManager.invokePreOperationModifyDNPlugins(op);
+          if (preOpResult.connectionTerminated())
+          {
+            // There's no point in continuing with anything.  Log the request
+            // and result and return.
+            op.setResultCode(ResultCode.CANCELED);
+
+            int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
+            op.appendErrorMessage(getMessage(msgID));
+            return;
+          }
+          else if (preOpResult.sendResponseImmediately())
+          {
+            skipPostOperation = true;
+            break modifyDNProcessing;
+          }
+          else if (preOpResult.skipCoreProcessing())
+          {
+            skipPostOperation = false;
+            break modifyDNProcessing;
+          }
+        }
+
+        // Check to see if any of the pre-operation plugins made any changes to
+        // the entry.  If so, then apply them.
+        if (modifications.size() > modCount)
+        {
+          for (int i=modCount; i < modifications.size(); i++)
+          {
+            Modification m = modifications.get(i);
+            Attribute    a = m.getAttribute();
+
+            switch (m.getModificationType())
+            {
+              case ADD:
+                LinkedList<AttributeValue> duplicateValues =
+                     new LinkedList<AttributeValue>();
+                newEntry.addAttribute(a, duplicateValues);
+                break;
+              case DELETE:
+                LinkedList<AttributeValue> missingValues =
+                     new LinkedList<AttributeValue>();
+                newEntry.removeAttribute(a, missingValues);
+                break;
+              case REPLACE:
+                duplicateValues = new LinkedList<AttributeValue>();
+                newEntry.removeAttribute(a.getAttributeType(), a.getOptions());
+                newEntry.addAttribute(a, duplicateValues);
+                break;
+              case INCREMENT:
+                List<Attribute> attrList =
+                     newEntry.getAttribute(a.getAttributeType(),
+                                           a.getOptions());
+                if ((attrList == null) || attrList.isEmpty())
+                {
+                  op.setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
+
+                  int msgID = MSGID_MODDN_PREOP_INCREMENT_NO_ATTR;
+                  op.appendErrorMessage(getMessage(msgID,
+                                                String.valueOf(entryDN),
+                                                a.getName()));
+
+                  break modifyDNProcessing;
+                }
+                else if (attrList.size() > 1)
+                {
+                  op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+
+                  int msgID = MSGID_MODDN_PREOP_INCREMENT_MULTIPLE_VALUES;
+                  op.appendErrorMessage(getMessage(msgID,
+                                                String.valueOf(entryDN),
+                                                a.getName()));
+
+                  break modifyDNProcessing;
+                }
+
+                LinkedHashSet<AttributeValue> values =
+                     attrList.get(0).getValues();
+                if ((values == null) || values.isEmpty())
+                {
+                  op.setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
+
+                  int msgID = MSGID_MODDN_PREOP_INCREMENT_NO_ATTR;
+                  op.appendErrorMessage(getMessage(msgID,
+                                                String.valueOf(entryDN),
+                                                a.getName()));
+
+                  break modifyDNProcessing;
+                }
+                else if (values.size() > 1)
+                {
+                  op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+
+                  int msgID = MSGID_MODDN_PREOP_INCREMENT_MULTIPLE_VALUES;
+                  op.appendErrorMessage(getMessage(msgID,
+                                                String.valueOf(entryDN),
+                                                a.getName()));
+
+                  break modifyDNProcessing;
+                }
+
+                long currentLongValue;
+                try
+                {
+                  AttributeValue v = values.iterator().next();
+                  currentLongValue = Long.parseLong(v.getStringValue());
+                }
+                catch (Exception e)
+                {
+                  if (debugEnabled())
+                  {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                  }
+
+                  op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+
+                  int msgID = MSGID_MODDN_PREOP_INCREMENT_VALUE_NOT_INTEGER;
+                  op.appendErrorMessage(getMessage(msgID,
+                                                String.valueOf(entryDN),
+                                                a.getName()));
+
+                  break modifyDNProcessing;
+                }
+
+                LinkedHashSet<AttributeValue> newValues = a.getValues();
+                if ((newValues == null) || newValues.isEmpty())
+                {
+                  op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+
+                  int msgID = MSGID_MODDN_PREOP_INCREMENT_NO_AMOUNT;
+                  op.appendErrorMessage(getMessage(msgID,
+                                                String.valueOf(entryDN),
+                                                a.getName()));
+
+                  break modifyDNProcessing;
+                }
+                else if (newValues.size() > 1)
+                {
+                  op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+
+                  int msgID = MSGID_MODDN_PREOP_INCREMENT_MULTIPLE_AMOUNTS;
+                  op.appendErrorMessage(getMessage(msgID,
+                                                String.valueOf(entryDN),
+                                                a.getName()));
+
+                  break modifyDNProcessing;
+                }
+
+                long incrementAmount;
+                try
+                {
+                  AttributeValue v = values.iterator().next();
+                  incrementAmount = Long.parseLong(v.getStringValue());
+                }
+                catch (Exception e)
+                {
+                  if (debugEnabled())
+                  {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                  }
+
+                  op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+
+                  int msgID = MSGID_MODDN_PREOP_INCREMENT_AMOUNT_NOT_INTEGER;
+                  op.appendErrorMessage(getMessage(msgID,
+                                                String.valueOf(entryDN),
+                                                a.getName()));
+
+                  break modifyDNProcessing;
+                }
+
+                long newLongValue = currentLongValue + incrementAmount;
+                ByteString newValueOS =
+                     new ASN1OctetString(String.valueOf(newLongValue));
+
+                newValues = new LinkedHashSet<AttributeValue>(1);
+                newValues.add(new AttributeValue(a.getAttributeType(),
+                                                 newValueOS));
+
+                List<Attribute> newAttrList = new ArrayList<Attribute>(1);
+                newAttrList.add(new Attribute(a.getAttributeType(),
+                                              a.getName(), newValues));
+                newEntry.putAttribute(a.getAttributeType(), newAttrList);
+
+                break;
+            }
+          }
+
+
+          // Make sure that the updated entry still conforms to the server
+          // schema.
+          if (DirectoryServer.checkSchema())
+          {
+            StringBuilder invalidReason = new StringBuilder();
+            if (! newEntry.conformsToSchema(null, false, true, true,
+                                            invalidReason))
+            {
+              op.setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
+
+              op.appendErrorMessage(getMessage(
+                                            MSGID_MODDN_PREOP_VIOLATES_SCHEMA,
+                                            String.valueOf(entryDN),
+                                            String.valueOf(invalidReason)));
+              break modifyDNProcessing;
+            }
+          }
+        }
+
+
+        // Check for and handle a request to cancel this operation.
+        if (op.getCancelRequest() != null)
+        {
+          op.indicateCancelled(op.getCancelRequest());
+          return;
+        }
+
+
+        // Actually perform the modify DN operation.
+        // This should include taking
+        // care of any synchronization that might be needed.
+        try
+        {
+          // If it is not a private backend, then check to see if the server or
+          // backend is operating in read-only mode.
+          if (! currentBackend.isPrivateBackend())
+          {
+            switch (DirectoryServer.getWritabilityMode())
+            {
+              case DISABLED:
+                op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+                op.appendErrorMessage(getMessage(MSGID_MODDN_SERVER_READONLY,
+                                              String.valueOf(entryDN)));
+                break modifyDNProcessing;
+
+              case INTERNAL_ONLY:
+                if (! (op.isInternalOperation() ||
+                    op.isSynchronizationOperation()))
+                {
+                  op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+                  op.appendErrorMessage(getMessage(MSGID_MODDN_SERVER_READONLY,
+                                                String.valueOf(entryDN)));
+                  break modifyDNProcessing;
+                }
+            }
+
+            switch (currentBackend.getWritabilityMode())
+            {
+              case DISABLED:
+                op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+                op.appendErrorMessage(getMessage(MSGID_MODDN_BACKEND_READONLY,
+                                              String.valueOf(entryDN)));
+                break modifyDNProcessing;
+
+              case INTERNAL_ONLY:
+                if (! (op.isInternalOperation() ||
+                    op.isSynchronizationOperation()))
+                {
+                  op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+                  op.appendErrorMessage(getMessage(MSGID_MODDN_BACKEND_READONLY,
+                                                String.valueOf(entryDN)));
+                  break modifyDNProcessing;
+                }
+            }
+          }
+
+
+          if (noOp)
+          {
+            op.appendErrorMessage(getMessage(MSGID_MODDN_NOOP));
+
+            op.setResultCode(ResultCode.NO_OPERATION);
+          }
+          else
+          {
+            for (SynchronizationProvider provider :
+                 DirectoryServer.getSynchronizationProviders())
+            {
+              try
+              {
+                SynchronizationProviderResult result =
+                     provider.doPreOperation(op);
+                if (! result.continueOperationProcessing())
+                {
+                  break modifyDNProcessing;
+                }
+              }
+              catch (DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+
+                logError(ErrorLogCategory.SYNCHRONIZATION,
+                         ErrorLogSeverity.SEVERE_ERROR,
+                         MSGID_MODDN_SYNCH_PREOP_FAILED, op.getConnectionID(),
+                         op.getOperationID(), getExceptionMessage(de));
+
+                op.setResponseData(de);
+                break modifyDNProcessing;
+              }
+            }
+
+            currentBackend.renameEntry(entryDN, newEntry, op);
+          }
+
+          if (preReadRequest != null)
+          {
+            Entry entry = currentEntry.duplicate(true);
+
+            if (! preReadRequest.allowsAttribute(
+                       DirectoryServer.getObjectClassAttributeType()))
+            {
+              entry.removeAttribute(
+                   DirectoryServer.getObjectClassAttributeType());
+            }
+
+            if (! preReadRequest.returnAllUserAttributes())
+            {
+              Iterator<AttributeType> iterator =
+                   entry.getUserAttributes().keySet().iterator();
+              while (iterator.hasNext())
+              {
+                AttributeType attrType = iterator.next();
+                if (! preReadRequest.allowsAttribute(attrType))
+                {
+                  iterator.remove();
+                }
+              }
+            }
+
+            if (! preReadRequest.returnAllOperationalAttributes())
+            {
+              Iterator<AttributeType> iterator =
+                   entry.getOperationalAttributes().keySet().iterator();
+              while (iterator.hasNext())
+              {
+                AttributeType attrType = iterator.next();
+                if (! preReadRequest.allowsAttribute(attrType))
+                {
+                  iterator.remove();
+                }
+              }
+            }
+
+            // FIXME -- Check access controls on the entry to see if it should
+            //          be returned or if any attributes need to be stripped
+            //          out..
+            SearchResultEntry searchEntry = new SearchResultEntry(entry);
+            LDAPPreReadResponseControl responseControl =
+                 new LDAPPreReadResponseControl(preReadRequest.getOID(),
+                                                preReadRequest.isCritical(),
+                                                searchEntry);
+
+            op.addResponseControl(responseControl);
+          }
+
+          if (postReadRequest != null)
+          {
+            Entry entry = newEntry.duplicate(true);
+
+            if (! postReadRequest.allowsAttribute(
+                       DirectoryServer.getObjectClassAttributeType()))
+            {
+              entry.removeAttribute(
+                   DirectoryServer.getObjectClassAttributeType());
+            }
+
+            if (! postReadRequest.returnAllUserAttributes())
+            {
+              Iterator<AttributeType> iterator =
+                   entry.getUserAttributes().keySet().iterator();
+              while (iterator.hasNext())
+              {
+                AttributeType attrType = iterator.next();
+                if (! postReadRequest.allowsAttribute(attrType))
+                {
+                  iterator.remove();
+                }
+              }
+            }
+
+            if (! postReadRequest.returnAllOperationalAttributes())
+            {
+              Iterator<AttributeType> iterator =
+                   entry.getOperationalAttributes().keySet().iterator();
+              while (iterator.hasNext())
+              {
+                AttributeType attrType = iterator.next();
+                if (! postReadRequest.allowsAttribute(attrType))
+                {
+                  iterator.remove();
+                }
+              }
+            }
+
+            // FIXME -- Check access controls on the entry to see if it should
+            //          be returned or if any attributes need to be stripped
+            //          out..
+            SearchResultEntry searchEntry = new SearchResultEntry(entry);
+            LDAPPostReadResponseControl responseControl =
+                 new LDAPPostReadResponseControl(postReadRequest.getOID(),
+                                                 postReadRequest.isCritical(),
+                                                 searchEntry);
+
+            op.addResponseControl(responseControl);
+          }
+
+
+          if (! noOp)
+          {
+            op.setResultCode(ResultCode.SUCCESS);
+          }
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          op.setResultCode(de.getResultCode());
+          op.appendErrorMessage(de.getErrorMessage());
+          op.setMatchedDN(de.getMatchedDN());
+          op.setReferralURLs(de.getReferralURLs());
+
+          break modifyDNProcessing;
+        }
+        catch (CancelledOperationException coe)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, coe);
+          }
+
+          CancelResult cancelResult = coe.getCancelResult();
+
+          op.setCancelResult(cancelResult);
+          op.setResultCode(cancelResult.getResultCode());
+
+          String message = coe.getMessage();
+          if ((message != null) && (message.length() > 0))
+          {
+            op.appendErrorMessage(message);
+          }
+
+          break modifyDNProcessing;
+        }
+      }
+      finally
+      {
+        LockManager.unlock(entryDN, currentLock);
+        LockManager.unlock(newDN, newLock);
+
+        for (SynchronizationProvider provider :
+             DirectoryServer.getSynchronizationProviders())
+        {
+          try
+          {
+            provider.doPostOperation(op);
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+
+            logError(ErrorLogCategory.SYNCHRONIZATION,
+                     ErrorLogSeverity.SEVERE_ERROR,
+                     MSGID_MODDN_SYNCH_POSTOP_FAILED, op.getConnectionID(),
+                     op.getOperationID(), getExceptionMessage(de));
+
+            op.setResponseData(de);
+            break;
+          }
+        }
+      }
+    }
+
+
+    // Indicate that it is now too late to attempt to cancel the operation.
+    op.setCancelResult(CancelResult.TOO_LATE);
+
+
+    // Invoke the post-operation modify DN plugins.
+    if (! skipPostOperation)
+    {
+      PostOperationPluginResult postOperationResult =
+           pluginConfigManager.invokePostOperationModifyDNPlugins(op);
+      if (postOperationResult.connectionTerminated())
+      {
+        op.setResultCode(ResultCode.CANCELED);
+
+        int msgID = MSGID_CANCELED_BY_POSTOP_DISCONNECT;
+        op.appendErrorMessage(getMessage(msgID));
+        return;
+      }
+    }
+
+
+    // Notify any change notification listeners that might be registered with
+    // the server.
+    if (op.getResultCode() == ResultCode.SUCCESS)
+    {
+      for (ChangeNotificationListener changeListener :
+           DirectoryServer.getChangeNotificationListeners())
+      {
+        try
+        {
+          changeListener.handleModifyDNOperation(op,
+              op.getOriginalEntry(),
+              op.getUpdatedEntry());
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          int    msgID   = MSGID_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER;
+          String message = getMessage(msgID, getExceptionMessage(e));
+          logError(ErrorLogCategory.CORE_SERVER, ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+        }
+      }
+    }
+
   }
 
 
