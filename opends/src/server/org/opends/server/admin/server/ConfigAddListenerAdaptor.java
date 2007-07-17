@@ -175,7 +175,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     ServerManagedObject<? extends S> mo;
     try {
       mo = ServerManagedObject.decode(childPath, r
-          .getChildDefinition(), configEntry);
+          .getChildDefinition(), configEntry, configEntry);
     } catch (DecodingException e) {
       generateUnacceptableReason(e, unacceptableReason);
       return false;

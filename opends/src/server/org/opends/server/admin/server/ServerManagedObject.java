@@ -396,6 +396,40 @@ public final class ServerManagedObject<S extends Configuration> implements
       ManagedObjectPath path, AbstractManagedObjectDefinition<?, S> definition,
       ConfigEntry configEntry) throws DefinitionDecodingException,
       ServerManagedObjectDecodingException {
+    return decode(path, definition, configEntry, null);
+  }
+
+
+
+  /**
+   * Decodes a configuration entry into the required type of server
+   * managed object.
+   *
+   * @param <S>
+   *          The type of server configuration represented by the
+   *          decoded server managed object.
+   * @param path
+   *          The location of the server managed object.
+   * @param definition
+   *          The required managed object type.
+   * @param configEntry
+   *          The configuration entry that should be decoded.
+   * @param newConfigEntry
+   *          Optional new configuration that does not exist yet in
+   *          the configuration back-end. This will be used for
+   *          resolving inherited default values.
+   * @return Returns the new server-side managed object from the
+   *         provided definition and configuration entry.
+   * @throws DefinitionDecodingException
+   *           If the managed object's type could not be determined.
+   * @throws ServerManagedObjectDecodingException
+   *           If one or more of the managed object's properties could
+   *           not be decoded.
+   */
+  static <S extends Configuration> ServerManagedObject<? extends S> decode(
+      ManagedObjectPath path, AbstractManagedObjectDefinition<?, S> definition,
+      ConfigEntry configEntry, ConfigEntry newConfigEntry)
+      throws DefinitionDecodingException, ServerManagedObjectDecodingException {
     // First determine the correct definition to use for the entry.
     // This could either be the provided definition, or one of its
     // sub-definitions.
@@ -410,7 +444,7 @@ public final class ServerManagedObject<S extends Configuration> implements
     for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
       List<String> values = getAttribute(mod, pd, configEntry);
       try {
-        decodeProperty(properties, path, pd, values, configEntry);
+        decodeProperty(properties, path, pd, values, newConfigEntry);
       } catch (PropertyException e) {
         exceptions.add(e);
       }

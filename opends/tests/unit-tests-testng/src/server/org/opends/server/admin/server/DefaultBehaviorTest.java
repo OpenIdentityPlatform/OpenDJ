@@ -581,13 +581,11 @@ public final class DefaultBehaviorTest extends AdminTestCase {
    * change listener. This test makes sure that a component is
    * notified when the default values it inherits from another
    * component are modified.
-   * <p>
-   * FIXME: disabled - waiting for fix to issue 1793.
    *
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test(enabled = false)
+  @Test
   public void testChangeListenerChildValues4() throws Exception {
     TestParentCfg parent = getParent("test parent 1");
 
