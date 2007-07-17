@@ -28,43 +28,194 @@ package org.opends.server.admin.server;
 
 
 
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.messages.MessageHandler.*;
+
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
+import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.DecodingException;
+import org.opends.server.admin.DefaultBehaviorProvider;
+import org.opends.server.admin.DefaultBehaviorProviderVisitor;
+import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.ManagedObjectPath;
+import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
+import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.messages.AdminMessages;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
+import org.opends.server.util.StaticUtils;
 
 
 
 /**
  * An adaptor class which converts {@link ConfigChangeListener}
- * callbacks to strongly typed {@link ConfigurationChangeListener}
- * callbacks.
+ * call-backs to strongly typed {@link ConfigurationChangeListener}
+ * call-backs.
  *
  * @param <S>
  *          The type of server configuration handled by the change
  *          listener.
  */
-final class ConfigChangeListenerAdaptor<S extends Configuration>
-    extends AbstractConfigListenerAdaptor implements
-    ConfigChangeListener {
+final class ConfigChangeListenerAdaptor<S extends Configuration> extends
+    AbstractConfigListenerAdaptor implements ConfigChangeListener {
 
-  // The managed object path.
-  private final ManagedObjectPath path;
+  /**
+   * A default behavior visitor used for determining the set of
+   * dependencies.
+   *
+   * @param <T>
+   *          The type of property.
+   */
+  private static final class Visitor<T> implements
+      DefaultBehaviorProviderVisitor<T, Void, ManagedObjectPath> {
+
+    /**
+     * Finds the dependencies associated with the provided property
+     * definition.
+     *
+     * @param <T>
+     * @param path
+     *          The current base path used for relative name
+     *          resolution.
+     * @param pd
+     *          The property definition.
+     * @param dependencies
+     *          Add dependencies names to this collection.
+     */
+    public static <T> void find(ManagedObjectPath path,
+        PropertyDefinition<T> pd, Collection<DN> dependencies) {
+      Visitor<T> v = new Visitor<T>(dependencies);
+      DefaultBehaviorProvider<T> db = pd.getDefaultBehaviorProvider();
+      db.accept(v, path);
+    }
+
+    // The names of entries that this change listener depends on.
+    private final Collection<DN> dependencies;
+
+
+
+    // Prevent instantiation.
+    private Visitor(Collection<DN> dependencies) {
+      this.dependencies = dependencies;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Void visitAbsoluteInherited(
+        AbsoluteInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath p) {
+      ManagedObjectPath next = d.getManagedObjectPath();
+      dependencies.add(DNBuilder.create(next));
+
+      // If the dependent property uses inherited defaults then
+      // recursively get those as well.
+      String propertyName = d.getPropertyName();
+      AbstractManagedObjectDefinition<?, ?> mod = d
+          .getManagedObjectDefinition();
+      PropertyDefinition<?> pd = mod.getPropertyDefinition(propertyName);
+      find(next, pd, dependencies);
+
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Void visitAlias(AliasDefaultBehaviorProvider<T> d,
+        ManagedObjectPath p) {
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Void visitDefined(DefinedDefaultBehaviorProvider<T> d,
+        ManagedObjectPath p) {
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Void visitRelativeInherited(
+        RelativeInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath p) {
+      ManagedObjectPath next = d.getManagedObjectPath(p);
+      dependencies.add(DNBuilder.create(next));
+
+      // If the dependent property uses inherited defaults then
+      // recursively get those as well.
+      String propertyName = d.getPropertyName();
+      AbstractManagedObjectDefinition<?, ?> mod = d
+          .getManagedObjectDefinition();
+      PropertyDefinition<?> pd = mod.getPropertyDefinition(propertyName);
+      find(next, pd, dependencies);
+
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Void visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
+        ManagedObjectPath p) {
+      return null;
+    }
+  }
+
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+  // Cached managed object between accept/apply call-backs.
+  private ServerManagedObject<? extends S> cachedManagedObject;
 
   // The managed object definition.
   private final AbstractManagedObjectDefinition<?, S> d;
 
+  // The names of entries that this change listener depends on.
+  private final Set<DN> dependencies;
+
+  // The listener used to notify this listener when dependency entries
+  // are modified.
+  private final DependencyConfigChangeListener dependencyListener;
+
+  // The DN associated with this listener.
+  private final DN dn;
+
   // The underlying change listener.
   private final ConfigurationChangeListener<? super S> listener;
 
-  // Cached managed object between accept/apply callbacks.
-  private ServerManagedObject<? extends S> cachedManagedObject;
+  // The managed object path.
+  private final ManagedObjectPath path;
 
 
 
@@ -82,9 +233,47 @@ final class ConfigChangeListenerAdaptor<S extends Configuration>
       AbstractManagedObjectDefinition<?, S> d,
       ConfigurationChangeListener<? super S> listener) {
     this.path = path;
+    this.dn = DNBuilder.create(path);
     this.d = d;
     this.listener = listener;
     this.cachedManagedObject = null;
+
+    // This change listener should be notified when dependent entries
+    // are modified. Determine the dependencies and register change
+    // listeners against them.
+    this.dependencies = new HashSet<DN>();
+    this.dependencyListener = new DependencyConfigChangeListener(dn, this);
+
+    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
+      Visitor.find(path, pd, dependencies);
+    }
+
+    CleanerConfigDeleteListener cleaner = new CleanerConfigDeleteListener(dn);
+    for (DN entryDN : dependencies) {
+      // Be careful not to register listeners against the dependent
+      // entry itself.
+      if (!entryDN.equals(dn)) {
+        ConfigEntry configEntry = getConfigEntry(entryDN);
+        if (configEntry != null) {
+          configEntry.registerChangeListener(dependencyListener);
+          cleaner.addConfigChangeListener(entryDN, dependencyListener);
+        }
+      }
+    }
+
+    // Register a delete listener which will remove the dependency
+    // listeners when this entry is removed.
+
+    // FIXME: we should really remove the dependency listeners when
+    // this listener is deregistered, but we have no way to track
+    // that.
+    DN parent = dn.getParent();
+    if (parent != null) {
+      ConfigEntry configEntry = getConfigEntry(dn.getParent());
+      if (configEntry != null) {
+        configEntry.registerDeleteListener(cleaner);
+      }
+    }
   }
 
 
@@ -92,13 +281,33 @@ final class ConfigChangeListenerAdaptor<S extends Configuration>
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(
-      ConfigEntry configEntry) {
+  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry) {
+    return applyConfigurationChange(configEntry, configEntry);
+  }
+
+
+
+  /**
+   * Attempts to apply a new configuration to this Directory Server
+   * component based on the provided changed entry.
+   *
+   * @param configEntry
+   *          The configuration entry that containing the updated
+   *          configuration for this component.
+   * @param newConfigEntry
+   *          The configuration entry that caused the notification
+   *          (will be different from <code>configEntry</code> if a
+   *          dependency was modified).
+   * @return Information about the result of processing the
+   *         configuration change.
+   */
+  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry,
+      ConfigEntry newConfigEntry) {
     // TODO: looking at the ConfigFileHandler implementation reveals
     // that this ConfigEntry will actually be a different object to
-    // the one passed in the previous callback (it will have the same
-    // content though). This config entry has the correct listener
-    // lists.
+    // the one passed in the previous call-back (it will have the same
+    // content though). This configuration entry has the correct
+    // listener lists.
     cachedManagedObject.setConfigEntry(configEntry);
 
     return listener.applyConfigurationChange(cachedManagedObject
@@ -112,9 +321,36 @@ final class ConfigChangeListenerAdaptor<S extends Configuration>
    */
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
       StringBuilder unacceptableReason) {
+    return configChangeIsAcceptable(configEntry, unacceptableReason,
+        configEntry);
+  }
+
+
+
+  /**
+   * Indicates whether the configuration entry that will result from a
+   * proposed modification is acceptable to this change listener.
+   *
+   * @param configEntry
+   *          The configuration entry that will result from the
+   *          requested update.
+   * @param unacceptableReason
+   *          A buffer to which this method can append a
+   *          human-readable message explaining why the proposed
+   *          change is not acceptable.
+   * @param newConfigEntry
+   *          The configuration entry that caused the notification
+   *          (will be different from <code>configEntry</code> if a
+   *          dependency was modified).
+   * @return <CODE>true</CODE> if the proposed entry contains an
+   *         acceptable configuration, or <CODE>false</CODE> if it
+   *         does not.
+   */
+  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
+      StringBuilder unacceptableReason, ConfigEntry newConfigEntry) {
     try {
-      cachedManagedObject = ServerManagedObject.decode(path, d,
-          configEntry);
+      cachedManagedObject = ServerManagedObject.decode(path, d, configEntry,
+          newConfigEntry);
     } catch (DecodingException e) {
       generateUnacceptableReason(e, unacceptableReason);
       return false;
@@ -133,7 +369,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration>
 
 
   /**
-   * Get the configuiration change listener associated with this
+   * Get the configuration change listener associated with this
    * adaptor.
    *
    * @return Returns the configuration change listener associated with
@@ -142,4 +378,36 @@ final class ConfigChangeListenerAdaptor<S extends Configuration>
   ConfigurationChangeListener<? super S> getConfigurationChangeListener() {
     return listener;
   }
+
+
+
+  // Returns the named configuration entry or null if it could not be
+  // retrieved.
+  private ConfigEntry getConfigEntry(DN dn) {
+    try {
+      ConfigEntry configEntry = DirectoryServer.getConfigEntry(dn);
+      if (configEntry != null) {
+        return configEntry;
+      } else {
+        int msgID = AdminMessages.MSGID_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST;
+        String message = getMessage(msgID, String.valueOf(dn));
+        logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+            message, msgID);
+      }
+    } catch (ConfigException e) {
+      // The dependent entry could not be retrieved.
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      int msgID = AdminMessages.MSGID_ADMIN_CANNOT_GET_MANAGED_OBJECT;
+      String message = getMessage(msgID, String.valueOf(dn), StaticUtils
+          .getExceptionMessage(e));
+      logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.SEVERE_ERROR,
+          message, msgID);
+    }
+
+    return null;
+  }
+
 }
