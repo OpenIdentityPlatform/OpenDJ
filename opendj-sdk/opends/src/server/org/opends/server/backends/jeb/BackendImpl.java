@@ -28,25 +28,22 @@ package org.opends.server.backends.jeb;
 
 import java.io.IOException;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedInputStream;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.RunRecoveryException;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.api.AlertGenerator;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -67,8 +64,8 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.JEBackendCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.Configuration;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries
@@ -76,12 +73,19 @@ import org.opends.server.admin.Configuration;
  */
 public class BackendImpl
     extends Backend
-    implements ConfigurationChangeListener<JEBackendCfg>
+    implements ConfigurationChangeListener<JEBackendCfg>, AlertGenerator
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+
+  /**
+    * The fully-qualified name of this class.
+    */
+   private static final String CLASS_NAME =
+        "org.opends.server.backends.jeb.BackendImpl";
 
 
   /**
@@ -360,6 +364,8 @@ public class BackendImpl
     monitorProviders.add(monitorProvider);
     DirectoryServer.registerMonitorProvider(monitorProvider);
 
+    //Register as an AlertGenerator.
+    DirectoryServer.registerAlertGenerator(this);
     // Register this backend as a change listener.
     cfg.addJEChangeListener(this);
   }
@@ -428,6 +434,9 @@ public class BackendImpl
     // Checksum this db environment and register its offline state id/checksum.
     DirectoryServer.registerOfflineBackendStateID(this.getBackendID(),
       checksumDbEnv());
+
+    //Deregister the alert generator.
+    DirectoryServer.deregisterAlertGenerator(this);
 
     // Make sure the thread counts are zero for next initialization.
     threadTotalCount.set(0);
@@ -622,10 +631,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                  e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+      throw createDirectoryException(e);
     }
     catch (JebException e)
     {
@@ -677,10 +683,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                  e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+      throw createDirectoryException(e);
     }
     catch (JebException e)
     {
@@ -731,10 +734,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                  e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+      throw createDirectoryException(e);
     }
     catch (JebException e)
     {
@@ -787,10 +787,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                  e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+      throw createDirectoryException(e);
     }
     catch (JebException e)
     {
@@ -859,9 +856,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+      throw createDirectoryException(e);
     }
     catch (JebException e)
     {
@@ -909,9 +904,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+      throw createDirectoryException(e);
     }
     finally
     {
@@ -980,10 +973,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                  de.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+      throw createDirectoryException(de);
     }
     catch (LDIFException e)
     {
@@ -1128,10 +1118,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                  de.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+      throw createDirectoryException(de);
     }
     catch (InitializationException ie)
     {
@@ -1227,10 +1214,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                  e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+      throw createDirectoryException(e);
     }
     catch (JebException e)
     {
@@ -1314,10 +1298,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION,
-                                  e.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+      throw createDirectoryException(e);
     }
     catch (JebException e)
     {
@@ -1542,6 +1523,80 @@ public class BackendImpl
     // Determine the backend database directory.
     File backendDirectory = getFileForPath(cfg.getBackendDirectory());
     EnvManager.removeFiles(backendDirectory.getPath());
+  }
+
+  /**
+   * Creates a customized DirectoryException from the DatabaseException thrown
+   * by JE backend.
+   *
+   * @param  e The DatabaseException to be converted.
+   * @return  DirectoryException created from exception.
+   */
+  DirectoryException createDirectoryException(DatabaseException e)
+  {
+    ResultCode resultCode = DirectoryServer.getServerErrorResultCode();
+    String message = null;
+    if(e instanceof RunRecoveryException)
+    {
+      int msgID   = MSGID_BACKEND_ENVIRONMENT_UNUSABLE;
+      message = getMessage(msgID,getBackendID());
+      logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+              message,msgID);
+      DirectoryServer.sendAlertNotification(DirectoryServer.getInstance(),
+              ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE, msgID, message);
+    }
+
+    int msgID = MSGID_JEB_DATABASE_EXCEPTION;
+    String jeMessage = e.getMessage();
+    if (jeMessage == null)
+    {
+      jeMessage = stackTraceToSingleLineString(e);
+    }
+    message = getMessage(msgID, jeMessage);
+    return new DirectoryException(resultCode, message, msgID, e);
+  }
+
+   /**
+   * Retrieves the fully-qualified name of the Java class for this alert
+   * generator implementation.
+   *
+   * @return  The fully-qualified name of the Java class for this alert
+   *          generator implementation.
+   */
+  public String getClassName()
+  {
+    return CLASS_NAME;
+  }
+
+  /**
+   * Retrieves information about the set of alerts that this generator may
+   * produce.  The map returned should be between the notification type for a
+   * particular notification and the human-readable description for that
+   * notification.  This alert generator must not generate any alerts with types
+   * that are not contained in this list.
+   *
+   * @return  Information about the set of alerts that this generator may
+   *          produce.
+   */
+  public LinkedHashMap<String,String> getAlerts()
+  {
+    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+
+    alerts.put(ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE,
+               ALERT_DESCRIPTION_BACKEND_ENVIRONMENT_UNUSABLE);
+    return alerts;
+  }
+
+  /**
+   * Retrieves the DN of the configuration entry with which this alert generator
+   * is associated.
+   *
+   * @return  The DN of the configuration entry with which this alert generator
+   *          is associated.
+   */
+  public DN getComponentEntryDN()
+  {
+    return cfg.dn();
   }
 
   private void initializeRootContainer(EnvironmentConfig envConfig)

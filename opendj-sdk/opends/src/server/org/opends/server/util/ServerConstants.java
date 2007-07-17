@@ -1590,6 +1590,28 @@ public class ServerConstants
 
 
   /**
+   * The description for the alert type that will be used for the alert
+   * notification generated when the JE Environment needs to be reopened
+   * after a RunRecoveryException is thrown.
+   */
+  public static final String ALERT_DESCRIPTION_BACKEND_ENVIRONMENT_UNUSABLE =
+      "This alert type will be used to provide notification that the " +
+      "JE backend throws a RunRecoveryException and Directory Server " +
+          "needs to be restarted.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated when the JE Environment needs to be reopened by restarting
+   * the Directory Server.
+   */
+  public static final String ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE =
+       "org.opends.server.BackendRunRecovery";
+
+
+
+  /**
    * The name of the default password storage scheme that will be used for new
    * passwords.
    */
