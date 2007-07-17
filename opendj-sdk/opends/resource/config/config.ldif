@@ -1003,6 +1003,13 @@ objectClass: top
 objectClass: ds-cfg-branch
 cn: Monitor Providers
 
+dn: cn=Client Connections,cn=Monitor Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-monitor-provider
+cn: Client Connections
+ds-cfg-monitor-provider-class: org.opends.server.monitors.ClientConnectionMonitorProvider
+ds-cfg-monitor-provider-enabled: true
+
 dn: cn=JVM Stack Trace,cn=Monitor Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-monitor-provider
