@@ -29,6 +29,7 @@ package org.opends.server.admin;
 
 import static org.testng.Assert.*;
 
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -42,10 +43,17 @@ public class BooleanPropertyDefinitionTest {
   BooleanPropertyDefinition.Builder builder = null;
 
   /**
-   * Sets up tests
+   * Sets up tests.
+   * 
+   * @throws Exception
+   *           If the server could not be initialized.
    */
   @BeforeClass
-  public void setUp() {
+  public void setUp() throws Exception {
+    // This test suite depends on having the schema available, so
+    // we'll start the server.
+    TestCaseUtils.startServer();
+
     builder = BooleanPropertyDefinition.createBuilder(
         RootCfgDefn.getInstance(), "test-property");
   }
@@ -74,18 +82,8 @@ public class BooleanPropertyDefinitionTest {
   @DataProvider(name = "testDecodeValueData")
   public Object[][] createvalidateValueData() {
     return new Object[][]{
-            {"0", Boolean.FALSE},
-            {"no", Boolean.FALSE},
-            {"off", Boolean.FALSE},
             {"false", Boolean.FALSE},
-            {"disable", Boolean.FALSE},
-            {"disabled", Boolean.FALSE},
-            {"1", Boolean.TRUE},
-            {"yes", Boolean.TRUE},
-            {"on", Boolean.TRUE},
-            {"true", Boolean.TRUE},
-            {"enable", Boolean.TRUE},
-            {"enabled", Boolean.TRUE},
+            {"true", Boolean.TRUE}
     };
   }
 
