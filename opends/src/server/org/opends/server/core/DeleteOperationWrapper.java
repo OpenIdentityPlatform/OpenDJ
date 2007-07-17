@@ -26,28 +26,20 @@
  */
 package org.opends.server.core;
 
-import java.util.List;
-import java.util.Map;
 
-import org.opends.server.api.ClientConnection;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Entry;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
+
 
 /**
  * This abstract class wraps/decorates a given delete operation.
  * This class will be extended by sub-classes to enhance the
  * functionnality of the DeleteOperationBasis.
  */
-public abstract class DeleteOperationWrapper implements DeleteOperation
+public abstract class DeleteOperationWrapper extends OperationWrapper
+       implements DeleteOperation
 {
+  // The wrapped operation.
   DeleteOperation delete;
 
   /**
@@ -55,146 +47,10 @@ public abstract class DeleteOperationWrapper implements DeleteOperation
    *
    * @param delete The delete operation to wrap
    */
-  public DeleteOperationWrapper(DeleteOperation delete){
+  public DeleteOperationWrapper(DeleteOperation delete)
+  {
+    super(delete);
     this.delete = delete;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void addRequestControl(Control control)
-  {
-    delete.addRequestControl(control);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void addResponseControl(Control control)
-  {
-    delete.addResponseControl(control);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void appendAdditionalLogMessage(String message)
-  {
-    delete.appendAdditionalLogMessage(message);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void appendErrorMessage(String message)
-  {
-    delete.appendErrorMessage(message);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public CancelResult cancel(CancelRequest cancelRequest)
-  {
-    return delete.cancel(cancelRequest);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void disconnectClient(DisconnectReason disconnectReason,
-      boolean sendNotification, String message, int messageID)
-  {
-    delete.disconnectClient(disconnectReason, sendNotification,
-        message, messageID);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean dontSynchronize()
-  {
-    return delete.dontSynchronize();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public StringBuilder getAdditionalLogMessage()
-  {
-    return delete.getAdditionalLogMessage();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Object getAttachment(String name)
-  {
-    return delete.getAttachment(name);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Map<String, Object> getAttachments()
-  {
-    return delete.getAttachments();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public DN getAuthorizationDN()
-  {
-    return delete.getAuthorizationDN();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Entry getAuthorizationEntry()
-  {
-    return delete.getAuthorizationEntry();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public CancelRequest getCancelRequest()
-  {
-    return delete.getCancelRequest();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public CancelResult getCancelResult()
-  {
-    return delete.getCancelResult();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ClientConnection getClientConnection()
-  {
-    return delete.getClientConnection();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public String[][] getCommonLogElements()
-  {
-    return delete.getCommonLogElements();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getConnectionID()
-  {
-    return delete.getConnectionID();
   }
 
   /**
@@ -208,70 +64,6 @@ public abstract class DeleteOperationWrapper implements DeleteOperation
   /**
    * {@inheritDoc}
    */
-  public StringBuilder getErrorMessage()
-  {
-    return delete.getErrorMessage();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public DN getMatchedDN()
-  {
-    return delete.getMatchedDN();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public int getMessageID()
-  {
-    return delete.getMessageID();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getOperationID()
-  {
-    return delete.getOperationID();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public OperationType getOperationType()
-  {
-    return delete.getOperationType();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getProcessingStartTime()
-  {
-    return delete.getProcessingStartTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getProcessingStopTime()
-  {
-    return delete.getProcessingStopTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getProcessingTime()
-  {
-    return delete.getProcessingTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public ByteString getRawEntryDN()
   {
     return delete.getRawEntryDN();
@@ -280,242 +72,9 @@ public abstract class DeleteOperationWrapper implements DeleteOperation
   /**
    * {@inheritDoc}
    */
-  public List<String> getReferralURLs()
-  {
-    return delete.getReferralURLs();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public List<Control> getRequestControls()
-  {
-    return delete.getRequestControls();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public String[][] getRequestLogElements()
-  {
-    return delete.getRequestLogElements();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public List<Control> getResponseControls()
-  {
-    return delete.getResponseControls();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public String[][] getResponseLogElements()
-  {
-    return delete.getResponseLogElements();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ResultCode getResultCode()
-  {
-    return delete.getResultCode();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void indicateCancelled(CancelRequest cancelRequest)
-  {
-    delete.indicateCancelled(cancelRequest);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isInternalOperation()
-  {
-    return delete.isInternalOperation();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isSynchronizationOperation()
-  {
-    return delete.isSynchronizationOperation();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void operationCompleted()
-  {
-    delete.operationCompleted();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Object removeAttachment(String name)
-  {
-    return delete.removeAttachment(name);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void removeRequestControl(Control control)
-  {
-    delete.removeRequestControl(control);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void removeResponseControl(Control control)
-  {
-    delete.removeResponseControl(control);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setAdditionalLogMessage(StringBuilder additionalLogMessage)
-  {
-    delete.setAdditionalLogMessage(additionalLogMessage);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public Object setAttachment(String name, Object value)
-  {
-    return delete.setAttachment(name, value);
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setAttachments(Map<String, Object> attachments)
-  {
-    delete.setAttachments(attachments);
-  }
-
-   /**
-    * {@inheritDoc}
-    */
-  public void setAuthorizationEntry(Entry authorizationEntry)
-  {
-    delete.setAuthorizationEntry(authorizationEntry);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    return delete.setCancelRequest(cancelRequest);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setCancelResult(CancelResult cancelResult)
-  {
-    delete.setCancelResult(cancelResult);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setDontSynchronize(boolean dontSynchronize)
-  {
-    delete.setDontSynchronize(dontSynchronize);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setErrorMessage(StringBuilder errorMessage)
-  {
-    delete.setErrorMessage(errorMessage);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setInternalOperation(boolean isInternalOperation)
-  {
-    delete.setInternalOperation(isInternalOperation);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setMatchedDN(DN matchedDN)
-  {
-    delete.setMatchedDN(matchedDN);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setProcessingStartTime()
-  {
-    delete.setProcessingStartTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setProcessingStopTime()
-  {
-    delete.setProcessingStopTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public void setRawEntryDN(ByteString rawEntryDN)
   {
     delete.setRawEntryDN(rawEntryDN);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setReferralURLs(List<String> referralURLs)
-  {
-    delete.setReferralURLs(referralURLs);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setResponseData(DirectoryException directoryException)
-  {
-    delete.setResponseData(directoryException);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setResultCode(ResultCode resultCode)
-  {
-    delete.setResultCode(resultCode);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setSynchronizationOperation(boolean isSynchronizationOperation)
-  {
-    delete.setSynchronizationOperation(isSynchronizationOperation);
   }
 
   /**
@@ -540,14 +99,6 @@ public abstract class DeleteOperationWrapper implements DeleteOperation
   public String toString()
   {
     return delete.toString();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void toString(StringBuilder buffer)
-  {
-    delete.toString(buffer);
   }
 
   /**
