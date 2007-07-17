@@ -1733,7 +1733,7 @@ public class PluginConfigManager
    * @return  The result of processing the pre-parse abandon plugins.
    */
   public PreParsePluginResult invokePreParseAbandonPlugins(
-                                   AbandonOperation abandonOperation)
+                                   AbandonOperationBasis abandonOperation)
   {
     PreParsePluginResult result = null;
 
@@ -3201,7 +3201,7 @@ public class PluginConfigManager
    * @return  The result of processing the post-operation abandon plugins.
    */
   public PostOperationPluginResult invokePostOperationAbandonPlugins(
-                                        AbandonOperation abandonOperation)
+                                        AbandonOperationBasis abandonOperation)
   {
     PostOperationPluginResult result = null;
 

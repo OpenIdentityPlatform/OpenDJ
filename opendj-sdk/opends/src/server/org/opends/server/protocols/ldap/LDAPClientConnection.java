@@ -53,7 +53,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
-import org.opends.server.core.AbandonOperation;
+import org.opends.server.core.AbandonOperationBasis;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.BindOperationBasis;
 import org.opends.server.core.CompareOperationBasis;
@@ -1832,8 +1832,8 @@ public class LDAPClientConnection
                                         ArrayList<Control> controls)
   {
     AbandonRequestProtocolOp protocolOp = message.getAbandonRequestProtocolOp();
-    AbandonOperation abandonOp =
-         new AbandonOperation(this, nextOperationID.getAndIncrement(),
+    AbandonOperationBasis abandonOp =
+         new AbandonOperationBasis(this, nextOperationID.getAndIncrement(),
                               message.getMessageID(), controls,
                               protocolOp.getIDToAbandon());
 
