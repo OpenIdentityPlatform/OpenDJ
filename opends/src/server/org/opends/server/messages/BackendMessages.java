@@ -3216,6 +3216,17 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used if the JE
+   * backend throws a RunRecoveryException and marks the Environment
+   * unusable. This takes one argument, which is the backend id throwing the
+   * exception.
+   */
+  public static final int MSGID_BACKEND_ENVIRONMENT_UNUSABLE =
+         CATEGORY_MASK_BACKEND | SEVERITY_MASK_NOTICE | 297;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -4369,6 +4380,10 @@ public class BackendMessages
     registerMessage(MSGID_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST,
                     "Cannot rename entry %s because the new parent entry %s " +
                     "doesn't exist");
+    registerMessage(MSGID_BACKEND_ENVIRONMENT_UNUSABLE,
+                    "JE Database Environment corresponding to backend id %s " +
+                    "is corrupt. Restart the Directory Server to reopen the " +
+                    "Environment");
   }
 }
 
