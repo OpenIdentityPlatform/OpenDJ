@@ -47,7 +47,6 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.tools.LDAPAuthenticationHandler;
 import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.Control;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 
