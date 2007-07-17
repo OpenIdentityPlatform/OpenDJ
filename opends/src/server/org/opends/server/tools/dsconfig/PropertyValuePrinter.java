@@ -156,7 +156,16 @@ final class PropertyValuePrinter {
     public <T> String visitUnknown(PropertyDefinition<T> d, T v, Void p) {
       // For all other property definition types the default encoding
       // will do.
-      return d.encodeValue(v);
+      String s = d.encodeValue(v);
+      if (isScriptFriendly) {
+        return s;
+      } else if (s.trim().length() == 0 || s.contains(",")) {
+        // Quote empty strings or strings containing commas
+        // non-scripting mode.
+        return "\"" + s + "\"";
+      } else {
+        return s;
+      }
     }
 
   }
