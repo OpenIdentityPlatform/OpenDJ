@@ -29,7 +29,9 @@ package org.opends.server.admin;
 
 import static org.testng.Assert.*;
 
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.RootCfgDefn;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -37,6 +39,19 @@ import org.testng.annotations.Test;
  * DurationPropertyDefinition Tester.
  */
 public class DurationPropertyDefinitionTest {
+
+  /**
+   * Sets up tests
+   *
+   * @throws Exception
+   *           If the server could not be initialized.
+   */
+  @BeforeClass
+  public void setUp() throws Exception {
+    // This test suite depends on having the schema available, so
+    // we'll start the server.
+    TestCaseUtils.startServer();
+  }
 
   /**
    * Tests creation of builder succeeds
@@ -97,10 +112,10 @@ public class DurationPropertyDefinitionTest {
     DurationPropertyDefinition spd = buildTestDefinition(builder);
     assertEquals(spd.getLowerLimit(), expectedValue);
   }
-  
+
   /**
    * Creates data for testing string-based limit values
-   * 
+   *
    * @return data
    */
   @DataProvider(name = "stringLimitData")
@@ -114,10 +129,10 @@ public class DurationPropertyDefinitionTest {
         { "m", "10s", 10000 }
     };
   }
-  
+
   /**
    * Tests setting/getting of lower limit as String.
-   * 
+   *
    * @param unit
    *          The unit.
    * @param value
@@ -281,16 +296,16 @@ public class DurationPropertyDefinitionTest {
   public Object[][] createEncodeValueData() {
     return new Object[][]{
             {-1L, "unlimited"},
-            {0L, "0s"},
-            {1L, "1s"},
-            {2L, "2s"},
-            {999L, "999s"},
-            {1000L, "1000s"},
-            {1001L, "1001s"},
-            {1023L, "1023s"},
-            {1024L, "1024s"},
-            {1025L, "1025s"},
-            {1000L * 1000L, "1000000s"},
+            {0L, "0 s"},
+            {1L, "1 s"},
+            {2L, "2 s"},
+            {999L, "999 s"},
+            {1000L, "1000 s"},
+            {1001L, "1001 s"},
+            {1023L, "1023 s"},
+            {1024L, "1024 s"},
+            {1025L, "1025 s"},
+            {1000L * 1000L, "1000000 s"},
     };
   }
 
@@ -409,7 +424,7 @@ public class DurationPropertyDefinitionTest {
             { "1h60m", 2L },
             { "1d10h", 34L },
             { "4d600m", 106L },
-            
+
             // conversion tests
             {"1 d", 24L},
             {"2 d", 48L},

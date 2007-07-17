@@ -107,7 +107,7 @@ public enum DurationUnit {
 
   /**
    * Parse the provided duration string and return its equivalent
-   * duration in milli-seconds. The duration string must specify the
+   * duration in milliseconds. The duration string must specify the
    * unit e.g. "10s". This method will parse duration string
    * representations produced from the {@link #toString(long)} method.
    * Therefore, a duration can comprise of multiple duration
@@ -115,7 +115,7 @@ public enum DurationUnit {
    *
    * @param s
    *          The duration string to be parsed.
-   * @return Returns the parsed duration in milli-seconds.
+   * @return Returns the parsed duration in milliseconds.
    * @throws NumberFormatException
    *           If the provided duration string could not be parsed.
    * @see #toString(long)
@@ -128,7 +128,7 @@ public enum DurationUnit {
 
   /**
    * Parse the provided duration string and return its equivalent
-   * duration in milli-seconds. This method will parse duration string
+   * duration in milliseconds. This method will parse duration string
    * representations produced from the {@link #toString(long)} method.
    * Therefore, a duration can comprise of multiple duration
    * specifiers, for example <code>1d15m25s</code>.
@@ -139,7 +139,7 @@ public enum DurationUnit {
    *          The default unit to use if there is no unit specified in
    *          the duration string, or <code>null</code> if the
    *          string must always contain a unit.
-   * @return Returns the parsed duration in milli-seconds.
+   * @return Returns the parsed duration in milliseconds.
    * @throws NumberFormatException
    *           If the provided duration string could not be parsed.
    * @see #toString(long)
@@ -151,9 +151,9 @@ public enum DurationUnit {
       throw new NumberFormatException("Empty duration value \"" + s + "\"");
     }
 
-    Pattern p1 = Pattern.compile("^((\\d+)w)?" + "((\\d+)d)?"
-        + "((\\d+)h)?" + "((\\d+)m)?" + "((\\d+)s)?" + "((\\d+)ms)?$",
-        Pattern.CASE_INSENSITIVE);
+    Pattern p1 = Pattern.compile("^\\s*((\\d+)\\s*w)?" + "\\s*((\\d+)\\s*d)?"
+        + "\\s*((\\d+)\\s*h)?" + "\\s*((\\d+)\\s*m)?" + "\\s*((\\d+)\\s*s)?"
+        + "\\s*((\\d+)\\s*ms)?\\s*$", Pattern.CASE_INSENSITIVE);
     Matcher m1 = p1.matcher(ns);
     if (m1.matches()) {
       // Value must be of the form produced by toString(long).
@@ -197,7 +197,7 @@ public enum DurationUnit {
       return duration;
     } else {
       // Value must be a floating point number followed by a unit.
-      Pattern p2 = Pattern.compile("^(\\d+(\\.\\d+)?)\\s*(\\w+)?$");
+      Pattern p2 = Pattern.compile("^\\s*(\\d+(\\.\\d+)?)\\s*(\\w+)?\\s*$");
       Matcher m2 = p2.matcher(ns);
 
       if (!m2.matches()) {
@@ -242,19 +242,19 @@ public enum DurationUnit {
    * string representation can be parsed using the
    * {@link #parseValue(String)} method. The string representation is
    * comprised of one or more of the number of weeks, days, hours,
-   * minutes, seconds, and milli-seconds. Here are some examples:
+   * minutes, seconds, and milliseconds. Here are some examples:
    *
    * <pre>
-   * toString(0)       // 0ms
-   * toString(999)     // 999ms
-   * toString(1000)    // 1s
-   * toString(1500)    // 1s500ms
-   * toString(3650000) // 1h50s
-   * toString(3700000) // 1h1m40s
+   * toString(0)       // 0 ms
+   * toString(999)     // 999 ms
+   * toString(1000)    // 1 s
+   * toString(1500)    // 1 s 500 ms
+   * toString(3650000) // 1 h 50 s
+   * toString(3700000) // 1 h 1 m 40 s
    * </pre>
    *
    * @param duration
-   *          The duration in milli-seconds.
+   *          The duration in milliseconds.
    * @return Returns a string representation of the provided duration.
    * @throws IllegalArgumentException
    *           If the provided duration is negative.
@@ -267,19 +267,25 @@ public enum DurationUnit {
     }
 
     if (duration == 0) {
-      return "0ms";
+      return "0 ms";
     }
 
     DurationUnit[] units = new DurationUnit[] { WEEKS, DAYS, HOURS, MINUTES,
         SECONDS, MILLI_SECONDS };
     long remainder = duration;
     StringBuilder builder = new StringBuilder();
+    boolean isFirst = true;
     for (DurationUnit unit : units) {
       long count = remainder / unit.getDuration();
       if (count > 0) {
+        if (!isFirst) {
+          builder.append(' ');
+        }
         builder.append(count);
+        builder.append(' ');
         builder.append(unit.getShortName());
         remainder = remainder - (count * unit.getDuration());
+        isFirst = false;
       }
     }
     return builder.toString();
@@ -291,7 +297,7 @@ public enum DurationUnit {
   // The abbreviation of the unit.
   private final String shortName;
 
-  // The size of the unit in milli-seconds.
+  // The size of the unit in milliseconds.
   private final long sz;
 
 
@@ -306,11 +312,11 @@ public enum DurationUnit {
 
 
   /**
-   * Converts the specified duration in milli-seconds to this unit.
+   * Converts the specified duration in milliseconds to this unit.
    *
    * @param duration
-   *          The duration in milli-seconds.
-   * @return Returns milli-seconds in this unit.
+   *          The duration in milliseconds.
+   * @return Returns milliseconds in this unit.
    */
   public double fromMilliSeconds(long duration) {
     return ((double) duration / sz);
@@ -319,9 +325,9 @@ public enum DurationUnit {
 
 
   /**
-   * Get the number of milli-seconds that this unit represents.
+   * Get the number of milliseconds that this unit represents.
    *
-   * @return Returns the number of milli-seconds that this unit
+   * @return Returns the number of milliseconds that this unit
    *         represents.
    */
   public long getDuration() {
@@ -353,11 +359,11 @@ public enum DurationUnit {
 
 
   /**
-   * Converts the specified duration in this unit to milli-seconds.
+   * Converts the specified duration in this unit to milliseconds.
    *
    * @param duration
    *          The duration as a quantity of this unit.
-   * @return Returns the number of milli-seconds that the duration
+   * @return Returns the number of milliseconds that the duration
    *         represents.
    */
   public long toMilliSeconds(double duration) {

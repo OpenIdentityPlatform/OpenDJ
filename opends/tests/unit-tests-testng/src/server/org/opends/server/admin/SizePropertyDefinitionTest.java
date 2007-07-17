@@ -29,7 +29,9 @@ package org.opends.server.admin;
 
 import static org.testng.Assert.*;
 
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.RootCfgDefn;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -37,6 +39,19 @@ import org.testng.annotations.Test;
  * SizePropertyDefinition Tester.
  */
 public class SizePropertyDefinitionTest {
+
+  /**
+   * Sets up tests
+   *
+   * @throws Exception
+   *           If the server could not be initialized.
+   */
+  @BeforeClass
+  public void setUp() throws Exception {
+    // This test suite depends on having the schema available, so
+    // we'll start the server.
+    TestCaseUtils.startServer();
+  }
 
   /**
    * Tests creation of builder succeeds
@@ -245,19 +260,19 @@ public class SizePropertyDefinitionTest {
   public Object[][] createEncodeValueData() {
     return new Object[][]{
             {-1L, "unlimited"},
-            {0L, "0b"},
-            {1L, "1b"},
-            {2L, "2b"},
-            {999L, "999b"},
-            {1000L, "1kb"},
-            {1001L, "1001b"},
-            {1023L, "1023b"},
-            {1024L, "1kib"},
-            {1025L, "1025b"},
-            {1000L * 1000L, "1mb"},
-            {1000L * 1000L * 1000L, "1gb"},
-            {1024L * 1024L * 1024L, "1gib"},
-            {1000L * 1000L * 1000L * 1000L, "1tb"}
+            {0L, "0 b"},
+            {1L, "1 b"},
+            {2L, "2 b"},
+            {999L, "999 b"},
+            {1000L, "1 kb"},
+            {1001L, "1001 b"},
+            {1023L, "1023 b"},
+            {1024L, "1 kib"},
+            {1025L, "1025 b"},
+            {1000L * 1000L, "1 mb"},
+            {1000L * 1000L * 1000L, "1 gb"},
+            {1024L * 1024L * 1024L, "1 gib"},
+            {1000L * 1000L * 1000L * 1000L, "1 tb"}
 
     };
   }
