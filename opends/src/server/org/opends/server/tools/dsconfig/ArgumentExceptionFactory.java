@@ -293,6 +293,30 @@ final class ArgumentExceptionFactory {
 
 
   /**
+   * Creates an argument exception which should be used when an
+   * attempt is made to reset a mandatory property that does not have
+   * any default values.
+   *
+   * @param d
+   *          The managed object definition.
+   * @param name
+   *          The name of the mandatory property.
+   * @param setOption
+   *          The name of the option which should be used to set the
+   *          property's values.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException unableToResetMandatoryProperty(
+      AbstractManagedObjectDefinition d, String name, String setOption) {
+    int msgID = MSGID_DSCFG_ERROR_UNABLE_TO_RESET_MANDATORY_PROPERTY;
+    String message = getMessage(msgID, d.getUserFriendlyPluralName(), name,
+        setOption);
+    return new ArgumentException(msgID, message);
+  }
+
+
+
+  /**
    * Creates an argument exception which should be used when a
    * property name is not recognized.
    *

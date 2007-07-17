@@ -9023,6 +9023,17 @@ public class ToolMessages
   public static final int MSGID_VERIFYINDEX_DESCRIPTION_COUNT_ERRORS =
     CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1199;
 
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts to modify a property which is mandatory and which does
+   * not have any default values. This takes three arguments which are
+   * the name of the managed object, the name of the mandatory
+   * property, and the name of the option which should be used to give
+   * the property a new value.
+   */
+  public static final int MSGID_DSCFG_ERROR_UNABLE_TO_RESET_MANDATORY_PROPERTY =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1200;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -11414,6 +11425,10 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_ERROR_PROPERTY_MANDATORY,
                     "The %s property \"%s\" is mandatory and must " +
                     "be specified");
+
+    registerMessage(MSGID_DSCFG_ERROR_UNABLE_TO_RESET_MANDATORY_PROPERTY,
+                    "The %s property \"%s\" is mandatory cannot be reset. " +
+                    "Use the \"%s\" option to specify a new value");
 
     registerMessage(MSGID_DSCFG_ERROR_PROPERTY_SINGLE_VALUED,
                     "It is not possible to specify multiple values for the " +
