@@ -53,7 +53,8 @@ PROCESS_INFORMATION* procInfo)
   STARTUPINFO startInfo; // info to pass to the new process
   DWORD processFlag; // background process flag
 
-  debug("Attempting to create child process '%s' background=%d.", command, background);
+  debug("Attempting to create child process '%s' background=%d.", command,
+      background);
 
   // reset process info first
   ZeroMemory(procInfo, sizeof(PROCESS_INFORMATION));
@@ -84,7 +85,8 @@ PROCESS_INFORMATION* procInfo)
   }
   else
   {
-    debugError("Failed to create child process '%s'.  Last error = %d.", command, GetLastError());
+    debugError("Failed to create child process '%s'.  Last error = %d.",
+        command, GetLastError());
   }
   
   return createOk;
@@ -156,7 +158,8 @@ void debugInner(BOOL isError, const char *msg, va_list ap)
   {
     currentProcessPid = GetCurrentProcessId();
     noMessageLogged = FALSE;
-    debug("--------------- FIRST LOG MESSAGE FROM '%s' ---------------", _pgmptr);
+    debug("--------------- FIRST LOG MESSAGE FROM '%s' ---------------",
+        _pgmptr);
   }
 
   // Time-stamp
@@ -211,7 +214,8 @@ char * getDebugLogFileName()
     MAX_PATH
     ); 
 
-  // Cut everything after the last slash, twice.  This will take us back to the instance root.
+  // Cut everything after the last slash, twice.  This will take us back to the
+  // instance root.
   // This logic assumes that we are in a directory above the instance root.
   lastSlash = strrchr(execName, '\\');
   lastSlash[0] = '\0';

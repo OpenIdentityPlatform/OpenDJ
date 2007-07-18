@@ -72,7 +72,7 @@ SERVICE_STATUS_HANDLE*  serviceStatusHandle
   }
 
   debug("registerServiceHandler returning '%d'", returnValue);
-  
+
   return returnValue;
 }  // registerServiceHandler
 
@@ -147,7 +147,8 @@ ServiceReturnCode openScm(DWORD accessRights, SC_HANDLE *scm)
   );
   if (scm == NULL)
   {
-    debugError("Failed to open the Service Control Manager.  Last error = %d", GetLastError());
+    debugError("Failed to open the Service Control Manager.  Last error = %d",
+        GetLastError());
     returnValue = SERVICE_RETURN_ERROR;
   }
   else
@@ -247,7 +248,8 @@ BOOLEAN createRegistryKey(char* serviceName)
     );
     if (result != ERROR_SUCCESS)
     {
-      debugError("RegSetValueEx('EventMessageFile') failed, result=%d.", result);
+      debugError("RegSetValueEx('EventMessageFile') failed, result=%d.",
+          result);
       success = FALSE;
     }
   }
@@ -290,7 +292,8 @@ BOOLEAN createRegistryKey(char* serviceName)
     );
     if (result != ERROR_SUCCESS)
     {
-      debugError("RegSetValueEx('CategoryMessageFile') failed, result=%d.", result);
+      debugError("RegSetValueEx('CategoryMessageFile') failed, result=%d.",
+          result);
       success = FALSE;
     }
   }
@@ -362,7 +365,8 @@ BOOLEAN removeRegistryKey(char* serviceName)
   );
   if (result != ERROR_SUCCESS)
   {
-    debug("The registry key for service '%s' does not exist, so we do not need to remove it.", serviceName);
+    debug("The registry key for service '%s' does not exist, so we do not need to remove it.",
+        serviceName);
     // Assume that the registry key does not exist.
     returnValue = TRUE;
   }
@@ -429,14 +433,15 @@ ServiceReturnCode isServerRunning(BOOL *running)
   char* relativePath = "\\locks\\server.lock";
   char lockFile[MAX_PATH];
   debug("Determining if the server is running.");
-  
+
   if (strlen(relativePath)+strlen(_instanceDir)+1 < MAX_PATH)
   {
     int fd;
 
     sprintf(lockFile, "%s%s", _instanceDir, relativePath);
-    debug("When determining whether the server is running, the lock file name is '%s'.", lockFile);
-  
+    debug("When determining whether the server is running, the lock file name is '%s'.",
+        lockFile);
+
     fd = _open(lockFile, _O_RDWR);
 
     if (fd != -1)
@@ -469,7 +474,8 @@ ServiceReturnCode isServerRunning(BOOL *running)
     }
     else
     {
-      debug("Could not open lock file '%s', which means the server is not running.", lockFile);
+      debug("Could not open lock file '%s', which means the server is not running.",
+          lockFile);
       *running = FALSE;
       returnValue = SERVICE_RETURN_ERROR;
     }
@@ -499,7 +505,7 @@ ServiceReturnCode doStartApplication()
 
   debug("doStartApplication called.");
 
-  
+
   if (strlen(relativePath)+strlen(_instanceDir)+1 < COMMAND_SIZE)
   {
     sprintf(command, "\"%s%s\" --windowsNetStart", _instanceDir, relativePath);
@@ -511,8 +517,10 @@ ServiceReturnCode doStartApplication()
       // Try to see if server is really running
       int nTries = 10;
       BOOL running = FALSE;
-      
-      debug("doStartApplication: the spawn of the process worked.  Command: '%s'", command);
+
+      debug(
+          "doStartApplication: the spawn of the process worked.  Command: '%s'",
+          command);
       // Wait to be able to launch the java process in order it to free the lock
       // on the file.
       debug("Sleeping for 3 seconds to allow the process to free the lock.");
@@ -526,7 +534,8 @@ ServiceReturnCode doStartApplication()
         }
         if (!running)
         {
-          debug("Sleeping for 2 seconds to allow the process to free the lock.  %d tries remaining.", nTries);
+          debug("Sleeping for 2 seconds to allow the process to free the lock.  %d tries remaining.",
+              nTries);
           Sleep(2000);
         }
       }
@@ -543,7 +552,7 @@ ServiceReturnCode doStartApplication()
     }
     else
     {
-      
+
       returnValue = SERVICE_RETURN_ERROR;
       debug("doStartApplication: spawn failed.  Sent command: '%s'", command);
     }
@@ -577,9 +586,9 @@ ServiceReturnCode doStopApplication()
       // Try to see if server is really stopped
       int nTries = 10;
       BOOL running = TRUE;
-      
+
       debug("doStopApplication: the spawn of the process worked.");
-      
+
       // Wait to be able to launch the java process in order it to free the lock
       // on the file.
       Sleep(3000);
@@ -625,7 +634,7 @@ ServiceReturnCode doStopApplication()
 // serviceBinPath  the path to the service binary.
 // instanceDir the instanceDirectory.
 // The string stored in serviceBinPath looks like
-// <SERVER_ROOT>/lib/service.exe start <_instanceDir>
+// <SERVER_ROOT>/lib/opends_service.exe start <_instanceDir>
 // It is up to the caller of the function to allocate
 // at least COMMAND_SIZE bytes in serviceBinPath.
 // The function returns SERVICE_RETURN_OK if we could create the binary
@@ -652,7 +661,9 @@ ServiceReturnCode createServiceBinPath(char* serviceBinPath)
   }
   else
   {
-    debug("When determining the service bin path, the module file name is '%s'.", fileName);
+    debug(
+        "When determining the service bin path, the module file name is '%s'.",
+        fileName);
 
     if (result == MAX_PATH)
     {
@@ -662,15 +673,16 @@ ServiceReturnCode createServiceBinPath(char* serviceBinPath)
     }
     else
     {
-      if ((strlen(fileName) + strlen(" start ") + strlen(_instanceDir) + 2 * strlen("\"\""))
-        < COMMAND_SIZE)
+      if ((strlen(fileName) + strlen(" start ") + strlen(_instanceDir) +
+          2 * strlen("\"\"")) < COMMAND_SIZE)
       {
         sprintf(serviceBinPath, "\"%s\" start \"%s\"", fileName,
         _instanceDir);
       }
       else
       {
-        char * msg = "The name of the resulting windows service command is too long.\n";
+        char * msg =
+          "The name of the resulting windows service command is too long.\n";
         debug(msg);
         // buffer was too small, executable name is probably not valid
         returnValue = SERVICE_RETURN_ERROR;
@@ -704,7 +716,8 @@ ServiceReturnCode getServiceName(char* cmdToRun, char* serviceName)
 
   strcpy(serviceName, "");
 
-  debug("Attempting to get the service name assuming command to run is '%s'.", cmdToRun);
+  debug("Attempting to get the service name assuming command to run is '%s'.",
+      cmdToRun);
 
   returnValue = getServiceList(&serviceList, &nbServices);
 
@@ -733,7 +746,8 @@ ServiceReturnCode getServiceName(char* cmdToRun, char* serviceName)
             }
             else
             {
-              debug("The service name found is too long: '%s'", curService.serviceName);
+              debug("The service name found is too long: '%s'",
+                  curService.serviceName);
             }
             break;
           }
@@ -748,7 +762,7 @@ ServiceReturnCode getServiceName(char* cmdToRun, char* serviceName)
   }
 
   debug("The service name was found to be '%s'.", serviceName);
-  
+
   return returnValue;
 
 }  // getServiceName
@@ -801,7 +815,7 @@ SERVICE_STATUS_HANDLE *serviceStatusHandle
   debug("Updating the service status.  statusToSet=%d win32ExitCode=%d serviceExitCode=%d checkPoint=%d waitHint=%d",
         statusToSet, win32ExitCode, serviceExitCode,
         checkPoint, waitHint);
-  
+
   if (statusToSet == SERVICE_START_PENDING)
   {
     debug("Service start pending.");
@@ -835,7 +849,8 @@ SERVICE_STATUS_HANDLE *serviceStatusHandle
 
   if (!success)
   {
-    debugError("Failed to set the service status.  Last error = %d.", GetLastError());
+    debugError("Failed to set the service status.  Last error = %d.",
+        GetLastError());
     returnValue = SERVICE_RETURN_ERROR;
   }
   else
@@ -872,7 +887,7 @@ void serviceMain(int argc, char* argv[])
   // __debugbreak();
 
   debug("serviceMain called.");
-  
+
   code = createServiceBinPath(cmdToRun);
 
   if (code == SERVICE_RETURN_OK)
@@ -1170,8 +1185,8 @@ void serviceHandler(DWORD controlCode)
 //
 // scm is the SCM handler (must not be NULL)
 // serviceName  the name of the service.
-// It is up to the caller of the function to allocate at least COMMAND_SIZE bytes
-// in binPathName.
+// It is up to the caller of the function to allocate at least COMMAND_SIZE
+// bytes in binPathName.
 // The function returns SERVICE_RETURN_OK if we could create the binary
 // path name and SERVICE_RETURN_ERROR otherwise.
 // ---------------------------------------------------------------
@@ -1232,7 +1247,8 @@ char* binPathName)
         }
         else
         {
-          debug("getBinaryPath: error calling QueryServiceConfig. Code [%d]", errCode);
+          debug("getBinaryPath: error calling QueryServiceConfig. Code [%d]",
+              errCode);
           break;
         }
       }
@@ -1245,7 +1261,8 @@ char* binPathName)
         }
         else
         {
-          debug("getBinaryPath: the length of the binary path name is too big. serviceName='%s', binaryPath='%s'", serviceName, serviceConfig->lpBinaryPathName);
+          debug("getBinaryPath: the length of the binary path name is too big. serviceName='%s', binaryPath='%s'",
+              serviceName, serviceConfig->lpBinaryPathName);
         }
       }
     }
@@ -1330,7 +1347,8 @@ int *nbServices)
           if (lastError != ERROR_MORE_DATA)
           {
             returnValue = SERVICE_RETURN_ERROR;
-            debug("getServiceList: second try generic error. Code [%d]", lastError);
+            debug("getServiceList: second try generic error. Code [%d]",
+                lastError);
           }
           else
           {
@@ -1384,7 +1402,8 @@ int *nbServices)
         }
         else
         {
-          debug("Error getting binary path name of service: %s", l[i].serviceName);
+          debug("Error getting binary path name of service: %s",
+              l[i].serviceName);
         }
         curService++;
       }
@@ -1425,7 +1444,7 @@ ServiceReturnCode serviceNameInUse(char* serviceName)
   int i;
 
   debug("Determining if service name '%s' is in use.", serviceName);
-  
+
   // go through the list of services and search for the service name
   if (getServiceList(&serviceList, &nbServices) == SERVICE_RETURN_OK)
   {
@@ -1456,7 +1475,8 @@ ServiceReturnCode serviceNameInUse(char* serviceName)
   }
   else
   {
-    debugError("Could not determine if the service name '%s' is in use because listing the services failed.", serviceName);
+    debugError("Could not determine if the service name '%s' is in use because listing the services failed.",
+        serviceName);
     returnValue = SERVICE_RETURN_ERROR;
   }
   return returnValue;
@@ -1513,7 +1533,7 @@ ServiceReturnCode createServiceName(char* serviceName, char* baseName)
   }
 
   debug("createServiceName returning serviceName='%s' and returnValue=%d",
-        serviceName, returnValue);  
+        serviceName, returnValue);
 
   return returnValue;
 } // createServiceName
@@ -1547,7 +1567,7 @@ char* cmdToRun)
   // create the service
   if (returnValue == SERVICE_RETURN_OK)
   {
-    if (openScm(GENERIC_WRITE, &scm) != SERVICE_RETURN_OK)
+    if (openScm(SC_MANAGER_ALL_ACCESS, &scm) != SERVICE_RETURN_OK)
     {
       returnValue = SERVICE_RETURN_ERROR;
       debug("createServiceInScm: openScm did not work.");
@@ -1583,7 +1603,8 @@ char* cmdToRun)
   if ((returnValue == SERVICE_RETURN_OK) && (myService == NULL))
   {
     DWORD errCode = GetLastError();
-    debugError("Failed to create the service '%s'.  Last error = %d.", serviceName, errCode);
+    debugError("Failed to create the service '%s'.  Last error = %d.",
+        serviceName, errCode);
     if (errCode == ERROR_DUPLICATE_SERVICE_NAME)
     {
       returnValue = DUPLICATED_SERVICE_NAME;
@@ -1594,6 +1615,10 @@ char* cmdToRun)
     }
     else
     {
+      if (errCode == ERROR_INVALID_HANDLE)
+      {
+        debugError("The handle seems to be invalid.");
+      }
       returnValue = SERVICE_RETURN_ERROR;
     }
   }
@@ -1612,7 +1637,9 @@ char* cmdToRun)
 
     if (!success)
     {
-      debugError("Failed to add a description to the service '%s'.  Last error = %d.", serviceName, GetLastError());
+      debugError(
+          "Failed to add a description to the service '%s'.  Last error = %d.",
+          serviceName, GetLastError());
       returnValue = SERVICE_RETURN_ERROR;
     }
   }
@@ -1635,7 +1662,7 @@ char* cmdToRun)
   }
 
   debug("createServiceInScm returning %d.", returnValue);
-        
+
   return returnValue;
 } // createServiceInScm
 
@@ -1656,7 +1683,7 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
   SERVICE_STATUS serviceStatus;
 
   debug("Removing service '%s' from the Service Control Manager.", serviceName);
-  
+
   returnValue = openScm(GENERIC_WRITE, &scm);
 
   // open the service
@@ -1671,7 +1698,8 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
     debug("After opening service myService=%d.", myService);
     if (myService == NULL)
     {
-      debugError("Failed to open the service '%s'. Last error = %d", serviceName, GetLastError());
+      debugError("Failed to open the service '%s'. Last error = %d",
+          serviceName, GetLastError());
       returnValue = SERVICE_RETURN_ERROR;
     }
   }
@@ -1686,7 +1714,8 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
     );
     if (!success)
     {
-      debugError("Failed to query the status for service '%s'. Last error = %d", serviceName, GetLastError());
+      debugError("Failed to query the status for service '%s'. Last error = %d",
+          serviceName, GetLastError());
       returnValue = SERVICE_RETURN_ERROR;
     }
   }
@@ -1707,7 +1736,8 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
       if (!success)
       {
         DWORD errCode = GetLastError();
-        debugError("Failed to stop the service '%s'.  Last error = %d.", serviceName, errCode);
+        debugError("Failed to stop the service '%s'.  Last error = %d.",
+            serviceName, errCode);
         if (errCode == ERROR_SERVICE_MARKED_FOR_DELETE)
         {
           returnValue = SERVICE_MARKED_FOR_DELETION;
@@ -1733,7 +1763,8 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
     if (!success)
     {
       DWORD errCode = GetLastError();
-      debugError("Failed to delete the service '%s'.  Last error = %d.", serviceName, errCode);
+      debugError("Failed to delete the service '%s'.  Last error = %d.",
+          serviceName, errCode);
       if (errCode == ERROR_SERVICE_MARKED_FOR_DELETE)
       {
         returnValue = SERVICE_MARKED_FOR_DELETION;
@@ -1778,7 +1809,8 @@ int createService(char* displayName, char* description)
   char cmdToRun[COMMAND_SIZE];
   ServiceReturnCode code;
 
-  debug("Creating service displayName='%s' description='%s'.", displayName, description);
+  debug("Creating service displayName='%s' description='%s'.", displayName,
+      description);
   code = createServiceBinPath(cmdToRun);
 
   if (code == SERVICE_RETURN_OK)
@@ -1858,12 +1890,13 @@ int serviceState()
   strcpy(serviceName, "");
   debug("Getting service state.");
   code = createServiceBinPath(cmdToRun);
-  debug("Created the service bin path. code=%d.  cmdToRun='%s'.", code, cmdToRun);
+  debug("Created the service bin path. code=%d.  cmdToRun='%s'.", code,
+      cmdToRun);
 
   if (code == SERVICE_RETURN_OK)
   {
     code = getServiceName(cmdToRun, serviceName);
-    
+
     if (code == SERVICE_RETURN_OK)
     {
       // There is a valid serviceName for the command to run, so
@@ -1875,7 +1908,7 @@ int serviceState()
     else
     {
       returnCode = 1;
-      debug("Service '%s' is disabled enabled.", serviceName);
+      debug("Service '%s' is disabled.", serviceName);
     }
   }
   else
@@ -2072,7 +2105,7 @@ int main(int argc, char* argv[])
   char* subcommand;
   int returnCode = 0;
   int i;
-  
+
   updateDebugFlag(argv, argc);
 
   debug("main called.");
@@ -2201,7 +2234,7 @@ int main(int argc, char* argv[])
   }
 
   debug("main returning %d.", returnCode);
-    
+
   return returnCode;
 } // main
 

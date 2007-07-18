@@ -154,6 +154,26 @@ public class SetupUtils
   }
 
   /**
+   * Indicates whether the underlying operating system is Windows Vista.
+   *
+   * @return  {@code true} if the underlying operating system is Windows
+   *          Vista, or {@code false} if not.
+   */
+  public static boolean isVista()
+  {
+    boolean isVista;
+    String os = System.getProperty("os.name");
+    if (os != null)
+    {
+     isVista = isWindows() && (os.toLowerCase().indexOf("vista") != -1);
+    }
+    else
+    {
+      isVista = false;
+    }
+    return isVista;
+  }
+  /**
    * Returns a String representation of the OS we are running.
    * @return a String representation of the OS we are running.
    */

@@ -111,7 +111,7 @@ echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
 goto end
 
 :runDetachCalledByWinService
-rem We write the output of the start command to the winwervice.out file.
+rem We write the output of the start command to the winservice.out file.
 echo %SCRIPT%: Run detach called by windows service  >> %LOG%
 if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
 if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"

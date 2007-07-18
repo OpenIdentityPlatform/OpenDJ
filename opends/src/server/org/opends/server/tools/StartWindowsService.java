@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.util.SetupUtils;
 
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
@@ -113,11 +114,27 @@ public class StartWindowsService
     }
     else
     {
-      String[] cmd = {
-          "net",
-          "start",
-          serviceName
-          };
+      String[] cmd;
+      if (SetupUtils.isVista())
+      {
+        cmd= new String[] {
+            ConfigureWindowsService.getLauncherBinaryFullPath(),
+            ConfigureWindowsService.LAUNCHER_OPTION,
+            ConfigureWindowsService.getLauncherAdministratorBinaryFullPath(),
+            ConfigureWindowsService.LAUNCHER_OPTION,
+            "net",
+            "start",
+            serviceName
+        };
+      }
+      else
+      {
+        cmd= new String[] {
+            "net",
+            "start",
+            serviceName
+        };
+      }
       /* Check if is a running service */
       try
       {

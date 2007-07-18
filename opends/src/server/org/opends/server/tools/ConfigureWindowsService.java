@@ -36,6 +36,7 @@ import java.io.PrintStream;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
+import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -52,6 +53,22 @@ import static org.opends.server.tools.ToolConstants.*;
   * this machine.
   * This tool allows to enable and disable OpenDS to run as a Windows service
   * and allows to know if OpenDS is running as a Windows service or not.
+  *
+  * Some comments about Vista:
+  * In Vista, when we launch the subcommands that require administrator
+  * privileges (enable, disable and cleanup) we cannot use the administrator
+  * launcher binary directly from Java (see
+  * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6410605) so we use
+  * winlauncher.exe.
+  * When we launch subcommands that required administrator privileges
+  * we must launch a binary containing the manifest that specifies that we
+  * require administrator privileges (requireAdministrator value): if UAC is
+  * enabled, the user will be asked for confirmation.
+  * To minimize the number of confirmation that the user must provide when
+  * launching the state subcommand we will use a binary whose manifest does
+  * not contain the requireAdministrator value.
+  *
+  * See the files under src/build-tools/windows for more details.
   */
 public class ConfigureWindowsService
 {
@@ -62,6 +79,10 @@ public class ConfigureWindowsService
     "org.opends.server.tools.ConfigureWindowsService";
 
   private static final String DEBUG_OPTION = "--debug";
+  /**
+   * Option to be used when calling the launchers.
+   */
+  public static final String LAUNCHER_OPTION = "run";
 
   private static int ERROR = 1;
 
@@ -333,7 +354,7 @@ public class ConfigureWindowsService
         getBinaryFullPath(),
         "state",
         serverRoot
-        };
+    };
     try
     {
       Process p = Runtime.getRuntime().exec(cmd);
@@ -385,14 +406,35 @@ public class ConfigureWindowsService
     String msg;
     String serverRoot = getServerRoot();
 
-    String[] cmd = {
-        getBinaryFullPath(),
-        "create",
-        serverRoot,
-        getMessage(MSGID_WINDOWS_SERVICE_NAME, (Object[]) null),
-        getMessage(MSGID_WINDOWS_SERVICE_DESCRIPTION, serverRoot),
-        DEBUG_OPTION
-        };
+    String[] cmd;
+
+    if (isVista())
+    {
+      cmd = new String[] {
+          getLauncherBinaryFullPath(),
+          LAUNCHER_OPTION,
+          getLauncherAdministratorBinaryFullPath(),
+          LAUNCHER_OPTION,
+          getBinaryFullPath(),
+          "create",
+          serverRoot,
+          getMessage(MSGID_WINDOWS_SERVICE_NAME, (Object[]) null),
+          getMessage(MSGID_WINDOWS_SERVICE_DESCRIPTION, serverRoot),
+          DEBUG_OPTION
+      };
+    }
+    else
+    {
+      cmd = new String[] {
+          getBinaryFullPath(),
+          "create",
+          serverRoot,
+          getMessage(MSGID_WINDOWS_SERVICE_NAME, (Object[]) null),
+          getMessage(MSGID_WINDOWS_SERVICE_DESCRIPTION, serverRoot),
+          DEBUG_OPTION
+      };
+    }
+
     try
     {
       int resultCode = Runtime.getRuntime().exec(cmd).waitFor();
@@ -456,12 +498,29 @@ public class ConfigureWindowsService
     int returnValue;
     String msg;
     String serverRoot = getServerRoot();
-    String[] cmd = {
+    String[] cmd;
+    if (isVista())
+    {
+      cmd = new String[] {
+          getLauncherBinaryFullPath(),
+          LAUNCHER_OPTION,
+          getLauncherAdministratorBinaryFullPath(),
+          LAUNCHER_OPTION,
+          getBinaryFullPath(),
+          "remove",
+          serverRoot,
+          DEBUG_OPTION
+      };
+    }
+    else
+    {
+      cmd = new String[] {
         getBinaryFullPath(),
         "remove",
         serverRoot,
         DEBUG_OPTION
         };
+    }
     try
     {
       int resultCode = Runtime.getRuntime().exec(cmd).waitFor();
@@ -525,12 +584,29 @@ public class ConfigureWindowsService
   {
     int returnValue;
     String msg;
-    String[] cmd = {
-        getBinaryFullPath(),
-        "cleanup",
-        serviceName,
-        DEBUG_OPTION
-        };
+    String[] cmd;
+    if (isVista())
+    {
+      cmd = new String[] {
+          getLauncherBinaryFullPath(),
+          LAUNCHER_OPTION,
+          getLauncherAdministratorBinaryFullPath(),
+          LAUNCHER_OPTION,
+          getBinaryFullPath(),
+          "cleanup",
+          serviceName,
+          DEBUG_OPTION
+      };
+    }
+    else
+    {
+      cmd = new String[] {
+          getBinaryFullPath(),
+          "cleanup",
+          serviceName,
+          DEBUG_OPTION
+      };
+    }
     try
     {
       int resultCode = Runtime.getRuntime().exec(cmd).waitFor();
@@ -588,12 +664,13 @@ public class ConfigureWindowsService
     String serviceName = null;
 
     String serverRoot = getServerRoot();
-    String[] cmd = {
+    String[] cmd = new String[] {
         getBinaryFullPath(),
         "state",
         serverRoot,
         DEBUG_OPTION
-        };
+    };
+
     try
     {
       int resultCode = -1;
@@ -711,12 +788,50 @@ public class ConfigureWindowsService
 
   /**
    * Returns the full path of the executable used by this class to perform
-   * operations related to the service.
+   * operations related to the service.  This binaries file has the asInvoker
+   * value in its manifest.
    * @return the full path of the executable used by this class to perform
    * operations related to the service.
    */
   private static String getBinaryFullPath()
   {
     return getServerRoot()+"\\lib\\opends_service.exe";
+  }
+
+  /**
+   * Returns the full path of the executable that has a manifest requiring
+   * administrator privileges used by this class to perform
+   * operations related to the service.
+   * @return the full path of the executable that has a manifest requiring
+   * administrator privileges used by this class to perform
+   * operations related to the service.
+   */
+  public static String getLauncherAdministratorBinaryFullPath()
+  {
+    return getServerRoot()+"\\lib\\launcher_administrator.exe";
+  }
+
+  /**
+   * Returns the full path of the executable that has a manifest requiring
+   * administrator privileges used by this class to perform
+   * operations related to the service.
+   * @return the full path of the executable that has a manifest requiring
+   * administrator privileges used by this class to perform
+   * operations related to the service.
+   */
+  public static String getLauncherBinaryFullPath()
+  {
+    return getServerRoot()+"\\lib\\winlauncher.exe";
+  }
+
+  /**
+   * Indicates whether the underlying operating system is Windows Vista.
+   *
+   * @return  {@code true} if the underlying operating system is Windows
+   *          Vista, or {@code false} if not.
+   */
+  private static boolean isVista()
+  {
+    return SetupUtils.isVista();
   }
 }
