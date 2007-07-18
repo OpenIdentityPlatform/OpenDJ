@@ -72,7 +72,7 @@ if "%~1" == "" goto callLaunch
 goto callJava
 
 :callLaunch
-"%DIR_HOME%\lib\winlauncher.exe" launch "%DIR_HOME%" "%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.InstallLauncher -P setup.bat
+"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.InstallLauncher -P setup.bat
 goto end
 
 :callJava

@@ -25,7 +25,7 @@ rem
 rem
 rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
-rem This script is used to invoke various server-side processes.  It should not
+rem This script is used to invoke various client-side processes.  It should not
 rem be invoked directly by end users.
 
 setlocal

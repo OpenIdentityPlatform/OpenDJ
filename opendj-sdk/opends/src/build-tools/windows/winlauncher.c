@@ -63,7 +63,7 @@ BOOL fileExists(const char *fileName)
 {
   struct stat finfo;
   BOOL returnValue = FALSE;
-  
+
   if(stat(fileName, &finfo) < 0)
   {
     returnValue = FALSE;
@@ -89,7 +89,7 @@ BOOL deletePidFile(const char* instanceDir)
   BOOL returnValue = FALSE;
   char pidFile[PATH_SIZE];
   int nTries = 10;
-  
+
   debug("Attempting to delete the PID file from instanceDir='%s'.", instanceDir);
   // Sometimes the lock on the system in windows takes time to be released.
   if (getPidFile(instanceDir, pidFile, PATH_SIZE))
@@ -110,7 +110,7 @@ BOOL deletePidFile(const char* instanceDir)
       }
     }
   }
-  
+
   debug("deletePidFile('%s') returning %d.", instanceDir, returnValue);
   return returnValue;
 }  // deletePidFile
@@ -128,7 +128,7 @@ int getPid(const char* instanceDir)
   FILE *f;
   char buf[BUF_SIZE];
   int read;
-  
+
   debug("Attempting to get the PID for the server rooted at '%s'.", instanceDir);
   if (getPidFile(instanceDir, pidFile, PATH_SIZE))
   {
@@ -137,7 +137,7 @@ int getPid(const char* instanceDir)
       read = fread(buf, 1, sizeof(buf),f);
       debug("Read '%s' from the PID file '%s'.", buf, pidFile);
     }
-    
+
     if (f != NULL)
     {
       fclose(f);
@@ -179,7 +179,7 @@ BOOL killProcess(int pid)
   FALSE,                          // handle is not inheritable
   pid
   );
-  
+
   if (procHandle == NULL)
   {
     debug("The process with pid=%d has already terminated.", pid);
@@ -201,7 +201,7 @@ BOOL killProcess(int pid)
 
       debug("Successfully began termination process for (pid=%d).", pid);
       // wait for the process to end.
-      
+
       processDead = FALSE;
       while ((nTries > 0) && !processDead)
       {
@@ -234,11 +234,11 @@ BOOL killProcess(int pid)
 // otherwise.
 // ----------------------------------------------------
 BOOL createPidFile(const char* instanceDir, int pid)
-{ 
+{
   BOOL returnValue = FALSE;
   char pidFile[PATH_SIZE];
   FILE *f;
-  
+
   debug("createPidFile(instanceDir='%s',pid=%d)", instanceDir, pid);
 
   if (getPidFile(instanceDir, pidFile, PATH_SIZE))
@@ -261,7 +261,7 @@ BOOL createPidFile(const char* instanceDir, int pid)
     debugError("Couldn't create the pid file because the pid file name could not be constructed.");
     returnValue = FALSE;
   }
-  
+
   return returnValue;
 }  // createPidFile
 
@@ -281,11 +281,11 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
   BOOL overflow = FALSE;
 
   debug("Constructing full command line from arguments:");
-  for (i = 0; (argv[i] != NULL); i++) 
+  for (i = 0; (argv[i] != NULL); i++)
   {
     debug(" argv[%d]: %s", i, argv[i]);
   }
-  
+
   i = 0;
   while ((argv[i] != NULL) && !overflow)
   {
@@ -302,11 +302,11 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
         overflow = TRUE;
       }
     }
-    
+
     if (curarg[0] != '\0')
     {
       int argInd = 0;
-      
+
       if (curarg[0] == '"')
       {
         // there is a quote: no need to add extra quotes
@@ -346,7 +346,7 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
           overflow = TRUE;
         }
       }
-      
+
     } else {
       if (curCmdInd + strlen("\"\"") < maxSize)
       {
@@ -360,15 +360,15 @@ BOOL getCommandLine(const char* argv[], char* command, unsigned int maxSize)
     }
   }
 
-  if (overflow) 
+  if (overflow)
   {
     debugError("Failed to construct the full commandline because the buffer wasn't big enough.");
-  } 
-  else 
+  }
+  else
   {
     debug("The full commandline is '%s'.", command);
   }
-  
+
   return !overflow;
 } // getCommandLine
 
@@ -397,13 +397,13 @@ int start(const char* instanceDir, char* argv[])
 {
   int returnValue;
   int childPid;
-  
+
   char command[COMMAND_SIZE];
 
   if (getCommandLine(argv, command, COMMAND_SIZE))
   {
     childPid = spawn(command, TRUE);
-    
+
     if (childPid > 0)
     {
       createPidFile(instanceDir, childPid);
@@ -420,7 +420,7 @@ int start(const char* instanceDir, char* argv[])
     debugError("Couldn't start the child process because the full command line could not be constructed.");
     returnValue = -1;
   }
-  
+
   return returnValue;
 } // start
 
@@ -449,13 +449,13 @@ int start(const char* instanceDir, char* argv[])
 int stop(const char* instanceDir)
 {
   int returnCode = -1;
-  
+
   int childPid;
-  
+
   debug("Attempting to stop the server running at root '%s'.", instanceDir);
 
   childPid = getPid(instanceDir);
-  
+
   if (childPid != 0)
   {
     if (killProcess(childPid))
@@ -464,7 +464,7 @@ int stop(const char* instanceDir)
       deletePidFile(instanceDir);
     }
   }
-  else 
+  else
   {
     debug("Could not stop the server running at root '%s' because the pid could not be located.", instanceDir);
   }
@@ -485,7 +485,7 @@ int stop(const char* instanceDir)
 // prompt-window associated with it.
 // Launch batch files from the prompt that generate a java process that does not
 // block the prompt and that keeps running even if the prompt window is closed.
-// 
+//
 // This function expects the following parameter to be passed:
 // the directory of the server we want to start and the
 // command line that we want to execute (basically the java
@@ -495,19 +495,19 @@ int stop(const char* instanceDir)
 // 2. Allow the administrator some flexibility in the way the
 // server is started by leaving most of the logic in the command-line.
 //
-// Returns the pid of the process associated with the command if it could be 
+// Returns the pid of the process associated with the command if it could be
 // launched and -1 otherwise.
 // ----------------------------------------------------
 int launch(char* argv[])
 {
   int returnValue;
-  
+
   char command[COMMAND_SIZE];
-  
+
   if (getCommandLine(argv, command, COMMAND_SIZE))
   {
     returnValue = spawn(command, TRUE);
-    if (returnValue <= 0) 
+    if (returnValue <= 0)
     {
       debugError("Failed to launch the child process '%s'.", command);
     }
@@ -521,18 +521,60 @@ int launch(char* argv[])
     debugError("Couldn't launch the child process because the full command line could not be constructed.");
     returnValue = -1;
   }
-  
+
   return returnValue;
 } // launch
+
+//----------------------------------------------------
+// Function called when we want to launch a process and it to be run as
+// administrator on Vista (the binary containing this function must have
+// a manifest specifying that).
+// Returns the exit code of the process associated with the command if it
+// could be launched and -1 otherwise.
+//----------------------------------------------------
+int run(char* argv[])
+{
+  PROCESS_INFORMATION procInfo; // info on the new process
+  BOOL createOk;
+  DWORD exitCode;
+  int returnValue = -1;
+  int millisToWait = 30000;
+  int waitedMillis = 0;
+
+  char command[COMMAND_SIZE];
+
+  if (getCommandLine(argv, command, COMMAND_SIZE))
+  {
+    createOk = createChildProcess((char*)command, TRUE, &procInfo);
+
+    if(createOk)
+    {
+      GetExitCodeProcess(procInfo.hProcess, &exitCode);
+      while (exitCode == STILL_ACTIVE)
+      {
+        GetExitCodeProcess(procInfo.hProcess, &exitCode);
+        Sleep(500);
+        waitedMillis += 500;
+        if (waitedMillis > millisToWait)
+        {
+          break;
+        }
+      }
+      returnValue = exitCode;
+    }
+  }
+  return returnValue;
+} // run
 
 // ----------------------------------------------------
 // main function called by the executable.  This code is
 // called by the start-ds.bat, stop-ds.bat and statuspanel.bat batch files.
 //
 // The code assumes that the first passed argument is the subcommand to be
-// executed and the second argument the directory of the server.  The rest
-// of the arguments are the arguments specific to each subcommand (see the
-// comments for the functions start, stop and launch).
+// executed and for start and stop the second argument the directory of the
+// server.
+// The rest of the arguments are the arguments specific to each subcommand (see
+// the comments for the functions start, stop and launch).
 // ----------------------------------------------------
 int main(int argc, char* argv[])
 {
@@ -540,35 +582,43 @@ int main(int argc, char* argv[])
   char* subcommand = NULL;
   char* instanceDir = NULL;
   int i;
-  
+
   debug("main called.");
   for (i = 0; i < argc; i++) {
     debug("  argv[%d] = '%s'", i, argv[i]);
   }
 
   if (argc < 3) {
-    char * msg = "Expected command line args of [subcommand] [server directory], but got %d arguments.\n";
+    char * msg =
+      "Expected command line args of [subcommand], but got %d arguments.\n";
     debugError(msg, argc - 1);
     fprintf(stderr, msg, argc - 1);
 	  return -1;
   }
 
   subcommand = argv[1];
-  instanceDir = argv[2];
 
-  argv += 3;
-  
   if (strcmp(subcommand, "start") == 0)
   {
+    instanceDir = argv[2];
+    argv += 3;
     returnCode = start(instanceDir, argv);
   }
   else if (strcmp(subcommand, "stop") == 0)
   {
+    instanceDir = argv[2];
+    argv += 3;
     returnCode = stop(instanceDir);
   }
   else if (strcmp(subcommand, "launch") == 0)
   {
+    argv += 2;
     returnCode = launch(argv);
+  }
+  else if (strcmp(subcommand, "run") == 0)
+  {
+    argv += 2;
+    returnCode = run(argv);
   }
   else
   {

@@ -44,6 +44,16 @@ subdirectory.
 
 See the comments in service.c file and common.c for more information.
 
+ WHAT is launcher_administrator.exe
+ ========================
+launcher_administrator.exe is a small windows executable that is intended to
+be used by the command line files to launch operations that require
+administrator privileges on Vista.  Basically is a wrapper containing a
+manifest that specifies to require administrator privileges to be run.  This
+is required if UAC is enabled on Vista so that we have a prompt for the user
+asking for confirmation.
+
+See the comments in winlauncher.c file and common.c for more information.
 
  INSTRUCTIONS TO COMPILE winlauncher.exe
  ========================
@@ -90,7 +100,7 @@ and launch the following command:
 This will generate the binary winlauncher.exe.
 
 
- INSTRUCTIONS TO COMPILE opends_service.exe
+ INSTRUCTIONS TO COMPILE opends_service.exe and administrator_launcher.exe
  ========================
 service.c (the main code file for opends_service.exe) uses windows resources and
 so 
