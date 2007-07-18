@@ -103,9 +103,7 @@ public class TestUtilities {
     args.add(Integer.toString(jmxPort));
     args.add("-w");
     args.add(DIRECTORY_MANAGER_PASSWORD);
-    if (isWindows()) {
-      args.add("-n"); // don't install Windows service
-    }
+
     ProcessBuilder pb = new ProcessBuilder(args);
     Process p = pb.start();
     if (p.waitFor() != 0) {
@@ -150,9 +148,5 @@ public class TestUtilities {
 
   static public File getQuickSetupTestServerRootDir() {
     return new File(getQuickSetupTestWorkspace(), "OpenDS");
-  }
-
-  static public boolean isWindows() {
-    return File.separator.equals("\\");
   }
 }

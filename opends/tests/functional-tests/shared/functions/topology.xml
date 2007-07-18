@@ -404,13 +404,13 @@
       <if expr="isWindows">
 
         <script>
-          noWindowsService='true'
+          enableWindowsService=''
         </script>
              
       <else>
       
         <script>
-          noWindowsService=''
+          enableWindowsService=''
         </script>
         
       </else>
@@ -429,7 +429,7 @@
           'dsBindDN'  : dsBindDN,
           'dsBindPwd' : dsBindPwd,
           'dsBaseDN'  : dsBaseDN,
-          'dsNoWindowsService' : noWindowsService }
+          'dsEnableWindowsService' : enableWindowsService}
       </call>
                 		
       <call function="'checkRC'">
