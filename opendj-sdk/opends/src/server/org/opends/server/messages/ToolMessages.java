@@ -6676,10 +6676,10 @@ public class ToolMessages
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 842;
 
   /**
-   * The message ID for the message for the description of the No Windows
+   * The message ID for the message for the description of the Enable Windows
    * service.  This does not take any argument.
    */
-  public static final int MSGID_INSTALLDS_DESCRIPTION_NO_WINDOWS_SERVICE =
+  public static final int MSGID_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE =
       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 843;
 
 
@@ -10442,8 +10442,8 @@ public class ToolMessages
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE,
                     "Specifies the path to a file containing the password " +
                     "for the initial root user for the Directory Server");
-    registerMessage(MSGID_INSTALLDS_DESCRIPTION_NO_WINDOWS_SERVICE,
-                    "Do not enable OpenDS to run as a Windows Service");
+    registerMessage(MSGID_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE,
+                    "Enable OpenDS to run as a Windows Service");
     registerMessage(MSGID_INSTALLDS_DESCRIPTION_HELP,
                     "Display this usage information");
     registerMessage(MSGID_INSTALLDS_NO_CONFIG_FILE,

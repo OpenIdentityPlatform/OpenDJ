@@ -178,7 +178,7 @@ public class InstallDS
     BooleanArgument   showUsage;
     BooleanArgument   silentInstall;
     BooleanArgument   skipPortCheck;
-    BooleanArgument   noWindowsService;
+    BooleanArgument   enableWindowsService;
     FileBasedArgument rootPWFile;
     IntegerArgument   ldapPort;
     IntegerArgument   jmxPort;
@@ -292,12 +292,12 @@ public class InstallDS
                             null, null, MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE);
       argParser.addArgument(rootPWFile);
 
-      noWindowsService = new BooleanArgument("nowindowsservice", 'n',
-                                "noWindowsService",
-                                MSGID_INSTALLDS_DESCRIPTION_NO_WINDOWS_SERVICE);
+      enableWindowsService = new BooleanArgument("enablewindowsservice", 'e',
+                            "enableWindowsService",
+                            MSGID_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE);
       if (SetupUtils.isWindows())
       {
-        argParser.addArgument(noWindowsService);
+        argParser.addArgument(enableWindowsService);
       }
 
       showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
@@ -823,11 +823,11 @@ public class InstallDS
     {
       if (silentInstall.isPresent())
       {
-        enableService = !noWindowsService.isPresent();
+        enableService = enableWindowsService.isPresent();
       }
-      else if (noWindowsService.isPresent())
+      else if (enableWindowsService.isPresent())
       {
-        enableService = false;
+        enableService = true;
       }
       else
       {

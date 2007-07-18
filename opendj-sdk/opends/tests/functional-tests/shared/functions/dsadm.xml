@@ -81,9 +81,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
-      <function-arg-def name="dsNoWindowsService" type="optional">
+      <function-arg-def name="dsEnableWindowsService" type="optional">
         <function-arg-description>
-          Do not enable as a Windows Service
+          Enable as a Windows Service
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>            
@@ -125,8 +125,8 @@
         if dsBindPwdFile:
           STAFCmdParamsList.append('-j "%s"' % dsBindPwdFile)
 
-        if dsNoWindowsService:
-          STAFCmdParamsList.append('-n')
+        if dsEnableWindowsService:
+          STAFCmdParamsList.append('-e')
         
         if dsHelp:
           STAFCmdParamsList.append('-H')

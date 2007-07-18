@@ -141,7 +141,7 @@ public class InstallLauncher extends Launcher {
     BooleanArgument   showUsage;
     BooleanArgument   silentInstall;
     BooleanArgument   skipPortCheck;
-    BooleanArgument   noWindowsService;
+    BooleanArgument   enableWindowsService;
     FileBasedArgument rootPWFile;
     IntegerArgument   ldapPort;
     IntegerArgument   jmxPort;
@@ -225,12 +225,12 @@ public class InstallLauncher extends Launcher {
           null, null, MSGID_INSTALLDS_DESCRIPTION_ROOTPWFILE);
       argParser.addArgument(rootPWFile);
 
-      noWindowsService = new BooleanArgument("nowindowsservice", 'n',
-          "noWindowsService",
-          MSGID_INSTALLDS_DESCRIPTION_NO_WINDOWS_SERVICE);
+      enableWindowsService = new BooleanArgument("enablewindowsservice", 'e',
+          "enableWindowsService",
+          MSGID_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE);
       if (SetupUtils.isWindows())
       {
-        argParser.addArgument(noWindowsService);
+        argParser.addArgument(enableWindowsService);
       }
 
       showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
