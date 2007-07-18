@@ -9040,7 +9040,7 @@ public class ToolMessages
    * displaying the password history state values.
    */
   public static final int MSGID_PWPSTATE_LABEL_PASSWORD_HISTORY =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1200;
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1201;
 
 
 
@@ -9049,7 +9049,7 @@ public class ToolMessages
    * get-password-history subcommand.
    */
   public static final int MSGID_DESCRIPTION_PWPSTATE_GET_PASSWORD_HISTORY =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1201;
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1202;
 
 
 
@@ -9058,7 +9058,7 @@ public class ToolMessages
    * clear-password-history subcommand.
    */
   public static final int MSGID_DESCRIPTION_PWPSTATE_CLEAR_PASSWORD_HISTORY =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1202;
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1203;
 
 
 
