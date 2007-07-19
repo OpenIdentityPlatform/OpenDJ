@@ -29,6 +29,7 @@ package org.opends.server.workflowelement.localbackend;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,6 +40,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
+import org.opends.server.controls.PasswordPolicyErrorType;
+import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationWrapper;
 import org.opends.server.core.DirectoryServer;
@@ -51,6 +54,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
@@ -121,7 +125,7 @@ public class LocalBackendAddOperation extends AddOperationWrapper
    *                              policy processing for the add operation.
    */
   public final void handlePasswordPolicy(PasswordPolicy passwordPolicy,
-                                          Entry userEntry)
+                                         Entry userEntry)
          throws DirectoryException
   {
     // See if a password was specified.
@@ -161,6 +165,8 @@ public class LocalBackendAddOperation extends AddOperationWrapper
     if ((! passwordPolicy.allowMultiplePasswordValues()) && (values.size() > 1))
     {
       // FIXME -- What if they're pre-encoded and might all be the same?
+      addPWPolicyControl(PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED);
+
       int    msgID   = MSGID_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED;
       String message = getMessage(msgID, passwordAttribute.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
@@ -187,6 +193,9 @@ public class LocalBackendAddOperation extends AddOperationWrapper
           }
           else
           {
+            addPWPolicyControl(
+                 PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
+
             int    msgID   = MSGID_PWPOLICY_PREENCODED_NOT_ALLOWED;
             String message = getMessage(msgID,
                                         passwordAttribute.getNameOrOID());
@@ -206,6 +215,9 @@ public class LocalBackendAddOperation extends AddOperationWrapper
           }
           else
           {
+            addPWPolicyControl(
+                 PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
+
             int    msgID   = MSGID_PWPOLICY_PREENCODED_NOT_ALLOWED;
             String message = getMessage(msgID,
                                         passwordAttribute.getNameOrOID());
@@ -229,6 +241,9 @@ public class LocalBackendAddOperation extends AddOperationWrapper
           if (! validator.passwordIsAcceptable(value, currentPasswords, this,
                                                userEntry, invalidReason))
           {
+            addPWPolicyControl(
+                 PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
+
             int    msgID   = MSGID_PWPOLICY_VALIDATION_FAILED;
             String message = getMessage(msgID, passwordAttribute.getNameOrOID(),
                                         String.valueOf(invalidReason));
@@ -289,6 +304,8 @@ public class LocalBackendAddOperation extends AddOperationWrapper
     // If we should force change on add, then set the appropriate flag.
     if (passwordPolicy.forceChangeOnAdd())
     {
+      addPWPolicyControl(PasswordPolicyErrorType.CHANGE_AFTER_RESET);
+
       AttributeType resetType =
            DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_RESET_REQUIRED_LC);
       if (resetType == null)
@@ -305,6 +322,24 @@ public class LocalBackendAddOperation extends AddOperationWrapper
       resetList.add(new Attribute(resetType, OP_ATTR_PWPOLICY_RESET_REQUIRED,
                                   resetValues));
       userEntry.putAttribute(resetType, resetList);
+    }
+  }
+
+  /**
+   * Adds a password policy response control if the corresponding request
+   * control was included.
+   *
+   * @param  errorType  The error type to use for the response control.
+   */
+  private void addPWPolicyControl(PasswordPolicyErrorType errorType)
+  {
+    for (Control c : getRequestControls())
+    {
+      if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+      {
+        addResponseControl(new PasswordPolicyResponseControl(null, 0,
+                                                             errorType));
+      }
     }
   }
 

@@ -67,6 +67,8 @@ import org.opends.server.backends.RootDSEBackend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.JMXMBean;
+import org.opends.server.controls.PasswordPolicyErrorType;
+import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.TextErrorLogPublisher;
@@ -7203,6 +7205,18 @@ public class DirectoryServer
         case DELETE:
         case MODIFY_DN:
         case SEARCH:
+          // See if the request included the password policy request control.
+          // If it did, then add a corresponding response control.
+          for (Control c : operation.getRequestControls())
+          {
+            if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+            {
+              operation.addResponseControl(new PasswordPolicyResponseControl(
+                   null, 0, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+              break;
+            }
+          }
+
           int    msgID   = MSGID_ENQUEUE_MUST_CHANGE_PASSWORD;
           String message = getMessage(msgID);
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message,
@@ -7217,6 +7231,18 @@ public class DirectoryServer
               ((! requestOID.equals(OID_PASSWORD_MODIFY_REQUEST)) &&
                (! requestOID.equals(OID_START_TLS_REQUEST))))
           {
+            // See if the request included the password policy request control.
+            // If it did, then add a corresponding response control.
+            for (Control c : operation.getRequestControls())
+            {
+              if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+              {
+                operation.addResponseControl(new PasswordPolicyResponseControl(
+                     null, 0, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
+                break;
+              }
+            }
+
             msgID   = MSGID_ENQUEUE_MUST_CHANGE_PASSWORD;
             message = getMessage(msgID);
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
