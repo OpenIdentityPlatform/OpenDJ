@@ -744,10 +744,10 @@
 
     <antcall target="example-plugin" />
 
-    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat,_client-script.sh,_server-script.sh,dsconfig" eol="lf" />
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat,_client-script.sh,_server-script.sh" eol="lf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.sh,_server-script.sh" eol="lf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" includes="README_WINDOWS.txt" eol="crlf" />
-    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bat" excludes="_client-script.bat,_server-script.bat,setcp.bat,dsconfig.bat" includes="*.bat" eol="crlf" />
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bat" excludes="_client-script.bat,_server-script.bat,setcp.bat" includes="*.bat" eol="crlf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.bat,_server-script.bat,setcp.bat" eol="crlf" />
 
     <copy todir="${pdir}/config">
