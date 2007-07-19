@@ -308,6 +308,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
   @AfterClass
   public void tearDown() throws Exception {
     LDAPProfile.getInstance().popWrapper();
+    TestCfg.cleanup();
 
     // Remove test entries.
     deleteSubtree("cn=test parents,cn=config");
@@ -849,7 +850,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
       ConfigException {
     ServerManagementContext ctx = ServerManagementContext.getInstance();
     ServerManagedObject<RootCfg> root = ctx.getRootConfigurationManagedObject();
-    TestParentCfg parent = root.getChild(TestCfg.RD_TEST_ONE_TO_MANY_PARENT,
+    TestParentCfg parent = root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(),
         name).getConfiguration();
     return parent;
   }

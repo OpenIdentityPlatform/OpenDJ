@@ -37,30 +37,23 @@ import org.opends.server.admin.std.meta.RootCfgDefn;
  */
 public final class TestCfg {
 
-  // Prevent instantiation.
-  private TestCfg() {
-    // No implementation required.
-  }
-
   /**
    * A one-to-many relation between the root and test-parent
    * components.
    */
-  public static final InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> RD_TEST_ONE_TO_MANY_PARENT;
+  private static final InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> RD_TEST_ONE_TO_MANY_PARENT;
 
   /**
    * A one-to-zero-or-one relation between the root and a test-parent
    * component.
    */
-  public static final OptionalRelationDefinition<TestParentCfgClient, TestParentCfg> RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT;
+  private static final OptionalRelationDefinition<TestParentCfgClient, TestParentCfg> RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT;
 
   // Create a one-to-many relation for test-parent components.
   static {
     RD_TEST_ONE_TO_MANY_PARENT = new InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg>(
         RootCfgDefn.getInstance(), "test-one-to-many-parent",
         "test-one-to-many-parents", TestParentCfgDefn.getInstance());
-    RootCfgDefn.getInstance().registerRelationDefinition(
-        RD_TEST_ONE_TO_MANY_PARENT);
   }
 
   // Create a one-to-many relation for test-parent components.
@@ -68,8 +61,65 @@ public final class TestCfg {
     RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT = new OptionalRelationDefinition<TestParentCfgClient, TestParentCfg>(
         RootCfgDefn.getInstance(), "test-one-to-zero-or-one-parent",
         TestParentCfgDefn.getInstance());
+
+  }
+
+
+
+  /**
+   * Deregisters the test configurations from the administration
+   * framework.
+   */
+  public static void cleanup() {
+    RootCfgDefn.getInstance().deregisterRelationDefinition(
+        RD_TEST_ONE_TO_MANY_PARENT);
+    RootCfgDefn.getInstance().deregisterRelationDefinition(
+        RD_TEST_ONE_TO_MANY_PARENT);
+  }
+
+
+
+  /**
+   * Gets the one-to-many relation between the root and test-parent
+   * components.
+   * <p>
+   * Unit tests which call this method <b>must</b> call
+   * {@link #cleanup()} on completion.
+   *
+   * @return Returns the one-to-many relation between the root and
+   *         test-parent components.
+   */
+  public static InstantiableRelationDefinition<TestParentCfgClient, TestParentCfg> getTestOneToManyParentRelationDefinition() {
+    // Ensure that the relation is registered.
+    RootCfgDefn.getInstance().registerRelationDefinition(
+        RD_TEST_ONE_TO_MANY_PARENT);
+    return RD_TEST_ONE_TO_MANY_PARENT;
+  }
+
+
+
+  /**
+   * Gets the one-to-zero-or-one relation between the root and a
+   * test-parent component.
+   * <p>
+   * Unit tests which call this method <b>must</b> call
+   * {@link #cleanup()} on completion.
+   *
+   * @return Returns the one-to-zero-or-one relation between the root
+   *         and a test-parent component.
+   */
+  public static OptionalRelationDefinition<TestParentCfgClient, TestParentCfg> getTestOneToZeroOrOneParentRelationDefinition() {
+    // Ensure that the relation is registered.
     RootCfgDefn.getInstance().registerRelationDefinition(
         RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT);
+    return RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT;
+  }
+
+
+
+  // Prevent instantiation.
+  private TestCfg() {
+    // No implementation required.
   }
 
 }

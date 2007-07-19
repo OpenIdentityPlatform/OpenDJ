@@ -135,6 +135,7 @@ public final class ListenerTest extends AdminTestCase {
   @AfterClass
   public void tearDown() {
     LDAPProfile.getInstance().popWrapper();
+    TestCfg.cleanup();
   }
 
 
@@ -152,7 +153,7 @@ public final class ListenerTest extends AdminTestCase {
     ServerManagementContext ctx = ServerManagementContext.getInstance();
     ServerManagedObject<RootCfg> root = ctx.getRootConfigurationManagedObject();
     ConfigurationAddListener<TestParentCfg> listener = new TestParentAddListener();
-    root.registerAddListener(TestCfg.RD_TEST_ONE_TO_MANY_PARENT, listener);
+    root.registerAddListener(TestCfg.getTestOneToManyParentRelationDefinition(), listener);
 
     // Make sure that the relation entry does not exist.
     DN relationDN = DN.decode("cn=test parents,cn=config");
@@ -257,7 +258,7 @@ public final class ListenerTest extends AdminTestCase {
     ServerManagementContext ctx = ServerManagementContext.getInstance();
     ServerManagedObject<RootCfg> root = ctx.getRootConfigurationManagedObject();
     ConfigurationAddListener<TestParentCfg> listener = new TestParentAddListener();
-    root.registerAddListener(TestCfg.RD_TEST_ONE_TO_MANY_PARENT, listener);
+    root.registerAddListener(TestCfg.getTestOneToManyParentRelationDefinition(), listener);
 
     // Add the relation entry.
     String[] entry = new String[] {
@@ -313,7 +314,7 @@ public final class ListenerTest extends AdminTestCase {
     ServerManagementContext ctx = ServerManagementContext.getInstance();
     ServerManagedObject<RootCfg> root = ctx.getRootConfigurationManagedObject();
     ConfigurationAddListener<TestParentCfg> listener = new TestParentAddListener();
-    root.registerAddListener(TestCfg.RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT,
+    root.registerAddListener(TestCfg.getTestOneToZeroOrOneParentRelationDefinition(),
         listener);
 
     // Make sure that the relation entry exists.
@@ -356,7 +357,7 @@ public final class ListenerTest extends AdminTestCase {
     ServerManagementContext ctx = ServerManagementContext.getInstance();
     ServerManagedObject<RootCfg> root = ctx.getRootConfigurationManagedObject();
     ConfigurationDeleteListener<TestParentCfg> listener = new TestParentDeleteListener();
-    root.registerDeleteListener(TestCfg.RD_TEST_ONE_TO_MANY_PARENT, listener);
+    root.registerDeleteListener(TestCfg.getTestOneToManyParentRelationDefinition(), listener);
 
     // Make sure that the relation entry does not exist.
     DN relationDN = DN.decode("cn=test parents,cn=config");
@@ -461,7 +462,7 @@ public final class ListenerTest extends AdminTestCase {
     ServerManagementContext ctx = ServerManagementContext.getInstance();
     ServerManagedObject<RootCfg> root = ctx.getRootConfigurationManagedObject();
     ConfigurationDeleteListener<TestParentCfg> listener = new TestParentDeleteListener();
-    root.registerDeleteListener(TestCfg.RD_TEST_ONE_TO_MANY_PARENT, listener);
+    root.registerDeleteListener(TestCfg.getTestOneToManyParentRelationDefinition(), listener);
 
     // Add the relation entry.
     String[] entry = new String[] {
@@ -517,7 +518,7 @@ public final class ListenerTest extends AdminTestCase {
     ServerManagementContext ctx = ServerManagementContext.getInstance();
     ServerManagedObject<RootCfg> root = ctx.getRootConfigurationManagedObject();
     ConfigurationDeleteListener<TestParentCfg> listener = new TestParentDeleteListener();
-    root.registerDeleteListener(TestCfg.RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT,
+    root.registerDeleteListener(TestCfg.getTestOneToZeroOrOneParentRelationDefinition(),
         listener);
 
     // Make sure that the relation entry exists.

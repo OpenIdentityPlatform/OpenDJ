@@ -633,6 +633,25 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
+   * Deregister a relation definition from the managed object
+   * definition.
+   * <p>
+   * This method <b>must not</b> be called by applications and is
+   * only intended for internal testing.
+   *
+   * @param d
+   *          The relation definition to be deregistered.
+   */
+  protected final void deregisterRelationDefinition(RelationDefinition d) {
+    String name = d.getName();
+
+    relationDefinitions.remove(name);
+    allRelationDefinitions.remove(name);
+  }
+
+
+
+  /**
    * Register a property definition with the managed object definition,
    * overriding any existing property definition with the same name.
    * <p>
