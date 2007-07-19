@@ -725,7 +725,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
         ZipExtractor extractor;
         try {
           LOG.log(Level.INFO, "Waiting for Java Web Start jar download");
-          waitForLoader(15); // TODO: ratio
+          waitForLoader(15);
           LOG.log(Level.INFO, "Downloaded build file");
           String zipName = WebStartDownloader.getZipFileName();
           InputStream in =
@@ -1470,7 +1470,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private void insureUpgradability() throws ApplicationException {
     BuildInformation currentVersion;
     BuildInformation newVersion;
-
     try {
       currentVersion = getInstallation().getBuildInformation();
     } catch (ApplicationException e) {
@@ -1488,14 +1487,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
       LOG.log(Level.INFO, "error getting build information for " +
               "staged installation", e);
       throw ApplicationException.createFileSystemException(
-              getMsg("error-determining-upgrade-build"), e);    }
-
-    UpgradeOracle uo = new UpgradeOracle(currentVersion, newVersion);
-    if (!uo.isSupported()) {
-      throw new ApplicationException(ApplicationException.Type.APPLICATION,
-              uo.getLocalizedSummaryMessage(), null);
+              getMsg("error-determining-upgrade-build"), e);
     }
 
+    UpgradeOracle uo = new UpgradeOracle(
+            userInteraction(), currentVersion, newVersion);
+    uo.notifyUser();
+    if (uo.noServerStartFollowingOperation()) {
+      // Some issue dicatates that we don't try and restart the server
+      // after this operation.  It may be that the databases are no
+      // longer readable after the upgrade or something equally earth
+      // shattering.
+      getUserData().setStartServer(false);
+    }
   }
 
   private Installation getStagedInstallation()

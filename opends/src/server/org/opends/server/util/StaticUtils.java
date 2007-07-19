@@ -3256,7 +3256,26 @@ public final class StaticUtils
     return stringArray;
   }
 
-
+  /**
+   * Creates a string representation of the elements in the
+   * <code>list</code> separated by <code>separator</code>.
+   *
+   * @param list the list to print
+   * @param separator to use between elements
+   *
+   * @return String representing the list
+   */
+  static public String listToString(List<?> list, String separator)
+  {
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < list.size(); i++) {
+      sb.append(list.get(i));
+      if (i < list.size() - 1) {
+        sb.append(separator);
+      }
+    }
+    return sb.toString();
+  }
 
   /**
    * Retrieves an array list containing the contents of the provided array.

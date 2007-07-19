@@ -35,6 +35,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.InputStream;
@@ -48,6 +52,9 @@ import java.io.IOException;
  */
 public class BuildInformation implements Comparable {
 
+  static private final Logger LOG =
+          Logger.getLogger(BuildInformation.class.getName());
+
   // These string values must be synchronized with Directory
   // Server's main method.  These string values are considered
   // stable by the server team and not candidates for
@@ -59,6 +66,7 @@ public class BuildInformation implements Comparable {
   static private final String POINT_VERSION = "Point Version";
   static private final String REVISION_NUMBER = "Revision Number";
   static private final String VERSION_QUALIFIER = "Version Qualifier";
+  static private final String INCOMPATIBILITY_EVENTS = "Upgrade Event IDs";
   static private final String FIX_IDS = "Fix IDs";
   static private final String DEBUG_BUILD = "Debug Build";
   static private final String BUILD_OS = "Build OS";
@@ -67,7 +75,6 @@ public class BuildInformation implements Comparable {
   static private final String BUILD_JAVA_VENDOR = "Build Java Vendor";
   static private final String BUILD_JVM_VERSION = "Build JVM Version";
   static private final String BUILD_JVM_VENDOR = "Build JVM Vendor";
-
 
   /**
    * Reads build information for a particular installation by reading the
@@ -264,6 +271,28 @@ public class BuildInformation implements Comparable {
   }
 
   /**
+   * Gets the set of IDs representing <code>IncompatibleVersionEvents</code>.
+   * @return set of integers representing events
+   * @see org.opends.server.util.VersionCompatibilityIssue
+   */
+  public Set<Integer> getIncompatibilityEventIds() {
+    HashSet<Integer> ids = null;
+    String idString = values.get(INCOMPATIBILITY_EVENTS);
+    if (idString != null) {
+      ids = new HashSet<Integer>();
+      String[] sa = idString.split(",");
+      for (String s : sa) {
+        try {
+          ids.add(Integer.parseInt(s));
+        } catch (NumberFormatException nfe) {
+          LOG.log(Level.INFO, "invalid upgrade incompatability ID " + s);
+        }
+      }
+    }
+    return ids;
+  }
+
+  /**
    * Returns a build string representation of this object.  A build
    * number is a string formatted MAJOR.MINOR.POINT.REVISION where
    * MAJOR, MINOR, POINT and REVISION are integers.
@@ -331,9 +360,9 @@ public class BuildInformation implements Comparable {
    * {@inheritDoc}
    */
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    return compareTo(o) == 0;
+    return this == o ||
+            !(o == null || getClass() != o.getClass()) &&
+                    compareTo(o) == 0;
   }
 
   /**

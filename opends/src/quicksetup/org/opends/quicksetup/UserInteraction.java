@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup;
 
+import java.util.List;
+
 /**
  * This class describes methods for supporting interaction with the user.
  */
@@ -93,5 +95,13 @@ public interface UserInteraction {
   Object confirm(String summary, String detail, String fineDetails,
                  String title, MessageType type, String[] options, String def,
                  String viewDetailsOption);
+
+  /**
+   * Creates a list appropriate for the presentation implementation.
+   *
+   * @param list to format
+   * @return String representing the list
+   */
+  String createUnorderedList(List list);
 
 }

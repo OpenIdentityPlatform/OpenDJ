@@ -38,6 +38,7 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.util.List;
 
 /**
  * This class supports user interactions for a graphical application.
@@ -108,6 +109,7 @@ public class GuiUserInteraction implements UserInteraction {
     sb.append(Utils.breakHtmlString(summary, MAX_CHARS_PER_LINE));
     sb.append(Constants.HTML_BOLD_CLOSE);
     sb.append(Constants.HTML_LINE_BREAK);
+    sb.append(Constants.HTML_LINE_BREAK);
     sb.append(Utils.breakHtmlString(details, MAX_CHARS_PER_LINE));
     JEditorPane ep = UIFactory.makeHtmlPane(
             sb.toString(),
@@ -121,6 +123,23 @@ public class GuiUserInteraction implements UserInteraction {
     JDialog dlg = op.createDialog(parent, title);
     dlg.setVisible(true);
     return op.getValue();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String createUnorderedList(List list) {
+    StringBuilder sb = new StringBuilder();
+    if (list != null) {
+      sb.append(Constants.HTML_UNORDERED_LIST_OPEN);
+      for (Object o : list) {
+        sb.append(Constants.HTML_LIST_ITEM_OPEN);
+        sb.append(o.toString());
+        sb.append(Constants.HTML_LIST_ITEM_CLOSE);
+      }
+      sb.append(Constants.HTML_UNORDERED_LIST_CLOSE);
+    }
+    return sb.toString();
   }
 
   /**

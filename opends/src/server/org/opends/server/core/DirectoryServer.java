@@ -84,6 +84,8 @@ import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.Validator;
+import org.opends.server.util.VersionCompatibilityIssue;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -8816,6 +8818,10 @@ public class DirectoryServer
       System.out.println("Build Java Vendor:   " + BUILD_JAVA_VENDOR);
       System.out.println("Build JVM Version:   " + BUILD_JVM_VERSION);
       System.out.println("Build JVM Vendor:    " + BUILD_JVM_VENDOR);
+
+      System.out.println("Upgrade Event IDs:   " +
+              StaticUtils.listToString(
+                      VersionCompatibilityIssue.getAllEvents(), ","));
 
       return;
     }
