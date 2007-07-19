@@ -796,9 +796,9 @@ public class AddOperationBasis
 
 
     // Check for and handle a request to cancel this operation.
-    if (getCancelRequest() != null)
+    if (cancelRequest != null)
     {
-      indicateCancelled(getCancelRequest());
+      indicateCancelled(cancelRequest);
       setProcessingStopTime();
       return;
     }
@@ -808,9 +808,14 @@ public class AddOperationBasis
     PluginConfigManager pluginConfigManager =
       DirectoryServer.getPluginConfigManager();
 
+
+    // This flag is set to true as soon as a workflow has been executed.
+    boolean workflowExecuted = false;
+
+
     // Create a labeled block of code that we can break out of if a problem is
     // detected.
-    addProcessing:
+addProcessing:
     {
       // Invoke the pre-parse add plugins.
       PreParsePluginResult preParseResult =
@@ -845,14 +850,10 @@ public class AddOperationBasis
       logAddRequest(this);
 
 
-      // Check for and handle a request to cancel this operation.
-      if (getCancelRequest() != null)
+      // Check for a request to cancel this operation.
+      if (cancelRequest != null)
       {
-        indicateCancelled(getCancelRequest());
-        setProcessingStopTime();
-        logAddResponse(this);
-        pluginConfigManager.invokePostResponseAddPlugins(this);
-        return;
+        break addProcessing;
       }
 
 
@@ -877,18 +878,37 @@ public class AddOperationBasis
         break addProcessing;
       }
       workflow.execute(this);
+      workflowExecuted = true;
+
+    } // end of processing block
+
+
+    // Check for a terminated connection.
+    if (getCancelResult() == CancelResult.CANCELED)
+    {
+      // Stop the processing timer.
+      setProcessingStopTime();
+
+      // Log the add response message.
+      logAddResponse(this);
+
+      return;
     }
 
     // Check for and handle a request to cancel this operation.
-    if ((getCancelRequest() != null) ||
-        (getCancelResult() == CancelResult.CANCELED))
+    if (cancelRequest != null)
     {
-      if (getCancelRequest() != null){
-        indicateCancelled(getCancelRequest());
-      }
+      indicateCancelled(cancelRequest);
+
+      // Stop the processing timer.
       setProcessingStopTime();
+
+      // Log the add response message.
       logAddResponse(this);
-      invokePostResponsePlugins();
+
+      // Invoke the post-response add plugins.
+      invokePostResponsePlugins(workflowExecuted);
+
       return;
     }
 
@@ -899,21 +919,86 @@ public class AddOperationBasis
     setProcessingStopTime();
 
     // Send the add response to the client.
-    getClientConnection().sendResponse(this);
+    clientConnection.sendResponse(this);
 
-    // Log the add response.
+    // Log the add response message.
     logAddResponse(this);
 
-    // Check wether there are local operations in attachments
+    // Notifies any persistent searches that might be registered with the
+    // server.
+    notifyPersistentSearches(workflowExecuted);
+
+    // Invoke the post-response add plugins.
+    invokePostResponsePlugins(workflowExecuted);
+  }
+
+
+  /**
+   * Invokes the post response plugins. If a workflow has been executed
+   * then invoke the post response plugins provided by the workflow
+   * elements of the worklfow, otherwise invoke the post reponse plugins
+   * that have been registered with the current operation.
+   *
+   * @param workflowExecuted <code>true</code> if a workflow has been
+   *                         executed
+   */
+  private void invokePostResponsePlugins(boolean workflowExecuted)
+  {
+    // Get the plugin config manager that will be used for invoking plugins.
+    PluginConfigManager pluginConfigManager =
+      DirectoryServer.getPluginConfigManager();
+
+    // Invoke the post response plugins
+    if (workflowExecuted)
+    {
+      // Invoke the post response plugins that have been registered by
+      // the workflow elements
+      List localOperations =
+        (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
+
+      if (localOperations != null)
+      {
+        for (Object localOp : localOperations)
+        {
+          LocalBackendAddOperation localOperation =
+            (LocalBackendAddOperation)localOp;
+          pluginConfigManager.invokePostResponseAddPlugins(localOperation);
+        }
+      }
+    }
+    else
+    {
+      // Invoke the post response plugins that have been registered with
+      // the current operation
+      pluginConfigManager.invokePostResponseAddPlugins(this);
+    }
+  }
+
+
+  /**
+   * Notifies any persistent searches that might be registered with the server.
+   * If no workflow has been executed then don't notify persistent searches.
+   *
+   * @param workflowExecuted <code>true</code> if a workflow has been
+   *                         executed
+   */
+  private void notifyPersistentSearches(boolean workflowExecuted)
+  {
+    if (! workflowExecuted)
+    {
+      return;
+    }
+
     List localOperations =
       (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
-    if (localOperations != null && (! localOperations.isEmpty())){
+
+    if (localOperations != null)
+    {
       for (Object localOp : localOperations)
       {
         LocalBackendAddOperation localOperation =
           (LocalBackendAddOperation)localOp;
-        // Notify any persistent searches that might be registered with the
-        // server.
+
         if ((getResultCode() == ResultCode.SUCCESS) &&
             (localOperation.getEntryToAdd() != null))
         {
@@ -944,12 +1029,10 @@ public class AddOperationBasis
             }
           }
         }
-
-        // Invoke the post-response add plugins.
-        pluginConfigManager.invokePostResponseAddPlugins(localOperation);
       }
     }
   }
+
 
   /**
    * Updates the error message and the result code of the operation.
@@ -985,30 +1068,6 @@ public class AddOperationBasis
     }
   }
 
-  /**
-   * Execute the postResponseAddPlugins.
-   */
-  private void invokePostResponsePlugins()
-  {
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
-
-    // Check wether there are local operations in attachments
-    List localOperations =
-      (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
-
-    if (localOperations != null && (! localOperations.isEmpty()))
-    {
-      for (Object localOp : localOperations)
-      {
-        LocalBackendAddOperation localOperation =
-          (LocalBackendAddOperation)localOp;
-        // Invoke the post-response add plugins.
-        pluginConfigManager.invokePostResponseAddPlugins(localOperation);
-      }
-    }
-  }
 
   /**
    * {@inheritDoc}

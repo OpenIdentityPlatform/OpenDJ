@@ -473,10 +473,11 @@ public class CompareOperationBasis
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
 
+    // This flag is set to true as soon as a workflow has been executed.
+    boolean workflowExecuted = false;
 
     // Create a labeled block of code that we can break out of if a problem is
     // detected.
-    boolean workflowExecuted = false;
 compareProcessing:
     {
       // Invoke the pre-parse compare plugins.
@@ -513,14 +514,10 @@ compareProcessing:
       logCompareRequest(this);
 
 
-      // Check for and handle a request to cancel this operation.
+      // Check for a request to cancel this operation.
       if (cancelRequest != null)
       {
-        indicateCancelled(cancelRequest);
-        setProcessingStopTime();
-        logCompareResponse(this);
-        pluginConfigManager.invokePostResponseComparePlugins(this);
-        return;
+        break compareProcessing;
       }
 
 
@@ -560,15 +557,36 @@ compareProcessing:
       }
       workflow.execute(this);
       workflowExecuted = true;
+
+    } // end of processing block
+
+
+    // Check for a terminated connection.
+    if (getCancelResult() == CancelResult.CANCELED)
+    {
+      // Stop the processing timer.
+      setProcessingStopTime();
+
+      // Log the add response message.
+      logCompareResponse(this);
+
+      return;
     }
 
     // Check for and handle a request to cancel this operation.
     if (cancelRequest != null)
     {
       indicateCancelled(cancelRequest);
+
+      // Stop the processing timer.
       setProcessingStopTime();
+
+      // Log the compare response message.
       logCompareResponse(this);
-      pluginConfigManager.invokePostResponseComparePlugins(this);
+
+      // Invoke the post-response compare plugins.
+      invokePostResponsePlugins(workflowExecuted);
+
       return;
     }
 
@@ -578,21 +596,41 @@ compareProcessing:
     // Stop the processing timer.
     setProcessingStopTime();
 
-    // Send the compare response to the client unless the operation result
-    // code is CANCELED
-    if (getResultCode() != ResultCode.CANCELED)
-    {
-      clientConnection.sendResponse(this);
-    }
+    // Send the compare response to the client.
+    clientConnection.sendResponse(this);
 
     // Log the compare response message.
     logCompareResponse(this);
 
     // Invoke the post-response compare plugins.
+    invokePostResponsePlugins(workflowExecuted);
+
+  }
+
+
+  /**
+   * Invokes the post response plugins. If a workflow has been executed
+   * then invoke the post response plugins provided by the workflow
+   * elements of the worklfow, otherwise invoke the post reponse plugins
+   * that have been registered with the current operation.
+   *
+   * @param workflowExecuted <code>true</code> if a workflow has been
+   *                         executed
+   */
+  private void invokePostResponsePlugins(boolean workflowExecuted)
+  {
+    // Get the plugin config manager that will be used for invoking plugins.
+    PluginConfigManager pluginConfigManager =
+      DirectoryServer.getPluginConfigManager();
+
+    // Invoke the post response plugins
     if (workflowExecuted)
     {
+      // Invoke the post response plugins that have been registered by
+      // the workflow elements
       List localOperations =
         (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
+
       if (localOperations != null)
       {
         for (Object localOp : localOperations)
@@ -605,6 +643,8 @@ compareProcessing:
     }
     else
     {
+      // Invoke the post response plugins that have been registered with
+      // the current operation
       pluginConfigManager.invokePostResponseComparePlugins(this);
     }
   }

@@ -272,11 +272,10 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
       }
 
 
-      // Check for and handle a request to cancel this operation.
+      // Check for a request to cancel this operation.
       if (localOp.getCancelRequest() != null)
       {
-        localOp.indicateCancelled(localOp.getCancelRequest());
-        localOp.setProcessingStopTime();
+        return;
       }
 
       // Acquire a write lock on the target entry.
@@ -304,11 +303,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
       try
       {
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (localOp.getCancelRequest() != null)
         {
-          localOp.indicateCancelled(localOp.getCancelRequest());
-          localOp.setProcessingStopTime();
           return;
         }
 
@@ -2000,11 +1997,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         }
 
 
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (localOp.getCancelRequest() != null)
         {
-          localOp.indicateCancelled(localOp.getCancelRequest());
-          localOp.setProcessingStopTime();
           return;
         }
 
@@ -2040,11 +2035,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         }
 
 
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (localOp.getCancelRequest() != null)
         {
-          localOp.indicateCancelled(localOp.getCancelRequest());
-          localOp.setProcessingStopTime();
           return;
         }
 
@@ -2905,11 +2898,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         break searchProcessing;
       }
 
-      // Check for and handle a request to cancel this operation.
+      // Check for a request to cancel this operation.
       if (localOp.getCancelRequest() != null)
       {
-        localOp.indicateCancelled(localOp.getCancelRequest());
-        localOp.setProcessingStopTime();
         return;
       }
 
@@ -2941,11 +2932,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
       }
 
 
-      // Check for and handle a request to cancel this operation.
+      // Check for a request to cancel this operation.
       if (localOp.getCancelRequest() != null)
       {
-        localOp.indicateCancelled(localOp.getCancelRequest());
-        localOp.setProcessingStopTime();
         return;
       }
 
@@ -3056,11 +3045,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
     }
 
 
-    // Check for and handle a request to cancel this operation.
+    // Check for a request to cancel this operation.
     if (localOp.getCancelRequest() != null)
     {
-      localOp.indicateCancelled(localOp.getCancelRequest());
-      localOp.setProcessingStopTime();
       return;
     }
 
@@ -3262,7 +3249,6 @@ bindProcessing:
               int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
               localOp.appendErrorMessage(getMessage(msgID));
 
-              localOp.setProcessingStopTime();
               return;
             }
             else if (preOpResult.sendResponseImmediately())
@@ -3587,7 +3573,6 @@ bindProcessing:
               int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
               localOp.appendErrorMessage(getMessage(msgID));
 
-              localOp.setProcessingStopTime();
               return;
             }
             else if (preOpResult.sendResponseImmediately())
@@ -3885,7 +3870,6 @@ bindProcessing:
             int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
             localOp.appendErrorMessage(getMessage(msgID));
 
-            localOp.setProcessingStopTime();
             return;
           }
           else if (preOpResult.sendResponseImmediately())
@@ -4420,7 +4404,6 @@ bindProcessing:
         int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
         localOp.appendErrorMessage(getMessage(msgID));
 
-        localOp.setProcessingStopTime();
         return;
       }
     }
@@ -4524,11 +4507,9 @@ bindProcessing:
          DirectoryServer.getPluginConfigManager();
     boolean skipPostOperation = false;
 
-    // Check for and handle a request to cancel this operation.
+    // Check for a request to cancel this operation.
     if (localOp.getCancelRequest() != null)
     {
-      localOp.indicateCancelled(localOp.getCancelRequest());
-      localOp.setProcessingStopTime();
       return;
     }
 
@@ -4557,11 +4538,9 @@ addProcessing:
         break addProcessing;
       }
 
-      // Check for and handle a request to cancel this operation.
+      // Check for a request to cancel this operation.
       if (localOp.getCancelRequest() != null)
       {
-        localOp.indicateCancelled(localOp.getCancelRequest());
-        localOp.setProcessingStopTime();
         return;
       }
 
@@ -4625,11 +4604,9 @@ addProcessing:
 
       try
       {
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (localOp.getCancelRequest() != null)
         {
-          localOp.indicateCancelled(localOp.getCancelRequest());
-          localOp.setProcessingStopTime();
           return;
         }
 
@@ -5552,11 +5529,9 @@ addProcessing:
           break addProcessing;
         }
 
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (localOp.getCancelRequest() != null)
         {
-          localOp.indicateCancelled(localOp.getCancelRequest());
-          localOp.setProcessingStopTime();
           return;
         }
 
@@ -5576,7 +5551,6 @@ addProcessing:
             int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
             localOp.appendErrorMessage(getMessage(msgID));
 
-            localOp.setProcessingStopTime();
             return;
           }
           else if (preOpResult.sendResponseImmediately())
@@ -5592,11 +5566,9 @@ addProcessing:
         }
 
 
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (localOp.getCancelRequest() != null)
         {
-          localOp.indicateCancelled(localOp.getCancelRequest());
-          localOp.setProcessingStopTime();
           return;
         }
 
@@ -5857,7 +5829,6 @@ addProcessing:
         int msgID = MSGID_CANCELED_BY_PREOP_DISCONNECT;
         localOp.appendErrorMessage(getMessage(msgID));
 
-        localOp.setProcessingStopTime();
         return;
       }
     }
@@ -5889,11 +5860,6 @@ addProcessing:
         }
       }
     }
-
-
-    // Stop the processing timer.
-    localOp.setProcessingStopTime();
-
   }
 
 
@@ -5922,11 +5888,9 @@ addProcessing:
          DirectoryServer.getPluginConfigManager();
     boolean skipPostOperation = false;
 
-    // Check for and handle a request to cancel this operation.
+    // Check for a request to cancel this operation.
     if (localOp.getCancelRequest() != null)
     {
-      localOp.indicateCancelled(localOp.getCancelRequest());
-      localOp.setProcessingStopTime();
       return;
     }
 
@@ -6355,11 +6319,9 @@ deleteProcessing:
           break deleteProcessing;
         }
 
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (localOp.getCancelRequest() != null)
         {
-          localOp.indicateCancelled(localOp.getCancelRequest());
-          localOp.setProcessingStopTime();
           return;
         }
 
@@ -6395,11 +6357,9 @@ deleteProcessing:
         }
 
 
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (localOp.getCancelRequest() != null)
         {
-          localOp.indicateCancelled(localOp.getCancelRequest());
-          localOp.setProcessingStopTime();
           return;
         }
 
@@ -6741,7 +6701,7 @@ deleteProcessing:
     ClientConnection clientConnection = localOp.getClientConnection();
 
 
-    // Check for and handle a request to cancel this operation.
+    // Check for a request to cancel this operation.
     if (localOp.getCancelRequest() != null)
     {
       return;
@@ -6775,7 +6735,7 @@ compareProcessing:
       }
 
 
-      // Check for and handle a request to cancel this operation.
+      // Check for a request to cancel this operation.
       if (localOp.getCancelRequest() != null)
       {
         return;
@@ -7131,7 +7091,7 @@ compareProcessing:
           break compareProcessing;
         }
 
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (localOp.getCancelRequest() != null)
         {
           return;
@@ -7256,7 +7216,7 @@ compareProcessing:
     }
 
 
-    // Check for and handle a request to cancel this operation.
+    // Check for a request to cancel this operation.
     if (localOp.getCancelRequest() != null)
     {
       return;
@@ -7307,10 +7267,9 @@ compareProcessing:
          DirectoryServer.getPluginConfigManager();
     boolean skipPostOperation = false;
 
-    // Check for and handle a request to cancel this operation.
+    // Check for a request to cancel this operation.
     if (op.getCancelRequest() != null)
     {
-      op.indicateCancelled(op.getCancelRequest());
       return;
     }
 
@@ -7390,10 +7349,9 @@ modifyDNProcessing:
       }
 
 
-      // Check for and handle a request to cancel this operation.
+      // Check for a request to cancel this operation.
       if (op.getCancelRequest() != null)
       {
-        op.indicateCancelled(op.getCancelRequest());
         return;
       }
 
@@ -7471,10 +7429,9 @@ modifyDNProcessing:
       Entry currentEntry = null;
       try
       {
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (op.getCancelRequest() != null)
         {
-          op.indicateCancelled(op.getCancelRequest());
           return;
         }
 
@@ -8025,10 +7982,9 @@ modifyDNProcessing:
         }
 
 
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (op.getCancelRequest() != null)
         {
-          op.indicateCancelled(op.getCancelRequest());
           return;
         }
 
@@ -8253,10 +8209,9 @@ modifyDNProcessing:
         }
 
 
-        // Check for and handle a request to cancel this operation.
+        // Check for a request to cancel this operation.
         if (op.getCancelRequest() != null)
         {
-          op.indicateCancelled(op.getCancelRequest());
           return;
         }
 
