@@ -1462,7 +1462,9 @@ public abstract class Installer extends GuiApplication {
     Installation installation = getInstallation();
     String cmd = Utils.getPath(installation.getStatusPanelCommandFile());
     cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
-    String[] args = {formatter.getFormattedText(getInstallationPath()), cmd};
+    String[] args = {formatter.getFormattedText(getInstallationPath()),
+        getMsg("general-server-stopped"),
+        cmd};
     hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
         getFormattedSuccess(
             getMsg("summary-install-finished-successfully", args)));
@@ -1473,6 +1475,33 @@ public abstract class Installer extends GuiApplication {
         getFormattedError(getMsg("summary-install-finished-with-error", args)));
   }
 
+  /**
+   * Updates the messages in the summary with the state of the server.
+   * @param hmSummary the Map containing the messages.
+   */
+  protected void updateSummaryWithServerState(
+      Map<InstallProgressStep, String> hmSummary)
+  {
+   Installation installation = getInstallation();
+   String cmd = Utils.getPath(installation.getStatusPanelCommandFile());
+   cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
+   String status;
+   if (installation.getStatus().isServerRunning())
+   {
+     status = getMsg("general-server-started");
+   }
+   else
+   {
+     status = getMsg("general-server-stopped");
+   }
+   String[] args = {formatter.getFormattedText(getInstallationPath()), status,
+       cmd};
+   hmSummary.put(InstallProgressStep.FINISHED_SUCCESSFULLY,
+       getFormattedSuccess(
+           getMsg("summary-install-finished-successfully", args)));
+   hmSummary.put(InstallProgressStep.FINISHED_WITH_ERROR,
+       getFormattedError(getMsg("summary-install-finished-with-error", args)));
+  }
   /**
    * Checks the value of <code>canceled</code> field and throws an
    * ApplicationException if true.  This indicates that the user has

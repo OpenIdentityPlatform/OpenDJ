@@ -152,6 +152,7 @@ public class OfflineInstaller extends Installer
       }
 
       checkAbort();
+      updateSummaryWithServerState(hmSummary);
       setCurrentProgressStep(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
@@ -162,8 +163,18 @@ public class OfflineInstaller extends Installer
         setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);
         notifyListeners(null);
       } else {
+        // Stop the server if necessary
+        Installation installation = getInstallation();
+        if (installation.getStatus().isServerRunning()) {
+          try {
+            new ServerController(installation).stopServer(true);
+          } catch (Throwable t) {
+            LOG.log(Level.INFO, "error stopping server", t);
+          }
+        }
         notifyListeners(getLineBreak());
         notifyListenersOfLog();
+        updateSummaryWithServerState(hmSummary);
         setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
         String html = getFormattedError(ex, true);
         notifyListeners(html);
@@ -172,8 +183,18 @@ public class OfflineInstaller extends Installer
     }
     catch (Throwable t)
     {
+      // Stop the server if necessary
+      Installation installation = getInstallation();
+      if (installation.getStatus().isServerRunning()) {
+        try {
+          new ServerController(installation).stopServer(true);
+        } catch (Throwable t2) {
+          LOG.log(Level.INFO, "error stopping server", t2);
+        }
+      }
       notifyListeners(getLineBreak());
       notifyListenersOfLog();
+      updateSummaryWithServerState(hmSummary);
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
           ApplicationException.Type.BUG, getThrowableMsg("bug-msg", t), t);

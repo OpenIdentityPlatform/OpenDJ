@@ -396,9 +396,11 @@ public class InstallerHelper implements JnlpProperties {
         usedServerIds.add(domain.getServerId());
 
         domain.commit();
-        servers.removeAll(oldServers);
+        Set<String> addedServers = new TreeSet<String>();
+        addedServers.addAll(servers);
+        addedServers.removeAll(oldServers);
         ConfiguredDomain domainConf = new ConfiguredDomain(domainName,
-            isCreated, servers);
+            isCreated, addedServers);
         domainsConf.add(domainConf);
       }
       return new ConfiguredReplication(synchProviderCreated,
