@@ -83,7 +83,7 @@ public final class LDAPProfile {
      *         if the property definition is not handled by this LDAP
      *         profile wrapper.
      */
-    public String getAttributeName(ManagedObjectDefinition<?, ?> d,
+    public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d,
         PropertyDefinition<?> pd) {
       return null;
     }
@@ -192,7 +192,7 @@ public final class LDAPProfile {
    *           If the LDAP profile properties file associated with the
    *           provided managed object definition could not be loaded.
    */
-  public String getAttributeName(ManagedObjectDefinition<?, ?> d,
+  public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d,
       PropertyDefinition<?> pd) throws MissingResourceException {
     for (Wrapper profile : profiles) {
       String attributeName = profile.getAttributeName(d, pd);
@@ -219,14 +219,20 @@ public final class LDAPProfile {
    */
   public String getInstantiableRelationChildRDNType(
       InstantiableRelationDefinition<?, ?> r) throws MissingResourceException {
-    for (Wrapper profile : profiles) {
-      String rdnType = profile.getInstantiableRelationChildRDNType(r);
-      if (rdnType != null) {
-        return rdnType;
+    if (r.getNamingPropertyDefinition() != null) {
+      // Use the attribute associated with the naming property.
+      return getAttributeName(r.getChildDefinition(), r
+          .getNamingPropertyDefinition());
+    } else {
+      for (Wrapper profile : profiles) {
+        String rdnType = profile.getInstantiableRelationChildRDNType(r);
+        if (rdnType != null) {
+          return rdnType;
+        }
       }
+      return resource.getString(r.getParentDefinition(), "naming-attribute."
+          + r.getName());
     }
-    return resource.getString(r.getParentDefinition(), "naming-attribute."
-        + r.getName());
   }
 
 

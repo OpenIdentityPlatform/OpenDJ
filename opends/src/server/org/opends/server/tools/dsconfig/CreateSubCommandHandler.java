@@ -62,6 +62,7 @@ import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
+import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
@@ -105,13 +106,16 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
      *
      * @param d
      *          The managed object definition.
+     * @param namingPropertyDefinition
+     *          The naming property definition if there is one.
      * @param args
      *          The property value arguments.
      * @throws ArgumentException
      *           If the property value arguments could not be parsed.
      */
     public MyPropertyProvider(ManagedObjectDefinition<?, ?> d,
-        List<String> args) throws ArgumentException {
+        PropertyDefinition<?> namingPropertyDefinition, List<String> args)
+        throws ArgumentException {
       for (String s : args) {
         // Parse the property "property:value".
         int sep = s.indexOf(':');
@@ -136,6 +140,12 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
           pd = d.getPropertyDefinition(propertyName);
         } catch (IllegalArgumentException e) {
           throw ArgumentExceptionFactory.unknownProperty(d, propertyName);
+        }
+
+        // Make sure that the user is not attempting to set the naming
+        // property.
+        if (pd.equals(namingPropertyDefinition)) {
+          throw ArgumentExceptionFactory.unableToSetNamingProperty(d, pd);
         }
 
         // Add the value.
@@ -247,7 +257,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
   public static <C extends ConfigurationClient> CreateSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       InstantiableRelationDefinition<C, ?> r) throws ArgumentException {
-    return new CreateSubCommandHandler<C>(parser, p, r, p.child(r, "DUMMY"));
+    return new CreateSubCommandHandler<C>(parser, p, r, r
+        .getNamingPropertyDefinition(), p.child(r, "DUMMY"));
   }
 
 
@@ -270,11 +281,14 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
   public static <C extends ConfigurationClient> CreateSubCommandHandler create(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       OptionalRelationDefinition<C, ?> r) throws ArgumentException {
-    return new CreateSubCommandHandler<C>(parser, p, r, p.child(r));
+    return new CreateSubCommandHandler<C>(parser, p, r, null, p.child(r));
   }
 
   // The sub-commands naming arguments.
   private final List<StringArgument> namingArgs;
+
+  // The optional naming property definition.
+  private final PropertyDefinition<?> namingPropertyDefinition;
 
   // The path of the parent managed object.
   private final ManagedObjectPath<?, ?> path;
@@ -306,9 +320,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
   // Common constructor.
   private CreateSubCommandHandler(SubCommandArgumentParser parser,
       ManagedObjectPath<?, ?> p, RelationDefinition<C, ?> r,
-      ManagedObjectPath<?, ?> c) throws ArgumentException {
+      PropertyDefinition<?> pd, ManagedObjectPath<?, ?> c)
+      throws ArgumentException {
     this.path = p;
     this.relation = r;
+    this.namingPropertyDefinition = pd;
 
     // Create the sub-command.
     String name = "create-" + r.getName();
@@ -321,7 +337,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
     this.types = getSubTypes(r.getChildDefinition());
 
     // Create the naming arguments.
-    this.namingArgs = createNamingArgs(subCommand, c);
+    this.namingArgs = createNamingArgs(subCommand, c, true);
 
     // Create the --property argument which is used to specify
     // property values.
@@ -392,7 +408,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
 
     // Encode the provided properties.
     List<String> propertyArgs = propertySetArgument.getValues();
-    MyPropertyProvider provider = new MyPropertyProvider(d, propertyArgs);
+    MyPropertyProvider provider = new MyPropertyProvider(d,
+        namingPropertyDefinition, propertyArgs);
 
     // Add the child managed object.
     ManagementContext context = app.getManagementContext();
@@ -439,7 +456,12 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
         InstantiableRelationDefinition<C, ?> irelation =
           (InstantiableRelationDefinition<C, ?>) relation;
         String name = names.get(names.size() - 1);
-        child = parent.createChild(irelation, d, name, exceptions);
+        try {
+          child = parent.createChild(irelation, d, name, exceptions);
+        } catch (IllegalManagedObjectNameException e) {
+          throw ArgumentExceptionFactory
+              .adaptIllegalManagedObjectNameException(e, d);
+        }
       } else {
         OptionalRelationDefinition<C, ?> orelation =
           (OptionalRelationDefinition<C, ?>) relation;

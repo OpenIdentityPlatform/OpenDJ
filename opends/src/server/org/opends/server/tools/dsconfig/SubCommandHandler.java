@@ -52,6 +52,8 @@ import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.ManagedObjectPathSerializer;
 import org.opends.server.admin.OptionalRelationDefinition;
+import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyDefinitionUsageBuilder;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.admin.SizeUnit;
 import org.opends.server.admin.Tag;
@@ -344,14 +346,20 @@ abstract class SubCommandHandler {
      *          The sub-command.
      * @param path
      *          The managed object path.
+     * @param isCreate
+     *          Indicates whether the sub-command is a create-xxx
+     *          sub-command, in which case the final path element will
+     *          have different usage information.
      * @return Returns the naming arguments.
      * @throws ArgumentException
      *           If one or more naming arguments could not be
      *           registered.
      */
     public static List<StringArgument> create(SubCommand subCommand,
-        ManagedObjectPath<?, ?> path) throws ArgumentException {
-      NamingArgumentBuilder builder = new NamingArgumentBuilder(subCommand);
+        ManagedObjectPath<?, ?> path, boolean isCreate)
+        throws ArgumentException {
+      NamingArgumentBuilder builder = new NamingArgumentBuilder(subCommand,
+          path.size(), isCreate);
       path.serialize(builder);
 
       if (builder.e != null) {
@@ -372,16 +380,22 @@ abstract class SubCommandHandler {
     // The sub-command.
     private final SubCommand subCommand;
 
+    // Indicates whether the sub-command is a create-xxx
+    // sub-command, in which case the final path element will
+    // have different usage information.
+    private final boolean isCreate;
+
+    // The number of path elements to expect.
+    private int sz;
 
 
-    /**
-     * Creates a new naming argument builder.
-     *
-     * @param subCommand
-     *          Add the naming arguments to this sub-command.
-     */
-    public NamingArgumentBuilder(SubCommand subCommand) {
+
+    // Private constructor.
+    private NamingArgumentBuilder(SubCommand subCommand, int sz,
+        boolean isCreate) {
       this.subCommand = subCommand;
+      this.sz = sz;
+      this.isCreate = isCreate;
     }
 
 
@@ -393,6 +407,8 @@ abstract class SubCommandHandler {
         void appendManagedObjectPathElement(
         InstantiableRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d, String name) {
+      sz--;
+
       // Use the last word in the managed object name as the argument
       // prefix.
       StringBuilder builder = new StringBuilder();
@@ -406,12 +422,32 @@ abstract class SubCommandHandler {
       }
       builder.append("-name");
       String argName = builder.toString();
+      StringArgument arg;
 
       try {
-        StringArgument arg = new StringArgument(argName, null, argName, true,
-            true, "{NAME}", MSGID_DSCFG_DESCRIPTION_NAME, d
-                .getUserFriendlyName());
+        if (isCreate && sz == 0) {
+          // The final path element in create-xxx sub-commands should
+          // have a different usage.
+          PropertyDefinition<?> pd = r.getNamingPropertyDefinition();
 
+          if (pd != null) {
+            // Use syntax and description from naming property.
+            PropertyDefinitionUsageBuilder b =
+              new PropertyDefinitionUsageBuilder(false);
+            String usage = "{" + b.getUsage(pd) + "}";
+            arg = new StringArgument(argName, null, argName, true, true, usage,
+                MSGID_DSCFG_DESCRIPTION_NAME_CREATE_EXT, d
+                    .getUserFriendlyName(), pd.getName(), pd.getSynopsis());
+          } else {
+            arg = new StringArgument(argName, null, argName, true, true,
+                "{NAME}", MSGID_DSCFG_DESCRIPTION_NAME_CREATE, d
+                    .getUserFriendlyName());
+          }
+        } else {
+          // A normal naming argument.
+          arg = new StringArgument(argName, null, argName, true, true,
+              "{NAME}", MSGID_DSCFG_DESCRIPTION_NAME, d.getUserFriendlyName());
+        }
         subCommand.addArgument(arg);
         arguments.add(arg);
       } catch (ArgumentException e) {
@@ -428,7 +464,7 @@ abstract class SubCommandHandler {
         void appendManagedObjectPathElement(
         OptionalRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d) {
-      // No implementation required.
+      sz--;
     }
 
 
@@ -440,7 +476,7 @@ abstract class SubCommandHandler {
         void appendManagedObjectPathElement(
         SingletonRelationDefinition<? super C, ? super S> r,
         AbstractManagedObjectDefinition<C, S> d) {
-      // No implementation required.
+      sz--;
     }
 
   }
@@ -601,14 +637,18 @@ abstract class SubCommandHandler {
    *          The sub-command.
    * @param p
    *          The managed object path.
+   * @param isCreate
+   *          Indicates whether the sub-command is a create-xxx
+   *          sub-command, in which case the final path element will
+   *          have different usage information.
    * @return Returns the naming arguments.
    * @throws ArgumentException
    *           If one or more naming arguments could not be
    *           registered.
    */
   protected final List<StringArgument> createNamingArgs(SubCommand subCommand,
-      ManagedObjectPath<?, ?> p) throws ArgumentException {
-    return NamingArgumentBuilder.create(subCommand, p);
+      ManagedObjectPath<?, ?> p, boolean isCreate) throws ArgumentException {
+    return NamingArgumentBuilder.create(subCommand, p, isCreate);
   }
 
 

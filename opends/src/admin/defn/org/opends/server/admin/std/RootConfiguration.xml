@@ -230,10 +230,9 @@
     </adm:profile>
   </adm:relation>
   <adm:relation name="backend">
-    <adm:one-to-many />
+    <adm:one-to-many naming-property="backend-id"/>
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Backends,cn=config</ldap:rdn-sequence>
-      <ldap:naming-attribute>ds-cfg-backend-id</ldap:naming-attribute>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>

@@ -33,6 +33,7 @@ import java.util.SortedSet;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
+import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.ConfigurationClient;
@@ -239,9 +240,11 @@ public interface TestParentCfgClient extends ConfigurationClient {
    *          attempting to determine the default values of the
    *          Test Child. This argument can be <code>null<code>.
    * @return Returns a new Test Child configuration instance.
+   * @throws IllegalManagedObjectNameException
+   *          If the name is invalid.
    */
   <C extends TestChildCfgClient> C createTestChild(
-      ManagedObjectDefinition<C, ?> d, String name, Collection<DefaultBehaviorException> exceptions);
+      ManagedObjectDefinition<C, ?> d, String name, Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException;
 
 
 

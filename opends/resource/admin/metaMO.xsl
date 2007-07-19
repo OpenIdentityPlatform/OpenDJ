@@ -822,7 +822,28 @@
         select="concat('&quot;', adm:one-to-many/@plural-name, '&quot;, ')" />
     </xsl:if>
     <xsl:value-of
-      select="concat($java-managed-object-name, 'CfgDefn.getInstance());&#xa;')" />
+      select="concat($java-managed-object-name, 'CfgDefn.getInstance()')" />
+    <xsl:if test="adm:one-to-many">
+      <xsl:value-of select="', '" />
+      <xsl:choose>
+        <xsl:when test="adm:one-to-many/@naming-property">
+          <xsl:variable name="java-property-name">
+            <xsl:call-template name="name-to-java">
+              <xsl:with-param name="value"
+                select="adm:one-to-many/@naming-property" />
+            </xsl:call-template>
+          </xsl:variable>
+          <xsl:value-of
+            select="concat($java-managed-object-name,
+                           'CfgDefn.getInstance().get',
+                           $java-property-name, 'PropertyDefinition()')" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="'null'" />
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:if>
+    <xsl:value-of select="');&#xa;'" />
     <xsl:value-of
       select="concat('    INSTANCE.registerRelationDefinition(RD_', $java-relation-name,');&#xa;')" />
     <xsl:value-of select="'  }&#xa;'" />
@@ -1237,7 +1258,7 @@
                          '     * {@inheritDoc}&#xa;',
                          '     */&#xa;',
                          '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
-                         '        ManagedObjectDefinition&lt;M, ?&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) {&#xa;',
+                         '        ManagedObjectDefinition&lt;M, ?&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException {&#xa;',
                          '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, name, exceptions).getConfiguration();&#xa;',
                          '    }&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
@@ -1792,6 +1813,9 @@
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-many">
               <import>java.util.Collection</import>
+              <import>
+                org.opends.server.admin.client.IllegalManagedObjectNameException
+              </import>
               <import>
                 org.opends.server.admin.DefaultBehaviorException
               </import>

@@ -151,7 +151,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
         descriptionID, ufpn);
 
     // Create the naming arguments.
-    this.namingArgs = createNamingArgs(subCommand, c);
+    this.namingArgs = createNamingArgs(subCommand, c, false);
 
     // Create the --force argument which is used to force deletion.
     this.forceArgument = new BooleanArgument(OPTION_DSCFG_LONG_FORCE,

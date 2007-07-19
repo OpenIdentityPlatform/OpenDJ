@@ -242,7 +242,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         descriptionID, r.getChildDefinition().getUserFriendlyName());
 
     // Create the naming arguments.
-    this.namingArgs = createNamingArgs(subCommand, path);
+    this.namingArgs = createNamingArgs(subCommand, path, false);
 
     // Create the --set argument.
     this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET,

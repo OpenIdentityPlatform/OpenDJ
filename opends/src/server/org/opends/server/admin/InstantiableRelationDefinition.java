@@ -27,6 +27,8 @@
 
 package org.opends.server.admin;
 
+
+
 import java.util.Locale;
 
 
@@ -46,6 +48,9 @@ public final class InstantiableRelationDefinition
     <C extends ConfigurationClient, S extends Configuration>
     extends RelationDefinition<C, S> {
 
+  // The optional naming property definition.
+  private final PropertyDefinition<?> namingPropertyDefinition;
+
   // The plural name of the relation.
   private final String pluralName;
 
@@ -62,12 +67,43 @@ public final class InstantiableRelationDefinition
    *          The plural name of the relation.
    * @param cd
    *          The child managed object definition.
+   * @param namingPropertyDefinition
+   *          The property of the child managed object definition
+   *          which should be used for naming, or <code>null</code>
+   *          if this relation does not use a property for naming.
    */
   public InstantiableRelationDefinition(
       AbstractManagedObjectDefinition<?, ?> pd, String name, String pluralName,
-      AbstractManagedObjectDefinition<C, S> cd) {
+      AbstractManagedObjectDefinition<C, S> cd,
+      PropertyDefinition<?> namingPropertyDefinition) {
     super(pd, name, cd);
     this.pluralName = pluralName;
+    this.namingPropertyDefinition = namingPropertyDefinition;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
+    return v.visitInstantiable(this, p);
+  }
+
+
+
+  /**
+   * Get the property of the child managed object definition which
+   * should be used for naming children.
+   *
+   * @return Returns the property of the child managed object
+   *         definition which should be used for naming, or
+   *         <code>null</code> if this relation does not use a
+   *         property for naming.
+   */
+  public final PropertyDefinition<?> getNamingPropertyDefinition() {
+    return namingPropertyDefinition;
   }
 
 
@@ -106,10 +142,9 @@ public final class InstantiableRelationDefinition
    *         definition in the specified locale.
    */
   public final String getUserFriendlyPluralName(Locale locale) {
-    String property = "relation." + getName()
-        + ".user-friendly-plural-name";
-    return ManagedObjectDefinitionI18NResource.getInstance()
-        .getMessage(getParentDefinition(), property, locale);
+    String property = "relation." + getName() + ".user-friendly-plural-name";
+    return ManagedObjectDefinitionI18NResource.getInstance().getMessage(
+        getParentDefinition(), property, locale);
   }
 
 
@@ -125,16 +160,8 @@ public final class InstantiableRelationDefinition
     builder.append(getParentDefinition().getName());
     builder.append(" child=");
     builder.append(getChildDefinition().getName());
+    builder.append(" child=");
+    builder.append(getChildDefinition().getName());
     builder.append(" minOccurs=0");
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
-    return v.visitInstantiable(this, p);
   }
 }

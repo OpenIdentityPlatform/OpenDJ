@@ -83,6 +83,7 @@ import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
+import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
@@ -394,7 +395,8 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
   static ManagedObject<RootCfgClient> getRootManagedObject(
       LDAPManagementContext context) {
     return new LDAPManagedObject<RootCfgClient>(context, RootCfgDefn
-        .getInstance(), ManagedObjectPath.emptyPath(), new PropertySet(), true);
+        .getInstance(), ManagedObjectPath.emptyPath(), new PropertySet(), true,
+        null);
   }
 
 
@@ -454,8 +456,11 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
   // committed).
   private boolean existsOnServer;
 
+  // Optional naming property definition.
+  private final PropertyDefinition<?> namingPropertyDefinition;
+
   // The path associated with this managed object.
-  private final ManagedObjectPath<?, ?> path;
+  private ManagedObjectPath<?, ?> path;
 
   // The managed object's properties.
   private final PropertySet properties;
@@ -465,12 +470,14 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
   // Create an new LDAP managed object with the provided JNDI context.
   private LDAPManagedObject(LDAPManagementContext context,
       ManagedObjectDefinition<C, ?> d, ManagedObjectPath path,
-      PropertySet properties, boolean existsOnServer) {
+      PropertySet properties, boolean existsOnServer,
+      PropertyDefinition<?> namingPropertyDefinition) {
     this.definition = d;
     this.context = context;
     this.path = path;
     this.properties = properties;
     this.existsOnServer = existsOnServer;
+    this.namingPropertyDefinition = namingPropertyDefinition;
   }
 
 
@@ -515,10 +522,27 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
       ManagedObject<N> createChild(
       InstantiableRelationDefinition<M, ?> r, ManagedObjectDefinition<N, ?> d,
       String name, Collection<DefaultBehaviorException> exceptions)
-      throws IllegalArgumentException {
+      throws IllegalManagedObjectNameException, IllegalArgumentException {
     validateRelationDefinition(r);
+
+    // Empty names are not allowed.
+    if (name.trim().length() == 0) {
+      throw new IllegalManagedObjectNameException(name);
+    }
+
+    // If the relation uses a naming property definition then it must
+    // be a valid value.
+    PropertyDefinition<?> pd = r.getNamingPropertyDefinition();
+    if (pd != null) {
+      try {
+        pd.decodeValue(name);
+      } catch (IllegalPropertyValueStringException e) {
+        throw new IllegalManagedObjectNameException(name, pd);
+      }
+    }
+
     ManagedObjectPath childPath = path.child(r, name);
-    return createNewManagedObject(d, childPath, exceptions);
+    return createNewManagedObject(d, childPath, pd, name, exceptions);
   }
 
 
@@ -534,7 +558,7 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
       throws IllegalArgumentException {
     validateRelationDefinition(r);
     ManagedObjectPath childPath = path.child(r);
-    return createNewManagedObject(d, childPath, exceptions);
+    return createNewManagedObject(d, childPath, null, null, exceptions);
   }
 
 
@@ -713,15 +737,11 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
   public <T> void setPropertyValue(PropertyDefinition<T> d, T value)
       throws IllegalPropertyValueException, PropertyIsReadOnlyException,
       PropertyIsMandatoryException, IllegalArgumentException {
-    if (d.hasOption(PropertyOption.MONITORING)) {
-      throw new PropertyIsReadOnlyException(d);
+    if (value == null) {
+      setPropertyValues(d, Collections.<T> emptySet());
+    } else {
+      setPropertyValues(d, Collections.singleton(value));
     }
-
-    if (existsOnServer && d.hasOption(PropertyOption.READ_ONLY)) {
-      throw new PropertyIsReadOnlyException(d);
-    }
-
-    properties.setPropertyValue(d, value);
   }
 
 
@@ -742,9 +762,14 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
     }
 
     properties.setPropertyValues(d, values);
+
+    // If this is a naming property then update the name.
+    if (d.equals(namingPropertyDefinition)) {
+      // The property must be single-valued and mandatory.
+      String newName = d.encodeValue(values.iterator().next());
+      path = path.rename(newName);
+    }
   }
-
-
 
   // Adapts a naming exception to an appropriate admin client
   // exception.
@@ -871,9 +896,11 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
     }
     attributes.put(oc);
 
-    // Create the naming attribute.
-    Rdn rdn = dn.getRdn(dn.size() - 1);
-    attributes.put(rdn.getType(), rdn.getValue().toString());
+    // Create the naming attribute if there is not naming property.
+    if (namingPropertyDefinition == null) {
+      Rdn rdn = dn.getRdn(dn.size() - 1);
+      attributes.put(rdn.getType(), rdn.getValue().toString());
+    }
 
     // Create the remaining attributes.
     for (PropertyDefinition<?> pd : definition.getAllPropertyDefinitions()) {
@@ -910,16 +937,24 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
       ManagedObject<M> createExistingManagedObject(
       ManagedObjectDefinition<M, ?> d, ManagedObjectPath p,
       PropertySet properties) {
-    return new LDAPManagedObject<M>(context, d, p, properties, true);
+    RelationDefinition<?, ?> rd = p.getRelationDefinition();
+    PropertyDefinition<?> pd = null;
+    if (rd instanceof InstantiableRelationDefinition) {
+      InstantiableRelationDefinition<?, ?> ird =
+        (InstantiableRelationDefinition) rd;
+      pd = ird.getNamingPropertyDefinition();
+    }
+    return new LDAPManagedObject<M>(context, d, p, properties, true, pd);
   }
 
 
 
   // Creates a new managed object with no active values, just default
   // values.
-  private <M extends ConfigurationClient>
+  private <M extends ConfigurationClient, T>
       ManagedObject<M> createNewManagedObject(
       ManagedObjectDefinition<M, ?> d, ManagedObjectPath p,
+      PropertyDefinition<T> namingPropertyDefinition, String name,
       Collection<DefaultBehaviorException> exceptions) {
     PropertySet childProperties = new PropertySet();
     for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
@@ -933,7 +968,14 @@ final class LDAPManagedObject<C extends ConfigurationClient> implements
       }
     }
 
-    return new LDAPManagedObject<M>(context, d, p, childProperties, false);
+    // Set the naming property if there is one.
+    if (namingPropertyDefinition != null) {
+      T value = namingPropertyDefinition.decodeValue(name);
+      childProperties.setPropertyValue(namingPropertyDefinition, value);
+    }
+
+    return new LDAPManagedObject<M>(context, d, p, childProperties, false,
+        namingPropertyDefinition);
   }
 
 

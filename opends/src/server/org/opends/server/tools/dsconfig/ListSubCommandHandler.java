@@ -142,7 +142,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
         descriptionID, rufn);
 
     // Create the naming arguments.
-    this.namingArgs = createNamingArgs(subCommand, path);
+    this.namingArgs = createNamingArgs(subCommand, path, false);
 
     // Register arguments.
     registerPropertyNameArgument(this.subCommand);

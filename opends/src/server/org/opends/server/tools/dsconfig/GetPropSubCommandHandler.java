@@ -162,7 +162,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         descriptionID, r.getChildDefinition().getUserFriendlyName());
 
     // Create the naming arguments.
-    this.namingArgs = createNamingArgs(subCommand, path);
+    this.namingArgs = createNamingArgs(subCommand, path, false);
 
     // Register common arguments.
     registerPropertyNameArgument(this.subCommand);

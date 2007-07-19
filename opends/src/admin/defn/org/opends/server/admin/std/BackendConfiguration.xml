@@ -94,23 +94,15 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-id"
-    mandatory="true"
+  <adm:property name="backend-id" mandatory="true" read-only="true"
     multi-valued="false">
     <adm:synopsis>
-      Provides a name that will be used to identify the associated backend.
+      Provides a name that will be used to identify the associated
+      backend.
     </adm:synopsis>
     <adm:description>
       The name must be unique among all backends in the server.
     </adm:description>
-    <adm:requires-admin-action>
-      <adm:other>
-        <adm:synopsis>
-          The backend ID may not be altered after the backend is created in
-          the server.
-        </adm:synopsis>
-      </adm:other>
-    </adm:requires-admin-action>
     <adm:syntax>
       <adm:string />
     </adm:syntax>

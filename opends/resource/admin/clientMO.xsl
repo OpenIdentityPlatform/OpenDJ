@@ -306,11 +306,13 @@
                        '{@link DefaultBehaviorException}s that occurred whilst ',
                        'attempting to determine the default values of the ', $ufn,
                        '. This argument can be &lt;code&gt;null&lt;code&gt;.&#xa;',
-                       '@return Returns a new ', $ufn,' configuration instance.&#xa;')" />
+                       '@return Returns a new ', $ufn,' configuration instance.&#xa;',
+                       '@throws IllegalManagedObjectNameException&#xa;',
+                       '         If the name of the new ', $ufn,' is invalid.&#xa;')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                           '      ManagedObjectDefinition&lt;C, ?&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions);&#xa;')" />
+                           '      ManagedObjectDefinition&lt;C, ?&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -402,6 +404,11 @@
           </import>
           <import>
             org.opends.server.admin.client.OperationRejectedException
+          </import>
+        </xsl:if>
+        <xsl:if test="$this-local-relations/adm:one-to-many">
+          <import>
+            org.opends.server.admin.client.IllegalManagedObjectNameException
           </import>
         </xsl:if>
         <xsl:choose>

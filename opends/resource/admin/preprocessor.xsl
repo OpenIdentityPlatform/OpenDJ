@@ -827,6 +827,60 @@
   -->
   <xsl:template match="adm:one-to-many" mode="merge-relation">
     <xsl:param name="managed-object" select="/.." />
+    <!--
+      Make sure that if this relation uses a naming property that the
+      naming property exists, is single-valued, mandatory, and read-only.
+    -->
+    <xsl:if test="@naming-property">
+      <xsl:variable name="naming-property-name"
+        select="@naming-property" />
+
+      <!--
+        FIXME: this does not cope with the situation where the property
+        is inherited, referenced, or overridden.
+      -->
+      <xsl:variable name="naming-property"
+        select="$managed-object/adm:property[@name=$naming-property-name]" />
+      <xsl:if test="not($naming-property)">
+        <xsl:message terminate="yes">
+          <xsl:value-of
+            select="concat('Relation ', ../@name,
+                           ' references an unknown naming property ',
+                           $naming-property-name, ' in ',
+                           $managed-object/@name, '.')" />
+        </xsl:message>
+      </xsl:if>
+      <xsl:if test="not($naming-property/@read-only='true')">
+        <xsl:message terminate="yes">
+          <xsl:value-of
+            select="concat('Relation ', ../@name,
+                           ' references the naming property ',
+                           $naming-property-name, ' in ',
+                           $managed-object/@name, ' which is not read-only. ',
+                           'Naming properties must be read-only.')" />
+        </xsl:message>
+      </xsl:if>
+      <xsl:if test="not($naming-property/@mandatory='true')">
+        <xsl:message terminate="yes">
+          <xsl:value-of
+            select="concat('Relation ', ../@name,
+                           ' references the naming property ',
+                           $naming-property-name, ' in ',
+                           $managed-object/@name, ' which is not mandatory. ',
+                           'Naming properties must be mandatory.')" />
+        </xsl:message>
+      </xsl:if>
+      <xsl:if test="$naming-property/@multi-valued='true'">
+        <xsl:message terminate="yes">
+          <xsl:value-of
+            select="concat('Relation ', ../@name,
+                           ' references the naming property ',
+                           $naming-property-name, ' in ',
+                           $managed-object/@name, ' which is multi-valued. ',
+                           'Naming properties must be single-valued.')" />
+        </xsl:message>
+      </xsl:if>
+    </xsl:if>
     <xsl:copy>
       <xsl:copy-of select="@*" />
       <!--

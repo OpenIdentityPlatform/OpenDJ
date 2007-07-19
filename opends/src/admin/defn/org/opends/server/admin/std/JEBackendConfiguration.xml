@@ -54,14 +54,11 @@
     </ldap:object-class>
   </adm:profile>
   <adm:relation name="je-index">
-    <adm:one-to-many />
+    <adm:one-to-many naming-property="index-attribute"/>
      <adm:profile name="ldap">
       <ldap:rdn-sequence>
         cn=Index
       </ldap:rdn-sequence>
-      <ldap:naming-attribute>
-        ds-cfg-index-attribute
-      </ldap:naming-attribute>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
