@@ -295,6 +295,11 @@ implements Comparator<SuffixDescriptor>
     noSuffixLabel.setVisible(!display);
     labelGlue.setVisible(!display);
     scroll.setVisible(display);
+    if (!display)
+    {
+      rbCreateNewSuffix.setSelected(true);
+    }
+    rbReplicate.setEnabled(display);
 
     checkEnablingState();
   }
