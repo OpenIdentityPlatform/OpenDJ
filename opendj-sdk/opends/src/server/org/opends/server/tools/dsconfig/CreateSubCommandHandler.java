@@ -370,6 +370,12 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
           OPTION_DSCFG_LONG_TYPE, false, false, true, "{TYPE}", GENERIC_TYPE,
           null, MSGID_DSCFG_DESCRIPTION_TYPE_DEFAULT, r.getChildDefinition()
               .getUserFriendlyName(), GENERIC_TYPE, typeUsage);
+
+      // Hide the option if it defaults to generic and generic is the
+      // only possible value.
+      if (types.size() == 1) {
+        this.typeArgument.setHidden(true);
+      }
     }
     this.subCommand.addArgument(this.typeArgument);
 
