@@ -45,6 +45,7 @@ import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.MockLDAPProfile;
+import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfgClient;
 import org.opends.server.admin.TestChildCfgDefn;
 import org.opends.server.admin.TestParentCfgClient;
@@ -280,6 +281,7 @@ public final class LDAPClientTest extends AdminTestCase {
   @AfterClass
   public void tearDown() {
     LDAPProfile.getInstance().popWrapper();
+    TestCfg.cleanup();
   }
 
 
@@ -814,8 +816,7 @@ public final class LDAPClientTest extends AdminTestCase {
       CommunicationException {
     ManagedObject<RootCfgClient> root = context
         .getRootConfigurationManagedObject();
-    return root.createChild(
-        org.opends.server.admin.TestCfg.RD_TEST_ONE_TO_MANY_PARENT,
+    return root.createChild(TestCfg.getTestOneToManyParentRelationDefinition(),
         TestParentCfgDefn.getInstance(), name, null).getConfiguration();
   }
 
@@ -829,9 +830,8 @@ public final class LDAPClientTest extends AdminTestCase {
       CommunicationException {
     ManagedObject<RootCfgClient> root = context
         .getRootConfigurationManagedObject();
-    return root.getChild(
-        org.opends.server.admin.TestCfg.RD_TEST_ONE_TO_MANY_PARENT, name)
-        .getConfiguration();
+    return root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(),
+        name).getConfiguration();
   }
 
 
@@ -842,8 +842,7 @@ public final class LDAPClientTest extends AdminTestCase {
       CommunicationException {
     ManagedObject<RootCfgClient> root = context
         .getRootConfigurationManagedObject();
-    return root
-        .listChildren(org.opends.server.admin.TestCfg.RD_TEST_ONE_TO_MANY_PARENT);
+    return root.listChildren(TestCfg.getTestOneToManyParentRelationDefinition());
   }
 
 
@@ -855,7 +854,6 @@ public final class LDAPClientTest extends AdminTestCase {
       CommunicationException {
     ManagedObject<RootCfgClient> root = context
         .getRootConfigurationManagedObject();
-    root.removeChild(
-        org.opends.server.admin.TestCfg.RD_TEST_ONE_TO_MANY_PARENT, name);
+    root.removeChild(TestCfg.getTestOneToManyParentRelationDefinition(), name);
   }
 }

@@ -78,6 +78,7 @@ public final class DNBuilderTest extends AdminTestCase {
   @AfterClass
   public void tearDown() {
     LDAPProfile.getInstance().popWrapper();
+    TestCfg.cleanup();
   }
 
 
@@ -95,7 +96,7 @@ public final class DNBuilderTest extends AdminTestCase {
     ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath
         .emptyPath();
 
-    path = path.child(TestCfg.RD_TEST_ONE_TO_MANY_PARENT, "test-parent-1");
+    path = path.child(TestCfg.getTestOneToManyParentRelationDefinition(), "test-parent-1");
     path = path.child(TestParentCfgDefn.getInstance()
         .getTestChildrenRelationDefinition(), "test-child-1");
 
@@ -143,7 +144,7 @@ public final class DNBuilderTest extends AdminTestCase {
 
     };
 
-    path = path.child(TestCfg.RD_TEST_ONE_TO_MANY_PARENT, "test-parent-1");
+    path = path.child(TestCfg.getTestOneToManyParentRelationDefinition(), "test-parent-1");
     path = path.child(r2);
 
     // Now serialize it.
@@ -176,7 +177,7 @@ public final class DNBuilderTest extends AdminTestCase {
     ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath
         .emptyPath();
 
-    path = path.child(TestCfg.RD_TEST_ONE_TO_MANY_PARENT, "test-parent-1");
+    path = path.child(TestCfg.getTestOneToManyParentRelationDefinition(), "test-parent-1");
     path = path.child(TestParentCfgDefn.getInstance()
         .getOptionalTestChildRelationDefinition());
 

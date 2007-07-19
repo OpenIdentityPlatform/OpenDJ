@@ -96,7 +96,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
   @Override
   public String getInstantiableRelationChildRDNType(
       InstantiableRelationDefinition<?, ?> r) {
-    if (r == TestCfg.RD_TEST_ONE_TO_MANY_PARENT
+    if (r == TestCfg.getTestOneToManyParentRelationDefinition()
         || r == TestParentCfgDefn.getInstance()
             .getTestChildrenRelationDefinition()) {
       return "cn";
@@ -129,9 +129,9 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
    */
   @Override
   public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
-    if (r == TestCfg.RD_TEST_ONE_TO_MANY_PARENT) {
+    if (r == TestCfg.getTestOneToManyParentRelationDefinition()) {
       return "cn=test parents,cn=config";
-    } else if (r == TestCfg.RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT) {
+    } else if (r == TestCfg.getTestOneToZeroOrOneParentRelationDefinition()) {
       return "cn=optional test parent,cn=config";
     } else if (r == TestParentCfgDefn.getInstance()
         .getTestChildrenRelationDefinition()) {
