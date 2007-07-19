@@ -73,7 +73,7 @@ public final class TestCfg {
     RootCfgDefn.getInstance().deregisterRelationDefinition(
         RD_TEST_ONE_TO_MANY_PARENT);
     RootCfgDefn.getInstance().deregisterRelationDefinition(
-        RD_TEST_ONE_TO_MANY_PARENT);
+        RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT);
   }
 
 

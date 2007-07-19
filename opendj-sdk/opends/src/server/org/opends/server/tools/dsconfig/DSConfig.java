@@ -94,23 +94,47 @@ public final class DSConfig {
    *          program.
    */
   public static void main(String[] args) {
-    DSConfig app = new DSConfig(System.in, System.out, System.err,
-        new LDAPManagementContextFactory());
-    // Only initialize the client environment when run as a standalone
-    // application.
-    try {
-      app.initializeClientEnvironment();
-    } catch (InitializationException e) {
-      // TODO: is this ok as an error message?
-      System.err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
-      System.exit(1);
-    }
-
-    // Run the application.
-    int exitCode = app.run(args);
+    int exitCode = main(args, true, System.out, System.err);
     if (exitCode != 0) {
       System.exit(filterExitCode(exitCode));
     }
+  }
+
+  /**
+   * Provides the command-line arguments to the main application for
+   * processing and returns the exit code as an integer.
+   *
+   * @param  args              The set of command-line arguments provided to
+   *                           this program.
+   * @param  initializeServer  Indicates whether to perform basic initialization
+   *                           (which should not be done if the tool is running
+   *                           in the same JVM as the server).
+   * @param  outStream         The output stream for standard output.
+   * @param  errStream         The output stream for standard error.
+   *
+   * @return  Zero to indicate that the program completed successfully, or
+   *          non-zero to indicate that an error occurred.
+   */
+  public static int main(String[] args, boolean initializeServer,
+                         OutputStream outStream, OutputStream errStream)
+  {
+    DSConfig app = new DSConfig(System.in, outStream, errStream,
+        new LDAPManagementContextFactory());
+    // Only initialize the client environment when run as a standalone
+    // application.
+    if (initializeServer)
+    {
+      try {
+        app.initializeClientEnvironment();
+      } catch (InitializationException e) {
+        // TODO: is this ok as an error message?
+        System.err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+        return 1;
+      }
+    }
+
+    // Run the application.
+    return app.run(args);
   }
 
   // Flag indicating whether or not the application environment has

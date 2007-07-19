@@ -1898,8 +1898,18 @@ public class LDAPClientConnection
            new AddResponseProtocolOp(de.getResultCode().getIntValue(),
                                      de.getErrorMessage(), de.getMatchedDN(),
                                      de.getReferralURLs());
+
+      List<Control> responseControls = addOp.getResponseControls();
+      ArrayList<LDAPControl> responseLDAPControls =
+           new ArrayList<LDAPControl>(responseControls.size());
+      for (Control c : responseControls)
+      {
+        responseLDAPControls.add(new LDAPControl(c));
+      }
+
       sendLDAPMessage(securityProvider,
-                      new LDAPMessage(message.getMessageID(), responseOp));
+                      new LDAPMessage(message.getMessageID(), responseOp,
+                                      responseLDAPControls));
     }
 
 
@@ -2014,8 +2024,18 @@ public class LDAPClientConnection
            new BindResponseProtocolOp(de.getResultCode().getIntValue(),
                                       de.getErrorMessage(), de.getMatchedDN(),
                                       de.getReferralURLs());
+
+      List<Control> responseControls = bindOp.getResponseControls();
+      ArrayList<LDAPControl> responseLDAPControls =
+           new ArrayList<LDAPControl>(responseControls.size());
+      for (Control c : responseControls)
+      {
+        responseLDAPControls.add(new LDAPControl(c));
+      }
+
       sendLDAPMessage(securityProvider,
-                      new LDAPMessage(message.getMessageID(), responseOp));
+                      new LDAPMessage(message.getMessageID(), responseOp,
+                                      responseLDAPControls));
 
       // If it was a protocol error, then terminate the connection.
       if (de.getResultCode() == ResultCode.PROTOCOL_ERROR)
@@ -2086,8 +2106,18 @@ public class LDAPClientConnection
                                          de.getErrorMessage(),
                                          de.getMatchedDN(),
                                          de.getReferralURLs());
+
+      List<Control> responseControls = compareOp.getResponseControls();
+      ArrayList<LDAPControl> responseLDAPControls =
+           new ArrayList<LDAPControl>(responseControls.size());
+      for (Control c : responseControls)
+      {
+        responseLDAPControls.add(new LDAPControl(c));
+      }
+
       sendLDAPMessage(securityProvider,
-                      new LDAPMessage(message.getMessageID(), responseOp));
+                      new LDAPMessage(message.getMessageID(), responseOp,
+                                      responseLDAPControls));
     }
 
 
@@ -2147,8 +2177,18 @@ public class LDAPClientConnection
            new DeleteResponseProtocolOp(de.getResultCode().getIntValue(),
                                         de.getErrorMessage(), de.getMatchedDN(),
                                         de.getReferralURLs());
+
+      List<Control> responseControls = deleteOp.getResponseControls();
+      ArrayList<LDAPControl> responseLDAPControls =
+           new ArrayList<LDAPControl>(responseControls.size());
+      for (Control c : responseControls)
+      {
+        responseLDAPControls.add(new LDAPControl(c));
+      }
+
       sendLDAPMessage(securityProvider,
-                      new LDAPMessage(message.getMessageID(), responseOp));
+                      new LDAPMessage(message.getMessageID(), responseOp,
+                                      responseLDAPControls));
     }
 
 
@@ -2217,8 +2257,18 @@ public class LDAPClientConnection
                                           de.getErrorMessage(),
                                           de.getMatchedDN(),
                                           de.getReferralURLs());
+
+      List<Control> responseControls = extendedOp.getResponseControls();
+      ArrayList<LDAPControl> responseLDAPControls =
+           new ArrayList<LDAPControl>(responseControls.size());
+      for (Control c : responseControls)
+      {
+        responseLDAPControls.add(new LDAPControl(c));
+      }
+
       sendLDAPMessage(securityProvider,
-                      new LDAPMessage(message.getMessageID(), responseOp));
+                      new LDAPMessage(message.getMessageID(), responseOp,
+                                      responseLDAPControls));
     }
 
 
@@ -2278,8 +2328,18 @@ public class LDAPClientConnection
            new ModifyResponseProtocolOp(de.getResultCode().getIntValue(),
                                         de.getErrorMessage(), de.getMatchedDN(),
                                         de.getReferralURLs());
+
+      List<Control> responseControls = modifyOp.getResponseControls();
+      ArrayList<LDAPControl> responseLDAPControls =
+           new ArrayList<LDAPControl>(responseControls.size());
+      for (Control c : responseControls)
+      {
+        responseLDAPControls.add(new LDAPControl(c));
+      }
+
       sendLDAPMessage(securityProvider,
-                      new LDAPMessage(message.getMessageID(), responseOp));
+                      new LDAPMessage(message.getMessageID(), responseOp,
+                                      responseLDAPControls));
     }
 
 
@@ -2343,8 +2403,18 @@ public class LDAPClientConnection
                                           de.getErrorMessage(),
                                           de.getMatchedDN(),
                                           de.getReferralURLs());
+
+      List<Control> responseControls = modifyDNOp.getResponseControls();
+      ArrayList<LDAPControl> responseLDAPControls =
+           new ArrayList<LDAPControl>(responseControls.size());
+      for (Control c : responseControls)
+      {
+        responseLDAPControls.add(new LDAPControl(c));
+      }
+
       sendLDAPMessage(securityProvider,
-                      new LDAPMessage(message.getMessageID(), responseOp));
+                      new LDAPMessage(message.getMessageID(), responseOp,
+                                      responseLDAPControls));
     }
 
 
@@ -2410,8 +2480,18 @@ public class LDAPClientConnection
                                           de.getErrorMessage(),
                                           de.getMatchedDN(),
                                           de.getReferralURLs());
+
+      List<Control> responseControls = searchOp.getResponseControls();
+      ArrayList<LDAPControl> responseLDAPControls =
+           new ArrayList<LDAPControl>(responseControls.size());
+      for (Control c : responseControls)
+      {
+        responseLDAPControls.add(new LDAPControl(c));
+      }
+
       sendLDAPMessage(securityProvider,
-                      new LDAPMessage(message.getMessageID(), responseOp));
+                      new LDAPMessage(message.getMessageID(), responseOp,
+                                      responseLDAPControls));
     }
 
 

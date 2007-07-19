@@ -227,6 +227,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
     // Create a labeled block of code that we can break out of if a problem is
     // detected.
+    boolean                 pwPolicyControlRequested = false;
+    PasswordPolicyErrorType pwpErrorType             = null;
     modifyProcessing:
     {
       DN entryDN = localOp.getEntryDN();
@@ -261,8 +263,20 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         DN authzDN = localOp.getAuthorizationDN();
         if ((authzDN != null) && (! authzDN.equals(entryDN)))
         {
-          // The user will not be allowed to do anything else before
-          // the password gets changed.
+          // The user will not be allowed to do anything else before the
+          // password gets changed.  Also note that we haven't yet checked the
+          // request controls so we need to do that now to see if the password
+          // policy request control was provided.
+          for (Control c : localOp.getRequestControls())
+          {
+            if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+            {
+              pwPolicyControlRequested = true;
+              pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+              break;
+            }
+          }
+
           localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
           int msgID = MSGID_MODIFY_MUST_CHANGE_PASSWORD;
@@ -658,6 +672,10 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 localOp.setProxiedAuthorizationDN(authorizationEntry.getDN());
               }
             }
+            else if (oid.equals(OID_PASSWORD_POLICY_CONTROL))
+            {
+              pwPolicyControlRequested = true;
+            }
 
             // NYI -- Add support for additional controls.
             else if (c.isCritical())
@@ -783,6 +801,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                     Privilege.PASSWORD_RESET,
                     localOp))
                 {
+                  pwpErrorType =
+                       PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+
                   int msgID = MSGID_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES;
                   localOp.appendErrorMessage(getMessage(msgID));
                   localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
@@ -885,6 +906,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               if (selfChange &&
                   (! pwPolicyState.getPolicy().allowUserPasswordChanges()))
               {
+                pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                 int msgID = MSGID_MODIFY_NO_USER_PW_CHANGES;
@@ -898,6 +921,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               if (pwPolicyState.getPolicy().requireSecurePasswordChanges() &&
                   (! clientConnection.isSecure()))
               {
+                pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                 int msgID = MSGID_MODIFY_REQUIRE_SECURE_CHANGES;
@@ -910,6 +935,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               // previous change, then reject it.
               if (selfChange && pwPolicyState.isWithinMinimumAge())
               {
+                pwpErrorType = PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
+
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                 int msgID = MSGID_MODIFY_WITHIN_MINIMUM_AGE;
@@ -944,10 +971,12 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               // If there were multiple password values provided, then make
               // sure that's OK.
 
-              if (! localOp.isInternalOperation() &&
-                  ! pwPolicyState.getPolicy().allowExpiredPasswordChanges() &&
+              if ((! localOp.isInternalOperation()) &&
+                  (! pwPolicyState.getPolicy().allowMultiplePasswordValues()) &&
                   (passwordsToAdd > 1))
               {
+                pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+
                 localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                 int msgID = MSGID_MODIFY_MULTIPLE_VALUES_NOT_ALLOWED;
@@ -966,6 +995,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   if ((!localOp.isInternalOperation()) &&
                       ! pwPolicyState.getPolicy().allowPreEncodedPasswords())
                   {
+                    pwpErrorType =
+                         PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
+
                     localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                     int msgID = MSGID_MODIFY_NO_PREENCODED_PASSWORDS;
@@ -985,6 +1017,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                     // exist.
                     if (pwPolicyState.passwordMatches(v.getValue()))
                     {
+                      pwpErrorType =
+                           PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
+
                       localOp.setResultCode(
                           ResultCode.ATTRIBUTE_OR_VALUE_EXISTS);
 
@@ -1044,6 +1079,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 {
                   if ((!localOp.isInternalOperation()) && selfChange)
                   {
+                    pwpErrorType =
+                         PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
+
                     localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                     int msgID = MSGID_MODIFY_NO_PREENCODED_PASSWORDS;
@@ -1774,6 +1812,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               pwPolicyState.getPolicy().requireCurrentPassword() &&
               (! currentPasswordProvided))
           {
+            pwpErrorType = PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD;
+
             localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
             int msgID = MSGID_MODIFY_PW_CHANGE_REQUIRES_CURRENT_PW;
@@ -1787,6 +1827,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
           if ((numPasswords > 1) &&
               (! pwPolicyState.getPolicy().allowMultiplePasswordValues()))
           {
+            pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+
             localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
             int msgID = MSGID_MODIFY_MULTIPLE_PASSWORDS_NOT_ALLOWED;
@@ -1856,6 +1898,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                     clearPasswords,
                     invalidReason))
                 {
+                  pwpErrorType =
+                       PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
+
                   localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                   int msgID = MSGID_MODIFY_PW_VALIDATION_FAILED;
@@ -1881,6 +1926,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   if (selfChange || (! pwPolicyState.getPolicy().
                                             skipValidationForAdministrators()))
                   {
+                    pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
+
                     localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                     int msgID = MSGID_MODIFY_PW_IN_HISTORY;
@@ -1924,8 +1971,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         {
           // See if the account was locked for any reason.
           wasLocked = pwPolicyState.lockedDueToIdleInterval() ||
-          pwPolicyState.lockedDueToMaximumResetAge() ||
-          pwPolicyState.lockedDueToFailures();
+                      pwPolicyState.lockedDueToMaximumResetAge() ||
+                      pwPolicyState.lockedDueToFailures();
 
           // Update the password policy state attributes in the user's entry.
           // If the modification fails, then these changes won't be applied.
@@ -1943,6 +1990,12 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             }
             else
             {
+              if ((pwpErrorType == null) &&
+                  pwPolicyState.getPolicy().forceChangeOnReset())
+              {
+                pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+              }
+
               pwPolicyState.setMustChangePassword(
                    pwPolicyState.getPolicy().forceChangeOnReset());
             }
@@ -1971,6 +2024,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
         {
             // The user will not be allowed to do anything else before
             // the password gets changed.
+            pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+
             localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
             int msgID = MSGID_MODIFY_MUST_CHANGE_PASSWORD;
@@ -2375,6 +2430,15 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
           }
         }
       }
+    }
+
+
+    // If the password policy request control was included, then make sure we
+    // send the corresponding response control.
+    if (pwPolicyControlRequested)
+    {
+      localOp.addResponseControl(
+           new PasswordPolicyResponseControl(null, 0, pwpErrorType));
     }
 
 
@@ -5222,8 +5286,7 @@ addProcessing:
           }
         }
 
-        // Check to see if there are any controls in the request. If so,
-        // then
+        // Check to see if there are any controls in the request. If so, then
         // see if there is any special processing required.
         boolean                    noOp            = false;
         LDAPPostReadRequestControl postReadRequest = null;
@@ -5486,6 +5549,11 @@ addProcessing:
               {
                 localOp.setProxiedAuthorizationDN(authorizationEntry.getDN());
               }
+            }
+            else if (oid.equals(OID_PASSWORD_POLICY_CONTROL))
+            {
+              // We don't need to do anything here because it's already handled
+              // in LocalBackendAddOperation.handlePasswordPolicy().
             }
 
             // NYI -- Add support for additional controls.
