@@ -53,6 +53,7 @@ import org.opends.server.admin.TestParentCfgDefn;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
+import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
@@ -813,7 +814,7 @@ public final class LDAPClientTest extends AdminTestCase {
       String name) throws ManagedObjectDecodingException,
       AuthorizationException, ManagedObjectAlreadyExistsException,
       ConcurrentModificationException, OperationRejectedException,
-      CommunicationException {
+      CommunicationException, IllegalManagedObjectNameException {
     ManagedObject<RootCfgClient> root = context
         .getRootConfigurationManagedObject();
     return root.createChild(TestCfg.getTestOneToManyParentRelationDefinition(),

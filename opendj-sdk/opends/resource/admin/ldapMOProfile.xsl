@@ -80,6 +80,22 @@
       <xsl:choose>
         <xsl:when
           test="adm:profile[@name='ldap']/ldap:naming-attribute">
+          <xsl:if test="not(adm:one-to-many)">
+            <xsl:message terminate="yes">
+              <xsl:value-of
+                select="concat('Naming attribute specified for relation ',
+                               @name, ' in managed object definition ',
+                               $this-name, ' which is not a one-to-many relation.')" />
+            </xsl:message>
+          </xsl:if>
+          <xsl:if test="adm:one-to-many/@naming-property">
+            <xsl:message terminate="yes">
+              <xsl:value-of
+                select="concat('Naming attribute specified for one-to-many relation ',
+                               @name, ' in managed object definition ',
+                               $this-name, ' which uses a naming property.')" />
+            </xsl:message>
+          </xsl:if>
           <xsl:value-of
             select="concat('naming-attribute.',
                        normalize-space(@name),

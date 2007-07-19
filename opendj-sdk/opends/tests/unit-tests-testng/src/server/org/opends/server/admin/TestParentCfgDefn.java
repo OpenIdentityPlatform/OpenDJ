@@ -37,6 +37,7 @@ import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
+import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
@@ -164,7 +165,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
   // Build the "test-children" relation definition.
   static {
     RD_TEST_CHILDREN = new InstantiableRelationDefinition<TestChildCfgClient, TestChildCfg>(
-        INSTANCE, "multiple-children", "test-children", TestChildCfgDefn.getInstance());
+        INSTANCE, "multiple-children", "test-children", TestChildCfgDefn.getInstance(), null);
     INSTANCE.registerRelationDefinition(RD_TEST_CHILDREN);
   }
 
@@ -421,7 +422,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
      * {@inheritDoc}
      */
     public <M extends TestChildCfgClient> M createTestChild(
-        ManagedObjectDefinition<M, ?> d, String name, Collection<DefaultBehaviorException> exceptions) {
+        ManagedObjectDefinition<M, ?> d, String name, Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException {
       return impl.createChild(INSTANCE.getTestChildrenRelationDefinition(), d, name, exceptions).getConfiguration();
     }
 

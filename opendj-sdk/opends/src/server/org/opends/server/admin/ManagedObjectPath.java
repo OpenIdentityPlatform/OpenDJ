@@ -926,6 +926,39 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
 
 
   /**
+   * Creates a new managed object path which has the same structure as
+   * this path except that the final path element is renamed. The
+   * final path element must comprise of an instantiable relation.
+   *
+   * @param newName
+   *          The new name of the final path element.
+   * @return Returns a new managed object path which has the same
+   *         structure as this path except that the final path element
+   *         is renamed.
+   * @throws IllegalStateException
+   *           If this managed object path is empty or if its final
+   *           path element does not comprise of an instantiable
+   *           relation.
+   */
+  @SuppressWarnings("unchecked")
+  public ManagedObjectPath<C, S> rename(String newName)
+      throws IllegalStateException {
+    if (elements.size() == 0) {
+      throw new IllegalStateException("Cannot rename an empty path");
+    }
+
+    if (r instanceof InstantiableRelationDefinition) {
+      InstantiableRelationDefinition<? super C, ? super S> ir =
+        (InstantiableRelationDefinition<? super C, ? super S>) r;
+      return parent().child(ir, d, newName);
+    } else {
+      throw new IllegalStateException("Not an instantiable relation");
+    }
+  }
+
+
+
+  /**
    * Serialize this managed object path using the provided
    * serialization strategy.
    * <p>

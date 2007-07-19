@@ -36,12 +36,14 @@ import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.ManagedObjectDefinition;
+import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyIsMandatoryException;
 import org.opends.server.admin.PropertyIsReadOnlyException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.util.args.ArgumentException;
 
@@ -52,6 +54,51 @@ import org.opends.server.util.args.ArgumentException;
  * argument exceptions.
  */
 final class ArgumentExceptionFactory {
+
+  /**
+   * Creates an argument exception from an illegal managed object name
+   * exception.
+   *
+   * @param e
+   *          The illegal managed object name exception.
+   * @param d
+   *          The managed object definition.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException adaptIllegalManagedObjectNameException(
+      IllegalManagedObjectNameException e, AbstractManagedObjectDefinition d) {
+    String illegalName = e.getIllegalName();
+    PropertyDefinition<?> pd = e.getNamingPropertyDefinition();
+
+    if (illegalName.length() == 0) {
+      int msgID = MSGID_DSCFG_ERROR_ILLEGAL_NAME_EMPTY;
+      String message = getMessage(msgID, d.getUserFriendlyPluralName());
+      return new ArgumentException(msgID, message);
+    } else if (illegalName.trim().length() == 0) {
+      int msgID = MSGID_DSCFG_ERROR_ILLEGAL_NAME_BLANK;
+      String message = getMessage(msgID, d.getUserFriendlyPluralName());
+      return new ArgumentException(msgID, message);
+    } else if (pd != null) {
+      try {
+        pd.decodeValue(illegalName);
+      } catch (IllegalPropertyValueStringException e1) {
+        PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
+            true);
+        String syntax = b.getUsage(pd);
+
+        int msgID = MSGID_DSCFG_ERROR_ILLEGAL_NAME_SYNTAX;
+        String message = getMessage(msgID, illegalName,
+            d.getUserFriendlyName(), pd.getName(), syntax);
+        return new ArgumentException(msgID, message);
+      }
+    }
+
+    int msgID = MSGID_DSCFG_ERROR_ILLEGAL_NAME_UNKNOWN;
+    String message = getMessage(msgID, illegalName, d.getUserFriendlyName());
+    return new ArgumentException(msgID, message);
+  }
+
+
 
   /**
    * Creates an argument exception from a missing mandatory properties
@@ -257,6 +304,26 @@ final class ArgumentExceptionFactory {
     int msgID = MSGID_DSCFG_ERROR_NO_NAME_IN_PROPERTY_MOD;
     String msg = getMessage(msgID, arg);
     return new ArgumentException(msgID, msg);
+  }
+
+
+
+  /**
+   * Creates an argument exception which should be used when an
+   * attempt is made to set the naming property for a managed object
+   * during creation.
+   *
+   * @param d
+   *          The managed object definition.
+   * @param pd
+   *          The naming property definition.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException unableToSetNamingProperty(
+      AbstractManagedObjectDefinition d, PropertyDefinition<?> pd) {
+    int msgID = MSGID_DSCFG_ERROR_UNABLE_TO_SET_NAMING_PROPERTY;
+    String message = getMessage(msgID, pd.getName(), d.getUserFriendlyName());
+    return new ArgumentException(msgID, message);
   }
 
 

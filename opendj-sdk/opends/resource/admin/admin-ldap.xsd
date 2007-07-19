@@ -97,7 +97,9 @@
       <xsd:documentation>
         Defines which LDAP attribute should be used to name child
         managed objects referenced by a relation. When not specified,
-        "cn" is used by default.
+        "cn" is used by default. When the relation uses a naming
+        property this element is not required, instead the LDAP
+        attribute associated with the naming property will be used.
       </xsd:documentation>
     </xsd:annotation>
   </xsd:element>

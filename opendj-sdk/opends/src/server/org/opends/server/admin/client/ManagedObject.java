@@ -157,6 +157,8 @@ public interface ManagedObject<C extends ConfigurationClient> extends
    *          values.
    * @return Returns a new child managed object bound to the specified
    *         instantiable relation.
+   * @throws IllegalManagedObjectNameException
+   *           If the name of the child managed object is invalid.
    * @throws IllegalArgumentException
    *           If the relation definition is not associated with this
    *           managed object's definition.
@@ -164,7 +166,7 @@ public interface ManagedObject<C extends ConfigurationClient> extends
   <M extends ConfigurationClient, N extends M> ManagedObject<N> createChild(
       InstantiableRelationDefinition<M, ?> r, ManagedObjectDefinition<N, ?> d,
       String name, Collection<DefaultBehaviorException> exceptions)
-      throws IllegalArgumentException;
+      throws IllegalManagedObjectNameException, IllegalArgumentException;
 
 
 

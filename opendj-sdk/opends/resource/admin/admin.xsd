@@ -593,6 +593,21 @@
                 </xsd:documentation>
               </xsd:annotation>
             </xsd:attribute>
+            <xsd:attribute name="naming-property" type="tns:name-type"
+              use="optional">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Specifies the name of a property in the referenced
+                  managed object which should be used for naming
+                  instances. For example, an attribute index managed
+                  object could be named according to the attribute that
+                  it indexes. If present, the naming property must
+                  reference a single-valued, mandatory, read-only
+                  property. If it is not present, the administration
+                  framework will use the default naming mechanism.
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:attribute>
           </xsd:complexType>
         </xsd:element>
       </xsd:choice>

@@ -46,7 +46,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
    * {@inheritDoc}
    */
   @Override
-  public String getAttributeName(ManagedObjectDefinition<?, ?> d,
+  public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d,
       PropertyDefinition<?> pd) {
     if (d == TestParentCfgDefn.getInstance()) {
       TestParentCfgDefn td = TestParentCfgDefn.getInstance();

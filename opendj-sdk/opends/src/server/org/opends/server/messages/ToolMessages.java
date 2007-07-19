@@ -9063,6 +9063,89 @@ public class ToolMessages
 
 
   /**
+   * The message ID for the message that will be used if the user
+   * attempts create a new managed object having a name which is
+   * invalid according to the managed object's naming property. This
+   * takes three arguments which are the illegal name, the user
+   * friendly name of the associated managed object, and the syntax.
+   */
+  public static final int MSGID_DSCFG_ERROR_ILLEGAL_NAME_SYNTAX =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1204;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts create a new managed object having an empty name. This
+   * takes a single argument which is the user friendly plural name of
+   * the associated managed object.
+   */
+  public static final int MSGID_DSCFG_ERROR_ILLEGAL_NAME_EMPTY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1205;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts create a new managed object having a blank name. This
+   * takes a single argument which is the user friendly plural name of
+   * the associated managed object.
+   */
+  public static final int MSGID_DSCFG_ERROR_ILLEGAL_NAME_BLANK =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1206;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts create a new managed object having a name which is
+   * invalid for an unspecified reason. This takes two arguments which
+   * are the illegal name and the user friendly name of the associated
+   * managed object.
+   */
+  public static final int MSGID_DSCFG_ERROR_ILLEGAL_NAME_UNKNOWN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1207;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the a naming argument in create-xxx sub-commands
+   * which do not have a naming property. This takes a single argument
+   * which is the user friendly name for the type of managed objects
+   * being named.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_NAME_CREATE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1208;
+
+
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the a naming argument in create-xxx sub-commands
+   * which do have a naming property. This takes three arguments which
+   * are the user friendly name for the type of managed objects being
+   * named, the name of the naming property, and the naming property's
+   * synopsis.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_NAME_CREATE_EXT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1209;
+
+
+
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts set a value for the naming property when creating a new
+   * managed object. This takes two arguments, which are the the name
+   * of the naming property, and the user friendly name of the type of
+   * managed object being created.
+   */
+  public static final int MSGID_DSCFG_ERROR_UNABLE_TO_SET_NAMING_PROPERTY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1210;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -11374,6 +11457,13 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_DESCRIPTION_NAME,
                     "The name of the %s");
 
+    registerMessage(MSGID_DSCFG_DESCRIPTION_NAME_CREATE,
+                    "The name of the new %s");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_NAME_CREATE_EXT,
+                    "The name of the new %s which will also be used as the " +
+                    "value of the \"%s\" property: %s");
+
     registerMessage(MSGID_DSCFG_DESCRIPTION_HELP_TYPE,
                     "The type(s) of components whose properties should be " +
                     "described");
@@ -11457,6 +11547,10 @@ public class ToolMessages
                     "The %s property \"%s\" is mandatory cannot be reset. " +
                     "Use the \"%s\" option to specify a new value");
 
+    registerMessage(MSGID_DSCFG_ERROR_UNABLE_TO_SET_NAMING_PROPERTY,
+                    "The property \"%s\" cannot be set as it is defined " +
+                    "implicitly by the name of the %s");
+
     registerMessage(MSGID_DSCFG_ERROR_PROPERTY_SINGLE_VALUED,
                     "It is not possible to specify multiple values for the " +
                     "%s property \"%s\" as it is single-valued");
@@ -11472,6 +11566,19 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_ERROR_PROPERTY_INHERITED_DEFAULT_BEHAVIOR,
                     "The inherited default value(s) of the %s property " +
                     "\"%s\" could not be determined");
+
+    registerMessage(MSGID_DSCFG_ERROR_ILLEGAL_NAME_EMPTY,
+                    "Empty names are not permitted for %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_ILLEGAL_NAME_BLANK,
+                    "Blank names are not permitted for %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_ILLEGAL_NAME_SYNTAX,
+                    "The name \"%s\" is not a valid name for the %s " +
+                    "which has the following syntax: %s");
+
+    registerMessage(MSGID_DSCFG_ERROR_ILLEGAL_NAME_UNKNOWN,
+                    "The name \"%s\" is not a valid name for the %s");
 
     registerMessage(MSGID_DSCFG_HEADING_MANAGED_OBJECT_NAME,
                     "Component");
