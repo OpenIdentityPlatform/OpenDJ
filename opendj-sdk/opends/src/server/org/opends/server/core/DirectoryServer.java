@@ -2093,10 +2093,7 @@ public class DirectoryServer
   private void initializeAlertHandlers()
           throws ConfigException, InitializationException
   {
-    // FIXME -- Replace this with the real implementation.
-    JMXAlertHandler alertHandler = new JMXAlertHandler();
-    alertHandler.initializeAlertHandler(null);
-    alertHandlers.add(alertHandler);
+    new AlertHandlerConfigManager().initializeAlertHandlers();
   }
 
 

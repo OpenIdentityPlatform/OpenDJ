@@ -28,7 +28,9 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.config.ConfigEntry;
+import java.util.List;
+
+import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
 
@@ -39,16 +41,18 @@ import org.opends.server.types.InitializationException;
  * for a Directory Server alert handler.  Alert handlers are used to
  * present alert notifications in various forms like JMX, e-mail, or
  * paging.
+ *
+ * @param  <T>  The type of configuration handled by this alert
+ *              handler.
  */
-public interface AlertHandler
+public interface AlertHandler<T extends AlertHandlerCfg>
 {
   /**
    * Initializes this alert handler based on the information in the
    * provided configuration entry.
    *
-   * @param  configEntry  The configuration entry that contains the
-   *                      information to use to initialize this alert
-   *                      handler.
+   * @param  configuration  The configuration to use to initialize
+   *                        this alert handler.
    *
    * @throws  ConfigException  If the provided entry does not contain
    *                           a valid configuration for this alert
@@ -59,8 +63,27 @@ public interface AlertHandler
    *                                   related to the server
    *                                   configuration.
    */
-  public void initializeAlertHandler(ConfigEntry configEntry)
+  public void initializeAlertHandler(T configuration)
        throws ConfigException, InitializationException;
+
+
+
+  /**
+   * Indicates whether the provided configuration is acceptable for
+   * this alert handler.
+   *
+   * @param  configuration        The configuration for which to make
+   *                              tje determination.
+   * @param  unacceptableReasons  A list to which human-readable
+   *                              reasons may be added to explain why
+   *                              the configuration is not acceptable.
+   *
+   * @return  {@code true} if the provided configuration is
+   *          acceptable, or {@code false} if it is not.
+   */
+  public boolean isConfigurationAcceptable(
+                      AlertHandlerCfg configuration,
+                      List<String> unacceptableReasons);
 
 
 

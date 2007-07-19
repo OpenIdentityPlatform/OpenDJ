@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.management.Attribute;
@@ -47,19 +48,19 @@ import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 
+import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.api.DirectoryServerMBean;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.ExtensionsMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
@@ -68,13 +69,13 @@ import static org.opends.server.util.ServerConstants.*;
 
 
 /**
- * This interface defines the set of methods that must be implemented for a
- * Directory Server alert handler.  Alert handlers are used to present alert
- * notifications in various forms like JMX, e-mail, or paging.
+ * This class provides an implementation of a Directory Server alert handler
+ * that will send alerts using JMX notifications.
  */
 public class JMXAlertHandler
        extends NotificationBroadcasterSupport
-       implements AlertHandler, DynamicMBean, DirectoryServerMBean
+       implements AlertHandler<AlertHandlerCfg>, DynamicMBean,
+                  DirectoryServerMBean
 {
   /**
    * The tracer object for the debug logger.
@@ -109,37 +110,25 @@ public class JMXAlertHandler
   public JMXAlertHandler()
   {
     super();
-
   }
 
 
 
   /**
-   * Initializes this alert handler based on the information in the provided
-   * configuration entry.
-   *
-   * @param  configEntry  The configuration entry that contains the information
-   *                      to use to initialize this alert handler.
-   *
-   * @throws  ConfigException  If the provided entry does not contain a valid
-   *                           configuration for this alert handler.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
+   * {@inheritDoc}
    */
-  public void initializeAlertHandler(ConfigEntry configEntry)
+  public void initializeAlertHandler(AlertHandlerCfg configuration)
        throws ConfigException, InitializationException
   {
     sequenceNumber = new AtomicLong(1);
 
-    if (configEntry == null)
+    if (configuration == null)
     {
       configEntryDN = null;
     }
     else
     {
-      configEntryDN = configEntry.getDN();
+      configEntryDN = configuration.dn();
     }
 
     MBeanServer mBeanServer = DirectoryServer.getJMXMBeanServer();
@@ -173,8 +162,18 @@ public class JMXAlertHandler
 
 
   /**
-   * Performs any necessary cleanup that may be necessary when this
-   * alert handler is finalized.
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
+                                           List<String> unacceptableReasons)
+  {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
    */
   public void finalizeAlertHandler()
   {
@@ -196,14 +195,7 @@ public class JMXAlertHandler
 
 
   /**
-   * Sends an alert notification based on the provided information.
-   *
-   * @param  generator     The alert generator that created the alert.
-   * @param  alertType     The alert type name for this alert.
-   * @param  alertID       The alert ID that uniquely identifies the type of
-   *                       alert.
-   * @param  alertMessage  A message (possibly <CODE>null</CODE>) that can
-   *                       provide more information about this alert.
+   * {@inheritDoc}
    */
   public void sendAlertNotification(AlertGenerator generator, String alertType,
                                     int alertID, String alertMessage)

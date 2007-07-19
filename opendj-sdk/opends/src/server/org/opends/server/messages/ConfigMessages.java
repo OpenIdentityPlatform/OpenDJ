@@ -7034,6 +7034,29 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used if a proposed
+   * configuration is not acceptable.  This takes two arguments, which are the
+   * DN of the configuration entry and a message explaining why the
+   * configuration is not acceptable.
+   */
+  public static final int MSGID_CONFIG_ALERTHANDLER_CONFIG_NOT_ACCEPTABLE =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 695;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * initializing a Directory Server alert handler.  This takes three arguments,
+   * which are the class name for the identity mapper class, the DN of the
+   * configuration entry, and a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_CONFIG_ALERTHANDLER_INITIALIZATION_FAILED =
+            CATEGORY_MASK_CONFIG | SEVERITY_MASK_MILD_ERROR | 696;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -10021,6 +10044,15 @@ public class ConfigMessages
                     "configuration, but at least one of the configuration " +
                     "change listeners reported an error when attempting to " +
                     "apply the change:  %s");
+
+
+    registerMessage(MSGID_CONFIG_ALERTHANDLER_CONFIG_NOT_ACCEPTABLE,
+                    "The configuration for the alert handler defined in " +
+                    "configuration entry %s was not acceptable:  %s");
+    registerMessage(MSGID_CONFIG_ALERTHANDLER_INITIALIZATION_FAILED,
+                    "An error occurred while trying to initialize an " +
+                    "instance of class %s as an alert handler as defined " +
+                    "in configuration entry %s:  %s");
   }
 }
 
