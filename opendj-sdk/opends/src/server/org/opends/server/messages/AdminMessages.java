@@ -587,32 +587,32 @@ public final class AdminMessages {
         "This utility may be used to perform " +
         "operations in the Directory Server administration framework");
     registerMessage(MSGID_ADMIN_SUBCMD_CREATE_GROUP_DESCRIPTION,
-        "Create a new group of servers");
+        "Create a new server group");
     registerMessage(MSGID_ADMIN_ARG_DESCRIPTION_DESCRIPTION,
-        "The group description. If not specified, " +
+        "The server group description. If not specified, " +
         "the description will be empty");
     registerMessage(MSGID_ADMIN_SUBCMD_MODIFY_GROUP_DESCRIPTION,
-        "Modify a group's properties");
+        "Modify a server group's properties");
     registerMessage(MSGID_ADMIN_ARG_NEW_DESCRIPTION_DESCRIPTION,
         "If specified, the new description");
     registerMessage(MSGID_ADMIN_ARG_NEW_GROUPNAME_DESCRIPTION,
-        "If specified, the new group's identifier");
+        "If specified, the new server group's identifier");
     registerMessage(MSGID_ADMIN_SUBCMD_DELETE_GROUP_DESCRIPTION,
-        "Delete an existing group of servers" );
+        "Delete an existing server group" );
     registerMessage(MSGID_ADMIN_SUBCMD_LIST_GROUPS_DESCRIPTION,
-        "List groups that have been defined" );
+        "List server groups that have been defined" );
     registerMessage(MSGID_ADMIN_SUBCMD_ADD_TO_GROUP_DESCRIPTION,
-        "Add a member to a group" );
+        "Add a server to a server group" );
     registerMessage(MSGID_ADMIN_ARG_ADD_MEMBERNAME_DESCRIPTION,
-        "The member to add. This is a required argument" );
+        "The server to add. This is a required argument" );
     registerMessage(MSGID_ADMIN_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION,
-        "Remove a member from a group" );
+        "Remove a server from a server group" );
     registerMessage(MSGID_ADMIN_ARG_REMOVE_MEMBERNAME_DESCRIPTION,
-        "The member to remove. This is a required argument" );
+        "The server to remove. This is a required argument" );
     registerMessage(MSGID_ADMIN_SUBCMD_LIST_MEMBERS_DESCRIPTION,
-        "List members of the specified group" );
+        "List servers of the specified server group" );
     registerMessage(MSGID_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION,
-        "List groups in which the specified server is a member" );
+        "List server groups in which the specified server is a member" );
     registerMessage(MSGID_ADMIN_CANNOT_CONNECT_TO_ADS,
         "Could not connect to %s. Check that the "+
         "server is running and that the provided credentials are valid");
