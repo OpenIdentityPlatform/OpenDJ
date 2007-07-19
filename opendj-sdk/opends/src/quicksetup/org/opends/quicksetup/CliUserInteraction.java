@@ -94,10 +94,9 @@ public class CliUserInteraction extends CliApplicationHelper
               viewDetailsOption != null ? viewDetailsOption : "View Details"));
     }
 
+    println(summary);
     println();
-    println(Utils.stripHtml(summary));
-    println();
-    println(Utils.stripHtml(details));
+    println(details);
 
     String returnValue = null;
     while (returnValue == null) {
@@ -106,8 +105,8 @@ public class CliUserInteraction extends CliApplicationHelper
         println(o);
       }
       System.out.print(getMsg("cli-uninstall-confirm-prompt",
-          new String[] {"Enter a number or press Enter to accept the default",
-                  Integer.toString(defInt)}));
+              "Enter a number or press Enter to accept the default",
+              Integer.toString(defInt)));
 
       System.out.flush();
 
@@ -133,7 +132,20 @@ public class CliUserInteraction extends CliApplicationHelper
     return returnValue;
   }
 
-
+  /**
+   * {@inheritDoc}
+   */
+  public String createUnorderedList(List list) {
+    StringBuilder sb = new StringBuilder();
+    if (list != null) {
+      for (Object o : list) {
+        sb.append(/*bullet=*/"\u2022 ");
+        sb.append(o.toString());
+        sb.append(Constants.LINE_SEPARATOR);
+      }
+    }
+    return sb.toString();
+  }
 
   private String createOption(int index, String option) {
     return new StringBuilder().
@@ -147,7 +159,10 @@ public class CliUserInteraction extends CliApplicationHelper
   }
 
   private void println(String text) {
-    out.println(StaticUtils.wrapText(text, Utils.getCommandLineMaxLineWidth()));
+    text = Utils.convertHtmlBreakToLineSeparator(text);
+    text = Utils.stripHtml(text);
+    text = StaticUtils.wrapText(text, Utils.getCommandLineMaxLineWidth());
+    out.println(text);
   }
 
 }

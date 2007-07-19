@@ -1196,7 +1196,8 @@ public class Utils
    * Inserts HTML break tags into <code>d</code> breaking it up
    * so that ideally no line is longer than <code>maxll</code>
    * assuming no single word is longer then <code>maxll</code>.
-   * If the string already contains HTML line breaks, they are
+   * If the string already contains HTML tags that cause a line
+   * break (e.g break and closing list item tags) they are
    * respected by this method when calculating where to place
    * new breaks to control the maximum line length.
    *
@@ -1210,17 +1211,28 @@ public class Utils
     if (len <= 0)
       return d;
     if (len > maxll) {
-      int p = d.lastIndexOf(Constants.HTML_LINE_BREAK, maxll);
-      if (p > 0 && p < len) {
-        return d.substring(0, p + Constants.HTML_LINE_BREAK.length()) +
-               breakHtmlString(
-                       d.substring(p + Constants.HTML_LINE_BREAK.length()),
-                       maxll);
-      } else {
-        p = d.lastIndexOf(' ', maxll);
-        if (p <= 0) {
-          p = d.indexOf(' ', maxll);
+
+      // First see if there are any tags that would cause a
+      // natural break in the line.  If so start line break
+      // point evaluation from that point.
+      for (String tag : Constants.BREAKING_TAGS) {
+        int p = d.lastIndexOf(tag, maxll);
+        if (p > 0 && p < len) {
+          return d.substring(0, p + tag.length()) +
+                 breakHtmlString(
+                         d.substring(p + tag.length()),
+                         maxll);
         }
+      }
+
+      // Now look for spaces in which to insert a break.
+      // First see if there are any spaces counting backward
+      // from the max line length.  If there aren't any, then
+      // use the first space encountered after the max line
+      // lenght.
+      int p = d.lastIndexOf(' ', maxll);
+      if (p <= 0) {
+        p = d.indexOf(' ', maxll);
       }
       if (p > 0 && p < len) {
         return d.substring(0, p) +
@@ -1232,6 +1244,15 @@ public class Utils
     } else {
       return d;
     }
+  }
+
+  /**
+   * Converts existing HTML break tags to native line sparators.
+   * @param s string to convert
+   * @return converted string
+   */
+  static public String convertHtmlBreakToLineSeparator(String s) {
+    return s.replaceAll("\\<br\\>", Constants.LINE_SEPARATOR);
   }
 
   /**

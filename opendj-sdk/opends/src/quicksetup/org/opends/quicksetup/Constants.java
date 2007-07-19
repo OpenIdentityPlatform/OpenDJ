@@ -51,7 +51,31 @@ public class Constants {
   /** HTML italics close tag. */
   public static final String HTML_ITALICS_CLOSE = "</i>";
 
+  /** HTML unordered list open tag. */
+  public static final Object HTML_UNORDERED_LIST_OPEN = "<ul>";
+
+  /** HTML unordered list close tag. */
+  public static final Object HTML_UNORDERED_LIST_CLOSE = "</ul>";
+
+  /** HTML unordered list open tag. */
+  public static final Object HTML_ORDERED_LIST_OPEN = "<ol>";
+
+  /** HTML unordered list close tag. */
+  public static final Object HTML_ORDERED_LIST_CLOSE = "</ol>";
+
+  /** HTML list item open tag. */
+  public static final String HTML_LIST_ITEM_OPEN = "<li>";
+
+  /** HTML list item close tag. */
+  public static final String HTML_LIST_ITEM_CLOSE = "</li>";
+
   /** Default dynamic name of directory manager. */
   public static final String DIRECTORY_MANAGER_DN = "cn=Directory Manager";
+
+  /** These HTML tags cause a line break in formatted text. */
+  public static final String[] BREAKING_TAGS = {
+          HTML_LINE_BREAK,
+          HTML_LIST_ITEM_CLOSE
+  };
 
 }
