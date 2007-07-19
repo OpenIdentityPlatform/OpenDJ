@@ -1151,8 +1151,7 @@ public class SearchOperationBasis
 
 
       // Invoke the post-response search plugins.
-      DirectoryServer.getPluginConfigManager().
-           invokePostResponseSearchPlugins(this);
+      invokePostResponsePlugins();
     }
   }
 
@@ -1631,17 +1630,18 @@ public class SearchOperationBasis
     setTimeLimitExpiration(timeLimitExpiration);
 
     // Check for and handle a request to cancel this operation.
-    if (getCancelRequest() != null)
+    if (cancelRequest != null)
     {
-      indicateCancelled(getCancelRequest());
+      indicateCancelled(cancelRequest);
       setProcessingStopTime();
       logSearchResultDone(this);
       return;
     }
 
+
     // Create a labeled block of code that we can break out of if a problem is
     // detected.
-    searchProcessing:
+searchProcessing:
     {
       PreParsePluginResult preParseResult =
         pluginConfigManager.invokePreParseSearchPlugins(this);
@@ -1677,13 +1677,9 @@ public class SearchOperationBasis
 
 
       // Check for and handle a request to cancel this operation.
-      if (getCancelRequest() != null)
+      if (cancelRequest != null)
       {
-        indicateCancelled(getCancelRequest());
-        setProcessingStopTime();
-        logSearchResultDone(this);
-        pluginConfigManager.invokePostResponseSearchPlugins(this);
-        return;
+        break searchProcessing;
       }
 
 
@@ -1710,16 +1706,36 @@ public class SearchOperationBasis
       workflow.execute(this);
     }
 
-    // Check for and handle a request to cancel this operation.
-    if ((getCancelRequest() != null) ||
-        (getCancelResult() == CancelResult.CANCELED))
+
+    // Check for a terminated connection.
+    if (getCancelResult() == CancelResult.CANCELED)
     {
-      indicateCancelled(getCancelRequest());
+      // Stop the processing timer.
       setProcessingStopTime();
+
+      // Log the add response message.
       logSearchResultDone(this);
-      pluginConfigManager.invokePostResponseSearchPlugins(this);
+
       return;
     }
+
+    // Check for and handle a request to cancel this operation.
+    if (cancelRequest != null)
+    {
+      indicateCancelled(cancelRequest);
+
+      // Stop the processing timer.
+      setProcessingStopTime();
+
+      // Log the search response message.
+      logSearchResultDone(this);
+
+      // Invoke the post-response search plugins.
+      invokePostResponsePlugins();
+
+      return;
+    }
+
 
     // Indicate that it is now too late to attempt to cancel the operation.
     setCancelResult(CancelResult.TOO_LATE);
@@ -1742,6 +1758,22 @@ public class SearchOperationBasis
       setTimeLimit(0);
     }
   }
+
+
+  /**
+   * Invokes the post response plugins.
+   */
+  private void invokePostResponsePlugins()
+  {
+    // Get the plugin config manager that will be used for invoking plugins.
+    PluginConfigManager pluginConfigManager =
+      DirectoryServer.getPluginConfigManager();
+
+    // Invoke the post response plugins that have been registered with
+    // the current operation
+    pluginConfigManager.invokePostResponseSearchPlugins(this);
+  }
+
 
   /**
    * Updates the error message and the result code of the operation.

@@ -807,9 +807,13 @@ public class BindOperationBasis
       DirectoryServer.getPluginConfigManager();
 
 
+    // This flag is set to true as soon as a workflow has been executed.
+    boolean workflowExecuted = false;
+
+
     // Create a labeled block of code that we can break out of if a problem is
     // detected.
-    bindProcessing:
+bindProcessing:
     {
       // Invoke the pre-parse bind plugins.
       PreParsePluginResult preParseResult =
@@ -877,15 +881,19 @@ public class BindOperationBasis
         break bindProcessing;
       }
       workflow.execute(this);
-    }
+      workflowExecuted = true;
 
-    // Check for and handle a request to cancel this operation.
+    } // end of processing block
+
+    // Check for a terminated connection.
     if (getCancelResult() == CancelResult.CANCELED)
     {
+      // Stop the processing timer.
       setProcessingStopTime();
+
+      // Log the bind response message.
       logBindResponse(this);
-      invokePostResponsePlugins();
-      clientConnection.setBindInProgress(false);
+
       return;
     }
 
@@ -905,19 +913,51 @@ public class BindOperationBasis
     // Log the bind response.
     logBindResponse(this);
 
-    // Check wether there are local operations in attachments
-    List localOperations =
-      (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
-    if (localOperations != null && (! localOperations.isEmpty())){
-      for (Object localOp : localOperations)
+    // Invoke the post-response bind plugins.
+    invokePostResponsePlugins(workflowExecuted);
+  }
+
+
+  /**
+   * Invokes the post response plugins. If a workflow has been executed
+   * then invoke the post response plugins provided by the workflow
+   * elements of the worklfow, otherwise invoke the post reponse plugins
+   * that have been registered with the current operation.
+   *
+   * @param workflowExecuted <code>true</code> if a workflow has been
+   *                         executed
+   */
+  private void invokePostResponsePlugins(boolean workflowExecuted)
+  {
+    // Get the plugin config manager that will be used for invoking plugins.
+    PluginConfigManager pluginConfigManager =
+      DirectoryServer.getPluginConfigManager();
+
+    // Invoke the post response plugins
+    if (workflowExecuted)
+    {
+      // The post responses are provided by the workflow elements of the
+      // workflow.
+      List localOperations =
+        (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
+      if (localOperations != null)
       {
-        LocalBackendBindOperation localOperation =
-          (LocalBackendBindOperation)localOp;
-        // Invoke the post-response bind plugins.
-        pluginConfigManager.invokePostResponseBindPlugins(localOperation);
+        for (Object localOp : localOperations)
+        {
+          LocalBackendBindOperation localOperation =
+            (LocalBackendBindOperation)localOp;
+          // Invoke the post-response bind plugins.
+          pluginConfigManager.invokePostResponseBindPlugins(localOperation);
+        }
+      }
+      else
+      {
+        // The current operation does not implement any bind post response
+        // interface so we cannot invoke any post-response plugin.
       }
     }
   }
+
 
   /**
    * Updates the error message and the result code of the operation.
@@ -932,30 +972,6 @@ public class BindOperationBasis
 
     setResultCode(ResultCode.INVALID_CREDENTIALS);
     setAuthFailureReason(msgID, message);
-  }
-
-  /**
-   * Execute the postResponseBindPlugins.
-   */
-  private void invokePostResponsePlugins()
-  {
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
-
-    // Check wether there are local operations in attachments
-    List localOperations =
-      (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
-
-    if (localOperations != null && (! localOperations.isEmpty())){
-      for (Object localOp : localOperations)
-      {
-        LocalBackendBindOperation localOperation =
-          (LocalBackendBindOperation)localOp;
-        // Invoke the post-response bind plugins.
-        pluginConfigManager.invokePostResponseBindPlugins(localOperation);
-      }
-    }
   }
 
 }
