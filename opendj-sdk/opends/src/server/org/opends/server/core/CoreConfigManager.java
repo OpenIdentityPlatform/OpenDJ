@@ -30,6 +30,8 @@ package org.opends.server.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.GlobalCfg;
@@ -46,6 +48,7 @@ import org.opends.server.types.WritabilityMode;
 
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -88,10 +91,50 @@ public class CoreConfigManager
          managementContext.getRootConfiguration();
 
 
-    // Get the global configuration, register with it as a change listener, and
-    // apply the configuration to the server.
+    // Get the global configuration and register with it as a change listener.
     GlobalCfg globalConfig = rootConfiguration.getGlobalConfiguration();
     globalConfig.addChangeListener(this);
+
+
+    // If there are any STMP servers specified, then make sure that if the value
+    // contains a colon that the portion after it is an integer between 1 and
+    // 65535.
+    Set<String> smtpServers = globalConfig.getSMTPServer();
+    if (smtpServers != null)
+    {
+      for (String server : smtpServers)
+      {
+        int colonPos = server.indexOf(':');
+        if ((colonPos == 0) || (colonPos == (server.length()-1)))
+        {
+          int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
+          String message = getMessage(msgID, server);
+          throw new ConfigException(msgID, message);
+        }
+        else if (colonPos > 0)
+        {
+          try
+          {
+            int port = Integer.parseInt(server.substring(colonPos+1));
+            if ((port < 1) || (port > 65535))
+            {
+              int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
+              String message = getMessage(msgID, server);
+              throw new ConfigException(msgID, message);
+            }
+          }
+          catch (Exception e)
+          {
+            int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
+            String message = getMessage(msgID, server);
+            throw new ConfigException(msgID, message, e);
+          }
+        }
+      }
+    }
+
+
+    // Apply the configuration to the server.
     applyGlobalConfiguration(globalConfig);
   }
 
@@ -180,6 +223,34 @@ public class CoreConfigManager
          globalConfig.isBindWithDNRequiresPassword());
 
     DirectoryServer.setLookthroughLimit(globalConfig.getLookthroughLimit());
+
+
+    ArrayList<Properties> mailServerProperties = new ArrayList<Properties>();
+    Set<String> smtpServers = globalConfig.getSMTPServer();
+    if ((smtpServers != null) && (! smtpServers.isEmpty()))
+    {
+      for (String smtpServer : smtpServers)
+      {
+        int colonPos = smtpServer.indexOf(':');
+        if (colonPos > 0)
+        {
+          String smtpHost = smtpServer.substring(0, colonPos);
+          String smtpPort = smtpServer.substring(colonPos+1);
+
+          Properties properties = new Properties();
+          properties.setProperty(SMTP_PROPERTY_HOST, smtpHost);
+          properties.setProperty(SMTP_PROPERTY_PORT, smtpPort);
+          mailServerProperties.add(properties);
+        }
+        else
+        {
+          Properties properties = new Properties();
+          properties.setProperty(SMTP_PROPERTY_HOST, smtpServer);
+          mailServerProperties.add(properties);
+        }
+      }
+    }
+    DirectoryServer.setMailServerPropertySets(mailServerProperties);
   }
 
 
@@ -215,6 +286,43 @@ public class CoreConfigManager
       unacceptableReasons.add(message);
 
       configAcceptable = false;
+    }
+
+    Set<String> smtpServers = configuration.getSMTPServer();
+    if (smtpServers != null)
+    {
+      for (String server : smtpServers)
+      {
+        int colonPos = server.indexOf(':');
+        if ((colonPos == 0) || (colonPos == (server.length()-1)))
+        {
+          int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
+          String message = getMessage(msgID, server);
+          unacceptableReasons.add(message);
+          configAcceptable = false;
+        }
+        else if (colonPos > 0)
+        {
+          try
+          {
+            int port = Integer.parseInt(server.substring(colonPos+1));
+            if ((port < 1) || (port > 65535))
+            {
+              int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
+              String message = getMessage(msgID, server);
+              unacceptableReasons.add(message);
+              configAcceptable = false;
+            }
+          }
+          catch (Exception e)
+          {
+            int    msgID   = MSGID_CONFIG_CORE_INVALID_SMTP_SERVER;
+            String message = getMessage(msgID, server);
+            unacceptableReasons.add(message);
+            configAcceptable = false;
+          }
+        }
+      }
     }
 
     return configAcceptable;

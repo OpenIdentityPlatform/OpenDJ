@@ -5512,6 +5512,27 @@ public class ExtensionsMessages
 
 
   /**
+   * The message ID for the message that will be used if the Directory Server is
+   * not configured with information about any SMTP servers.  This does not take
+   * any configuration arguments.
+   */
+  public static final int MSGID_SMTPALERTHANDLER_NO_SMTP_SERVERS =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_MILD_ERROR | 531;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to send an e-mail message.  This takes three arguments, which are
+   * the alert type, the alert message, and a string representation of the
+   * exception that was caught.
+   */
+  public static final int MSGID_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE =
+       CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_WARNING | 532;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7919,6 +7940,17 @@ public class ExtensionsMessages
                     "The password policy state extended request included an " +
                     "operation with an invalid or unsupported operation type " +
                     "of %s");
+
+
+    registerMessage(MSGID_SMTPALERTHANDLER_NO_SMTP_SERVERS,
+                    "The Directory Server is not configured with any " +
+                    "SMTP servers.  The SMTP alert handler cannot be used " +
+                    "unless the Directory Server is configured with " +
+                    "information about at least one SMTP server");
+    registerMessage(MSGID_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE,
+                    "An error occurred when trying to send an e-mail message " +
+                    "for administrative alert with type %s and message %s:  " +
+                    "%s");
   }
 }
 

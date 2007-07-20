@@ -95,7 +95,19 @@ objectClass: top
 objectClass: ds-cfg-alert-handler
 cn: JMX Alert Handler
 ds-cfg-alert-handler-class: org.opends.server.extensions.JMXAlertHandler
+ds-cfg-alert-handler-enabled: true
+
+dn: cn=SMTP Alert Handler,cn=Alert Handlers,cn=config
+objectClass: top
+objectClass: ds-cfg-alert-handler
+objectClass: ds-cfg-smtp-alert-handler
+cn: JMX Alert Handler
+ds-cfg-alert-handler-class: org.opends.server.extensions.SMTPAlertHandler
 ds-cfg-alert-handler-enabled: false
+ds-cfg-sender-address: opends-alerts@example.com
+ds-cfg-recipient-address: directory-administrators@example.com
+ds-cfg-message-subject: OpenDS Alert %%alert-type%%
+ds-cfg-message-body: Alert Type:  %%alert-type%%\n\nAlert ID:  %%alert-id%%\n\nAlert Message:  %%alert-message%%
 
 dn: cn=Backends,cn=config
 objectClass: top

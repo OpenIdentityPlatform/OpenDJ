@@ -2552,5 +2552,21 @@ public class ServerConstants
    */
   public static final String SCHEMA_BASE_FILE_NAME_WITHOUT_REVISION  =
        "schema.ldif.";
+
+
+
+  /**
+   * The name of the JavaMail property that can be used to specify the address
+   * of the SMTP server.
+   */
+  public static final String SMTP_PROPERTY_HOST = "mail.smtp.host";
+
+
+
+  /**
+   * The name of the JavaMail property that can be used to specify the port for
+   * the SMTP server.
+   */
+  public static final String SMTP_PROPERTY_PORT = "mail.smtp.port";
 }
 
