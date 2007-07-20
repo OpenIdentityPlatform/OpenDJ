@@ -29,8 +29,12 @@ package org.opends.server.admin;
 
 
 
+import static org.opends.server.util.Validator.*;
+
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.Set;
 
 
 
@@ -79,34 +83,135 @@ import java.util.MissingResourceException;
 public abstract class RelationDefinition
     <C extends ConfigurationClient, S extends Configuration> {
 
-  // The name of the relation.
-  private final String name;
+  /**
+   * An interface for incrementally constructing relation definitions.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this relation definition refers to.
+   * @param <D>
+   *          The type of relation definition constructed by this
+   *          builder.
+   */
+  protected abstract static class AbstractBuilder
+      <C extends ConfigurationClient, S extends Configuration,
+       D extends RelationDefinition<C, S>> {
 
-  // The definition of the parent managed object.
-  private final AbstractManagedObjectDefinition<?, ?> pd;
+    // Common fields.
+    private final Common<C, S> common;
 
-  // The definition of the child managed object.
-  private final AbstractManagedObjectDefinition<C, S> cd;
+
+
+    /**
+     * Create a property definition builder.
+     *
+     * @param pd
+     *          The parent managed object definition.
+     * @param name
+     *          The name of the relation.
+     * @param cd
+     *          The child managed object definition.
+     */
+    protected AbstractBuilder(AbstractManagedObjectDefinition<?, ?> pd,
+        String name, AbstractManagedObjectDefinition<C, S> cd) {
+      this.common = new Common<C, S>(pd, name, cd);
+    }
+
+
+
+    /**
+     * Construct a relation definition based on the properties of this
+     * builder.
+     *
+     * @return The new relation definition.
+     */
+    public final D getInstance() {
+      return buildInstance(common);
+    }
+
+
+
+    /**
+     * Add a relation definition option.
+     *
+     * @param option
+     *          The relation option.
+     */
+    public final void setOption(RelationOption option) {
+      ensureNotNull(option);
+      common.options.add(option);
+    }
+
+
+
+    /**
+     * Build a relation definition based on the properties of this
+     * builder.
+     *
+     * @param common
+     *          The common fields of the new relation definition.
+     * @return The new relation definition.
+     */
+    protected abstract D buildInstance(Common<C, S> common);
+  }
+
+
+
+  /**
+   * Opaque structure containing fields common to all relation
+   * definition types.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this relation definition refers to.
+   */
+  protected static final class Common
+    <C extends ConfigurationClient, S extends Configuration> {
+
+    // The definition of the child managed object.
+    private final AbstractManagedObjectDefinition<C, S> cd;
+
+    // The name of the relation.
+    private final String name;
+
+    // Options applicable to this definition.
+    private final Set<RelationOption> options;
+
+    // The definition of the parent managed object.
+    private final AbstractManagedObjectDefinition<?, ?> pd;
+
+
+
+    // Private constructor.
+    private Common(AbstractManagedObjectDefinition<?, ?> pd, String name,
+        AbstractManagedObjectDefinition<C, S> cd) {
+      this.name = name;
+      this.pd = pd;
+      this.cd = cd;
+      this.options = EnumSet.noneOf(RelationOption.class);
+    }
+  }
+
+  // Common fields.
+  private final Common<C, S> common;
 
 
 
   /**
    * Create a new managed object relation definition with the
-   * specified name and referenced managed object definition.
+   * specified common fields.
    *
-   * @param pd
-   *          The parent managed object definition.
-   * @param name
-   *          The name of the relation.
-   * @param cd
-   *          The child managed object definition.
+   * @param common
+   *          The common fields of the new relation definition.
    */
-  protected RelationDefinition(
-      AbstractManagedObjectDefinition<?, ?> pd, String name,
-      AbstractManagedObjectDefinition<C, S> cd) {
-    this.name = name;
-    this.pd = pd;
-    this.cd = cd;
+  protected RelationDefinition(Common<C, S> common) {
+    this.common = common;
   }
 
 
@@ -135,7 +240,7 @@ public abstract class RelationDefinition
    * @return Returns the definition of the child managed object.
    */
   public final AbstractManagedObjectDefinition<C, S> getChildDefinition() {
-    return cd;
+    return common.cd;
   }
 
 
@@ -166,9 +271,9 @@ public abstract class RelationDefinition
    */
   public final String getDescription(Locale locale) {
     try {
-      String property = "relation." + name + ".description";
-      return ManagedObjectDefinitionI18NResource.getInstance()
-          .getMessage(getParentDefinition(), property, locale);
+      String property = "relation." + common.name + ".description";
+      return ManagedObjectDefinitionI18NResource.getInstance().getMessage(
+          getParentDefinition(), property, locale);
     } catch (MissingResourceException e) {
       return null;
     }
@@ -182,7 +287,7 @@ public abstract class RelationDefinition
    * @return Returns the name of the relation.
    */
   public final String getName() {
-    return name;
+    return common.name;
   }
 
 
@@ -193,7 +298,7 @@ public abstract class RelationDefinition
    * @return Returns the definition of the parent managed object.
    */
   public final AbstractManagedObjectDefinition<?, ?> getParentDefinition() {
-    return pd;
+    return common.pd;
   }
 
 
@@ -221,9 +326,9 @@ public abstract class RelationDefinition
    *         specified locale.
    */
   public final String getSynopsis(Locale locale) {
-    String property = "relation." + name + ".synopsis";
-    return ManagedObjectDefinitionI18NResource.getInstance()
-        .getMessage(getParentDefinition(), property, locale);
+    String property = "relation." + common.name + ".synopsis";
+    return ManagedObjectDefinitionI18NResource.getInstance().getMessage(
+        getParentDefinition(), property, locale);
   }
 
 
@@ -251,9 +356,24 @@ public abstract class RelationDefinition
    *         definition in the specified locale.
    */
   public final String getUserFriendlyName(Locale locale) {
-    String property = "relation." + name + ".user-friendly-name";
-    return ManagedObjectDefinitionI18NResource.getInstance()
-        .getMessage(getParentDefinition(), property, locale);
+    String property = "relation." + common.name + ".user-friendly-name";
+    return ManagedObjectDefinitionI18NResource.getInstance().getMessage(
+        getParentDefinition(), property, locale);
+  }
+
+
+
+  /**
+   * Check if the specified option is set for this relation
+   * definition.
+   *
+   * @param option
+   *          The option to test.
+   * @return Returns <code>true</code> if the option is set, or
+   *         <code>false</code> otherwise.
+   */
+  public final boolean hasOption(RelationOption option) {
+    return common.options.contains(option);
   }
 
 

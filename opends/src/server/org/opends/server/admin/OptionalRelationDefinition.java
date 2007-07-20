@@ -46,19 +46,64 @@ public final class OptionalRelationDefinition
     extends RelationDefinition<C, S> {
 
   /**
-   * Create a new optional managed object relation definition.
+   * An interface for incrementally constructing optional relation
+   * definitions.
    *
-   * @param pd
-   *          The parent managed object definition.
-   * @param name
-   *          The name of the relation.
-   * @param cd
-   *          The child managed object definition.
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this relation definition refers to.
    */
-  public OptionalRelationDefinition(
-      AbstractManagedObjectDefinition<?, ?> pd, String name,
-      AbstractManagedObjectDefinition<C, S> cd) {
-    super(pd, name, cd);
+  public static class Builder
+      <C extends ConfigurationClient, S extends Configuration>
+      extends AbstractBuilder<C, S, OptionalRelationDefinition<C, S>> {
+
+    /**
+     * Creates a new builder which can be used to incrementally build
+     * an optional relation definition.
+     *
+     * @param pd
+     *          The parent managed object definition.
+     * @param name
+     *          The name of the relation.
+     * @param cd
+     *          The child managed object definition.
+     */
+    public Builder(AbstractManagedObjectDefinition<?, ?> pd, String name,
+        AbstractManagedObjectDefinition<C, S> cd) {
+      super(pd, name, cd);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected OptionalRelationDefinition<C, S> buildInstance(
+        Common<C, S> common) {
+      return new OptionalRelationDefinition<C, S>(common);
+    }
+
+  }
+
+
+
+  // Private constructor.
+  private OptionalRelationDefinition(Common<C, S> common) {
+    super(common);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
+    return v.visitOptional(this, p);
   }
 
 
@@ -75,16 +120,6 @@ public final class OptionalRelationDefinition
     builder.append(" child=");
     builder.append(getChildDefinition().getName());
     builder.append(" minOccurs=0 maxOccurs=1");
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
-    return v.visitOptional(this, p);
   }
 
 }

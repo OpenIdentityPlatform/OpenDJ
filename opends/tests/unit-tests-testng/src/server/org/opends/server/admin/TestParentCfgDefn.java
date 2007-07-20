@@ -164,8 +164,11 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
 
   // Build the "test-children" relation definition.
   static {
-    RD_TEST_CHILDREN = new InstantiableRelationDefinition<TestChildCfgClient, TestChildCfg>(
-        INSTANCE, "multiple-children", "test-children", TestChildCfgDefn.getInstance(), null);
+    InstantiableRelationDefinition.Builder<TestChildCfgClient, TestChildCfg> builder =
+      new InstantiableRelationDefinition.Builder<TestChildCfgClient, TestChildCfg>(
+        INSTANCE, "multiple-children", "test-children", TestChildCfgDefn
+            .getInstance());
+    RD_TEST_CHILDREN = builder.getInstance();
     INSTANCE.registerRelationDefinition(RD_TEST_CHILDREN);
   }
 
@@ -173,8 +176,10 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
 
   // Build the "optional-test-child" relation definition.
   static {
-    RD_OPTIONAL_TEST_CHILD = new OptionalRelationDefinition<TestChildCfgClient, TestChildCfg>(
+    OptionalRelationDefinition.Builder<TestChildCfgClient, TestChildCfg> builder =
+      new OptionalRelationDefinition.Builder<TestChildCfgClient, TestChildCfg>(
         INSTANCE, "optional-test-child", TestChildCfgDefn.getInstance());
+    RD_OPTIONAL_TEST_CHILD = builder.getInstance();
     INSTANCE.registerRelationDefinition(RD_OPTIONAL_TEST_CHILD);
   }
 

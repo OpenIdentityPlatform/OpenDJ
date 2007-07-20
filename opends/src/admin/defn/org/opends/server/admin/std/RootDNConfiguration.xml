@@ -46,7 +46,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </ldap:object-class>
   </adm:profile>
 
-  <adm:relation name="root-dn-user">
+  <adm:relation name="root-dn-user" hidden="true">
     <adm:one-to-many />
     <adm:profile name="ldap">
       <ldap:rdn-sequence />
