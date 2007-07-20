@@ -475,5 +475,31 @@
     </adm:profile>
   </adm:property>
 
+  <adm:property name="smtp-server" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the address (and optional port number) for a mail server that
+      can be used to send e-mail messages via SMTP.  It may be an IP address or
+      resolvable hostname, optionally followed by a colon and a port number.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          If no values are defined, then it will not be possible to take
+          advantage of server features that may provide thea bility to send
+          e-mail via SMTP.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.446</ldap:oid>
+        <ldap:name>ds-cfg-smtp-server</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:managed-object>
 

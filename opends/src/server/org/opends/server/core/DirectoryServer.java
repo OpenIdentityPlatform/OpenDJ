@@ -361,9 +361,6 @@ public class DirectoryServer
   // The set of import task listeners registered with the Directory Server.
   private CopyOnWriteArrayList<ImportTaskListener> importTaskListeners;
 
-  // The sets of mail server properties
-  private CopyOnWriteArrayList<Properties> mailServerPropertySets;
-
   // The set of persistent searches registered with the Directory Server.
   private CopyOnWriteArrayList<PersistentSearch> persistentSearches;
 
@@ -442,6 +439,9 @@ public class DirectoryServer
 
   // The set of connections that are currently established.
   private LinkedHashSet<ClientConnection> establishedConnections;
+
+  // The sets of mail server properties
+  private List<Properties> mailServerPropertySets;
 
   // The set of schema changes made by editing the schema configuration files
   // with the server offline.
@@ -1069,11 +1069,6 @@ public class DirectoryServer
       loggerConfigManager = new LoggerConfigManager();
       loggerConfigManager.initializeLoggerConfig();
 
-
-
-      // Initialize information about the mail servers for use by the Directory
-      // Server.
-      initializeMailServerPropertySets();
 
 
       // Initialize the server alert handlers.
@@ -2045,25 +2040,17 @@ public class DirectoryServer
 
 
   /**
-   * Initializes the set of properties to use to connect to mail servers for
-   * sending messages.
+   * Specifies the set of mail server properties that should be used for SMTP
+   * communication.
    *
-   * @throws  ConfigException  If there is a configuration problem with any of
-   *                           the mail server entries.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the mail server property sets that is not
-   *                                   related to the server configuration.
+   * @param  mailServerPropertySets  A list of {@code Properties} objects that
+   *                                 provide information that can be used to
+   *                                 communicate with SMTP servers.
    */
-  public void initializeMailServerPropertySets()
-         throws ConfigException, InitializationException
+  public static void setMailServerPropertySets(List<Properties>
+                                                    mailServerPropertySets)
   {
-    mailServerPropertySets = new CopyOnWriteArrayList<Properties>();
-
-    // FIXME -- Actually read the information from the config handler.
-    Properties defaultProperties = new Properties();
-    defaultProperties.setProperty("mail.smtp.host", "127.0.0.1");
-    mailServerPropertySets.add(defaultProperties);
+    directoryServer.mailServerPropertySets = mailServerPropertySets;
   }
 
 
@@ -2075,7 +2062,7 @@ public class DirectoryServer
    * @return  The sets of information about the mail servers configured for use
    *          by the Directory Server.
    */
-  public static CopyOnWriteArrayList<Properties> getMailServerPropertySets()
+  public static List<Properties> getMailServerPropertySets()
   {
     return directoryServer.mailServerPropertySets;
   }

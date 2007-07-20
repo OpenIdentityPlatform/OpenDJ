@@ -46,10 +46,10 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.opends.server.core.DirectoryServer;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.UtilityMessages.*;
 
@@ -123,7 +123,9 @@ public class EMailMessage
     this.recipients = recipients;
     this.subject    = subject;
 
-    body = new StringBuilder();
+    body         = new StringBuilder();
+    attachments  = new LinkedList<MimeBodyPart>();
+    bodyMIMEType = "text/plain";
   }
 
 
@@ -427,6 +429,7 @@ public class EMailMessage
       try
       {
         Transport.send(message);
+        return;
       }
       catch (SendFailedException sfe)
       {

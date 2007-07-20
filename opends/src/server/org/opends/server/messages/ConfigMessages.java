@@ -7057,6 +7057,16 @@ public class ConfigMessages
 
 
   /**
+   * The message ID for the message that will be used if an SMTP server value is
+   * not properly-formed.  This takes a single argument, which is the invalid
+   * server value.
+   */
+  public static final int MSGID_CONFIG_CORE_INVALID_SMTP_SERVER =
+       CATEGORY_MASK_CONFIG | SEVERITY_MASK_SEVERE_ERROR | 697;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -7649,6 +7659,12 @@ public class ConfigMessages
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_NOTIFY_ABANDONED_OPS +
                     " (it should be a Boolean value of true or false):  %s");
+    registerMessage(MSGID_CONFIG_CORE_INVALID_SMTP_SERVER,
+                    "The provided SMTP server value '%s' is invalid.  An " +
+                    "SMTP server value must have an IP address or a " +
+                    "resolvable name, and it may optionally be followed by a " +
+                    "colon and an integer value between 1 and 65535 to " +
+                    "specify the server port number");
     registerMessage(MSGID_CONFIG_CORE_INVALID_PROXY_MAPPER_DN,
                     "Configuration entry %s has an invalid value for " +
                     "configuration attribute " + ATTR_PROXY_MAPPER_DN +
