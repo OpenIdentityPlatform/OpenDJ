@@ -1623,7 +1623,14 @@ public class SubCommandArgumentParser
     buffer.append(EOL);
     buffer.append(EOL);
 
-    buffer.append(getMessage(MSGID_SUBCMDPARSER_SUBCMD_HEADING));
+    if (c.isEmpty())
+    {
+      buffer.append(getMessage(MSGID_SUBCMDPARSER_SUBCMD_HELP_HEADING));
+    }
+    else
+    {
+      buffer.append(getMessage(MSGID_SUBCMDPARSER_SUBCMD_HEADING));
+    }
     buffer.append(EOL);
 
     if (c.isEmpty()) {

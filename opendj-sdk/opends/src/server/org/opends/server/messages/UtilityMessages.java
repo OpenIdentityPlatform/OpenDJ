@@ -1744,6 +1744,12 @@ public class UtilityMessages
        CATEGORY_MASK_UTIL | SEVERITY_MASK_MILD_ERROR | 165;
 
 
+  /**
+   * The message ID for the message that will be used as the heading
+   * for the table of sub-commands. This does not take any arguments.
+   */
+  public static final int MSGID_SUBCMDPARSER_SUBCMD_HELP_HEADING =
+    CATEGORY_MASK_UTIL | SEVERITY_MASK_INFORMATIONAL | 166;
 
 
   /**
@@ -2298,6 +2304,8 @@ public class UtilityMessages
                     "Usage:");
     registerMessage(MSGID_SUBCMDPARSER_SUBCMD_HEADING,
                     "Available subcommands:");
+    registerMessage(MSGID_SUBCMDPARSER_SUBCMD_HELP_HEADING,
+                    "To get the list of subcommands use:");
     registerMessage(MSGID_SUBCMDPARSER_SUBCMD_REFERENCE,
                     "See \"%s --help-{category}\"");
     registerMessage(MSGID_SUBCMDPARSER_GLOBAL_HEADING,
