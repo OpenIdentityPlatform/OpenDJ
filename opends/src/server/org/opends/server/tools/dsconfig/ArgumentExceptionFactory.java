@@ -53,7 +53,7 @@ import org.opends.server.util.args.ArgumentException;
  * A utility class for converting various admin exception types into
  * argument exceptions.
  */
-final class ArgumentExceptionFactory {
+public final class ArgumentExceptionFactory {
 
   /**
    * Creates an argument exception from an illegal managed object name
