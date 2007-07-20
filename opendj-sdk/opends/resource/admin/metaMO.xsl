@@ -793,57 +793,57 @@
         <xsl:with-param name="value" select="@managed-object-name" />
       </xsl:call-template>
     </xsl:variable>
+    <xsl:variable name="java-relation-builder-type">
+      <xsl:choose>
+        <xsl:when test="adm:one-to-one">
+          <xsl:text>SingletonRelationDefinition</xsl:text>
+        </xsl:when>
+        <xsl:when test="adm:one-to-zero-or-one">
+          <xsl:text>OptionalRelationDefinition</xsl:text>
+        </xsl:when>
+        <xsl:when test="adm:one-to-many">
+          <xsl:text>InstantiableRelationDefinition</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:message terminate="yes">
+            <xsl:value-of
+              select="concat('Unknown relation type &quot;', local-name(*), '&quot; in relation &quot;', @name, '&quot;.')" />
+          </xsl:message>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:value-of
+        select="concat('.Builder&lt;', $java-managed-object-name, 'CfgClient, ', $java-managed-object-name, 'Cfg&gt;')" />
+    </xsl:variable>
     <xsl:value-of
       select="concat('  // Build the &quot;', $relation-name, '&quot; relation definition.&#xa;',
                      '  static {&#xa;',
-                     '    RD_', $java-relation-name, ' = new ')" />
-    <xsl:choose>
-      <xsl:when test="adm:one-to-one">
-        <xsl:text>SingletonRelationDefinition&lt;</xsl:text>
-      </xsl:when>
-      <xsl:when test="adm:one-to-zero-or-one">
-        <xsl:text>OptionalRelationDefinition&lt;</xsl:text>
-      </xsl:when>
-      <xsl:when test="adm:one-to-many">
-        <xsl:text>InstantiableRelationDefinition&lt;</xsl:text>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:message terminate="yes">
-          <xsl:value-of
-            select="concat('Unknown relation type &quot;', local-name(*), '&quot; in relation &quot;', @name, '&quot;.')" />
-        </xsl:message>
-      </xsl:otherwise>
-    </xsl:choose>
-    <xsl:value-of
-      select="concat($java-managed-object-name, 'CfgClient, ', $java-managed-object-name, 'Cfg&gt;(&#xa;',
-                     '        INSTANCE, &quot;', @name, '&quot;, ')" />
+                     '    ', $java-relation-builder-type, ' builder =&#xa;',
+                     '      new ', $java-relation-builder-type, '(INSTANCE, &quot;', @name, '&quot;, ')" />
     <xsl:if test="adm:one-to-many">
       <xsl:value-of
         select="concat('&quot;', adm:one-to-many/@plural-name, '&quot;, ')" />
     </xsl:if>
     <xsl:value-of
-      select="concat($java-managed-object-name, 'CfgDefn.getInstance()')" />
-    <xsl:if test="adm:one-to-many">
-      <xsl:value-of select="', '" />
-      <xsl:choose>
-        <xsl:when test="adm:one-to-many/@naming-property">
-          <xsl:variable name="java-property-name">
-            <xsl:call-template name="name-to-java">
-              <xsl:with-param name="value"
-                select="adm:one-to-many/@naming-property" />
-            </xsl:call-template>
-          </xsl:variable>
-          <xsl:value-of
-            select="concat($java-managed-object-name,
+      select="concat($java-managed-object-name, 'CfgDefn.getInstance());&#xa;')" />
+    <xsl:if test="adm:one-to-many/@naming-property">
+      <xsl:variable name="java-property-name">
+        <xsl:call-template name="name-to-java">
+          <xsl:with-param name="value"
+            select="adm:one-to-many/@naming-property" />
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:value-of
+        select="concat('    builder.setNamingProperty(',
+                           $java-managed-object-name,
                            'CfgDefn.getInstance().get',
-                           $java-property-name, 'PropertyDefinition()')" />
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="'null'" />
-        </xsl:otherwise>
-      </xsl:choose>
+                           $java-property-name, 'PropertyDefinition());&#xa;')" />
     </xsl:if>
-    <xsl:value-of select="');&#xa;'" />
+    <xsl:if test="@hidden='true'">
+      <xsl:value-of
+        select="'    builder.setOption(RelationOption.HIDDEN);&#xa;'" />
+    </xsl:if>
+    <xsl:value-of
+      select="concat('    RD_', $java-relation-name, ' = builder.getInstance();&#xa;')" />
     <xsl:value-of
       select="concat('    INSTANCE.registerRelationDefinition(RD_', $java-relation-name,');&#xa;')" />
     <xsl:value-of select="'  }&#xa;'" />
@@ -1742,6 +1742,10 @@
               select="concat(@managed-object-package, '.server.', $java-class-name, 'Cfg')" />
           </xsl:element>
         </xsl:for-each>
+        <xsl:if
+          test="$this-local-relations[@hidden='true']">
+          <import>org.opends.server.admin.RelationOption</import>
+        </xsl:if>
         <xsl:if test="$this-all-relations/adm:one-to-many">
           <import>
             org.opends.server.admin.InstantiableRelationDefinition

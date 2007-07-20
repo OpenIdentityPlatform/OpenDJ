@@ -31,7 +31,7 @@ package org.opends.server.admin;
 
 /**
  * A managed object composite relationship definition which represents
- * a compososition of a single managed object (i.e. the managed object
+ * a composition of a single managed object (i.e. the managed object
  * must be present).
  *
  * @param <C>
@@ -46,18 +46,64 @@ public final class SingletonRelationDefinition
     extends RelationDefinition<C, S> {
 
   /**
-   * Create a new singleton managed object relation definition.
+   * An interface for incrementally constructing singleton relation
+   * definitions.
    *
-   * @param pd
-   *          The parent managed object definition.
-   * @param name
-   *          The name of the relation.
-   * @param cd
-   *          The child managed object definition.
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this relation definition refers to.
    */
-  public SingletonRelationDefinition(AbstractManagedObjectDefinition<?, ?> pd,
-      String name, AbstractManagedObjectDefinition<C, S> cd) {
-    super(pd, name, cd);
+  public static class Builder
+      <C extends ConfigurationClient, S extends Configuration>
+      extends AbstractBuilder<C, S, SingletonRelationDefinition<C, S>> {
+
+    /**
+     * Creates a new builder which can be used to incrementally build
+     * an singleton relation definition.
+     *
+     * @param pd
+     *          The parent managed object definition.
+     * @param name
+     *          The name of the relation.
+     * @param cd
+     *          The child managed object definition.
+     */
+    public Builder(AbstractManagedObjectDefinition<?, ?> pd, String name,
+        AbstractManagedObjectDefinition<C, S> cd) {
+      super(pd, name, cd);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected SingletonRelationDefinition<C, S> buildInstance(
+        Common<C, S> common) {
+      return new SingletonRelationDefinition<C, S>(common);
+    }
+
+  }
+
+
+
+  // Private constructor.
+  private SingletonRelationDefinition(Common<C, S> common) {
+    super(common);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
+    return v.visitSingleton(this, p);
   }
 
 
@@ -74,16 +120,6 @@ public final class SingletonRelationDefinition
     builder.append(" child=");
     builder.append(getChildDefinition().getName());
     builder.append(" minOccurs=1 maxOccurs=1");
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
-    return v.visitSingleton(this, p);
   }
 
 }

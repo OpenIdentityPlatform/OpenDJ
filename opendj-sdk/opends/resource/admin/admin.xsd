@@ -672,6 +672,18 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="hidden" type="xsd:boolean" use="optional"
+      default="false">
+      <xsd:annotation>
+        <xsd:documentation>
+          Indicates whether or not this relation should be hidden from
+          client applications. Hidden relations should rarely be used
+          but are sometimes required in order to provide functionality
+          that needs to be exposed in management APIs but not in
+          front-ends such as CLIs.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
   <xsd:complexType name="admin-action-type">
     <xsd:annotation>

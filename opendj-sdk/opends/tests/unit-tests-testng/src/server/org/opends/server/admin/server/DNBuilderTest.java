@@ -124,10 +124,12 @@ public final class DNBuilderTest extends AdminTestCase {
     // First create the path.
     ManagedObjectPath<? extends ConfigurationClient, ? extends Configuration> path = ManagedObjectPath
         .emptyPath();
-
-    final SingletonRelationDefinition<TestChildCfgClient, TestChildCfg> r2 = new SingletonRelationDefinition<TestChildCfgClient, TestChildCfg>(
+    
+    SingletonRelationDefinition.Builder<TestChildCfgClient, TestChildCfg> b =
+      new SingletonRelationDefinition.Builder<TestChildCfgClient, TestChildCfg>(
         TestParentCfgDefn.getInstance(), "singleton-test-child",
         TestChildCfgDefn.getInstance());
+    final SingletonRelationDefinition<TestChildCfgClient, TestChildCfg> r2 = b.getInstance();
     LDAPProfile.Wrapper wrapper = new LDAPProfile.Wrapper() {
 
       /**

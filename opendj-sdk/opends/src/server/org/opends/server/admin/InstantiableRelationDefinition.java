@@ -29,6 +29,8 @@ package org.opends.server.admin;
 
 
 
+import static org.opends.server.util.Validator.*;
+
 import java.util.Locale;
 
 
@@ -48,6 +50,79 @@ public final class InstantiableRelationDefinition
     <C extends ConfigurationClient, S extends Configuration>
     extends RelationDefinition<C, S> {
 
+  /**
+   * An interface for incrementally constructing instantiable relation
+   * definitions.
+   *
+   * @param <C>
+   *          The type of client managed object configuration that
+   *          this relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that
+   *          this relation definition refers to.
+   */
+  public static class Builder
+      <C extends ConfigurationClient, S extends Configuration>
+      extends AbstractBuilder<C, S, InstantiableRelationDefinition<C, S>> {
+
+    // The optional naming property definition.
+    private PropertyDefinition<?> namingPropertyDefinition;
+
+    // The plural name of the relation.
+    private final String pluralName;
+
+
+
+    /**
+     * Creates a new builder which can be used to incrementally build
+     * an instantiable relation definition.
+     *
+     * @param pd
+     *          The parent managed object definition.
+     * @param name
+     *          The name of the relation.
+     * @param pluralName
+     *          The plural name of the relation.
+     * @param cd
+     *          The child managed object definition.
+     */
+    public Builder(AbstractManagedObjectDefinition<?, ?> pd, String name,
+        String pluralName, AbstractManagedObjectDefinition<C, S> cd) {
+      super(pd, name, cd);
+      this.pluralName = pluralName;
+    }
+
+
+
+    /**
+     * Sets the naming property for the instantiable relation
+     * definition.
+     *
+     * @param namingPropertyDefinition
+     *          The property of the child managed object definition
+     *          which should be used for naming, or <code>null</code>
+     *          if this relation does not use a property for naming.
+     */
+    public final void setNamingProperty(
+        PropertyDefinition<?> namingPropertyDefinition) {
+      ensureNotNull(namingPropertyDefinition);
+      this.namingPropertyDefinition = namingPropertyDefinition;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected InstantiableRelationDefinition<C, S> buildInstance(
+        Common<C, S> common) {
+      return new InstantiableRelationDefinition<C, S>(common, pluralName,
+          namingPropertyDefinition);
+    }
+
+  }
+
   // The optional naming property definition.
   private final PropertyDefinition<?> namingPropertyDefinition;
 
@@ -56,27 +131,10 @@ public final class InstantiableRelationDefinition
 
 
 
-  /**
-   * Create a new instantiable managed object relation definition.
-   *
-   * @param pd
-   *          The parent managed object definition.
-   * @param name
-   *          The name of the relation.
-   * @param pluralName
-   *          The plural name of the relation.
-   * @param cd
-   *          The child managed object definition.
-   * @param namingPropertyDefinition
-   *          The property of the child managed object definition
-   *          which should be used for naming, or <code>null</code>
-   *          if this relation does not use a property for naming.
-   */
-  public InstantiableRelationDefinition(
-      AbstractManagedObjectDefinition<?, ?> pd, String name, String pluralName,
-      AbstractManagedObjectDefinition<C, S> cd,
-      PropertyDefinition<?> namingPropertyDefinition) {
-    super(pd, name, cd);
+  // Private constructor.
+  private InstantiableRelationDefinition(Common<C, S> common,
+      String pluralName, PropertyDefinition<?> namingPropertyDefinition) {
+    super(common);
     this.pluralName = pluralName;
     this.namingPropertyDefinition = namingPropertyDefinition;
   }

@@ -41,6 +41,7 @@ import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelationDefinitionVisitor;
+import org.opends.server.admin.RelationOption;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.SubCommandArgumentParser;
@@ -198,7 +199,9 @@ final class SubCommandBuilder {
 
       // Do not process inherited relation definitions.
       for (RelationDefinition<?, ?> r : d.getRelationDefinitions()) {
-        r.accept(this, path);
+        if (!r.hasOption(RelationOption.HIDDEN)) {
+          r.accept(this, path);
+        }
       }
     }
 
