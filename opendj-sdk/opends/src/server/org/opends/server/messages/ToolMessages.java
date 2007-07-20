@@ -9143,7 +9143,13 @@ public class ToolMessages
   public static final int MSGID_DSCFG_ERROR_UNABLE_TO_SET_NAMING_PROPERTY =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1210;
 
-
+  /**
+   * The message ID for the message that will be used if the user specifies
+   * the same port for different protocols.  This takes as argument the value of
+   * the culprit port.
+   */
+  public static final int MSGID_CONFIGDS_PORT_ALREADY_SPECIFIED  =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1211;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -10476,6 +10482,9 @@ public class ToolMessages
                     "Server configuration:  %s");
     registerMessage(MSGID_CONFIGDS_NO_CONFIG_CHANGES,
                     "ERROR:  No configuration changes were specified");
+    registerMessage(MSGID_CONFIGDS_PORT_ALREADY_SPECIFIED,
+                    "ERROR:  You have specified the value %s for different " +
+                    "ports.");
     registerMessage(MSGID_CONFIGDS_WROTE_UPDATED_CONFIG,
                     "Successfully wrote the updated Directory Server " +
                     "configuration");
