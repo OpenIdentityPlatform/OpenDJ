@@ -28,7 +28,9 @@ package org.opends.server.tools;
 
 
 
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.BooleanConfigAttribute;
@@ -326,6 +328,54 @@ public class ConfigureDS
       String message = getMessage(msgID);
       System.err.println(wrapText(message, MAX_LINE_WIDTH));
       System.err.println(argParser.getUsage());
+      return 1;
+    }
+
+    try
+    {
+      Set<Integer> ports = new HashSet<Integer>();
+      if (ldapPort.isPresent())
+      {
+        ports.add(ldapPort.getIntValue());
+      }
+      if (ldapsPort.isPresent())
+      {
+        if (ports.contains(ldapsPort.getIntValue()))
+        {
+          int    msgID   = MSGID_CONFIGDS_PORT_ALREADY_SPECIFIED;
+          String message = getMessage(msgID,
+              String.valueOf(ldapsPort.getIntValue()));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          System.err.println(argParser.getUsage());
+          return 1;
+        }
+        else
+        {
+          ports.add(ldapsPort.getIntValue());
+        }
+      }
+      if (jmxPort.isPresent())
+      {
+        if (ports.contains(jmxPort.getIntValue()))
+        {
+          int    msgID   = MSGID_CONFIGDS_PORT_ALREADY_SPECIFIED;
+          String message = getMessage(msgID,
+              String.valueOf(jmxPort.getIntValue()));
+          System.err.println(wrapText(message, MAX_LINE_WIDTH));
+          System.err.println(argParser.getUsage());
+          return 1;
+        }
+        else
+        {
+          ports.add(jmxPort.getIntValue());
+        }
+      }
+    }
+    catch (ArgumentException ae)
+    {
+      int    msgID   = MSGID_CANNOT_INITIALIZE_ARGS;
+      String message = getMessage(msgID, ae.getMessage());
+      System.err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
 
