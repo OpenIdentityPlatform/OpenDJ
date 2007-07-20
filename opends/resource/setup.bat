@@ -27,12 +27,25 @@ rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 setlocal
 
+rem check that the path does not contain the ^% character which breaks
+rem the batch files.
+set NON_ESCAPED=%~dPs0..
+FOR /F "tokens=1-2* delims=%%" %%1 IN ("%NON_ESCAPED%") DO (
+if NOT "%%2" == "" goto invalidPath)
+
 set DIR_HOME=%~dP0.
 set INSTANCE_ROOT=%DIR_HOME%
 
 :checkJavaBin
 if "%JAVA_BIN%" == "" goto noJavaBin
 goto setClassPath
+
+:invalidPath
+echo Error: The current path contains a %% character.  OpenDS cannot
+echo        be installed on a path containing this character.
+pause
+goto end
+
 
 :noJavaBin
 if "%JAVA_HOME%" == "" goto noJavaHome

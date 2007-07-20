@@ -2419,6 +2419,10 @@ public abstract class Installer extends GuiApplication {
         errorMsgs.add(getMsg("not-enough-disk-space", args));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
 
+      } else if (Utils.isWindows() && (serverLocation.indexOf("%") != -1))
+      {
+        errorMsgs.add(getMsg("invalid-char-in-path", "%"));
+        qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
       } else
       {
         getUserData().setServerLocation(serverLocation);
