@@ -1947,10 +1947,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.90
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.91 NAME 'ds-cfg-virtual-attribute'
   SUP top STRUCTURAL MUST ( cn $ ds-cfg-virtual-attribute-class $
-  ds-cfg-virtual-attribute-enabled $ ds-cfg-virtual-attribute-type $
-  ds-cfg-virtual-attribute-conflict-behavior )
+  ds-cfg-virtual-attribute-enabled $ ds-cfg-virtual-attribute-type )
   MAY ( ds-cfg-virtual-attribute-base-dn $ ds-cfg-virtual-attribute-group-dn $
-  ds-cfg-virtual-attribute-filter ) X-ORIGIN 'OpenDS Directory Server' )
+  ds-cfg-virtual-attribute-filter $ ds-cfg-virtual-attribute-conflict-behavior )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.92
   NAME 'ds-task-initialize-from-remote-replica' SUP ds-task
   MUST ( ds-task-initialize-domain-dn $ ds-task-initialize-replica-server-id )
