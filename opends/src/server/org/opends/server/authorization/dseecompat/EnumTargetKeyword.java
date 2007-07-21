@@ -56,7 +56,12 @@ public enum EnumTargetKeyword {
      * This enumeration is returned when the target keyword is
      * "targattrfilters".
      */
-    KEYWORD_TARGATTRFILTERS ("targattrfilters");
+    KEYWORD_TARGATTRFILTERS ("targattrfilters"),
+    /**
+     * This enumeration is returned when the target keyword is
+     * "targetcontrol".
+     */
+    KEYWORD_TARGETCONTROL ("targetcontrol");
 
     /*
      * The target keyword name.

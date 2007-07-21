@@ -6084,13 +6084,12 @@ public class CoreMessages
 
 
   /**
-   * The message ID for the message that will be used if a search
-   * operation cannot be processed due to insufficient access rights caused
-   * by an access control check on the geteffectiverights control. This message
-   * takes a single argument, the name of the search operation's base entry.
+   * The message ID for the message that will be used if a request control
+   * cannot be used due to insufficient access rights. This message takes a
+   * single argument, which is the OID string of the control being used.
    */
   public static final
-  int MSGID_SEARCH_EFFECTIVERIGHTS_INSUFFICIENT_ACCESS_RIGHTS =
+  int MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS =
     CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 611;
 
 
@@ -8348,8 +8347,9 @@ public class CoreMessages
         "The entry %s cannot be modified due to insufficient access rights");
     registerMessage(MSGID_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS,
         "The entry %s cannot be searched due to insufficient access rights");
-    registerMessage(MSGID_SEARCH_EFFECTIVERIGHTS_INSUFFICIENT_ACCESS_RIGHTS,
-        "The entry %s cannot be searched due to insufficient access rights");
+    registerMessage(MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS,
+        "The request control with Object Identifier (OID) \"%s\" cannot be" +
+        " used due to insufficient access rights");
     registerMessage(MSGID_BIND_OPERATION_INSECURE_SIMPLE_BIND,
                     "Rejecting a simple bind request for user %s because the " +
                     "password policy requires secure authentication");

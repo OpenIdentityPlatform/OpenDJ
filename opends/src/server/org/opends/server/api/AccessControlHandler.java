@@ -133,6 +133,26 @@ public abstract class AccessControlHandler
                                          addOperation);
 
 
+  /**
+   * Indicates whether the provided control is allowed based on
+   * the access control configuration and the specified
+   * operation. This method should not alter the provided
+   * operation in any way.
+   *
+   * @param  dn  A DN that can be used in the access determination.
+   *
+   * @param  op  The operation to use in the
+   *                       determination.
+   *
+   * @param control The control for which to make the determination.
+   *
+   * @return  {@code true} if the control should be allowed by the
+   *          access control configuration, or {@code false} if not.
+   */
+  public abstract boolean isAllowed(DN dn, Operation  op,
+                                    Control control);
+
+
 
   /**
    * Indicates whether the provided bind operation is allowed based on
@@ -302,44 +322,5 @@ public abstract class AccessControlHandler
   public abstract boolean maySend(SearchOperation searchOperation,
                                SearchResultReference searchReference);
 
-
-
-  /**
-   * Indicates whether a proxied authorization control is allowed
-   * based on the current operation and the new authorization entry.
-   *
-   * @param  operation              The operation with which the
-   *                                proxied authorization control is
-   *                                associated.
-   * @param  newAuthorizationEntry  The new authorization entry
-   *                                related to the proxied
-   *                                authorization control
-   *                                authorization ID.
-   *
-   * @return  {@code true} if the operation should be allowed to use
-   *          the proxied authorization control, or {@code false} if
-   *          not.
-   */
-  public abstract boolean isProxiedAuthAllowed(Operation operation,
-                               Entry newAuthorizationEntry);
-
-
-
-  /**
-   * Indicates whether a getEffectiveRights control is allowed
-   * based on the current operation and the control contents.
-   *
-   * @param  operation  The operation with which the
-   *                    getEffectiveRights control is associated.
-   *                    This is always a SearchOperation.
-   * @param  control    The control class containing the decoded
-   *                    getEffectiveRights control contents.
-   *
-   * @return  {@code true} if the use of the getEffectiveRights
-   *          control should be allowed, or {@code false} if not.
-   */
-  public abstract boolean isGetEffectiveRightsAllowed(
-                               SearchOperation operation,
-                               Control control);
 }
 

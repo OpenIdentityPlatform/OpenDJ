@@ -10484,7 +10484,7 @@ public class ToolMessages
                     "ERROR:  No configuration changes were specified");
     registerMessage(MSGID_CONFIGDS_PORT_ALREADY_SPECIFIED,
                     "ERROR:  You have specified the value %s for different " +
-                    "ports.");
+                    "ports");
     registerMessage(MSGID_CONFIGDS_WROTE_UPDATED_CONFIG,
                     "Successfully wrote the updated Directory Server " +
                     "configuration");

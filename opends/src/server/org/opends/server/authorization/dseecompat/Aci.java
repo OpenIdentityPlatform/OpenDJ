@@ -31,7 +31,10 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.AciMessages.*;
+import static org.opends.server.util.StaticUtils.isDigit;
+
 import java.util.regex.Pattern;
+import java.util.HashSet;
 
 /**
  * The Aci class represents ACI strings.
@@ -107,6 +110,7 @@ public class Aci  {
            ZERO_OR_MORE_WHITESPACE + AciBody.bodyRegx +
            ZERO_OR_MORE_WHITESPACE_END_PATTERN;
 
+
     /**
      * Regular expression that graciously matches an attribute type name. Must
      * begin with an ASCII letter or digit, and contain only ASCII letters,
@@ -161,6 +165,20 @@ public class Aci  {
     public static final String ALL_OP_ATTRS_WILD_CARD =
             ZERO_OR_MORE_WHITESPACE +
                     "\\+" + ZERO_OR_MORE_WHITESPACE;
+
+    /*
+     * Regular expression used to do quick check of OID string.
+     */
+    private static final String OID_NAME = "[\\d.\\*]*";
+
+    /*
+    * Regular expression that matches one or more OID_NAME's separated by
+    * the "||" token.
+    */
+    private static final String oidListRegex  =  ZERO_OR_MORE_WHITESPACE +
+            OID_NAME + ZERO_OR_MORE_WHITESPACE + "(" +
+            LOGICAL_OR + ZERO_OR_MORE_WHITESPACE + OID_NAME +
+            ZERO_OR_MORE_WHITESPACE + ")*";
 
     /**
      * ACI_ADD is used to set the container rights for a LDAP add operation.
@@ -409,6 +427,7 @@ public class Aci  {
               return false;
         }
         return AciTargets.isTargetApplicable(aci, matchCtx) &&
+                AciTargets.isTargetControlApplicable(aci, matchCtx) &&
                 AciTargets.isTargetFilterApplicable(aci, matchCtx) &&
                 AciTargets.isTargAttrFiltersApplicable(aci, matchCtx) &&
                 AciTargets.isTargetAttrApplicable(aci, matchCtx);
@@ -455,11 +474,79 @@ public class Aci  {
         return aci.evaluate(evalCtx);
     }
 
-  /**
-   * Returns the name string of this ACI.
-   * @return The name string.
-   */
+    /**
+     * Returns the name string of this ACI.
+     * @return The name string.
+     */
     public String getName() {
       return this.body.getName();
     }
-}
+
+
+  /**
+   *  Decode an OIDs expression string.
+   *
+   * @param expr A string representing the OID expression.
+   * @param msgID A message ID to be used if there is an exception.
+   *
+   * @return  Return a hash set of verfied OID strings parsed from the OID
+   *          expression.
+   *
+   * @throws AciException If the specified expression string is invalid.
+   */
+
+    public static HashSet<String> decodeOID(String expr, int msgID)
+    throws AciException {
+      HashSet<String> OIDs = new HashSet<String>();
+      //Quick check to see if the expression is valid.
+      if (Pattern.matches(oidListRegex, expr)) {
+        // Remove the spaces in the oid string and
+        // split the list.
+        Pattern separatorPattern =
+                Pattern.compile(LOGICAL_OR);
+        String oidString =
+                expr.replaceAll(ZERO_OR_MORE_WHITESPACE, "");
+        String[] oidArray=
+                separatorPattern.split(oidString);
+        //More careful analysis of each OID string.
+        for(String oid : oidArray) {
+          verifyOid(oid);
+          OIDs.add(oid);
+        }
+      } else {
+        String message = getMessage(msgID, expr);
+        throw new AciException(msgID, message);
+      }
+      return OIDs;
+    }
+
+    /**
+     *  Verfiy the specified OID string.
+     *
+     * @param oidStr The string representing an OID.
+     *
+     * @throws AciException If the specified string is invalid.
+     */
+    private static void verifyOid(String oidStr) throws AciException {
+      int pos=0, length=oidStr.length();
+      char c;
+      if(oidStr.equals("*"))
+        return;
+      boolean lastWasPeriod = false;
+      while ((pos < length) && ((c = oidStr.charAt(pos++)) != ' ')) {
+        if (c == '.') {
+          if (lastWasPeriod) {
+            int msgID = MSGID_ACI_SYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID;
+            String message = getMessage(msgID, oidStr, c, pos-1);
+            throw new AciException(msgID, message);
+          }  else
+            lastWasPeriod = true;
+        }  else if (! isDigit(c)) {
+          int msgID = MSGID_ACI_SYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID;
+          String message = getMessage(msgID, oidStr, c, pos-1);
+          throw new AciException(msgID, message);
+        }  else
+          lastWasPeriod = false;
+      }
+    }
+  }

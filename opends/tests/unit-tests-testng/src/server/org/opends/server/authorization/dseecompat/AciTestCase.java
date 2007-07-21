@@ -31,6 +31,8 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
+import org.opends.server.tools.LDAPDelete;
+import org.opends.server.tools.LDAPPasswordModify;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.testng.annotations.Test;
 import org.testng.Assert;
@@ -48,14 +50,86 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   public static final String ACCESS_HANDLER_DN =
                                        "cn=Access Control Handler,cn=config";
 
-  private static ByteArrayOutputStream oStream = new ByteArrayOutputStream();
-  private  static ThreadLocal<Map<String,File>> tempLdifFile =
+  //GLOBAL ACIs
+
+  protected final static String G_READ_ACI =
+          "(targetattr!=\"userPassword||authPassword\")" +
+                  "(version 3.0; acl \"Anonymous read access\";" +
+                  "allow (read,search,compare) userdn=\"ldap:///anyone\";)";
+
+  protected final static String G_SELF_MOD =
+          "(targetattr=\"*\")(version 3.0; acl \"Self entry modification\";" +
+                  "allow (write) userdn=\"ldap:///self\";)";
+
+  protected final static String G_SCHEMA =
+          "(target=\"ldap:///cn=schema\")(targetscope=\"base\")" +
+          "(targetattr=\"attributeTypes||dITContentRules||dITStructureRules||" +
+                  "ldapSyntaxes||matchingRules||matchingRuleUse||nameForms||" +
+                  "objectClasses\")" +
+          "(version 3.0; acl \"User-Visible Schema Operational Attributes\";" +
+                  "allow (read,search,compare) userdn=\"ldap:///anyone\";)";
+
+  protected final static String G_DSE =
+          "(target=\"ldap:///\")(targetscope=\"base\")" +
+               "(targetattr=\"namingContexts||supportedAuthPasswordSchemes||" +
+                  "supportedControl||supportedExtension||supportedFeatures||" +
+                 "supportedSASLMechanisms||vendorName||vendorVersion\")" +
+        "(version 3.0; acl \"User-Visible Root DSE Operational Attributes\"; " +
+                  "allow (read,search,compare) userdn=\"ldap:///anyone\";)";
+
+  protected final static String G_USER_OPS =
+          "(targetattr=\"createTimestamp||creatorsName||modifiersName||" +
+                  "modifyTimestamp||entryDN||entryUUID||subschemaSubentry\")" +
+                 "(version 3.0; acl \"User-Visible Operational Attributes\"; " +
+                  "allow (read,search,compare) userdn=\"ldap:///anyone\";)";
+
+  protected final static String G_CONTROL =
+          "(targetcontrol = \"*\")" +
+          "(version 3.0; acl \"Control\"; " +
+                  "allow (read) userdn=\"ldap:///anyone\";)";
+
+  private static final ByteArrayOutputStream oStream = new ByteArrayOutputStream();
+  private  static final ThreadLocal<Map<String,File>> tempLdifFile =
            new ThreadLocal<Map<String,File>>();
+
+
+  protected String pwdModify(String bindDn, String bindPassword,
+                             String newPassword, String noOpControl,
+                             String pwdPolicyControl, int rc) {
+
+    ArrayList<String> argList=new ArrayList<String>(20);
+    argList.add("-h");
+    argList.add("127.0.0.1");
+    argList.add("-p");
+    argList.add(String.valueOf(TestCaseUtils.getServerLdapPort()));
+    argList.add("-D");
+    argList.add(bindDn);
+    argList.add("-w");
+    argList.add(bindPassword);
+    argList.add("-c");
+    argList.add(bindPassword);
+    argList.add("-n");
+    argList.add(newPassword);
+    if(noOpControl != null) {
+      argList.add("-J");
+      argList.add(noOpControl);
+    }
+    if(pwdPolicyControl != null) {
+      argList.add("-J");
+      argList.add(pwdPolicyControl);
+    }
+    String[] args = new String[argList.size()];
+    oStream.reset();
+    int ret=
+           LDAPPasswordModify.mainPasswordModify(argList.toArray(args),
+                   false, oStream, oStream);
+    Assert.assertEquals(rc, ret,  "Returned error: " + oStream.toString());
+    return oStream.toString();
+  }
 
   protected String LDAPSearchCtrl(String bindDn, String bindPassword,
                             String proxyDN, String controlStr,
-                            String base, String filter, String attr)
-          throws Exception {
+                            String base, String filter, String attr) {
     ArrayList<String> argList=new ArrayList<String>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
@@ -90,10 +164,29 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     return oStream.toString();
   }
 
+  protected String
+  LDAPSearchParams(String bindDn,  String bindPassword,
+                               String proxyDN, String authzid,
+                               String[] attrList,
+                               String base, String filter ,String attr,
+                               boolean pwdPolicy, boolean reportAuthzID,
+                               int rc)  {
+    return _LDAPSearchParams(bindDn, bindPassword, proxyDN, authzid, attrList,
+            base, filter, attr, pwdPolicy, reportAuthzID, rc);
+  }
+
   protected String LDAPSearchParams(String bindDn, String bindPassword,
+                                    String proxyDN, String authzid,
+                                    String[] attrList,
+                                    String base, String filter ,String attr) {
+    return _LDAPSearchParams(bindDn, bindPassword, proxyDN, authzid, attrList,
+            base, filter, attr, false, false, 0);
+  }
+
+  private String _LDAPSearchParams(String bindDn, String bindPassword,
                             String proxyDN, String authzid, String[] attrList,
-                            String base, String filter ,String attr)
-          throws Exception {
+                            String base, String filter ,String attr,
+                            boolean pwdPolicy, boolean reportAuthzID, int rc) {
     ArrayList<String> argList=new ArrayList<String>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
@@ -118,6 +211,12 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
         argList.add(a);
       }
     }
+    if(pwdPolicy) {
+      argList.add("--usePasswordPolicyControl");
+    }
+    if(reportAuthzID) {
+      argList.add("-E");
+    }
     argList.add("-b");
     argList.add(base);
     argList.add("-s");
@@ -130,11 +229,59 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     oStream.reset();
     int retVal =
          LDAPSearch.mainSearch(argList.toArray(args), false, oStream, oStream);
-    Assert.assertEquals(0, retVal, "Returned error: " + oStream.toString());
+    Assert.assertEquals(rc, retVal, "Returned error: " + oStream.toString());
     return oStream.toString();
   }
 
+  protected void LDIFAdd(String ldif, String bindDn, String bindPassword,
+                            String controlStr, int rc) throws Exception {
+    _LDIFModify(ldif, bindDn, bindPassword, controlStr, true, rc);
+  }
+
+  protected void LDIFModify(String ldif, String bindDn, String bindPassword,
+                            String controlStr, int rc) throws Exception {
+    _LDIFModify(ldif, bindDn, bindPassword, controlStr, false, rc);
+  }
+
   protected void LDIFModify(String ldif, String bindDn, String bindPassword)
+  throws Exception {
+    _LDIFModify(ldif, bindDn, bindPassword, null, false, -1);
+  }
+
+  protected void LDIFDelete(String dn, String bindDn, String bindPassword,
+                            String controlStr, int rc) {
+    _LDIFDelete(dn, bindDn, bindPassword, controlStr, rc);
+  }
+
+  private void _LDIFDelete(String dn, String bindDn, String bindPassword,
+                           String controlStr, int rc) {
+    ArrayList<String> argList=new ArrayList<String>(20);
+    argList.add("-h");
+    argList.add("127.0.0.1");
+    argList.add("-p");
+    argList.add(String.valueOf(TestCaseUtils.getServerLdapPort()));
+    argList.add("-D");
+    argList.add(bindDn);
+    argList.add("-w");
+    argList.add(bindPassword);
+    if(controlStr != null) {
+      argList.add("-J");
+      argList.add(controlStr);
+    }
+    argList.add(dn);
+    String[] args = new String[argList.size()];
+    ldapDelete(argList.toArray(args), rc);
+  }
+
+  private void ldapDelete(String[] args, int rc) {
+    oStream.reset();
+    int retVal = LDAPDelete.mainDelete(args, false, oStream, oStream);
+    Assert.assertEquals(rc, retVal, "Returned error: " + oStream.toString());
+  }
+
+
+  private void _LDIFModify(String ldif, String bindDn, String bindPassword,
+                           String controlStr, boolean add,  int rc)
           throws Exception {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
@@ -147,25 +294,47 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     argList.add(bindDn);
     argList.add("-w");
     argList.add(bindPassword);
+    if(controlStr != null) {
+      argList.add("-J");
+      argList.add(controlStr);
+    }
+    if(add) {
+     argList.add("-a");
+    }
     argList.add("-f");
     argList.add(tempFile.getAbsolutePath());
     String[] args = new String[argList.size()];
-    ldapModify(argList.toArray(args));
+    ldapModify(argList.toArray(args), rc);
   }
 
-  protected void ldapModify(String[] args) {
+  private void ldapModify(String[] args, int rc) {
     oStream.reset();
-    LDAPModify.mainModify(args, false, oStream, oStream);
+    int retVal =LDAPModify.mainModify(args, false, oStream, oStream);
+    if(rc != -1)
+       Assert.assertEquals(rc, retVal, "Returned error: " + oStream.toString());
   }
 
-  protected void deleteAttrFromEntry(String dn, String attr)
-  throws Exception {
+  protected void deleteAttrFromEntry(String dn, String attr) throws Exception {
     StringBuilder ldif = new StringBuilder();
     ldif.append(TestCaseUtils.makeLdif(
             "dn: "  + dn,
             "changetype: modify",
             "delete: " + attr));
     LDIFModify(ldif.toString(), DIR_MGR_DN, PWD);
+  }
+
+  protected static String makeModDNLDIF(String dn, String newRDN,
+                                    String deleteOldRDN,
+                                    String newSuperior ) {
+    StringBuilder ldif = new StringBuilder();
+    ldif.append("dn: ").append(dn).append(EOL);
+    ldif.append("changetype: modrdn").append(EOL);
+    ldif.append("newrdn: ").append(newRDN).append(EOL);
+    ldif.append("deleteoldrdn: ").append(deleteOldRDN).append(EOL);
+    if(newSuperior != null)
+       ldif.append("newsuperior: ").append(newSuperior).append(EOL);
+    ldif.append(EOL);
+    return ldif.toString();
   }
 
   protected static String makeDelLDIF(String attr, String dn, String... acis) {
@@ -179,6 +348,16 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     return ldif.toString();
   }
 
+  protected static String
+  makeAddEntryLDIF(String dn, String ... lines) {
+    StringBuilder ldif = new StringBuilder();
+    ldif.append("dn: ").append(dn).append(EOL);
+    ldif.append("changetype: add").append(EOL);
+    for(String l : lines)
+       ldif.append(l).append(EOL);
+    ldif.append(EOL);
+    return ldif.toString();
+  }
 
   protected static String makeAddLDIF(String attr, String dn, String... acis) {
     StringBuilder ldif = new StringBuilder();
@@ -191,7 +370,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     return ldif.toString();
   }
 
-  protected File getTemporaryLdifFile() throws IOException {
+  private File getTemporaryLdifFile() throws IOException {
     Map<String,File> tempFilesForThisThread = tempLdifFile.get();
     if (tempFilesForThisThread == null) {
       tempFilesForThisThread = new HashMap<String,File>();
@@ -313,7 +492,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   }
 
   protected HashMap<String, String>
-  getAttrMap(String resultString) throws Exception {
+  getAttrMap(String resultString) {
     StringReader r=new StringReader(resultString);
     BufferedReader br=new BufferedReader(r);
     HashMap<String, String> attrMap = new HashMap<String,String>();

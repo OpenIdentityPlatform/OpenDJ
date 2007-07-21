@@ -30,10 +30,9 @@ package org.opends.server.authorization.dseecompat;
 import java.util.List;
 
 import org.opends.server.core.*;
-import org.opends.server.types.Modification;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.Entry;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
+import static org.opends.server.authorization.dseecompat.Aci.ACI_READ;
 
 /**
  * The AciLDAPOperationContainer is an AciContainer
@@ -65,6 +64,18 @@ public class AciLDAPOperationContainer extends AciContainer  {
     }
 
     /**
+     * Constructor interface for control evaluation.
+     *
+     * @param operation The operation to evaluate.
+     * @param e An entry built especially for control evaluation.
+     * @param oid The control's oid string.
+     */
+    public AciLDAPOperationContainer(Operation operation, Entry e, String oid) {
+      super(operation, (ACI_READ), e );
+      setControlOID(oid);
+    }
+
+    /**
      * Constructor interface for the add operation.
      * @param operation The add operation to evaluate.
      * @param rights  The rights of an add operation.
@@ -81,8 +92,7 @@ public class AciLDAPOperationContainer extends AciContainer  {
      * @param rights  The rights of a delete operation.
      */
     public AciLDAPOperationContainer(LocalBackendDeleteOperation operation,
-        int rights)
-    {
+                                     int rights) {
         super(operation, rights, operation.getEntryToDelete());
     }
 

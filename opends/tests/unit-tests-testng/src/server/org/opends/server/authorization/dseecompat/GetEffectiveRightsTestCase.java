@@ -30,10 +30,12 @@ package org.opends.server.authorization.dseecompat;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.AfterClass;
 import static org.opends.server.config.ConfigConstants.*;
 import org.testng.Assert;
 import org.opends.server.TestCaseUtils;
 import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
+
 import java.util.HashMap;
 
 public class GetEffectiveRightsTestCase extends AciTestCase {
@@ -86,6 +88,12 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
           "selfwrite_add:1,selfwrite_delete:1,proxy:0";
 
   //ACI needed to search/read aciRights attribute.
+
+  //Need an ACI to allow proxy control
+  String controlACI = "(targetcontrol=\"" + OID_GET_EFFECTIVE_RIGHTS + "\")" +
+          "(version 3.0; acl \"control\";" +
+          "allow(read) userdn=\"ldap:///anyone\";)";
+
   private static final
   String aclRightsAci = "(targetattr=\"aclRights\")" +
           "(version 3.0;acl \"aclRights access\";" +
@@ -160,10 +168,17 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
     addEntries();
   }
 
-    @BeforeMethod
-    public void removeAcis() throws Exception {
+  @AfterClass
+  public void tearDown() throws Exception {
+       String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
+               G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL);
+       LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+   }
+
+   @BeforeMethod
+   public void removeAcis() throws Exception {
         deleteAttrFromEntry("ou=People,o=test", "aci");
-  }
+   }
 
   /**
    * Test entry level using the -g param and anonymous dn as the authzid.
@@ -172,7 +187,8 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    */
   @Test()
   public void testAnonEntryLevelParams() throws Exception {
-    String aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAnonAci);
+    String aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAnonAci,
+                               controlACI);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
             LDAPSearchParams(DIR_MGR_DN, PWD, null, "dn:", null,
@@ -190,7 +206,8 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    */
   @Test()
   public void testSuEntryLevelParams() throws Exception {
-    String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci);
+    String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci,
+                               controlACI);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAci);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
@@ -242,7 +259,8 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    */
   @Test()
    public void testSuEntryLevelCtrl() throws Exception {
-     String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci);
+     String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci,
+                                controlACI);
      LDIFModify(aciLdif, DIR_MGR_DN, PWD);
      aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAci);
      LDIFModify(aciLdif, DIR_MGR_DN, PWD);
@@ -294,6 +312,8 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
   */
  @Test()
   public void testBypassEntryLevelCtrl() throws Exception {
+    String aciLdif=makeAddLDIF("aci", "ou=People,o=test",  controlACI);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String userResults =
            LDAPSearchCtrl(DIR_MGR_DN, PWD, null, OID_GET_EFFECTIVE_RIGHTS,
                    base, filter, "aclRights");
@@ -311,7 +331,8 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    */
   @Test()
   public void testSuAttrLevelParams() throws Exception {
-    String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci);
+    String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci,
+                               controlACI);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAci);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
@@ -337,7 +358,8 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
  */
 @Test()
 public void testSuAttrLevelParams2() throws Exception {
-  String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci);
+  String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci,
+                             controlACI);
   LDIFModify(aciLdif, DIR_MGR_DN, PWD);
   aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAci);
   LDIFModify(aciLdif, DIR_MGR_DN, PWD);
@@ -369,7 +391,8 @@ public void testSuAttrLevelParams2() throws Exception {
  */
 @Test()
 public void testSuAttrLevelParams3() throws Exception {
-  String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci);
+  String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci,
+                            controlACI);
   LDIFModify(aciLdif, DIR_MGR_DN, PWD);
   aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAci);
   LDIFModify(aciLdif, DIR_MGR_DN, PWD);

@@ -32,6 +32,7 @@ package org.opends.server.authorization.dseecompat;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterClass;
 import org.testng.Assert;
 import org.opends.server.TestCaseUtils;
 import static org.opends.server.config.ConfigConstants.*;
@@ -55,10 +56,16 @@ public class AlternateRootDN extends AciTestCase {
        "(version 3.0; acl \"proxy" +  user3 + "\";" +
        "allow (proxy) userdn=\"ldap:///" + user3 + "\";)";
 
+  //Need an ACI to allow proxy control
+  String controlACI = "(targetcontrol=\"" + OID_PROXIED_AUTH_V2 + "\")" +
+          "(version 3.0; acl \"control\";" +
+          "allow(read) userdn=\"ldap:///" + user3 + "\";)";
+
   private static final
   String rootDNACI= "(targetattr=\"" + ATTR_USER_PASSWORD + "\")" +
         "(version 3.0; acl \"pwd search, read " + rootDN + "\";" +
         "allow(read, search) userdn=\"ldap:///" + rootDN + "\";)";
+
 
   @BeforeClass
   public void setupClass() throws Exception {
@@ -66,6 +73,13 @@ public class AlternateRootDN extends AciTestCase {
     deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
     addEntries();
     addRootEntry();
+  }
+
+  @AfterClass
+  public void tearDown() throws Exception {
+    String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
+            G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL);
+    LDIFModify(aciLdif, DIR_MGR_DN, PWD);
   }
 
 
@@ -117,7 +131,7 @@ public class AlternateRootDN extends AciTestCase {
    */
   @Test()
   public void testAlternateProxyDNs() throws Exception {
-    String aciLdif=makeAddLDIF("aci", user1, rootDNACI, proxyACI);
+    String aciLdif=makeAddLDIF("aci", user1, rootDNACI, proxyACI, controlACI);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
     String adminDNResults =
             LDAPSearchParams(user3, PWD, adminDN, null, null,

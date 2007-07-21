@@ -37,7 +37,7 @@ import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_DN_OID;
-import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.server.util.StaticUtils.toLowerCase;
 
@@ -53,7 +53,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
-
+import org.opends.server.controls.GetEffectiveRights;
 
 
 /**
@@ -1153,32 +1153,37 @@ public class AciHandler
       return ret;
   }
 
-  //TODO Check access to control, issue #452.
-  /**
-   * Called when a proxied authorization control was decoded. Currently used
-   * to save the current authorization entry in an operation attachment, but
-   * eventually will be used to check access to the actual control.
-   * @param operation The operation to save the attachment to.
-   * @param entry  The new authorization entry.
-   * @return  True if the control is allowed access.
-   */
-  public boolean isProxiedAuthAllowed(Operation operation, Entry entry) {
-    operation.setAttachment(ORIG_AUTH_ENTRY, operation.getAuthorizationEntry());
-    return true;
-  }
 
   /**
-   * Called when a geteffectiverights request control was decoded. Currently
-   * used to save the control in the specified operation's attachment list.
-   * Eventually will be used to check access to the actual control.
-   * @param operation The operation to save the attachment to.
-   * @param c  The request control to save.
-   * @return  True if the control is allowed access.
+   * {@inheritDoc}
    */
-  public boolean isGetEffectiveRightsAllowed(SearchOperation operation,
-                                             Control c) {
-    operation.setAttachment(OID_GET_EFFECTIVE_RIGHTS, c);
-    return true;
+  @Override
+  public boolean isAllowed(DN entryDN, Operation op, Control control) {
+    boolean ret;
+    if(!(ret=skipAccessCheck(op))) {
+      Entry e = new Entry(entryDN, null, null, null);
+      AciLDAPOperationContainer operationContainer =
+              new AciLDAPOperationContainer(op, e, control.getOID());
+      ret=accessAllowed(operationContainer);
+    }
+    if(control.getOID().equals(OID_PROXIED_AUTH_V2) ||
+            control.getOID().equals(OID_PROXIED_AUTH_V1))
+      op.setAttachment(ORIG_AUTH_ENTRY, op.getAuthorizationEntry());
+    else if(control.getOID().equals(OID_GET_EFFECTIVE_RIGHTS)) {
+      try {
+        GetEffectiveRights getEffectiveRightsControl =
+                GetEffectiveRights.decodeControl(control);
+        op.setAttachment(OID_GET_EFFECTIVE_RIGHTS, getEffectiveRightsControl);
+      } catch  (LDAPException le)  {
+        int msgID=MSGID_ACI_SYNTAX_DECODE_EFFECTIVERIGHTS_FAIL;
+        String message = getMessage(msgID, le.getMessage());
+        logError(ErrorLogCategory.ACCESS_CONTROL,
+                 ErrorLogSeverity.INFORMATIONAL,
+                 message, msgID);
+        ret=false;
+      }
+    }
+    return ret;
   }
 
   //Not planned to be implemented methods.
