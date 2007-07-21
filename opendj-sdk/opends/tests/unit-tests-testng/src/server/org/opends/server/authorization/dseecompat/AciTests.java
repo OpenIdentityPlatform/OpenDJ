@@ -38,6 +38,7 @@ import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -306,6 +307,12 @@ public class AciTests extends DirectoryServerTestCase {
              buildAciValue("name", "allow compare", "targetattr", "*", "target", "ldap:///cn=*," + OU_LEAF_DN, "allow(compare)", BIND_RULE_USERDN_ALL);
 
   //The ACIs for the proxy tests.
+
+
+  private static final String ALLOW_PROXY_CONTROL_TO_LEVEL_1=
+             buildAciValue("name", "allow proxy control", "targetcontrol",
+                     OID_PROXIED_AUTH_V2, "allow(read)",
+                     BIND_RULE_USERDN_LEVEL_1);
 
   private static final String ALLOW_PROXY_TO_IMPORT_MGR_NEW =
           buildAciValue("name", "allow proxy import new mgr new tree", "target",
@@ -1050,22 +1057,46 @@ public class AciTests extends DirectoryServerTestCase {
                                        GLOBAL_ALLOW_MONITOR_TO_ADMIN_ACI,
                                        GLOBAL_ALLOW_BASE_DN_TO_LEVEL_1_ACI);
 
-    //Global defauls
-private static final String GLOBAL_ANONYMOUS_READ_ACI =
-       buildGlobalAciValue("name", "Anonymous read access", "targetattr!=",
-                                     "userPassword||authPassword",
-                                     "allow(read, search, compare)", BIND_RULE_USERDN_ANYONE);
+  //Global defaults
+  private static final String GLOBAL_ANONYMOUS_READ_ACI =
+          buildGlobalAciValue("name", "Anonymous read access", "targetattr!=",
+                  "userPassword||authPassword",
+                  "allow(read, search, compare)", BIND_RULE_USERDN_ANYONE);
 
-private static final String GLOBAL_SELF_WRITE_ACI =
-       buildGlobalAciValue("name", "Self entry modification", "targetattr",
-                                     "*",
-                                     "allow(write)", BIND_RULE_USERDN_SELF);
+  private static final String GLOBAL_SELF_WRITE_ACI =
+          buildGlobalAciValue("name", "Self entry modification", "targetattr",
+                  "*",
+                  "allow(write)", BIND_RULE_USERDN_SELF);
 
+  private static final String GLOBAL_SCHEMA_ACI =
+          buildGlobalAciValue("name", "User-Visible Schema Operational Attributes",
+                  "target", "ldap:///cn=schema", "targetscope", "base",
+                  "targetattr",
+                  "attributeTypes||dITContentRules||dITStructureRules||ldapSyntaxes||matchingRules||matchingRuleUse||nameForms||objectClasses",
+                  "allow(read, search, compare)", BIND_RULE_USERDN_ANYONE);
 
-private static final String GLOBAL_DEFAULT_ACIS =
+  private static final String GLOBAL_DSE_ACI = buildGlobalAciValue(
+          "name","User-Visible Root DSE Operational Attributes",
+          "target", "ldap:///", "targetscope", "base",
+          "targetattr",
+          "namingContexts||supportedAuthPasswordSchemes||supportedControl||supportedExtension||supportedFeatures||supportedSASLMechanisms||vendorName||vendorVersion",
+          "allow(read, search, compare)",BIND_RULE_USERDN_ANYONE);
+
+  private static final String GLOBAL_USER_OP_ATTRS_ACI = buildGlobalAciValue(
+          "name", "User-Visible Operational Attributes", "targetattr",
+          "createTimestamp||creatorsName||modifiersName||modifyTimestamp||entryDN||entryUUID||subschemaSubentry",
+          "allow(read, search, compare)", BIND_RULE_USERDN_ANYONE);
+
+  private static final String GLOBAL_CONTROL_ACI = buildGlobalAciValue(
+          "name", "Control", "targetcontrol", "*",
+          "allow(read)", BIND_RULE_USERDN_ANYONE);
+
+  private static final String GLOBAL_DEFAULT_ACIS =
                      makeAttrAddAciLdif(ATTR_AUTHZ_GLOBAL_ACI,ACCESS_HANDLER_DN,
                                         GLOBAL_ANONYMOUS_READ_ACI,
-                                        GLOBAL_SELF_WRITE_ACI);
+                                        GLOBAL_SELF_WRITE_ACI, GLOBAL_SCHEMA_ACI,
+                                        GLOBAL_DSE_ACI, GLOBAL_USER_OP_ATTRS_ACI,
+                                        GLOBAL_CONTROL_ACI);
 
  //ACI used to test LDAP compare.
  private static final
@@ -1101,6 +1132,10 @@ private static final String GLOBAL_DEFAULT_ACIS =
 
   private static final  String ACI_PROXY_IMPORT_MGR_NEW =
                    makeAddAciLdif(OU_BASE_DN, ALLOW_PROXY_TO_IMPORT_MGR_NEW);
+
+
+private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
+                  makeAddAciLdif(OU_BASE_DN, ALLOW_PROXY_CONTROL_TO_LEVEL_1);
 
  private static final  String ACI_PROXY_IMPORT_MGR =
                    makeAddAciLdif(OU_BASE_DN, ALLOW_PROXY_TO_IMPORT_MGR);
@@ -1769,6 +1804,7 @@ private static final String GLOBAL_DEFAULT_ACIS =
     try {
       addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
       modEntries(ACI_PROXY_IMPORT_MGR, DIR_MGR_DN, DIR_MGR_PW);
+      modEntries(ACI_PROXY_CONTROL_LEVEL_1, DIR_MGR_DN, DIR_MGR_PW);
       modEntries(ACI_PROXY_IMPORT_MGR_NEW, DIR_MGR_DN, DIR_MGR_PW);
       modEntries(ACI_PROXY_EXPORT_MGR, DIR_MGR_DN, DIR_MGR_PW);
       modEntries(ACI_PROXY_EXPORT_MGR_NEW, DIR_MGR_DN, DIR_MGR_PW);

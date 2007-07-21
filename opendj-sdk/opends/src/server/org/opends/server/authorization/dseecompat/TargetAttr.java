@@ -59,10 +59,10 @@ public class TargetAttr {
      */
     private HashSet<AttributeType> attributes = new HashSet<AttributeType>();
 
-  /**
-   * HashSet of the operational attribute types parsed by the constructor.
-   */
-  private HashSet<AttributeType> opAttributes = new HashSet<AttributeType>();
+    /**
+     * HashSet of the operational attribute types parsed by the constructor.
+     */
+    private HashSet<AttributeType> opAttributes = new HashSet<AttributeType>();
 
     /*
      * Regular expression that matches one or more ATTR_NAME's separated by

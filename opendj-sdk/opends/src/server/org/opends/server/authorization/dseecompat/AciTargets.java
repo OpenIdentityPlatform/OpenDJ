@@ -71,6 +71,11 @@ public class AciTargets {
      */
     private TargAttrFilters targAttrFilters=null;
 
+   /**
+    * The ACI syntax has a targetcontrol keyword.
+    */
+    private TargetControl targetControl=null;
+
     /*
      * The number of regular expression group positions in a valid ACI target
      * expression.
@@ -139,16 +144,19 @@ public class AciTargets {
      * @param targetFilter The ACI targetfilter keyword if any.
      * @param targetScope The ACI targetscope keyword if any.
      * @param targAttrFilters The ACI targAttrFilters keyword if any.
+     * @param targetControl The ACI targetControl keyword if any.
      */
     private AciTargets(Target targetEntry, TargetAttr targetAttr,
                        TargetFilter targetFilter,
                        SearchScope targetScope,
-                       TargAttrFilters targAttrFilters) {
+                       TargAttrFilters targAttrFilters,
+                       TargetControl targetControl) {
        this.target=targetEntry;
        this.targetAttr=targetAttr;
        this.targetScope=targetScope;
        this.targetFilter=targetFilter;
        this.targAttrFilters=targAttrFilters;
+       this.targetControl=targetControl;
     }
 
     /**
@@ -194,6 +202,16 @@ public class AciTargets {
     public TargAttrFilters getTargAttrFilters() {
         return targAttrFilters;
     }
+
+   /**
+    * Return the class representing the ACI targetcontrol keyword. May be
+    * null.
+    * @return The targetcontrol information.
+   */
+    public TargetControl getTargetControl() {
+      return targetControl;
+    }
+
     /**
      * Decode an ACI's target part of the syntax from the string provided.
      * @param input String representing an ACI target part of syntax.
@@ -207,6 +225,7 @@ public class AciTargets {
         TargetAttr targetAttr=null;
         TargetFilter targetFilter=null;
         TargAttrFilters targAttrFilters=null;
+        TargetControl targetControl=null;
         SearchScope targetScope=SearchScope.WHOLE_SUBTREE;
         Pattern targetPattern = Pattern.compile(targetRegex);
         Matcher targetMatcher = targetPattern.matcher(input);
@@ -248,6 +267,22 @@ public class AciTargets {
                         MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
                     String message =
                         getMessage(msgID, "target", input);
+                    throw new AciException(msgID, message);
+                }
+                break;
+            }
+            case KEYWORD_TARGETCONTROL:
+            {
+                if (targetControl == null){
+                    targetControl =
+                            TargetControl.decode(targetOperator, expression);
+                }
+                else
+                {
+                    int msgID =
+                        MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
+                    String message =
+                        getMessage(msgID, "targetcontrol", input);
                     throw new AciException(msgID, message);
                 }
                 break;
@@ -318,7 +353,7 @@ public class AciTargets {
             }
         }
         return new AciTargets(target, targetAttr, targetFilter,
-                              targetScope, targAttrFilters);
+                              targetScope, targAttrFilters, targetControl);
     }
 
     /**
@@ -362,6 +397,23 @@ public class AciTargets {
         if(targetFilter != null)
              ret=targetFilter.isApplicable(matchCtx);
         return ret;
+    }
+
+    /**
+     * Check an ACI's targetcontrol against a target match context.
+     *
+     * @param aci The ACI to match the targetcontrol against.
+     * @param matchCtx The target match context containing the information
+     *                 needed to perform the target match.
+     * @return  True if the targetcontrol matched the target context.
+     */
+    public static boolean isTargetControlApplicable(Aci aci,
+                                            AciTargetMatchContext matchCtx) {
+      boolean ret=true;
+      TargetControl targetControl=aci.getTargets().getTargetControl();
+      if(targetControl != null)
+        ret=targetControl.isApplicable(matchCtx);
+      return ret;
     }
 
     /**

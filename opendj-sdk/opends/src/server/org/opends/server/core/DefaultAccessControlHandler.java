@@ -100,7 +100,6 @@ class DefaultAccessControlHandler
   }
 
 
-
   /**
    * {@inheritDoc}
    */
@@ -160,6 +159,17 @@ class DefaultAccessControlHandler
    * {@inheritDoc}
    */
   @Override
+   public  boolean isAllowed(DN dn, Operation  op, Control control)
+   {
+     return true;
+   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public boolean isAllowed(LocalBackendModifyDNOperation modifyDNOperation)
   {
     return true;
@@ -189,7 +199,6 @@ class DefaultAccessControlHandler
   }
 
 
-
   /**
    * {@inheritDoc}
    */
@@ -213,27 +222,5 @@ class DefaultAccessControlHandler
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isProxiedAuthAllowed(Operation operation, Entry entry)
-  {
-   return true;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isGetEffectiveRightsAllowed(SearchOperation operation,
-                                             Control c)
-  {
-      return true;
-  }
 }
 

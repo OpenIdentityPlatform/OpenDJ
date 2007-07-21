@@ -29,6 +29,7 @@ package org.opends.server.authorization.dseecompat;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.testng.annotations.AfterClass;
 import org.testng.Assert;
 import org.opends.server.TestCaseUtils;
 import static org.opends.server.config.ConfigConstants.*;
@@ -124,6 +125,14 @@ public class TargetAttrTestCase extends AciTestCase {
     deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
     addEntries();
   }
+
+  @AfterClass
+  public void tearDown() throws Exception {
+     String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
+          G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL);
+     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
+  }
+
 
   /**
    * Test targetattr behavior using userattr bind rule.

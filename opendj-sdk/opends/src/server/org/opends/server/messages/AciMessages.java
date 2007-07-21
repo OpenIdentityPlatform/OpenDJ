@@ -913,7 +913,48 @@ public class AciMessages {
      public static final int MSGID_ACI_SYNTAX_INVALID_NETMASK =
          CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 90;
 
+
     /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse failed because a targetcontrol keyword expression
+     * did not parse.  This takes one argument, which is the targetcontrol
+     * expression from the ACI.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_INVALID_TARGETCONTROL_EXPRESSION =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 91;
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value cannot be parsed because numeric OID contained an
+     * illegal character.  This takes three arguments, which are the provided
+     * value, the illegal character, and the position of that character.
+     */
+     public static final int
+            MSGID_ACI_SYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID =
+            CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 92;
+
+
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value cannot be parsed because the OID contained two
+     * consecutive periods.  This takes two arguments, which are the provided
+     * value and the position of the second period.
+     */
+    public static final int
+            MSGID_ACI_SYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID =
+            CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 93;
+
+     /**
+     * The message ID for the message that will be used the ACI handler cannot
+     * decode an geteffectiverights control. This takes one argument, the
+     * message from the decode exception.
+     */
+    public static final int
+            MSGID_ACI_SYNTAX_DECODE_EFFECTIVERIGHTS_FAIL =
+            CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 94;
+
+  /**
      * Associates a set of generic messages with the message IDs defined in
      * this class.
      */
@@ -1434,6 +1475,31 @@ public class AciMessages {
                 "The provided Access Control Instruction (ACI) bind rule " +
                  "IP address expression failed to parse because the " +
                  "netmask part of the expression \"%s\" has an invalid value");
+
+
+      registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGETCONTROL_EXPRESSION,
+              "The provided Access Control Instruction (ACI) " +
+              "targetcontrol expression value \"%s\" is invalid. A valid " +
+              "targetcontrol keyword expression value requires one or more " +
+              "valid control OID strings in the following format: " +
+              "oid [|| oid1] ... [|| oidn]");
+
+        registerMessage(MSGID_ACI_SYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID,
+                "The provided Access Control Instruction (ACI) " +
+                "targetcontrol OID value \"%s\" could not be parsed " +
+                 " because the value contained an illegal character %s " +
+                 "at position %d");
+
+        registerMessage(MSGID_ACI_SYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID,
+                "The provided Access Control Instruction (ACI) " +
+                "targetcontrol OID value \"%s\" could not be parsed " +
+               " because the numeric OID " +
+               "contained two consecutive periods at position %d");
+
+        registerMessage(MSGID_ACI_SYNTAX_DECODE_EFFECTIVERIGHTS_FAIL,
+                "The access control check failed because a" +
+                " geteffectiverights control could not be" +
+                " decoded because of the following reason: \"%s\"");
 
     }
 }

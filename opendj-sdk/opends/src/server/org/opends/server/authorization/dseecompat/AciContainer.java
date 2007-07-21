@@ -107,17 +107,17 @@ implements AciTargetMatchContext, AciEvalContext {
      * restore the current resource entry state after a read right was
      * evaluated.
      */
-    private Entry saveResourceEntry;
+    private final Entry saveResourceEntry;
 
     /*
      * The client connection information.
      */
-    private ClientConnection clientConnection;
+    private final ClientConnection clientConnection;
 
     /*
      * The operation being evaluated.
      */
-    private Operation operation;
+    private final Operation operation;
 
     /*
      * True if a targattrfilters match was found.
@@ -138,7 +138,7 @@ implements AciTargetMatchContext, AciEvalContext {
      * Used to save the current authorization entry when the authorization
      * entry is switched during a proxy access check.
      */
-    private Entry saveAuthorizationEntry;
+    private final Entry saveAuthorizationEntry;
 
     /*
      * This entry is only used if proxied authorization is being used.  It is
@@ -196,7 +196,7 @@ implements AciTargetMatchContext, AciEvalContext {
      * Table of ACIs that have targattrfilter keywords that matched. Used
      * in geteffectiverights attributeLevel write evaluation.
      */
-    private HashMap<Aci,Aci> targAttrFilterAcis=new HashMap<Aci, Aci>();
+    private final HashMap<Aci,Aci> targAttrFilterAcis=new HashMap<Aci, Aci>();
 
     /*
      * The name of a ACI that decided an evaluation and contained a
@@ -235,6 +235,11 @@ implements AciTargetMatchContext, AciEvalContext {
     * Flag used to determine if ACI all attributes target matched.
     */
     private int evalAllAttributes=0;
+
+   /*
+   * String used to hold a control OID string.
+   */
+    private String controlOID;
 
   /**
      * This constructor is used by all currently supported LDAP operations.
@@ -729,6 +734,22 @@ implements AciTargetMatchContext, AciEvalContext {
     */
     public boolean getTargAttrFiltersMatch() {
         return targAttrFiltersMatch;
+    }
+
+    /**
+    * {@inheritDoc}
+    */
+    public String getControlOID() {
+      return controlOID;
+    }
+
+    /**
+     * Set the the controlOID value to the specified oid string.
+     *
+     * @param oid  The control oid string.
+     */
+    protected void setControlOID(String oid) {
+      this.controlOID=oid;
     }
 
     /**

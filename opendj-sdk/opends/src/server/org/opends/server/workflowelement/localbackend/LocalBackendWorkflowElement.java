@@ -56,7 +56,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PostOperationPluginResult;
 import org.opends.server.api.plugin.PreOperationPluginResult;
 import org.opends.server.controls.AuthorizationIdentityResponseControl;
-import org.opends.server.controls.GetEffectiveRights;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
@@ -214,7 +213,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
   /**
    * Perform a local modify operation against the local backend.
    *
-   * @param operation - The operation to perform
+   * @param localOp - The operation to perform
    */
   private void processLocalModify(LocalBackendModifyOperation localOp)
   {
@@ -392,6 +391,17 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             Control c   = requestControls.get(i);
             String  oid = c.getOID();
 
+            if (!AccessControlConfigManager.getInstance().
+                     getAccessControlHandler().
+                     isAllowed(entryDN, localOp, c))
+            {
+              localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+              int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
+              localOp.appendErrorMessage(getMessage(msgID, oid));
+              skipPostOperation = true;
+              break modifyProcessing;
+            }
+
             if (oid.equals(OID_LDAP_ASSERTION))
             {
               LDAPAssertionRequestControl assertControl;
@@ -459,7 +469,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             }
             else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
             {
-              if (c instanceof LDAPAssertionRequestControl)
+              if (c instanceof LDAPPreReadRequestControl)
               {
                 preReadRequest = (LDAPPreReadRequestControl) c;
               }
@@ -486,7 +496,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             }
             else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
             {
-              if (c instanceof LDAPAssertionRequestControl)
+              if (c instanceof LDAPPostReadRequestControl)
               {
                 postReadRequest = (LDAPPostReadRequestControl) c;
               }
@@ -569,19 +579,6 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 break modifyProcessing;
               }
 
-
-              if (AccessControlConfigManager.getInstance().
-                      getAccessControlHandler().isProxiedAuthAllowed(localOp,
-                      authorizationEntry) == false) {
-                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-                int msgID = MSGID_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-                localOp.appendErrorMessage(getMessage(msgID,
-                    String.valueOf(entryDN)));
-
-                skipPostOperation = true;
-                break modifyProcessing;
-              }
               localOp.setAuthorizationEntry(authorizationEntry);
               if (authorizationEntry == null)
               {
@@ -650,18 +647,6 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                 break modifyProcessing;
               }
 
-              if (AccessControlConfigManager.getInstance().
-                  getAccessControlHandler().isProxiedAuthAllowed(localOp,
-                      authorizationEntry) == false) {
-                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-                int msgID = MSGID_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-                localOp.appendErrorMessage(getMessage(msgID,
-                    String.valueOf(entryDN)));
-
-                skipPostOperation = true;
-                break modifyProcessing;
-              }
               localOp.setAuthorizationEntry(authorizationEntry);
               if (authorizationEntry == null)
               {
@@ -2545,6 +2530,17 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
           Control c   = requestControls.get(i);
           String  oid = c.getOID();
 
+          if (!AccessControlConfigManager.getInstance().
+                  getAccessControlHandler().
+                  isAllowed(baseDN, localOp, c))
+          {
+            localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
+            localOp.appendErrorMessage(getMessage(msgID, oid));
+            skipPostOperation = true;
+            break searchProcessing;
+          }
+
           if (oid.equals(OID_LDAP_ASSERTION))
           {
             LDAPAssertionRequestControl assertControl;
@@ -2696,18 +2692,6 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               break searchProcessing;
             }
 
-            if (AccessControlConfigManager.getInstance().
-                getAccessControlHandler().isProxiedAuthAllowed(localOp,
-                    authorizationEntry) == false) {
-              localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-              int msgID = MSGID_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-              localOp.appendErrorMessage(getMessage(msgID,
-                  String.valueOf(baseDN)));
-
-              skipPostOperation = true;
-              break searchProcessing;
-            }
             localOp.setAuthorizationEntry(authorizationEntry);
             if (authorizationEntry == null)
             {
@@ -2777,18 +2761,6 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
               break searchProcessing;
             }
 
-            if (AccessControlConfigManager.getInstance().
-                getAccessControlHandler().isProxiedAuthAllowed(localOp,
-                    authorizationEntry) == false) {
-              localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-              int msgID = MSGID_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-              localOp.appendErrorMessage(getMessage(msgID,
-                  String.valueOf(baseDN)));
-
-              skipPostOperation = true;
-              break searchProcessing;
-            }
             localOp.setAuthorizationEntry(authorizationEntry);
             if (authorizationEntry == null)
             {
@@ -2884,48 +2856,6 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
           {
             localOp.setVirtualAttributesOnly(true);
           }
-          else if(oid.equals(OID_GET_EFFECTIVE_RIGHTS))
-          {
-            GetEffectiveRights effectiveRightsControl;
-            if (c instanceof GetEffectiveRights)
-            {
-              effectiveRightsControl = (GetEffectiveRights) c;
-            }
-            else
-            {
-              try
-              {
-                effectiveRightsControl = GetEffectiveRights.decodeControl(c);
-              }
-              catch (LDAPException le)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, le);
-                }
-
-                localOp.setResultCode(ResultCode.valueOf(le.getResultCode()));
-                localOp.appendErrorMessage(le.getMessage());
-
-                break searchProcessing;
-              }
-            }
-
-              if (!AccessControlConfigManager.getInstance()
-                   .getAccessControlHandler().
-                    isGetEffectiveRightsAllowed(localOp,
-                        effectiveRightsControl)) {
-                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-                 int msgID =
-                        MSGID_SEARCH_EFFECTIVERIGHTS_INSUFFICIENT_ACCESS_RIGHTS;
-                 localOp.appendErrorMessage(getMessage(msgID,
-                     String.valueOf(baseDN)));
-
-                 skipPostOperation = true;
-                 break searchProcessing;
-               }
-          }
-
           // NYI -- Add support for additional controls.
           else if (c.isCritical())
           {
@@ -3151,7 +3081,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
   /**
    * Perform a local bind operation against a local backend.
    *
-   * @param operation - The operation to perform
+   * @param localOp - The operation to perform
    */
   private void processLocalBind(LocalBackendBindOperation localOp)
   {
@@ -3240,6 +3170,16 @@ bindProcessing:
         {
           Control c   = requestControls.get(i);
           String  oid = c.getOID();
+
+          if (!AccessControlConfigManager.getInstance().
+                  getAccessControlHandler(). isAllowed(bindDN, localOp, c))
+          {
+            localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
+            localOp.appendErrorMessage(getMessage(msgID, oid));
+            skipPostOperation = true;
+            break bindProcessing;
+          }
 
           if (oid.equals(OID_AUTHZID_REQUEST))
           {
@@ -4560,7 +4500,7 @@ bindProcessing:
   /**
    * Perform a local add operation against a local backend.
    *
-   * @param operation - The operation to perform
+   * @param localOp - The operation to perform
    */
   private void processLocalAdd(LocalBackendAddOperation localOp)
   {
@@ -5298,6 +5238,16 @@ addProcessing:
             Control c   = requestControls.get(i);
             String  oid = c.getOID();
 
+            if (!AccessControlConfigManager.getInstance().
+                    getAccessControlHandler().isAllowed(parentDN, localOp, c))
+            {
+              localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+              int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
+              localOp.appendErrorMessage(getMessage(msgID, oid));
+              skipPostOperation = true;
+              break addProcessing;
+            }
+
             if (oid.equals(OID_LDAP_ASSERTION))
             {
               LDAPAssertionRequestControl assertControl;
@@ -5365,7 +5315,7 @@ addProcessing:
             }
             else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
             {
-              if (c instanceof LDAPAssertionRequestControl)
+              if (c instanceof LDAPPostReadRequestControl)
               {
                 postReadRequest = (LDAPPostReadRequestControl) c;
               }
@@ -5448,18 +5398,6 @@ addProcessing:
                 break addProcessing;
               }
 
-              if (AccessControlConfigManager.getInstance()
-                  .getAccessControlHandler().isProxiedAuthAllowed(localOp,
-                      authorizationEntry) == false) {
-                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-                int msgID = MSGID_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-                localOp.appendErrorMessage(getMessage(msgID,
-                    String.valueOf(entryDN)));
-
-                skipPostOperation = true;
-                break addProcessing;
-              }
               localOp.setAuthorizationEntry(authorizationEntry);
               if (authorizationEntry == null)
               {
@@ -5528,18 +5466,6 @@ addProcessing:
                 break addProcessing;
               }
 
-              if (AccessControlConfigManager.getInstance()
-                      .getAccessControlHandler().isProxiedAuthAllowed(localOp,
-                      authorizationEntry) == false) {
-                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-                int msgID = MSGID_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-                localOp.appendErrorMessage(getMessage(msgID,
-                    String.valueOf(entryDN)));
-
-                skipPostOperation = true;
-                break addProcessing;
-              }
               localOp.setAuthorizationEntry(authorizationEntry);
               if (authorizationEntry == null)
               {
@@ -5945,7 +5871,7 @@ addProcessing:
   /**
    * Performs a local delete operation against a local backend.
    *
-   * @param operation the operation to perform
+   * @param localOp the operation to perform
    */
   private void processLocalDelete(LocalBackendDeleteOperation localOp)
   {
@@ -6095,6 +6021,16 @@ deleteProcessing:
             Control c   = requestControls.get(i);
             String  oid = c.getOID();
 
+            if (!AccessControlConfigManager.getInstance().
+                     getAccessControlHandler().isAllowed(entryDN, localOp, c))
+            {
+              localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+              int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
+              localOp.appendErrorMessage(getMessage(msgID, oid));
+              skipPostOperation = true;
+              break deleteProcessing;
+            }
+
             if (oid.equals(OID_LDAP_ASSERTION))
             {
               LDAPAssertionRequestControl assertControl;
@@ -6162,7 +6098,7 @@ deleteProcessing:
             }
             else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
             {
-              if (c instanceof LDAPAssertionRequestControl)
+              if (c instanceof LDAPPreReadRequestControl)
               {
                 preReadRequest = (LDAPPreReadRequestControl) c;
               }
@@ -6245,18 +6181,6 @@ deleteProcessing:
                 break deleteProcessing;
               }
 
-              if (AccessControlConfigManager.getInstance()
-                  .getAccessControlHandler().isProxiedAuthAllowed(localOp,
-                      authorizationEntry) == false) {
-                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-                int msgID = MSGID_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-                localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN)));
-
-                skipPostOperation = true;
-                break deleteProcessing;
-              }
               localOp.setAuthorizationEntry(authorizationEntry);
               if (authorizationEntry == null)
               {
@@ -6325,18 +6249,6 @@ deleteProcessing:
                 break deleteProcessing;
               }
 
-              if (AccessControlConfigManager.getInstance()
-                  .getAccessControlHandler().isProxiedAuthAllowed(localOp,
-                      authorizationEntry) == false) {
-                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-                int msgID = MSGID_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-                localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN)));
-
-                skipPostOperation = true;
-                break deleteProcessing;
-              }
               localOp.setAuthorizationEntry(authorizationEntry);
               if (authorizationEntry == null)
               {
@@ -6755,7 +6667,7 @@ deleteProcessing:
   /**
    * Perform a local compare operation against a local backend.
    *
-   * @param operation - The operation to perform
+   * @param localOp - The operation to perform
    */
   private void processLocalCompare(LocalBackendCompareOperation localOp)
   {
@@ -6896,6 +6808,17 @@ compareProcessing:
             Control c   = requestControls.get(i);
             String  oid = c.getOID();
 
+            if (!AccessControlConfigManager.getInstance().
+                    getAccessControlHandler().
+                    isAllowed(entryDN, localOp, c))
+            {
+              localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+              int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
+              localOp.appendErrorMessage(getMessage(msgID, oid));
+              skipPostOperation = true;
+              break compareProcessing;
+            }
+
             if (oid.equals(OID_LDAP_ASSERTION))
             {
               LDAPAssertionRequestControl assertControl;
@@ -7015,18 +6938,6 @@ compareProcessing:
                 break compareProcessing;
               }
 
-              if (AccessControlConfigManager.getInstance()
-                      .getAccessControlHandler().isProxiedAuthAllowed(localOp,
-                                                 authorizationEntry) == false) {
-                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-                int msgID = MSGID_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-                localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN)));
-
-                skipPostOperation = true;
-                break compareProcessing;
-              }
               localOp.setAuthorizationEntry(authorizationEntry);
               if (authorizationEntry == null)
               {
@@ -7095,18 +7006,6 @@ compareProcessing:
                 break compareProcessing;
               }
 
-              if (AccessControlConfigManager.getInstance()
-                      .getAccessControlHandler().isProxiedAuthAllowed(localOp,
-                                                 authorizationEntry) == false) {
-                localOp.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-                int msgID = MSGID_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-                localOp.appendErrorMessage(
-                    getMessage(msgID, String.valueOf(entryDN)));
-
-                skipPostOperation = true;
-                break compareProcessing;
-              }
               localOp.setAuthorizationEntry(authorizationEntry);
               if (authorizationEntry == null)
               {
@@ -7323,7 +7222,7 @@ compareProcessing:
   /**
    * Perform a local moddn operation against the local backend.
    *
-   * @param operation - The operation to perform
+   * @param op - The operation to perform
    */
   private void processLocalModifyDN(LocalBackendModifyDNOperation op)
   {
@@ -7606,6 +7505,16 @@ modifyDNProcessing:
             Control c   = requestControls.get(i);
             String  oid = c.getOID();
 
+            if (!AccessControlConfigManager.getInstance().
+                     getAccessControlHandler().isAllowed(entryDN,  op, c))
+            {
+              op.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+              int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
+              op.appendErrorMessage(getMessage(msgID, oid));
+              skipPostOperation = true;
+              break modifyDNProcessing;
+            }
+
             if (oid.equals(OID_LDAP_ASSERTION))
             {
               LDAPAssertionRequestControl assertControl;
@@ -7671,7 +7580,7 @@ modifyDNProcessing:
             }
             else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
             {
-              if (c instanceof LDAPAssertionRequestControl)
+              if (c instanceof LDAPPreReadRequestControl)
               {
                 preReadRequest = (LDAPPreReadRequestControl) c;
               }
@@ -7698,7 +7607,7 @@ modifyDNProcessing:
             }
             else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
             {
-              if (c instanceof LDAPAssertionRequestControl)
+              if (c instanceof LDAPPostReadRequestControl)
               {
                 postReadRequest = (LDAPPostReadRequestControl) c;
               }
@@ -7780,18 +7689,6 @@ modifyDNProcessing:
                 break modifyDNProcessing;
               }
 
-              if (AccessControlConfigManager.getInstance()
-                      .getAccessControlHandler().isProxiedAuthAllowed(op,
-                      authorizationEntry) == false) {
-                op.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-                int msgID = MSGID_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-                op.appendErrorMessage(getMessage(msgID,
-                    String.valueOf(entryDN)));
-
-                skipPostOperation = true;
-                break modifyDNProcessing;
-              }
               op.setAuthorizationEntry(authorizationEntry);
               if (authorizationEntry == null)
               {
@@ -7858,19 +7755,6 @@ modifyDNProcessing:
 
                 break modifyDNProcessing;
               }
-              if (AccessControlConfigManager.getInstance()
-                  .getAccessControlHandler().isProxiedAuthAllowed(op,
-                                                authorizationEntry) == false) {
-                op.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-
-                int msgID = MSGID_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS;
-                op.appendErrorMessage(getMessage(msgID,
-                    String.valueOf(entryDN)));
-
-                skipPostOperation = true;
-                break modifyDNProcessing;
-              }
-
 
               op.setAuthorizationEntry(authorizationEntry);
               if (authorizationEntry == null)

@@ -60,6 +60,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.CoreMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -487,6 +488,15 @@ extendedProcessing:
       {
         for (Control c : requestControls)
         {
+          if (!AccessControlConfigManager.getInstance().
+                  getAccessControlHandler().
+                  isAllowed(this.getAuthorizationDN(), this, c)) {
+            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            int msgID = MSGID_CONTROL_INSUFFICIENT_ACCESS_RIGHTS;
+            appendErrorMessage(getMessage(msgID, c.getOID()));
+            skipPostOperation=true;
+            break extendedProcessing;
+          }
           if (! c.isCritical())
           {
             // The control isn't critical, so we don't care if it's supported
