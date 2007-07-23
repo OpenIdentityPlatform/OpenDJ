@@ -54,6 +54,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
 import org.opends.server.controls.GetEffectiveRights;
+import org.opends.server.backends.jeb.EntryContainer;
 
 
 /**
@@ -90,6 +91,16 @@ public class AciHandler
    * Attribute type corresponding to global "ds-cfg-global-aci" attribute.
    */
   static AttributeType globalAciType;
+
+  /**
+   * Attribute type corresponding to "debugsearchindex" attribute.
+   */
+  static AttributeType debugSearchIndex;
+
+ /*
+  * DN corresponding to "debugsearchindex" attribute type.
+  */
+  static DN debugSearchIndexDN;
 
   /**
    * String used to save the original authorization entry in an operation
@@ -129,6 +140,20 @@ public class AciHandler
       globalAciType =
               DirectoryServer.getDefaultAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
     }
+
+     if((debugSearchIndex =
+          DirectoryServer.
+              getAttributeType(EntryContainer.ATTR_DEBUG_SEARCH_INDEX)) == null)
+     {
+       debugSearchIndex =
+       DirectoryServer.
+               getDefaultAttributeType(EntryContainer.ATTR_DEBUG_SEARCH_INDEX);
+     }
+     try {
+       debugSearchIndexDN=DN.decode("cn=debugsearch");
+     } catch (DirectoryException ex) {
+       //Should never happen.
+     }
    }
 
   /**
@@ -754,6 +779,13 @@ public class AciHandler
     testFilter(AciLDAPOperationContainer container, SearchFilter filter)
     throws DirectoryException {
         boolean ret=true;
+        //If the resource entry has a dn equal to "cn=debugsearch" and it
+        //contains the special attribute type "debugsearchindex", then the
+        //resource entry is a psudo entry created for debug purposes. Return
+        //true if that is the case.
+        if(debugSearchIndexDN.equals(container.getResourceDN()) &&
+           container.getResourceEntry().hasAttribute(debugSearchIndex))
+          return true;
         switch (filter.getFilterType()) {
             case AND:
             case OR: {
