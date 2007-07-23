@@ -31,7 +31,7 @@ set PATH=%SystemRoot%
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.StopDS"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
-set DIR_HOME=%~dP0..
+set DIR_HOME=%~dPs0..
 
 set INSTANCE_ROOT=%DIR_HOME%
 
