@@ -37,6 +37,7 @@
         <testcase name="'Security: Pwd Length Min: Preamble Setup'">
           <sequence>
             <call function="'testCase_Preamble'"/>
+            
             <message>
                'Security: Pwd Length Min: Preamble Step 1. Checking existence of ds-cfg-minimum-password-length'
             </message>
@@ -55,14 +56,16 @@
                'Security: Pwd Length Min: Preamble Step 2. Admin Enabling Pwd Length Validator'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_enable_pwd_length_validator.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-validator-dn' ,
+                    'attributeValue'         : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -75,16 +78,19 @@
             <message>
                'Security: Pwd Length Min: Pwd Too Short 1 Step 1. User Changing Password'
             </message>
-
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'oranges' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % logsRemoteDataDir ,
-                'expectedRC'       : 53 }
+            
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'oranges' ,
+                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'grape' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
             </call>
-
+            
             <!--- User Search With Password -->
             <message>
                'Security: Pwd Length Min: Pwd Too Short 1 Step 2. User Searching With Password'
@@ -95,7 +101,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'grape' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base', 
                 'expectedRC'       : 49 }
@@ -114,14 +120,18 @@
                'Security: Pwd Length Min: Admin Changing Minimum Pwd Length'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_change_min_pwd_length.ldif' % logsRemoteDataDir }
+            <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'password-validator' ,
+                    'propertyType'           : 'validator' ,
+                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'attributeName'          : 'minimum-password-length' ,
+                    'attributeValue'         : '4' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -135,15 +145,18 @@
                'Security: Pwd Length Min: Pwd Too Short 2 Step 1. User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'oranges' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short2.ldif' % logsRemoteDataDir ,
-                'expectedRC'       : 53 }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'oranges' ,
+                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'goo' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
             </call>
-
+            
             <!--- User Search With Password -->
             <message>
                'Security: Pwd Length Min: Pwd Too Short 2 Step 2. User Searching With Password'
@@ -154,7 +167,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'goo' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' ,
                 'expectedRC'       : 49 }
@@ -173,15 +186,17 @@
                'Security: Pwd Length Min: User Change Pwd Step 1. User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'oranges' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_short.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'oranges' ,
+                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'grape' ,
+                    'changetype'             : 'replace' }
             </call>
-
-
+            
             <!--- User Search With Password -->
             <message>
                'Security: Pwd Length Min: User Change Pwd Step 2. User Searching With Password'
@@ -192,7 +207,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'grape' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -210,14 +225,18 @@
                'Security: Pwd Length Min: Postamble - Admin Resetting Minimum Pwd Length'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_min_pwd_length.ldif' % logsRemoteDataDir }
+            <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'password-validator' ,
+                    'propertyType'           : 'validator' ,
+                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'attributeName'          : 'minimum-password-length' ,
+                    'attributeValue'         : '6' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -239,20 +258,23 @@
                 'entryToBeCompared'   : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
             </call>
 
-
             <!--- Admin Change Maximum Pwd Length -->
             <message>
                'Security: Pwd Length Max: Preamble Step 2. Admin Changing Maximum Pwd Length'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_change_max_pwd_length.ldif' % logsRemoteDataDir }
+            <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'password-validator' ,
+                    'propertyType'           : 'validator' ,
+                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'attributeName'          : 'maximum-password-length' ,
+                    'attributeValue'         : '10' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -266,15 +288,18 @@
                'Security: Pwd Length Max: Pwd Too Long 1 Step 1. User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'grape' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long.ldif' % logsRemoteDataDir ,
-                'expectedRC'       : 53 }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'grape' ,
+                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'pomegranates' ,
+                    'changetype'             : 'replace' , 
+                    'expectedRC'             : 53  }
             </call>
-
+            
             <!--- User Search With Password -->
             <message>
                'Security: Pwd Length Max: Pwd Too Long 1 Step 2. User Searching With Password'
@@ -285,7 +310,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pomegranates' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' ,
                 'expectedRC'       : 49 }
@@ -304,14 +329,17 @@
                'Security: Pwd Length Max: User Change Password Step 1. User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'grape' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long2.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'grape' ,
+                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'grapefruit' ,
+                    'changetype'             : 'replace' }
             </call>
-
+            
             <!--- User Search With Password -->
             <message>
                'Security: Pwd Length Max: User Change Password Step 2. User Searching With Password'
@@ -322,7 +350,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'grapefruit' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -340,26 +368,46 @@
                'Security: Pwd Length Max: Postamble Step 1. Admin Resetting Maximum Pwd Length'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_max_pwd_length.ldif' % logsRemoteDataDir }
+            <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'password-validator' ,
+                    'propertyType'           : 'validator' ,
+                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'attributeName'          : 'maximum-password-length' ,
+                    'attributeValue'         : '0' }
             </call>
-
-
+            
             <!--- User Change Password -->
             <message>
                'Security: Pwd Length Max: Postamble Step 2. User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'grapefruit' ,
+                    'DNToModify'             : 'uid=bhall, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'pomegranates' ,
+                    'changetype'             : 'replace' }
+            </call>
+            
+            <message>
+               'Security: Pwd Length Max: User Change Password Step 2. User Searching With Password'
+            </message>
+
+            <call function="'SearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'grapefruit' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/user_change_pwd_too_long.ldif' % logsRemoteDataDir }
+                'dsInstancePswd'   : 'pomegranates' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base' }
             </call>
 
             <call function="'testCase_Postamble'"/>

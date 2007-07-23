@@ -39,33 +39,21 @@
           
             <call function="'testCase_Preamble'"/>
 
-            <!--- Add Sales Admin -->
-            <message>
-               'Security: Root User Bypass Valid: Preamble - Step 1. Add Sales Admin'
-            </message>
-
-            <call function="'addEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'   : '%s/security/pwd_validator/add_sales_admin.ldif' % logsRemoteDataDir }
-            </call>
-
-
             <!--- Admin Enable Pwd Length Validator -->
             <message>
-               'Security: Root User Bypass Valid: Preamble - Step 2. Admin Enabling Pwd Length Validator On Root Users'
+               'Security: Root User Bypass Valid: Preamble - Step 1. Admin Enabling Pwd Length Validator On Root Users'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_enable_pwd_length_validator.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-validator-dn' ,
+                    'attributeValue'         : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -75,21 +63,24 @@
         <testcase name="'Security: Root User Bypass Valid: No Bypass'">
           <sequence>
             <call function="'testCase_Preamble'"/>
-           <message>
+            <message>
                'Security: Root User Bypass Valid: No Bypass - Step 1. Root Changing Password - Too Short'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/root_change_pwd_too_short.ldif' % logsRemoteDataDir ,
-                'expectedRC'       : 53 }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Sales Admin,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'grape' ,
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 53 }
             </call>
-
-           <!--- Root Search With Password -->
-           <message>
+            
+            <!--- Root Search With Password -->
+            <message>
                'Security: Root User Bypass Valid: No Bypass - Step 2. Root Searching With Password'
             </message>
 
@@ -117,27 +108,32 @@
                'Security: Root User Bypass Valid: Bypass Enabled 1 - Step 1. Admin Enabling Bypass For Pwd Validator'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_enable_bypass_pwd_validator.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'skip-validation-for-administrators' ,
+                    'attributeValue'         : 'true' }
             </call>
-
-           <message>
+            
+            <message>
                'Security: Root User Bypass Valid: Bypass Enabled 1 - Step 2. Root Changing Password - Too Short'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/root_change_pwd_too_short.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Sales Admin,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'grape' ,
+                    'changetype'             : 'replace' }
             </call>
-
-           <!--- Root Search With Password -->
+            
+            <!--- Root Search With Password -->
            <message>
                'Security: Root User Bypass Valid: Bypass Enabled 1 - Step 3. Root Searching With Password'
             </message>
@@ -165,28 +161,34 @@
                'Security: Root User Bypass Valid: Bypass Enabled 2 - Step 1. Admin Changing Minimum Pwd Length'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_change_min_pwd_length.ldif' % logsRemoteDataDir }
+            <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'password-validator' ,
+                    'propertyType'           : 'validator' ,
+                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'attributeName'          : 'minimum-password-length' ,
+                    'attributeValue'         : '4' }
             </call>
-
-
+            
             <!--- User Change Password - Too Short-->
             <message>
                'Security: Root User Bypass Valid: Bypass Enabled 2 - Step 2. Root Changing Password - Too Short'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/root_change_pwd_too_short2.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Sales Admin,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'goo' ,
+                    'changetype'             : 'replace' }
             </call>
-
+            
             <!--- Root Search With Password -->
             <message>
                'Security: Root User Bypass Valid: Bypass Enabled 2 - Step 3. Root Searching With Password'
@@ -197,7 +199,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'cn=Sales Admin' ,
                 'dsInstancePswd'   : 'goo' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -218,15 +220,18 @@
                'Security: Root User Bypass Valid: Self-Change Pwd - Step 1. Root Changing Password - Too Short'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'cn=Sales Admin' ,
-                'dsInstancePswd'   : 'goo' ,
-                'entryToBeModified'   : '%s/security/pwd_validator/root_change_pwd_too_short3.ldif' % logsRemoteDataDir ,
-                'expectedRC'       : 53 }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Sales Admin' ,
+                    'dsInstancePswd'         : 'goo' ,
+                    'DNToModify'             : 'cn=Sales Admin,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'gaa' ,
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 53 }
             </call>
-
+            
             <!--- Root Search With Password -->
             <message>
                'Security: Root User Bypass Valid: Self-Change Pwd - Step 2. Root Searching With Password'
@@ -237,7 +242,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'cn=Sales Admin' ,
                 'dsInstancePswd'   : 'gaa' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' ,
                 'expectedRC'       : 49 }
@@ -254,46 +259,39 @@
           
             <call function="'testCase_Preamble'"/>
 
-            <!--- Root Reset Password-->
-            <message>
-               'Security: Root User Bypass Valid: Postamble - Step 1. Delete Sales Admin'
-            </message>
-
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/delete_sales_admin.ldif' % logsRemoteDataDir }
-            </call>
-
             <!--- Root Search With Original Password -->
             <message>
-               'Security: Root User Bypass Valid: Postamble - Step 2. Admin Disabling Bypass For Pwd Validator'
+               'Security: Root User Bypass Valid: Postamble - Step 1. Admin Disabling Bypass For Pwd Validator'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_disable_bypass_pwd_validator.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'skip-validation-for-administrators' ,
+                    'attributeValue'         : 'false' }
             </call>
-
-           <message>
-               'Security: Root User Bypass Valid: Postamble - Step 3. Admin Resetting Minimum Pwd Length'
-            </message>
-
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_validator/admin_reset_min_pwd_length.ldif' % logsRemoteDataDir }
-            </call>
-
+            
             <message>
-               'Security: Root User Bypass Valid: Postamble - Step 4. Admin Disabling Pwd Length Validator On Root Users'
+               'Security: Root User Bypass Valid: Postamble - Step 2. Admin Resetting Minimum Pwd Length'
+            </message>
+
+            <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'password-validator' ,
+                    'propertyType'           : 'validator' ,
+                    'propertyName'           : 'Length-Based Password Validator' ,
+                    'attributeName'          : 'minimum-password-length' ,
+                    'attributeValue'         : '6' }
+            </call>
+            <!--
+            <message>
+               'Security: Root User Bypass Valid: Postamble - Step 3. Admin Disabling Pwd Length Validator On Root Users'
             </message>
 
             <call function="'modifyEntry'">
@@ -303,7 +301,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/pwd_validator/admin_disable_pwd_length_validator.ldif' % logsRemoteDataDir }
             </call>
-
+            -->
             <call function="'testCase_Postamble'"/>
 
           </sequence>

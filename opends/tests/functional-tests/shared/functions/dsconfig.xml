@@ -174,6 +174,280 @@
         STAXCode=RC
         STAXReason=STAXResult
       </script>
+      
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checktestRC'">
+          { 'returncode' : STAXCode ,
+            'result'     : STAXReason ,
+            'expected'   : expectedRC }
+        </call>
+      </if>        
+      <return>
+        STAXReason
+      </return>
+      
+    </sequence>
+    
+  </function>
+
+  <!-- Modify password policy using dsconfig -->
+  <function name="modifyGlobal">
+    <function-prolog>
+      This function modifies a global attribute value using dsconfig
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+		<function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+		
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>		  
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+		
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+		
+      <function-arg-def name="attributeName" type="required">
+        <function-arg-description>
+          Attribute to modify, e.g. bind-with-dn-requires-password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="attributeValue" type="required">
+        <function-arg-description>
+          New attribute value
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="expectedRC" type="optional" default="0">
+      <function-arg-description>
+	 Expected return code value. Default value is 0
+      </function-arg-description>
+      <function-arg-property name="type" value="string"/>
+    </function-arg-def>			
+	
+    </function-map-args>
+    <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        STAFCmdParams=''	
+        STAFCmd=''			  	
+      
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
+
+        if attributeValue:
+            attributeValue=attributeValue.replace('"','QUOT')
+            
+        STAFCmdParamsList=[]
+        STAFCmdParamsList.append('set-global-configuration-prop ')
+        STAFCmdParamsList.append('--set "%s:%s"' % (attributeName,attributeValue))
+      </script>
+     
+      <call function="'_dsconfigCommonArgs'"/>
+      
+      <script>
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+           
+      <process name="'Modify dsconfig object'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checktestRC'">
+          { 'returncode' : STAXCode ,
+            'result'     : STAXReason ,
+            'expected'   : expectedRC }
+        </call>
+      </if>        
+      <return>
+        STAXReason
+      </return>
+      
+    </sequence>
+    
+  </function>
+
+  <!-- Modify identity mapper using dsconfig -->
+  <function name="modifyIdentityMapper">
+    <function-prolog>
+      This function modifies an identity mapper using dsconfig
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+		<function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+		
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>		  
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+		
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+		
+      <function-arg-def name="mapperName" type="required">
+        <function-arg-description>
+          Mapper to modify, e.g. Exact Match
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="attributeName" type="required">
+        <function-arg-description>
+          Attribute to modify, e.g. match-attribute
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="attributeValue" type="required">
+        <function-arg-description>
+          New attribute value
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="expectedRC" type="optional" default="0">
+      <function-arg-description>
+	 Expected return code value. Default value is 0
+      </function-arg-description>
+      <function-arg-property name="type" value="string"/>
+    </function-arg-def>			
+	
+    </function-map-args>
+    <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        STAFCmdParams=''	
+        STAFCmd=''			  	
+      
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
+
+        if attributeValue:
+            attributeValue=attributeValue.replace('"','QUOT')
+            
+        STAFCmdParamsList=[]
+        STAFCmdParamsList.append('set-identity-mapper-prop ')
+        STAFCmdParamsList.append('--mapper-name "%s" ' % (mapperName))
+        STAFCmdParamsList.append('--set "%s:%s"' % (attributeName,attributeValue))
+      </script>
+     
+      <call function="'_dsconfigCommonArgs'"/>
+      
+      <script>
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+           
+      <process name="'Modify dsconfig object'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      
       <if expr="expectedRC != 'noCheck'">
         <call function="'checktestRC'">
           { 'returncode' : STAXCode ,

@@ -48,8 +48,7 @@
               'dsInstancePswd'   : 'inflict' ,
               'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base',
-              'expectedRC'          : 0  }
+              'extraParams'      : '-s base'  }
           </call>
 
           <call function="'testCase_Postamble'"/>
@@ -64,15 +63,17 @@
              'Security: Account Expiration Admin Expiring User'
           </message>
 
-          <call function="'modifyEntry'">
-            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeModified'   : '%s/security/account_activation/admin_expire_account.ldif' % logsRemoteDataDir,
-              'expectedRC'          : 0  }			  
+          <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=abergin,ou=People,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-pwp-account-expiration-time' ,
+                    'newAttributeValue'      : '20061111161234Z' ,
+                    'changetype'             : 'replace' }
           </call>
-
+          
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
@@ -90,7 +91,7 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
               'dsInstancePswd'   : 'inflict' ,
-              'dsBaseDN'   : 'dc=example,dc=com' ,
+              'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
               'extraParams'      : '-s base',
               'expectedRC'       : 49  }	
@@ -107,15 +108,17 @@
              'Security: Account Expiration Admin Expiring User in Future'
           </message>
 
-          <call function="'modifyEntry'">
-            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeModified'   : '%s/security/account_activation/admin_expire_account_future.ldif' % logsRemoteDataDir,
-              'expectedRC'          : 0  }			  
+          <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=abergin,ou=People,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-pwp-account-expiration-time' ,
+                    'newAttributeValue'      : '20361111161234Z' ,
+                    'changetype'             : 'replace' }
           </call>
-
+            
           <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
@@ -133,10 +136,9 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
               'dsInstancePswd'   : 'inflict' ,
-              'dsBaseDN'   : 'dc=example,dc=com' ,
+              'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base',
-              'expectedRC'          : 0  }			  
+              'extraParams'      : '-s base' }			  
           </call>
 
           <call function="'testCase_Postamble'"/>
@@ -151,15 +153,17 @@
              'Security: Account Expiration: Postamble Step 1.  Admin Removing User Expiration'
           </message>
 
-          <call function="'modifyEntry'">
-            { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'entryToBeModified'   : '%s/security/account_activation/admin_unexpire_account.ldif' % logsRemoteDataDir ,
-              'expectedRC'          : 0  }				  
+          <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=abergin,ou=People,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-pwp-account-expiration-time' ,
+                    'newAttributeValue'      : '20361111161234Z' ,
+                    'changetype'             : 'delete' }
           </call>
-
+          
           <message>
              'Security: Account Expiration Postamble Step 2.  Checking User Bind After Removing Expiration'
           </message>
@@ -169,10 +173,9 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : 'uid=abergin,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
               'dsInstancePswd'   : 'inflict' ,
-              'dsBaseDN'   : 'dc=example,dc=com' ,
+              'dsBaseDN'         : 'dc=example,dc=com' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'extraParams'      : '-s base',
-              'expectedRC'          : 0  }	
+              'extraParams'      : '-s base'  }	
           </call>
           
           <call function="'testCase_Postamble'"/>

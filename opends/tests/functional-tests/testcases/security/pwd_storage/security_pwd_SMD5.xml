@@ -60,14 +60,16 @@
                'Security: Pwd Storage SMD5: Preamble - Admin Changing to SMD5 Storage Scheme'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_change_SMD5.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'SMD5' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -98,14 +100,17 @@
                'Security: Pwd Storage SMD5: User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=trigden,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'sensitive' ,
-                'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_SMD5.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=trigden,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sensitive' ,
+                    'DNToModify'             : 'uid=trigden,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'SMD5sensitive' ,
+                    'changetype'             : 'replace' }
             </call>
-
+            
             <message>
                'Security: Pwd Storage SMD5: User Binding With New Password'
             </message>
@@ -169,14 +174,16 @@
                'Security: Pwd Storage SMD5: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'SSHA' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>

@@ -60,14 +60,16 @@
                'Security: Pwd Storage CLEAR: Preamble - Admin Changing to CLEAR Storage Scheme'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_change_CLEAR.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'CLEAR' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -97,15 +99,17 @@
                'Security: Pwd Storage CLEAR: User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=jwalker,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'dogleg' ,
-                'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_CLEAR.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=jwalker,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'dogleg' ,
+                    'DNToModify'             : 'uid=jwalker,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'CLEARdogleg' ,
+                    'changetype'             : 'replace' }
             </call>
-
-
+            
             <message>
                'Security: Pwd Storage CLEAR: User Binding With New Password'
             </message>
@@ -115,7 +119,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jwalker,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'CLEARdogleg' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -131,7 +135,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=jwalker,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'userpassword' }
+                'attributes'       : 'userpassword' }
             </call>
 
             <script> 
@@ -173,7 +177,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=jwalker,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'userpassword' }
+                'attributes'       : 'userpassword' }
             </call>
 
             <script> 
@@ -211,14 +215,16 @@
                'Security: Pwd Storage CLEAR: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'SSHA' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
               
           </sequence>
