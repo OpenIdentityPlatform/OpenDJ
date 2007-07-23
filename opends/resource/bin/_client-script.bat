@@ -30,7 +30,7 @@ rem be invoked directly by end users.
 
 setlocal
 
-set DIR_HOME=%~dP0..
+set DIR_HOME=%~dPs0..
 set INSTANCE_ROOT=%DIR_HOME%
 
 if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass

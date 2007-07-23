@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.makeldif.MakeLDIF"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=make-ldif"
-call "%~dP0\..\lib\_server-script.bat" --resourcePath "%~dP0..\config\MakeLDIF" %*
+call "%~dPs0\..\lib\_server-script.bat" --resourcePath "%~dPs0..\config\MakeLDIF" %*
 

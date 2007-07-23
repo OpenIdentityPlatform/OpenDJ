@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDAPDelete"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=ldapdelete"
-call "%~dP0\..\lib\_client-script.bat" %*
+call "%~dPs0\..\lib\_client-script.bat" %*
 
