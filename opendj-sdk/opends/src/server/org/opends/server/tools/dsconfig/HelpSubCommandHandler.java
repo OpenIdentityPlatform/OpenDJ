@@ -387,6 +387,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   private static final String FIELD_YES =
     Messages.getString("general.yes"); //$NON-NLS-1$
 
+  private final static String HEADING_ADVANCED = Messages
+      .getString(KEY_PREFIX + "heading.advanced"); //$NON-NLS-1$
+
   private final static String HEADING_DEFAULT = Messages.getString(KEY_PREFIX
       + "heading.default"); //$NON-NLS-1$
 
@@ -493,6 +496,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     this.subCommand.addArgument(this.typeArgument);
 
     // Register common arguments.
+    registerAdvancedModeArgument(this.subCommand,
+        MSGID_DSCFG_DESCRIPTION_ADVANCED_HELP);
     registerPropertyNameArgument(this.subCommand);
 
     this.types = new TreeMap<String, AbstractManagedObjectDefinition<?, ?>>();
@@ -544,6 +549,15 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     builder.appendCell(defaultPrinter.print(pd));
 
     // Display options.
+    builder.startRow();
+    builder.appendCell(HEADING_ADVANCED);
+    builder.appendCell(HEADING_SEPARATOR);
+    if (pd.hasOption(PropertyOption.ADVANCED)) {
+      builder.appendCell(FIELD_YES);
+    } else {
+      builder.appendCell(FIELD_NO);
+    }
+
     builder.startRow();
     builder.appendCell(HEADING_MULTI_VALUED);
     builder.appendCell(HEADING_SEPARATOR);
@@ -725,6 +739,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
           continue;
         }
 
+        if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+          continue;
+        }
+
         if (!propertyNames.isEmpty() && !propertyNames.contains(pd.getName())) {
           continue;
         }
@@ -778,6 +796,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       boolean isFirstProperty = true;
       for (PropertyDefinition<?> pd : pds) {
         if (pd.hasOption(PropertyOption.HIDDEN)) {
+          continue;
+        }
+
+        if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
           continue;
         }
 

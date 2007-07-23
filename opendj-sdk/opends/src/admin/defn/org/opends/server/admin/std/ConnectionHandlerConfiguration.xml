@@ -61,7 +61,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="java-implementation-class" mandatory="true">
+  <adm:property name="java-implementation-class" mandatory="true" advanced="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
