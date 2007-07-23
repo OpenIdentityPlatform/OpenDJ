@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.admin.client.cli.DsFrameworkCliMain"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=dsframework"
-call "%~dPs0\..\lib\_client-script.bat" %*
+call "%~dP0\..\lib\_client-script.bat" %*
 

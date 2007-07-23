@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.VerifyIndex"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=verify-index"
-call "%~dPs0\..\lib\_server-script.bat" %*
+call "%~dP0\..\lib\_server-script.bat" %*
 

@@ -27,7 +27,7 @@ rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 setlocal
 
-set DIR_HOME=%~dPs0..
+set DIR_HOME=%~dP0..
 set INSTANCE_ROOT=%DIR_HOME%
 
 set LOG="%INSTANCE_ROOT%\logs\native-windows.out"

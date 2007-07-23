@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.ManageAccount"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=manage-account"
-call "%~dPs0\..\lib\_client-script.bat" %*
+call "%~dP0\..\lib\_client-script.bat" %*
 
