@@ -326,3 +326,16 @@ facsimiletelephonenumber: +1 408 555 0111
 roomnumber: 2511
 userpassword: oranges
 
+dn: cn=Sales Admin,cn=Root DNs,cn=config
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: organizationalPerson
+objectClass: ds-cfg-root-dn
+userPassword: password
+cn: Sales Admin
+givenName: Sales
+sn: Admin
+ds-cfg-alternate-bind-dn: cn=Sales Admin
+
+
