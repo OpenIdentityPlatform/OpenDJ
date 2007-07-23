@@ -142,7 +142,12 @@ public final class DsFrameworkCliReturnCode
     /**
      * Unexpected error (potential bug).
      */
-    CONFLICTING_ARGS(18, MSGID_ADMIN_NO_MESSAGE);
+    CONFLICTING_ARGS(18, MSGID_ADMIN_NO_MESSAGE),
+
+    /**
+     * The server entity is not yet registered.
+     */
+    SERVER_NOT_REGISTERED(19, MSGID_ADMIN_SERVER_NOT_REGISTERED);
 
     // The retunCodevalue of the value.
     private final int returnCode;

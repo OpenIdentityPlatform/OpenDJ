@@ -556,6 +556,15 @@ public final class AdminMessages {
   public static final int MSGID_ADMIN_ARG_SERVERID_DESCRIPTION =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 65;
 
+  /**
+   * The message ID for the message that will be used server that the user
+   * wants to add in a group is not yet register in the ADS.
+   * This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_SERVER_NOT_REGISTERED=
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 66;
+
+
   // Prevent instantiation.
   private AdminMessages() {
     // Do nothing.
@@ -763,5 +772,7 @@ public final class AdminMessages {
     registerMessage(MSGID_ADMIN_ARG_SERVERID_DESCRIPTION,
         "The registered server's unique identifier. " +
         "This is a required argument");
+    registerMessage(MSGID_ADMIN_SERVER_NOT_REGISTERED,
+        "The provided serverId is not registered");
   }
 }
