@@ -586,5 +586,38 @@ public class ToolConstants
    * displayed in usage information.
    */
   public static final String OPTION_VALUE_BACKENDNAME = "{backend-name}";
+
+  /**
+   * The value for the short option serverID attributes.
+   */
+  public static final String OPTION_SHORT_SERVERID = null;
+
+  /**
+   * The value for the long option serverID
+   * attribute.
+   */
+  public static final String OPTION_LONG_SERVERID= "serverID";
+
+  /**
+   * The placeholder value of serverID that will be
+   * displayed in usage information.
+   */
+  public static final String OPTION_VALUE_SERVERID = "{serverID}";
+
+  /**
+   * The value for the short option set.
+   */
+  public static final Character OPTION_SHORT_SET = null;
+
+  /**
+  * The value for the long option set.
+  */
+ public static final String OPTION_LONG_SET = "set";
+
+ /**
+  * The placeholder value for the long option set.
+  */
+ public static final String OPTION_VALUE_SET = "{PROP:VAL}";
+
 }
 

@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.Rdn;
 
 
@@ -49,7 +51,6 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
-import org.opends.server.util.args.SubCommandArgumentParser;
 
 /**
  * This class is handling server group CLI.
@@ -65,7 +66,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   /**
    * The subcommand Parser.
    */
-  SubCommandArgumentParser argParser ;
+  DsFrameworkCliParser argParser ;
 
   /**
    * The verbose argument.
@@ -258,6 +259,22 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   private HashMap<ServerGroupProperty, String> attributeDisplayName;
 
   /**
+   * The subcommand list.
+   */
+  private HashSet<SubCommand> subCommands = new HashSet<SubCommand>();
+
+  /**
+   * Indicates whether this subCommand should be hidden in the usage
+   * information.
+   */
+  private boolean isHidden;
+
+  /**
+   * The subcommand group name.
+   */
+  private String groupName;
+
+  /**
    * Get the display attribute name for a given attribute.
    * @param prop The server prperty
    * @return the display attribute name for a given attribute
@@ -266,19 +283,49 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   {
     return attributeDisplayName.get(prop);
   }
+
   /**
    * {@inheritDoc}
    */
-  public void initializeCliGroup(SubCommandArgumentParser argParser,
+  public Set<SubCommand> getSubCommands()
+  {
+    return subCommands;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isHidden()
+  {
+    return isHidden;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getGroupName()
+  {
+    return groupName ;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void initializeCliGroup(DsFrameworkCliParser argParser,
       BooleanArgument verboseArg)
       throws ArgumentException
   {
     this.verboseArg = verboseArg ;
+    isHidden = false ;
+    groupName = "server-group";
+    this.argParser = argParser;
+
 
     // Create-group subcommand
     createGroupSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.CREATE_GROUP.toString(),
         MSGID_ADMIN_SUBCMD_CREATE_GROUP_DESCRIPTION);
+    subCommands.add(createGroupSubCmd);
 
     createGroupDescriptionArg = new StringArgument("description",
         OPTION_SHORT_DESCRIPTION, OPTION_LONG_DESCRIPTION, false, false,
@@ -296,6 +343,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     modifyGroupSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.MODIFY_GROUP.toString(),
         MSGID_ADMIN_SUBCMD_MODIFY_GROUP_DESCRIPTION);
+    subCommands.add(modifyGroupSubCmd);
 
     modifyGroupDescriptionArg = new StringArgument("new-description",
         OPTION_SHORT_DESCRIPTION, OPTION_LONG_DESCRIPTION, false, false,
@@ -318,6 +366,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // delete-group
     deleteGroupSubCmd = new SubCommand(argParser,SubCommandNameEnum.DELETE_GROUP
         .toString(), MSGID_ADMIN_SUBCMD_DELETE_GROUP_DESCRIPTION);
+    subCommands.add(deleteGroupSubCmd);
 
     deleteGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
@@ -328,11 +377,13 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // list-groups
     listGroupSubCmd = new SubCommand(argParser, "list-groups",
         MSGID_ADMIN_SUBCMD_LIST_GROUPS_DESCRIPTION);
+    subCommands.add(listGroupSubCmd);
 
     // add-to-group
     addToGroupSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.ADD_TO_GROUP.toString(),
         MSGID_ADMIN_SUBCMD_ADD_TO_GROUP_DESCRIPTION);
+    subCommands.add(addToGroupSubCmd);
 
     addToGoupMemberNameArg = new StringArgument("memberName",
         OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
@@ -350,6 +401,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     removeFromGroupSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.REMOVE_FROM_GROUP.toString(),
         MSGID_ADMIN_SUBCMD_REMOVE_FROM_GROUP_DESCRIPTION);
+    subCommands.add(removeFromGroupSubCmd);
 
     removeFromGoupMemberNameArg = new StringArgument("memberName",
         OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
@@ -367,6 +419,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // list-members
     listMembersSubCmd = new SubCommand(argParser,SubCommandNameEnum.LIST_MEMBERS
         .toString(), MSGID_ADMIN_SUBCMD_LIST_MEMBERS_DESCRIPTION);
+    subCommands.add(listMembersSubCmd);
 
     listMembersGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
@@ -378,6 +431,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     listMembershipSubCmd = new SubCommand(argParser,
         SubCommandNameEnum.LIST_MEMBERSHIP.toString(),
         MSGID_ADMIN_SUBCMD_LIST_MEMBERSHIP_DESCRIPTION);
+    subCommands.add(listMembershipSubCmd);
 
     listMembershipMemberNameArg = new StringArgument("memberName",
         OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
@@ -406,362 +460,454 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   /**
    * {@inheritDoc}
    */
-  public ReturnCode performSubCommand(ADSContext adsContext, SubCommand subCmd,
-      OutputStream outStream, OutputStream errStream)
-      throws ADSContextException
+  public ReturnCode performSubCommand(SubCommand subCmd, OutputStream outStream,
+      OutputStream errStream)
+      throws ADSContextException, ArgumentException
   {
-    // -----------------------
-    // create-group subcommand
-    // -----------------------
-    if (subCmd.getName().equals(createGroupSubCmd.getName()))
+    ADSContext adsCtx = null ;
+    InitialLdapContext ctx = null ;
+
+    ReturnCode returnCode = ReturnCode.ERROR_UNEXPECTED;
+    try
     {
-      String groupId = createGroupGroupNameArg.getValue();
-      HashMap<ServerGroupProperty, Object> serverGroupProperties =
-        new HashMap<ServerGroupProperty, Object>();
-
-      // get the GROUP_NAME
-      serverGroupProperties.put(ServerGroupProperty.UID, groupId);
-
-      // get the Description
-      if (createGroupDescriptionArg.isPresent())
+      // -----------------------
+      // create-group subcommand
+      // -----------------------
+      if (subCmd.getName().equals(createGroupSubCmd.getName()))
       {
-        serverGroupProperties.put(ServerGroupProperty.DESCRIPTION,
-            createGroupDescriptionArg.getValue());
-      }
+        String groupId = createGroupGroupNameArg.getValue();
+        HashMap<ServerGroupProperty, Object> serverGroupProperties =
+          new HashMap<ServerGroupProperty, Object>();
 
-      // Create the group
-      adsContext.createServerGroup(serverGroupProperties);
-      return ReturnCode.SUCCESSFUL;
-    }
-    // -----------------------
-    // delete-group subcommand
-    // -----------------------
-    else if (subCmd.getName().equals(deleteGroupSubCmd.getName()))
-    {
-      String groupId = deleteGroupGroupNameArg.getValue();
-      HashMap<ServerGroupProperty, Object> serverGroupProperties =
-        new HashMap<ServerGroupProperty, Object>();
+        // get the GROUP_NAME
+        serverGroupProperties.put(ServerGroupProperty.UID, groupId);
 
-      // get the GROUP_ID
-      serverGroupProperties.put(ServerGroupProperty.UID, groupId);
-
-      // Delete the group
-      adsContext.deleteServerGroup(serverGroupProperties);
-      return ReturnCode.SUCCESSFUL;
-    }
-    // -----------------------
-    // list-groups subcommand
-    // -----------------------
-    else if (subCmd.getName().equals(listGroupSubCmd.getName()))
-    {
-      Set<Map<ServerGroupProperty, Object>> result = adsContext
-          .readServerGroupRegistry();
-      StringBuffer buffer = new StringBuffer();
-
-      // if not verbose mode, print group name (1 per line)
-      if (! verboseArg.isPresent())
-      {
-        for (Map<ServerGroupProperty, Object> groupProps : result)
+        // get the Description
+        if (createGroupDescriptionArg.isPresent())
         {
-          // Get the group name
-          buffer.append(groupProps.get(ServerGroupProperty.UID));
-          buffer.append(EOL);
+          serverGroupProperties.put(ServerGroupProperty.DESCRIPTION,
+              createGroupDescriptionArg.getValue());
         }
-      }
-      else
-      {
-        // Look for the max group identifier length
-        int uidLength = 0 ;
-        for (ServerGroupProperty sgp : ServerGroupProperty.values())
+
+        // Create the group
+        ctx = argParser.getContext(outStream, errStream);
+        if (ctx == null)
         {
-          int cur = attributeDisplayName.get(sgp).toString().length();
-          if (cur > uidLength)
+          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+        }
+        adsCtx = new ADSContext(ctx) ;
+        adsCtx.createServerGroup(serverGroupProperties);
+        returnCode = ReturnCode.SUCCESSFUL;
+      }
+      // -----------------------
+      // delete-group subcommand
+      // -----------------------
+      else if (subCmd.getName().equals(deleteGroupSubCmd.getName()))
+      {
+        String groupId = deleteGroupGroupNameArg.getValue();
+        HashMap<ServerGroupProperty, Object> serverGroupProperties =
+          new HashMap<ServerGroupProperty, Object>();
+
+        // get the GROUP_ID
+        serverGroupProperties.put(ServerGroupProperty.UID, groupId);
+
+        // Delete the group
+        ctx = argParser.getContext(outStream, errStream);
+        if (ctx == null)
+        {
+          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+        }
+        adsCtx = new ADSContext(ctx) ;
+        adsCtx.deleteServerGroup(serverGroupProperties);
+        returnCode = ReturnCode.SUCCESSFUL;
+      }
+      // -----------------------
+      // list-groups subcommand
+      // -----------------------
+      else if (subCmd.getName().equals(listGroupSubCmd.getName()))
+      {
+        ctx = argParser.getContext(outStream, errStream);
+        if (ctx == null)
+        {
+          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+        }
+        adsCtx = new ADSContext(ctx) ;
+
+        Set<Map<ServerGroupProperty, Object>> result = adsCtx
+            .readServerGroupRegistry();
+        StringBuffer buffer = new StringBuffer();
+
+        // if not verbose mode, print group name (1 per line)
+        if (! verboseArg.isPresent())
+        {
+          for (Map<ServerGroupProperty, Object> groupProps : result)
           {
-            uidLength = cur;
+            // Get the group name
+            buffer.append(groupProps.get(ServerGroupProperty.UID));
+            buffer.append(EOL);
           }
         }
-        uidLength++;
-
-        for (Map<ServerGroupProperty, Object> groupProps : result)
+        else
         {
-          // Get the group name
-          buffer.append(attributeDisplayName.get(ServerGroupProperty.UID));
-          // add space
-          int curLen = attributeDisplayName.get(ServerGroupProperty.UID)
-              .length();
-          for (int i = curLen; i < uidLength; i++)
+          // Look for the max group identifier length
+          int uidLength = 0 ;
+          for (ServerGroupProperty sgp : ServerGroupProperty.values())
           {
-            buffer.append(" ");
-          }
-          buffer.append(": ");
-          buffer.append(groupProps.get(ServerGroupProperty.UID));
-          buffer.append(EOL);
-
-          // Write other props
-          for (ServerGroupProperty propName : ServerGroupProperty.values())
-          {
-            if (propName.compareTo(ServerGroupProperty.UID) == 0)
+            int cur = attributeDisplayName.get(sgp).toString().length();
+            if (cur > uidLength)
             {
-              // We have already displayed the group Id
-              continue;
+              uidLength = cur;
             }
-            buffer.append(attributeDisplayName.get(propName));
+          }
+          uidLength++;
+
+          for (Map<ServerGroupProperty, Object> groupProps : result)
+          {
+            // Get the group name
+            buffer.append(attributeDisplayName.get(ServerGroupProperty.UID));
             // add space
-            curLen = attributeDisplayName.get(propName).length();
+            int curLen = attributeDisplayName.get(ServerGroupProperty.UID)
+                .length();
             for (int i = curLen; i < uidLength; i++)
             {
               buffer.append(" ");
             }
             buffer.append(": ");
+            buffer.append(groupProps.get(ServerGroupProperty.UID));
+            buffer.append(EOL);
 
-            if (propName.compareTo(ServerGroupProperty.MEMBERS) == 0)
+            // Write other props
+            for (ServerGroupProperty propName : ServerGroupProperty.values())
             {
-              Set atts = (Set) groupProps.get(propName);
-              if (atts != null)
+              if (propName.compareTo(ServerGroupProperty.UID) == 0)
               {
-                boolean indent = false;
-                for (Object att : atts)
+                // We have already displayed the group Id
+                continue;
+              }
+              buffer.append(attributeDisplayName.get(propName));
+              // add space
+              curLen = attributeDisplayName.get(propName).length();
+              for (int i = curLen; i < uidLength; i++)
+              {
+                buffer.append(" ");
+              }
+              buffer.append(": ");
+
+              if (propName.compareTo(ServerGroupProperty.MEMBERS) == 0)
+              {
+                Set atts = (Set) groupProps.get(propName);
+                if (atts != null)
                 {
-                  if (indent)
+                  boolean indent = false;
+                  for (Object att : atts)
                   {
-                    buffer.append(EOL);
-                    for (int i = 0; i < uidLength + 2; i++)
+                    if (indent)
                     {
-                      buffer.append(" ");
+                      buffer.append(EOL);
+                      for (int i = 0; i < uidLength + 2; i++)
+                      {
+                        buffer.append(" ");
+                      }
                     }
+                    else
+                    {
+                      indent = true;
+                    }
+                    buffer.append(att.toString().substring(3));
                   }
-                  else
-                  {
-                    indent = true;
-                  }
-                  buffer.append(att.toString().substring(3));
                 }
               }
-            }
-            else
-            {
-              if (groupProps.get(propName) != null)
+              else
               {
-                buffer.append(groupProps.get(propName));
+                if (groupProps.get(propName) != null)
+                {
+                  buffer.append(groupProps.get(propName));
+                }
               }
+              buffer.append(EOL);
             }
             buffer.append(EOL);
           }
-          buffer.append(EOL);
         }
-      }
-      try
-      {
-        outStream.write(buffer.toString().getBytes());
-      }
-      catch (IOException e)
-      {
-      }
-      return ReturnCode.SUCCESSFUL;
-    }
-    // -----------------------
-    // modify-group subcommand
-    // -----------------------
-    else if (subCmd.getName().equals(modifyGroupSubCmd.getName()))
-    {
-      String groupId = modifyGroupGroupNameArg.getValue();
-      HashMap<ServerGroupProperty, Object> serverGroupProperties =
-        new HashMap<ServerGroupProperty, Object>();
-      HashSet<ServerGroupProperty> serverGroupPropertiesToRemove =
-        new HashSet<ServerGroupProperty>();
-
-      Boolean updateRequired = false;
-      Boolean removeRequired = false;
-      // get the GROUP_ID
-      if (modifyGroupGroupIdArg.isPresent())
-      {
-        // rename the entry !
-        serverGroupProperties.put(ServerGroupProperty.UID,
-            modifyGroupGroupIdArg.getValue());
-        updateRequired = true;
-      }
-      else
-      {
-        serverGroupProperties.put(ServerGroupProperty.UID, groupId) ;
-      }
-
-
-      // get the Description
-      if (modifyGroupDescriptionArg.isPresent())
-      {
-        String newDesc = modifyGroupDescriptionArg.getValue();
-        if (newDesc.length() == 0)
+        try
         {
-          serverGroupPropertiesToRemove.add(ServerGroupProperty.DESCRIPTION);
-          removeRequired = true;
+          outStream.write(buffer.toString().getBytes());
+        }
+        catch (IOException e)
+        {
+        }
+        returnCode = ReturnCode.SUCCESSFUL;
+      }
+      // -----------------------
+      // modify-group subcommand
+      // -----------------------
+      else if (subCmd.getName().equals(modifyGroupSubCmd.getName()))
+      {
+        String groupId = modifyGroupGroupNameArg.getValue();
+        HashMap<ServerGroupProperty, Object> serverGroupProperties =
+          new HashMap<ServerGroupProperty, Object>();
+        HashSet<ServerGroupProperty> serverGroupPropertiesToRemove =
+          new HashSet<ServerGroupProperty>();
+
+        Boolean updateRequired = false;
+        Boolean removeRequired = false;
+        // get the GROUP_ID
+        if (modifyGroupGroupIdArg.isPresent())
+        {
+          // rename the entry !
+          serverGroupProperties.put(ServerGroupProperty.UID,
+              modifyGroupGroupIdArg.getValue());
+          updateRequired = true;
         }
         else
         {
-          serverGroupProperties.put(ServerGroupProperty.DESCRIPTION,
-              modifyGroupDescriptionArg.getValue());
-          updateRequired = true;
+          serverGroupProperties.put(ServerGroupProperty.UID, groupId) ;
         }
-      }
 
 
-      // Update the server group
-      if (updateRequired)
-      {
-        adsContext.updateServerGroup(groupId, serverGroupProperties);
-      }
-      if (removeRequired)
-      {
-        adsContext.removeServerGroupProp(groupId,
-            serverGroupPropertiesToRemove);
-      }
+        // get the Description
+        if (modifyGroupDescriptionArg.isPresent())
+        {
+          String newDesc = modifyGroupDescriptionArg.getValue();
+          if (newDesc.length() == 0)
+          {
+            serverGroupPropertiesToRemove.add(ServerGroupProperty.DESCRIPTION);
+            removeRequired = true;
+          }
+          else
+          {
+            serverGroupProperties.put(ServerGroupProperty.DESCRIPTION,
+                modifyGroupDescriptionArg.getValue());
+            updateRequired = true;
+          }
+        }
 
-      if (updateRequired || removeRequired)
+
+        // Update the server group
+        if ( ! (updateRequired || removeRequired ) )
+        {
+          returnCode = ReturnCode.SUCCESSFUL_NOP;
+        }
+
+        // We need to perform an update
+        ctx = argParser.getContext(outStream, errStream);
+        if (ctx == null)
+        {
+          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+        }
+        adsCtx = new ADSContext(ctx) ;
+
+        if (updateRequired)
+        {
+          adsCtx.updateServerGroup(groupId, serverGroupProperties);
+        }
+        if (removeRequired)
+        {
+          adsCtx.removeServerGroupProp(groupId,
+              serverGroupPropertiesToRemove);
+        }
+
+        returnCode = ReturnCode.SUCCESSFUL;
+      }
+      // -----------------------
+      // add-to-group subcommand
+      // -----------------------
+      else if (subCmd.getName().equals(addToGroupSubCmd.getName()))
       {
+        String groupId = addToGroupGroupNameArg.getValue();
+        HashMap<ServerGroupProperty, Object> serverGroupProperties =
+          new HashMap<ServerGroupProperty, Object>();
+
+        ctx = argParser.getContext(outStream, errStream);
+        if (ctx == null)
+        {
+          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+        }
+        adsCtx = new ADSContext(ctx) ;
+
+        // get the current member list
+        Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
+        if (memberList == null)
+        {
+          memberList = new HashSet<String>();
+        }
+        String newMember = "cn="
+            + Rdn.escapeValue(addToGoupMemberNameArg.getValue());
+        if (memberList.contains(newMember))
+        {
+          returnCode = ReturnCode.ALREADY_REGISTERED;
+        }
+        memberList.add(newMember);
+        serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
+
+        // Update the server group
+        adsCtx.updateServerGroup(groupId, serverGroupProperties);
+
+        returnCode = ReturnCode.SUCCESSFUL;
+      }
+      // -----------------------
+      // remove-from-group subcommand
+      // -----------------------
+      else if (subCmd.getName().equals(removeFromGroupSubCmd.getName()))
+      {
+        String groupId = removeFromGroupGroupNameArg.getValue();
+        HashMap<ServerGroupProperty, Object> serverGroupProperties =
+          new HashMap<ServerGroupProperty, Object>();
+
+        ctx = argParser.getContext(outStream, errStream);
+        if (ctx == null)
+        {
+          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+        }
+        adsCtx = new ADSContext(ctx) ;
+
+        // get the current member list
+        Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
+        if (memberList == null)
+        {
+          returnCode = ReturnCode.NOT_YET_REGISTERED;
+        }
+        String memberToRemove = "cn="
+            + Rdn.escapeValue(removeFromGoupMemberNameArg.getValue());
+        if (!memberList.contains(memberToRemove))
+        {
+          returnCode = ReturnCode.NOT_YET_REGISTERED;
+        }
+
+        memberList.remove(memberToRemove);
+        serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
+
+        // Update the server group
+        adsCtx.updateServerGroup(groupId, serverGroupProperties);
+
+        returnCode = ReturnCode.SUCCESSFUL;
+      }
+      // -----------------------
+      // list-members subcommand
+      // -----------------------
+      else if (subCmd.getName().equals(listMembersSubCmd.getName()))
+      {
+        String groupId = listMembersGroupNameArg.getValue();
+
+        ctx = argParser.getContext(outStream, errStream);
+        if (ctx == null)
+        {
+          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+        }
+        adsCtx = new ADSContext(ctx) ;
+
+        // get the current member list
+        Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
+        if (memberList == null)
+        {
+          returnCode = ReturnCode.SUCCESSFUL;
+        }
+        StringBuffer buffer = new StringBuffer();
+        for (String member : memberList)
+        {
+          buffer.append(member.substring(3));
+          buffer.append(EOL);
+        }
+        try
+        {
+          outStream.write(buffer.toString().getBytes());
+        }
+        catch (IOException e)
+        {
+        }
+
         return ReturnCode.SUCCESSFUL;
+      }
+      // -----------------------
+      // list-membership subcommand
+      // -----------------------
+      else if (subCmd.getName().equals(listMembershipSubCmd.getName()))
+      {
+
+        ctx = argParser.getContext(outStream, errStream);
+        if (ctx == null)
+        {
+          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+        }
+        adsCtx = new ADSContext(ctx) ;
+
+        Set<Map<ServerGroupProperty, Object>> result = adsCtx
+            .readServerGroupRegistry();
+        String MemberId = listMembershipMemberNameArg.getValue();
+
+        StringBuffer buffer = new StringBuffer();
+        for (Map<ServerGroupProperty, Object> groupProps : result)
+        {
+          // Get the group name;
+          String groupId = groupProps.get(ServerGroupProperty.UID).toString();
+
+          // look for memeber list attribute
+          for (ServerGroupProperty propName : groupProps.keySet())
+          {
+            if (propName.compareTo(ServerGroupProperty.MEMBERS) != 0)
+            {
+              continue;
+            }
+            // Check if the member list contains the member-id
+            Set atts = (Set) groupProps.get(propName);
+            for (Object att : atts)
+            {
+              if (att.toString().substring(3).toLowerCase().equals(
+                  MemberId.toLowerCase()))
+              {
+                buffer.append(groupId);
+                buffer.append(EOL);
+                break;
+              }
+            }
+            break;
+          }
+        }
+        try
+        {
+          outStream.write(buffer.toString().getBytes());
+        }
+        catch (IOException e)
+        {
+        }
+        returnCode = ReturnCode.SUCCESSFUL;
       }
       else
       {
-       return ReturnCode.SUCCESSFUL_NOP;
+        // Should never occurs: If we are here, it means that the code to
+        // handle to subcommand is not yet written.
+        returnCode = ReturnCode.ERROR_UNEXPECTED;
       }
     }
-    // -----------------------
-    // add-to-group subcommand
-    // -----------------------
-    else if (subCmd.getName().equals(addToGroupSubCmd.getName()))
+    catch (ADSContextException e)
     {
-      String groupId = addToGroupGroupNameArg.getValue();
-      HashMap<ServerGroupProperty, Object> serverGroupProperties =
-        new HashMap<ServerGroupProperty, Object>();
-
-      // get the current member list
-      Set<String> memberList = adsContext.getServerGroupMemberList(groupId);
-      if (memberList == null)
-      {
-        memberList = new HashSet<String>();
-      }
-      String newMember = "cn="
-          + Rdn.escapeValue(addToGoupMemberNameArg.getValue());
-      if (memberList.contains(newMember))
-      {
-        return ReturnCode.ALREADY_REGISTERED;
-      }
-      memberList.add(newMember);
-      serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
-
-      // Update the server group
-      adsContext.updateServerGroup(groupId, serverGroupProperties);
-
-      return ReturnCode.SUCCESSFUL;
+     if (ctx != null)
+     {
+       try
+       {
+         ctx.close();
+       }
+       catch (NamingException x)
+       {
+       }
+     }
+     throw e;
     }
-    // -----------------------
-    // remove-from-group subcommand
-    // -----------------------
-    else if (subCmd.getName().equals(removeFromGroupSubCmd.getName()))
+
+    // Close the connection, if needed
+    if (ctx != null)
     {
-      String groupId = removeFromGroupGroupNameArg.getValue();
-      HashMap<ServerGroupProperty, Object> serverGroupProperties =
-        new HashMap<ServerGroupProperty, Object>();
-
-      // get the current member list
-      Set<String> memberList = adsContext.getServerGroupMemberList(groupId);
-      if (memberList == null)
-      {
-        return ReturnCode.NOT_YET_REGISTERED;
-      }
-      String memberToRemove = "cn="
-          + Rdn.escapeValue(removeFromGoupMemberNameArg.getValue());
-      if (!memberList.contains(memberToRemove))
-      {
-        return ReturnCode.NOT_YET_REGISTERED;
-      }
-
-      memberList.remove(memberToRemove);
-      serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
-
-      // Update the server group
-      adsContext.updateServerGroup(groupId, serverGroupProperties);
-
-      return ReturnCode.SUCCESSFUL;
-    }
-    // -----------------------
-    // list-members subcommand
-    // -----------------------
-    else if (subCmd.getName().equals(listMembersSubCmd.getName()))
-    {
-      String groupId = listMembersGroupNameArg.getValue();
-
-      // get the current member list
-      Set<String> memberList = adsContext.getServerGroupMemberList(groupId);
-      if (memberList == null)
-      {
-        return ReturnCode.SUCCESSFUL;
-      }
-      StringBuffer buffer = new StringBuffer();
-      for (String member : memberList)
-      {
-        buffer.append(member.substring(3));
-        buffer.append(EOL);
-      }
       try
       {
-        outStream.write(buffer.toString().getBytes());
+        ctx.close();
       }
-      catch (IOException e)
+      catch (NamingException x)
       {
       }
-
-      return ReturnCode.SUCCESSFUL;
-    }
-    // -----------------------
-    // list-membership subcommand
-    // -----------------------
-    else if (subCmd.getName().equals(listMembershipSubCmd.getName()))
-    {
-
-      Set<Map<ServerGroupProperty, Object>> result = adsContext
-          .readServerGroupRegistry();
-      String MemberId = listMembershipMemberNameArg.getValue();
-
-      StringBuffer buffer = new StringBuffer();
-      for (Map<ServerGroupProperty, Object> groupProps : result)
-      {
-        // Get the group name;
-        String groupId = groupProps.get(ServerGroupProperty.UID).toString();
-
-        // look for memeber list attribute
-        for (ServerGroupProperty propName : groupProps.keySet())
-        {
-          if (propName.compareTo(ServerGroupProperty.MEMBERS) != 0)
-          {
-            continue;
-          }
-          // Check if the member list contains the member-id
-          Set atts = (Set) groupProps.get(propName);
-          for (Object att : atts)
-          {
-            if (att.toString().substring(3).toLowerCase().equals(
-                MemberId.toLowerCase()))
-            {
-              buffer.append(groupId);
-              buffer.append(EOL);
-              break;
-            }
-          }
-          break;
-        }
-      }
-      try
-      {
-        outStream.write(buffer.toString().getBytes());
-      }
-      catch (IOException e)
-      {
-      }
-      return ReturnCode.SUCCESSFUL;
     }
 
-    // Should never occurs: If we are here, it means that the code to
-    // handle to subcommand is not yet written.
-    return ReturnCode.ERROR_UNEXPECTED;
+    // return part
+    return returnCode;
+
   }
 }

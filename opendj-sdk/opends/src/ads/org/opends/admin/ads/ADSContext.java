@@ -61,6 +61,29 @@ public class ADSContext
 {
   private static final Logger LOG =
     Logger.getLogger(ADSContext.class.getName());
+
+  /**
+   * Enumeration containing the different server properties syntaxes
+   * that could be stored in the ADS.
+   */
+  public enum ServerPropertySyntax
+  {
+    /**
+     * String syntax.
+     */
+    STRING,
+
+    /**
+     * Integer syntax.
+     */
+    INTEGER,
+
+    /**
+     * Boolean syntax.
+     */
+    BOOLEAN;
+  };
+
   /**
    * Enumeration containing the different server properties that are stored in
    * the ADS.
@@ -70,80 +93,83 @@ public class ADSContext
     /**
      * The ID used to identify the server.
      */
-    ID("id"),
+    ID("id",ServerPropertySyntax.STRING),
     /**
      * The host name of the server.
      */
-    HOST_NAME("hostname"),
+    HOST_NAME("hostname",ServerPropertySyntax.STRING),
     /**
      * The LDAP port of the server.
      */
-    LDAP_PORT("ldapport"),
+    LDAP_PORT("ldapport",ServerPropertySyntax.INTEGER),
     /**
      * The JMX port of the server.
      */
-    JMX_PORT("jmxport"),
+    JMX_PORT("jmxport",ServerPropertySyntax.INTEGER),
     /**
      * The JMX secure port of the server.
      */
-    JMXS_PORT("jmxsport"),
+    JMXS_PORT("jmxsport",ServerPropertySyntax.INTEGER),
     /**
      * The LDAPS port of the server.
      */
-    LDAPS_PORT("ldapsport"),
+    LDAPS_PORT("ldapsport",ServerPropertySyntax.INTEGER),
     /**
      * The certificate used by the server.
      */
-    CERTIFICATE("certificate"),
+    CERTIFICATE("certificate",ServerPropertySyntax.STRING),
     /**
      * The path where the server is installed.
      */
-    INSTANCE_PATH("instancepath"),
+    INSTANCE_PATH("instancepath",ServerPropertySyntax.STRING),
     /**
      * The description of the server.
      */
-    DESCRIPTION("description"),
+    DESCRIPTION("description",ServerPropertySyntax.STRING),
     /**
      * The OS of the machine where the server is installed.
      */
-    HOST_OS("os"),
+    HOST_OS("os",ServerPropertySyntax.STRING),
     /**
      * Whether LDAP is enabled or not.
      */
-    LDAP_ENABLED("ldapEnabled"),
+    LDAP_ENABLED("ldapEnabled",ServerPropertySyntax.BOOLEAN),
     /**
      * Whether LDAPS is enabled or not.
      */
-    LDAPS_ENABLED("ldapsEnabled"),
+    LDAPS_ENABLED("ldapsEnabled",ServerPropertySyntax.BOOLEAN),
     /**
      * Whether StartTLS is enabled or not.
      */
-    STARTTLS_ENABLED("startTLSEnabled"),
+    STARTTLS_ENABLED("startTLSEnabled",ServerPropertySyntax.BOOLEAN),
     /**
      * Whether JMX is enabled or not.
      */
-    JMX_ENABLED("jmxEnabled"),
+    JMX_ENABLED("jmxEnabled",ServerPropertySyntax.BOOLEAN),
     /**
      * Whether JMX is enabled or not.
      */
-    JMXS_ENABLED("jmxsEnabled"),
+    JMXS_ENABLED("jmxsEnabled",ServerPropertySyntax.BOOLEAN),
     /**
      * The location of the server.
      */
-    LOCATION("location"),
+    LOCATION("location",ServerPropertySyntax.STRING),
     /**
      * The groups to which this server belongs.
      */
-    GROUPS("memberofgroups");
+    GROUPS("memberofgroups",ServerPropertySyntax.STRING);
 
     private String attrName;
+    private ServerPropertySyntax attSyntax;
+
     /**
      * Private constructor.
      * @param n the name of the attribute.
      */
-    private ServerProperty(String n)
+    private ServerProperty(String n,ServerPropertySyntax s)
     {
       attrName = n;
+      attSyntax = s ;
     }
 
     /**
@@ -154,7 +180,37 @@ public class ADSContext
     {
       return attrName;
     }
+
+    /**
+     * Returns the attribute syntax.
+     * @return the attribute syntax.
+     */
+    public ServerPropertySyntax getAttributeSyntax()
+    {
+      return attSyntax;
+    }
   };
+
+  private static HashMap<String, ServerProperty> nameToServerProperty = null;
+  /**
+   * Get a ServerProperty associated to a name.
+   * @param name The name of the property to retreive.
+   *
+   * @return The corresponding ServerProperty or null if name
+   * doesn't matech with an existing property.
+   */
+  public static ServerProperty getPropFromName(String name)
+  {
+    if (nameToServerProperty == null)
+    {
+      nameToServerProperty = new HashMap<String, ServerProperty>();
+      for (ServerProperty s : ServerProperty.values())
+      {
+        nameToServerProperty.put(s.getAttributeName(), s);
+      }
+    }
+    return nameToServerProperty.get(name);
+  }
 
   /**
    * The list of server properties that are multivalued.
@@ -294,15 +350,27 @@ public class ADSContext
   /**
    * Method called to udpate the properties of a server in the ADS.
    * @param serverProperties the new properties of the server.
+   * @param newServerId The new server Identifier, or null.
    * @throws ADSContextException if the server could not be registered.
    */
-  public void updateServer(Map<ServerProperty, Object> serverProperties)
-  throws ADSContextException
+  public void updateServer(Map<ServerProperty, Object> serverProperties,
+      String newServerId) throws ADSContextException
   {
     LdapName dn = makeDNFromServerProperties(serverProperties);
-    BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
+
     try
     {
+      if (newServerId != null)
+      {
+        HashMap<ServerProperty, Object> newServerProps =
+          new HashMap<ServerProperty, Object>(serverProperties);
+        newServerProps.put(ServerProperty.ID,newServerId);
+        LdapName newDn = makeDNFromServerProperties(newServerProps);
+        dirContext.rename(dn, newDn);
+        dn = newDn ;
+        serverProperties.put(ServerProperty.ID,newServerId);
+      }
+      BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
       dirContext.modifyAttributes(dn, InitialLdapContext.REPLACE_ATTRIBUTE,
           attrs);
     }
@@ -391,7 +459,7 @@ public class ADSContext
     {
       if (x.getError() == ADSContextException.ErrorType.ALREADY_REGISTERED)
       {
-        updateServer(serverProperties);
+        updateServer(serverProperties, null);
       }
       else
       {
@@ -950,10 +1018,10 @@ public class ADSContext
    * port.
    * @throws ADSContextException if something goes wrong.
    */
-  private static LdapName makeDNFromHostnamePort(String hostnamePort)
+  private static LdapName makeDNFromServerUniqueId(String serverUniqueId)
   throws ADSContextException
   {
-    String cnValue = Rdn.escapeValue(hostnamePort);
+    String cnValue = Rdn.escapeValue(serverUniqueId);
     return nameFromDN("cn=" + cnValue + "," + getServerContainerDN());
   }
 
@@ -991,6 +1059,12 @@ public class ADSContext
   private static LdapName makeDNFromServerProperties(
       Map<ServerProperty, Object> serverProperties) throws ADSContextException
   {
+    String serverID ;
+    if ( (serverID = getServerID(serverProperties)) != null )
+    {
+      return makeDNFromServerUniqueId(serverID);
+    }
+
     String hostname = getHostname(serverProperties);
     try
     {
@@ -1000,8 +1074,25 @@ public class ADSContext
     catch (ADSContextException ace)
     {
       ServerDescriptor s = ServerDescriptor.createStandalone(serverProperties);
-      return makeDNFromHostnamePort(s.getHostPort(true));
+      return makeDNFromServerUniqueId(s.getHostPort(true));
     }
+  }
+
+  /**
+   * This method returns the DN of the entry that corresponds to the given
+   * server properties.
+   * @param serverProperties the server properties.
+   * @return the DN of the entry that corresponds to the given server
+   * properties.
+   * @throws ADSContextException if something goes wrong.
+   */
+  public static String getServerIdFromServerProperties(
+      Map<ServerProperty, Object> serverProperties) throws ADSContextException
+  {
+    LdapName ldapName = makeDNFromServerProperties(serverProperties);
+    String rdn = ldapName.get(ldapName.size() -1);
+    int pos = rdn.indexOf("=");
+    return rdn.substring(pos+1);
   }
 
   /**
@@ -1417,6 +1508,25 @@ public class ADSContext
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.NOVALID_HOSTNAME);
+    }
+    return result;
+  }
+
+  /**
+   * Returns the Server ID for the given properties.
+   * @param serverProperties the server properties.
+   * @return the server ID for the given properties or null.
+   */
+  private static String getServerID(
+      Map<ServerProperty, Object> serverProperties)
+  {
+    String result = (String) serverProperties.get(ServerProperty.ID);
+    if (result != null)
+    {
+      if (result.length() == 0)
+      {
+        result = null;
+      }
     }
     return result;
   }

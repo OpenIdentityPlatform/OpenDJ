@@ -9150,6 +9150,37 @@ public class ToolMessages
    */
   public static final int MSGID_CONFIGDS_PORT_ALREADY_SPECIFIED  =
     CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1211;
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts to access a property which is not recognized. This takes
+   * one argument which is the name of the invalid property.
+   */
+  public static final int MSGID_CLI_ERROR_PROPERTY_UNRECOGNIZED =
+      CATEGORY_MASK_TOOLS  | SEVERITY_MASK_SEVERE_ERROR | 1212;
+
+  /**
+   * The message ID for the message that will be used if the user
+   * doesn't specify a mandatory property. This takes one argument
+   * which is the name of the missing property.
+   */
+  public static final int MSGID_CLI_ERROR_MISSING_PROPERTY =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1213;
+
+  /**
+   * The message ID for the message that will be used if the user
+   * specify a wrong value of a property. This takes two arguments
+   * which is the name of the property and the wrong value.
+   */
+  public static final int MSGID_CLI_ERROR_INVALID_PROPERTY_VALUE =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1214;
+
+  /**
+   * The message ID for the message that will be used as the
+   * heading of the property default value column in tables.
+   */
+  public static final int MSGID_CLI_HEADING_PROPERTY_DEFAULT_VALUE =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1215;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -12103,6 +12134,16 @@ public class ToolMessages
                     "Password History");
     registerMessage(MSGID_PWPSTATE_INVALID_RESPONSE_OP_TYPE,
                     "Unrecognized or invalid operation type:  %s");
+
+    registerMessage(MSGID_CLI_ERROR_PROPERTY_UNRECOGNIZED,
+                    "The property \"%s\" is not a recognized property");
+    registerMessage(MSGID_CLI_ERROR_MISSING_PROPERTY,
+                    "The mandatory property \"%s\" is missing");
+    registerMessage(MSGID_CLI_ERROR_INVALID_PROPERTY_VALUE,
+                    "The value \"%s\" specified fo the property \"%s\" is " +
+                    "invalid");
+    registerMessage(MSGID_CLI_HEADING_PROPERTY_DEFAULT_VALUE,
+                    "Default value");
   }
 }
 
