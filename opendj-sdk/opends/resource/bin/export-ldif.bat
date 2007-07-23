@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.ExportLDIF"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=export-ldif"
-call "%~dPs0\..\lib\_server-script.bat" %*
+call "%~dP0\..\lib\_server-script.bat" %*
 
