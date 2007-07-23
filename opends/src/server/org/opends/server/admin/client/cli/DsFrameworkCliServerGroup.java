@@ -46,6 +46,7 @@ import javax.naming.ldap.Rdn;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
+import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -724,6 +725,25 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
           return ReturnCode.CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx) ;
+
+        // Check if the server is registered inside to ADS
+        Set<Map<ServerProperty, Object>> serverList = adsCtx
+            .readServerRegistry();
+        boolean found = false ;
+        for (Map<ServerProperty, Object> serverProperties : serverList)
+        {
+          String serverId = ADSContext
+              .getServerIdFromServerProperties(serverProperties);
+          if (addToGoupMemberNameArg.getValue().equals(serverId))
+          {
+            found = true;
+            break;
+          }
+        }
+        if ( !found )
+        {
+          return ReturnCode.SERVER_NOT_REGISTERED;
+        }
 
         // get the current member list
         Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
