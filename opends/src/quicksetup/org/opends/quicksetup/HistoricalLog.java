@@ -25,10 +25,9 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.upgrader;
+package org.opends.quicksetup;
 
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.BuildInformation;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -97,7 +96,7 @@ public class HistoricalLog {
    * Creates a new historical log record and appends a new log record to the
    * log.
    * @param id Long ID obtained from a call to
-            {@link org.opends.quicksetup.upgrader.HistoricalLog#
+            {@link org.opends.quicksetup.HistoricalLog#
             append(Integer, Integer,
             org.opends.quicksetup.upgrader.HistoricalRecord.Status)}
    * @param from current version

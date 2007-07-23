@@ -308,6 +308,8 @@ public class CliApplicationHelper {
                                                 String description,
                                                 boolean caseSensitive) {
 
+    // TODO: get rid of this method and user launcher.getArgumentParser
+
     // Create the command-line argument parser for use with this program.
     ArgumentParser argParser =
          new ArgumentParser(mainClass, description, caseSensitive);

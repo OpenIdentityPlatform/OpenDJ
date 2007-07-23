@@ -32,6 +32,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.CliApplication;
@@ -63,7 +64,6 @@ public class InstallLauncher extends Launcher {
   static private final Logger LOG =
           Logger.getLogger(InstallLauncher.class.getName());
 
-
   /**
    * The main method which is called by the setup command lines.
    *
@@ -82,6 +82,8 @@ public class InstallLauncher extends Launcher {
     new InstallLauncher(args).launch();
   }
 
+  private ArgumentParser argParser;
+
   /**
    * Creates a launcher.
    *
@@ -89,43 +91,7 @@ public class InstallLauncher extends Launcher {
    */
   public InstallLauncher(String[] args) {
     super(args);
-  }
 
-  /**
-   * {@inheritDoc}
-   */
-  protected void guiLaunchFailed(String logFileName) {
-    if (logFileName != null)
-    {
-      System.err.println(getMsg("setup-launcher-gui-launched-failed-details",
-          logFileName));
-    }
-    else
-    {
-      System.err.println(getMsg("setup-launcher-gui-launched-failed"));
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected void willLaunchGui() {
-    System.out.println(getMsg("setup-launcher-launching-gui"));
-    System.setProperty("org.opends.quicksetup.Application.class",
-            "org.opends.quicksetup.installer.offline.OfflineInstaller");
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected String getFrameTitle() {
-    return getI18n().getMsg("frame-install-title");
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected void printUsage(boolean toStdErr) {
     String scriptName;
     if (Utils.isWindows()) {
       scriptName = Installation.WINDOWS_SETUP_FILE_NAME;
@@ -133,7 +99,8 @@ public class InstallLauncher extends Launcher {
       scriptName = Installation.UNIX_SETUP_FILE_NAME;
     }
     System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
-    ArgumentParser argParser = new ArgumentParser(getClass().getName(),
+
+    argParser = new ArgumentParser(getClass().getName(),
         getI18n().getMsg("setup-launcher-usage-description"),
         false);
     BooleanArgument   addBaseEntry;
@@ -238,14 +205,50 @@ public class InstallLauncher extends Launcher {
           MSGID_INSTALLDS_DESCRIPTION_HELP);
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
-      String msg = argParser.getUsage();
-      printUsage(msg, toStdErr);
     }
     catch (Throwable t)
     {
       System.out.println("ERROR: "+t);
       t.printStackTrace();
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected void guiLaunchFailed(String logFileName) {
+    if (logFileName != null)
+    {
+      System.err.println(getMsg("setup-launcher-gui-launched-failed-details",
+          logFileName));
+    }
+    else
+    {
+      System.err.println(getMsg("setup-launcher-gui-launched-failed"));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ArgumentParser getArgumentParser() {
+    return this.argParser;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected void willLaunchGui() {
+    System.out.println(getMsg("setup-launcher-launching-gui"));
+    System.setProperty("org.opends.quicksetup.Application.class",
+            "org.opends.quicksetup.installer.offline.OfflineInstaller");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected String getFrameTitle() {
+    return getI18n().getMsg("frame-install-title");
   }
 
   /**
@@ -264,7 +267,7 @@ public class InstallLauncher extends Launcher {
    * {@inheritDoc}
    */
   @Override
-  protected int launchCli(String[] args, CliApplication cliApp) {
+  protected int launchCli(CliApplication cliApp) {
     System.setProperty("org.opends.quicksetup.cli", "true");
 
     if (Utils.isWindows()) {
@@ -276,10 +279,10 @@ public class InstallLauncher extends Launcher {
     }
     ArrayList<String> newArgList = new ArrayList<String>();
     if (args != null) {
-      for (int i = 0; i < args.length; i++) {
-        if (!args[i].equalsIgnoreCase("--cli") &&
-            !args[i].equalsIgnoreCase("-c")) {
-          newArgList.add(args[i]);
+      for (String arg : args) {
+        if (!arg.equalsIgnoreCase("--cli") &&
+                !arg.equalsIgnoreCase("-c")) {
+          newArgList.add(arg);
         }
       }
     }
@@ -292,7 +295,8 @@ public class InstallLauncher extends Launcher {
 
     String[] newArgs = new String[newArgList.size()];
     newArgList.toArray(newArgs);
-
+    LOG.log(Level.INFO, "Launching 'installMain' with args " +
+            Utils.listToString(newArgList, " "));
     return org.opends.server.tools.InstallDS.installMain(newArgs);
   }
 }

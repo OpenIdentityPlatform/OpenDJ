@@ -60,14 +60,13 @@ class UninstallCliHelper extends CliApplicationHelper {
    * user for additional information if what is provided in the arguments is not
    * enough.
    * @param args the arguments provided in the command line.
-   * @param installStatus the current install status.
    * @return the UserData object with what the user wants to uninstall
    * and null if the user cancels the uninstallation.
    * @throws UserDataException if there is an error parsing the data
    * in the arguments.
    */
-  public UninstallUserData createUserData(String[] args,
-      CurrentInstallStatus installStatus) throws UserDataException
+  public UninstallUserData createUserData(String[] args
+  ) throws UserDataException
   {
     UninstallUserData userData = new UninstallUserData();
 

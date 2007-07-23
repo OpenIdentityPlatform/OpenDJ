@@ -25,9 +25,8 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 
-package org.opends.quicksetup.upgrader;
+package org.opends.quicksetup;
 
-import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.i18n.ResourceProvider;
 
 import java.util.StringTokenizer;
@@ -71,14 +70,18 @@ public class HistoricalRecord {
   /**
    * State of an upgrade.
    */
-  enum Status {
+  public enum Status {
 
+    /** Operation has started. */
     STARTED(getMsg("upgrade-log-status-started")),
 
+    /** Operation completed successfully. */
     SUCCESS(getMsg("upgrade-log-status-success")),
 
+    /** Operation failed. */
     FAILURE(getMsg("upgrade-log-status-failure")),
 
+    /** Operation was canceled. */
     CANCEL(getMsg("upgrade-log-status-cancel"));
 
     private String representation;
@@ -229,6 +232,7 @@ public class HistoricalRecord {
    * @param note containing details of status; can be null
    * @param creationError Exception that occurred while this record was
    * being created
+   * @param date of this operation
    */
   private HistoricalRecord(Long operationId, Date date, BuildInformation from,
                           BuildInformation to, Status status, String note,

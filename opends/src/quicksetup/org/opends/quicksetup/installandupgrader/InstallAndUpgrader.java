@@ -82,7 +82,7 @@ public class InstallAndUpgrader extends GuiApplication
         QuickSetupLog.initLogFileHandler(
                 File.createTempFile(
                         UpgradeLauncher.LOG_FILE_PREFIX,
-                        UpgradeLauncher.LOG_FILE_SUFFIX));
+                        QuickSetupLog.LOG_FILE_SUFFIX));
     } catch (IOException e) {
       System.err.println(
               ResourceProvider.getInstance().getMsg("error-initializing-log"));

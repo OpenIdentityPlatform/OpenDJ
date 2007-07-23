@@ -50,10 +50,10 @@ import java.util.logging.Level;
  * interacting with the user to inform them of an actions or information
  * that they dictate.
  */
-public abstract class VersionOracle {
+public abstract class VersionIssueNotifier {
 
   static private final Logger LOG =
-          Logger.getLogger(VersionOracle.class.getName());
+          Logger.getLogger(VersionIssueNotifier.class.getName());
 
   /** Descriptor for a directive. */
   protected enum DirectiveType {
@@ -131,7 +131,7 @@ public abstract class VersionOracle {
    * @param current build version
    * @param neu build version
    */
-  public VersionOracle(UserInteraction ui,
+  public VersionIssueNotifier(UserInteraction ui,
                        BuildInformation current,
                        BuildInformation neu) {
     this.ui = ui;

@@ -28,6 +28,7 @@
 package org.opends.quicksetup;
 
 import static org.opends.server.util.DynamicConstants.PRINTABLE_VERSION_STRING;
+import org.opends.server.util.args.ArgumentParser;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.i18n.ResourceProvider;
@@ -58,7 +59,23 @@ public abstract class Launcher {
       throw new IllegalArgumentException("args cannot be null");
     }
     this.args = args;
+
   }
+
+  /**
+   * Gets the arguments with which this launcher was invoked.
+   * @return String[] args from the CLI invocation
+   */
+  public String[] getArguments() {
+    return this.args;
+  }
+
+  /**
+   * Gets an argument parser appropriate for this CLI launcher.
+   *
+   * @return ArgumentParser for parsing args
+   */
+  public abstract ArgumentParser getArgumentParser();
 
   /**
    * Indicates whether or not the launcher should print a usage
@@ -248,14 +265,13 @@ public abstract class Launcher {
   /**
    * Launches the command line based uninstall.
    *
-   * @param args the arguments passed
    * @param cliApp the CLI application to launch
    * @return 0 if everything worked fine, and an error code if something wrong
    *         occurred.
    */
-  protected int launchCli(String[] args, CliApplication cliApp) {
+  protected int launchCli(CliApplication cliApp) {
     System.setProperty("org.opends.quicksetup.cli", "true");
-    QuickSetupCli cli = new QuickSetupCli(cliApp, args);
+    QuickSetupCli cli = new QuickSetupCli(cliApp, this);
     int returnValue = cli.run();
     if (returnValue == QuickSetupCli.USER_DATA_ERROR) {
       printUsage(true);
@@ -278,7 +294,21 @@ public abstract class Launcher {
    * @param toStdErr whether the message must be printed to the standard error
    * or the standard output.
    */
-  protected abstract void printUsage(boolean toStdErr);
+  protected void printUsage(boolean toStdErr) {
+    try
+    {
+      ArgumentParser argParser = getArgumentParser();
+      if (argParser != null) {
+        String msg = argParser.getUsage();
+        printUsage(msg, toStdErr);
+      }
+    }
+    catch (Throwable t)
+    {
+      System.out.println("ERROR: "+t);
+      t.printStackTrace();
+    }
+  }
 
   /**
    * Creates a CLI application that will be run if the
@@ -318,7 +348,7 @@ public abstract class Launcher {
       System.exit(QuickSetupCli.SUCCESSFUL);
     } else if (isCli()) {
       CliApplication cliApp = createCliApplication();
-      int exitCode = launchCli(args, cliApp);
+      int exitCode = launchCli(cliApp);
       preExit(cliApp);
       System.exit(exitCode);
     } else {
@@ -335,7 +365,7 @@ public abstract class Launcher {
           guiLaunchFailed(null);
         }
         CliApplication cliApp = createCliApplication();
-        exitCode = launchCli(args, cliApp);
+        exitCode = launchCli(cliApp);
         if (exitCode != 0) {
           preExit(cliApp);
           System.exit(exitCode);

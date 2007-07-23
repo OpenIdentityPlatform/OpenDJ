@@ -36,7 +36,6 @@ import org.opends.quicksetup.webstart.WebStartDownloader;
 
 import javax.swing.*;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -575,20 +574,6 @@ public abstract class GuiApplication extends Application {
       LOG.log(Level.INFO, msg, t);
       throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
           msg, t);
-    }
-  }
-
-  /**
-   * Conditionally notifies listeners of the log file if it
-   * has been initialized.
-   */
-  protected void notifyListenersOfLog() {
-    File logFile = QuickSetupLog.getLogFile();
-    if (logFile != null) {
-      notifyListeners(
-          getFormattedProgress(getMsg("general-see-for-details",
-              logFile.getPath())) +
-          formatter.getLineBreak());
     }
   }
 

@@ -38,12 +38,11 @@ public interface CliApplication extends ProgressNotifier, Runnable {
   /**
    * Creates a set of user data from command line arguments and installation
    * status.
-   * @param args String[] of arguments passed in from the command line
-   * @param status the current installation status
+   * @param launcher that launched this application
    * @return UserData object populated to reflect the input args and status
    * @throws UserDataException if something is wrong
    */
-  UserData createUserData(String[] args, CurrentInstallStatus status)
+  UserData createUserData(Launcher launcher)
           throws UserDataException;
 
   /**
@@ -66,17 +65,11 @@ public interface CliApplication extends ProgressNotifier, Runnable {
   void setProgressMessageFormatter(ProgressMessageFormatter formatter);
 
   /**
-   * Indicates whether or not this applicat is finished running.
-   * @return boolean where true indicates we are not running
-   */
-  boolean isFinished();
-
-  /**
    * Gets any exception that happened while this application was running.
    * A null value returned from this method indicates that the execution
    * of the CLI program is not complete or was successful.
    * @return an exception that happened while the CLI was running
    */
-  ApplicationException getException();
+  ApplicationException getRunError();
 
 }

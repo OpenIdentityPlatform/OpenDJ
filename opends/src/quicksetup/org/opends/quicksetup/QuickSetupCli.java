@@ -33,6 +33,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.i18n.ResourceProvider;
+import org.opends.server.util.StaticUtils;
 
 /**
  * Controller for managing the execution of a CliApplication.
@@ -80,18 +81,28 @@ public class QuickSetupCli {
   static public int UNKNOWN = 100;
 
   /** Arguments passed in the command line. */
-  protected String[] args;
+  protected Launcher launcher;
 
   private CliApplication cliApp;
+
+  private UserData userData;
 
   /**
    * Creates a QuickSetupCli instance.
    * @param cliApp the application to be run
-   * @param args arguments passed in from the command line
+   * @param launcher that launched the app
    */
-  public QuickSetupCli(CliApplication cliApp, String[] args) {
+  public QuickSetupCli(CliApplication cliApp, Launcher launcher) {
     this.cliApp = cliApp;
-    this.args = args;
+    this.launcher = launcher;
+  }
+
+  /**
+   * Gets the user data this application will use when running.
+   * @return UserData to use when running
+   */
+  public UserData getUserData() {
+    return this.userData;
   }
 
   /**
@@ -107,8 +118,7 @@ public class QuickSetupCli {
     // Parse the arguments
     try
     {
-      CurrentInstallStatus installStatus = new CurrentInstallStatus();
-      UserData userData = cliApp.createUserData(args, installStatus);
+      userData = cliApp.createUserData(launcher);
       if (userData != null)
       {
         ProgressMessageFormatter formatter =
@@ -117,36 +127,26 @@ public class QuickSetupCli {
         cliApp.setProgressMessageFormatter(formatter);
         if (!userData.isSilent()) {
           cliApp.addProgressUpdateListener(
-              new ProgressUpdateListener()
-              {
-                /**
-                 * ProgressUpdateListener implementation.
-                 * @param ev the ProgressUpdateEvent we receive.
-                 *
-                 */
-                public void progressUpdate(ProgressUpdateEvent ev)
-                {
-                  System.out.print(
-                          org.opends.server.util.StaticUtils.wrapText(
-                                  ev.getNewLogs(),
-                                  Utils.getCommandLineMaxLineWidth()));
-                }
-              });
+                  new ProgressUpdateListener() {
+                    public void progressUpdate(ProgressUpdateEvent ev) {
+                      System.out.print(
+                              org.opends.server.util.StaticUtils.wrapText(
+                                      ev.getNewLogs(),
+                                      Utils.getCommandLineMaxLineWidth()));
+                    }
+                  });
         }
-        new Thread(cliApp).start();
-        while (!cliApp.isFinished())
-        {
-          try
-          {
+        Thread appThread = new Thread(cliApp, "CLI Application");
+        appThread.start();
+        while (!Thread.State.TERMINATED.equals(appThread.getState())) {
+          try {
             Thread.sleep(100);
-          }
-          catch (Exception ex)
-          {
+          } catch (Exception ex) {
             // do nothing;
           }
         }
 
-        ApplicationException ue = cliApp.getException();
+        ApplicationException ue = cliApp.getRunError();
         if (ue != null)
         {
           ApplicationException.Type type = ue.getType();
@@ -186,8 +186,10 @@ public class QuickSetupCli {
     }
     catch (UserDataException uude)
     {
-      System.err.println(Constants.LINE_SEPARATOR+uude.getLocalizedMessage()+
-          Constants.LINE_SEPARATOR);
+      System.err.println();
+      System.err.println(StaticUtils.wrapText(uude.getLocalizedMessage(),
+              Utils.getCommandLineMaxLineWidth()));
+      System.err.println();
       returnValue = USER_DATA_ERROR;
     }
     return returnValue;

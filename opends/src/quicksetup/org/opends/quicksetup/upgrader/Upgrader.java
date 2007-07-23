@@ -39,9 +39,10 @@ import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.UserDataException;
 import org.opends.quicksetup.BuildInformation;
-import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.Launcher;
+import org.opends.quicksetup.HistoricalRecord;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.webstart.WebStartDownloader;
 import org.opends.quicksetup.util.Utils;
@@ -76,7 +77,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -87,104 +87,6 @@ import java.util.logging.Logger;
  * OpenDS.
  */
 public class Upgrader extends GuiApplication implements CliApplication {
-
-  /**
-   * Steps during the upgrade process.
-   */
-  enum UpgradeProgressStep implements ProgressStep {
-
-    NOT_STARTED("summary-upgrade-not-started", 0),
-
-    DOWNLOADING("summary-upgrade-downloading", 10),
-
-    EXTRACTING("summary-upgrade-extracting", 20),
-
-    INITIALIZING("summary-upgrade-initializing", 30),
-
-    CHECK_SERVER_HEALTH("summary-upgrade-check-server-health", 35),
-
-    CALCULATING_SCHEMA_CUSTOMIZATIONS(
-            "summary-upgrade-calculating-schema-customization", 40),
-
-    CALCULATING_CONFIGURATION_CUSTOMIZATIONS(
-            "summary-upgrade-calculating-config-customization", 48),
-
-    BACKING_UP_DATABASES("summary-upgrade-backing-up-db", 50),
-
-    BACKING_UP_FILESYSTEM("summary-upgrade-backing-up-files",52),
-
-    UPGRADING_COMPONENTS("summary-upgrade-upgrading-components", 60),
-
-    PREPARING_CUSTOMIZATIONS("summary-upgrade-preparing-customizations", 65),
-
-    APPLYING_SCHEMA_CUSTOMIZATIONS(
-            "summary-upgrade-applying-schema-customization", 70),
-
-    APPLYING_CONFIGURATION_CUSTOMIZATIONS(
-            "summary-upgrade-applying-config-customization", 75),
-
-    VERIFYING("summary-upgrade-verifying", 80),
-
-    STARTING_SERVER("summary-starting", 90),
-
-    STOPPING_SERVER("summary-stopping", 90),
-
-    RECORDING_HISTORY("summary-upgrade-history", 97),
-
-    CLEANUP("summary-upgrade-cleanup", 99),
-
-    ABORT("summary-upgrade-abort", 99),
-
-    FINISHED_WITH_ERRORS("summary-upgrade-finished-with-errors", 100),
-
-    FINISHED_WITH_WARNINGS("summary-upgrade-finished-with-warnings", 100),
-
-    FINISHED_CANCELED("summary-upgrade-finished-canceled", 100),
-
-    FINISHED("summary-upgrade-finished-successfully", 100);
-
-    private String summaryMsgKey;
-    private int progress;
-
-    private UpgradeProgressStep(String summaryMsgKey, int progress) {
-      this.summaryMsgKey = summaryMsgKey;
-      this.progress = progress;
-    }
-
-    /**
-     * Return a key for access a summary message.
-     *
-     * @return String representing key for access summary in resource bundle
-     */
-    public String getSummaryMesssageKey() {
-      return summaryMsgKey;
-    }
-
-    /**
-     * Gets the amount of progress to show in the progress meter for this step.
-     * @return int representing progress
-     */
-    public int getProgress() {
-      return this.progress;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isLast() {
-      return this == FINISHED ||
-              this == FINISHED_WITH_ERRORS ||
-              this == FINISHED_WITH_WARNINGS ||
-              this == FINISHED_CANCELED;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isError() {
-      return this == FINISHED_WITH_ERRORS;
-    }
-  }
 
   static private final Logger LOG = Logger.getLogger(Upgrader.class.getName());
 
@@ -215,11 +117,11 @@ public class Upgrader extends GuiApplication implements CliApplication {
    * changes is made a no-op leaving the server in the
    * erroneous state.
    */
-  static private final String SYS_PROP_NO_ABORT =
+  static final String SYS_PROP_NO_ABORT =
           "org.opends.quicksetup.upgrader.NoAbort";
 
   // Root files that will be ignored during backup
-  static private final String[] ROOT_FILES_TO_IGNORE_DURING_BACKUP = {
+  static final String[] ROOT_FILES_TO_IGNORE_DURING_BACKUP = {
           CHANGELOG_PATH_RELATIVE, // changelogDb
           DATABASES_PATH_RELATIVE, // db
           LOGS_PATH_RELATIVE, // logs
@@ -288,7 +190,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
         QuickSetupLog.initLogFileHandler(
                 File.createTempFile(
                         UpgradeLauncher.LOG_FILE_PREFIX,
-                        UpgradeLauncher.LOG_FILE_SUFFIX));
+                        QuickSetupLog.LOG_FILE_SUFFIX));
     } catch (IOException e) {
       System.err.println(
               ResourceProvider.getInstance().getMsg("error-initializing-log"));
@@ -1134,9 +1036,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
         notifyListeners(formatter.getFormattedDone() +
                 formatter.getLineBreak());
         LOG.log(Level.INFO, "history recorded");
-        notifyListeners("See '" +
-                Utils.getPath(getInstallation().getHistoryLogFile()) +
-                " for upgrade history" + formatter.getLineBreak());
+        notifyListeners(getMsg("general-see-for-history",
+                Utils.getPath(getInstallation().getHistoryLogFile())) +
+                formatter.getLineBreak());
       } catch (ApplicationException e) {
         notifyListeners(formatter.getFormattedError() +
                 formatter.getLineBreak());
@@ -1277,45 +1179,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
     }
 
 
-  }
-
-
-
-
-  private Long writeInitialHistoricalRecord(
-          BuildInformation fromVersion,
-          BuildInformation toVersion)
-          throws ApplicationException {
-    Long id;
-    try {
-      HistoricalLog log =
-              new HistoricalLog(getInstallation().getHistoryLogFile());
-      id = log.append(fromVersion, toVersion,
-              HistoricalRecord.Status.STARTED,
-              "log file '" + QuickSetupLog.getLogFile().getPath() + "'");
-    } catch (IOException e) {
-      String msg = getMsg("error-logging-operation");
-      throw ApplicationException.createFileSystemException(
-              msg, e);
-    }
-    return id;
-  }
-
-  private void writeHistoricalRecord(
-          Long id,
-          BuildInformation from,
-          BuildInformation to,
-          HistoricalRecord.Status status,
-          String note)
-          throws ApplicationException {
-    try {
-      HistoricalLog log =
-              new HistoricalLog(getInstallation().getHistoryLogFile());
-      log.append(id, from, to, status, note);
-    } catch (IOException e) {
-      String msg = getMsg("error-logging-operation");
-      throw ApplicationException.createFileSystemException(msg, e);
-    }
   }
 
   private void upgradeComponents() throws ApplicationException {
@@ -1490,7 +1353,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
               getMsg("error-determining-upgrade-build"), e);
     }
 
-    UpgradeOracle uo = new UpgradeOracle(
+    UpgradeIssueNotifier uo = new UpgradeIssueNotifier(
             userInteraction(), currentVersion, newVersion);
     uo.notifyUser();
     if (uo.noServerStartFollowingOperation()) {
@@ -1532,16 +1395,17 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   /**
    * {@inheritDoc}
+   * @param launcher
    */
-  public UserData createUserData(String[] args, CurrentInstallStatus cis)
+  public UserData createUserData(Launcher launcher)
           throws UserDataException {
-    return getCliHelper().createUserData(args);
+    return getCliHelper().createUserData(launcher.getArguments());
   }
 
   /**
    * {@inheritDoc}
    */
-  public ApplicationException getException() {
+  public ApplicationException getRunError() {
     return runError;
   }
 
@@ -1629,7 +1493,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   private File getFilesBackupDirectory() throws IOException {
-    File files = new File(getUpgradeBackupDirectory(), "files");
+    File files = new File(getUpgradeBackupDirectory(),
+            Installation.HISTORY_BACKUP_FILES_DIR_NAME);
     if (!files.exists()) {
       if (!files.mkdirs()) {
         throw new IOException("error creating files backup directory");
@@ -1666,40 +1531,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
       }
     }
     return stagedVersion;
-  }
-
-  /**
-   * Filter defining files we want to manage in the upgrade
-   * process.
-   */
-  private class UpgradeFileFilter implements FileFilter {
-
-    Set<File> filesToIgnore;
-
-    public UpgradeFileFilter(File root) throws IOException {
-      this.filesToIgnore = new HashSet<File>();
-      for (String rootFileNamesToIgnore : ROOT_FILES_TO_IGNORE_DURING_BACKUP) {
-        filesToIgnore.add(new File(root, rootFileNamesToIgnore));
-      }
-
-      // Definitely want to not back this up since it would create
-      // infinite recursion.  This may not be necessary if we are
-      // ignoring the entire history directory but its added here for
-      // safe measure.
-      filesToIgnore.add(getUpgradeBackupDirectory());
-    }
-
-    public boolean accept(File file) {
-      boolean accept = true;
-      for (File ignoreFile : filesToIgnore) {
-        if (ignoreFile.equals(file) ||
-                Utils.isParentOf(ignoreFile, file)) {
-          accept = false;
-          break;
-        }
-      }
-      return accept;
-    }
   }
 
 }
