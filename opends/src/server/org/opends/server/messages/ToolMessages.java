@@ -9181,6 +9181,31 @@ public class ToolMessages
   public static final int MSGID_CLI_HEADING_PROPERTY_DEFAULT_VALUE =
     CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1215;
 
+  /**
+   * The message ID for the message that will be used as the
+   * description of the advanced mode argument in get-xxx-prop
+   * sub-commands. This takes a single argument which is the user
+   * friendly name of the component.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_ADVANCED_GET =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1216;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the advanced mode argument in create-xxx and
+   * set-xxx-prop sub-commands. This takes no arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_ADVANCED_SET =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1217;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the advanced mode argument in the list-properties
+   * sub-command. This takes no arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_ADVANCED_HELP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1218;
+
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -11542,6 +11567,18 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_DESCRIPTION_RECORD,
                     "Modifies the display output to show one property " +
                     "value per line");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_ADVANCED_GET,
+                    "Modifies the display output to show the advanced " +
+                    "properties of the %s");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_ADVANCED_SET,
+                    "Allows the configuration of advanced properties " +
+                    "during interactive mode");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_ADVANCED_HELP,
+                    "Modifies the display output to show the advanced " +
+                    "properties of components");
 
     registerMessage(MSGID_DSCFG_DESCRIPTION_FORCE, "Ignore non-existent %s");
 

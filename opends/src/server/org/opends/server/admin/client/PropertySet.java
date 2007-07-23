@@ -417,7 +417,10 @@ public final class PropertySet implements PropertyProvider {
     }
 
     if (values.isEmpty() && d.hasOption(PropertyOption.MANDATORY)) {
-      throw new PropertyIsMandatoryException(d);
+      // But only if there are no default values.
+      if (property.getDefaultValues().isEmpty()) {
+        throw new PropertyIsMandatoryException(d);
+      }
     }
 
     // Validate each value.

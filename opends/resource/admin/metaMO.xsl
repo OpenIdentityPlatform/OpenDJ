@@ -622,6 +622,10 @@
       <xsl:value-of
         select="'      builder.setOption(PropertyOption.HIDDEN);&#xa;'" />
     </xsl:if>
+    <xsl:if test="@advanced='true'">
+      <xsl:value-of
+        select="'      builder.setOption(PropertyOption.ADVANCED);&#xa;'" />
+    </xsl:if>
     <xsl:variable name="action-type">
       <xsl:choose>
         <xsl:when test="adm:requires-admin-action">
@@ -637,14 +641,6 @@
     </xsl:variable>
     <xsl:value-of
       select="concat('      builder.setAdministratorAction(new AdministratorAction(AdministratorAction.Type.', $action-type, ', INSTANCE, &quot;', @name, '&quot;));&#xa;')" />
-    <xsl:if
-      test="not(@mandatory='true') and not(adm:default-behavior)">
-      <xsl:message terminate="yes">
-        <xsl:value-of
-          select="concat('No default behavior defined for non-mandatory property &quot;', @name,
-                         '&quot;.')" />
-      </xsl:message>
-    </xsl:if>
     <xsl:choose>
       <xsl:when
         test="not(adm:default-behavior) or adm:default-behavior/adm:undefined">
@@ -1640,6 +1636,45 @@
     Main document parsing template.
   -->
   <xsl:template match="/">
+    <!--  Perform some initial validation.
+    -->
+    <xsl:for-each select="$this-all-properties">
+      <!--
+        Check that all non-mandatory properties have a default behavior.
+      -->
+      <xsl:if
+        test="not(@mandatory='true') and not(adm:default-behavior)">
+        <xsl:message terminate="yes">
+          <xsl:value-of
+            select="concat('No default behavior defined for non-mandatory property &quot;', @name,
+                         '&quot;.')" />
+        </xsl:message>
+      </xsl:if>
+      <!--
+        Check that all advanced properties are non-mandatory or have a default.
+      -->
+      <xsl:if
+        test="not($this-is-abstract) and @advanced='true' and @mandatory='true'">
+        <xsl:choose>
+          <xsl:when test="adm:default-behavior/adm:defined">
+            <!--  OK  -->
+          </xsl:when>
+          <xsl:when test="adm:default-behavior/adm:inherited">
+            <!--  OK  -->
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:message terminate="yes">
+              <xsl:value-of
+                select="concat('Property &quot;', @name,
+                         '&quot; is advanced and mandatory but has no default values.')" />
+            </xsl:message>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:if>
+    </xsl:for-each>
+    <!-- 
+      Now generate the definition.
+    -->
     <xsl:call-template name="copyright-notice" />
     <xsl:value-of
       select="concat('package ', $this-package, '.meta;&#xa;')" />
@@ -1653,6 +1688,7 @@
                                        @read-only='true' or
                                        @monitoring='true' or
                                        @hidden='true' or
+                                       @advanced='true' or
                                        @mandatory='true']">
           <import>org.opends.server.admin.PropertyOption</import>
         </xsl:if>
@@ -1742,8 +1778,7 @@
               select="concat(@managed-object-package, '.server.', $java-class-name, 'Cfg')" />
           </xsl:element>
         </xsl:for-each>
-        <xsl:if
-          test="$this-local-relations[@hidden='true']">
+        <xsl:if test="$this-local-relations[@hidden='true']">
           <import>org.opends.server.admin.RelationOption</import>
         </xsl:if>
         <xsl:if test="$this-all-relations/adm:one-to-many">

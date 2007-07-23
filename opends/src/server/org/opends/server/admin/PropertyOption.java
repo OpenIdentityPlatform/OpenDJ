@@ -35,6 +35,13 @@ package org.opends.server.admin;
  */
 public enum PropertyOption {
   /**
+   * Use this option to identify properties which should be considered
+   * as advanced and should not be exposed by default in client
+   * applications.
+   */
+  ADVANCED,
+
+  /**
    * Use this option to identify properties which must not be directly
    * exposed in client applications.
    */
