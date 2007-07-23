@@ -77,6 +77,8 @@ public class UninstallLauncher extends Launcher {
     new UninstallLauncher(args).launch();
   }
 
+  private ArgumentParser argParser;
+
   /**
    * Creates a launcher.
    *
@@ -84,6 +86,39 @@ public class UninstallLauncher extends Launcher {
    */
   public UninstallLauncher(String[] args) {
     super(args);
+
+    String scriptName;
+    if (Utils.isWindows()) {
+      scriptName = Installation.WINDOWS_UNINSTALL_FILE_NAME;
+    } else {
+      scriptName = Installation.UNIX_UNINSTALL_FILE_NAME;
+    }
+    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+
+    argParser = new ArgumentParser(getClass().getName(),
+        getI18n().getMsg("uninstall-launcher-usage-description"), false);
+    BooleanArgument cli;
+    BooleanArgument silent;
+    BooleanArgument showUsage;
+    try
+    {
+      cli = new BooleanArgument("cli", 'c', "cli",
+          MSGID_UNINSTALLDS_DESCRIPTION_CLI);
+      argParser.addArgument(cli);
+      silent = new BooleanArgument("silent", 's', "silent",
+          MSGID_UNINSTALLDS_DESCRIPTION_SILENT);
+      argParser.addArgument(silent);
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+        OPTION_LONG_HELP,
+        MSGID_DESCRIPTION_USAGE);
+      argParser.addArgument(showUsage);
+      argParser.setUsageArgument(showUsage);
+    }
+    catch (Throwable t)
+    {
+      System.out.println("ERROR: "+t);
+      t.printStackTrace();
+    }
   }
 
   /**
@@ -99,6 +134,13 @@ public class UninstallLauncher extends Launcher {
     {
       System.err.println(getMsg("uninstall-launcher-gui-launched-failed"));
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ArgumentParser getArgumentParser() {
+    return this.argParser;
   }
 
   /**
@@ -122,46 +164,6 @@ public class UninstallLauncher extends Launcher {
    */
   protected String getFrameTitle() {
     return getI18n().getMsg("frame-uninstall-title");
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected void printUsage(boolean toStdErr) {
-    ArgumentParser argParser = new ArgumentParser(getClass().getName(),
-        getI18n().getMsg("uninstall-launcher-usage-description"), false);
-    BooleanArgument cli;
-    BooleanArgument silent;
-    BooleanArgument showUsage;
-    String scriptName;
-    if (Utils.isWindows()) {
-      scriptName = Installation.WINDOWS_UNINSTALL_FILE_NAME;
-    } else {
-      scriptName = Installation.UNIX_UNINSTALL_FILE_NAME;
-    }
-    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
-    try
-    {
-      cli = new BooleanArgument("cli", 'c', "cli",
-          MSGID_UNINSTALLDS_DESCRIPTION_CLI);
-      argParser.addArgument(cli);
-      silent = new BooleanArgument("silent", 's', "silent",
-          MSGID_UNINSTALLDS_DESCRIPTION_SILENT);
-      argParser.addArgument(silent);
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-        OPTION_LONG_HELP,
-        MSGID_DESCRIPTION_USAGE);
-      argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
-
-      String msg = argParser.getUsage();
-      printUsage(msg, toStdErr);
-    }
-    catch (Throwable t)
-    {
-      System.out.println("ERROR: "+t);
-      t.printStackTrace();
-    }
   }
 
 }

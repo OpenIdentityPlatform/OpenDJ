@@ -41,12 +41,6 @@ import java.util.logging.Logger;
  */
 public class UpgraderCliHelper extends CliApplicationHelper {
 
-  /** Short form of the option for specifying the installation package file. */
-  static public final Character FILE_OPTION_SHORT = 'f';
-
-  /** Long form of the option for specifying the installation package file. */
-  static public final String FILE_OPTION_LONG = "file";
-
   static private final Logger LOG =
           Logger.getLogger(UpgraderCliHelper.class.getName());
 
@@ -79,6 +73,8 @@ public class UpgraderCliHelper extends CliApplicationHelper {
 
   private ArgumentParser createArgumentParser() {
 
+    // TODO: get rid of this method and user launcher.getArgumentParser
+
     String toolDescription = getMsg("upgrade-launcher-description");
     ArgumentParser argParser = createArgumentParser(
             "org.opends.quicksetup.upgrader.Upgrader",
@@ -90,7 +86,8 @@ public class UpgraderCliHelper extends CliApplicationHelper {
     try {
       localInstallPackFileNameArg =
               new StringArgument("install package file",
-                      FILE_OPTION_SHORT, FILE_OPTION_LONG,
+                      UpgradeLauncher.FILE_OPTION_SHORT,
+                      UpgradeLauncher.FILE_OPTION_LONG,
                       false, true, "{install package file}", 0);
       argParser.addArgument(localInstallPackFileNameArg);
     } catch (ArgumentException e) {

@@ -147,14 +147,24 @@ public class Installation {
   public static final String WINDOWS_UNINSTALL_FILE_NAME = "uninstall.bat";
 
   /**
-   * The UNIX uninstall script file name.
+   * The UNIX upgrade script file name.
    */
   public static final String UNIX_UPGRADE_FILE_NAME = "upgrade";
 
   /**
-   * The Windows uninstall batch file name.
+   * The Windows upgrade batch file name.
    */
   public static final String WINDOWS_UPGRADE_FILE_NAME = "upgrade.bat";
+
+  /**
+   * The UNIX revert script file name.
+   */
+  public static final String UNIX_REVERT_FILE_NAME = "revert";
+
+  /**
+   * The Windows revert batch file name.
+   */
+  public static final String WINDOWS_REVERT_FILE_NAME = "revert.bat";
 
   /**
    * The UNIX start script file name.
@@ -201,6 +211,13 @@ public class Installation {
    * of upgrade and reversions.
    */
   public static final String HISTORY_LOG_FILE_NAME = "log";
+
+  /**
+   * The name of the directory in an upgrade backup directory (child
+   * of the 'history' directory) that contains the files from a
+   * previous version.
+   */
+  public static final String HISTORY_BACKUP_FILES_DIR_NAME = "files";
 
   /**
    * Generic name for the backup tool.

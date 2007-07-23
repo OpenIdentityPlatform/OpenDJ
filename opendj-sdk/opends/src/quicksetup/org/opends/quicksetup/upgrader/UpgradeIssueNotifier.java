@@ -40,13 +40,13 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 /**
- * {@link org.opends.quicksetup.upgrader.VersionOracle} specific
+ * {@link org.opends.quicksetup.upgrader.VersionIssueNotifier} specific
  * to upgrade tools.
  */
-public class UpgradeOracle extends VersionOracle {
+public class UpgradeIssueNotifier extends VersionIssueNotifier {
 
   static private final Logger LOG =
-          Logger.getLogger(UpgradeOracle.class.getName());
+          Logger.getLogger(UpgradeIssueNotifier.class.getName());
 
   /**
    * Creates a new instance that can analyze a hypothetical upgrade/reversion
@@ -55,7 +55,7 @@ public class UpgradeOracle extends VersionOracle {
    * @param current BuildInformation representing the current version
    * @param neu BuildInformation representing the proposed next version
    */
-  public UpgradeOracle(UserInteraction ui,
+  public UpgradeIssueNotifier(UserInteraction ui,
                        BuildInformation current,
                        BuildInformation neu) {
     super(ui, current, neu);
@@ -72,7 +72,7 @@ public class UpgradeOracle extends VersionOracle {
       List<Directive> issues = getIssues();
       if (!isSupported()) {
         if (issues != null) {
-          for (VersionOracle.Directive directive : issues) {
+          for (VersionIssueNotifier.Directive directive : issues) {
             LOG.log(Level.INFO, "Unsupported upgrade details: " +
                     directive.getMessage());
           }
@@ -81,7 +81,7 @@ public class UpgradeOracle extends VersionOracle {
                 getMsg("upgrade-oracle-unsupported", args), null);
       } else {
         if (ui != null) {
-          for (VersionOracle.Directive directive : issues) {
+          for (VersionIssueNotifier.Directive directive : issues) {
             String title;
             String summary;
             String details;

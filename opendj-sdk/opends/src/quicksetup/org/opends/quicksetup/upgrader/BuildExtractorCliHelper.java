@@ -80,7 +80,8 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
     } else {
       throw new UserDataException(null,
               getMsg("error-option-required-or-interactive",
-                      "-" + FILE_OPTION_SHORT + "/--" + FILE_OPTION_LONG));
+                      "-" + UpgradeLauncher.FILE_OPTION_SHORT + "/--" +
+                              UpgradeLauncher.FILE_OPTION_LONG));
     }
     return uud;
   }

@@ -53,11 +53,14 @@ public class UpgradeLauncher extends Launcher {
   /** Prefix for log files. */
   static public final String LOG_FILE_PREFIX = "opends-upgrade-";
 
-  /** Suffix for log files. */
-  static public final String LOG_FILE_SUFFIX = ".log";
-
   static private final Logger LOG =
           Logger.getLogger(UpgradeLauncher.class.getName());
+
+  /** Short form of the option for specifying the installation package file. */
+  static public final Character FILE_OPTION_SHORT = 'f';
+
+  /** Long form of the option for specifying the installation package file. */
+  static public final String FILE_OPTION_LONG = "file";
 
   /**
    * The main method which is called by the setup command lines.
@@ -67,7 +70,8 @@ public class UpgradeLauncher extends Launcher {
   public static void main(String[] args) {
     try {
       QuickSetupLog.initLogFileHandler(
-              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX));
+              File.createTempFile(LOG_FILE_PREFIX,
+                      QuickSetupLog.LOG_FILE_SUFFIX));
     } catch (Throwable t) {
       System.err.println(
               ResourceProvider.getInstance().getMsg("error-initializing-log"));
@@ -75,6 +79,8 @@ public class UpgradeLauncher extends Launcher {
     }
     new UpgradeLauncher(args).launch();
   }
+
+  private ArgumentParser argParser;
 
   /**
    * {@inheritDoc}
@@ -95,40 +101,13 @@ public class UpgradeLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected void printUsage(boolean toStdErr) {
-    ArgumentParser argParser = new ArgumentParser(getClass().getName(),
-        getI18n().getMsg("upgrade-launcher-usage-description"), false);
-    BooleanArgument showUsage;
-    FileBasedArgument file;
-    BooleanArgument silent;
-    BooleanArgument interactive;
-    String scriptName;
-    if (Utils.isWindows()) {
-      scriptName = Installation.WINDOWS_UPGRADE_FILE_NAME;
-    } else {
-      scriptName = Installation.UNIX_UPGRADE_FILE_NAME;
-    }
-    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
     try
     {
-      file = new FileBasedArgument("file", 'f',
-          "file", false, false,
-          "{file}",
-          null, null, MSGID_UPGRADE_DESCRIPTION_FILE);
-      argParser.addArgument(file);
-      interactive = new BooleanArgument("interactive", 'i', "interactive",
-          MSGID_UPGRADE_DESCRIPTION_INTERACTIVE);
-      argParser.addArgument(interactive);
-      silent = new BooleanArgument("silent", 's', "silent",
-          MSGID_UPGRADE_DESCRIPTION_SILENT);
-      argParser.addArgument(silent);
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-        OPTION_LONG_HELP,
-        MSGID_DESCRIPTION_USAGE);
-      argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
-
-      String msg = argParser.getUsage();
-      printUsage(msg, toStdErr);
+      ArgumentParser argParser = getArgumentParser();
+      if (argParser != null) {
+        String msg = argParser.getUsage();
+        printUsage(msg, toStdErr);
+      }
     }
     catch (Throwable t)
     {
@@ -169,12 +148,62 @@ public class UpgradeLauncher extends Launcher {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public ArgumentParser getArgumentParser() {
+    return argParser;
+  }
+
+  /**
    * Creates an instance.
    *
    * @param args specified on command line
    */
   protected UpgradeLauncher(String[] args) {
     super(args);
+
+    String scriptName;
+    if (Utils.isWindows()) {
+      scriptName = Installation.WINDOWS_UPGRADE_FILE_NAME;
+    } else {
+      scriptName = Installation.UNIX_UPGRADE_FILE_NAME;
+    }
+    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+
+    argParser = new ArgumentParser(getClass().getName(),
+        getI18n().getMsg("upgrade-launcher-usage-description"), false);
+    BooleanArgument showUsage;
+    FileBasedArgument file;
+    BooleanArgument silent;
+    BooleanArgument interactive;
+    try
+    {
+      file = new FileBasedArgument(
+              "file",
+              FILE_OPTION_SHORT,
+              FILE_OPTION_LONG,
+              false, false,
+              "{file}",
+              null, null, MSGID_UPGRADE_DESCRIPTION_FILE);
+      argParser.addArgument(file);
+      interactive = new BooleanArgument("interactive", 'i', "interactive",
+          MSGID_UPGRADE_DESCRIPTION_INTERACTIVE);
+      argParser.addArgument(interactive);
+      silent = new BooleanArgument("silent", 's', "silent",
+          MSGID_UPGRADE_DESCRIPTION_SILENT);
+      argParser.addArgument(silent);
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+        OPTION_LONG_HELP,
+        MSGID_DESCRIPTION_USAGE);
+      argParser.addArgument(showUsage);
+      argParser.setUsageArgument(showUsage);
+    }
+    catch (Throwable t)
+    {
+      System.out.println("ERROR: "+t);
+      t.printStackTrace();
+    }
+
   }
 
 }

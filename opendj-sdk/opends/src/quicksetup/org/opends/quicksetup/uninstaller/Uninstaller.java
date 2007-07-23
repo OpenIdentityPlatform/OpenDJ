@@ -388,10 +388,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   /**
    * {@inheritDoc}
+   * @param launcher
    */
-  public UserData createUserData(String[] args, CurrentInstallStatus status)
+  public UserData createUserData(Launcher launcher)
           throws UserDataException {
-    return cliHelper.createUserData(args, status);
+    return cliHelper.createUserData(launcher.getArguments());
   }
 
   /**
@@ -408,7 +409,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @return the ApplicationException that might occur during installation or
    *         <CODE>null</CODE> if no exception occurred.
    */
-  public ApplicationException getException() {
+  public ApplicationException getRunError() {
     return ue;
   }
 

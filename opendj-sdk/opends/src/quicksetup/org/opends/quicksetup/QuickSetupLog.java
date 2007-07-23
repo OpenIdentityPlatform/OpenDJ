@@ -41,6 +41,9 @@ import java.text.DateFormat;
  */
 public class QuickSetupLog {
 
+  /** Suffix for log files. */
+  static public final String LOG_FILE_SUFFIX = ".log";
+
   static private File logFile = null;
 
   /**

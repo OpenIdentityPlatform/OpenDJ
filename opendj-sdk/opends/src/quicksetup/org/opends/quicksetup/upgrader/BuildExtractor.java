@@ -66,7 +66,7 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
       QuickSetupLog.initLogFileHandler(
               File.createTempFile(
                       UpgradeLauncher.LOG_FILE_PREFIX + "ext-",
-                      UpgradeLauncher.LOG_FILE_SUFFIX));
+                      QuickSetupLog.LOG_FILE_SUFFIX));
     } catch (Throwable t) {
       System.err.println(
               ResourceProvider.getInstance().getMsg("error-initializing-log"));
@@ -164,8 +164,9 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
 
   /**
    * {@inheritDoc}
+   * @param launcher
    */
-  public UserData createUserData(String[] args, CurrentInstallStatus status)
+  public UserData createUserData(Launcher launcher)
           throws UserDataException
   {
     return helper.createUserData(args);
@@ -204,7 +205,7 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  public ApplicationException getException() {
+  public ApplicationException getRunError() {
     return error;
   }
 
@@ -229,4 +230,5 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
                               String newLogDetail) {
     // ignored;  no progress messages
   }
+
 }

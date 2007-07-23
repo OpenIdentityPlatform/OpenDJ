@@ -30,7 +30,6 @@ package org.opends.quicksetup;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
-import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
@@ -39,9 +38,10 @@ import org.opends.quicksetup.ui.GuiApplication;
 
 import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.HashSet;
 
 /**
  * This class represents an application that can be run in the context of
@@ -56,9 +56,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
   /** Represents current install state. */
   protected CurrentInstallStatus installStatus;
 
-  private HashSet<ProgressUpdateListener> listeners =
-      new HashSet<ProgressUpdateListener>();
-
   private UserData userData;
 
   private Installation installation;
@@ -69,6 +66,9 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
   /** Formats progress messages. */
   protected ProgressMessageFormatter formatter;
+
+  /** Handler for listeners and event firing. */
+  protected ProgressUpdateListenerDelegate listenerDelegate;
 
   /**
    * Creates an application by instantiating the Application class
@@ -138,7 +138,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public void addProgressUpdateListener(ProgressUpdateListener l)
   {
-    listeners.add(l);
+    listenerDelegate.addProgressUpdateListener(l);
   }
 
   /**
@@ -147,7 +147,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public void removeProgressUpdateListener(ProgressUpdateListener l)
   {
-    listeners.remove(l);
+    listenerDelegate.removeProgressUpdateListener(l);
   }
 
   /**
@@ -224,13 +224,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
   public void notifyListeners(Integer ratio, String currentPhaseSummary,
       String newLogDetail)
   {
-    ProgressUpdateEvent ev =
-        new ProgressUpdateEvent(getCurrentProgressStep(), ratio,
-                currentPhaseSummary, newLogDetail);
-    for (ProgressUpdateListener l : listeners)
-    {
-      l.progressUpdate(ev);
-    }
+    listenerDelegate.notifyListeners(getCurrentProgressStep(),
+            ratio, currentPhaseSummary, newLogDetail);
   }
 
   /**
@@ -322,6 +317,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public void setProgressMessageFormatter(ProgressMessageFormatter formatter) {
     this.formatter = formatter;
+    this.listenerDelegate = new ProgressUpdateListenerDelegate(formatter);
   }
 
   /**
@@ -585,8 +581,73 @@ public abstract class Application implements ProgressNotifier, Runnable {
     return ui;
   }
 
-  static private String getMessage(String key, String... args) {
-    return ResourceProvider.getInstance().getMsg(key, args);
+  /**
+   * Conditionally notifies listeners of the log file if it
+   * has been initialized.
+   */
+  protected void notifyListenersOfLog() {
+    File logFile = QuickSetupLog.getLogFile();
+    if (logFile != null) {
+      notifyListeners(
+          getFormattedProgress(getMsg("general-see-for-details",
+              logFile.getPath())) +
+          formatter.getLineBreak());
+    }
+  }
+
+  /**
+   * Writes an initial record in the installation's historical
+   * log describing moving from one version to another.
+   * @param fromVersion from with install will be migrated
+   * @param toVersion to which install will be migrated
+   * @return Long ID for this session
+   * @throws ApplicationException if something goes wrong
+   */
+  protected Long writeInitialHistoricalRecord(
+          BuildInformation fromVersion,
+          BuildInformation toVersion)
+          throws ApplicationException {
+    Long id;
+    try {
+      HistoricalLog log =
+              new HistoricalLog(getInstallation().getHistoryLogFile());
+      id = log.append(fromVersion, toVersion,
+              HistoricalRecord.Status.STARTED,
+              "log file '" + QuickSetupLog.getLogFile().getPath() + "'");
+    } catch (IOException e) {
+      String msg = getMsg("error-logging-operation");
+      throw ApplicationException.createFileSystemException(
+              msg, e);
+    }
+    return id;
+  }
+
+  /**
+   * Writes a record into this installation's historical log.
+   * @param id obtained from calling <code>writeInitialHistoricalRecord</code>
+   * @param from version from with install will be migrated
+   * @param to version to which install will be migrated
+   * @param status of the operation
+   * @param note string with additional information
+   * @throws ApplicationException if something goes wrong
+   * @see {@link #writeInitialHistoricalRecord(BuildInformation,
+          BuildInformation)}
+   */
+  protected void writeHistoricalRecord(
+          Long id,
+          BuildInformation from,
+          BuildInformation to,
+          HistoricalRecord.Status status,
+          String note)
+          throws ApplicationException {
+    try {
+      HistoricalLog log =
+              new HistoricalLog(getInstallation().getHistoryLogFile());
+      log.append(id, from, to, status, note);
+    } catch (IOException e) {
+      String msg = getMsg("error-logging-operation");
+      throw ApplicationException.createFileSystemException(msg, e);
+    }
   }
 
   /**
