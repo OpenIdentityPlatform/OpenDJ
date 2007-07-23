@@ -9181,13 +9181,6 @@ public class ToolMessages
   public static final int MSGID_CLI_HEADING_PROPERTY_DEFAULT_VALUE =
     CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1215;
 
-<<<<<<< .mine
-  /**
-   * Message ID for reverter tool's directory option.
-   */
-  public static final int MSGID_REVERT_DESCRIPTION_DIRECTORY =
-          CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1216;
-=======
   /**
    * The message ID for the message that will be used as the
    * description of the advanced mode argument in get-xxx-prop
@@ -9196,29 +9189,8 @@ public class ToolMessages
    */
   public static final int MSGID_DSCFG_DESCRIPTION_ADVANCED_GET =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1216;
->>>>>>> .r2457
 
   /**
-<<<<<<< .mine
-   * Message ID for reverter tool's directory option.
-   */
-  public static final int MSGID_REVERT_DESCRIPTION_RECENT =
-          CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1217;
-
-  /**
-   * Message ID for reverter tool's directory option.
-   */
-  public static final int MSGID_REVERT_DESCRIPTION_INTERACTIVE =
-          CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1218;
-
-  /**
-   * Message ID for reverter tool's directory option.
-   */
-  public static final int MSGID_REVERT_DESCRIPTION_SILENT =
-          CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1219;
-
-  /**
-=======
    * The message ID for the message that will be used as the
    * description of the advanced mode argument in create-xxx and
    * set-xxx-prop sub-commands. This takes no arguments.
@@ -9234,9 +9206,33 @@ public class ToolMessages
   public static final int MSGID_DSCFG_DESCRIPTION_ADVANCED_HELP =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1218;
 
+  /**
+   * Message ID for reverter tool's directory option.
+   */
+  public static final int MSGID_REVERT_DESCRIPTION_DIRECTORY =
+          CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1219;
+
 
   /**
->>>>>>> .r2457
+   * Message ID for reverter tool's directory option.
+   */
+  public static final int MSGID_REVERT_DESCRIPTION_RECENT =
+          CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1220;
+
+  /**
+   * Message ID for reverter tool's directory option.
+   */
+  public static final int MSGID_REVERT_DESCRIPTION_INTERACTIVE =
+          CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1221;
+
+  /**
+   * Message ID for reverter tool's directory option.
+   */
+  public static final int MSGID_REVERT_DESCRIPTION_SILENT =
+          CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1222;
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
