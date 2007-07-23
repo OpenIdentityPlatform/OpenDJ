@@ -31,7 +31,12 @@ import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
@@ -41,13 +46,17 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
-import org.opends.server.util.args.SubCommandArgumentParser;
 
 /**
  * This class is handling server group CLI.
  */
 public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
 {
+  /**
+   * The subcommand Parser.
+   */
+  DsFrameworkCliParser argParser ;
+
   /**
    * The enumeration containing the different subCommand names.
    */
@@ -118,16 +127,62 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
   private StringArgument deleteAdsBackendNameArg;
 
   /**
+   * The subcommand list.
+   */
+  private HashSet<SubCommand> subCommands = new HashSet<SubCommand>();
+
+  /**
+   * Indicates whether this subCommand should be hidden in the usage
+   * information.
+   */
+  private boolean isHidden;
+
+  /**
+   * The subcommand group name.
+   */
+  private String groupName;
+
+  /**
    * {@inheritDoc}
    */
-  public void initializeCliGroup(SubCommandArgumentParser argParser,
+  public Set<SubCommand> getSubCommands()
+  {
+    return subCommands;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isHidden()
+  {
+    return isHidden ;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getGroupName()
+  {
+    return groupName ;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void initializeCliGroup(DsFrameworkCliParser argParser,
       BooleanArgument verboseArg)
       throws ArgumentException
   {
+
+    isHidden = true;
+    groupName = "ads";
+    this.argParser = argParser;
+
     // Create-ads subcommand
     createAdsSubCmd = new SubCommand(argParser, SubCommandNameEnum.CREATE_ADS
         .toString(), MSGID_ADMIN_SUBCMD_CREATE_ADS_DESCRIPTION);
     createAdsSubCmd.setHidden(true);
+    subCommands.add(createAdsSubCmd);
 
     createAdsBackendNameArg = new StringArgument("backendName",
         OPTION_SHORT_BACKENDNAME, OPTION_LONG_BACKENDNAME, true, true,
@@ -139,6 +194,7 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
     deleteAdsSubCmd = new SubCommand(argParser,SubCommandNameEnum.DELETE_ADS
         .toString(), MSGID_ADMIN_SUBCMD_DELETE_ADS_DESCRIPTION);
     deleteAdsSubCmd.setHidden(true);
+    subCommands.add(deleteAdsSubCmd);
 
     deleteAdsBackendNameArg = new StringArgument("backendName",
         OPTION_SHORT_BACKENDNAME, OPTION_LONG_BACKENDNAME, true, true,
@@ -159,29 +215,80 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
   /**
    * {@inheritDoc}
    */
-  public ReturnCode performSubCommand(ADSContext adsContext, SubCommand subCmd,
-      OutputStream outStream, OutputStream errStream)
-      throws ADSContextException
+  public ReturnCode performSubCommand(SubCommand subCmd, OutputStream outStream,
+      OutputStream errStream)
+      throws ADSContextException, ArgumentException
   {
-    //
-    // create-ads subcommand
-    if (subCmd.getName().equals(createAdsSubCmd.getName()))
+    ADSContext adsCtx = null ;
+    InitialLdapContext ctx = null ;
+
+    ReturnCode returnCode = ReturnCode.ERROR_UNEXPECTED;
+
+    try
     {
-      String backendName = createAdsBackendNameArg.getValue();
-      adsContext.createAdminData(backendName);
-      return ReturnCode.SUCCESSFUL;
+      //
+      // create-ads subcommand
+      if (subCmd.getName().equals(createAdsSubCmd.getName()))
+      {
+        String backendName = createAdsBackendNameArg.getValue();
+        ctx = argParser.getContext(outStream, errStream);
+        if (ctx == null)
+        {
+          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+        }
+        adsCtx = new ADSContext(ctx);
+        adsCtx.createAdminData(backendName);
+        returnCode = ReturnCode.SUCCESSFUL;
+      }
+      else if (subCmd.getName().equals(deleteAdsSubCmd.getName()))
+      {
+        String backendName = deleteAdsBackendNameArg.getValue();
+        ADSContextHelper helper = new ADSContextHelper();
+        ctx = argParser.getContext(outStream, errStream);
+        if (ctx == null)
+        {
+          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+        }
+        adsCtx = new ADSContext(ctx);
+        helper
+            .removeAdministrationSuffix(adsCtx.getDirContext(), backendName);
+        returnCode =  ReturnCode.SUCCESSFUL;
+      }
+      else
+      {
+        // Should never occurs: If we are here, it means that the code to
+        // handle to subcommand is not yet written.
+        returnCode = ReturnCode.ERROR_UNEXPECTED;
+      }
     }
-    else if (subCmd.getName().equals(deleteAdsSubCmd.getName()))
+    catch (ADSContextException e)
     {
-      String backendName = deleteAdsBackendNameArg.getValue();
-      ADSContextHelper helper = new ADSContextHelper();
-      helper.removeAdministrationSuffix(adsContext.getDirContext(),
-          backendName);
-      return ReturnCode.SUCCESSFUL;
+      if (ctx != null)
+      {
+        try
+        {
+          ctx.close();
+        }
+        catch (NamingException x)
+        {
+        }
+      }
+      throw e;
     }
 
-    // Should never occur: If we are here, it means that the code to
-    // handle to subcommand is not yet written.
-    return ReturnCode.ERROR_UNEXPECTED;
+    // Close the connection, if needed
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (NamingException x)
+      {
+      }
+    }
+
+    // return part
+    return returnCode;
   }
 }

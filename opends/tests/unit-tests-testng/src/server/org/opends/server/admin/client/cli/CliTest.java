@@ -106,7 +106,7 @@ public class CliTest {
     
     try
     {
-      cli.initializeCliGroup(new SubCommandArgumentParser(null, null, false),
+      cli.initializeCliGroup(new DsFrameworkCliParser(null, null, false),
           null);
     }
     catch (ArgumentException e)

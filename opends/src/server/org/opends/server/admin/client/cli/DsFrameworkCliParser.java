@@ -27,6 +27,7 @@
 package org.opends.server.admin.client.cli;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.messages.AdminMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -41,16 +42,22 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
 import javax.net.ssl.KeyManager;
 
-import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
@@ -70,6 +77,11 @@ import org.opends.server.util.args.SubCommandArgumentParser;
  */
 public class DsFrameworkCliParser extends SubCommandArgumentParser
 {
+  /**
+   * End Of Line.
+   */
+  private String EOL = System.getProperty("line.separator");
+
   /**
    * The tracer object for the debug logger.
    */
@@ -167,7 +179,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
     Logger.getLogger(DsFrameworkCliParser.class.getName());
 
   /**
-   * The diferent CLI group.
+   * The different CLI group.
    */
   public HashSet<DsFrameworkCliSubCommandGroup> cliGroup;
 
@@ -214,14 +226,48 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
     // ads  Group cli
     cliGroup.add(new DsFrameworkCliAds());
 
-    // Server Group cli
+    // Server-group Group cli
     cliGroup.add(new DsFrameworkCliServerGroup());
 
+    // Server Group cli
+    cliGroup.add(new DsFrameworkCliServer());
+
     // Initialization
+    Comparator<SubCommand> c = new Comparator<SubCommand>() {
+
+      public int compare(SubCommand o1, SubCommand o2) {
+        return o1.getName().compareTo(o2.getName());
+      }
+    };
+
+    SortedSet<SubCommand> allSubCommands = new TreeSet<SubCommand>(c);
+
     for (DsFrameworkCliSubCommandGroup oneCli : cliGroup)
     {
       oneCli.initializeCliGroup(this, verboseArg);
+      Set<SubCommand> oneCliSubCmds = oneCli.getSubCommands() ;
+      allSubCommands.addAll(oneCliSubCmds);
+
+      // register group help
+      String grpName = oneCli.getGroupName();
+      String option = OPTION_LONG_HELP + "-" + grpName;
+      BooleanArgument arg = new BooleanArgument(option, null, option,
+          MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE, grpName);
+      addGlobalArgument(arg);
+      arg.setHidden(oneCli.isHidden());
+      TreeSet<SubCommand> subCmds = new TreeSet<SubCommand>(c);
+      subCmds.addAll(oneCliSubCmds);
+      setUsageGroupArgument(arg, subCmds);
     }
+
+    // Register the --help-all argument.
+    String option = OPTION_LONG_HELP + "-all";
+    BooleanArgument arg = new BooleanArgument(option, null, option,
+        MSGID_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_ALL);
+
+    addGlobalArgument(arg);
+    setUsageGroupArgument(arg, allSubCommands);
+
   }
 
   /**
@@ -395,7 +441,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
    * @return The password stored into the specified file on by the
    *         command line argument, or prompts it if not specified.
    */
-  public String getBindPassword(String dn, PrintStream out, PrintStream err)
+  public String getBindPassword(String dn, OutputStream out, OutputStream err)
   {
     if (bindPasswordArg.isPresent())
     {
@@ -405,7 +451,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
         // read the password from the stdin.
         try
         {
-          out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, dn));
+          out.write(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, dn).getBytes());
           char[] pwChars = PasswordReader.readPassword();
           bindPasswordValue = new String(pwChars);
         } catch(Exception ex)
@@ -414,7 +460,14 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, ex);
           }
-          err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+          try
+          {
+            err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
+            err.write(EOL.getBytes());
+          }
+          catch (IOException e)
+          {
+          }
           return null;
         }
       }
@@ -430,7 +483,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       // read the password from the stdin.
       try
       {
-        out.print(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, dn));
+        out.write(getMessage(MSGID_LDAPAUTH_PASSWORD_PROMPT, dn).getBytes());
         char[] pwChars = PasswordReader.readPassword();
         return new String(pwChars);
       }
@@ -440,7 +493,14 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
         }
-        err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+        try
+        {
+          err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
+          err.write(EOL.getBytes());
+        }
+        catch (IOException e)
+        {
+        }
         return null;
       }
     }
@@ -448,22 +508,20 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
 
   /**
    * Handle the subcommand.
-   *
-   * @param adsContext
-   *          The context to use to perform ADS operation.
-   *
    * @param  outStream         The output stream to use for standard output.
-   *
    * @param  errStream         The output stream to use for standard error.
    *
    * @return the return code
    * @throws ADSContextException
    *           If there is a problem with when trying to perform the
    *           operation.
+   * @throws ArgumentException
+   *           If there is a problem with any of the parameters used
+   *           to execute this subcommand.
    */
-  public ReturnCode performSubCommand(ADSContext adsContext,
-      OutputStream outStream, OutputStream errStream)
-    throws ADSContextException
+  public ReturnCode performSubCommand(OutputStream outStream,
+      OutputStream errStream)
+    throws ADSContextException, ArgumentException
   {
     SubCommand subCmd = getSubCommand();
 
@@ -471,8 +529,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
     {
       if (oneCli.isSubCommand(subCmd))
       {
-        return oneCli.performSubCommand(adsContext, subCmd, outStream,
-            errStream);
+        return oneCli.performSubCommand( subCmd, outStream, errStream);
       }
     }
 
@@ -767,4 +824,104 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
     return ReturnCode.SUCCESSFUL_NOP.getReturnCode();
   }
 
+
+  /**
+   * Get the InitialLdapContext that has to be used for the ADS.
+   * @param  out         The output stream to use for standard output.
+   * @param  err         The output stream to use for standard error.
+   *
+   * @return The InitialLdapContext that has to be used for the ADS.
+   */
+  public InitialLdapContext getContext(OutputStream out, OutputStream err)
+  {
+    // Get connection parameters
+    String host = null ;
+    String port = null;
+    String dn   = null ;
+    String pwd  = null;
+    InitialLdapContext ctx = null;
+
+    // Get connection parameters
+    host = getHostName();
+    port = getPort();
+    dn   = getBindDN();
+    pwd  = getBindPassword(dn, out, err);
+
+    // Try to connect
+    if (useSSL())
+    {
+      String ldapsUrl = "ldaps://" + host + ":" + port;
+      try
+      {
+        ctx = ConnectionUtils.createLdapsContext(ldapsUrl, dn, pwd,
+            ConnectionUtils.getDefaultLDAPTimeout(), null,getTrustManager(),
+            getKeyManager());
+      }
+      catch (NamingException e)
+      {
+        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
+        String message = getMessage(msgID, host);
+
+        try
+        {
+          err.write(wrapText(message, MAX_LINE_WIDTH).getBytes());
+          err.write(EOL.getBytes());
+        }
+        catch (IOException e1)
+        {
+        }
+        return null;
+      }
+    }
+    else if (startTLS())
+    {
+      String ldapUrl = "ldap://" + host + ":" + port;
+      try
+      {
+        ctx = ConnectionUtils.createStartTLSContext(ldapUrl, dn, pwd,
+            ConnectionUtils.getDefaultLDAPTimeout(), null, getTrustManager(),
+            getKeyManager(), null);
+      }
+      catch (NamingException e)
+      {
+        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
+        String message = getMessage(msgID, host);
+
+        try
+        {
+          err.write(wrapText(message, MAX_LINE_WIDTH).getBytes());
+          err.write(EOL.getBytes());
+        }
+        catch (IOException e1)
+        {
+        }
+        return null;
+      }
+    }
+    else
+    {
+      String ldapUrl = "ldap://" + host + ":" + port;
+      try
+      {
+        ctx = ConnectionUtils.createLdapContext(ldapUrl, dn, pwd,
+            ConnectionUtils.getDefaultLDAPTimeout(), null);
+      }
+      catch (NamingException e)
+      {
+        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
+        String message = getMessage(msgID, host);
+
+        try
+        {
+          err.write(wrapText(message, MAX_LINE_WIDTH).getBytes());
+          err.write(EOL.getBytes());
+        }
+        catch (IOException e1)
+        {
+        }
+        return null;
+      }
+    }
+    return ctx;
+  }
 }

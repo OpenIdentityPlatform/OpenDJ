@@ -492,6 +492,70 @@ public final class AdminMessages {
   public static final int MSGID_ADMIN_UNABLE_TO_REGISTER_LISTENER =
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_SEVERE_ERROR | 57;
 
+  /**
+   * The message ID for the message that will be used as the
+   * description for the create-group subcommand part of dsservice
+   * tool. This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_SUBCMD_REGISTER_SERVER_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 58;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description for the create-group subcommand part of dsservice
+   * tool. This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_SUBCMD_UNREGISTER_SERVER_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 59;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the "server-name" argument. This does take one
+   * argument.
+   */
+  public static final int MSGID_ADMIN_ARG_SERVERNAME_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 60;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description for the list-server-properties subcommand part of
+   * dsservice tool. This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_SUBCMD_LIST_SERVER_PROPS_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 61;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description for the list-servers subcommand part of dsservice
+   * tool. This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_SUBCMD_LIST_SERVERS_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 62;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description for the get-server-properties subcommand part of
+   * dsservice tool. This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_SUBCMD_GET_SERVER_PROPERTIES_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 63;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description for the set-server-properties subcommand part of
+   * dsservice tool. This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_SUBCMD_SET_SERVER_PROPERTIES_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 64;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the "server-host" argument. This does take one
+   * argument.
+   */
+  public static final int MSGID_ADMIN_ARG_SERVERID_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 65;
+
   // Prevent instantiation.
   private AdminMessages() {
     // Do nothing.
@@ -665,8 +729,39 @@ public final class AdminMessages {
     registerMessage(MSGID_ADMIN_ARG_BACKENDNAME_DESCRIPTION,
         "The name of the backend in which the admin data will be stored. " +
         "This is a required argument");
+    registerMessage(MSGID_ADMIN_SUBCMD_REGISTER_SERVER_DESCRIPTION,
+        "Register a server into the administrative domain");
+    registerMessage(MSGID_ADMIN_SUBCMD_UNREGISTER_SERVER_DESCRIPTION,
+        "Unregister a server from the administrative domain");
+    registerMessage(MSGID_ADMIN_ARG_SERVERNAME_DESCRIPTION,
+        "The server's identifier. This is a required argument");
+    registerMessage(MSGID_ADMIN_SUBCMD_LIST_SERVER_PROPS_DESCRIPTION,
+        "Describes server properties");
+    registerMessage(MSGID_ADMIN_SUBCMD_LIST_SERVERS_DESCRIPTION,
+        "List servers that have been defined");
+    registerMessage(MSGID_ADMIN_SUBCMD_GET_SERVER_PROPERTIES_DESCRIPTION,
+        "Shows server properties");
+    registerMessage(MSGID_ADMIN_SUBCMD_SET_SERVER_PROPERTIES_DESCRIPTION,
+        "Modifies server properties");
     registerMessage(MSGID_ADMIN_UNABLE_TO_REGISTER_LISTENER,
         "Unable to register an add/delete listener against the entry \"%s\" " +
         "because it does not exist in the configuration");
+    registerMessage(MSGID_ADMIN_SUBCMD_REGISTER_SERVER_DESCRIPTION,
+        "Register a server into the administrative domain");
+    registerMessage(MSGID_ADMIN_SUBCMD_UNREGISTER_SERVER_DESCRIPTION,
+        "Unregister a server from the administrative domain");
+    registerMessage(MSGID_ADMIN_ARG_SERVERNAME_DESCRIPTION,
+        "The server's identifier. This is a required argument");
+    registerMessage(MSGID_ADMIN_SUBCMD_LIST_SERVER_PROPS_DESCRIPTION,
+        "Describes server properties");
+    registerMessage(MSGID_ADMIN_SUBCMD_LIST_SERVERS_DESCRIPTION,
+        "List servers that have been defined");
+    registerMessage(MSGID_ADMIN_SUBCMD_GET_SERVER_PROPERTIES_DESCRIPTION,
+        "Shows server properties");
+    registerMessage(MSGID_ADMIN_SUBCMD_SET_SERVER_PROPERTIES_DESCRIPTION,
+        "Modifies server properties");
+    registerMessage(MSGID_ADMIN_ARG_SERVERID_DESCRIPTION,
+        "The registered server's unique identifier. " +
+        "This is a required argument");
   }
 }

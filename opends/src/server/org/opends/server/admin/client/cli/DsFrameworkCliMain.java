@@ -29,12 +29,7 @@ package org.opends.server.admin.client.cli;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
-
-import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
@@ -208,7 +203,12 @@ public class DsFrameworkCliMain
 
     if (argParser.getSubCommand() == null)
     {
-      err.println(argParser.getUsage());
+      int msgID = MSGID_ERROR_PARSING_ARGS;
+      String message = getMessage(msgID,
+          getMessage(MSGID_DSCFG_ERROR_MISSING_SUBCOMMAND));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println();
+      err.println(argParser.getHelpUsageReference());
       return ReturnCode.ERROR_PARSING_ARGS.getReturnCode();
     }
 
@@ -219,71 +219,10 @@ public class DsFrameworkCliMain
       return ret;
     }
 
+    // Check if we need a connection
 
-    // Get connection parameters
-    String host = argParser.getHostName() ;
-    String port = argParser.getPort() ;
-    String dn   = argParser.getBindDN() ;
-    String pwd  = argParser.getBindPassword(dn,out,err) ;
-
-    // Try to connect
-    InitialLdapContext ctx = null;
     ReturnCode returnCode = ReturnCode.SUCCESSFUL;
-    if (argParser.useSSL())
-    {
-      String ldapsUrl = "ldaps://" + host + ":" + port;
-      try
-      {
-        ctx = ConnectionUtils.createLdapsContext(ldapsUrl,
-            dn, pwd, ConnectionUtils.getDefaultLDAPTimeout(), null,
-             argParser.getTrustManager(), argParser.getKeyManager());
-      }
-      catch (NamingException e)
-      {
-        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
-        String message = getMessage(msgID, host);
 
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
-      }
-    }
-    else
-    if (argParser.startTLS())
-    {
-      String ldapUrl = "ldap://" + host + ":" + port;
-      try
-      {
-        ctx = ConnectionUtils.createStartTLSContext(ldapUrl, dn, pwd,
-            ConnectionUtils.getDefaultLDAPTimeout(), null, argParser
-                .getTrustManager(), argParser.getKeyManager(), null);
-      }
-      catch (NamingException e)
-      {
-        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
-        String message = getMessage(msgID, host);
-
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
-      }
-    }
-    else
-    {
-      String ldapUrl = "ldap://" + host + ":" + port;
-      try
-      {
-        ctx = ConnectionUtils.createLdapContext(ldapUrl, dn, pwd,
-            ConnectionUtils.getDefaultLDAPTimeout(), null);
-      }
-      catch (NamingException e)
-      {
-        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
-        String message = getMessage(msgID, host);
-
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
-      }
-    }
-    ADSContext adsContext = new ADSContext(ctx);
 
     // Should we initialize the server in client mode?
     if (initializeServer)
@@ -298,27 +237,21 @@ public class DsFrameworkCliMain
       }
       catch (InitializationException e)
       {
-        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
-        String message = getMessage(msgID, host);
-
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
+        err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+        return ReturnCode.ERROR_UNEXPECTED.getReturnCode();
       }
       catch (IllegalStateException e)
       {
-        int msgID = MSGID_ADMIN_CANNOT_CONNECT_TO_ADS;
-        String message = getMessage(msgID, host);
-
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return ReturnCode.CANNOT_CONNECT_TO_ADS.getReturnCode();
+        err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+        return ReturnCode.ERROR_UNEXPECTED.getReturnCode();
       }
     }
 
     // perform the subCommand
-    ADSContextException adsException = null ;
+    ADSContextException adsException = null;
     try
     {
-      returnCode = argParser.performSubCommand(adsContext, out, err);
+      returnCode = argParser.performSubCommand(out, err);
     }
     catch (ADSContextException e)
     {
@@ -330,15 +263,13 @@ public class DsFrameworkCliMain
         returnCode = ReturnCode.ERROR_UNEXPECTED;
       }
     }
+    catch (ArgumentException ae)
+    {
+      int msgID = MSGID_CANNOT_INITIALIZE_ARGS;
+      String message = getMessage(msgID, ae.getMessage());
 
-    // deconnection
-    try
-    {
-      ctx.close();
-    }
-    catch (NamingException e)
-    {
-      // TODO Should we do something ?
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return ReturnCode.CANNOT_INITIALIZE_ARGS.getReturnCode();
     }
 
     int msgID = returnCode.getMessageId();
