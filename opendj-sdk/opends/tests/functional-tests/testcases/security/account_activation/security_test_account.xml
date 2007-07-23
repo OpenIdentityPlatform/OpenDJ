@@ -48,8 +48,7 @@
                 'dsInstancePswd'   : 'sprain' ,
                 'dsBaseDN'   : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base' ,
-                'expectedRC'      : 0 }
+                'extraParams'      : '-s base' }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -64,15 +63,17 @@
                'Security: Account Activation: Admin Deactivating User'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/account_activation/admin_deactivate_account.ldif' % logsRemoteDataDir,
-                'expectedRC'      : 0 }				
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=scarter,ou=People,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-pwp-account-disabled' ,
+                    'newAttributeValue'      : 'true' ,
+                    'changetype'             : 'replace' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -90,10 +91,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=scarter,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'sprain' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'      : 49 }		
+                'expectedRC'       : 49 }		
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -108,16 +109,17 @@
                'Security: Account Activation: Postamble Step 1.  Admin Reactivating User'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/account_activation/admin_reactivate_account.ldif' % logsRemoteDataDir ,
-                'expectedRC'      : 0 }				
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=scarter,ou=People,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-pwp-account-disabled' ,
+                    'newAttributeValue'      : 'false' ,
+                    'changetype'             : 'replace' }
             </call>
-
-
+        
             <message>
                'Security: Account Activation: Postamble Step 2.  Checking User Bind After Reactivation'
             </message>
@@ -127,10 +129,9 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=scarter,ou=people,ou=activation tests,o=Account Activation Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'sprain' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'extraParams'      : '-s base',
-                'expectedRC'      : 0 }				
+                'extraParams'      : '-s base' }				
             </call>
 
             <call function="'testCase_Postamble'"/>

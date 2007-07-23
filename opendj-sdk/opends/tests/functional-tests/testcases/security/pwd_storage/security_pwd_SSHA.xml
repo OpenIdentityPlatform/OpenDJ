@@ -62,11 +62,11 @@
             </message>
 
             <call function="'compareEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-default-password-storage-scheme:SSHA',
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-default-password-storage-scheme:SSHA',
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
@@ -103,7 +103,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=scarter,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'userpassword' }
+                'attributes'       : 'userpassword' }
             </call>
 
             <script> 
@@ -144,14 +144,17 @@
                'Security: Pwd Storage SSHA: User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'sprain' ,
-                'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_SSHA.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=scarter,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'sprain' ,
+                    'DNToModify'             : 'uid=scarter,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'SSHAsprain' ,
+                    'changetype'             : 'replace' }
             </call>
-
+            
             <message>
                'Security: Pwd Storage SSHA: User Binding With New Password'
             </message>
@@ -161,7 +164,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=scarter,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'SSHAsprain' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -177,7 +180,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=scarter,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'userpassword' }
+                'attributes'       : 'userpassword' }
             </call>
 
             <script> 
@@ -214,15 +217,26 @@
                'Security: Pwd Storage SSHA: Admin Changing to Unsupported Scheme'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_change_BAD.ldif' % logsRemoteDataDir ,
-                'expectedRC'          : 53 }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'BAD' ,
+                    'expectedRC'             : 1 }
             </call>
-
+            
+            <script> 
+                 returnString = STAXReason[0][1]
+            </script> 
+    
+            <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'error code 53' }
+            </call>
+                
             <call function="'testCase_Postamble'"/>
             
           </sequence>

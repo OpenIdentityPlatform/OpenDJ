@@ -45,7 +45,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % logsRemoteDataDir }
             </call>
@@ -66,10 +66,10 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir,
-                'expectedRC'      : 53 }
+                'expectedRC'       : 53 }
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -84,14 +84,15 @@
                'Security: Bind No Pwd: Enable Binds With No Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/bind_no_pwd/enable_bind_no_pwd.ldif' % logsRemoteDataDir }
+            <call function="'modifyGlobal'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'attributeName'          : 'bind-with-dn-requires-password' ,
+                    'attributeValue'         : 'false' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -108,7 +109,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/bhall.pwd' % logsRemoteDataDir }
             </call>
@@ -129,7 +130,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
@@ -150,12 +151,11 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=tmason, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
 
-            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -172,7 +172,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=Anybody, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir }
             </call>
@@ -189,15 +189,15 @@
                'Security: Bind No Pwd: Reset - Step 1. Reset Configuration'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/bind_no_pwd/disable_bind_no_pwd.ldif' % logsRemoteDataDir }
+            <call function="'modifyGlobal'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'attributeName'          : 'bind-with-dn-requires-password' ,
+                    'attributeValue'         : 'true' }
             </call>
-
-
+            
             <message>
                'Security: Bind No Pwd: Reset - Step 2. Check Reset'
             </message>
@@ -206,10 +206,10 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall, ou=People, ou=password tests,  o=Bind No Pwd Tests, dc=example,dc=com' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base -j %s/security/bind_no_pwd/null.pwd' % logsRemoteDataDir,
-                'expectedRC'      : 53 }				
+                'expectedRC'       : 53 }				
             </call>
 
             <call function="'testCase_Postamble'"/>

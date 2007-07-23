@@ -77,15 +77,18 @@
                'Security: Deprecated Pwd Schemes: Preamble Step 2. User Change Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'squatted' ,
-                'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_depr_schemes.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'squatted' ,
+                    'DNToModify'             : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'squinted' ,
+                    'changetype'             : 'replace' }
             </call>
-
-             <message>
+            
+            <message>
                'Security: Deprecating Pwd Schemes: Preamble Step 3. Checking for MD5 Scheme Before Deprecating'
             </message>
 
@@ -96,7 +99,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'userpassword' }
+                'attributes'       : 'userpassword' }
             </call>
 
             <script> 
@@ -135,26 +138,31 @@
                'Security: Deprecated Pwd Schemes: Admin Deprecating MD5 Scheme'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_depr_MD5.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'deprecated-password-storage-scheme' ,
+                    'attributeValue'         : 'MD5' }
             </call>
-
+            
             <message>
                'Security: Deprecated Pwd Schemes: Admin Removing MD5 Scheme From Default'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_delete_MD5.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
+                    'attributeName'          : 'ds-cfg-default-password-storage-scheme' ,
+                    'newAttributeValue'      : 'MD5' ,
+                    'changetype'             : 'delete' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
          
           </sequence>
@@ -224,7 +232,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'userpassword' }
+                'attributes'       : 'userpassword' }
             </call>
 
             <script> 
@@ -269,7 +277,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'userpassword' }
+                'attributes'       : 'userpassword' }
             </call>
 
             <script> 
@@ -313,7 +321,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=tmason,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'userpassword' }
+                'attributes'       : 'userpassword' }
             </call>
 
             <script> 
@@ -350,14 +358,16 @@
                'Security: Deprecating Pwd Schemes: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'SSHA' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
               
           </sequence>

@@ -102,7 +102,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'ds-cfg-default-password-storage-scheme' }
+                'attributes'       : 'ds-cfg-default-password-storage-scheme' }
             </call>
 
             <script> 
@@ -192,14 +192,17 @@
                'Security: Multiple Pwd Schemes: User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'oranges' ,
-                'entryToBeModified'   : '%s/security/pwd_storage/user_change_pwd_mult_schemes.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'oranges' ,
+                    'DNToModify'             : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'manyoranges' ,
+                    'changetype'             : 'replace' }
             </call>
-
+            
             <message>
                'Security: Multiple Pwd Schemes: User Binding With New Password'
             </message>
@@ -209,7 +212,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'manyoranges' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -226,7 +229,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'userpassword' }
+                'attributes'       : 'userpassword' }
             </call>
 
             <script> 
@@ -276,7 +279,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'userpassword' }
+                'attributes'       : 'userpassword' }
             </call>
 
             <script> 
@@ -313,15 +316,18 @@
                'Security: Multiple Pwd Schemes: User Improperly Add Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'manyoranges' ,
-                'entryToBeModified'   : '%s/security/pwd_storage/user_add_pwd.ldif' % logsRemoteDataDir ,
-                'expectedRC'          : 53 }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'manyoranges' ,
+                    'DNToModify'             : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'anotherorange' ,
+                    'changetype'             : 'add' ,
+                    'expectedRC'             : 53 }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -346,14 +352,16 @@
                'Security: Mult Pwd Schemes: Postamble - Admin Resetting to SSHA Storage Scheme'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_storage/admin_reset_SSHA.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'SSHA' }
             </call>
-
+            
             <message>
                'Security: Multiple Pwd Schemes: User Bind Final'
             </message>
@@ -363,7 +371,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=bhall,ou=people,ou=password tests,o=Pwd Storage Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'manyoranges' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
