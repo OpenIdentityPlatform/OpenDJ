@@ -373,8 +373,11 @@
       <xsd:annotation>
         <xsd:documentation>
           Indicates whether or not this property is mandatory. Mandatory
-          properties are those properties which have no sensible default
-          behavior and must, therefore, be specified by administrators.
+          properties are usually those properties which have no sensible
+          default behavior and must, therefore, be specified by
+          administrators. If a mandatory property has default values
+          these will be used as the values for the property if none are
+          specified by the user.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
