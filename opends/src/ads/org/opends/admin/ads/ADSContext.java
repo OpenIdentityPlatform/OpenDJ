@@ -194,10 +194,10 @@ public class ADSContext
   private static HashMap<String, ServerProperty> nameToServerProperty = null;
   /**
    * Get a ServerProperty associated to a name.
-   * @param name The name of the property to retreive.
+   * @param name The name of the property to retrieve.
    *
    * @return The corresponding ServerProperty or null if name
-   * doesn't matech with an existing property.
+   * doesn't match with an existing property.
    */
   public static ServerProperty getPropFromName(String name)
   {
@@ -221,6 +221,11 @@ public class ADSContext
   {
     MULTIVALUED_SERVER_PROPERTIES.add(ServerProperty.GROUPS);
   }
+
+  /**
+   * The default server group which will contain all registered servers.
+   */
+  public static final String ALL_SERVERGROUP_NAME = "all-servers";
 
   /**
    * Enumeration containing the different server group properties that are
@@ -841,6 +846,12 @@ public class ADSContext
     createAdministratorContainerEntry();
     createContainerEntry(getServerContainerDN());
     createContainerEntry(getServerGroupContainerDN());
+
+    // Add the default "all-servers" group
+    Map<ServerGroupProperty, Object> allServersGroupsMap =
+      new HashMap<ServerGroupProperty, Object>();
+    allServersGroupsMap.put(ServerGroupProperty.UID, ALL_SERVERGROUP_NAME);
+    createServerGroup(allServersGroupsMap);
   }
 
   /**
