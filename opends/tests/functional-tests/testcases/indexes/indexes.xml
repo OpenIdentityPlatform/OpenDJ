@@ -28,36 +28,169 @@
 <stax>
   <defaultcall function="indexes" />
   <function name="indexes">
-    <sequence>
-      <script>
-        CurrentTestPath={'group':'indexes','suite':'indexes'}
-        envAlreadyLoaded='true'
-      </script>
-      <try>
-        <iterate in="['testGroup_Preamble','testSuite_Preamble','indexes_setup','indexes_search']" var="testStep">
-          <call function="testStep" />
-        </iterate>
-        <catch exception="'STAXException.Topology.CreationException'">
-          <message log="1" level="'fatal'">'Could not create the topology. Bailing out.'</message>
-        </catch>
-        <catch exception="'STAXException.Topology.StartException'">
-          <message log="1" level="'fatal'">'Could not start at least one server in the topology. Bailing out.'</message>
-        </catch>
-        <finally>
-          <iterate in="['indexes_cleanup','testSuite_Postamble','testGroup_Postamble']" var="testStep">
-            <call function="'%s' % testStep" />
-          </iterate>
-        </finally>
-      </try>
-    </sequence>
+    <block name="'indexes'">
+      <sequence>
+        <script>
+          CurrentTestPath={'group':'indexes','suite':'indexes'}
+          envAlreadyLoaded='true'
+          _setupSteps=['testGroup_Preamble','testSuite_Preamble','indexes_setup']
+          _testSteps=['indexes_search','indexes_modify']
+        </script>
+        <!---
+          #@TestSuiteName      Indexes
+          #@TestSuitePurpose   test the database index feature from ldap
+          #@TestSuiteGroup     indexes
+          #@TestScript         indexes.xml
+        -->
+        
+        <try>
+          <!-- the pre-requisites are in a separate ite -->
+          <sequence>
+            <iterate in="_setupSteps" var="_setupStep">
+              <call function="_setupStep" />
+            </iterate>
+            <iterate in="_testSteps" var="_testStep" indexvar="_testStepNumber">
+              <call function="_testStep" />
+            </iterate>
+          </sequence>
+          <catch exception="'STAXException.Topology.CreationException'">
+            <message log="1" level="'fatal'">'Could not create the topology. Bailing out.'</message>
+          </catch>
+          <catch exception="'STAXException.Topology.StartException'">
+            <message log="1" level="'fatal'">'Could not start at least one server in the topology. Bailing out.'</message>
+          </catch>
+          <finally>
+            <iterate in="['indexes_cleanup','testSuite_Postamble','testGroup_Postamble']" var="_cleanupStep">
+              <call function="'%s' % _cleanupStep" />
+            </iterate>
+          </finally>
+        </try>
+      </sequence>
+    </block>
   </function>
   
-  <function name="indexes_search" >
-    <sequence>
-      <message log="1" level="'info'">
-        'starting the search tests'
-      </message>
+  <function name="indexes_search" scope="local">
+    <!---
+      This set of tests loop through a set of search filters to verify that
+      the default indexes behave as expected
+      #@TestMarker                indexes
+      #@TestName                  indexes_search
+      #@TestIssue                 TODO: look up the issue in issue tracker
+      #@TestPurpose               harden the default indexes
+      #@TestPreamble              none
+      #@TestStep                  iterate through file search.filters
+      #@TestPostamble             none
+      #@TestResult                Success if entry are indexed correctly
+    -->
+    <block name="'indexes_search'">
+      <sequence>
+        <message log="1" level="'info'">
+          'starting the search tests'
+        </message>
+        <call function="'loopThroughFilters'">
+          { 'filters' : 'search' }
+        </call>
+      </sequence>
+    </block>
+  </function>
 
+  
+  <function name="indexes_modify" scope="local">
+    <!--
+      This test alters the uid default index so that it does subString search
+      and then verifies that it worked
+      #@TestMarker                indexes
+      #@TestName                  indexes_search
+      #@TestIssue                 TODO: look up the issue in issue tracker
+      #@TestPurpose               harden the default indexes
+      #@TestPreamble              none
+      #@TestStep                  iterate through file search.filters
+      #@TestPostamble             none
+      #@TestResult                Success if entry are indexed correctly
+    -->
+    <block name="'indexes_modify'">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'loopThroughFilters'">
+              { 'filters' : 'before-modify' }
+            </call>
+            <call function="'runFunction'">
+              { 'functionName'      : 'modifyAnAttribute',
+                'functionException' : 'LDAP.ModifyException',
+                'functionFailureTC' : 'Indexes - Modify' ,
+                'functionMessage'   : 'Adding substring index to attribute uid'       ,
+                'functionArguments' : { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                                      'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                                      'dsInstanceDn'      : DIRECTORY_INSTANCE_DN   ,
+                                      'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                                      'DNToModify'        : 'ds-cfg-index-attribute=uid,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config' ,
+                                      'attributeName'     : 'ds-cfg-index-type'     ,
+                                      'newAttributeValue' : 'substring'             ,
+                                      'changetype'        : 'add'                   }
+              }
+            </call>
+  
+            <call function="'runFunction'">
+              { 'functionName'      : 'StopDsWithScript'               ,
+                'functionException' : 'CLI.stop-ds'                    ,
+                'functionFailureTC' : 'Indexes - Modify' ,
+                'functionArguments' : { 'location'  : STAF_LOCAL_HOSTNAME   ,
+                                        'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                                        'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                                        'dsBindDN'  : DIRECTORY_INSTANCE_DN  ,
+                                        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+              }
+            </call>
+            <call function="'runFunction'">
+              { 'functionName'      : 'CLI_rebuild-index' ,
+                'functionException' : 'CLI.RebuildIndex'  ,
+                'functionFailureTC' : 'Indexes - Modify'  ,
+                'functionArguments' : { 'baseDN'     : DIRECTORY_INSTANCE_SFX ,
+                                        'attributes' : [ 'uid' ]              }
+              }
+            </call>
+            <call function="'runFunction'">
+              { 'functionName'      : 'StartDsWithScript',
+                'functionException' : 'CLI.start-ds'     ,
+                'functionFailureTC' : 'Indexes - Modify' ,
+                'functionArguments' : { 'location' : STAF_LOCAL_HOSTNAME }
+              }
+            </call>
+            <call function="'loopThroughFilters'">
+              { 'filters' : 'after-modify' }
+            </call>
+          </sequence>
+          <catch exception="'STAXException.LDAP.ModifyException'">
+            <message log="1" level="'fatal'">'Fatal Error: Failed to alter index for attribute uid'</message>
+          </catch>
+          <catch exception="'STAXException.CLI.RebuildIndex'">
+            <message log="1" level="'fatal'">'Fatal Error: Failed to rebuild index for attribute uid'</message>
+          </catch>
+        </try>
+      </sequence>
+    </block>
+  </function>
+
+  <!--
+  <function name="indexes_add" scope="local">
+  </function>
+  
+  <function name="indexes_rebuild" scope="local">
+  </function>
+  
+  <function name="indexes_delete" scope="local">
+  </function>
+
+  <function name="indexes_verify" scope="local">
+  </function>
+  -->
+  
+  <function name="loopThroughFilters" scope="local">
+    <function-map-args>
+      <function-arg-def name="filters" type="required" />
+    </function-map-args>
+    <sequence>
       <script>
         class indexTest:
           "Describes an index test with indexed attribute, filter to test with and expected behaviour"
@@ -103,7 +236,7 @@
             
         indexTests = []
         
-        f = open('%s/testcases/indexes/search.filters' % TESTS_DIR,'r')
+        f = open('%s/testcases/indexes/%s.filters' % (TESTS_DIR,filters),'r')
         for line in f.readlines():
           if line.startswith('#'):
             continue
@@ -111,20 +244,20 @@
             testLine = line.split(' ')
             indexTests.append(indexTest(testLine[0], testLine[1], testLine[2], testLine[3], testLine[4]))
           
-        iteration=0
+        indexTestNumber=0
         previousTestName=''
         testNumber=0
       </script>
       <iterate var="test" in="indexTests">
         <sequence>
           <script>
-          iteration=iteration+1
+          indexTestNumber=indexTestNumber+1
           if previousTestName != test.getName():
             previousTestName=test.getName()
             testNumber=0
             
           </script>
-          <testcase name="'Indexes: 1.Search: %03d-%03d.%s: %s%02d' % ( len(indexTests)-iteration, iteration, test.getAttribute(), test.getName(), testNumber)" >
+          <testcase name="'Indexes: %d.%s: %03d-%03d.%s: %s%02d' % ( len(_testSteps)-_testStepNumber, filters, len(indexTests)-indexTestNumber, indexTestNumber, test.getAttribute(), test.getName(), testNumber)" >
             <sequence>
               <call function="'testCase_Preamble'" />
               <message log="1" level="'trace'">
