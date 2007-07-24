@@ -120,39 +120,27 @@ public class AttributeIndex
 
   private int cursorEntryLimit = 100000;
 
-  private int backendIndexEntryLimit = 4000;
-
   /**
    * Create a new attribute index object.
    * @param entryContainer The entryContainer of this attribute index.
    * @param state The state database to persist index state info.
    * @param env The JE environment handle.
    * @param indexConfig The attribute index configuration.
-   * @param backendIndexEntryLimit The backend index entry limit to use
-   *        if none is specified for this attribute index.
    * @throws DatabaseException if a JE database error occurs.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public AttributeIndex(JEIndexCfg indexConfig, State state,
-                        int backendIndexEntryLimit,
-                        Environment env,
+  public AttributeIndex(JEIndexCfg indexConfig, State state, Environment env,
                         EntryContainer entryContainer)
       throws DatabaseException, ConfigException
   {
     this.entryContainer = entryContainer;
     this.env = env;
     this.indexConfig = indexConfig;
-    this.backendIndexEntryLimit = backendIndexEntryLimit;
     this.state = state;
 
     AttributeType attrType = indexConfig.getIndexAttribute();
     String name = attrType.getNameOrOID();
-    int indexEntryLimit = backendIndexEntryLimit;
-
-    if(indexConfig.getIndexEntryLimit() != null)
-    {
-      indexEntryLimit = indexConfig.getIndexEntryLimit();
-    }
+    int indexEntryLimit = indexConfig.getIndexEntryLimit();
 
     if (indexConfig.getIndexType().contains(JEIndexCfgDefn.IndexType.EQUALITY))
     {
@@ -655,10 +643,14 @@ public class AttributeIndex
    * Retrieve the entry IDs that might match an equality filter.
    *
    * @param equalityFilter The equality filter.
+   * @param debugBuffer If not null, a diagnostic string will be written
+   *                     which will help determine how the indexes contributed
+   *                     to this search.
    * @return The candidate entry IDs that might contain the filter
    *         assertion value.
    */
-  public EntryIDSet evaluateEqualityFilter(SearchFilter equalityFilter)
+  public EntryIDSet evaluateEqualityFilter(SearchFilter equalityFilter,
+                                           StringBuilder debugBuffer)
   {
     if (equalityIndex == null)
     {
@@ -671,6 +663,14 @@ public class AttributeIndex
       byte[] keyBytes =
            equalityFilter.getAssertionValue().getNormalizedValue().value();
       DatabaseEntry key = new DatabaseEntry(keyBytes);
+
+      if(debugBuffer != null)
+      {
+        debugBuffer.append("[INDEX:");
+        debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+        debugBuffer.append(".");
+        debugBuffer.append("equality]");
+      }
 
       // Read the key.
       return equalityIndex.readKey(key, null, LockMode.DEFAULT);
@@ -689,14 +689,26 @@ public class AttributeIndex
    * Retrieve the entry IDs that might match a presence filter.
    *
    * @param filter The presence filter.
+   * @param debugBuffer If not null, a diagnostic string will be written
+   *                     which will help determine how the indexes contributed
+   *                     to this search.
    * @return The candidate entry IDs that might contain one or more
    *         values of the attribute type in the filter.
    */
-  public EntryIDSet evaluatePresenceFilter(SearchFilter filter)
+  public EntryIDSet evaluatePresenceFilter(SearchFilter filter,
+                                           StringBuilder debugBuffer)
   {
     if (presenceIndex == null)
     {
       return new EntryIDSet();
+    }
+
+    if(debugBuffer != null)
+    {
+      debugBuffer.append("[INDEX:");
+      debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+      debugBuffer.append(".");
+      debugBuffer.append("presence]");
     }
 
     // Read the presence key
@@ -707,10 +719,14 @@ public class AttributeIndex
    * Retrieve the entry IDs that might match a greater-or-equal filter.
    *
    * @param filter The greater-or-equal filter.
+   * @param debugBuffer If not null, a diagnostic string will be written
+   *                     which will help determine how the indexes contributed
+   *                     to this search.
    * @return The candidate entry IDs that might contain a value
    *         greater than or equal to the filter assertion value.
    */
-  public EntryIDSet evaluateGreaterOrEqualFilter(SearchFilter filter)
+  public EntryIDSet evaluateGreaterOrEqualFilter(SearchFilter filter,
+                                                 StringBuilder debugBuffer)
   {
     if (orderingIndex == null)
     {
@@ -730,6 +746,14 @@ public class AttributeIndex
       // bound.
       byte[] upper = new byte[0];
 
+      if(debugBuffer != null)
+      {
+        debugBuffer.append("[INDEX:");
+        debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+        debugBuffer.append(".");
+        debugBuffer.append("ordering]");
+      }
+
       // Read the range: lower <= keys < upper.
       return orderingIndex.readRange(lower, upper, true, false);
     }
@@ -747,10 +771,14 @@ public class AttributeIndex
    * Retrieve the entry IDs that might match a less-or-equal filter.
    *
    * @param filter The less-or-equal filter.
+   * @param debugBuffer If not null, a diagnostic string will be written
+   *                     which will help determine how the indexes contributed
+   *                     to this search.
    * @return The candidate entry IDs that might contain a value
    *         less than or equal to the filter assertion value.
    */
-  public EntryIDSet evaluateLessOrEqualFilter(SearchFilter filter)
+  public EntryIDSet evaluateLessOrEqualFilter(SearchFilter filter,
+                                              StringBuilder debugBuffer)
   {
     if (orderingIndex == null)
     {
@@ -770,6 +798,14 @@ public class AttributeIndex
       byte[] upper = orderingRule.normalizeValue(
            filter.getAssertionValue().getValue()).value();
 
+      if(debugBuffer != null)
+      {
+        debugBuffer.append("[INDEX:");
+        debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+        debugBuffer.append(".");
+        debugBuffer.append("ordering]");
+      }
+
       // Read the range: lower < keys <= upper.
       return orderingIndex.readRange(lower, upper, false, true);
     }
@@ -787,10 +823,14 @@ public class AttributeIndex
    * Retrieve the entry IDs that might match a substring filter.
    *
    * @param filter The substring filter.
+   * @param debugBuffer If not null, a diagnostic string will be written
+   *                     which will help determine how the indexes contributed
+   *                     to this search.
    * @return The candidate entry IDs that might contain a value
    *         that matches the filter substrings.
    */
-  public EntryIDSet evaluateSubstringFilter(SearchFilter filter)
+  public EntryIDSet evaluateSubstringFilter(SearchFilter filter,
+                                            StringBuilder debugBuffer)
   {
     SubstringMatchingRule matchRule =
          filter.getAttributeType().getSubstringMatchingRule();
@@ -815,6 +855,16 @@ public class AttributeIndex
           if (results.isDefined() &&
                results.size() <= IndexFilter.FILTER_CANDIDATE_THRESHOLD)
           {
+
+            if(debugBuffer != null)
+            {
+              debugBuffer.append("[INDEX:");
+              debugBuffer.append(indexConfig.getIndexAttribute().
+                  getNameOrOID());
+              debugBuffer.append(".");
+              debugBuffer.append("equality]");
+            }
+
             return results;
           }
         }
@@ -858,6 +908,14 @@ public class AttributeIndex
         {
           break;
         }
+      }
+
+      if(debugBuffer != null)
+      {
+        debugBuffer.append("[INDEX:");
+        debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+        debugBuffer.append(".");
+        debugBuffer.append("substring]");
       }
 
       return results;
@@ -964,10 +1022,14 @@ public class AttributeIndex
    * Retrieve the entry IDs that might match an approximate filter.
    *
    * @param approximateFilter The approximate filter.
+   * @param debugBuffer If not null, a diagnostic string will be written
+   *                     which will help determine how the indexes contributed
+   *                     to this search.
    * @return The candidate entry IDs that might contain the filter
    *         assertion value.
    */
-  public EntryIDSet evaluateApproximateFilter(SearchFilter approximateFilter)
+  public EntryIDSet evaluateApproximateFilter(SearchFilter approximateFilter,
+                                              StringBuilder debugBuffer)
   {
     if (approximateIndex == null)
     {
@@ -983,6 +1045,14 @@ public class AttributeIndex
            approximateMatchingRule.normalizeValue(
                approximateFilter.getAssertionValue().getValue()).value();
       DatabaseEntry key = new DatabaseEntry(keyBytes);
+
+      if(debugBuffer != null)
+      {
+        debugBuffer.append("[INDEX:");
+        debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+        debugBuffer.append(".");
+        debugBuffer.append("approximate]");
+      }
 
       // Read the key.
       return approximateIndex.readKey(key, null, LockMode.DEFAULT);
@@ -1078,57 +1148,6 @@ public class AttributeIndex
   }
 
   /**
-   * Set the index entry limit used by the backend using this attribute index.
-   * This index will use the backend entry limit only if there is not one
-   * specified for this index.
-   *
-   * @param backendIndexEntryLimit The backend index entry limit.
-   * @return True if a rebuild is required or false otherwise.
-   */
-  public synchronized boolean setBackendIndexEntryLimit(
-      int backendIndexEntryLimit)
-  {
-    // Only update if there is no limit specified for this index.
-    boolean rebuildRequired = false;
-    if(indexConfig.getIndexEntryLimit() == null)
-    {
-      if(equalityIndex != null)
-      {
-        rebuildRequired |=
-            equalityIndex.setIndexEntryLimit(backendIndexEntryLimit);
-      }
-
-      if(presenceIndex != null)
-      {
-        rebuildRequired |=
-            presenceIndex.setIndexEntryLimit(backendIndexEntryLimit);
-      }
-
-      if(substringIndex != null)
-      {
-        rebuildRequired |=
-            substringIndex.setIndexEntryLimit(backendIndexEntryLimit);
-      }
-
-      if(orderingIndex != null)
-      {
-        rebuildRequired |=
-            orderingIndex.setIndexEntryLimit(backendIndexEntryLimit);
-      }
-
-      if(approximateIndex != null)
-      {
-        rebuildRequired |=
-            approximateIndex.setIndexEntryLimit(backendIndexEntryLimit);
-      }
-    }
-
-    this.backendIndexEntryLimit = backendIndexEntryLimit;
-
-    return rebuildRequired;
-  }
-
-  /**
    * {@inheritDoc}
    */
   public synchronized boolean isConfigurationChangeAcceptable(
@@ -1198,12 +1217,7 @@ public class AttributeIndex
     {
       AttributeType attrType = cfg.getIndexAttribute();
       String name = attrType.getNameOrOID();
-      int indexEntryLimit = backendIndexEntryLimit;
-
-      if(cfg.getIndexEntryLimit() != null)
-      {
-        indexEntryLimit = cfg.getIndexEntryLimit();
-      }
+      int indexEntryLimit = cfg.getIndexEntryLimit();
 
       if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.EQUALITY))
       {

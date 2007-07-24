@@ -420,7 +420,8 @@ public class IndexFilter
     }
     else
     {
-      candidates = attributeIndex.evaluateEqualityFilter(equalityFilter);
+      candidates =
+          attributeIndex.evaluateEqualityFilter(equalityFilter, buffer);
     }
     return candidates;
   }
@@ -442,7 +443,7 @@ public class IndexFilter
     }
     else
     {
-      candidates = attributeIndex.evaluatePresenceFilter(filter);
+      candidates = attributeIndex.evaluatePresenceFilter(filter, buffer);
     }
     return candidates;
   }
@@ -464,7 +465,7 @@ public class IndexFilter
     }
     else
     {
-      candidates = attributeIndex.evaluateGreaterOrEqualFilter(filter);
+      candidates = attributeIndex.evaluateGreaterOrEqualFilter(filter, buffer);
     }
     return candidates;
   }
@@ -486,7 +487,7 @@ public class IndexFilter
     }
     else
     {
-      candidates = attributeIndex.evaluateLessOrEqualFilter(filter);
+      candidates = attributeIndex.evaluateLessOrEqualFilter(filter, buffer);
     }
     return candidates;
   }
@@ -508,7 +509,7 @@ public class IndexFilter
     }
     else
     {
-      candidates = attributeIndex.evaluateSubstringFilter(filter);
+      candidates = attributeIndex.evaluateSubstringFilter(filter, buffer);
     }
     return candidates;
   }
@@ -530,7 +531,8 @@ public class IndexFilter
     }
     else
     {
-      candidates = attributeIndex.evaluateApproximateFilter(approximateFilter);
+      candidates =
+          attributeIndex.evaluateApproximateFilter(approximateFilter, buffer);
     }
     return candidates;
   }

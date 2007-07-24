@@ -30,9 +30,7 @@ import java.util.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.JEBackendCfg;
-import org.opends.server.admin.std.server.JEIndexCfg;
 import org.opends.server.admin.std.meta.JEBackendCfgDefn;
-import org.opends.server.admin.std.meta.JEIndexCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.DirectoryServer;
@@ -631,7 +629,7 @@ public class TestBackendImpl extends JebTestCase {
     //Only one index should be used because it is below the FILTER_CANDIDATEassertEquals(ec.getDN2URI().)_THRESHOLD.
     debugString =
         result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
-    assertTrue(debugString.split("cn").length <= 2);
+    assertTrue(debugString.split("cn").length <= 3);
     finalStartPos = debugString.indexOf("final=") + 13;
     finalEndPos = debugString.indexOf("]", finalStartPos);
     finalCount = Integer.valueOf(debugString.substring(finalStartPos,
@@ -1238,26 +1236,20 @@ public class TestBackendImpl extends JebTestCase {
       "testSearchNotIndexed",
       "testModifyDNNewSuperior", "testMatchedDN"})
   public void testApplyIndexConfig() throws Exception {
-    Entry configEntry = TestCaseUtils.makeEntry(
+    int resultCode = TestCaseUtils.applyModifications(
         "dn: ds-cfg-index-attribute=givenName,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-je-index",
-        "ds-cfg-index-attribute: givenName",
+        "changetype: modify",
+        "replace: ds-cfg-index-type",
         "ds-cfg-index-type: approximate");
 
-    JEIndexCfg cfg = AdminTestCaseUtils.getConfiguration(
-        JEIndexCfgDefn.getInstance(), configEntry);
+    assertEquals(resultCode, 0);
 
     RootContainer rootContainer = backend.getRootContainer();
     EntryContainer ec = rootContainer.getEntryContainer(DN.decode("dc=test,dc=com"));
 
     AttributeIndex index =
         ec.getAttributeIndex(DirectoryServer.getAttributeType("givenname"));
-    ConfigChangeResult ccr = index.applyConfigurationChange(cfg);
-    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
-    assertTrue(ccr.adminActionRequired());
-    assertFalse(ccr.getMessages().isEmpty());
     assertNull(index.equalityIndex);
     assertNull(index.presenceIndex);
     assertNull(index.substringIndex);
@@ -1325,24 +1317,18 @@ public class TestBackendImpl extends JebTestCase {
         result.get(0).getAttribute("debugsearchindex").get(0).getValues().toString();
     assertTrue(debugString.contains("NOT-INDEXED"));
 
-    configEntry = TestCaseUtils.makeEntry(
+    resultCode = TestCaseUtils.applyModifications(
         "dn: ds-cfg-index-attribute=givenName,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-je-index",
-        "ds-cfg-index-attribute: givenName",
+        "changetype: modify",
+        "replace: ds-cfg-index-type",
         "ds-cfg-index-type: equality",
         "ds-cfg-index-type: presence",
         "ds-cfg-index-type: ordering",
         "ds-cfg-index-type: substring");
 
-    cfg = AdminTestCaseUtils.getConfiguration(
-        JEIndexCfgDefn.getInstance(), configEntry);
+    assertEquals(resultCode, 0);
 
-    ccr = index.applyConfigurationChange(cfg);
-    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
-    assertTrue(ccr.adminActionRequired());
-    assertFalse(ccr.getMessages().isEmpty());
     assertNotNull(index.equalityIndex);
     assertNotNull(index.presenceIndex);
     assertNotNull(index.substringIndex);
@@ -1385,8 +1371,13 @@ public class TestBackendImpl extends JebTestCase {
     assertFalse(apfound);
 
     // Delete the entries attribute index.
-    ccr = ec.applyConfigurationDelete(cfg);
-    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
+    resultCode = TestCaseUtils.applyModifications(
+        "dn: ds-cfg-index-attribute=givenName,cn=Index," +
+            "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
+        "changetype: delete");
+
+    assertEquals(resultCode, 0);
+
     assertNull(ec.getAttributeIndex(
         DirectoryServer.getAttributeType("givenname")));
     databases = new ArrayList<DatabaseContainer>();
@@ -1397,10 +1388,20 @@ public class TestBackendImpl extends JebTestCase {
     }
 
     // Add it back
-    ccr = ec.applyConfigurationAdd(cfg);
-    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
-    assertTrue(ccr.adminActionRequired());
-    assertFalse(ccr.getMessages().isEmpty());
+    resultCode = TestCaseUtils.applyModifications(
+        "dn: ds-cfg-index-attribute=givenName,cn=Index," +
+            "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
+        "changetype: add",
+        "objectClass: top",
+        "objectClass: ds-cfg-je-index",
+        "ds-cfg-index-attribute: givenName",
+        "ds-cfg-index-type: equality",
+        "ds-cfg-index-type: presence",
+        "ds-cfg-index-type: ordering",
+        "ds-cfg-index-type: substring");
+
+    assertEquals(resultCode, 0);
+
     assertNotNull(ec.getAttributeIndex(
         DirectoryServer.getAttributeType("givenname")));
     databases = new ArrayList<DatabaseContainer>();
@@ -1441,53 +1442,24 @@ public class TestBackendImpl extends JebTestCase {
 
     // Make sure changing the index entry limit on an index where the limit
     // is already exceeded causes warnings.
-    configEntry = TestCaseUtils.makeEntry(
+    resultCode = TestCaseUtils.applyModifications(
         "dn: ds-cfg-index-attribute=mail,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-je-index",
-        "ds-cfg-index-attribute: mail",
-        "ds-cfg-index-type: presence",
-        "ds-cfg-index-type: equality",
-        "ds-cfg-index-type: ordering",
-        "ds-cfg-index-type: substring",
-        "ds-cfg-index-type: approximate",
+        "changetype: modify",
+        "replace: ds-cfg-index-entry-limit",
         "ds-cfg-index-entry-limit: 30");
 
-    cfg = AdminTestCaseUtils.getConfiguration(
-        JEIndexCfgDefn.getInstance(), configEntry);
+    assertEquals(resultCode, 0);
 
     // Make sure removing a index entry limit for an index makes it use the
     // backend wide setting.
-    index =
-        ec.getAttributeIndex(DirectoryServer.getAttributeType("mail"));
-    ccr = index.applyConfigurationChange(cfg);
-    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
-    assertTrue(ccr.adminActionRequired());
-    assertFalse(ccr.getMessages().isEmpty());
-
-    configEntry = TestCaseUtils.makeEntry(
+    resultCode = TestCaseUtils.applyModifications(
         "dn: ds-cfg-index-attribute=mail,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
-        "objectClass: top",
-        "objectClass: ds-cfg-je-index",
-        "ds-cfg-index-attribute: mail",
-        "ds-cfg-index-type: presence",
-        "ds-cfg-index-type: equality",
-        "ds-cfg-index-type: ordering",
-        "ds-cfg-index-type: substring",
-        "ds-cfg-index-type: approximate");
+        "changetype: modify",
+        "delete: ds-cfg-index-entry-limit");
 
-    cfg = AdminTestCaseUtils.getConfiguration(
-        JEIndexCfgDefn.getInstance(), configEntry);
-
-   index =
-        ec.getAttributeIndex(DirectoryServer.getAttributeType("mail"));
-    ccr = index.applyConfigurationChange(cfg);
-    assertTrue(ccr.getResultCode().equals(ResultCode.SUCCESS));
-    assertFalse(ccr.adminActionRequired());
-    assertTrue(ccr.getMessages().isEmpty());
-
+    assertEquals(resultCode, 0);
   }
 
 
