@@ -273,9 +273,7 @@ public class EntryContainer
         //TODO: When issue 1793 is fixed, use inherited default values in
         //admin framework instead for the entry limit.
         AttributeIndex index =
-            new AttributeIndex(indexCfg, state,
-                               indexEntryLimit,
-                               env, this);
+            new AttributeIndex(indexCfg, state, env, this);
         index.open();
         attrIndexMap.put(indexCfg.getIndexAttribute(), index);
       }
@@ -3782,19 +3780,6 @@ public class EntryContainer
 
     if(config.getBackendIndexEntryLimit() != cfg.getBackendIndexEntryLimit())
     {
-      for(AttributeIndex index : attrIndexMap.values())
-      {
-        if(index.setBackendIndexEntryLimit(cfg.getBackendIndexEntryLimit()))
-        {
-          adminActionRequired = true;
-          int msgID = MSGID_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD;
-          String message = getMessage(msgID,
-                                      index.getAttributeType().getNameOrOID());
-          messages.add(message);
-        }
-        index.setBackendIndexEntryLimit(cfg.getBackendIndexEntryLimit());
-      }
-
       if(id2children.setIndexEntryLimit(cfg.getBackendIndexEntryLimit()))
       {
         adminActionRequired = true;
@@ -3847,9 +3832,7 @@ public class EntryContainer
     try
     {
       AttributeIndex index =
-          new AttributeIndex(cfg, state,
-                             indexEntryLimit,
-                             env, this);
+          new AttributeIndex(cfg, state, env, this);
       index.open();
       attrIndexMap.put(cfg.getIndexAttribute(), index);
     }

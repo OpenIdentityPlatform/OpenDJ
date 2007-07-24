@@ -92,12 +92,10 @@
       </adm:other>
     </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          The index entry limit specified in the JE backend-wide
-          configuration will be used.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:inherited>
+        <adm:relative property-name="backend-index-entry-limit"
+                      offset="1" managed-object-name="je-backend" />
+      </adm:inherited>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer lower-limit="0" upper-limit="2147483647">
