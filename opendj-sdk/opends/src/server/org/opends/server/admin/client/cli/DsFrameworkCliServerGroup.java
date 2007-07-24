@@ -47,6 +47,7 @@ import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
 import org.opends.admin.ads.ADSContext.ServerProperty;
+import org.opends.admin.ads.ADSContextException.ErrorType;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -742,7 +743,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         }
         if ( !found )
         {
-          return ReturnCode.SERVER_NOT_REGISTERED;
+          throw new ADSContextException (ErrorType.NOT_YET_REGISTERED) ;
         }
 
         // Add the server inside the group
@@ -798,7 +799,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         {
         }
 
-        return ReturnCode.SUCCESSFUL;
+        returnCode = ReturnCode.SUCCESSFUL;
       }
       // -----------------------
       // list-membership subcommand
@@ -908,7 +909,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
    *           If there is a problem with any of the parameters used
    *           to create this argument.
    */
-  private ReturnCode removeServerFromGroup(ADSContext adsCtx, String groupId,
+  static ReturnCode removeServerFromGroup(ADSContext adsCtx, String groupId,
       String serverId)
       throws ADSContextException
   {

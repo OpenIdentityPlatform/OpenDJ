@@ -47,6 +47,7 @@ import javax.naming.ldap.InitialLdapContext;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.ServerProperty;
+import org.opends.admin.ads.ADSContextException.ErrorType;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
@@ -611,16 +612,19 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       // -----------------------
       if (subCmd.getName().equals(unregisterServerSubCmd.getName()))
       {
+        returnCode = ReturnCode.SUCCESSFUL;
+
         Map<ServerProperty, Object> map = new HashMap<ServerProperty, Object>();
+        String serverId = null;
         if (unregisterServerServerIDArg.isPresent())
         {
-          map.put(ServerProperty.ID, unregisterServerServerIDArg.getValue());
+          serverId = unregisterServerServerIDArg.getValue();
         }
         else
         {
-          map.put(ServerProperty.ID, ADSContext
-              .getServerIdFromServerProperties(map));
+          serverId = ADSContext.getServerIdFromServerProperties(map);
         }
+        map.put(ServerProperty.ID,serverId);
 
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
@@ -628,8 +632,34 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
           return ReturnCode.CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
+
+        // update groups in which server was registered
+        Set<Map<ServerProperty, Object>> serverList =
+          adsCtx.readServerRegistry();
+        boolean found = false;
+        Map<ServerProperty,Object> serverProperties = null ;
+        for (Map<ServerProperty,Object> elm : serverList)
+        {
+          if (serverId.equals(elm.get(ServerProperty.ID)))
+          {
+            found = true ;
+            serverProperties = elm ;
+            break ;
+          }
+        }
+        if ( ! found )
+        {
+          throw new ADSContextException (ErrorType.NOT_YET_REGISTERED) ;
+        }
+        Set groupList = (Set) serverProperties.get(ServerProperty.GROUPS);
+        for (Object groupId : groupList.toArray())
+        {
+          DsFrameworkCliServerGroup.removeServerFromGroup(adsCtx,
+              (String) groupId, serverId);
+        }
+
+        // unregister the server
         adsCtx.unregisterServer(map);
-        returnCode = ReturnCode.SUCCESSFUL;
       }
       else
       // -----------------------
