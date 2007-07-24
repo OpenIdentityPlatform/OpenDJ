@@ -61,26 +61,53 @@
                'Security: SASL DIGEST-MD5: Preamble Step 1 - Admin Changing Pwd Storage to CLEAR'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_CLEAR.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'CLEAR' }
             </call>
-
+            
             <message>
-               'Security: SASL DIGEST-MD5: Preamble Step 2 - Admin Changing User Password'
+               'Security: SASL DIGEST-MD5: Preamble Step 2 - Admin Changing Password for three users'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd3.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jsprinter, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'frogleg' ,
+                    'changetype'             : 'replace' }
             </call>
-
+                
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jwalleye, ou=People, o=SASL Realm Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'frogleg' ,
+                    'changetype'             : 'replace' }
+            </call>
+                
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jcarp, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'carpleg' ,
+                    'changetype'             : 'replace' }
+            </call>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -109,7 +136,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jsprinter -w frogleg' ,
                 'expectedRC'       : 49 }
@@ -143,7 +170,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg' }
             </call>
@@ -176,7 +203,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jwalleye' }
             </call>
@@ -209,7 +236,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jcarp' ,
                 'expectedRC'       : 49 }
@@ -243,7 +270,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authzid=jcarp -w frogleg' ,
                 'expectedRC'       : 89 }
@@ -274,14 +301,16 @@
                'Security: SASL DIGEST-MD5: Admin Changing authzid attribute to sn'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_authzid_attr.ldif' % logsRemoteDataDir }
+            <call function="'modifyIdentityMapper'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'mapperName'             : 'Exact Match' ,
+                    'attributeName'          : 'match-attribute' ,
+                    'attributeValue'         : 'sn' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -310,7 +339,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jwalleye' ,
                 'expectedRC'       : 49 }
@@ -344,7 +373,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:Walleye -w frogleg -o authzid=Walleye' }
             </call>
@@ -374,14 +403,16 @@
                'Security: SASL DIGEST-MD5: Admin Resetting authzid attribute to uid'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_reset_authzid_attr.ldif' % logsRemoteDataDir }
+            <call function="'modifyIdentityMapper'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'mapperName'             : 'Exact Match' ,
+                    'attributeName'          : 'match-attribute' ,
+                    'attributeValue'         : 'uid' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -410,7 +441,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o authid=u:jwalleye -w frogleg -o authzid=jwalleye' }
             </call>
@@ -420,9 +451,7 @@
           </sequence>
         </testcase>
 
-       
-
-    <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
+       <!--- Test Case : User Bind With DIGEST-MD5 SASL Mechanism-->
        <!---
             Place test-specific test information here.
             The tag, TestMarker, must be the same as the tag, TestSuiteName.
@@ -445,7 +474,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg' }
             </call>
@@ -478,7 +507,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg -o authzid=jsprinter' ,
                 'expectedRC'       : 49 }
@@ -512,7 +541,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
             </call>
@@ -542,14 +571,16 @@
                'Security: SASL DIGEST-MD5: Admin Creating Realm'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_add_realm.ldif' % logsRemoteDataDir }
+            <call function="'modifySaslMech'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'handlerName'            : 'DIGEST-MD5' ,
+                    'propertyName'           : 'realm' ,
+                    'propertyValue'          : 'o=SASL Realm Tests,dc=example,dc=com' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -579,7 +610,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jsprinter" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' ,
                 'expectedRC'       : 49 }
@@ -614,7 +645,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jwalleye" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
             </call>
@@ -648,7 +679,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
             </call>
@@ -682,7 +713,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w frogleg' }
             </call>
@@ -752,7 +783,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jsprinter" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' ,
                 'expectedRC'       : 49 }
@@ -787,7 +818,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=u:jwalleye" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' ,
                 'expectedRC'       : 49 }
@@ -822,7 +853,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jsprinter,ou=People,o=SASL Tests,dc=example,dc=com" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' ,
                 'expectedRC'       : 49 }
@@ -857,7 +888,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -o "realm=o=SASL Tests,dc=example,dc=com" -w frogleg' ,
                 'expectedRC'       : 49 }
@@ -1032,9 +1063,9 @@
                     'attributeName'          : 'aci' ,
                     'newAttributeValue'      : curr_aci ,
                     'changetype'             : 'add' }
-             </call>
+            </call>
                 
-             <message>
+            <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal sasl, sasl authentication'
             </message>
 
@@ -1730,7 +1761,7 @@
                 'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w bad',
-                'expectedRC'      : 49 }
+                'expectedRC'       : 49 }
             </call>
 
             <script> 
@@ -1906,35 +1937,51 @@
                'Security: SASL DIGEST-MD5: Postamble Step 1 - Admin Changing Pwd Storage to SSHA'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_SSHA.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'SSHA' }
             </call>
-
+            
             <message>
-               'Security: SASL DIGEST-MD5: Postamble Step 2 - Admin Changing User Password'
+               'Security: SASL DIGEST-MD5: Postamble Step 2 - Admin Restting Password for two users'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd4.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jsprinter, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'catleg' ,
+                    'changetype'             : 'replace' }
             </call>
-
+                
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jwalleye, ou=People, o=SASL Realm Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'catleg' ,
+                    'changetype'             : 'replace' }
+            </call>
+            
             <message>
                'Security: SASL DIGEST-MD5: Postamble Step 3 - Admin Deleting Realm'
             </message>
 
             <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/sasl/admin_del_realm.ldif' % logsRemoteDataDir }
             </call>
 
@@ -1947,7 +1994,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'catleg' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -1959,7 +2006,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=DIGEST-MD5 -o "authid=dn:uid=jwalleye,ou=People,o=SASL Realm Tests,dc=example,dc=com" -w catleg' ,
                 'expectedRC'       : 49 }
