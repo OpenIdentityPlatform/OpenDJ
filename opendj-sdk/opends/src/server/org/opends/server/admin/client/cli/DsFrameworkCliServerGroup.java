@@ -716,8 +716,6 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
       else if (subCmd.getName().equals(addToGroupSubCmd.getName()))
       {
         String groupId = addToGroupGroupNameArg.getValue();
-        HashMap<ServerGroupProperty, Object> serverGroupProperties =
-          new HashMap<ServerGroupProperty, Object>();
 
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
@@ -745,25 +743,8 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
           return ReturnCode.SERVER_NOT_REGISTERED;
         }
 
-        // get the current member list
-        Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
-        if (memberList == null)
-        {
-          memberList = new HashSet<String>();
-        }
-        String newMember = "cn="
-            + Rdn.escapeValue(addToGoupMemberNameArg.getValue());
-        if (memberList.contains(newMember))
-        {
-          returnCode = ReturnCode.ALREADY_REGISTERED;
-        }
-        memberList.add(newMember);
-        serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
-
-        // Update the server group
-        adsCtx.updateServerGroup(groupId, serverGroupProperties);
-
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = addServerTogroup(adsCtx, groupId, addToGoupMemberNameArg
+            .getValue());
       }
       // -----------------------
       // remove-from-group subcommand
@@ -929,5 +910,47 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     // return part
     return returnCode;
 
+  }
+
+  /**
+   * Add a server inside a group.
+   *
+   * @param adsCtx
+   *          The ADS context to use.
+   * @param groupId
+   *          The group identifier in which a server has to be added.
+   * @param serverId
+   *          The server identifier that have to be added to the
+   *          group.
+   * @return the return code.
+   * @throws ADSContextException
+   *           If there is a problem with any of the parameters used
+   *           to create this argument.
+   */
+  static ReturnCode addServerTogroup(ADSContext adsCtx, String groupId,
+      String serverId) throws ADSContextException
+  {
+    ReturnCode returnCode = ReturnCode.SUCCESSFUL;
+    // get the current member list
+    HashMap<ServerGroupProperty, Object> serverGroupProperties =
+      new HashMap<ServerGroupProperty, Object>();
+    Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
+    if (memberList == null)
+    {
+      memberList = new HashSet<String>();
+    }
+    String newMember = "cn="
+        + Rdn.escapeValue(serverId);
+    if (memberList.contains(newMember))
+    {
+      returnCode = ReturnCode.ALREADY_REGISTERED;
+    }
+    memberList.add(newMember);
+    serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
+
+    // Update the server group
+    adsCtx.updateServerGroup(groupId, serverGroupProperties);
+
+    return returnCode;
   }
 }
