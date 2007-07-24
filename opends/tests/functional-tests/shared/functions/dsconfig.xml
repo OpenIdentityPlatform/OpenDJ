@@ -49,6 +49,159 @@
               
   </function>
   
+  <!-- Set property value using dsconfig -->
+  <function name="dsconfigSet">
+    <function-prolog>
+      This function modifies a property value using dsconfig
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceHost" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+		<function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+		
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>		  
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+		
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+		
+      <function-arg-def name="objectName" type="required">
+        <function-arg-description>
+          Object to modify, e.g. password validator
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="propertyType" type="required">
+        <function-arg-description>
+          Property type to modify, e.g. validator
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="propertyName" type="required">
+        <function-arg-description>
+          Property to modify, e.g. enabled
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="attributeName" type="required">
+        <function-arg-description>
+          Attribute to modify, e.g. minimum-password-length
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="attributeValue" type="required">
+        <function-arg-description>
+          New attribute value
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="expectedRC" type="optional" default="0">
+      <function-arg-description>
+	 Expected return code value. Default value is 0
+      </function-arg-description>
+      <function-arg-property name="type" value="string"/>
+    </function-arg-def>			
+	
+    </function-map-args>
+    <sequence>
+    
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        STAFCmdParams=''	
+        STAFCmd=''			  	
+      
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
+
+        if attributeValue:
+            attributeValue=attributeValue.replace('"','QUOT')
+            
+        STAFCmdParamsList=[]
+        STAFCmdParamsList.append('set-%s-prop ' % (objectName))
+        STAFCmdParamsList.append('--%s-name "%s" ' % (propertyType,propertyName))
+        STAFCmdParamsList.append('--set "%s:%s"' % (attributeName,attributeValue))
+      </script>
+     
+      <call function="'_dsconfigCommonArgs'"/>
+      
+      <script>
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+           
+      <process name="'Modify dsconfig object'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+          { 'returncode' : STAXCode ,
+            'result'     : STAXReason ,
+            'expected'   : expectedRC }
+      </call>
+              
+      <return>
+        STAXReason
+      </return>
+      
+    </sequence>
+    
+  </function>
+
   <!-- Modify password policy using dsconfig -->
   <function name="modifyPwdPolicy">
     <function-prolog>
@@ -128,65 +281,33 @@
     </function-map-args>
     <sequence>
     
-      <!-- Local variables -->
-      <script>
-        mylocation=location
-        STAFCmdParams=''	
-        STAFCmd=''			  	
-      
-        if dsPath:
-          dsBinPath='%s/%s' % (dsPath,fileFolder)
-          STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-
-        if attributeValue:
-            attributeValue=attributeValue.replace('"','QUOT')
+    <call function="'dsconfigSet'">
+      { 'location'               : '%s' % location ,
+        'dsPath'                 : '%s' % dsPath ,
+        'dsInstanceHost'         : '%s' % dsInstanceHost ,
+        'dsInstancePort'         : '%s' % dsInstancePort ,
+        'dsInstanceDn'           : '%s' % dsInstanceDn ,
+        'dsInstancePswd'         : '%s' % dsInstancePswd ,
+        'objectName'             : 'password-policy' ,
+        'propertyType'           : 'policy' ,
+        'propertyName'           : '%s' % (propertyName) ,
+        'attributeName'          : '%s' % (attributeName) ,
+        'attributeValue'         : '%s' % (attributeValue) ,
+        'expectedRC'             : expectedRC }
+    </call>
             
-        STAFCmdParamsList=[]
-        STAFCmdParamsList.append('set-password-policy-prop ')
-        STAFCmdParamsList.append('--policy-name "%s" ' % (propertyName))
-        STAFCmdParamsList.append('--set "%s:%s"' % (attributeName,attributeValue))
-      </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-      
-      <script>
-        STAFCmdParams=' '.join(STAFCmdParamsList)
-      </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-           
-      <process name="'Modify dsconfig object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      
-      <if expr="expectedRC != 'noCheck'">
+    <if expr="expectedRC != 'noCheck'">
         <call function="'checktestRC'">
           { 'returncode' : STAXCode ,
             'result'     : STAXReason ,
             'expected'   : expectedRC }
         </call>
-      </if>        
-      <return>
+    </if>        
+    <return>
         STAXReason
-      </return>
+    </return>
       
-    </sequence>
+   </sequence>
     
   </function>
 
@@ -401,72 +522,40 @@
     </function-map-args>
     <sequence>
     
-      <!-- Local variables -->
-      <script>
-        mylocation=location
-        STAFCmdParams=''	
-        STAFCmd=''			  	
-      
-        if dsPath:
-          dsBinPath='%s/%s' % (dsPath,fileFolder)
-          STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-
-        if attributeValue:
-            attributeValue=attributeValue.replace('"','QUOT')
+    <call function="'dsconfigSet'">
+      { 'location'               : '%s' % location ,
+        'dsPath'                 : '%s' % dsPath ,
+        'dsInstanceHost'         : '%s' % dsInstanceHost ,
+        'dsInstancePort'         : '%s' % dsInstancePort ,
+        'dsInstanceDn'           : '%s' % dsInstanceDn ,
+        'dsInstancePswd'         : '%s' % dsInstancePswd ,
+        'objectName'             : 'identity-mapper' ,
+        'propertyType'           : 'mapper' ,
+        'propertyName'           : '%s' % (mapperName) ,
+        'attributeName'          : '%s' % (attributeName) ,
+        'attributeValue'         : '%s' % (attributeValue) ,
+        'expectedRC'             : expectedRC }
+    </call>
             
-        STAFCmdParamsList=[]
-        STAFCmdParamsList.append('set-identity-mapper-prop ')
-        STAFCmdParamsList.append('--mapper-name "%s" ' % (mapperName))
-        STAFCmdParamsList.append('--set "%s:%s"' % (attributeName,attributeValue))
-      </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-      
-      <script>
-        STAFCmdParams=' '.join(STAFCmdParamsList)
-      </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-           
-      <process name="'Modify dsconfig object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      
-      <if expr="expectedRC != 'noCheck'">
+    <if expr="expectedRC != 'noCheck'">
         <call function="'checktestRC'">
           { 'returncode' : STAXCode ,
             'result'     : STAXReason ,
             'expected'   : expectedRC }
         </call>
-      </if>        
-      <return>
+    </if>        
+    <return>
         STAXReason
-      </return>
+    </return>
       
-    </sequence>
+   </sequence>
     
   </function>
 
-  <!-- Set property value using dsconfig -->
-  <function name="dsconfigSet">
+  <!-- Modify password policy using dsconfig -->
+  <function name="modifySaslMech">
     <function-prolog>
-      This function modifies a property value using dsconfig
+      This function modifies a sasl  mechanism using dsconfig
     </function-prolog>
     <function-map-args>
       <function-arg-def name="location" type="optional" default="'%s' % STAF_REMOTE_HOSTNAME">
@@ -511,37 +600,23 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>          
 		
-      <function-arg-def name="objectName" type="required">
+      <function-arg-def name="handlerName" type="required">
         <function-arg-description>
-          Object to modify, e.g. password validator
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-			
-      <function-arg-def name="propertyType" type="required">
-        <function-arg-description>
-          Property type to modify, e.g. validator
+          Handle to modify, e.g. DIGEST-MD5
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 			
       <function-arg-def name="propertyName" type="required">
         <function-arg-description>
-          Property to modify, e.g. enabled
+          Property to modify, e.g. realm
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 			
-      <function-arg-def name="attributeName" type="required">
+      <function-arg-def name="propertyValue" type="required">
         <function-arg-description>
-          Attribute to modify, e.g. minimum-password-length
-        </function-arg-description>
-        <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-			
-      <function-arg-def name="attributeValue" type="required">
-        <function-arg-description>
-          New attribute value
+          New property value
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
@@ -556,64 +631,35 @@
     </function-map-args>
     <sequence>
     
-      <!-- Local variables -->
-      <script>
-        mylocation=location
-        STAFCmdParams=''	
-        STAFCmd=''			  	
-      
-        if dsPath:
-          dsBinPath='%s/%s' % (dsPath,fileFolder)
-          STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-
-        if attributeValue:
-            attributeValue=attributeValue.replace('"','QUOT')
+    <call function="'dsconfigSet'">
+      { 'location'               : '%s' % location ,
+        'dsPath'                 : '%s' % dsPath ,
+        'dsInstanceHost'         : '%s' % dsInstanceHost ,
+        'dsInstancePort'         : '%s' % dsInstancePort ,
+        'dsInstanceDn'           : '%s' % dsInstanceDn ,
+        'dsInstancePswd'         : '%s' % dsInstancePswd ,
+        'objectName'             : 'sasl-mechanism-handler' ,
+        'propertyType'           : 'handler' ,
+        'propertyName'           : '%s' % (handlerName) ,
+        'attributeName'          : '%s' % (propertyName) ,
+        'attributeValue'         : '%s' % (propertyValue) ,
+        'expectedRC'             : expectedRC }
+    </call>
             
-        STAFCmdParamsList=[]
-        STAFCmdParamsList.append('set-%s-prop ' % (objectName))
-        STAFCmdParamsList.append('--%s-name "%s" ' % (propertyType,propertyName))
-        STAFCmdParamsList.append('--set "%s:%s"' % (attributeName,attributeValue))
-      </script>
-     
-      <call function="'_dsconfigCommonArgs'"/>
-      
-      <script>
-        STAFCmdParams=' '.join(STAFCmdParamsList)
-      </script>
-      
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-           
-      <process name="'Modify dsconfig object'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
+    <if expr="expectedRC != 'noCheck'">
+        <call function="'checktestRC'">
           { 'returncode' : STAXCode ,
             'result'     : STAXReason ,
             'expected'   : expectedRC }
-      </call>
-              
-      <return>
+        </call>
+    </if>        
+    <return>
         STAXReason
-      </return>
+    </return>
       
     </sequence>
     
   </function>
+
 
 </stax>
