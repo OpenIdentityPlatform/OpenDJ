@@ -603,7 +603,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
 
         // Add this server in the default "all-servers" group.
         returnCode = DsFrameworkCliServerGroup.addServerTogroup(adsCtx,
-            ADSContext.ALL_SERVERGROUP_NAME, serverId);
+            ADSContext.ALL_SERVERGROUP_NAME, map);
       }
       else
       // -----------------------
