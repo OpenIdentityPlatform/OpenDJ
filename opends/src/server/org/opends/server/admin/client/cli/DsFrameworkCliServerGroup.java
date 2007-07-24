@@ -728,6 +728,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         Set<Map<ServerProperty, Object>> serverList = adsCtx
             .readServerRegistry();
         boolean found = false ;
+        Map<ServerProperty, Object> foundServerProperties = null ;
         for (Map<ServerProperty, Object> serverProperties : serverList)
         {
           String serverId = ADSContext
@@ -735,6 +736,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
           if (addToGoupMemberNameArg.getValue().equals(serverId))
           {
             found = true;
+            foundServerProperties = serverProperties ;
             break;
           }
         }
@@ -743,18 +745,14 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
           return ReturnCode.SERVER_NOT_REGISTERED;
         }
 
-        returnCode = addServerTogroup(adsCtx, groupId, addToGoupMemberNameArg
-            .getValue());
+        // Add the server inside the group
+        returnCode = addServerTogroup(adsCtx, groupId, foundServerProperties);
       }
       // -----------------------
       // remove-from-group subcommand
       // -----------------------
       else if (subCmd.getName().equals(removeFromGroupSubCmd.getName()))
       {
-        String groupId = removeFromGroupGroupNameArg.getValue();
-        HashMap<ServerGroupProperty, Object> serverGroupProperties =
-          new HashMap<ServerGroupProperty, Object>();
-
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
@@ -762,26 +760,9 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         }
         adsCtx = new ADSContext(ctx) ;
 
-        // get the current member list
-        Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
-        if (memberList == null)
-        {
-          returnCode = ReturnCode.NOT_YET_REGISTERED;
-        }
-        String memberToRemove = "cn="
-            + Rdn.escapeValue(removeFromGoupMemberNameArg.getValue());
-        if (!memberList.contains(memberToRemove))
-        {
-          returnCode = ReturnCode.NOT_YET_REGISTERED;
-        }
-
-        memberList.remove(memberToRemove);
-        serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
-
-        // Update the server group
-        adsCtx.updateServerGroup(groupId, serverGroupProperties);
-
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = removeServerFromGroup(adsCtx,
+            removeFromGroupGroupNameArg.getValue(),
+            removeFromGoupMemberNameArg.getValue());
       }
       // -----------------------
       // list-members subcommand
@@ -913,14 +894,93 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   }
 
   /**
+   * Remove a server from a group.
+   *
+   * @param adsCtx
+   *          The ADS context to use.
+   * @param groupId
+   *          The group identifier from which a server has to be
+   *          remove.
+   * @param serverId
+   *          The server identifier to be removed.
+   * @return The return code.
+   * @throws ADSContextException
+   *           If there is a problem with any of the parameters used
+   *           to create this argument.
+   */
+  private ReturnCode removeServerFromGroup(ADSContext adsCtx, String groupId,
+      String serverId)
+      throws ADSContextException
+  {
+    ReturnCode returnCode = ReturnCode.SUCCESSFUL;
+
+    // get the current group member list
+    Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
+    if (memberList == null)
+    {
+      returnCode = ReturnCode.NOT_YET_REGISTERED;
+    }
+    String memberToRemove = "cn="
+        + Rdn.escapeValue(serverId);
+    if (!memberList.contains(memberToRemove))
+    {
+      returnCode = ReturnCode.NOT_YET_REGISTERED;
+    }
+
+    memberList.remove(memberToRemove);
+    HashMap<ServerGroupProperty, Object> serverGroupProperties =
+      new HashMap<ServerGroupProperty, Object>();
+    serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
+
+    // Update the server group
+    adsCtx.updateServerGroup(groupId, serverGroupProperties);
+
+    // Update the server property "GROUPS"
+    Set<Map<ServerProperty,Object>> serverList = adsCtx.readServerRegistry() ;
+    boolean found = false;
+    Map<ServerProperty,Object> serverProperties = null ;
+    for (Map<ServerProperty,Object> elm : serverList)
+    {
+      if (serverId.equals(elm.get(ServerProperty.ID)))
+      {
+        found = true ;
+        serverProperties = elm ;
+        break ;
+      }
+    }
+    if ( ! found )
+    {
+      return returnCode.SERVER_NOT_REGISTERED ;
+    }
+
+    Set rawGroupList = (Set) serverProperties.get(ServerProperty.GROUPS);
+    Set<String> groupList = new HashSet<String>();
+    if (rawGroupList != null)
+    {
+      for (Object elm :rawGroupList.toArray() )
+      {
+        if (groupId.equals(elm))
+        {
+          continue ;
+        }
+        groupList.add(elm.toString());
+      }
+    }
+    serverProperties.put(ServerProperty.GROUPS, groupList);
+    adsCtx.updateServer(serverProperties, null);
+
+    return returnCode;
+  }
+
+  /**
    * Add a server inside a group.
    *
    * @param adsCtx
    *          The ADS context to use.
    * @param groupId
    *          The group identifier in which a server has to be added.
-   * @param serverId
-   *          The server identifier that have to be added to the
+   * @param map
+   *          The properties of the server that have to be added to the
    *          group.
    * @return the return code.
    * @throws ADSContextException
@@ -928,10 +988,12 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
    *           to create this argument.
    */
   static ReturnCode addServerTogroup(ADSContext adsCtx, String groupId,
-      String serverId) throws ADSContextException
+      Map<ServerProperty, Object> map) throws ADSContextException
   {
     ReturnCode returnCode = ReturnCode.SUCCESSFUL;
-    // get the current member list
+    String serverId = (String) map.get(ServerProperty.ID);
+
+    // Add the server inside the group
     HashMap<ServerGroupProperty, Object> serverGroupProperties =
       new HashMap<ServerGroupProperty, Object>();
     Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
@@ -948,8 +1010,22 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     memberList.add(newMember);
     serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
 
-    // Update the server group
     adsCtx.updateServerGroup(groupId, serverGroupProperties);
+
+
+    // Update the server property "GROUPS"
+    Set rawGroupList = (Set) map.get(ServerProperty.GROUPS);
+    Set<String> groupList = new HashSet<String>();
+    if (rawGroupList != null)
+    {
+      for (Object elm :rawGroupList.toArray() )
+      {
+        groupList.add(elm.toString());
+      }
+    }
+    groupList.add(groupId) ;
+    map.put(ServerProperty.GROUPS, groupList);
+    adsCtx.updateServer(map, null);
 
     return returnCode;
   }
