@@ -580,17 +580,18 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       // -----------------------
       if (subCmd.getName().equals(registerServerSubCmd.getName()))
       {
+        String serverId ;
         Map<ServerProperty, Object> map =
           mapSetOptionsToMap(registerServerSetArg);
         if (registerServerServerIdArg.isPresent())
         {
-          map.put(ServerProperty.ID, registerServerServerIdArg.getValue());
+          serverId = registerServerServerIdArg.getValue();
         }
         else
         {
-          map.put(ServerProperty.ID, ADSContext
-              .getServerIdFromServerProperties(map));
+          serverId = ADSContext.getServerIdFromServerProperties(map);
         }
+        map.put(ServerProperty.ID, serverId);
 
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
@@ -599,7 +600,10 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         }
         adsCtx = new ADSContext(ctx);
         adsCtx.registerServer(map);
-        returnCode = ReturnCode.SUCCESSFUL;
+
+        // Add this server in the default "all-servers" group.
+        returnCode = DsFrameworkCliServerGroup.addServerTogroup(adsCtx,
+            ADSContext.ALL_SERVERGROUP_NAME, serverId);
       }
       else
       // -----------------------
