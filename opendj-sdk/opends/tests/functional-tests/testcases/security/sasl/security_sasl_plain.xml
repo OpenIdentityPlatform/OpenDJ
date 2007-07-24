@@ -60,14 +60,28 @@
                'Security: SASL PLAIN: Preamble - Admin Changing User Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd5.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'mothergoose' ,
+                    'changetype'             : 'replace' }
             </call>
-
+                
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=mmiller, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'mothergoose' ,
+                    'changetype'             : 'replace' }
+            </call>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -96,7 +110,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=PLAIN -o authid=u:mmiller -w mothergoose' }
             </call>
@@ -130,7 +144,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=PLAIN -o authid=mmiller -w mothergoose' }
             </call>
@@ -163,7 +177,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=PLAIN -o "authid=dn:uid=mmiller,ou=People,o=SASL Tests,dc=example,dc=com" -w mothergoose' }
             </call>
@@ -196,7 +210,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=PLAIN -o authid=u:dmiller -w mothergoose' ,
                 'expectedRC'       : 49 }
@@ -230,7 +244,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=PLAIN -o "authid=dn:uid=dmiller,ou=People,o=SASL Tests,dc=example,dc=com" -w mothergoose' }
             </call>
@@ -263,7 +277,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=PLAIN -o "authid=uid=dmiller,ou=People,o=SASL Tests,dc=example,dc=com" -w mothergoose' ,
                 'expectedRC'       : 49 }
@@ -294,15 +308,26 @@
                'Security: SASL PLAIN: Admin Creating Realm'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_add_realm2.ldif' % logsRemoteDataDir ,
-                'expectedRC'       : 65 }
+            <call function="'modifySaslMech'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'handlerName'            : 'PLAIN' ,
+                    'propertyName'           : 'realm' ,
+                    'propertyValue'          : 'o=SASL Realm Tests,dc=example,dc=com' ,
+                    'expectedRC'             : 1 }
             </call>
             
+             <script> 
+                 returnString = STAXReason[0][1]
+            </script> 
+    
+            <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'not a recognized property' }
+            </call>
+                
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -331,7 +356,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=PLAIN -o authid=u:mmiller -o "realm=o=SASL Realm Tests,dc=example,dc=com" -w mothergoose' ,
                 'expectedRC'       : 89 }
@@ -366,14 +391,28 @@
                'Security: SASL PLAIN: Postamble Step 1 - Admin Changing User Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd6.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=dmiller, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'fathergoose' ,
+                    'changetype'             : 'replace' }
             </call>
-
+                
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=mmiller, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'fathergoose' ,
+                    'changetype'             : 'replace' }
+            </call>
+            
             <message>
                'Security: SASL PLAIN: Postamble Step 2 - User (dn:) Binding With Simple Authentication'
             </message>
@@ -383,7 +422,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mmiller,ou=People,o=SASL Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'fathergoose' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -395,7 +434,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=PLAIN -o "authid=dn:uid=mmiller,ou=People,o=SASL Tests,dc=example,dc=com" -w fathergoose' }
             </call>

@@ -59,6 +59,17 @@
                'Security: SASL ANON: Preamble - Admin Enabling ANONYMOUS SASL'
             </message>
 
+            <call function="'modifySaslMech'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'handlerName'            : 'ANONYMOUS' ,
+                    'propertyName'           : 'enabled' ,
+                    'propertyValue'          : 'true' }
+            </call>
+            
+            <!--
             <call function="'modifyEntry'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -66,7 +77,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/sasl/admin_enable_sasl_anon.ldif' % logsRemoteDataDir }
             </call>
-
+            -->
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -95,7 +106,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=ANONYMOUS -o trace=Trace -s base' }
             </call>
@@ -127,14 +138,25 @@
                'Security: SASL ANON: Postamble - Admin Disabling ANONYMOUS SASL'
             </message>
 
+            <call function="'modifySaslMech'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'handlerName'            : 'ANONYMOUS' ,
+                    'propertyName'           : 'enabled' ,
+                    'propertyValue'          : 'false' }
+            </call>
+            
+            <!--
             <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeModified'   : '%s/security/sasl/admin_disable_sasl_anon.ldif' % logsRemoteDataDir }
             </call>
-
+            -->
 
             <message>
                'Security: SASL ANON: Anonymous Bind After ANONYMOUS SASL Mechanism Disabled'
@@ -143,7 +165,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=ANONYMOUS -o trace=Trace -s base' ,
                 'expectedRC'       : 7 }

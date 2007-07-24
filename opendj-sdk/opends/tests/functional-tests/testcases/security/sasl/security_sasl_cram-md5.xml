@@ -61,26 +61,53 @@
                'Security: SASL CRAM-MD5: Preamble Step 1 - Admin Changing Pwd Storage to CLEAR'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_CLEAR.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'CLEAR' }
             </call>
-
+            
             <message>
                'Security: SASL CRAM-MD5: Preamble Step 2 - Admin Changing User Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jrunner, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'frogleg' ,
+                    'changetype'             : 'replace' }
             </call>
-
+                
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jcrawler, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'frogleg' ,
+                    'changetype'             : 'replace' }
+            </call>
+                
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jcrawler, ou=People, ou=Level One, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'frogleg' ,
+                    'changetype'             : 'replace' }
+            </call>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -109,7 +136,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=CRAM-MD5 -o authid=u:jrunner -w frogleg' }
             </call>
@@ -142,12 +169,11 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:uid=jrunner,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg' }
             </call>
 
-            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -176,7 +202,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=CRAM-MD5 -o authid=u:jcrawler -w frogleg' ,
                 'expectedRC'       : 49 }
@@ -210,7 +236,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:uid=jcrawler,ou=People,o=SASL Tests,dc=example,dc=com" -w frogleg' }
             </call>
@@ -257,7 +283,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=CRAM-MD5 -o authid=u:jcrawler -w frogleg' }
             </call>
@@ -292,26 +318,31 @@
                'Security: SASL CRAM-MD5: Postamble Step 1 - Admin Changing Pwd Storage to SSHA'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_SSHA.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'SSHA' }
             </call>
-
+            
             <message>
                'Security: SASL CRAM-MD5: Postamble Step 2 - Admin Changing User Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/sasl/admin_change_user_pwd2.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jrunner, ou=People, o=SASL Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'catleg' ,
+                    'changetype'             : 'replace' }
             </call>
-
+              
             <message>
                'Security: SASL CRAM-MD5: Postamble Step 3 - User (dn:) Binding With CRAM-MD5 SASL Mechanism'
             </message>
