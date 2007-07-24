@@ -844,6 +844,33 @@
           True or False should be used for this argument.
         </function-arg-description>
       </function-arg-def>
+      
+      <function-arg-def name="functionFailureTC" type="optional">
+        <function-arg-description>
+          If this argument is provided, a testcase will be created with 
+          this argument's value for name and set to fail only upon failure
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionSignal" type="optional">
+        <function-arg-description>
+          If this argument is provided, a signal will be raised upon unsuccesful
+          execution of the function to run
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionCallBack" type="optional">
+        <function-arg-description>
+          If this argument is provided then functionCallBack will be called
+          after the execution of function name.
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="functionCallBackArguments" type="optional">
+        <function-arg-description>
+           This allows to specify arguments for the call back function
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <script>
@@ -870,6 +897,10 @@
         _doSetTCStatus=False
         if functionSetsTCStatus:
           _doSetTCStatus=True
+          
+        _createFailureTC=False
+        if functionFailureTC:
+          _createFailureTC=True
       </script>
       <message log="1" level="'info'" if="_displayMessage == True">'%s' % functionMessage</message>
       <message log="1" level="'debug'">'runFunction: %s: called with parameters [%s]' % (functionName,functionArguments)</message>
@@ -905,6 +936,20 @@
           <throw exception="'STAXException.%s' % functionException" />
         </if>
       </if>
+      
+      <!-- this section handles the optional case when we need to set a 
+           test case status to fail to reflect the failure in the test report.
+      -->
+      <if expr="_createFailureTC == True" >
+        <if expr="_functionRC != expectedRC" >
+          <testcase name="'!!! %s [%s]' % (functionFailureTC,functionName)">
+            <tcstatus result="'fail'" />
+          </testcase>
+        </if>
+      </if>
+      
+      <!-- TODO: implement the signal raising mechanism -->
+      <!-- TODO: implement the call back function mechanism -->
       
       <!-- bubble the function return code up one level -->
       <return>_functionRC</return>

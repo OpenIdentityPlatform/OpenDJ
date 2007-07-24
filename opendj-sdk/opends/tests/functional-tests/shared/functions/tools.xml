@@ -423,9 +423,48 @@
 
     
     
-    
-    
-    
-    
-    		
+  <function name="CLI_rebuild-index">
+    <function-prolog>
+      This wraps the rebuild-index tool to make it easy to use from STAX
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="baseDN" type="required">
+        <function-arg-description>
+          Specify a back-end supporting indexing and triggers a rebuild of all 
+          indexes in the scope of the provided baseDN
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="attributes" type="required">
+        <function-arg-description>
+          Specify a list of attributes to trigger index rebuild on
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <script>
+        _cmd='%s/rebuild-index%s' % (dsBinPath,fileExt)
+        _args=' -b %s -i %s' % ( baseDN, ' '.join(attributes) )
+      </script>
+      <message log="1" level="'info'">
+        '%s %s' % (_cmd,_args)
+      </message>
+        
+      <process name="'rebuild-index'">
+        <location>'%s' % location</location>
+        <command>'%s' % _cmd</command>
+        <parms>'%s' % _args</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+
 </stax>
