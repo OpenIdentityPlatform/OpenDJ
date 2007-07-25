@@ -52,6 +52,7 @@ public class LDAPConnectionOptions
   private int versionNumber = 3;
   private Map<String, List<String>> saslProperties =
                                          new HashMap<String, List<String>> ();
+  private boolean verbose = false;
 
   /**
    * Creates a the connection options instance.
@@ -301,6 +302,25 @@ public class LDAPConnectionOptions
   public void setUsePasswordPolicyControl(boolean usePasswordPolicyControl)
   {
     this.usePasswordPolicyControl = usePasswordPolicyControl;
+  }
+
+  /**
+   * Indicates whether verbose tracing is enabled.
+   *
+   * @return <CODE>true</CODE> if verbose tracing is enabled.
+   */
+  public boolean isVerbose()
+  {
+    return verbose;
+  }
+
+  /**
+   * Specifies whether verbose tracing should be enabled.
+   * @param verbose Specifies whether verbose tracing should be enabled.
+   */
+  public void setVerbose(boolean verbose)
+  {
+    this.verbose = verbose;
   }
 }
 

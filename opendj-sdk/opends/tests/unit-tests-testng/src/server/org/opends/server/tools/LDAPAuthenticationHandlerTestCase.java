@@ -46,8 +46,6 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.AnonymousSASLMechanismHandler;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Entry;
@@ -171,8 +169,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -200,8 +198,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -227,8 +225,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -255,8 +253,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -290,8 +288,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -325,8 +323,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -355,8 +353,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -391,8 +389,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -427,8 +425,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -464,8 +462,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -508,8 +506,8 @@ public class LDAPAuthenticationHandlerTestCase
     handler.initializeSASLMechanismHandler(null);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -547,8 +545,8 @@ public class LDAPAuthenticationHandlerTestCase
     handler.initializeSASLMechanismHandler(null);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -584,8 +582,8 @@ public class LDAPAuthenticationHandlerTestCase
     handler.initializeSASLMechanismHandler(null);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -631,8 +629,8 @@ public class LDAPAuthenticationHandlerTestCase
     handler.initializeSASLMechanismHandler(null);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -677,8 +675,8 @@ public class LDAPAuthenticationHandlerTestCase
     handler.initializeSASLMechanismHandler(null);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -744,8 +742,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -811,8 +809,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -849,8 +847,8 @@ public class LDAPAuthenticationHandlerTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -893,8 +891,8 @@ public class LDAPAuthenticationHandlerTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -959,8 +957,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1023,8 +1021,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1065,8 +1063,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1103,8 +1101,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1144,8 +1142,8 @@ public class LDAPAuthenticationHandlerTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1189,8 +1187,8 @@ public class LDAPAuthenticationHandlerTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1260,8 +1258,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1327,8 +1325,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1399,8 +1397,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1463,8 +1461,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1503,8 +1501,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1541,8 +1539,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1580,8 +1578,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1622,8 +1620,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1665,8 +1663,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1707,8 +1705,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1779,8 +1777,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1825,8 +1823,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1877,8 +1875,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1928,8 +1926,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -1979,8 +1977,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2032,8 +2030,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2084,8 +2082,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2136,8 +2134,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2185,8 +2183,8 @@ public class LDAPAuthenticationHandlerTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2256,8 +2254,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2325,8 +2323,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2397,8 +2395,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2477,8 +2475,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     Socket s = factory.createSocket("127.0.0.1",
                                     TestCaseUtils.getServerLdapsPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2548,8 +2546,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     Socket s = factory.createSocket("127.0.0.1",
                                     TestCaseUtils.getServerLdapsPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2617,8 +2615,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     Socket s = factory.createSocket("127.0.0.1",
                                     TestCaseUtils.getServerLdapsPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2692,8 +2690,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     Socket s = factory.createSocket("127.0.0.1",
                                     TestCaseUtils.getServerLdapsPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2725,8 +2723,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2762,8 +2760,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2800,8 +2798,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2842,8 +2840,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2885,8 +2883,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2932,8 +2930,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -2979,8 +2977,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3028,8 +3026,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3075,8 +3073,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3121,8 +3119,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3167,8 +3165,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3214,8 +3212,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3260,8 +3258,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3329,8 +3327,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3394,8 +3392,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3429,8 +3427,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3466,8 +3464,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3504,8 +3502,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3547,8 +3545,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3589,8 +3587,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3636,8 +3634,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3682,8 +3680,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3727,8 +3725,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3784,8 +3782,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3842,8 +3840,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3879,8 +3877,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     LDAPAuthenticationHandler authHandler =
@@ -3903,8 +3901,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3932,8 +3930,8 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -3984,8 +3982,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -4017,8 +4015,8 @@ public class LDAPAuthenticationHandlerTestCase
     handler.initializeSASLMechanismHandler(null);
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -4079,8 +4077,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -4141,8 +4139,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -4215,8 +4213,8 @@ public class LDAPAuthenticationHandlerTestCase
 
     Socket s = factory.createSocket("127.0.0.1",
                                     TestCaseUtils.getServerLdapsPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
@@ -4269,8 +4267,8 @@ public class LDAPAuthenticationHandlerTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader r = new ASN1Reader(s);
-    ASN1Writer w = new ASN1Writer(s);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
 
     AtomicInteger          messageID        = new AtomicInteger(1);
     ArrayList<LDAPControl> requestControls  = new ArrayList<LDAPControl>();
