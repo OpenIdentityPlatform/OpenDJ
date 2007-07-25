@@ -29,5 +29,6 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDIFDiff"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=ldif-diff"
-call "%~dP0\..\lib\_client-script.bat" %*
+for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
+
 

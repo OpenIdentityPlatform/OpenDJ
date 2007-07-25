@@ -29,8 +29,7 @@ rem This script is used to invoke various client-side processes.  It should not
 rem be invoked directly by end users.
 
 setlocal
-
-set DIR_HOME=%~dP0..
+for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
 set INSTANCE_ROOT=%DIR_HOME%
 
 if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass

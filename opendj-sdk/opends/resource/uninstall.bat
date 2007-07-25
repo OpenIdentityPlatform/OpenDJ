@@ -26,8 +26,8 @@ rem
 rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
 setlocal
+for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
 
-set DIR_HOME=%~dP0.
 set INSTANCE_ROOT=%DIR_HOME%
 
 :checkJavaBin

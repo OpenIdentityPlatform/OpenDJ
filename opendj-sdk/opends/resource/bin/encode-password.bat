@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.EncodePassword"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=encode-password"
-call "%~dP0\..\lib\_server-script.bat" %*
+for %%i in (%~sf0) do call "%%~dPsi\..\lib\_server-script.bat" %*
 

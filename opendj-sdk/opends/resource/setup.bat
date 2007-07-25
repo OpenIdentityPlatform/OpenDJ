@@ -29,11 +29,14 @@ setlocal
 
 rem check that the path does not contain the ^% character which breaks
 rem the batch files.
-set NON_ESCAPED=%~dPs0..
+for %%i in (%~sf0) do set NON_ESCAPED=%%~dPsi..
+
+
 FOR /F "tokens=1-2* delims=%%" %%1 IN ("%NON_ESCAPED%") DO (
 if NOT "%%2" == "" goto invalidPath)
 
-set DIR_HOME=%~dP0.
+for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
+
 set INSTANCE_ROOT=%DIR_HOME%
 
 :checkJavaBin
