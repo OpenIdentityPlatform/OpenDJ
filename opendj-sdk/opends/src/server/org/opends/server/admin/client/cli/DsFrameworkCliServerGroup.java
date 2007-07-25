@@ -506,22 +506,34 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
       // -----------------------
       else if (subCmd.getName().equals(deleteGroupSubCmd.getName()))
       {
+        returnCode = ReturnCode.SUCCESSFUL;
         String groupId = deleteGroupGroupNameArg.getValue();
+        if (groupId.equals(ADSContext.ALL_SERVERGROUP_NAME))
+        {
+          return ReturnCode.ACCESS_PERMISSION ;
+        }
         HashMap<ServerGroupProperty, Object> serverGroupProperties =
           new HashMap<ServerGroupProperty, Object>();
 
-        // get the GROUP_ID
-        serverGroupProperties.put(ServerGroupProperty.UID, groupId);
-
-        // Delete the group
+        // Get ADS context
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
           return ReturnCode.CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx) ;
+
+        // update server Property "GROUPS"
+        Set<String> serverList = adsCtx.getServerGroupMemberList(groupId);
+        for (String serverId : serverList)
+        {
+          // serverId conatins "cn=" string, just remove it.
+          removeServerFromGroup(adsCtx, groupId,serverId.substring(3));
+        }
+
+        // Delete the group
+        serverGroupProperties.put(ServerGroupProperty.UID, groupId);
         adsCtx.deleteServerGroup(serverGroupProperties);
-        returnCode = ReturnCode.SUCCESSFUL;
       }
       // -----------------------
       // list-groups subcommand
@@ -788,6 +800,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         StringBuffer buffer = new StringBuffer();
         for (String member : memberList)
         {
+          // We shouldn't print out the "cn="
           buffer.append(member.substring(3));
           buffer.append(EOL);
         }
