@@ -4827,7 +4827,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled=false)
   public void testPasswordHistoryUsingCount()
          throws Exception
   {
