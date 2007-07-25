@@ -75,7 +75,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=sguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'superguy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -85,7 +85,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=sgal,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'supergal' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -103,14 +103,16 @@
                'Security: Mult Pwd Policies: Admin Changing Sales Lockout Count'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_cnt_sales.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Sales Password Policy' ,
+                    'attributeName'          : 'lockout-failure-count' ,
+                    'attributeValue'         : '3' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
@@ -135,7 +137,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=sguy,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : '%s' % pwds ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' ,
                   'expectedRC'       : 49 }
@@ -220,7 +222,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=sgal,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'supergal' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' ,
                 'expectedRC'       : 80 }

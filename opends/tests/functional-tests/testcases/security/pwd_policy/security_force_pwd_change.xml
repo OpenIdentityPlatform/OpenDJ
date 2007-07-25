@@ -41,11 +41,11 @@
             </message>
 
             <call function="'compareEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-force-change-on-add:false',
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-force-change-on-add:false',
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
@@ -54,14 +54,16 @@
                'Security: Pwd Change: Preamble Step 2. Admin Enabling Force Password On Add'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_force_pwd_add.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'force-change-on-add' ,
+                    'attributeValue'         : 'true' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -91,10 +93,10 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mcat,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
-                'expectedRC'      : 19 }							
+                'expectedRC'       : 19 }							
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -109,16 +111,17 @@
                'Security: Pwd Change: User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=mcat,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_force_pwd.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mcat,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'pizza' ,
+                    'DNToModify'             : 'uid=mcat,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newpizza' ,
+                    'changetype'             : 'replace'  }
             </call>
-
-         
-
+            
             <message>
                'Security: Pwd Change: User Searching With Password'
             </message>
@@ -128,7 +131,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mcat,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newpizza' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -145,16 +148,16 @@
                'Security: Pwd Change: Postamble Step 1. Admin Disabling Force Password On Add'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_add.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'force-change-on-add' ,
+                    'attributeValue'         : 'false' }
             </call>
-
-          
-
+            
             <message>
                'Security: Pwd Change: Postamble Step 2. Adding Single New User'
             </message>
@@ -177,7 +180,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -194,28 +197,28 @@
             </message>
 
             <call function="'compareEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-force-change-on-reset:false',
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-force-change-on-reset:false',
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
-           
             <message>
                'Security: Pwd Change: Preamble Step 2. Admin Enabling Force Password On Reset'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_force_pwd_reset.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'force-change-on-reset' ,
+                    'attributeValue'         : 'true' }
             </call>
-
-      
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -228,14 +231,17 @@
                'Security: Pwd Change: Admin Resetting User Pwd'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=mdog,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'adminpizza' ,
+                    'changetype'             : 'replace'  }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -253,7 +259,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'pizza' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
                 'expectedRC'       : 49 }							
@@ -271,27 +277,30 @@
                'Security: Pwd Change: User Adding Attr With Old Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_add_attr.ldif' % logsRemoteDataDir,
-                'expectedRC'       : 49 }								
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'pizza' ,
+                    'DNToModify'             : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'pager' ,
+                    'newAttributeValue'      : '+1 999 555 1212' ,
+                    'changetype'             : 'add'  ,
+                    'expectedRC'             : 49 }
             </call>
-
+            
             <message>
                'Security: Pwd Change: Checking For Existence of User-added Attribute'
             </message>
 
             <call function="'compareEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'pager:+1 999 555-1212',
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'pager:+1 999 555-1212',
                 'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'expectedRC'       : 16 }								
+                'expectedRC'          : 16 }								
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -306,26 +315,27 @@
                'Security: Pwd Change: User Deleting Attr With Old Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'pizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_del_attr.ldif' % logsRemoteDataDir,
-                'expectedRC'       : 49 }								
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'pizza' ,
+                    'DNToModify'             : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'roomnumber' ,
+                    'changetype'             : 'delete' ,
+                    'expectedRC'             : 49  }
             </call>
-
-
+            
             <message>
                'Security: Pwd Change: Checking For Existence of User-deleted Attribute'
             </message>
 
             <call function="'compareEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'roomnumber:4612',
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'roomnumber:4612',
                 'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' }
             </call>
 
@@ -342,13 +352,13 @@
             </message>
 
             <call function="'compareEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'pizza' ,
-                'attrToBeCompared'   : 'l:Sunnyvale',
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                'dsInstancePswd'      : 'pizza' ,
+                'attrToBeCompared'    : 'l:Sunnyvale',
                 'entryToBeCompared'   : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'expectedRC'       : 49 }								
+                'expectedRC'          : 49 }								
             </call>
 
             <call function="'testCase_Postamble'"/>
@@ -368,7 +378,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'adminpizza' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
                 'expectedRC'       : 19 }								
@@ -386,14 +396,17 @@
                'Security: Pwd Change: User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'adminpizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd3.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'adminpizza' ,
+                    'DNToModify'             : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newpizza' ,
+                    'changetype'             : 'replace'  }
             </call>
-
+            
             <message>
                'Security: Pwd Change: User Searching With Assigned Password'
             </message>
@@ -403,12 +416,11 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'adminpizza' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' ,
                 'expectedRC'       : 49 }								
             </call>
-
 
             <message>
                'Security: Pwd Change: User Searching With New Password'
@@ -419,7 +431,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newpizza' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -437,14 +449,16 @@
                'Security: Pwd Change: Admin Enabling Maximum Reset Age Long'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_max_reset_age_long.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'maximum-password-reset-age' ,
+                    'attributeValue'         : '30 m' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -457,14 +471,17 @@
                'Security: Pwd Change: Admin Changing User Pwd'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd4.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=mdog,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'adminlongpizza' ,
+                    'changetype'             : 'replace'  }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -477,15 +494,17 @@
                'Security: Pwd Change: User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'adminlongpizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd7.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'adminlongpizza' ,
+                    'DNToModify'             : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newlongpizza' ,
+                    'changetype'             : 'replace'  }
             </call>
-
-
+            
             <message>
                'Security: Pwd Change: User Searching With Password'
             </message>
@@ -495,7 +514,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newlongpizza' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -512,14 +531,16 @@
                'Security: Pwd Change: Admin Enabling Maximum Reset Age Short'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_max_reset_age_short.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'maximum-password-reset-age' ,
+                    'attributeValue'         : '8 s' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -532,14 +553,17 @@
                'Security: Pwd Change: Admin Changing User Pwd'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd5.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=mdog,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'adminshortpizza' ,
+                    'changetype'             : 'replace'  }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
@@ -560,15 +584,18 @@
                'Security: Pwd Change: User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'adminshortpizza' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd8.ldif' % logsRemoteDataDir ,
-                'expectedRC'       : 49 }								
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'adminpizza' ,
+                    'DNToModify'             : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newshortpizza' ,
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 49  }
             </call>
-
+            
             <message>
                'Security: Pwd Change: User Searching With Password'
             </message>
@@ -578,7 +605,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=mdog,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newshortpizza' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base',
                 'expectedRC'       : 49 }									
@@ -596,27 +623,30 @@
                'Security: Pwd Change: Postamble Step 1. Admin Disabling Max Pwd Age'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_disable_max_reset_age.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'maximum-password-reset-age' ,
+                    'attributeValue'         : '0 s' }
             </call>
-
-
+            
             <message>
                'Security: Pwd Change: Postamble Step 2. Admin Disabling Force Password On Reset'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_force_pwd_reset.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'force-change-on-reset' ,
+                    'attributeValue'         : 'false' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>

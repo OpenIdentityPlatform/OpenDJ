@@ -178,17 +178,16 @@
                'Security: Grace Login: Reset Pwd, Admin reset max password age'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'modifyPwdPolicy'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
-                    'attributeName'          : 'ds-cfg-maximum-password-age' ,
-                    'newAttributeValue'      : '24 hours' ,
-                    'changetype'             : 'replace' }
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'maximum-password-age' ,
+                    'attributeValue'         : '24 h' }
             </call>
-                
+            
             <message>
                'Security: Grace Login: Reset Pwd, Search Bind 2'
             </message>

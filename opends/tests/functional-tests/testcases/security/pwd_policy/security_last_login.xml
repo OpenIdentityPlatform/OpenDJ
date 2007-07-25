@@ -42,11 +42,11 @@
             </message>
 
             <call function="'compareEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-idle-lockout-interval:0 seconds',
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-idle-lockout-interval:0 seconds',
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
@@ -63,14 +63,16 @@
                'Security: Last Login: Admin Enable Last Login Attribute Only'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'last-login-time-attribute' ,
+                    'attributeValue'         : 'ds-pwp-last-login-time' }
             </call>
-
+            
             <message>
                'Security: Last Login: User Binding With Password'
             </message>
@@ -80,7 +82,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'destroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -96,7 +98,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'ds-pwp-last-login-time' }
+                'attributes'       : 'ds-pwp-last-login-time' }
             </call>
 
             <script> 
@@ -104,8 +106,8 @@
             </script> 
 
             <call function="'checktestStringNotPresent'">
-                { 'returnString'       : returnString ,
-                  'testString'     : 'ds-pwp-last-login-time' }
+                { 'returnString'    : returnString ,
+                  'testString'      : 'ds-pwp-last-login-time' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -133,14 +135,16 @@
                'Security: Last Login: Admin Enable Last Login Format Only'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-format.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'last-login-time-format' ,
+                    'attributeValue'         : 'EEE, MMM dd, yyyy HH:mm:ss' }
             </call>
-
+            
             <message>
                'Security: Last Login: User Binding With Password'
             </message>
@@ -150,7 +154,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'destroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -166,7 +170,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'ds-pwp-last-login-time' }
+                'attributes'       : 'ds-pwp-last-login-time' }
             </call>
 
             <script> 
@@ -174,7 +178,7 @@
             </script> 
 
             <call function="'checktestStringNotPresent'">
-                { 'returnString'       : returnString ,
+                { 'returnString'   : returnString ,
                   'testString'     : 'ds-pwp-last-login-time' }
             </call>
             
@@ -191,14 +195,16 @@
                'Security: Last Login: Admin Enable Last Login Attribute And Format'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'last-login-time-attribute' ,
+                    'attributeValue'         : 'ds-pwp-last-login-time' }
             </call>
-
+            
             <message>
                'Security: Last Login: User Binding With Password'
             </message>
@@ -208,7 +214,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'destroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -224,7 +230,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'      : 'ds-pwp-last-login-time' }
+                'attributes'       : 'ds-pwp-last-login-time' }
             </call>
 
             <script> 
@@ -254,7 +260,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'destroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -263,14 +269,16 @@
                'Security: Last Login: Long Idle Lockout Step 2. Admin Changing Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '50 s' }
             </call>
-
+            
             <message>
                'Security: Last Login: Long Idle Lockout Step 3. User Binding Before Idle Lockout'
             </message>
@@ -280,7 +288,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'destroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -304,7 +312,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'destroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base',
                   'expectedRC'       : 49 }
@@ -323,14 +331,15 @@
                'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '0 s' }
             </call>
-
             
             <message>
                'Security: Last Login: Reset Idle Lockout Step 2. User Binding'
@@ -341,7 +350,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'destroy',
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -364,7 +373,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'destroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -387,7 +396,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'destroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -396,14 +405,16 @@
                'Security: Last Login: Long Idle Lockout - Password Change Override Step 2. Admin Changing Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '50 s' }
             </call>
-
+            
             <message>
                'Security: Last Login: Long Idle Lockout - Password Change Override Step 3. User Binding Before Idle Lockout'
             </message>
@@ -413,7 +424,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'destroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -432,15 +443,17 @@
                'Security: Last Login: Long Idle Lockout - Password Change Override Step 5. User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jreuter,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newdestroy' ,
+                    'changetype'             : 'replace'  }
             </call>
-
-
+            
             <message>
                'Security: Last Login: Long Idle Lockout Step 6. Sleep'
             </message>
@@ -458,7 +471,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -476,14 +489,15 @@
                'Security: Last Login: Reset Idle Lockout 2 Step 1. Admin Resetting Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '0 s' }
             </call>
-
             
             <message>
                'Security: Last Login: Reset Idle Lockout 2 Step 2. User Binding'
@@ -494,7 +508,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy',
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -516,7 +530,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -539,7 +553,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -549,14 +563,16 @@
                'Security: Last Login: Long Idle Lockout - User Bind Reset Step 2. Admin Changing Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '50 s' }
             </call>
-
+            
             <message>
                'Security: Last Login: Long Idle Lockout - User Bind Reset Step 3. User Binding Before Idle Lockout'
             </message>
@@ -566,7 +582,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -589,7 +605,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -612,7 +628,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -630,14 +646,16 @@
                'Security: Last Login: Reset Idle Lockout Step 1. Admin Resetting Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '0 s' }
             </call>
-
+            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 2. User Binding'
             </message>
@@ -647,7 +665,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy',
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -669,7 +687,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -704,7 +722,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -713,14 +731,16 @@
                'Security: Last Login: Long Idle Lockout - Disabled Last Login Step 3. Admin Changing Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '50 s' }
             </call>
-
+            
             <message>
                'Security: Last Login: Long Idle Lockout - Disabled Last Login  Step 4. User Binding'
             </message>
@@ -730,7 +750,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' ,
                 'expectedRC'       : 49 }
@@ -749,26 +769,30 @@
                'Security: Last Login: Reset Idle Lockout Step 1. Enable Last Login - Attribute'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-attr.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'last-login-time-attribute' ,
+                    'attributeValue'         : 'ds-pwp-last-login-time' }
             </call>
-
+            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 2. Admin Resetting Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_idle_lockout_interval.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '0 s' }
             </call>
-
+            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 3. User Binding'
             </message>
@@ -778,7 +802,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy',
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -800,7 +824,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -835,7 +859,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -844,14 +868,16 @@
                'Security: Last Login: Long Idle Lockout - Disabled Last Login 2 Step 3. Admin Changing Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '50 s' }
             </call>
-
+            
             <message>
                'Security: Last Login: Long Idle Lockout - Disabled Last Login  2 Step 4. User Binding'
             </message>
@@ -861,7 +887,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' ,
                 'expectedRC'       : 49 }
@@ -880,14 +906,16 @@
                'Security: Last Login: Reset Idle Lockout Step 1. Enable Last Login - Attribute'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_enable_last-login-time-format.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'last-login-time-format' ,
+                    'attributeValue'         : 'EEE, MMM dd, yyyy HH:mm:ss' }
             </call>
-
+            
             <message>
                'Security: Last Login: Reset Idle Lockout Step 2. Admin Resetting Idle Lockout Interval'
             </message>
@@ -909,7 +937,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy',
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -932,7 +960,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -955,7 +983,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -964,15 +992,16 @@
                'Security: Last Login: Long Idle Lockout Step 2. Admin Changing Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '50 s' }
             </call>
-
-
+            
             <message>
                'Security: Last Login: Long Idle Lockout Step 3. User Binding Before Idle Lockout'
             </message>
@@ -982,7 +1011,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -1006,7 +1035,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' ,
                   'expectedRC'       : 49 }
@@ -1042,7 +1071,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy',
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -1066,7 +1095,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -1089,7 +1118,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -1099,14 +1128,16 @@
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 2. Admin Changing Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '50 s' }
             </call>
-
+            
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 3. User Binding Before Idle Lockout'
             </message>
@@ -1116,7 +1147,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'newdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -1134,15 +1165,17 @@
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 5. User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login2.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jreuter,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'anotherdestroy' ,
+                    'changetype'             : 'replace'  }
             </call>
-
-
+            
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 2 Step 6. User Binding After Idle Lockout'
             </message>
@@ -1152,7 +1185,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'anotherdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -1188,7 +1221,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'anotherdestroy',
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -1212,7 +1245,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'anotherdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -1248,7 +1281,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'anotherdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
@@ -1258,14 +1291,16 @@
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 3. Admin Changing Idle Lockout Interval'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_idle_lockout_long.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'idle-lockout-interval' ,
+                    'attributeValue'         : '50 s' }
             </call>
-
+            
             <message>
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 4. User Binding Before Idle Lockout'
             </message>
@@ -1275,7 +1310,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                 'dsInstancePswd'   : 'anotherdestroy' ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' ,
                 'expectedRC'       : 49 }
@@ -1285,14 +1320,17 @@
                'Security: Last Login: Long Idle Lockout - Pwd Change Override 3 Step 5. Admin Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_pwd_last_login3.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=jreuter,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'lastdestroy' ,
+                    'changetype'             : 'replace'  }
             </call>
-
+            
             <message>
                'Security: Last Login: Pwd Override 3 Step 6. User Binding After Admin Pwd Change'
             </message>
@@ -1302,7 +1340,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'lastdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -1351,7 +1389,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'lastdestroy',
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -1375,7 +1413,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=jreuter,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'lastdestroy' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>

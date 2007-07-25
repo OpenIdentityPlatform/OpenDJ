@@ -41,11 +41,11 @@
             </message>
 
             <call function="'compareEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-lockout-duration:0 seconds',
+              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'attrToBeCompared'    : 'ds-cfg-lockout-duration:0 seconds',
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
@@ -53,14 +53,16 @@
                'Security: Lockout Duration: Preamble Step 2. Admin Changing Lockout Count'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_cnt.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-failure-count' ,
+                    'attributeValue'         : '3' }
             </call>
-
+            
             <message>
                'Security: Lockout Duration: Preamble Step 3. User Lockout With Bad Pwd 3x'
             </message>
@@ -86,14 +88,17 @@
                'Security: Lockout Duration: Preamble Step 4. Admin Resetting User Pwd'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd2.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=mward,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'adminnormal' ,
+                    'changetype'             : 'replace'  }
             </call>
-
+            
             <message>
                'Security: Lockout Duration: Preamble Step 5. User Bind With New Password'
             </message>
@@ -121,14 +126,16 @@
                'Security: Lockout Duration: Admin Making Lockout Duration Short'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_dur_short.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-duration' ,
+                    'attributeValue'         : '5 s' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -171,14 +178,17 @@
                'Security: lockout Duration: Short Lockout Duration Step 2. User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=mward,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'adminnormal' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd5.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=mward,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'adminnormal' ,
+                    'DNToModify'             : 'uid=mward,ou=People,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newnormal' ,
+                    'changetype'             : 'replace'  }
             </call>
-
+            
             <message>
                'Security: Lockout Duration: Short Lockout Duration Step 3. User Bind With New Password'
             </message>
@@ -188,7 +198,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=mward,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newnormal' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -206,14 +216,16 @@
                'Security: Lockout Duration: Admin Making Lockout Duration Long'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_lockout_dur_long.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-duration' ,
+                    'attributeValue'         : '5 d' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -232,7 +244,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=bjablons,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'strawberry' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -251,7 +263,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=bjablons,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : '%s' % pwds,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' ,
                   'expectedRC'       : 49 }
@@ -270,16 +282,18 @@
                'Security: lockout Duration: Long Lockout Duration Step 3. User Changing Password'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : 'uid=bjablons,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
-                'dsInstancePswd'   : 'strawberry' ,
-                'entryToBeModified'   : '%s/security/pwd_policy/user_change_pwd6.ldif' % logsRemoteDataDir ,
-                  'expectedRC'       : 49 }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'uid=bjablons,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'         : 'strawberry' ,
+                    'DNToModify'             : 'uid=bjablons,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'newberry' ,
+                    'changetype'             : 'replace' ,
+                    'expectedRC'             : 49 }
             </call>
-
-
+            
             <message>
                'Security: Lockout Duration: Long Lockout Duration Step 4. User Bind With New Password'
             </message>
@@ -289,7 +303,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=bjablons,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'newberry' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base',
                   'expectedRC'       : 49 } 
@@ -307,14 +321,16 @@
                'Security: Lockout Duration: Postamble Step 1. Admin Resetting Lockout Duration'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_lockout_dur.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-duration' ,
+                    'attributeValue'         : '0 s' }
             </call>
-
+            
             <message>
                'Security: Lockout Duration: Postamble Step 2. User Lockout With Bad Pwd 3x'
             </message>
@@ -329,7 +345,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=mward,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : '%s' % pwds,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' ,
                   'expectedRC'       : 49 }
@@ -340,14 +356,16 @@
                'Security: Lockout Duration: Postamble Step 3. Admin Resetting User Pwd'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_change_user_pwd3.ldif' % logsRemoteDataDir }
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=mward,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
+                    'attributeName'          : 'userpassword' ,
+                    'newAttributeValue'      : 'normal' ,
+                    'changetype'             : 'replace'  }
             </call>
-
             
             <message>
                'Security: Lockout Duration: Postamble Step 4. User Bind With New Password'
@@ -358,7 +376,7 @@
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                   'dsInstanceDn'     : 'uid=mward,ou=people,ou=password tests,o=Pwd Policy Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'normal' ,
-                  'dsBaseDN'   : 'dc=example,dc=com' ,
+                  'dsBaseDN'         : 'dc=example,dc=com' ,
                   'dsFilter'         : 'objectclass=*'  ,
                   'extraParams'      : '-s base' }
             </call>
@@ -367,14 +385,16 @@
                'Security: Lockout Duration: Postamble Step 5. Admin Resetting Lockout Count'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_lockout_cnt.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-failure-count' ,
+                    'attributeValue'         : '0' }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
 
           </sequence>
