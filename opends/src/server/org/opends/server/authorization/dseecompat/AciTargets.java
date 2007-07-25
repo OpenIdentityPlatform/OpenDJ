@@ -41,8 +41,8 @@ import java.util.regex.Pattern;
  * of an ACI before the ACI body and specifies the entry, attributes, or set
  * of entries and attributes which the ACI controls access.
  *
- * The five supported  ACI target keywords are: target, targetattr,
- * targetscope, targetfilter and targattrfilters.
+ * The supported  ACI target keywords are: target, targetattr,
+ * targetscope, targetfilter, targattrfilters, targetcontrol and extop.
  */
 public class AciTargets {
 
@@ -75,6 +75,11 @@ public class AciTargets {
     * The ACI syntax has a targetcontrol keyword.
     */
     private TargetControl targetControl=null;
+
+   /**
+    * The ACI syntax has a extop keyword.
+    */
+    private ExtOp extOp=null;
 
     /*
      * The number of regular expression group positions in a valid ACI target
@@ -138,25 +143,29 @@ public class AciTargets {
 
     /**
      * Creates an ACI target from the specified arguments. All of these
-     * may be null -- the ACI has no targets an will use defaults.
-     * @param targetEntry The ACI target keyword if any.
-     * @param targetAttr The ACI targetattr keyword if any.
-     * @param targetFilter The ACI targetfilter keyword if any.
-     * @param targetScope The ACI targetscope keyword if any.
-     * @param targAttrFilters The ACI targAttrFilters keyword if any.
-     * @param targetControl The ACI targetControl keyword if any.
+     * may be null. If the ACI has no targets defaults will be used.
+     *
+     * @param targetEntry The ACI target keyword class.
+     * @param targetAttr The ACI targetattr keyword class.
+     * @param targetFilter The ACI targetfilter keyword class.
+     * @param targetScope The ACI targetscope keyword class.
+     * @param targAttrFilters The ACI targAttrFilters keyword class.
+     * @param targetControl The ACI targetControl keyword class.
+     * @param extOp The ACI extop keyword class.
      */
     private AciTargets(Target targetEntry, TargetAttr targetAttr,
                        TargetFilter targetFilter,
                        SearchScope targetScope,
                        TargAttrFilters targAttrFilters,
-                       TargetControl targetControl) {
+                       TargetControl targetControl,
+                       ExtOp extOp) {
        this.target=targetEntry;
        this.targetAttr=targetAttr;
        this.targetScope=targetScope;
        this.targetFilter=targetFilter;
        this.targAttrFilters=targAttrFilters;
        this.targetControl=targetControl;
+       this.extOp=extOp;
     }
 
     /**
@@ -212,6 +221,16 @@ public class AciTargets {
       return targetControl;
     }
 
+
+   /**
+    * Return the class representing the ACI extop keyword. May be
+    * null.
+    * @return The extop information.
+   */
+    public ExtOp getExtOp() {
+      return extOp;
+    }
+
     /**
      * Decode an ACI's target part of the syntax from the string provided.
      * @param input String representing an ACI target part of syntax.
@@ -226,6 +245,7 @@ public class AciTargets {
         TargetFilter targetFilter=null;
         TargAttrFilters targAttrFilters=null;
         TargetControl targetControl=null;
+        ExtOp extOp=null;
         SearchScope targetScope=SearchScope.WHOLE_SUBTREE;
         Pattern targetPattern = Pattern.compile(targetRegex);
         Matcher targetMatcher = targetPattern.matcher(input);
@@ -273,19 +293,34 @@ public class AciTargets {
             }
             case KEYWORD_TARGETCONTROL:
             {
-                if (targetControl == null){
-                    targetControl =
-                            TargetControl.decode(targetOperator, expression);
-                }
-                else
-                {
-                    int msgID =
+              if (targetControl == null){
+                targetControl =
+                        TargetControl.decode(targetOperator, expression);
+              }
+              else
+              {
+                int msgID =
                         MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
-                    String message =
+                String message =
                         getMessage(msgID, "targetcontrol", input);
-                    throw new AciException(msgID, message);
-                }
-                break;
+                throw new AciException(msgID, message);
+              }
+              break;
+            }
+            case KEYWORD_EXTOP:
+            {
+              if (extOp == null){
+                extOp =  ExtOp.decode(targetOperator, expression);
+              }
+              else
+              {
+                int msgID =
+                        MSGID_ACI_SYNTAX_INVALID_TARGET_DUPLICATE_KEYWORDS;
+                String message =
+                        getMessage(msgID, "extop", input);
+                throw new AciException(msgID, message);
+              }
+              break;
             }
             case KEYWORD_TARGETATTR:
             {
@@ -353,7 +388,8 @@ public class AciTargets {
             }
         }
         return new AciTargets(target, targetAttr, targetFilter,
-                              targetScope, targAttrFilters, targetControl);
+                              targetScope, targAttrFilters, targetControl,
+                              extOp);
     }
 
     /**
@@ -383,12 +419,12 @@ public class AciTargets {
     }
 
     /**
-     * Checks an ACI's targetfilter information against a target match
+     * Checks an ACI's targetfilter rule information against a target match
      * context.
      * @param aci The ACI to try an match the targetfilter of.
      * @param matchCtx The target match context containing information needed
      * to perform a target match.
-     * @return True if the targetfilter matched the target context.
+     * @return True if the targetfilter rule matched the target context.
      */
     public static boolean isTargetFilterApplicable(Aci aci,
                                               AciTargetMatchContext matchCtx) {
@@ -400,16 +436,16 @@ public class AciTargets {
     }
 
     /**
-     * Check an ACI's targetcontrol against a target match context.
+     * Check an ACI's targetcontrol rule against a target match context.
      *
      * @param aci The ACI to match the targetcontrol against.
      * @param matchCtx The target match context containing the information
      *                 needed to perform the target match.
-     * @return  True if the targetcontrol matched the target context.
+     * @return  True if the targetcontrol rule matched the target context.
      */
     public static boolean isTargetControlApplicable(Aci aci,
                                             AciTargetMatchContext matchCtx) {
-      boolean ret=true;
+      boolean ret=false;
       TargetControl targetControl=aci.getTargets().getTargetControl();
       if(targetControl != null)
         ret=targetControl.isApplicable(matchCtx);
@@ -417,11 +453,30 @@ public class AciTargets {
     }
 
     /**
-     * Check an ACI's targattrfilters against a target match context.
+     * Check an ACI's extop rule against a target match context.
+     *
+     * @param aci The ACI to match the extop rule against.
+     * @param matchCtx The target match context containing the information
+     *                 needed to perform the target match.
+     * @return  True if the extop rule matched the target context.
+     */
+    public static boolean isExtOpApplicable(Aci aci,
+                                              AciTargetMatchContext matchCtx) {
+      boolean ret=false;
+      ExtOp extOp=aci.getTargets().getExtOp();
+      if(extOp != null)
+        ret=extOp.isApplicable(matchCtx);
+      return ret;
+    }
+
+
+    /**
+     * Check an ACI's targattrfilters rule against a target match context.
+     *
      * @param aci The ACI to match the targattrfilters against.
      * @param matchCtx  The target match context containing the information
      * needed to perform the target match.
-     * @return True if the targattrfilters matched the target context.
+     * @return True if the targattrfilters rule matched the target context.
      */
     public static boolean isTargAttrFiltersApplicable(Aci aci,
                                                AciTargetMatchContext matchCtx) {
@@ -449,8 +504,9 @@ public class AciTargets {
      * of method calls over local variables.
      */
     /**
-     * Checks an provided ACI's targetattr information against a target match
+     * Checks an provided ACI's targetattr rule against a target match
      * context.
+     *
      * @param aci The ACI to evaluate.
      * @param targetMatchCtx The target match context to check the ACI against.
      * @return True if the targetattr matched the target context.

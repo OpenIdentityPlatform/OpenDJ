@@ -32,6 +32,12 @@ ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config
 replace: ds-cfg-trust-manager-provider-dn
 ds-cfg-trust-manager-provider-dn: cn=JKS,cn=Trust Manager Providers,cn=config
 
+dn: cn=Access Control Handler,cn=config
+changeType: modify
+add: ds-cfg-global-aci
+ds-cfg-global-aci: (targetcontrol="*") (version 3.0; acl "Anonymous control access"; allow(read) userdn="ldap:///anyone";)
+ds-cfg-global-aci: (extop="*") (version 3.0; acl "Anonymous extended op access"; allow(read) userdn="ldap:///anyone";)
+
 dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config
 changeType: modify
 replace: ds-cfg-listen-port

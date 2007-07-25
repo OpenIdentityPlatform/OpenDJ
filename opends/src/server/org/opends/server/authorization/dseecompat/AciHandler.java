@@ -1195,7 +1195,8 @@ public class AciHandler
     if(!(ret=skipAccessCheck(op))) {
       Entry e = new Entry(entryDN, null, null, null);
       AciLDAPOperationContainer operationContainer =
-              new AciLDAPOperationContainer(op, e, control.getOID());
+              new AciLDAPOperationContainer(op, e, control,
+                                            (ACI_READ | ACI_CONTROL));
       ret=accessAllowed(operationContainer);
     }
     if(control.getOID().equals(OID_PROXIED_AUTH_V2) ||
@@ -1218,6 +1219,27 @@ public class AciHandler
     return ret;
   }
 
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isAllowed(ExtendedOperation operation) {
+    boolean ret;
+    if(!(ret=skipAccessCheck(operation))) {
+      Entry e = new Entry(operation.getAuthorizationDN(), null, null, null);
+      AciLDAPOperationContainer operationContainer =
+         new AciLDAPOperationContainer(operation, e, (ACI_READ | ACI_EXT_OP));
+      ret=accessAllowed(operationContainer);
+    }
+    if(operation.getRequestOID().equals(OID_PROXIED_AUTH_V2) ||
+            operation.getRequestOID().equals(OID_PROXIED_AUTH_V1))
+       operation.
+              setAttachment(ORIG_AUTH_ENTRY, operation.getAuthorizationEntry());
+    return ret;
+  }
+
+
   //Not planned to be implemented methods.
 
    /**
@@ -1235,15 +1257,6 @@ public class AciHandler
    */
   @Override
   public boolean isAllowed(LocalBackendBindOperation bindOperation) {
-      //Not planned to be implemented.
-      return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isAllowed(ExtendedOperation extendedOperation) {
       //Not planned to be implemented.
       return true;
   }

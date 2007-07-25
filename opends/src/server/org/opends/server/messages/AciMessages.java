@@ -954,6 +954,16 @@ public class AciMessages {
             MSGID_ACI_SYNTAX_DECODE_EFFECTIVERIGHTS_FAIL =
             CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 94;
 
+    /**
+     * The message ID for the message that will be used if an "aci" attribute
+     * type value parse failed because an extop keyword expression
+     * did not parse.  This takes one argument, which is the extop
+     * expression from the ACI.
+     */
+
+     public static final int MSGID_ACI_SYNTAX_INVALID_TARGEXTOP_EXPRESSION =
+         CATEGORY_MASK_ACCESS_CONTROL | SEVERITY_MASK_SEVERE_WARNING | 95;
+
   /**
      * Associates a set of generic messages with the message IDs defined in
      * this class.
@@ -1500,6 +1510,13 @@ public class AciMessages {
                 "The access control check failed because a" +
                 " geteffectiverights control could not be" +
                 " decoded because of the following reason: \"%s\"");
+
+      registerMessage(MSGID_ACI_SYNTAX_INVALID_TARGEXTOP_EXPRESSION,
+              "The provided Access Control Instruction (ACI) " +
+              "extop expression value \"%s\" is invalid. A valid " +
+              "extop keyword expression value requires one or more " +
+              "valid extended operation request OID strings in the following" +
+              " format: oid [|| oid1] ... [|| oidn]");
 
     }
 }
