@@ -961,7 +961,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       }
 
       // If we are here, it means that the argument is required
-      // but not yet is the map. Cjeck if we have a default value.
+      // but not yet is the map. Check if we have a default value.
       if (arg.getDefaultValue() == null)
       {
         int msgID = MSGID_CLI_ERROR_MISSING_PROPERTY;
