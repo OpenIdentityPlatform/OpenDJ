@@ -146,14 +146,16 @@
                'Security: Lockout Fail Cnt: Postamble Reset: Step 1. Admin Resetting Lockout Fail Count'
             </message>
 
-            <call function="'modifyEntry'">
-              { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified'   : '%s/security/pwd_policy/admin_reset_lockout_cnt.ldif' % logsRemoteDataDir }
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'lockout-failure-count' ,
+                    'attributeValue'         : '0' }
             </call>
-
+            
             <message>
                'Security: Lockout Fail Cnt: Postamble Step 2. Check Bind With Previous User Lockout'
             </message>
