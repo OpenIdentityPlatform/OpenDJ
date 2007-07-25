@@ -42,8 +42,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.ResultCode;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
@@ -335,8 +333,8 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testAuthWAIDefCfg() throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(s);
-    ASN1Writer writer = new ASN1Writer(s);
+    LDAPReader reader = new LDAPReader(s);
+    LDAPWriter writer = new LDAPWriter(s);
 
     AtomicInteger nextMessageID = new AtomicInteger(1);
     LDAPAuthenticationHandler authHandler =
@@ -351,7 +349,7 @@ public class RejectUnauthReqTests extends CoreTestCase
 
     LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
                                                 new UnbindRequestProtocolOp());
-    writer.writeElement(unbindMessage.encode());
+    writer.writeMessage(unbindMessage);
     s.close();
   }
 
@@ -368,8 +366,8 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testUnauthWAIDefCfg() throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(s);
-    ASN1Writer writer = new ASN1Writer(s);
+    LDAPReader reader = new LDAPReader(s);
+    LDAPWriter writer = new LDAPWriter(s);
 
     AtomicInteger nextMessageID = new AtomicInteger(1);
     LDAPAuthenticationHandler authHandler =
@@ -380,7 +378,7 @@ public class RejectUnauthReqTests extends CoreTestCase
 
     LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
                                                 new UnbindRequestProtocolOp());
-    writer.writeElement(unbindMessage.encode());
+    writer.writeMessage(unbindMessage);
     s.close();
   }
 
@@ -633,8 +631,8 @@ public class RejectUnauthReqTests extends CoreTestCase
                                           IOException,ClientException
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(s);
-    ASN1Writer writer = new ASN1Writer(s);
+    LDAPReader reader = new LDAPReader(s);
+    LDAPWriter writer = new LDAPWriter(s);
     AtomicInteger nextMessageID = new AtomicInteger(1);
     LDAPAuthenticationHandler authHandler =
          new LDAPAuthenticationHandler(reader, writer, "localhost",
@@ -653,7 +651,7 @@ public class RejectUnauthReqTests extends CoreTestCase
       LDAPMessage unbindMessage = new LDAPMessage(
                                     nextMessageID.getAndIncrement(),
                                     new UnbindRequestProtocolOp());
-      writer.writeElement(unbindMessage.encode());
+      writer.writeMessage(unbindMessage);
       s.close();
     }
   }

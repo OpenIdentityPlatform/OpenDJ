@@ -39,8 +39,6 @@ import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -80,8 +78,8 @@ public class LDAPConnection
   private int portNumber = 389;
 
   private LDAPConnectionOptions connectionOptions = null;
-  private ASN1Writer asn1Writer;
-  private ASN1Reader asn1Reader;
+  private LDAPWriter ldapWriter;
+  private LDAPReader ldapReader;
   private int versionNumber = 3;
 
   private PrintStream out;
@@ -154,19 +152,21 @@ public class LDAPConnection
                             AtomicInteger nextMessageID)
                             throws LDAPConnectionException
   {
-    Socket socket = null;
+    Socket socket;
     Socket startTLSSocket = null;
-    int resultCode = -1;
+    int resultCode;
     ArrayList<LDAPControl> requestControls = new ArrayList<LDAPControl> ();
     ArrayList<LDAPControl> responseControls = new ArrayList<LDAPControl> ();
 
+    VerboseTracer tracer =
+         new VerboseTracer(connectionOptions.isVerbose(), err);
     if(connectionOptions.useStartTLS())
     {
       try
       {
         startTLSSocket = new Socket(hostName, portNumber);
-        asn1Writer = new ASN1Writer(startTLSSocket);
-        asn1Reader = new ASN1Reader(startTLSSocket);
+        ldapWriter = new LDAPWriter(startTLSSocket, tracer);
+        ldapReader = new LDAPReader(startTLSSocket, tracer);
       } catch(UnknownHostException uhe)
       {
         int msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
@@ -196,10 +196,10 @@ public class LDAPConnection
                                         extendedRequest);
       try
       {
-        asn1Writer.writeElement(msg.encode());
+        ldapWriter.writeMessage(msg);
 
         // Read the response from the server.
-        msg = LDAPMessage.decode(asn1Reader.readElement().decodeAsSequence());
+        msg = ldapReader.readMessage();
       } catch (Exception ex1)
       {
         if (debugEnabled())
@@ -236,8 +236,8 @@ public class LDAPConnection
       {
         socket = new Socket(hostName, portNumber);
       }
-      asn1Writer = new ASN1Writer(socket);
-      asn1Reader = new ASN1Reader(socket);
+      ldapWriter = new LDAPWriter(socket, tracer);
+      ldapReader = new LDAPReader(socket, tracer);
     } catch(UnknownHostException uhe)
     {
       int msgID = MSGID_RESULT_CLIENT_SIDE_CONNECT_ERROR;
@@ -285,7 +285,7 @@ public class LDAPConnection
     }
 
     LDAPAuthenticationHandler handler = new LDAPAuthenticationHandler(
-            asn1Reader, asn1Writer, hostName, nextMessageID);
+         ldapReader, ldapWriter, hostName, nextMessageID);
     try
     {
       ASN1OctetString bindPW;
@@ -441,7 +441,7 @@ public class LDAPConnection
    */
   public void close(AtomicInteger nextMessageID)
   {
-    if(asn1Writer != null)
+    if(ldapWriter != null)
     {
       if (nextMessageID != null)
       {
@@ -449,38 +449,37 @@ public class LDAPConnection
         {
           LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
                                                 new UnbindRequestProtocolOp());
-          asn1Writer.writeElement(message.encode());
+          ldapWriter.writeMessage(message);
         } catch (Exception e) {}
       }
 
-      asn1Writer.close();
+      ldapWriter.close();
     }
-    if(asn1Reader != null)
+    if(ldapReader != null)
     {
-      asn1Reader.close();
+      ldapReader.close();
     }
   }
 
   /**
-   * Get the underlying ASN1 writer.
+   * Get the underlying LDAP writer.
    *
-   * @return  The underlying ASN.1 writer.
+   * @return  The underlying LDAP writer.
    */
-  public ASN1Writer getASN1Writer()
+  public LDAPWriter getLDAPWriter()
   {
-    return asn1Writer;
+    return ldapWriter;
   }
 
   /**
-   * Get the underlying ASN1 reader.
+   * Get the underlying LDAP reader.
    *
-   * @return  The underlying ASN.1 reader.
+   * @return  The underlying LDAP reader.
    */
-  public ASN1Reader getASN1Reader()
+  public LDAPReader getLDAPReader()
   {
-    return asn1Reader;
+    return ldapReader;
   }
-
 
 }
 

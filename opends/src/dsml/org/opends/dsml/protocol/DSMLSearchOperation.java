@@ -163,16 +163,15 @@ public class DSMLSearchOperation
       {
         LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(),
                                           protocolOp);
-        int numBytes = connection.getASN1Writer().writeElement(msg.encode());
+        connection.getLDAPWriter().writeMessage(msg);
 
         byte opType;
         do
         {
           int resultCode = 0;
           String errorMessage = null;
-          ASN1Element element = connection.getASN1Reader().readElement();
-          LDAPMessage responseMessage = LDAPMessage.decode(
-          ASN1Sequence.decodeAsSequence(element));
+          LDAPMessage responseMessage =
+               connection.getLDAPReader().readMessage();
 
           opType = responseMessage.getProtocolOpType();
           switch(opType)

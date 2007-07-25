@@ -30,10 +30,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -106,12 +104,10 @@ public class DSMLAddOperation
     // Create and send the LDAP request to the server.
     ProtocolOp op = new AddRequestProtocolOp(dnStr, attributes);
     LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
-    int numBytes = connection.getASN1Writer().writeElement(msg.encode());
+    connection.getLDAPWriter().writeMessage(msg);
 
     // Read and decode the LDAP response from the server.
-    ASN1Element element = connection.getASN1Reader().readElement();
-    LDAPMessage responseMessage =
-         LDAPMessage.decode(ASN1Sequence.decodeAsSequence(element));
+    LDAPMessage responseMessage = connection.getLDAPReader().readMessage();
 
     AddResponseProtocolOp addOp = responseMessage.getAddResponseProtocolOp();
     int resultCode = addOp.getResultCode();

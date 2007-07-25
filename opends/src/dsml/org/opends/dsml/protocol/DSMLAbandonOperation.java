@@ -86,7 +86,7 @@ public class DSMLAbandonOperation
     // Create and send an LDAP request to the server.
     ProtocolOp op = new AbandonRequestProtocolOp(abandonId);
     LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
-    int numBytes = connection.getASN1Writer().writeElement(msg.encode());
+    connection.getLDAPWriter().writeMessage(msg);
 
     return abandonResponse;
   }

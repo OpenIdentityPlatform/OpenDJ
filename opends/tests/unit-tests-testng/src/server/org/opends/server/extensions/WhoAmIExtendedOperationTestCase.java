@@ -39,13 +39,13 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.tools.LDAPAuthenticationHandler;
+import org.opends.server.tools.LDAPReader;
+import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
@@ -162,8 +162,8 @@ public class WhoAmIExtendedOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(s);
-    ASN1Writer writer = new ASN1Writer(s);
+    LDAPReader reader = new LDAPReader(s);
+    LDAPWriter writer = new LDAPWriter(s);
 
     AtomicInteger nextMessageID = new AtomicInteger(1);
     LDAPAuthenticationHandler authHandler =
@@ -178,7 +178,7 @@ public class WhoAmIExtendedOperationTestCase
 
     LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
                                                 new UnbindRequestProtocolOp());
-    writer.writeElement(unbindMessage.encode());
+    writer.writeMessage(unbindMessage);
     s.close();
   }
 
@@ -195,8 +195,8 @@ public class WhoAmIExtendedOperationTestCase
          throws Exception
   {
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(s);
-    ASN1Writer writer = new ASN1Writer(s);
+    LDAPReader reader = new LDAPReader(s);
+    LDAPWriter writer = new LDAPWriter(s);
 
     AtomicInteger nextMessageID = new AtomicInteger(1);
     LDAPAuthenticationHandler authHandler =
@@ -207,7 +207,7 @@ public class WhoAmIExtendedOperationTestCase
 
     LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
                                                 new UnbindRequestProtocolOp());
-    writer.writeElement(unbindMessage.encode());
+    writer.writeMessage(unbindMessage);
     s.close();
   }
 
@@ -246,8 +246,8 @@ public class WhoAmIExtendedOperationTestCase
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
-    ASN1Reader reader = new ASN1Reader(s);
-    ASN1Writer writer = new ASN1Writer(s);
+    LDAPReader reader = new LDAPReader(s);
+    LDAPWriter writer = new LDAPWriter(s);
 
     AtomicInteger nextMessageID = new AtomicInteger(1);
     LDAPAuthenticationHandler authHandler =
@@ -262,7 +262,7 @@ public class WhoAmIExtendedOperationTestCase
 
     LDAPMessage unbindMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
                                                 new UnbindRequestProtocolOp());
-    writer.writeElement(unbindMessage.encode());
+    writer.writeMessage(unbindMessage);
     s.close();
   }
 }

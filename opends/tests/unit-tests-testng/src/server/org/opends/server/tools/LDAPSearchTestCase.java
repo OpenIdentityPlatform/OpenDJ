@@ -566,6 +566,29 @@ public class LDAPSearchTestCase
 
 
   /**
+   * Tests a simple search with verbose output.
+   */
+  @Test()
+  public void testSimpleVerboseSearch()
+  {
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-v",
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+  }
+
+
+
+  /**
    * Tests a simple invocation using the "--dry-run" option with a valid argument
    * set.
    */

@@ -42,11 +42,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
@@ -635,8 +632,8 @@ public class StopDS
       return LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
     }
 
-    ASN1Reader reader = connection.getASN1Reader();
-    ASN1Writer writer = connection.getASN1Writer();
+    LDAPReader reader = connection.getLDAPReader();
+    LDAPWriter writer = connection.getLDAPWriter();
 
 
     // Construct the add request to send to the server.
@@ -708,18 +705,16 @@ public class StopDS
     LDAPMessage responseMessage;
     try
     {
-      writer.writeElement(requestMessage.encode());
+      writer.writeMessage(requestMessage);
 
-      ASN1Element responseElement = reader.readElement();
-      if (responseElement == null)
+      responseMessage = reader.readMessage();
+      if (responseMessage == null)
       {
         int    msgID   = MSGID_STOPDS_UNEXPECTED_CONNECTION_CLOSURE;
         String message = getMessage(msgID);
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
       }
-
-      responseMessage = LDAPMessage.decode(responseElement.decodeAsSequence());
     }
     catch (IOException ioe)
     {

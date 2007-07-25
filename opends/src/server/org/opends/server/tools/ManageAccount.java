@@ -37,9 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -473,11 +471,11 @@ public class ManageAccount
 
 
 
-  // The ASN.1 reader used to read responses from the server.
-  private static ASN1Reader asn1Reader;
+  // The LDAP reader used to read responses from the server.
+  private static LDAPReader ldapReader;
 
-  // The ASN.1 writer used to send requests to the server.
-  private static ASN1Writer asn1Writer;
+  // The LDAP writer used to send requests to the server.
+  private static LDAPWriter ldapWriter;
 
   // The counter that will be used for LDAP message IDs.
   private static AtomicInteger nextMessageID;
@@ -596,7 +594,7 @@ public class ManageAccount
 
       try
       {
-        asn1Writer.writeElement(requestMessage.encode());
+        ldapWriter.writeMessage(requestMessage);
       }
       catch (Exception e)
       {
@@ -611,8 +609,8 @@ public class ManageAccount
       ArrayList<ASN1Element> responseOpElements;
       try
       {
-        ASN1Element responseElement = asn1Reader.readElement();
-        if (responseElement == null)
+        LDAPMessage responseMessage = ldapReader.readMessage();
+        if (responseMessage == null)
         {
           int    msgID   = MSGID_PWPSTATE_CONNECTION_CLOSED_READING_RESPONSE;
           String message = getMessage(msgID);
@@ -620,8 +618,6 @@ public class ManageAccount
           return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
         }
 
-        LDAPMessage responseMessage =
-             LDAPMessage.decode(responseElement.decodeAsSequence());
         ExtendedResponseProtocolOp extendedResponse =
              responseMessage.getExtendedResponseProtocolOp();
 
@@ -1334,8 +1330,8 @@ public class ManageAccount
       return LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
     }
 
-    asn1Reader = connection.getASN1Reader();
-    asn1Writer = connection.getASN1Writer();
+    ldapReader = connection.getLDAPReader();
+    ldapWriter = connection.getLDAPWriter();
 
     return LDAPResultCode.SUCCESS;
   }

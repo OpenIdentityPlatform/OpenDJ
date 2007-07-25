@@ -38,10 +38,8 @@ import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Sequence;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -193,11 +191,8 @@ public class LDAPDelete
       LDAPMessage responseMessage = null;
       try
       {
-        int numBytes =
-             connection.getASN1Writer().writeElement(message.encode());
-        ASN1Element element = connection.getASN1Reader().readElement();
-        responseMessage = LDAPMessage.decode(
-                               ASN1Sequence.decodeAsSequence(element));
+        connection.getLDAPWriter().writeMessage(message);
+        responseMessage = connection.getLDAPReader().readMessage();
       } catch(ASN1Exception ae)
       {
         if (debugEnabled())

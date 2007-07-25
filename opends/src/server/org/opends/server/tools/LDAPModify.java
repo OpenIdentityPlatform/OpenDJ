@@ -341,11 +341,8 @@ public class LDAPModify
           LDAPMessage message =
                new LDAPMessage(nextMessageID.getAndIncrement(), protocolOp,
                                controls);
-          // int numBytes =
-          connection.getASN1Writer().writeElement(message.encode());
-          ASN1Element element = connection.getASN1Reader().readElement();
-          responseMessage =
-               LDAPMessage.decode(ASN1Sequence.decodeAsSequence(element));
+          connection.getLDAPWriter().writeMessage(message);
+          responseMessage = connection.getLDAPReader().readMessage();
         } catch(ASN1Exception ae)
         {
           if (debugEnabled())
@@ -1099,6 +1096,8 @@ public class LDAPModify
         return 1;
       }
     }
+
+    connectionOptions.setVerbose(verbose.isPresent());
 
     LDAPModify ldapModify = null;
     try

@@ -56,11 +56,8 @@ import javax.security.auth.login.LoginContext;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 
-import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
@@ -104,11 +101,11 @@ public class LDAPAuthenticationHandler
   // The bind DN for GSSAPI authentication.
   private ASN1OctetString gssapiBindDN;
 
-  // The ASN.1 reader that will be used to read data from the server.
-  private ASN1Reader reader;
+  // The LDAP reader that will be used to read data from the server.
+  private LDAPReader reader;
 
-  // The ASN.1 writer that will be used to send data to the server.
-  private ASN1Writer writer;
+  // The LDAP writer that will be used to send data to the server.
+  private LDAPWriter writer;
 
   // The atomic integer that will be used to obtain message IDs for request
   // messages.
@@ -152,20 +149,20 @@ public class LDAPAuthenticationHandler
    * for cases in which simple authentication will be used as it does not
    * require any particularly expensive processing.
    *
-   * @param  reader         The ASN.1 reader that will be used to read data from
+   * @param  reader         The LDAP reader that will be used to read data from
    *                        the server.
-   * @param  writer         The ASN.1 writer that will be used to send data to
+   * @param  writer         The LDAP writer that will be used to send data to
    *                        the server.
    * @param  hostName       The host name used to connect to the remote system
    *                        (fully-qualified if possible).
    * @param  nextMessageID  The atomic integer that will be used to obtain
    *                        message IDs for request messages.
    */
-  public LDAPAuthenticationHandler(ASN1Reader reader, ASN1Writer writer,
+  public LDAPAuthenticationHandler(LDAPReader reader, LDAPWriter writer,
                                    String hostName, AtomicInteger nextMessageID)
   {
-    this.reader        = reader;
-    this.writer        = writer;
+    this.reader = reader;
+    this.writer = writer;
     this.hostName      = hostName;
     this.nextMessageID = nextMessageID;
 
@@ -324,7 +321,7 @@ public class LDAPAuthenticationHandler
 
     try
     {
-      writer.writeElement(bindRequestMessage.encode());
+      writer.writeMessage(bindRequestMessage);
     }
     catch (IOException ioe)
     {
@@ -346,16 +343,14 @@ public class LDAPAuthenticationHandler
     LDAPMessage responseMessage;
     try
     {
-      ASN1Element responseElement = reader.readElement();
-      if (responseElement == null)
+      responseMessage = reader.readMessage();
+      if (responseMessage == null)
       {
         int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
         String message = getMessage(msgID);
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                   msgID, message);
       }
-
-      responseMessage = LDAPMessage.decode(responseElement.decodeAsSequence());
     }
     catch (IOException ioe)
     {
@@ -647,7 +642,7 @@ public class LDAPAuthenticationHandler
 
     try
     {
-      writer.writeElement(requestMessage.encode());
+      writer.writeMessage(requestMessage);
     }
     catch (IOException ioe)
     {
@@ -671,16 +666,14 @@ public class LDAPAuthenticationHandler
     LDAPMessage responseMessage;
     try
     {
-      ASN1Element responseElement = reader.readElement();
-      if (responseElement == null)
+      responseMessage = reader.readMessage();
+      if (responseMessage == null)
       {
         int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
         String message = getMessage(msgID);
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                   msgID, message);
       }
-
-      responseMessage = LDAPMessage.decode(responseElement.decodeAsSequence());
     }
     catch (IOException ioe)
     {
@@ -920,7 +913,7 @@ public class LDAPAuthenticationHandler
 
     try
     {
-      writer.writeElement(requestMessage1.encode());
+      writer.writeMessage(requestMessage1);
     }
     catch (IOException ioe)
     {
@@ -944,17 +937,14 @@ public class LDAPAuthenticationHandler
     LDAPMessage responseMessage1;
     try
     {
-      ASN1Element responseElement1 = reader.readElement();
-      if (responseElement1 == null)
+      responseMessage1 = reader.readMessage();
+      if (responseMessage1 == null)
       {
         int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
         String message = getMessage(msgID);
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                   msgID, message);
       }
-
-      responseMessage1 =
-           LDAPMessage.decode(responseElement1.decodeAsSequence());
     }
     catch (IOException ioe)
     {
@@ -1080,7 +1070,7 @@ public class LDAPAuthenticationHandler
 
     try
     {
-      writer.writeElement(requestMessage2.encode());
+      writer.writeMessage(requestMessage2);
     }
     catch (IOException ioe)
     {
@@ -1104,16 +1094,14 @@ public class LDAPAuthenticationHandler
     LDAPMessage responseMessage2;
     try
     {
-      ASN1Element responseElement = reader.readElement();
-      if (responseElement == null)
+      responseMessage2 = reader.readMessage();
+      if (responseMessage2 == null)
       {
         int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
         String message = getMessage(msgID);
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                   msgID, message);
       }
-
-      responseMessage2 = LDAPMessage.decode(responseElement.decodeAsSequence());
     }
     catch (IOException ioe)
     {
@@ -1547,7 +1535,7 @@ public class LDAPAuthenticationHandler
 
     try
     {
-      writer.writeElement(requestMessage1.encode());
+      writer.writeMessage(requestMessage1);
     }
     catch (IOException ioe)
     {
@@ -1571,17 +1559,14 @@ public class LDAPAuthenticationHandler
     LDAPMessage responseMessage1;
     try
     {
-      ASN1Element responseElement1 = reader.readElement();
-      if (responseElement1 == null)
+      responseMessage1 = reader.readMessage();
+      if (responseMessage1 == null)
       {
         int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
         String message = getMessage(msgID);
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                   msgID, message);
       }
-
-      responseMessage1 =
-           LDAPMessage.decode(responseElement1.decodeAsSequence());
     }
     catch (IOException ioe)
     {
@@ -1876,7 +1861,7 @@ public class LDAPAuthenticationHandler
 
     try
     {
-      writer.writeElement(requestMessage2.encode());
+      writer.writeMessage(requestMessage2);
     }
     catch (IOException ioe)
     {
@@ -1900,16 +1885,14 @@ public class LDAPAuthenticationHandler
     LDAPMessage responseMessage2;
     try
     {
-      ASN1Element responseElement = reader.readElement();
-      if (responseElement == null)
+      responseMessage2 = reader.readMessage();
+      if (responseMessage2 == null)
       {
         int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
         String message = getMessage(msgID);
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                   msgID, message);
       }
-
-      responseMessage2 = LDAPMessage.decode(responseElement.decodeAsSequence());
     }
     catch (IOException ioe)
     {
@@ -2557,7 +2540,7 @@ public class LDAPAuthenticationHandler
 
     try
     {
-      writer.writeElement(requestMessage.encode());
+      writer.writeMessage(requestMessage);
     }
     catch (IOException ioe)
     {
@@ -2581,16 +2564,14 @@ public class LDAPAuthenticationHandler
     LDAPMessage responseMessage;
     try
     {
-      ASN1Element responseElement = reader.readElement();
-      if (responseElement == null)
+      responseMessage = reader.readMessage();
+      if (responseMessage == null)
       {
         int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
         String message = getMessage(msgID);
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                   msgID, message);
       }
-
-      responseMessage = LDAPMessage.decode(responseElement.decodeAsSequence());
     }
     catch (IOException ioe)
     {
@@ -3180,7 +3161,7 @@ public class LDAPAuthenticationHandler
 
     try
     {
-      writer.writeElement(requestMessage.encode());
+      writer.writeMessage(requestMessage);
     }
     catch (IOException ioe)
     {
@@ -3204,16 +3185,14 @@ public class LDAPAuthenticationHandler
     LDAPMessage responseMessage;
     try
     {
-      ASN1Element responseElement = reader.readElement();
-      if (responseElement == null)
+      responseMessage = reader.readMessage();
+      if (responseMessage == null)
       {
         int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
         String message = getMessage(msgID);
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                   msgID, message);
       }
-
-      responseMessage = LDAPMessage.decode(responseElement.decodeAsSequence());
     }
     catch (IOException ioe)
     {
@@ -3419,7 +3398,7 @@ public class LDAPAuthenticationHandler
 
       try
       {
-        writer.writeElement(requestMessage.encode());
+        writer.writeMessage(requestMessage);
       }
       catch (IOException ioe)
       {
@@ -3443,17 +3422,14 @@ public class LDAPAuthenticationHandler
       LDAPMessage responseMessage;
       try
       {
-        ASN1Element responseElement = reader.readElement();
-        if (responseElement == null)
+        responseMessage = reader.readMessage();
+        if (responseMessage == null)
         {
           int msgID = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
           String message = getMessage(msgID);
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                     msgID, message);
         }
-
-        responseMessage =
-             LDAPMessage.decode(responseElement.decodeAsSequence());
       }
       catch (IOException ioe)
       {
@@ -3605,7 +3581,7 @@ public class LDAPAuthenticationHandler
 
           try
           {
-            writer.writeElement(requestMessage.encode());
+            writer.writeMessage(requestMessage);
           }
           catch (IOException ioe)
           {
@@ -3628,8 +3604,8 @@ public class LDAPAuthenticationHandler
           // Read the response from the server.
           try
           {
-            ASN1Element responseElement = reader.readElement();
-            if (responseElement == null)
+            responseMessage = reader.readMessage();
+            if (responseMessage == null)
             {
               int msgID =
                    MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
@@ -3637,9 +3613,6 @@ public class LDAPAuthenticationHandler
               throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                         msgID, message);
             }
-
-            responseMessage =
-                 LDAPMessage.decode(responseElement.decodeAsSequence());
           }
           catch (IOException ioe)
           {
@@ -3825,7 +3798,7 @@ public class LDAPAuthenticationHandler
 
     try
     {
-      writer.writeElement(requestMessage.encode());
+      writer.writeMessage(requestMessage);
     }
     catch (IOException ioe)
     {
@@ -3847,16 +3820,14 @@ public class LDAPAuthenticationHandler
     LDAPMessage responseMessage;
     try
     {
-      ASN1Element responseElement = reader.readElement();
-      if (responseElement == null)
+      responseMessage = reader.readMessage();
+      if (responseMessage == null)
       {
         int    msgID   = MSGID_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE;
         String message = getMessage(msgID);
         throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
                                   msgID, message);
       }
-
-      responseMessage = LDAPMessage.decode(responseElement.decodeAsSequence());
     }
     catch (IOException ioe)
     {

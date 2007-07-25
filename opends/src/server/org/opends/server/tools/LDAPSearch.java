@@ -182,7 +182,7 @@ public class LDAPSearch
           LDAPMessage message = new LDAPMessage(nextMessageID.getAndIncrement(),
                                                 protocolOp,
                                                 searchOptions.getControls());
-          connection.getASN1Writer().writeElement(message.encode());
+          connection.getLDAPWriter().writeMessage(message);
 
           byte opType;
           do
@@ -190,9 +190,8 @@ public class LDAPSearch
             int resultCode = 0;
             String errorMessage = null;
             DN matchedDN = null;
-            ASN1Element element = connection.getASN1Reader().readElement();
             LDAPMessage responseMessage =
-                 LDAPMessage.decode(ASN1Sequence.decodeAsSequence(element));
+                 connection.getLDAPReader().readMessage();
             responseControls = responseMessage.getControls();
 
 
@@ -1514,6 +1513,8 @@ public class LDAPSearch
         return 1;
       }
     }
+
+    connectionOptions.setVerbose(verbose.isPresent());
 
     // Read the filter strings.
     if(fileNameValue != null)

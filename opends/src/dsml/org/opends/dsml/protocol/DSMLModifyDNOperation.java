@@ -105,12 +105,10 @@ public class DSMLModifyDNOperation
 
     // Create and send the LDAP request to the server.
     LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
-    int numBytes = connection.getASN1Writer().writeElement(msg.encode());
+    connection.getLDAPWriter().writeMessage(msg);
 
     // Read and decode the LDAP response from the server.
-    ASN1Element element = connection.getASN1Reader().readElement();
-    LDAPMessage responseMessage =
-         LDAPMessage.decode(ASN1Sequence.decodeAsSequence(element));
+    LDAPMessage responseMessage = connection.getLDAPReader().readMessage();
 
     ModifyDNResponseProtocolOp modDNOp =
          responseMessage.getModifyDNResponseProtocolOp();

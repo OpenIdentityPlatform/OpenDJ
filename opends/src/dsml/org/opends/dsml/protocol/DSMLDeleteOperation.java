@@ -91,12 +91,10 @@ public class DSMLDeleteOperation
     ASN1OctetString dnStr = new ASN1OctetString(deleteRequest.getDn());
     ProtocolOp op = new DeleteRequestProtocolOp(dnStr);
     LDAPMessage msg = new LDAPMessage(DSMLServlet.nextMessageID(), op);
-    int numBytes = connection.getASN1Writer().writeElement(msg.encode());
+    connection.getLDAPWriter().writeMessage(msg);
 
     // Read and decode the LDAP response from the server.
-    ASN1Element element = connection.getASN1Reader().readElement();
-    LDAPMessage responseMessage =
-          LDAPMessage.decode(ASN1Sequence.decodeAsSequence(element));
+    LDAPMessage responseMessage = connection.getLDAPReader().readMessage();
 
     DeleteResponseProtocolOp delOp =
           responseMessage.getDeleteResponseProtocolOp();
