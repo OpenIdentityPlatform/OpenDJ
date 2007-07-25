@@ -30,8 +30,7 @@ package org.opends.server.authorization.dseecompat;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterClass;
+import org.testng.annotations.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import static org.opends.server.util.ServerConstants.*;
@@ -44,6 +43,7 @@ public class TargetControlTestCase extends AciTestCase {
 
   private static final String superUser="uid=superuser,ou=admins,o=test";
   private static final String level3User="uid=user.3,ou=People,o=test";
+  private static final String level4User="uid=user.4,ou=People,o=test";
   private static final String newPWD="newPWD";
 
 
@@ -55,8 +55,8 @@ public class TargetControlTestCase extends AciTestCase {
 
   private static final String peopleBase="ou=People,o=test";
   private static final String adminBase="ou=Admins,o=test";
-  private static final String newPeopleDN="uid=user.4," + peopleBase;
-  private static final String newAdminDN="uid=user.4," + adminBase;
+  private static final String newPeopleDN="uid=user.6," + peopleBase;
+  private static final String newAdminDN="uid=user.6," + adminBase;
 
 
   @BeforeClass
@@ -69,9 +69,18 @@ public class TargetControlTestCase extends AciTestCase {
   @AfterClass
   public void tearDown() throws Exception {
        String aciLdif=makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
-               G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL);
+               G_READ_ACI, G_SELF_MOD, G_SCHEMA, G_DSE, G_USER_OPS, G_CONTROL,
+               E_EXTEND_OP);
        LDIFModify(aciLdif, DIR_MGR_DN, PWD);
    }
+
+
+  @BeforeMethod
+  public void clearBackend() throws Exception {
+    deleteAttrFromEntry(peopleBase, "aci");
+    deleteAttrFromEntry(base, "aci");
+    deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
+  }
 
   private static final String[] newEntry = new String[] {
     "objectClass: top",
@@ -166,6 +175,21 @@ public class TargetControlTestCase extends AciTestCase {
           "(version 3.0; acl \"control\";" +
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
+ //Allow all to extended op.
+  private static final
+  String extOpAll =
+          "(extop=\"" + "*" + "\")" +
+          "(version 3.0; acl \"control\";" +
+          "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
+
+  //Only allow access to the password policy control. Used to test if the
+  //targetattr rule will give access erroneously.
+  private static final
+  String complicated =
+          "(targetcontrol=\"" + OID_PASSWORD_POLICY_CONTROL + "\")" +
+          "(targetattr != \"userpassword\")" +
+          "(version 3.0; acl \"control\";" +
+          "allow(all) userdn=\"ldap:///" + "anyone" + "\";)";
 
   /**
    * Test valid targetcontrol statements.
@@ -202,14 +226,34 @@ public class TargetControlTestCase extends AciTestCase {
   }
 
   /**
+   * Test access to disallowed control based on a targetattr rule allowing
+   * access.
+   *
+   * @throws Exception If an unexpected result is returned.
+   */
+
+  @Test()
+  public void testTargetattrSideEffect() throws Exception {
+   String pwdLdifs =
+        makeAddLDIF("aci", peopleBase, complicated);
+    LDIFModify(pwdLdifs, DIR_MGR_DN, PWD);
+    String noOpCtrlStr=OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true";
+    //This should fail beacause this ACI only allows acces to the
+    //password policy control.
+    pwdModify(level4User, PWD, newPWD, noOpCtrlStr, null,
+            LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+    deleteAttrFromEntry(peopleBase, "aci");
+  }
+
+  /**
    * Test access to extended op controls (no-op and userPasswordPolicy).
    *
    * @throws Exception If an unexpected result is returned.
    */
-  @Test()
+   @Test()
   public void testExtendOpControls() throws Exception {
    String pwdLdifs =
-        makeAddLDIF("aci", peopleBase, extOpControls, ALLOW_ALL);
+        makeAddLDIF("aci", peopleBase, extOpControls, extOpAll, ALLOW_ALL);
     LDIFModify(pwdLdifs, DIR_MGR_DN, PWD);
     String noOpCtrlStr=OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true";
     //This pwd change should return no-op since the no-op control is
@@ -228,7 +272,7 @@ public class TargetControlTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result is returned.
    */
-  @Test()
+   @Test()
   public void testBindControl() throws Exception {
     String pwdLdifs =
             makeAddLDIF("aci", peopleBase, pwdControls, ALLOW_ALL);
@@ -291,7 +335,6 @@ public class TargetControlTestCase extends AciTestCase {
             LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
     deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
   }
-
 
   /**
    * Test wildcard access. First test "targetcontrol != *"

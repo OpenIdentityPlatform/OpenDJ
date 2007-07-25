@@ -282,6 +282,16 @@ public class Aci  {
     public static final int TARGATTRFILTERS_DELETE = 0x2000;
 
     /**
+     * Used by the control evaluation access check.
+     */
+    public static final int ACI_CONTROL = 0x4000;
+
+    /**
+     *  Used by the extended operation access check.
+     */
+    public static final int ACI_EXT_OP = 0x8000;
+
+    /**
      * ACI_ATTR_STAR_MATCHED is the flag set when the evaluation reason of a
      * AciHandler.maysend ACI_READ access evaluation was the result of an
      * ACI targetattr all attributes expression (targetattr="*") target match.
@@ -400,15 +410,40 @@ public class Aci  {
 
     /**
      * Test if the given ACI is applicable using the target match information
-     * provided. The ACI target can have four keywords at this time:
+     * provided. The ACI target can have seven keywords at this time:
+     *
+     * These two base decision on the resource entry DN:
      *
      *       1. target - checked in isTargetApplicable.
      *       2. targetscope - checked in isTargetApplicable.
+     *
+     * These three base decision on resource entry attributes:
+     *
      *       3. targetfilter - checked in isTargetFilterApplicable.
      *       4. targetattr - checked in isTargetAttrApplicable.
+     *       5. targattrfilters -  checked in isTargAttrFiltersApplicable.
      *
-     * One and two are checked for match first. If they return true, then
-     * three is checked. Lastly four is checked.
+     * These two base decisions on a resource entry built by the ACI handler
+     * that only contains a DN:
+     *       6. targetcontrol - check in isTargetControlApplicable.
+     *       7. extop - check in isExtOpApplicable.
+     *
+     * Six and seven are specific to the check being done: targetcontrol when a
+     * control is being evaluated and extop when an extended operation is
+     * evaluated.  None of the attribute based keywords should be checked
+     * when a control or extended op is being evaluated, because one
+     * of those attribute keywords rule might incorrectly make an ACI
+     * applicable that shouldn't be. This can happen by erroneously basing
+     * their decision on the ACI handler generated stub resource entry. For
+     * example, a "(targetattr != userpassword)" rule would match the generated
+     * stub resource entry, even though a control or extended op might be
+     * denied.
+     *
+     * What is allowed is the target and targetscope keywords, since the DN is
+     * known, so they are checked along with the correct method for the access
+     * check (isTargetControlApplicable for control and
+     * isTExtOpApplicable for extended operations). See comments in code
+     * where these checks are done.
      *
      * @param aci The ACI to test.
      * @param matchCtx The target matching context containing all the info
@@ -417,20 +452,27 @@ public class Aci  {
      */
     public static boolean
     isApplicable(Aci aci, AciTargetMatchContext matchCtx) {
-        int ctxRights=matchCtx.getRights();
-       //First check if the ACI and context have similar rights.
+      if(matchCtx.hasRights(ACI_EXT_OP)) {
+        //Extended operation is being evaluated.
+         return AciTargets.isTargetApplicable(aci, matchCtx) &&
+                 AciTargets.isExtOpApplicable(aci, matchCtx);
+      } else if(matchCtx.hasRights(ACI_CONTROL)) {
+        //Control is being evaluated.
+         return AciTargets.isTargetApplicable(aci, matchCtx) &&
+                AciTargets.isTargetControlApplicable(aci, matchCtx);
+      } else {
+        int ctxRights = matchCtx.getRights();
+        //First check if the ACI and context have similar rights.
         if(!aci.hasRights(ctxRights)) {
-           //TODO This check might be able to be removed further testing
-           //     is needed.
-           if(!(aci.hasRights(ACI_SEARCH| ACI_READ) &&
-                 matchCtx.hasRights(ACI_SEARCH | ACI_READ)))
-              return false;
+          if(!(aci.hasRights(ACI_SEARCH| ACI_READ) &&
+                  matchCtx.hasRights(ACI_SEARCH | ACI_READ)))
+            return false;
         }
         return AciTargets.isTargetApplicable(aci, matchCtx) &&
-                AciTargets.isTargetControlApplicable(aci, matchCtx) &&
                 AciTargets.isTargetFilterApplicable(aci, matchCtx) &&
                 AciTargets.isTargAttrFiltersApplicable(aci, matchCtx) &&
                 AciTargets.isTargetAttrApplicable(aci, matchCtx);
+      }
     }
 
     /**

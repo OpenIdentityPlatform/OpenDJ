@@ -28,7 +28,6 @@
 
 package org.opends.server.authorization.dseecompat;
 
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 import java.net.InetAddress;

@@ -32,7 +32,6 @@ import java.util.List;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
-import static org.opends.server.authorization.dseecompat.Aci.ACI_READ;
 
 /**
  * The AciLDAPOperationContainer is an AciContainer
@@ -64,15 +63,30 @@ public class AciLDAPOperationContainer extends AciContainer  {
     }
 
     /**
-     * Constructor interface for control evaluation.
+     * Constructor interface for evaluation of a control.
      *
-     * @param operation The operation to evaluate.
-     * @param e An entry built especially for control evaluation.
-     * @param oid The control's oid string.
+     * @param operation The operation to use in the evaluation.
+     * @param e An entry built especially for evaluation.
+     * @param c The control to evaluate.
+     * @param rights The rights of a control.
      */
-    public AciLDAPOperationContainer(Operation operation, Entry e, String oid) {
-      super(operation, (ACI_READ), e );
-      setControlOID(oid);
+    public AciLDAPOperationContainer(Operation operation, Entry e, Control c,
+                                     int rights) {
+      super(operation, rights, e );
+      setControlOID(c.getOID());
+    }
+
+    /**
+     * Constructor interface for evaluation of the extended operation.
+     *
+     * @param operation  The extended operation to evaluate.
+     * @param e  An entry built especially for evaluation.
+     * @param rights The rights of a extended operation.
+     */
+    public AciLDAPOperationContainer(ExtendedOperation operation, Entry e,
+                                     int rights) {
+      super(operation, rights, e );
+      setExtOpOID(operation.getRequestOID());
     }
 
     /**

@@ -237,9 +237,14 @@ implements AciTargetMatchContext, AciEvalContext {
     private int evalAllAttributes=0;
 
    /*
-   * String used to hold a control OID string.
-   */
+    * String used to hold a control OID string.
+    */
     private String controlOID;
+
+   /*
+    * String used to hold an extended operation OID string.
+    */
+    private String extOpOID;
 
   /**
      * This constructor is used by all currently supported LDAP operations.
@@ -743,6 +748,13 @@ implements AciTargetMatchContext, AciEvalContext {
       return controlOID;
     }
 
+   /**
+    * {@inheritDoc}
+    */
+    public String getExtOpOID() {
+      return extOpOID;
+    }
+
     /**
      * Set the the controlOID value to the specified oid string.
      *
@@ -750,6 +762,16 @@ implements AciTargetMatchContext, AciEvalContext {
      */
     protected void setControlOID(String oid) {
       this.controlOID=oid;
+    }
+
+
+    /**
+     * Set the extended operation OID value to the specified oid string.
+     *
+     * @param oid  The extended operation oid string.
+     */
+    protected void setExtOpOID(String oid) {
+      this.extOpOID=oid;
     }
 
     /**

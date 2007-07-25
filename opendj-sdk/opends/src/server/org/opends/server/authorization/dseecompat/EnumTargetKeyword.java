@@ -61,7 +61,12 @@ public enum EnumTargetKeyword {
      * This enumeration is returned when the target keyword is
      * "targetcontrol".
      */
-    KEYWORD_TARGETCONTROL ("targetcontrol");
+    KEYWORD_TARGETCONTROL ("targetcontrol"),
+      /**
+     * This enumeration is returned when the target keyword is
+     * "extop".
+     */
+    KEYWORD_EXTOP ("extop");
 
     /*
      * The target keyword name.

@@ -25,71 +25,74 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.messages.AciMessages.*;
+
 import java.util.HashSet;
 
+
 /**
- * This class represents an ACI's targetcontrol keyword.
+ * This class represents an ACI's extop keyword rule.
  */
 
-public class TargetControl {
+public class ExtOp {
+
 
   /*
    * HashSet of OID strings parsed from the decode.
    */
-  private HashSet<String> controlOIDS = new HashSet<String>();
+  private HashSet<String> extOpOIDs = new HashSet<String>();
 
  /*
-  * Enumeration representing the targetcontrol operator.
+  * Enumeration representing the extop operator.
   */
 
   private EnumTargetOperator op = EnumTargetOperator.EQUALITY;
 
   /**
-   * Creates a class that can be used to evaluate a targetcontrol.
+   * Creates a class that can be used to evaluate a extop rule.
    *
-   * @param op The operator of the targetcontrol expression (=, !=).
-   * @param controlOIDS  Set of control OIDS to use in the evaluation (may
-   *                     contain wild-card '*').
+   * @param op The operator of the extop expression (=, !=).
+   * @param extOpOIDs  Set of extended operation OIDS to use in the evaluation
+   *                  (wild-card '*' allowed).
    */
-  private TargetControl(EnumTargetOperator op, HashSet<String> controlOIDS) {
-    this.controlOIDS=controlOIDS;
+  private ExtOp(EnumTargetOperator op, HashSet<String> extOpOIDs) {
+    this.extOpOIDs=extOpOIDs;
     this.op=op;
   }
 
+
   /**
-   *  Decode an targetcontrol expression string.
+   *  Decode an extop expression string.
    *
    * @param operator  An enumeration representing the operator type.
-   * @param expr A string representing the targetcontrol expression.
-   * @return  A class representing the targetcontrol expression that can be
+   * @param expr A string representing the extop expression.
+   * @return  A class representing the extop expression that can be
    *          used to evaluate an ACI.
    *
    * @throws AciException If the specified expression string is invalid.
    */
-  public static TargetControl decode(EnumTargetOperator operator, String expr)
+  public static ExtOp decode(EnumTargetOperator operator, String expr)
           throws AciException {
-    HashSet<String> controlOIDs =
-          Aci.decodeOID(expr,MSGID_ACI_SYNTAX_INVALID_TARGETCONTROL_EXPRESSION);
-    return new TargetControl(operator, controlOIDs);
+    HashSet<String> extOpOIDs =
+          Aci.decodeOID(expr,MSGID_ACI_SYNTAX_INVALID_TARGEXTOP_EXPRESSION);
+    return new ExtOp(operator, extOpOIDs);
   }
 
-  /**
-   * Check if a targetcontrol is applicable based on the provided target match
+   /**
+   * Check if a extop is applicable based on the provided target match
    * context.
    *
    * @param matchCtx The target match context to use in the check.
-   * @return True if the targetcontrol is applicable based on the context.
+   * @return True if the extop is applicable based on the context.
    */
   public boolean isApplicable(AciTargetMatchContext matchCtx) {
-    if(matchCtx.getControlOID() == null)
+    if(matchCtx.getExtOpOID() == null)
       return false;
     boolean ret = false;
-    for(String oid : controlOIDS)
-      if(oid.equals("*") || matchCtx.getControlOID().equals(oid)) {
+    for(String oid : extOpOIDs)
+      if(oid.equals("*") || matchCtx.getExtOpOID().equals(oid)) {
         ret=true;
         break;
       }
@@ -97,5 +100,5 @@ public class TargetControl {
           ret = !ret;
     return ret;
   }
-}
 
+}

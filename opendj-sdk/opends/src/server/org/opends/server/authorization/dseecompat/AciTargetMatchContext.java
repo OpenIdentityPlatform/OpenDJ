@@ -118,12 +118,21 @@ public interface AciTargetMatchContext {
      */
     public int getRights();
 
-  /**
-   * Return the oid string of the control being evaluated.
-   *
-   * @return The oid string of the control being evaluated.
-   */
-    public String getControlOID();
+    /**
+     * Return the OID (Object Identifier) string of the control being evaluated.
+     *
+     * @return The OID string of the control being evaluated.
+     */
+      public String getControlOID();
+
+
+   /**
+    * Return The OID (Object Identifier) string of the extended operation being
+    *        evaluated.
+    *
+    * @return The OID string of the extended operation being evaluated.
+    */
+    public String getExtOpOID();
 
     /**
      * Checks if the container's rights has the specified rights.

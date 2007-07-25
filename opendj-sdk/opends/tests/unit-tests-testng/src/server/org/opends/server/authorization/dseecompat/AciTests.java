@@ -1069,26 +1069,38 @@ public class AciTests extends DirectoryServerTestCase {
                   "allow(write)", BIND_RULE_USERDN_SELF);
 
   private static final String GLOBAL_SCHEMA_ACI =
-          buildGlobalAciValue("name", "User-Visible Schema Operational Attributes",
+          buildGlobalAciValue("name",
+                  "User-Visible Schema Operational Attributes",
                   "target", "ldap:///cn=schema", "targetscope", "base",
                   "targetattr",
-                  "attributeTypes||dITContentRules||dITStructureRules||ldapSyntaxes||matchingRules||matchingRuleUse||nameForms||objectClasses",
+                  "attributeTypes||dITContentRules||dITStructureRules||" +
+                  "ldapSyntaxes||matchingRules||matchingRuleUse||nameForms||" +
+                  "objectClasses",
                   "allow(read, search, compare)", BIND_RULE_USERDN_ANYONE);
 
   private static final String GLOBAL_DSE_ACI = buildGlobalAciValue(
           "name","User-Visible Root DSE Operational Attributes",
           "target", "ldap:///", "targetscope", "base",
           "targetattr",
-          "namingContexts||supportedAuthPasswordSchemes||supportedControl||supportedExtension||supportedFeatures||supportedSASLMechanisms||vendorName||vendorVersion",
+          "namingContexts||supportedAuthPasswordSchemes||supportedControl||" +
+          "supportedExtension||supportedFeatures||supportedSASLMechanisms||" +
+          "vendorName||vendorVersion",
           "allow(read, search, compare)",BIND_RULE_USERDN_ANYONE);
 
   private static final String GLOBAL_USER_OP_ATTRS_ACI = buildGlobalAciValue(
           "name", "User-Visible Operational Attributes", "targetattr",
-          "createTimestamp||creatorsName||modifiersName||modifyTimestamp||entryDN||entryUUID||subschemaSubentry",
+          "createTimestamp||creatorsName||modifiersName||modifyTimestamp||" +
+          "entryDN||entryUUID||subschemaSubentry",
           "allow(read, search, compare)", BIND_RULE_USERDN_ANYONE);
 
   private static final String GLOBAL_CONTROL_ACI = buildGlobalAciValue(
-          "name", "Control", "targetcontrol", "*",
+          "name", "Anonymous control access", "targetcontrol",
+          "*",
+          "allow(read)", BIND_RULE_USERDN_ANYONE);
+
+  private static final String GLOBAL_EXT_OP_ACI = buildGlobalAciValue(
+          "name", "Anonymous extend op access", "extop",
+          "*",
           "allow(read)", BIND_RULE_USERDN_ANYONE);
 
   private static final String GLOBAL_DEFAULT_ACIS =
@@ -1096,7 +1108,7 @@ public class AciTests extends DirectoryServerTestCase {
                                         GLOBAL_ANONYMOUS_READ_ACI,
                                         GLOBAL_SELF_WRITE_ACI, GLOBAL_SCHEMA_ACI,
                                         GLOBAL_DSE_ACI, GLOBAL_USER_OP_ATTRS_ACI,
-                                        GLOBAL_CONTROL_ACI);
+                                        GLOBAL_CONTROL_ACI, GLOBAL_EXT_OP_ACI);
 
  //ACI used to test LDAP compare.
  private static final
@@ -2065,7 +2077,7 @@ private static String _buildAciValue(String attr, String... aciFields) {
     String aciField = aciFields[i];
     String aciValue = aciFields[i+1];
 
-    if (aciField.startsWith("targ")) {
+    if (aciField.startsWith("targ") || aciField.equals("extop")) {
       if (!aciField.endsWith("=")) {  // We allow = or more importantly != to be included with the target
         aciField += "=";
       }
@@ -2092,7 +2104,8 @@ private static String _buildAciValue(String attr, String... aciFields) {
     String permission = aciFields[i];
     String bindRule = aciFields[i+1];
 
-    if (!permission.startsWith("targ") && !permission.equals("name")) {
+    if (!permission.startsWith("targ") && !permission.equals("extop") &&
+        !permission.equals("name")) {
       aci.append(EOL + " " + permission + " " + bindRule + ";");
     }
   }

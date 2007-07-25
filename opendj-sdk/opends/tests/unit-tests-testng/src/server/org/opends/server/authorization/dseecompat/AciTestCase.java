@@ -85,7 +85,12 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
 
   protected final static String G_CONTROL =
           "(targetcontrol = \"*\")" +
-          "(version 3.0; acl \"Control\"; " +
+          "(version 3.0; acl \"Anonymous control access\"; " +
+                  "allow (read) userdn=\"ldap:///anyone\";)";
+
+  protected final static String E_EXTEND_OP =
+          "(extop = \"*\")" +
+          "(version 3.0; acl \"Anonymous extend op access\"; " +
                   "allow (read) userdn=\"ldap:///anyone\";)";
 
   private static final ByteArrayOutputStream oStream = new ByteArrayOutputStream();
@@ -483,10 +488,35 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "uid: user.3",
             "givenName: User 3",
             "sn: 3",
-            "mail: user.3@test",
-            "description: user.3 description",
             "cn: User 3",
-            "l: Austin",
+             "l: Austin",
+            "userPassword: password",
+            "ds-privilege-name: proxied-auth",
+            "",
+            "dn: uid=user.4,ou=People,o=test",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalPerson",
+            "objectClass: inetOrgPerson",
+            "uid: user.4",
+            "givenName: User 4",
+            "sn: 4",
+            "cn: User 4",
+             "l: ft worth",
+            "userPassword: password",
+            "",
+            "dn: uid=user.5,ou=People,o=test",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalPerson",
+            "objectClass: inetOrgPerson",
+            "uid: user.5",
+            "givenName: User 5",
+            "sn: 5",
+            "mail: user.5@test",
+            "description: user.5 description",
+            "cn: User 5",
+            "l: waco",
             "userPassword: password",
             "ds-privilege-name: proxied-auth");
   }
