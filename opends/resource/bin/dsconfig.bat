@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.dsconfig.DSConfig"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=dsconfig"
-call "%~dP0\..\lib\_client-script.bat" %*
+for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 

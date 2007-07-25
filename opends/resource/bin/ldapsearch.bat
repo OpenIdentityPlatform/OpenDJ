@@ -29,5 +29,5 @@ setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDAPSearch"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=ldapsearch"
-call "%~dP0\..\lib\_client-script.bat" %*
+for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 
