@@ -196,6 +196,12 @@ public class IndexMergeThread extends DirectoryThread
         String message = getMessage(msgID, index.getName());
         TRACER.debugInfo(message);
       }
+
+      if(!ldifImportConfig.appendToExistingData())
+      {
+        index.setTrusted(null, true);
+      }
+
       return;
     }
 
@@ -307,7 +313,7 @@ public class IndexMergeThread extends DirectoryThread
       {
       }
 
-      if(replaceExisting)
+      if(!ldifImportConfig.appendToExistingData())
       {
         index.setTrusted(txn, true);
       }

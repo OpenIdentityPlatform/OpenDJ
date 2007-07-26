@@ -76,11 +76,6 @@ public class IndexRebuildThread extends DirectoryThread
   Index index = null;
 
   /**
-   * Name of the indexType being rebuilt.
-   */
-  String indexName = null;
-
-  /**
    * The ID2ENTRY database.
    */
   ID2Entry id2entry = null;
@@ -128,12 +123,11 @@ public class IndexRebuildThread extends DirectoryThread
    */
   IndexRebuildThread(EntryContainer ec, IndexType index)
   {
-    super("Index Rebuild Thread " + ec.getContainerName() + "_" +
+    super("Index Rebuild Thread " + ec.getDatabasePrefix() + "_" +
         index.toString());
     this.ec = ec;
     this.indexType = index;
     this.id2entry = ec.getID2Entry();
-    this.indexName = ec.getContainerName() + "_" +  index.toString();
   }
 
   /**
@@ -149,7 +143,6 @@ public class IndexRebuildThread extends DirectoryThread
     this.indexType = IndexType.INDEX;
     this.index = index;
     this.id2entry = ec.getID2Entry();
-    this.indexName = ec.getContainerName() + "_" +  index.toString();
   }
 
   /**
@@ -165,7 +158,6 @@ public class IndexRebuildThread extends DirectoryThread
     this.indexType = IndexType.ATTRIBUTEINDEX;
     this.attrIndex = index;
     this.id2entry = ec.getID2Entry();
-    this.indexName = ec.getContainerName() + "_" +  index.toString();
   }
 
   /**
@@ -213,25 +205,25 @@ public class IndexRebuildThread extends DirectoryThread
     switch(indexType)
     {
       case DN2ID :
-        ec.clearDatabase(null, ec.getDN2ID());
+        ec.clearDatabase(ec.getDN2ID());
         break;
       case DN2URI :
-        ec.clearDatabase(null, ec.getDN2URI());
+        ec.clearDatabase(ec.getDN2URI());
         break;
       case ID2CHILDREN :
-        ec.clearDatabase(null, ec.getID2Children());
+        ec.clearDatabase(ec.getID2Children());
         ec.getID2Children().setRebuildStatus(true);
         break;
       case ID2SUBTREE :
-        ec.clearDatabase(null, ec.getID2Subtree());
+        ec.clearDatabase(ec.getID2Subtree());
         ec.getID2Subtree().setRebuildStatus(true);
         break;
       case ATTRIBUTEINDEX :
-        ec.clearAttributeIndex(null, attrIndex);
+        ec.clearAttributeIndex(attrIndex);
         attrIndex.setRebuildStatus(true);
         break;
       case INDEX :
-        ec.clearDatabase(null, index);
+        ec.clearDatabase(index);
         index.setRebuildStatus(true);
     }
   }
@@ -278,12 +270,6 @@ public class IndexRebuildThread extends DirectoryThread
     try
     {
       totalEntries = getTotalEntries();
-      if(debugEnabled())
-      {
-        TRACER.debugInfo("Initiating rebuild of the %s indexType/database",
-                         indexName);
-        TRACER.debugVerbose("%d entries will be rebuilt", totalEntries);
-      }
 
       switch(indexType)
       {
@@ -328,6 +314,14 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildDN2ID() throws DatabaseException
   {
     DN2ID dn2id = ec.getDN2ID();
+
+    if(debugEnabled())
+    {
+      TRACER.debugInfo("Initiating rebuild of the %s database",
+                       dn2id.getName());
+      TRACER.debugVerbose("%d entries will be rebuilt", totalEntries);
+    }
+
 
     //Iterate through the id2entry database and insert associated dn2id
     //records.
@@ -379,7 +373,7 @@ public class IndexRebuildThread extends DirectoryThread
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, indexName,
+          String message = getMessage(msgID, dn2id.getName(),
                                       stackTraceToSingleLineString(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
                    message, msgID);
@@ -405,6 +399,14 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildDN2URI() throws DatabaseException
   {
     DN2URI dn2uri = ec.getDN2URI();
+
+    if(debugEnabled())
+    {
+      TRACER.debugInfo("Initiating rebuild of the %s database",
+                       dn2uri.getName());
+      TRACER.debugVerbose("%d entries will be rebuilt", totalEntries);
+    }
+
 
     //Iterate through the id2entry database and insert associated dn2uri
     //records.
@@ -457,7 +459,7 @@ public class IndexRebuildThread extends DirectoryThread
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, indexName,
+          String message = getMessage(msgID, dn2uri.getName(),
                                       stackTraceToSingleLineString(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
                    message, msgID);
@@ -484,6 +486,14 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildID2Children() throws DatabaseException
   {
     Index id2children = ec.getID2Children();
+
+    if(debugEnabled())
+    {
+      TRACER.debugInfo("Initiating rebuild of the %s index",
+                       id2children.getName());
+      TRACER.debugVerbose("%d entries will be rebuilt", totalEntries);
+    }
+
 
     DN2ID dn2id = ec.getDN2ID();
     DN2URI dn2uri = ec.getDN2URI();
@@ -559,7 +569,7 @@ public class IndexRebuildThread extends DirectoryThread
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, indexName,
+          String message = getMessage(msgID, id2children.getName(),
                                       stackTraceToSingleLineString(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
                    message, msgID);
@@ -588,6 +598,14 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildID2Subtree() throws DatabaseException
   {
     Index id2subtree = ec.getID2Subtree();
+
+    if(debugEnabled())
+    {
+      TRACER.debugInfo("Initiating rebuild of the %s index",
+                       id2subtree.getName());
+      TRACER.debugVerbose("%d entries will be rebuilt", totalEntries);
+    }
+
 
     DN2ID dn2id = ec.getDN2ID();
     DN2URI dn2uri = ec.getDN2URI();
@@ -693,7 +711,7 @@ public class IndexRebuildThread extends DirectoryThread
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, indexName,
+          String message = getMessage(msgID, id2subtree.getName(),
                                       stackTraceToSingleLineString(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
                    message, msgID);
@@ -722,6 +740,12 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildAttributeIndex(AttributeIndex index)
       throws DatabaseException
   {
+    if(debugEnabled())
+    {
+      TRACER.debugInfo("Initiating rebuild of the %s index",
+                       index.getName());
+      TRACER.debugVerbose("%d entries will be rebuilt", totalEntries);
+    }
 
     //Iterate through the id2entry database and insert associated indexType
     //records.
@@ -770,7 +794,7 @@ public class IndexRebuildThread extends DirectoryThread
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, indexName,
+          String message = getMessage(msgID, index.getName(),
                                       stackTraceToSingleLineString(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
                    message, msgID);
@@ -799,6 +823,12 @@ public class IndexRebuildThread extends DirectoryThread
   private void rebuildAttributeIndex(Index index)
       throws DatabaseException
   {
+    if(debugEnabled())
+    {
+      TRACER.debugInfo("Initiating rebuild of the %s attribute index",
+                       index.getName());
+      TRACER.debugVerbose("%d entries will be rebuilt", totalEntries);
+    }
 
     //Iterate through the id2entry database and insert associated indexType
     //records.
@@ -847,7 +877,7 @@ public class IndexRebuildThread extends DirectoryThread
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
-          String message = getMessage(msgID, indexName,
+          String message = getMessage(msgID, index.getName(),
                                       stackTraceToSingleLineString(e));
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
                    message, msgID);

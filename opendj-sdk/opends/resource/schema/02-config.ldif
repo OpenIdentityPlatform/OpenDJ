@@ -1498,6 +1498,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.449 NAME 'ds-cfg-message-subject'
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.450 NAME 'ds-cfg-message-body'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.451
+  NAME 'ds-task-import-clear-backend'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1836,14 +1840,15 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.63 NAME
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.64
   NAME 'ds-task-import' SUP ds-task
-  MUST ( ds-task-import-ldif-file $ ds-task-import-backend-id )
+  MUST ( ds-task-import-ldif-file )
   MAY ( ds-task-import-append $ ds-task-import-replace-existing $
   ds-task-import-include-branch $ ds-task-import-exclude-branch $
   ds-task-import-include-attribute $ ds-task-import-exclude-attribute $
   ds-task-import-include-filter $ ds-task-import-exclude-filter $
   ds-task-import-reject-file $ ds-task-import-overwrite-rejects $
   ds-task-import-skip-schema-validation $ ds-task-import-is-compressed $
-  ds-task-import-is-encrypted )
+  ds-task-import-is-encrypted $ ds-task-import-backend-id $
+  ds-task-import-clear-backend )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.65 NAME
   ( 'ds-cfg-replication-server-config'

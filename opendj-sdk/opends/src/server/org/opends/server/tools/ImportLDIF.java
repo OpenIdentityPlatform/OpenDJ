@@ -172,6 +172,7 @@ public class ImportLDIF
     BooleanArgument quietMode               = null;
     BooleanArgument replaceExisting         = null;
     BooleanArgument skipSchemaValidation    = null;
+    BooleanArgument clearBackend            = null;
     IntegerArgument randomSeed              = null;
     StringArgument  backendID               = null;
     StringArgument  configClass             = null;
@@ -245,10 +246,15 @@ public class ImportLDIF
 
 
       backendID =
-           new StringArgument("backendid", 'n', "backendID", true, false, true,
+           new StringArgument("backendid", 'n', "backendID", false, false, true,
                               "{backendID}", null, null,
                               MSGID_LDIFIMPORT_DESCRIPTION_BACKEND_ID);
       argParser.addArgument(backendID);
+
+      clearBackend =
+          new BooleanArgument("clearbackend", 'F', "clearBackend",
+                              MSGID_LDIFIMPORT_DESCRIPTION_CLEAR_BACKEND);
+      argParser.addArgument(clearBackend);
 
 
       includeBranchStrings =
@@ -413,6 +419,29 @@ public class ImportLDIF
       return 1;
     }
 
+    // Make sure that either the "includeBranchStrings" argument or the
+    // "backendID" argument was provided, but not both.
+    if(includeBranchStrings.isPresent())
+    {
+      if(backendID.isPresent())
+      {
+        int    msgID   = MSGID_LDIFIMPORT_CONFLICTING_OPTIONS;
+        String message = getMessage(msgID,
+                                    includeBranchStrings.getLongIdentifier(),
+                                    backendID.getLongIdentifier());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+    }
+    else if(! backendID.isPresent())
+    {
+      int    msgID   = MSGID_LDIFIMPORT_MISSING_BACKEND_ARGUMENT;
+      String message = getMessage(msgID,
+                                  includeBranchStrings.getLongIdentifier(),
+                                  backendID.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
 
     // Perform the initial bootstrap of the Directory Server and process the
     // configuration.
@@ -766,6 +795,38 @@ public class ImportLDIF
     Backend       backend           = null;
     List<DN> defaultIncludeBranches = null;
     List<DN> excludeBranches        = new ArrayList<DN>();
+    List<DN> includeBranches        = new ArrayList<DN>();
+
+    if (includeBranchStrings.isPresent())
+    {
+      includeBranches = new ArrayList<DN>();
+      for (String s : includeBranchStrings.getValues())
+      {
+        DN includeBranch;
+        try
+        {
+          includeBranch = DN.decode(s);
+        }
+        catch (DirectoryException de)
+        {
+          int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
+          String message = getMessage(msgID, s, de.getErrorMessage());
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+          return 1;
+        }
+        catch (Exception e)
+        {
+          int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
+          String message = getMessage(msgID, s, getExceptionMessage(e));
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+          return 1;
+        }
+
+        includeBranches.add(includeBranch);
+      }
+    }
 
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
     ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
@@ -780,9 +841,36 @@ public class ImportLDIF
     for (int i=0; i < numBackends; i++)
     {
       Backend b = backendList.get(i);
-      if (! backendID.getValue().equals(b.getBackendID()))
+
+      if(backendID.isPresent())
       {
-        continue;
+        if (! backendID.getValue().equals(b.getBackendID()))
+        {
+          continue;
+        }
+      }
+      else
+      {
+        boolean useBackend = false;
+        for(DN baseDN : dnList.get(i))
+        {
+          for(DN includeDN : includeBranches)
+          {
+            if(baseDN.isAncestorOf(includeDN))
+            {
+              useBackend = true;
+              break;
+            }
+          }
+          if(useBackend)
+          {
+            break;
+          }
+        }
+        if(!useBackend)
+        {
+          continue;
+        }
       }
 
       if (backend == null)
@@ -793,7 +881,7 @@ public class ImportLDIF
       else
       {
         int    msgID   = MSGID_LDIFIMPORT_MULTIPLE_BACKENDS_FOR_ID;
-        String message = getMessage(msgID, backendID.getValue());
+        String message = getMessage(msgID);
         logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                  message, msgID);
         return 1;
@@ -837,6 +925,27 @@ public class ImportLDIF
       }
     }
 
+    // Make sure that if the "backendID" argument was provided and the "append"
+    // option was not provided, the "clearBackend" argument was also
+    // provided if there are more then one baseDNs for the backend being
+    // imported.
+    if(backendID.isPresent() && !append.isPresent() &&
+        defaultIncludeBranches.size() > 1 && !clearBackend.isPresent())
+    {
+      StringBuilder builder = new StringBuilder();
+      builder.append(backend.getBaseDNs()[0].toNormalizedString());
+      for(int i = 1; i < backend.getBaseDNs().length; i++)
+      {
+        builder.append(" / ");
+        builder.append(backend.getBaseDNs()[i].toNormalizedString());
+      }
+      int    msgID   = MSGID_LDIFIMPORT_MISSING_CLEAR_BACKEND;
+      String message = getMessage(msgID, builder.toString(),
+                                  clearBackend.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
     for (String s : excludeBranchStrings.getValues())
     {
       DN excludeBranch;
@@ -867,50 +976,25 @@ public class ImportLDIF
       }
     }
 
-
-    List<DN> includeBranches;
     if (! includeBranchStrings.isPresent())
     {
       includeBranches = defaultIncludeBranches;
     }
     else
     {
-      includeBranches = new ArrayList<DN>();
-      for (String s : includeBranchStrings.getValues())
+      // Make sure the selected backend will handle all the include branches
+      for(DN includeBranch : includeBranches)
       {
-        DN includeBranch;
-        try
-        {
-          includeBranch = DN.decode(s);
-        }
-        catch (DirectoryException de)
-        {
-          int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-          String message = getMessage(msgID, s, de.getErrorMessage());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-          return 1;
-        }
-        catch (Exception e)
-        {
-          int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-          String message = getMessage(msgID, s, getExceptionMessage(e));
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-          return 1;
-        }
-
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
           int    msgID   = MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE;
-          String message = getMessage(msgID, s, backendID.getValue());
+          String message = getMessage(msgID, includeBranch.toNormalizedString(),
+                                      backendID.getValue());
           logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
                    message, msgID);
           return 1;
         }
-
-        includeBranches.add(includeBranch);
       }
     }
 
@@ -983,6 +1067,7 @@ public class ImportLDIF
     importConfig.setAppendToExistingData(append.isPresent());
     importConfig.setReplaceExistingEntries(replaceExisting.isPresent());
     importConfig.setCompressed(isCompressed.isPresent());
+    importConfig.setClearBackend(clearBackend.isPresent());
     importConfig.setEncrypted(isEncrypted.isPresent());
     importConfig.setExcludeAttributes(excludeAttributes);
     importConfig.setExcludeBranches(excludeBranches);

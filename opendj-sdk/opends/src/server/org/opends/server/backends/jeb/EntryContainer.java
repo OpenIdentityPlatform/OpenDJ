@@ -186,6 +186,7 @@ public class EntryContainer
 
   private int indexEntryLimit;
 
+  private String databasePrefix;
   /**
    * A read write lock to handle schema changes and bulk changes.
    */
@@ -198,6 +199,8 @@ public class EntryContainer
    *
    * @param baseDN  The baseDN this entry container will be responsible for
    *                storing on disk.
+   * @param databasePrefix The prefix to use in the database names used by
+   *                       this entry container.
    * @param backend A reference to the JE backend that is creating this entry
    *                container. It is needed by the Directory Server entry cache
    *                methods.
@@ -206,8 +209,9 @@ public class EntryContainer
    * @param rootContainer The root container this entry container is in.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public EntryContainer(DN baseDN, Backend backend, JEBackendCfg config,
-                        Environment env, RootContainer rootContainer)
+  public EntryContainer(DN baseDN, String databasePrefix, Backend backend,
+                        JEBackendCfg config, Environment env,
+                        RootContainer rootContainer)
       throws ConfigException
   {
     this.backend = backend;
@@ -215,6 +219,22 @@ public class EntryContainer
     this.config = config;
     this.env = env;
     this.rootContainer = rootContainer;
+
+    StringBuilder builder = new StringBuilder(databasePrefix.length());
+    for (int i = 0; i < databasePrefix.length(); i++)
+    {
+      char ch = databasePrefix.charAt(i);
+      if (Character.isLetterOrDigit(ch))
+      {
+        builder.append(ch);
+      }
+      else
+      {
+        builder.append('_');
+      }
+    }
+    this.databasePrefix = builder.toString();
+
     this.deadlockRetryLimit = config.getBackendDeadlockRetryLimit();
     this.subtreeDeleteSizeLimit = config.getBackendSubtreeDeleteSizeLimit();
     this.subtreeDeleteBatchSize = config.getBackendSubtreeDeleteBatchSize();
@@ -242,28 +262,29 @@ public class EntryContainer
       DataConfig entryDataConfig = new DataConfig();
       entryDataConfig.setCompressed(config.isBackendEntriesCompressed());
 
-      id2entry = new ID2Entry(ID2ENTRY_DATABASE_NAME, entryDataConfig,
-                              env, this);
+      id2entry = new ID2Entry(databasePrefix + "_" + ID2ENTRY_DATABASE_NAME,
+                              entryDataConfig, env, this);
       id2entry.open();
 
-      dn2id = new DN2ID(DN2ID_DATABASE_NAME, env, this);
+      dn2id = new DN2ID(databasePrefix + "_" + DN2ID_DATABASE_NAME, env, this);
       dn2id.open();
 
-      state = new State(STATE_DATABASE_NAME, env, this);
+      state = new State(databasePrefix + "_" + STATE_DATABASE_NAME, env, this);
       state.open();
 
-      id2children = new Index(ID2CHILDREN_DATABASE_NAME,
+      id2children = new Index(databasePrefix + "_" + ID2CHILDREN_DATABASE_NAME,
                               new ID2CIndexer(), state,
                               indexEntryLimit, 0,
                               env,this);
       id2children.open();
-      id2subtree = new Index(ID2SUBTREE_DATABASE_NAME,
+      id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
                              new ID2SIndexer(), state,
                              indexEntryLimit, 0,
                              env, this);
       id2subtree.open();
 
-      dn2uri = new DN2URI(REFERRAL_DATABASE_NAME, env, this);
+      dn2uri = new DN2URI(databasePrefix + "_" + REFERRAL_DATABASE_NAME,
+                          env, this);
       dn2uri.open();
 
       for (String idx : config.listJEIndexes())
@@ -297,86 +318,11 @@ public class EntryContainer
   public void close()
       throws DatabaseException
   {
-    try
+    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    listDatabases(databases);
+    for(DatabaseContainer db : databases)
     {
-      dn2id.close();
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    try
-    {
-      id2entry.close();
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    try
-    {
-      id2children.close();
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    try
-    {
-      id2subtree.close();
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    try
-    {
-      state.close();
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    try
-    {
-      dn2uri.close();
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-
-    for (AttributeIndex index : attrIndexMap.values())
-    {
-      try
-      {
-        index.close();
-      }
-      catch (DatabaseNotFoundException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
+      db.close();
     }
 
     config.removeJEChangeListener(this);
@@ -3438,86 +3384,6 @@ public class EntryContainer
   }
 
   /**
-   * Remove the entry entryContainer from disk. The entryContainer must not be
-   * open.
-   *
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public void removeContainer() throws DatabaseException
-  {
-    try
-    {
-      removeDatabase(dn2id);
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    try
-    {
-      removeDatabase(id2entry);
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    try
-    {
-      removeDatabase(id2children);
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    try
-    {
-      removeDatabase(id2subtree);
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    try
-    {
-      removeDatabase(state);
-    }
-    catch (DatabaseNotFoundException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    for (AttributeIndex index : attrIndexMap.values())
-    {
-      try
-      {
-        removeAttributeIndex(index);
-      }
-      catch (DatabaseNotFoundException e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-    }
-    attrIndexMap.clear();
-  }
-
-  /**
    * Get the number of values for which the entry limit has been exceeded
    * since the entry entryContainer was opened.
    * @return The number of values for which the entry limit has been exceeded.
@@ -3545,6 +3411,7 @@ public class EntryContainer
     dbList.add(dn2uri);
     dbList.add(id2children);
     dbList.add(id2subtree);
+    dbList.add(state);
 
     for(AttributeIndex index : attrIndexMap.values())
     {
@@ -3576,19 +3443,6 @@ public class EntryContainer
       }
     }
     return false;
-  }
-
-  /**
-   * Constructs a full JE database name incorporating a entryContainer name.
-   *
-   * @param builder A string builder to which the full name will be appended.
-   * @param name    The short database name.
-   */
-  private void buildDatabaseName(StringBuilder builder, String name)
-  {
-    builder.append(getContainerName());
-    builder.append('_');
-    builder.append(name);
   }
 
   /**
@@ -3652,20 +3506,92 @@ public class EntryContainer
   }
 
   /**
+   * Delete this entry container from disk. The entry container should be
+   * closed before calling this method.
+   *
+   * @throws DatabaseException If an error occurs while removing the entry
+   *                           container.
+   */
+  public void delete() throws DatabaseException
+  {
+    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    listDatabases(databases);
+
+    for(DatabaseContainer db : databases)
+    {
+      db.close();
+    }
+
+    if(env.getConfig().getTransactional())
+    {
+      Transaction txn = beginTransaction();
+
+      try
+      {
+        for(DatabaseContainer db : databases)
+        {
+          env.removeDatabase(txn, db.getName());
+        }
+
+        transactionCommit(txn);
+      }
+      catch(DatabaseException de)
+      {
+        transactionAbort(txn);
+        throw de;
+      }
+    }
+    else
+    {
+      for(DatabaseContainer db : databases)
+      {
+        env.removeDatabase(null, db.getName());
+      }
+    }
+  }
+
+  /**
    * Remove a database from disk.
    *
    * @param database The database container to remove.
    * @throws DatabaseException If an error occurs while attempting to delete the
    * database.
    */
-  public void removeDatabase(DatabaseContainer database)
+  public void deleteDatabase(DatabaseContainer database)
       throws DatabaseException
   {
-    database.close();
-    env.removeDatabase(null, database.getName());
-    if(database instanceof Index)
+    if(database == state)
     {
-      state.removeIndexTrustState(null, (Index)database);
+      // The state database can not be removed individually.
+      return;
+    }
+
+    database.close();
+    if(env.getConfig().getTransactional())
+    {
+      Transaction txn = beginTransaction();
+      try
+      {
+        env.removeDatabase(txn, database.getName());
+        if(database instanceof Index)
+        {
+          state.removeIndexTrustState(txn, (Index)database);
+        }
+        transactionCommit(txn);
+      }
+      catch(DatabaseException de)
+      {
+        transactionAbort(txn);
+        throw de;
+      }
+    }
+    else
+    {
+      env.removeDatabase(null, database.getName());
+      if(database instanceof Index)
+      {
+        state.removeIndexTrustState(null, (Index)database);
+      }
     }
   }
 
@@ -3676,34 +3602,75 @@ public class EntryContainer
    * @throws DatabaseException If an JE database error occurs while attempting
    * to delete the index.
    */
-  public void removeAttributeIndex(AttributeIndex index)
+  public void deleteAttributeIndex(AttributeIndex index)
       throws DatabaseException
   {
     index.close();
-    if(index.equalityIndex != null)
+    if(env.getConfig().getTransactional())
     {
-      env.removeDatabase(null, index.equalityIndex.getName());
-      state.removeIndexTrustState(null, index.equalityIndex);
+      Transaction txn = beginTransaction();
+      try
+      {
+        if(index.equalityIndex != null)
+        {
+          env.removeDatabase(txn, index.equalityIndex.getName());
+          state.removeIndexTrustState(txn, index.equalityIndex);
+        }
+        if(index.presenceIndex != null)
+        {
+          env.removeDatabase(txn, index.presenceIndex.getName());
+          state.removeIndexTrustState(txn, index.presenceIndex);
+        }
+        if(index.substringIndex != null)
+        {
+          env.removeDatabase(txn, index.substringIndex.getName());
+          state.removeIndexTrustState(txn, index.substringIndex);
+        }
+        if(index.orderingIndex != null)
+        {
+          env.removeDatabase(txn, index.orderingIndex.getName());
+          state.removeIndexTrustState(txn, index.orderingIndex);
+        }
+        if(index.approximateIndex != null)
+        {
+          env.removeDatabase(txn, index.approximateIndex.getName());
+          state.removeIndexTrustState(txn, index.approximateIndex);
+        }
+        transactionCommit(txn);
+      }
+      catch(DatabaseException de)
+      {
+        transactionAbort(txn);
+        throw de;
+      }
     }
-    if(index.presenceIndex != null)
+    else
     {
-      env.removeDatabase(null, index.presenceIndex.getName());
-      state.removeIndexTrustState(null, index.presenceIndex);
-    }
-    if(index.substringIndex != null)
-    {
-      env.removeDatabase(null, index.substringIndex.getName());
-      state.removeIndexTrustState(null, index.substringIndex);
-    }
-    if(index.orderingIndex != null)
-    {
-      env.removeDatabase(null, index.orderingIndex.getName());
-      state.removeIndexTrustState(null, index.orderingIndex);
-    }
-    if(index.approximateIndex != null)
-    {
-      env.removeDatabase(null, index.approximateIndex.getName());
-      state.removeIndexTrustState(null, index.approximateIndex);
+      if(index.equalityIndex != null)
+      {
+        env.removeDatabase(null, index.equalityIndex.getName());
+        state.removeIndexTrustState(null, index.equalityIndex);
+      }
+      if(index.presenceIndex != null)
+      {
+        env.removeDatabase(null, index.presenceIndex.getName());
+        state.removeIndexTrustState(null, index.presenceIndex);
+      }
+      if(index.substringIndex != null)
+      {
+        env.removeDatabase(null, index.substringIndex.getName());
+        state.removeIndexTrustState(null, index.substringIndex);
+      }
+      if(index.orderingIndex != null)
+      {
+        env.removeDatabase(null, index.orderingIndex.getName());
+        state.removeIndexTrustState(null, index.orderingIndex);
+      }
+      if(index.approximateIndex != null)
+      {
+        env.removeDatabase(null, index.approximateIndex.getName());
+        state.removeIndexTrustState(null, index.approximateIndex);
+      }
     }
   }
 
@@ -3714,13 +3681,30 @@ public class EntryContainer
    *
    * @return The container name for the base DN.
    */
-  public String getContainerName()
+  public String getDatabasePrefix()
   {
-    String normStr = baseDN.toNormalizedString();
-    StringBuilder builder = new StringBuilder(normStr.length());
-    for (int i = 0; i < normStr.length(); i++)
+    return databasePrefix;
+  }
+
+  /**
+   * Sets a new database prefix for this entry container and rename all
+   * existing databases in use by this entry container.
+   *
+   * @param newDatabasePrefix The new database prefix to use.
+   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws JebException If an error occurs in the JE backend.
+   */
+  public void setDatabasePrefix(String newDatabasePrefix)
+      throws DatabaseException, JebException
+
+  {
+    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    listDatabases(databases);
+
+    StringBuilder builder = new StringBuilder(newDatabasePrefix.length());
+    for (int i = 0; i < newDatabasePrefix.length(); i++)
     {
-      char ch = normStr.charAt(i);
+      char ch = newDatabasePrefix.charAt(i);
       if (Character.isLetterOrDigit(ch))
       {
         builder.append(ch);
@@ -3730,8 +3714,74 @@ public class EntryContainer
         builder.append('_');
       }
     }
-    return builder.toString();
+    newDatabasePrefix = builder.toString();
+
+    // close the containers.
+    for(DatabaseContainer db : databases)
+    {
+      db.close();
+    }
+
+    try
+    {
+      if(env.getConfig().getTransactional())
+      {
+        //Rename under transaction
+        Transaction txn = beginTransaction();
+        try
+        {
+          for(DatabaseContainer db : databases)
+          {
+            String oldName = db.getName();
+            String newName = oldName.replace(databasePrefix, newDatabasePrefix);
+            env.renameDatabase(txn, oldName, newName);
+          }
+
+          transactionCommit(txn);
+
+          for(DatabaseContainer db : databases)
+          {
+            String oldName = db.getName();
+            String newName = oldName.replace(databasePrefix, newDatabasePrefix);
+            db.setName(newName);
+          }
+
+          // Update the prefix.
+          this.databasePrefix = newDatabasePrefix;
+        }
+        catch(Exception e)
+        {
+          transactionAbort(txn);
+
+          int messageID = MSGID_JEB_UNCHECKED_EXCEPTION;
+          String message = getMessage(messageID);
+          throw new JebException(messageID, message, e);
+        }
+      }
+      else
+      {
+        for(DatabaseContainer db : databases)
+        {
+          String oldName = db.getName();
+          String newName = oldName.replace(databasePrefix, newDatabasePrefix);
+          env.renameDatabase(null, oldName, newName);
+          db.setName(newName);
+        }
+
+        // Update the prefix.
+        this.databasePrefix = newDatabasePrefix;
+      }
+    }
+    finally
+    {
+      // Open the containers backup.
+      for(DatabaseContainer db : databases)
+      {
+        db.open();
+      }
+    }
   }
+
 
   /**
    * Get the baseDN this entry container is responsible for.
@@ -3876,7 +3926,7 @@ public class EntryContainer
     try
     {
       AttributeIndex index = attrIndexMap.get(cfg.getIndexAttribute());
-      removeAttributeIndex(index);
+      deleteAttributeIndex(index);
       attrIndexMap.remove(cfg.getIndexAttribute());
     }
     catch(DatabaseException de)
@@ -3911,19 +3961,99 @@ public class EntryContainer
   }
 
   /**
+   * Clear the contents of this entry container.
+   *
+   * @return The number of records deleted.
+   * @throws DatabaseException If an error occurs while removing the entry
+   *                           container.
+   */
+  public long clear() throws DatabaseException
+  {
+    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    listDatabases(databases);
+    long count = 0;
+
+    for(DatabaseContainer db : databases)
+    {
+      db.close();
+    }
+    try
+    {
+      if(env.getConfig().getTransactional())
+      {
+        Transaction txn = beginTransaction();
+
+        try
+        {
+          for(DatabaseContainer db : databases)
+          {
+            count += env.truncateDatabase(txn, db.getName(), true);
+          }
+
+          transactionCommit(txn);
+        }
+        catch(DatabaseException de)
+        {
+          transactionAbort(txn);
+          throw de;
+        }
+      }
+      else
+      {
+        for(DatabaseContainer db : databases)
+        {
+          count += env.truncateDatabase(null, db.getName(), true);
+        }
+      }
+    }
+    finally
+    {
+      for(DatabaseContainer db : databases)
+      {
+        db.open();
+      }
+    }
+
+    return count;
+  }
+
+  /**
    * Clear the contents for a database from disk.
    *
-   * @param txn A transaction object or null if its not required.
    * @param database The database to clear.
    * @return The number of records deleted.
    * @throws DatabaseException if a JE database error occurs.
    */
-  public long clearDatabase(Transaction txn, DatabaseContainer database)
+  public long clearDatabase(DatabaseContainer database)
       throws DatabaseException
   {
+    long count = 0;
     database.close();
-    long count = env.truncateDatabase(txn, database.getName(), true);
-    database.open();
+    try
+    {
+      if(env.getConfig().getTransactional())
+      {
+        Transaction txn = beginTransaction();
+        try
+        {
+          count = env.truncateDatabase(txn, database.getName(), true);
+          transactionCommit(txn);
+        }
+        catch(DatabaseException de)
+        {
+          transactionAbort(txn);
+          throw de;
+        }
+      }
+      else
+      {
+        count = env.truncateDatabase(null, database.getName(), true);
+      }
+    }
+    finally
+    {
+      database.open();
+    }
     if(debugEnabled())
     {
       TRACER.debugVerbose("Cleared %d existing records from the " +
@@ -3935,39 +4065,89 @@ public class EntryContainer
   /**
    * Clear the contents for a attribute index from disk.
    *
-   * @param txn A transaction object or null if its not required.
    * @param index The attribute index to clear.
    * @return The number of records deleted.
    * @throws DatabaseException if a JE database error occurs.
    */
-  public long clearAttributeIndex(Transaction txn, AttributeIndex index)
+  public long clearAttributeIndex(AttributeIndex index)
       throws DatabaseException
   {
     long count = 0;
 
     index.close();
-    if(index.equalityIndex != null)
+    try
     {
-      count += env.truncateDatabase(txn, index.equalityIndex.getName(), true);
+      if(env.getConfig().getTransactional())
+      {
+        Transaction txn = beginTransaction();
+        try
+        {
+          if(index.equalityIndex != null)
+          {
+            count += env.truncateDatabase(txn, index.equalityIndex.getName(),
+                                          true);
+          }
+          if(index.presenceIndex != null)
+          {
+            count += env.truncateDatabase(txn, index.presenceIndex.getName(),
+                                          true);
+          }
+          if(index.substringIndex != null)
+          {
+            count += env.truncateDatabase(txn, index.substringIndex.getName(),
+                                          true);
+          }
+          if(index.orderingIndex != null)
+          {
+            count += env.truncateDatabase(txn, index.orderingIndex.getName(),
+                                          true);
+          }
+          if(index.approximateIndex != null)
+          {
+            count += env.truncateDatabase(txn, index.approximateIndex.getName(),
+                                          true);
+          }
+          transactionCommit(txn);
+        }
+        catch(DatabaseException de)
+        {
+          transactionAbort(txn);
+          throw de;
+        }
+      }
+      else
+      {
+        if(index.equalityIndex != null)
+        {
+          count += env.truncateDatabase(null, index.equalityIndex.getName(),
+                                        true);
+        }
+        if(index.presenceIndex != null)
+        {
+          count += env.truncateDatabase(null, index.presenceIndex.getName(),
+                                        true);
+        }
+        if(index.substringIndex != null)
+        {
+          count += env.truncateDatabase(null, index.substringIndex.getName(),
+                                        true);
+        }
+        if(index.orderingIndex != null)
+        {
+          count += env.truncateDatabase(null, index.orderingIndex.getName(),
+                                        true);
+        }
+        if(index.approximateIndex != null)
+        {
+          count += env.truncateDatabase(null, index.approximateIndex.getName(),
+                                        true);
+        }
+      }
     }
-    if(index.presenceIndex != null)
+    finally
     {
-      count += env.truncateDatabase(txn, index.presenceIndex.getName(), true);
+      index.open();
     }
-    if(index.substringIndex != null)
-    {
-      count += env.truncateDatabase(txn, index.substringIndex.getName(), true);
-    }
-    if(index.orderingIndex != null)
-    {
-      count += env.truncateDatabase(txn, index.orderingIndex.getName(), true);
-    }
-    if(index.approximateIndex != null)
-    {
-      count += env.truncateDatabase(txn, index.approximateIndex.getName(),
-                                    true);
-    }
-    index.open();
     if(debugEnabled())
     {
       TRACER.debugVerbose("Cleared %d existing records from the " +

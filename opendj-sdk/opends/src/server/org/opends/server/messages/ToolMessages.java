@@ -9240,6 +9240,7 @@ public class ToolMessages
   public static final int MSGID_DSCFG_ERROR_MISSING_NON_INTERACTIVE_ARG =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1223;
 
+
   /**
    * The message ID for the message that will be used if dsconfig cannot
    * read input from the console. This takes a single argument, which
@@ -9376,6 +9377,32 @@ public class ToolMessages
    */
   public static final int MSGID_DSCFG_ERROR_GENERAL_CHOICE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1239;
+
+  /**
+   * The message ID for the message that will be used as the description of the
+   * clearBackend argument.  This does not take any arguments.
+   */
+  public static final int MSGID_LDIFIMPORT_DESCRIPTION_CLEAR_BACKEND =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1240;
+
+    /**
+   * The message ID for the message that will be used if neither the
+   * includeBranchStrings or the backendID arguments was provided.
+   * This takes two arguments, which are the long identifiers for the
+   * includeBranchStrings and backendID options.
+   */
+  public static final int MSGID_LDIFIMPORT_MISSING_BACKEND_ARGUMENT =
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1241;
+
+
+  /**
+   * The message ID for the message that will be used if the clearBackend
+   * argument was not provided when the backendID argument was provided without
+   * an append argument. This takes the long identifier of the clearBackend
+   * option as an argument.
+   */
+  public static final int MSGID_LDIFIMPORT_MISSING_CLEAR_BACKEND =
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1242;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -9664,11 +9691,12 @@ public class ToolMessages
                     "Unable to decode include filter string \"%s\" as a " +
                     "valid search filter:  %s");
     registerMessage(MSGID_LDIFIMPORT_MULTIPLE_BACKENDS_FOR_ID,
-                    "Multiple Directory Server backends are configured with " +
-                    "backend ID \"%s\"");
+                    "Imported branches or backend IDs can not span across " +
+                    "multiple Directory Server backends");
     registerMessage(MSGID_LDIFIMPORT_NO_BACKENDS_FOR_ID,
                     "None of the Directory Server backends are configured " +
-                    "with the requested backend ID \"%s\"");
+                    "with the requested backend ID or base DNs that include " +
+                    "the specified branches");
     registerMessage(MSGID_LDIFIMPORT_CANNOT_IMPORT,
                     "The Directory Server backend with backend ID %s does " +
                     "not provide a mechanism for performing LDIF imports");
@@ -12404,6 +12432,18 @@ public class ToolMessages
                     "Invalid response. Please enter a value between 1 and %s");
     registerMessage(MSGID_DSCFG_ERROR_GENERAL_CONFIRM,
                     "Invalid response. Please enter \"%s\" or \"%s\"");
+    registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_CLEAR_BACKEND,
+                    "Remove all entries for all base DNs in the backend " +
+                    "before importing");
+    registerMessage(MSGID_LDIFIMPORT_MISSING_BACKEND_ARGUMENT,
+                    "Neither the %s or the %s argument was provided.  One " +
+                    "of these arguments must be given to specify the backend " +
+                    "for the LDIF data to be imported to");
+    registerMessage(MSGID_LDIFIMPORT_MISSING_CLEAR_BACKEND,
+                    "Importing to a backend without the append argument will " +
+                    "remove all entries for all base DNs (%s) in the " +
+                    "backend. The %s argument must be given to continue with " +
+                    "import");
   }
 }
 

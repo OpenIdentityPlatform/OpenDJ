@@ -1070,7 +1070,7 @@ public class BackendImpl
         envConfig.setConfigParam("je.env.isLocking", "true");
         envConfig.setConfigParam("je.env.runCheckpointer", "false");
       }
-      else
+      else if(importConfig.clearBackend())
       {
         // We have the writer lock on the environment, now delete the
         // environment and re-open it. Only do this when we are
@@ -1450,7 +1450,9 @@ public class BackendImpl
           {
             // The base DN was deleted.
             DirectoryServer.deregisterBaseDN(baseDN, false);
-            rootContainer.removeEntryContainer(baseDN);
+            EntryContainer ec =
+                rootContainer.unregisterEntryContainer(baseDN);
+            ec.delete();
           }
         }
 
@@ -1461,7 +1463,9 @@ public class BackendImpl
             try
             {
               // The base DN was added.
-              rootContainer.openEntryContainer(baseDN);
+              EntryContainer ec =
+                  rootContainer.openEntryContainer(baseDN, null);
+              rootContainer.registerEntryContainer(baseDN, ec);
               DirectoryServer.registerBaseDN(baseDN, this, false, false);
             }
             catch (Exception e)

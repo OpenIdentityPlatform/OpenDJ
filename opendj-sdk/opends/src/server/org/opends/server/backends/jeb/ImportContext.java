@@ -35,21 +35,28 @@ import org.opends.server.admin.std.server.JEBackendCfg;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class represents the import context for a destination base DN.
  */
 public class ImportContext
 {
-  /**
-   * The name of the entryContainer for the destination base DN.
-   */
-  private String containerName;
 
   /**
    * The destination base DN.
    */
   private DN baseDN;
+
+  /**
+   * The include branches below the base DN.
+   */
+  private List<DN> includeBranches;
+
+  /**
+   * The exclude branches below the base DN.
+   */
+  private List<DN> excludeBranches;
 
   /**
    * The configuration of the destination backend.
@@ -70,6 +77,11 @@ public class ImportContext
    * The entry entryContainer for the destination base DN.
    */
   private EntryContainer entryContainer;
+
+  /**
+   * The source entryContainer if this is a partial import of a base DN.
+   */
+  private EntryContainer srcEntryContainer;
 
   /**
    * The amount of buffer memory available in bytes.
@@ -118,24 +130,6 @@ public class ImportContext
   public void setQueue(BlockingQueue<Entry> queue)
   {
     this.queue = queue;
-  }
-
-  /**
-   * Set the name of the entryContainer for the destination base DN.
-   * @param containerName The entryContainer name.
-   */
-  public void setContainerName(String containerName)
-  {
-    this.containerName = containerName;
-  }
-
-  /**
-   * Get the name of the entryContainer for the destination base DN.
-   * @return The entryContainer name.
-   */
-  public String getContainerName()
-  {
-    return containerName;
   }
 
   /**
@@ -229,6 +223,25 @@ public class ImportContext
   }
 
   /**
+   * Set the source entry entryContainer for the destination base DN.
+   * @param srcEntryContainer The entry source entryContainer for the
+   * destination base DN.
+   */
+  public void setSrcEntryContainer(EntryContainer srcEntryContainer)
+  {
+    this.srcEntryContainer = srcEntryContainer;
+  }
+
+  /**
+   * Get the source entry entryContainer for the destination base DN.
+   * @return The source entry entryContainer for the destination base DN.
+   */
+  public EntryContainer getSrcEntryContainer()
+  {
+    return srcEntryContainer;
+  }
+
+  /**
    * Get the available buffer size in bytes.
    * @return The available buffer size.
    */
@@ -300,4 +313,75 @@ public class ImportContext
   {
     this.IDs = IDs;
   }
+
+  /**
+     * Retrieves the set of base DNs that specify the set of entries to
+     * exclude from the import.  The contents of the returned list may
+     * be altered by the caller.
+     *
+     * @return  The set of base DNs that specify the set of entries to
+     *          exclude from the import.
+     */
+    public List<DN> getExcludeBranches()
+    {
+      return excludeBranches;
+    }
+
+
+
+    /**
+     * Specifies the set of base DNs that specify the set of entries to
+     * exclude from the import.
+     *
+     * @param  excludeBranches  The set of base DNs that specify the set
+     *                          of entries to exclude from the import.
+     */
+    public void setExcludeBranches(List<DN> excludeBranches)
+    {
+      if (excludeBranches == null)
+      {
+        this.excludeBranches = new ArrayList<DN>(0);
+      }
+      else
+      {
+        this.excludeBranches = excludeBranches;
+      }
+    }
+
+
+
+    /**
+     * Retrieves the set of base DNs that specify the set of entries to
+     * include in the import.  The contents of the returned list may be
+     * altered by the caller.
+     *
+     * @return  The set of base DNs that specify the set of entries to
+     *          include in the import.
+     */
+    public List<DN> getIncludeBranches()
+    {
+      return includeBranches;
+    }
+
+
+
+    /**
+     * Specifies the set of base DNs that specify the set of entries to
+     * include in the import.
+     *
+     * @param  includeBranches  The set of base DNs that specify the set
+     *                          of entries to include in the import.
+     */
+    public void setIncludeBranches(List<DN> includeBranches)
+    {
+      if (includeBranches == null)
+      {
+        this.includeBranches = new ArrayList<DN>(0);
+      }
+      else
+      {
+        this.includeBranches = includeBranches;
+      }
+    }
+
 }
