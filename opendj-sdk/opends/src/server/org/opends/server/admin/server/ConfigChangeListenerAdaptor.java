@@ -85,7 +85,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
    *          The type of property.
    */
   private static final class Visitor<T> implements
-      DefaultBehaviorProviderVisitor<T, Void, ManagedObjectPath> {
+      DefaultBehaviorProviderVisitor<T, Void, ManagedObjectPath<?, ?>> {
 
     /**
      * Finds the dependencies associated with the provided property
@@ -100,7 +100,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
      * @param dependencies
      *          Add dependencies names to this collection.
      */
-    public static <T> void find(ManagedObjectPath path,
+    public static <T> void find(ManagedObjectPath<?, ?> path,
         PropertyDefinition<T> pd, Collection<DN> dependencies) {
       Visitor<T> v = new Visitor<T>(dependencies);
       DefaultBehaviorProvider<T> db = pd.getDefaultBehaviorProvider();
@@ -123,8 +123,9 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
      * {@inheritDoc}
      */
     public Void visitAbsoluteInherited(
-        AbsoluteInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath p) {
-      ManagedObjectPath next = d.getManagedObjectPath();
+        AbsoluteInheritedDefaultBehaviorProvider<T> d,
+        ManagedObjectPath<?, ?> p) {
+      ManagedObjectPath<?, ?> next = d.getManagedObjectPath();
       dependencies.add(DNBuilder.create(next));
 
       // If the dependent property uses inherited defaults then
@@ -144,7 +145,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
      * {@inheritDoc}
      */
     public Void visitAlias(AliasDefaultBehaviorProvider<T> d,
-        ManagedObjectPath p) {
+        ManagedObjectPath<?, ?> p) {
       return null;
     }
 
@@ -154,7 +155,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
      * {@inheritDoc}
      */
     public Void visitDefined(DefinedDefaultBehaviorProvider<T> d,
-        ManagedObjectPath p) {
+        ManagedObjectPath<?, ?> p) {
       return null;
     }
 
@@ -164,8 +165,9 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
      * {@inheritDoc}
      */
     public Void visitRelativeInherited(
-        RelativeInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath p) {
-      ManagedObjectPath next = d.getManagedObjectPath(p);
+        RelativeInheritedDefaultBehaviorProvider<T> d,
+        ManagedObjectPath<?, ?> p) {
+      ManagedObjectPath<?, ?> next = d.getManagedObjectPath(p);
       dependencies.add(DNBuilder.create(next));
 
       // If the dependent property uses inherited defaults then
@@ -185,7 +187,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
      * {@inheritDoc}
      */
     public Void visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
-        ManagedObjectPath p) {
+        ManagedObjectPath<?, ?> p) {
       return null;
     }
   }
@@ -215,7 +217,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
   private final ConfigurationChangeListener<? super S> listener;
 
   // The managed object path.
-  private final ManagedObjectPath path;
+  private final ManagedObjectPath<?, ?> path;
 
 
 
@@ -229,7 +231,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
    * @param listener
    *          The underlying change listener.
    */
-  public ConfigChangeListenerAdaptor(ManagedObjectPath path,
+  public ConfigChangeListenerAdaptor(ManagedObjectPath<?, ?> path,
       AbstractManagedObjectDefinition<?, S> d,
       ConfigurationChangeListener<? super S> listener) {
     this.path = path;

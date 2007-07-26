@@ -32,16 +32,10 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.Reader;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,13 +56,13 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.util.PasswordReader;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.table.TableBuilder;
+import org.opends.server.util.table.TextTablePrinter;
 
 
 
@@ -76,7 +70,7 @@ import org.opends.server.util.args.SubCommandArgumentParser;
  * This class provides a command-line tool which enables
  * administrators to configure the Directory Server.
  */
-public final class DSConfig {
+public final class DSConfig extends ConsoleApplication {
 
   /**
    * The tracer object for the debug logger.
@@ -100,35 +94,38 @@ public final class DSConfig {
     }
   }
 
+
+
   /**
    * Provides the command-line arguments to the main application for
    * processing and returns the exit code as an integer.
    *
-   * @param  args              The set of command-line arguments provided to
-   *                           this program.
-   * @param  initializeServer  Indicates whether to perform basic initialization
-   *                           (which should not be done if the tool is running
-   *                           in the same JVM as the server).
-   * @param  outStream         The output stream for standard output.
-   * @param  errStream         The output stream for standard error.
-   *
-   * @return  Zero to indicate that the program completed successfully, or
-   *          non-zero to indicate that an error occurred.
+   * @param args
+   *          The set of command-line arguments provided to this
+   *          program.
+   * @param initializeServer
+   *          Indicates whether to perform basic initialization (which
+   *          should not be done if the tool is running in the same
+   *          JVM as the server).
+   * @param outStream
+   *          The output stream for standard output.
+   * @param errStream
+   *          The output stream for standard error.
+   * @return Zero to indicate that the program completed successfully,
+   *         or non-zero to indicate that an error occurred.
    */
   public static int main(String[] args, boolean initializeServer,
-                         OutputStream outStream, OutputStream errStream)
-  {
+      OutputStream outStream, OutputStream errStream) {
     DSConfig app = new DSConfig(System.in, outStream, errStream,
         new LDAPManagementContextFactory());
     // Only initialize the client environment when run as a standalone
     // application.
-    if (initializeServer)
-    {
+    if (initializeServer) {
       try {
         app.initializeClientEnvironment();
       } catch (InitializationException e) {
         // TODO: is this ok as an error message?
-        System.err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+        app.printMessage(e.getMessage());
         return 1;
       }
     }
@@ -140,9 +137,6 @@ public final class DSConfig {
   // Flag indicating whether or not the application environment has
   // already been initialized.
   private boolean environmentInitialized = false;
-
-  // The error stream which this application should use.
-  private final PrintStream err;
 
   // The factory which the application should use to retrieve its
   // management context.
@@ -156,15 +150,9 @@ public final class DSConfig {
   private final Map<SubCommand, SubCommandHandler> handlers =
     new HashMap<SubCommand, SubCommandHandler>();
 
-  // The input stream reader which this application should use.
-  private final BufferedReader in;
-
   // The argument which should be used to request interactive
   // behavior.
   private BooleanArgument interactiveArgument;
-
-  // The output stream which this application should use.
-  private final PrintStream out;
 
   // The command-line argument parser.
   private final SubCommandArgumentParser parser;
@@ -203,121 +191,12 @@ public final class DSConfig {
    */
   public DSConfig(InputStream in, OutputStream out, OutputStream err,
       ManagementContextFactory factory) {
+    super(in, out, err);
+
     this.parser = new SubCommandArgumentParser(this.getClass().getName(),
         getMessage(MSGID_CONFIGDS_TOOL_DESCRIPTION), false);
 
-    if (in != null) {
-      this.in = new BufferedReader(new InputStreamReader(in));
-    } else {
-      this.in = new BufferedReader(new Reader() {
-
-        @Override
-        public void close() throws IOException {
-          // Do nothing.
-        }
-
-
-
-        @Override
-        public int read(char[] cbuf, int off, int len) throws IOException {
-          return -1;
-        }
-
-      });
-    }
-
-    if (out != null) {
-      this.out = new PrintStream(out);
-    } else {
-      this.out = NullOutputStream.printStream();
-    }
-
-    if (err != null) {
-      this.err = new PrintStream(err);
-    } else {
-      this.err = NullOutputStream.printStream();
-    }
-
     this.factory = factory;
-  }
-
-
-
-  /**
-   * Interactively confirms whether a user wishes to perform an
-   * action. If the application is non-interactive, then the action is
-   * granted by default.
-   *
-   * @param prompt
-   *          The prompt describing the action.
-   * @return Returns <code>true</code> if the user wishes the action
-   *         to be performed, or <code>false</code> if they refused,
-   *         or if an exception occurred.
-   */
-  public boolean confirmAction(String prompt) {
-    if (!isInteractive()) {
-      return true;
-    }
-
-    String yes = Messages.getString("general.yes");
-    String no = Messages.getString("general.no");
-    String errMsg = Messages.getString("general.confirm.error");
-    String error = String.format(errMsg, yes, no);
-    prompt = prompt + String.format(" (%s / %s): ", yes, no);
-
-    while (true) {
-      String response;
-      try {
-        response = readLineOfInput(prompt);
-      } catch (Exception e) {
-        return false;
-      }
-
-      if (response == null) {
-        // End of input.
-        return false;
-      }
-
-      response = response.toLowerCase().trim();
-      if (response.length() == 0) {
-        // Empty input.
-        err.println(wrapText(error, MAX_LINE_WIDTH));
-      } else if (no.startsWith(response)) {
-        return false;
-      } else if (yes.startsWith(response)) {
-        return true;
-      } else {
-        // Try again...
-        err.println(wrapText(error, MAX_LINE_WIDTH));
-      }
-    }
-  }
-
-
-
-  /**
-   * Displays a message to the error stream.
-   *
-   * @param msg
-   *          The message.
-   */
-  public void displayMessage(String msg) {
-    err.println(wrapText(msg, MAX_LINE_WIDTH));
-  }
-
-
-
-  /**
-   * Displays a message to the error stream if verbose mode is
-   * enabled.
-   *
-   * @param msg
-   *          The verbose message.
-   */
-  public void displayVerboseMessage(String msg) {
-    if (isVerbose()) {
-      err.println(wrapText(msg, MAX_LINE_WIDTH));
-    }
   }
 
 
@@ -350,11 +229,7 @@ public final class DSConfig {
 
 
   /**
-   * Indicates whether or not the user has requested interactive
-   * behavior.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         interactive behavior.
+   * {@inheritDoc}
    */
   public boolean isInteractive() {
     return interactiveArgument.isPresent();
@@ -363,10 +238,7 @@ public final class DSConfig {
 
 
   /**
-   * Indicates whether or not the user has requested quiet output.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         quiet output.
+   * {@inheritDoc}
    */
   public boolean isQuiet() {
     return quietArgument.isPresent();
@@ -375,11 +247,7 @@ public final class DSConfig {
 
 
   /**
-   * Indicates whether or not the user has requested script-friendly
-   * output.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         script-friendly output.
+   * {@inheritDoc}
    */
   public boolean isScriptFriendly() {
     return scriptFriendlyArgument.isPresent();
@@ -388,10 +256,7 @@ public final class DSConfig {
 
 
   /**
-   * Indicates whether or not the user has requested verbose output.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         verbose output.
+   * {@inheritDoc}
    */
   public boolean isVerbose() {
     return verboseArgument.isPresent();
@@ -400,55 +265,20 @@ public final class DSConfig {
 
 
   /**
-   * Interactively retrieves a line of input from the console.
-   *
-   * @param prompt
-   *          The prompt.
-   * @return Returns the line of input, or <code>null</code> if the
-   *         end of input has been reached.
-   * @throws Exception
-   *           If the line of input could not be retrieved for some
-   *           reason.
+   * {@inheritDoc}
    */
-  public String readLineOfInput(String prompt) throws Exception {
-    err.print(wrapText(prompt, MAX_LINE_WIDTH));
-    return in.readLine();
-  }
-
-
-
-  /**
-   * Interactively retrieves a password from the console.
-   *
-   * @param prompt
-   *          The password prompt.
-   * @return Returns the password.
-   * @throws Exception
-   *           If the password could not be retrieved for some reason.
-   */
-  public String readPassword(String prompt) throws Exception {
-    err.print(wrapText(prompt, MAX_LINE_WIDTH));
-    char[] pwChars = PasswordReader.readPassword();
-    return new String(pwChars);
-  }
-
-
-
-  /**
-   * Gets the management context which sub-commands should use in
-   * order to manage the directory server.
-   *
-   * @return Returns the management context which sub-commands should
-   *         use in order to manage the directory server.
-   * @throws ArgumentException
-   *           If a management context related argument could not be
-   *           parsed successfully.
-   * @throws ClientException
-   *           If the management context could not be created.
-   */
-  ManagementContext getManagementContext() throws ArgumentException,
+  public ManagementContext getManagementContext() throws ArgumentException,
       ClientException {
     return factory.getManagementContext(this);
+  }
+
+
+
+  // Displays the provided message followed by a help usage reference.
+  private void displayMessageAndUsageReference(String message) {
+    printMessage(message);
+    printMessage("");
+    printMessage(parser.getHelpUsageReference());
   }
 
 
@@ -478,7 +308,7 @@ public final class DSConfig {
 
       // Register the global arguments.
       parser.addGlobalArgument(showUsageArgument);
-      parser.setUsageArgument(showUsageArgument, out);
+      parser.setUsageArgument(showUsageArgument, getOutputStream());
       parser.addGlobalArgument(verboseArgument);
       parser.addGlobalArgument(quietArgument);
       parser.addGlobalArgument(scriptFriendlyArgument);
@@ -515,7 +345,8 @@ public final class DSConfig {
       Map<Tag, SortedSet<SubCommand>> groups =
         new TreeMap<Tag, SortedSet<SubCommand>>();
       SortedSet<SubCommand> allSubCommands = new TreeSet<SubCommand>(c);
-      for (SubCommandHandler handler : builder.getSubCommandHandlers(parser)) {
+      for (SubCommandHandler handler : builder.getSubCommandHandlers(this,
+          parser)) {
         SubCommand sc = handler.getSubCommand();
 
         handlers.put(sc, handler);
@@ -578,7 +409,7 @@ public final class DSConfig {
     } catch (ArgumentException e) {
       int msgID = MSGID_CANNOT_INITIALIZE_ARGS;
       String message = getMessage(msgID, e.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      printMessage(message);
       return 1;
     }
 
@@ -588,9 +419,7 @@ public final class DSConfig {
     } catch (ArgumentException ae) {
       int msgID = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID, ae.getMessage());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      err.println();
-      err.println(parser.getHelpUsageReference());
+      displayMessageAndUsageReference(message);
       return 1;
     }
 
@@ -605,9 +434,7 @@ public final class DSConfig {
       int msgID = MSGID_ERROR_PARSING_ARGS;
       String message = getMessage(msgID,
           getMessage(MSGID_DSCFG_ERROR_MISSING_SUBCOMMAND));
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      err.println();
-      err.println(parser.getHelpUsageReference());
+      displayMessageAndUsageReference(message);
       return 1;
     }
 
@@ -615,9 +442,7 @@ public final class DSConfig {
       int msgID = MSGID_TOOL_CONFLICTING_ARGS;
       String message = getMessage(msgID, quietArgument.getLongIdentifier(),
           verboseArgument.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      err.println();
-      err.println(parser.getHelpUsageReference());
+      displayMessageAndUsageReference(message);
       return 1;
     }
 
@@ -625,9 +450,7 @@ public final class DSConfig {
       int msgID = MSGID_TOOL_CONFLICTING_ARGS;
       String message = getMessage(msgID, quietArgument.getLongIdentifier(),
           interactiveArgument.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      err.println();
-      err.println(parser.getHelpUsageReference());
+      displayMessageAndUsageReference(message);
       return 1;
     }
 
@@ -635,9 +458,7 @@ public final class DSConfig {
       int msgID = MSGID_TOOL_CONFLICTING_ARGS;
       String message = getMessage(msgID, scriptFriendlyArgument
           .getLongIdentifier(), verboseArgument.getLongIdentifier());
-      err.println(wrapText(message, MAX_LINE_WIDTH));
-      err.println();
-      err.println(parser.getHelpUsageReference());
+      displayMessageAndUsageReference(message);
       return 1;
     }
 
@@ -645,37 +466,44 @@ public final class DSConfig {
     try {
       factory.validateGlobalArguments();
     } catch (ArgumentException e) {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printMessage(e.getMessage());
       return 1;
     }
 
     // Retrieve the sub-command implementation and run it.
     SubCommandHandler handler = handlers.get(parser.getSubCommand());
     try {
-      return handler.run(this, out, err);
+      return handler.run();
     } catch (ArgumentException e) {
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printMessage(e.getMessage());
       return 1;
     } catch (ClientException e) {
       // If the client exception was caused by a decoding exception
       // then we should display the causes.
-      err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+      printMessage(e.getMessage());
 
       Throwable cause = e.getCause();
       if (cause instanceof ManagedObjectDecodingException) {
-        // FIXME: use a table.
         ManagedObjectDecodingException de =
           (ManagedObjectDecodingException) cause;
 
-        err.println();
+        printMessage("");
+        TableBuilder builder = new TableBuilder();
         for (PropertyException pe : de.getCauses()) {
           AbstractManagedObjectDefinition<?, ?> d = de
               .getPartialManagedObject().getManagedObjectDefinition();
           ArgumentException ae = ArgumentExceptionFactory
               .adaptPropertyException(pe, d);
-          err.println(wrapText(" * " + ae.getMessage(), MAX_LINE_WIDTH));
+          builder.startRow();
+          builder.appendCell("*");
+          builder.appendCell(ae.getMessage());
         }
-        err.println();
+
+        TextTablePrinter printer = new TextTablePrinter(getErrorStream());
+        printer.setDisplayHeadings(false);
+        printer.setColumnWidth(1, 0);
+        builder.print(printer);
+        printMessage("");
       }
 
       return 1;
@@ -683,7 +511,7 @@ public final class DSConfig {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      err.println(wrapText(StaticUtils.stackTraceToString(e), MAX_LINE_WIDTH));
+      printMessage(StaticUtils.stackTraceToString(e));
       return 1;
     }
   }

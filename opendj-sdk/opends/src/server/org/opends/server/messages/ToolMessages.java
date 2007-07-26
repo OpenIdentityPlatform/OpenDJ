@@ -9231,6 +9231,151 @@ public class ToolMessages
   public static final int MSGID_REVERT_DESCRIPTION_SILENT =
           CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1222;
 
+  /**
+   * The message ID for the message which should be used when an
+   * argument, which is mandatory when the application is
+   * non-interactive, has not been specified. This takes a
+   * single arguments which is the long name of the missing argument.
+   */
+  public static final int MSGID_DSCFG_ERROR_MISSING_NON_INTERACTIVE_ARG =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1223;
+
+  /**
+   * The message ID for the message that will be used if dsconfig cannot
+   * read input from the console. This takes a single argument, which
+   * is a message explaining the problem that occurred.
+   */
+  public static final int MSGID_DSCFG_ERROR_CANNOT_READ_CONSOLE_INPUT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1224;
+
+  /**
+   * The message ID for the message that will be used as the prompt
+   * for the type of component to be created when using the create-xxx
+   * sub-command interactively. This takes a single argument which is
+   * the user friendly name for the type of managed objects being
+   * created.
+   */
+  public static final int MSGID_DSCFG_CREATE_TYPE_PROMPT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1225;
+
+  /**
+   * The message ID for the message that will be used as the prompt
+   * for the name of the component to be created when using the
+   * create-xxx sub-command interactively. This takes a single
+   * argument which is the user friendly name for the type of managed
+   * objects being created.
+   */
+  public static final int MSGID_DSCFG_CREATE_NAME_PROMPT =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1226;
+
+  /**
+   * The message ID for the message that will be used when a child
+   * managed object name the was specified interactively cannot be
+   * used because there is already a managed object with the same
+   * name. This takes two arguments which are the type of managed
+   * object being created and the name of the existing managed object.
+   */
+  public static final int MSGID_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1227;
+
+  /**
+   * The message ID for the message that will be used as the type
+   * heading in interactive help. This does not require any arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_CREATE_HELP_HEADING_TYPE =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1228;
+
+  /**
+   * The message ID for the message that will be used as the description
+   * heading in interactive help. This does not require any arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_CREATE_HELP_HEADING_DESCR =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1229;
+
+  /**
+   * The message ID for the message that will be used when a user
+   * requests to interactively select the name of acomponent, but
+   * there are none available. This takes a single argument which is
+   * the user friendly plural name of the component type.
+   */
+  public static final int MSGID_DSCFG_ERROR_FINDER_NO_CHILDREN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1230;
+
+  /**
+   * The message ID for the message that will be used when a user
+   * requests to interactively select the name of a component, but
+   * there was only one available and the user did not select it. This
+   * takes a single argument which is the user friendly name of the
+   * component type.
+   */
+  public static final int MSGID_DSCFG_ERROR_FINDER_SINGLE_CHILD_REJECTED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1231;
+
+  /**
+   * The message ID for the message that will be used as the prompt
+   * when a user requests to interactively select the name of a
+   * component and there is only one option. This takes two arguments
+   * which are the user friendly name of the component type and the
+   * single available choice.
+   */
+  public static final int MSGID_DSCFG_FINDER_PROMPT_SINGLE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1232;
+
+  /**
+   * The message ID for the message that will be used as the prompt
+   * when a user requests to interactively select the name of a
+   * component and there is more than one option. This takes a single
+   * argument which is the user friendly name of the component type.
+   */
+  public static final int MSGID_DSCFG_FINDER_PROMPT_MANY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1233;
+
+  /**
+   * The message ID for the word that will be used in confirmation
+   * messages to indicate "yes".
+   */
+  public static final int MSGID_DSCFG_GENERAL_CONFIRM_NO =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1234;
+
+  /**
+   * The message ID for the word that will be used in confirmation
+   * messages to indicate "yes".
+   */
+  public static final int MSGID_DSCFG_GENERAL_CONFIRM_YES =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1235;
+
+  /**
+   * The message ID for the message that will be used when a user
+   * fails to input a valid response to a confirmation message. This
+   * takes two arguments which are the word for "yes" and the word for
+   * "no".
+   */
+  public static final int MSGID_DSCFG_ERROR_GENERAL_CONFIRM =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1236;
+
+  /**
+   * The message ID for the prompt that will be used in choice menus
+   * when no help is available. This takes a single argument which is
+   * the choice upper-bound.
+   */
+  public static final int MSGID_DSCFG_GENERAL_CHOICE_PROMPT_NOHELP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1237;
+
+  /**
+   * The message ID for the prompt that will be used in choice menus
+   * when help is available. This takes a single argument which is the
+   * choice upper-bound.
+   */
+  public static final int MSGID_DSCFG_GENERAL_CHOICE_PROMPT_HELP =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1238;
+
+  /**
+   * The message ID for the message that will be used when a user
+   * fails to input a valid response to a choice prompt. This takes a
+   * single argument which is the choice's upper-bound.
+   */
+  public static final int MSGID_DSCFG_ERROR_GENERAL_CHOICE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1239;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -11510,6 +11655,10 @@ public class ToolMessages
                     "The LDAP bind password could not be read due to the" +
                     " following error: %s");
 
+    registerMessage(MSGID_DSCFG_ERROR_CANNOT_READ_CONSOLE_INPUT,
+                    "The response could not be read from the console due " +
+                    "to the following error: %s");
+
     registerMessage(MSGID_DSCFG_ERROR_BIND_PASSWORD_NONINTERACTIVE,
                     "The LDAP bind password was not specified and " +
                     "cannot be read interactively");
@@ -11565,6 +11714,12 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_DESCRIPTION_TYPE_DEFAULT,
                     "The type of %s which should be created (Default: %s). " +
                     "The value for TYPE can be one of: %s");
+
+    registerMessage(MSGID_DSCFG_CREATE_TYPE_PROMPT,
+                    "Select the type of %s that you want to create:");
+
+    registerMessage(MSGID_DSCFG_CREATE_NAME_PROMPT,
+                    "Enter a name for the %s that you want to create:");
 
     registerMessage(MSGID_DSCFG_DESCRIPTION_PROP,
                     "The name of a property to be displayed");
@@ -11712,6 +11867,9 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_ERROR_CREATE_MOAEE,
                     "The %s could not be created because there is " +
                     "already an existing one with the same name");
+
+    registerMessage(MSGID_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS,
+                    "There is already another %s with the name \"%s\"");
 
     registerMessage(MSGID_DSCFG_ERROR_CREATE_MMPE,
                     "The %s could not be created because the " +
@@ -11887,6 +12045,10 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_ERROR_INCOMPATIBLE_PROPERTY_MOD,
                     "The property modification \"%s\" is incompatible" +
                     " with a previous modification to the same property");
+
+    registerMessage(MSGID_DSCFG_ERROR_MISSING_NON_INTERACTIVE_ARG,
+                    "The argument \"--%s\" must be specified when " +
+                    "this application is used non-interactively");
 
     registerMessage(MSGID_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED,
                     "The sub-type \"%s\" is not a recognized type of %s. " +
@@ -12217,7 +12379,31 @@ public class ToolMessages
                     "Prompt for any required information rather than fail");
     registerMessage(MSGID_REVERT_DESCRIPTION_SILENT,
                     "Perform a silent reversion");
-
+    registerMessage(MSGID_DSCFG_DESCRIPTION_CREATE_HELP_HEADING_TYPE,
+                    "Type");
+    registerMessage(MSGID_DSCFG_DESCRIPTION_CREATE_HELP_HEADING_DESCR,
+                    "Description");
+    registerMessage(MSGID_DSCFG_FINDER_PROMPT_SINGLE,
+                    "There is only one %s: \"%s\". Are you sure that " +
+                    "this is the correct one?");
+    registerMessage(MSGID_DSCFG_FINDER_PROMPT_MANY,
+                    "Select the %s from the following list:");
+    registerMessage(MSGID_DSCFG_ERROR_FINDER_NO_CHILDREN,
+                    "Unable to continue since there are no %s currently " +
+                    "configured on the server");
+    registerMessage(MSGID_DSCFG_ERROR_FINDER_SINGLE_CHILD_REJECTED,
+                    "Unable to continue because the only available %s was " +
+                    "not selected");
+    registerMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO, "no");
+    registerMessage(MSGID_DSCFG_GENERAL_CONFIRM_YES, "yes");
+    registerMessage(MSGID_DSCFG_GENERAL_CHOICE_PROMPT_HELP,
+                    "Enter choice [1 - %s,  ? - help]:");
+    registerMessage(MSGID_DSCFG_GENERAL_CHOICE_PROMPT_NOHELP,
+                    "Enter choice [1 - %s]:");
+    registerMessage(MSGID_DSCFG_ERROR_GENERAL_CHOICE,
+                    "Invalid response. Please enter a value between 1 and %s");
+    registerMessage(MSGID_DSCFG_ERROR_GENERAL_CONFIRM,
+                    "Invalid response. Please enter \"%s\" or \"%s\"");
   }
 }
 

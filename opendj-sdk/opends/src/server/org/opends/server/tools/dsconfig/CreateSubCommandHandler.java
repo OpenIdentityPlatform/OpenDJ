@@ -31,7 +31,7 @@ package org.opends.server.tools.dsconfig;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 
-import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +43,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.DefinitionDecodingException;
@@ -65,7 +66,6 @@ import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -74,6 +74,8 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.table.TableBuilder;
+import org.opends.server.util.table.TextTablePrinter;
 
 
 
@@ -84,9 +86,12 @@ import org.opends.server.util.args.SubCommandArgumentParser;
  *
  * @param <C>
  *          The type of managed object which can be created.
+ * @param <S>
+ *          The type of server managed object which can be created.
  */
-final class CreateSubCommandHandler<C extends ConfigurationClient> extends
-    SubCommandHandler {
+final class CreateSubCommandHandler<C extends ConfigurationClient,
+    S extends Configuration> extends SubCommandHandler {
+
 
   /**
    * A property provider which uses the command-line arguments to
@@ -95,8 +100,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
   private static class MyPropertyProvider implements PropertyProvider {
 
     // Decoded set of properties.
-    private final Map<PropertyDefinition, Collection> properties =
-      new HashMap<PropertyDefinition, Collection>();
+    private final Map<PropertyDefinition<?>, Collection<?>> properties =
+      new HashMap<PropertyDefinition<?>, Collection<?>>();
 
 
 
@@ -162,7 +167,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
      * @return Returns the set of parsed property definitions that
      *         have values specified.
      */
-    public Set<PropertyDefinition> getProperties() {
+    public Set<PropertyDefinition<?>> getProperties() {
       return properties.keySet();
     }
 
@@ -174,7 +179,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
     @SuppressWarnings("unchecked")
     public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d)
         throws IllegalArgumentException {
-      Collection<T> values = properties.get(d);
+      Collection<T> values = (Collection<T>) properties.get(d);
       if (values == null) {
         return Collections.emptySet();
       } else {
@@ -195,7 +200,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
         throw ArgumentExceptionFactory.adaptPropertyException(e, d);
       }
 
-      Collection<T> values = properties.get(pd);
+      Collection<T> values = (Collection<T>) properties.get(pd);
       if (values == null) {
         values = new LinkedList<T>();
       }
@@ -207,6 +212,53 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
       }
 
       properties.put(pd, values);
+    }
+  }
+
+
+
+  /**
+   * A help call-back which displays help about available component types.
+   */
+  private final class TypeHelpCallback implements HelpCallback {
+
+    /**
+     * {@inheritDoc}
+     */
+    public void display(ConsoleApplication app) {
+      // Create a table containing a description of each component type.
+      TableBuilder builder = new TableBuilder();
+
+      int msgID = MSGID_DSCFG_DESCRIPTION_CREATE_HELP_HEADING_TYPE;
+      builder.appendHeading(getMessage(msgID));
+
+      msgID = MSGID_DSCFG_DESCRIPTION_CREATE_HELP_HEADING_DESCR;
+      builder.appendHeading(getMessage(msgID));
+
+      boolean isFirst = true;
+      for (ManagedObjectDefinition<?, ?> d : types.values()) {
+        if (!isFirst) {
+          builder.startRow();
+          builder.startRow();
+        } else {
+          isFirst = false;
+        }
+
+        builder.startRow();
+        builder.appendCell(d.getUserFriendlyName());
+        builder.appendCell(d.getSynopsis());
+        if (d.getDescription() != null) {
+          builder.startRow();
+          builder.startRow();
+          builder.appendCell();
+          builder.appendCell(d.getDescription());
+        }
+      }
+
+      TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
+      printer.setColumnWidth(1, 0);
+      printer.setColumnSeparator(":");
+      builder.print(printer);
     }
   }
 
@@ -244,6 +296,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
    *
    * @param <C>
    *          The type of managed object which can be created.
+   * @param <S>
+   *          The type of server managed object which can be created.
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param p
@@ -254,10 +310,12 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static <C extends ConfigurationClient> CreateSubCommandHandler create(
-      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
-      InstantiableRelationDefinition<C, ?> r) throws ArgumentException {
-    return new CreateSubCommandHandler<C>(parser, p, r, r
+  public static <C extends ConfigurationClient, S extends Configuration>
+      CreateSubCommandHandler<C, S> create(
+      ConsoleApplication app, SubCommandArgumentParser parser,
+      ManagedObjectPath<?, ?> p, InstantiableRelationDefinition<C, S> r)
+      throws ArgumentException {
+    return new CreateSubCommandHandler<C, S>(app, parser, p, r, r
         .getNamingPropertyDefinition(), p.child(r, "DUMMY"));
   }
 
@@ -268,6 +326,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
    *
    * @param <C>
    *          The type of managed object which can be created.
+   * @param <S>
+   *          The type of server managed object which can be created.
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param p
@@ -278,10 +340,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static <C extends ConfigurationClient> CreateSubCommandHandler create(
-      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
-      OptionalRelationDefinition<C, ?> r) throws ArgumentException {
-    return new CreateSubCommandHandler<C>(parser, p, r, null, p.child(r));
+  public static <C extends ConfigurationClient, S extends Configuration>
+      CreateSubCommandHandler<C, S> create(
+      ConsoleApplication app, SubCommandArgumentParser parser,
+      ManagedObjectPath<?, ?> p, OptionalRelationDefinition<C, S> r)
+      throws ArgumentException {
+    return new CreateSubCommandHandler<C, S>(app, parser, p, r, null, p
+        .child(r));
   }
 
   // The sub-commands naming arguments.
@@ -298,7 +363,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
   private final StringArgument propertySetArgument;
 
   // The relation which should be used for creating children.
-  private final RelationDefinition<C, ?> relation;
+  private final RelationDefinition<C, S> relation;
 
   // The sub-command associated with this handler.
   private final SubCommand subCommand;
@@ -310,7 +375,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
   // The set of instantiable managed object definitions and their
   // associated type option value.
   private final SortedMap<String,
-    ManagedObjectDefinition<? extends C, ?>> types;
+    ManagedObjectDefinition<? extends C, ? extends S>> types;
 
   // The syntax of the type argument.
   private final String typeUsage;
@@ -318,10 +383,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
 
 
   // Common constructor.
-  private CreateSubCommandHandler(SubCommandArgumentParser parser,
-      ManagedObjectPath<?, ?> p, RelationDefinition<C, ?> r,
+  private CreateSubCommandHandler(ConsoleApplication app,
+      SubCommandArgumentParser parser,
+      ManagedObjectPath<?, ?> p, RelationDefinition<C, S> r,
       PropertyDefinition<?> pd, ManagedObjectPath<?, ?> c)
       throws ArgumentException {
+    super(app);
+
     this.path = p;
     this.relation = r;
     this.namingPropertyDefinition = pd;
@@ -359,9 +427,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
     this.typeUsage = builder.toString();
 
     if (!types.containsKey(GENERIC_TYPE)) {
-      // The option is mandatory.
+      // The option is mandatory when non-interactive.
       this.typeArgument = new StringArgument("type", OPTION_DSCFG_SHORT_TYPE,
-          OPTION_DSCFG_LONG_TYPE, true, false, true, "{TYPE}", null, null,
+          OPTION_DSCFG_LONG_TYPE, false, false, true, "{TYPE}", null, null,
           MSGID_DSCFG_DESCRIPTION_TYPE, r.getChildDefinition()
               .getUserFriendlyName(), typeUsage);
     } else {
@@ -399,11 +467,40 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
    * {@inheritDoc}
    */
   @Override
-  public int run(DSConfig app, PrintStream out, PrintStream err)
-      throws ArgumentException, ClientException {
+  public int run() throws ArgumentException, ClientException {
     // Determine the type of managed object to be created.
-    String typeName = typeArgument.getValue();
-    ManagedObjectDefinition<? extends C, ?> d = types.get(typeName);
+    String typeName;
+
+    if (!typeArgument.isPresent()) {
+      if (getConsoleApplication().isInteractive()) {
+        // Let the user choose.
+
+        // If there is only one choice then return immediately.
+        if (types.size() == 1) {
+          typeName = types.keySet().iterator().next();
+        } else {
+          List<String> values = new ArrayList<String>(types.keySet());
+          List<String> descriptions = new ArrayList<String>(values.size());
+          for (ManagedObjectDefinition<?, ?> d : types.values()) {
+            descriptions.add(d.getUserFriendlyName());
+          }
+          int msgID = MSGID_DSCFG_CREATE_TYPE_PROMPT;
+          String msg = getMessage(msgID, relation.getChildDefinition()
+              .getUserFriendlyName());
+          typeName = getConsoleApplication().readChoice(msg, descriptions,
+              values, new TypeHelpCallback());
+        }
+      } else if (typeArgument.getDefaultValue() != null) {
+        typeName = typeArgument.getDefaultValue();
+      } else {
+        throw ArgumentExceptionFactory
+            .missingMandatoryNonInteractiveArgument(typeArgument);
+      }
+    } else {
+      typeName = typeArgument.getValue();
+    }
+
+    ManagedObjectDefinition<? extends C, ? extends S> d = types.get(typeName);
     if (d == null) {
       throw ArgumentExceptionFactory.unknownSubType(relation, typeName,
           typeUsage);
@@ -418,10 +515,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
         namingPropertyDefinition, propertyArgs);
 
     // Add the child managed object.
-    ManagementContext context = app.getManagementContext();
     ManagedObject<?> parent;
     try {
-      parent = getManagedObject(context, path, names);
+      parent = getManagedObject(path, names);
     } catch (AuthorizationException e) {
       int msgID = MSGID_DSCFG_ERROR_CREATE_AUTHZ;
       String msg = getMessage(msgID, d.getUserFriendlyName());
@@ -459,18 +555,28 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
       List<DefaultBehaviorException> exceptions =
         new LinkedList<DefaultBehaviorException>();
       if (relation instanceof InstantiableRelationDefinition) {
-        InstantiableRelationDefinition<C, ?> irelation =
-          (InstantiableRelationDefinition<C, ?>) relation;
+        InstantiableRelationDefinition<C, S> irelation =
+          (InstantiableRelationDefinition<C, S>) relation;
         String name = names.get(names.size() - 1);
-        try {
-          child = parent.createChild(irelation, d, name, exceptions);
-        } catch (IllegalManagedObjectNameException e) {
-          throw ArgumentExceptionFactory
-              .adaptIllegalManagedObjectNameException(e, d);
+        if (name == null) {
+          if (getConsoleApplication().isInteractive()) {
+            child = createChildInteractively(parent, irelation, d, exceptions);
+          } else {
+            throw ArgumentExceptionFactory
+                .missingMandatoryNonInteractiveArgument(namingArgs.get(names
+                    .size() - 1));
+          }
+        } else {
+          try {
+            child = parent.createChild(irelation, d, name, exceptions);
+          } catch (IllegalManagedObjectNameException e) {
+            throw ArgumentExceptionFactory
+                .adaptIllegalManagedObjectNameException(e, d);
+          }
         }
       } else {
-        OptionalRelationDefinition<C, ?> orelation =
-          (OptionalRelationDefinition<C, ?>) relation;
+        OptionalRelationDefinition<C, S> orelation =
+          (OptionalRelationDefinition<C, S>) relation;
         child = parent.createChild(orelation, d, exceptions);
       }
 
@@ -485,11 +591,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
       // Confirm commit.
       String prompt = String.format(Messages.getString("create.confirm"), d
           .getUserFriendlyName());
-      if (!app.confirmAction(prompt)) {
+      if (!getConsoleApplication().confirmAction(prompt)) {
         // Output failure message.
         String msg = String.format(Messages.getString("create.failed"), d
             .getUserFriendlyName());
-        app.displayVerboseMessage(msg);
+        getConsoleApplication().printVerboseMessage(msg);
         return 1;
       }
 
@@ -499,7 +605,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
       // Output success message.
       String msg = String.format(Messages.getString("create.done"), d
           .getUserFriendlyName());
-      app.displayVerboseMessage(msg);
+      getConsoleApplication().printVerboseMessage(msg);
     } catch (MissingMandatoryPropertiesException e) {
       throw ArgumentExceptionFactory.adaptMissingMandatoryPropertiesException(
           e, d);
@@ -535,28 +641,100 @@ final class CreateSubCommandHandler<C extends ConfigurationClient> extends
 
 
 
+  // Interactively create the child by prompting for the name.
+  private ManagedObject<? extends C> createChildInteractively(
+      final ManagedObject<?> parent,
+      final InstantiableRelationDefinition<C, S> irelation,
+      final ManagedObjectDefinition<? extends C, ? extends S> d,
+      final List<DefaultBehaviorException> exceptions)
+      throws ArgumentException, ClientException {
+    int msgID = MSGID_DSCFG_CREATE_NAME_PROMPT;
+    String msg = getMessage(msgID, relation.getUserFriendlyName());
+    ValidationCallback<ManagedObject<? extends C>> validator =
+      new ValidationCallback<ManagedObject<? extends C>>() {
+
+      public ManagedObject<? extends C> validate(ConsoleApplication app,
+          String input) throws ClientException {
+        ManagedObject<? extends C> child;
+
+        // First attempt to create the child, this will guarantee that
+        // the name is acceptable.
+        try {
+          child = parent.createChild(irelation, d, input, exceptions);
+        } catch (IllegalManagedObjectNameException e) {
+          ArgumentException ae = ArgumentExceptionFactory
+              .adaptIllegalManagedObjectNameException(e, d);
+          app.printMessage(ae.getMessage());
+          return null;
+        }
+
+        // Make sure that there are not any other children with the
+        // same name.
+        try {
+          // Attempt to retrieve a child using this name.
+          parent.getChild(irelation, input);
+        } catch (AuthorizationException e) {
+          int msgID = MSGID_DSCFG_ERROR_CREATE_AUTHZ;
+          String msg = getMessage(msgID, irelation.getUserFriendlyName());
+          throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+              msgID, msg);
+        } catch (ConcurrentModificationException e) {
+          int msgID = MSGID_DSCFG_ERROR_CREATE_CME;
+          String msg = getMessage(msgID, irelation.getUserFriendlyName());
+          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
+              msg);
+        } catch (CommunicationException e) {
+          int msgID = MSGID_DSCFG_ERROR_CREATE_CE;
+          String msg = getMessage(msgID, irelation.getUserFriendlyName(), e
+              .getMessage());
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+              msgID, msg);
+        } catch (DefinitionDecodingException e) {
+          // Do nothing.
+        } catch (ManagedObjectDecodingException e) {
+          // Do nothing.
+        } catch (ManagedObjectNotFoundException e) {
+          // The child does not already exist so this name is ok.
+          return child;
+        }
+
+        // A child with the specified name must already exist.
+        int msgID = MSGID_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS;
+        String msg = getMessage(msgID, relation.getUserFriendlyName(), input);
+        app.printMessage(msg);
+        return null;
+      }
+
+    };
+
+    return getConsoleApplication().readValidatedInput(msg, validator);
+  }
+
+
+
   // Generate the type name - definition mapping table.
   @SuppressWarnings("unchecked")
-  private SortedMap<String, ManagedObjectDefinition<? extends C, ?>>
-      getSubTypes(AbstractManagedObjectDefinition<C, ?> d) {
-    SortedMap<String, ManagedObjectDefinition<? extends C, ?>> map;
-    map = new TreeMap<String, ManagedObjectDefinition<? extends C, ?>>();
+  private SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>>
+      getSubTypes(AbstractManagedObjectDefinition<C, S> d) {
+    SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>> map;
+    map =
+      new TreeMap<String, ManagedObjectDefinition<? extends C, ? extends S>>();
 
     // If the top-level definition is instantiable, we use the value
     // "generic".
     if (d instanceof ManagedObjectDefinition) {
-      ManagedObjectDefinition<? extends C, ?> mod =
-        (ManagedObjectDefinition<? extends C, ?>) d;
+      ManagedObjectDefinition<? extends C, ? extends S> mod =
+        (ManagedObjectDefinition<? extends C, ? extends S>) d;
       map.put(GENERIC_TYPE, mod);
     }
 
     // Process its sub-definitions.
     String suffix = "-" + d.getName();
-    for (AbstractManagedObjectDefinition<? extends C, ?> c :
+    for (AbstractManagedObjectDefinition<? extends C, ? extends S> c :
         d.getAllChildren()) {
       if (c instanceof ManagedObjectDefinition) {
-        ManagedObjectDefinition<? extends C, ?> mod =
-          (ManagedObjectDefinition<? extends C, ?>) c;
+        ManagedObjectDefinition<? extends C, ? extends S> mod =
+          (ManagedObjectDefinition<? extends C, ? extends S>) c;
 
         // For the type name we shorten it, if possible, by stripping
         // off the trailing part of the name which matches the

@@ -62,7 +62,7 @@ public class DefaultBehaviorException extends PropertyException {
    *          The exception that prevented the default values from
    *          being determined.
    */
-  public DefaultBehaviorException(PropertyDefinition pd, Throwable cause) {
+  public DefaultBehaviorException(PropertyDefinition<?> pd, Throwable cause) {
     super(pd);
     this.cause = cause;
   }

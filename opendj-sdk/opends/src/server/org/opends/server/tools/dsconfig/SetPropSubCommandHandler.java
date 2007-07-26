@@ -31,7 +31,6 @@ package org.opends.server.tools.dsconfig;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 
-import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +56,6 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -144,6 +142,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * Creates a new set-xxx-prop sub-command for an instantiable
    * relation.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -154,10 +154,10 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static SetPropSubCommandHandler create(
+  public static SetPropSubCommandHandler create(ConsoleApplication app,
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       InstantiableRelationDefinition<?, ?> r) throws ArgumentException {
-    return new SetPropSubCommandHandler(parser, path.child(r, "DUMMY"), r);
+    return new SetPropSubCommandHandler(app, parser, path.child(r, "DUMMY"), r);
   }
 
 
@@ -165,6 +165,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new set-xxx-prop sub-command for an optional relation.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -175,10 +177,10 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static SetPropSubCommandHandler create(
+  public static SetPropSubCommandHandler create(ConsoleApplication app,
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       OptionalRelationDefinition<?, ?> r) throws ArgumentException {
-    return new SetPropSubCommandHandler(parser, path.child(r), r);
+    return new SetPropSubCommandHandler(app, parser, path.child(r), r);
   }
 
 
@@ -186,6 +188,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new set-xxx-prop sub-command for a singleton relation.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -196,10 +200,10 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static SetPropSubCommandHandler create(
+  public static SetPropSubCommandHandler create(ConsoleApplication app,
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       SingletonRelationDefinition<?, ?> r) throws ArgumentException {
-    return new SetPropSubCommandHandler(parser, path.child(r), r);
+    return new SetPropSubCommandHandler(app, parser, path.child(r), r);
   }
 
   // The sub-commands naming arguments.
@@ -230,9 +234,11 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
 
   // Private constructor.
-  private SetPropSubCommandHandler(SubCommandArgumentParser parser,
-      ManagedObjectPath<?, ?> path, RelationDefinition<?, ?> r)
-      throws ArgumentException {
+  private SetPropSubCommandHandler(ConsoleApplication app,
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
+      RelationDefinition<?, ?> r) throws ArgumentException {
+    super(app);
+
     this.path = path;
 
     // Create the sub-command.
@@ -289,15 +295,14 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    */
   @SuppressWarnings("unchecked")
   @Override
-  public int run(DSConfig app, PrintStream out, PrintStream err)
+  public int run()
       throws ArgumentException, ClientException {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(namingArgs);
 
-    ManagementContext context = app.getManagementContext();
     ManagedObject<?> child;
     try {
-      child = getManagedObject(context, path, names);
+      child = getManagedObject(path, names);
     } catch (AuthorizationException e) {
       int msgID = MSGID_DSCFG_ERROR_MODIFY_AUTHZ;
       String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
@@ -493,11 +498,11 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       // Confirm commit.
       String prompt = String.format(Messages.getString("modify.confirm"), d
           .getUserFriendlyName());
-      if (!app.confirmAction(prompt)) {
+      if (!getConsoleApplication().confirmAction(prompt)) {
         // Output failure message.
         String msg = String.format(Messages.getString("modify.failed"), d
             .getUserFriendlyName());
-        app.displayVerboseMessage(msg);
+        getConsoleApplication().printVerboseMessage(msg);
         return 1;
       }
 
@@ -506,7 +511,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       // Output success message.
       String msg = String.format(Messages.getString("modify.done"), d
           .getUserFriendlyName());
-      app.displayVerboseMessage(msg);
+      getConsoleApplication().printVerboseMessage(msg);
     } catch (MissingMandatoryPropertiesException e) {
       throw ArgumentExceptionFactory.adaptMissingMandatoryPropertiesException(
           e, d);

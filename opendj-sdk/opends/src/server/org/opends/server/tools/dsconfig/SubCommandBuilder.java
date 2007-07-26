@@ -61,6 +61,9 @@ final class SubCommandBuilder {
   private static final class Visitor implements
       RelationDefinitionVisitor<Void, ManagedObjectPath<?, ?>> {
 
+    // The application.
+    private final ConsoleApplication app;
+
     // Any exception that occurred whilst creating the sub-commands.
     private ArgumentException exception = null;
 
@@ -74,7 +77,8 @@ final class SubCommandBuilder {
     private final SubCommandArgumentParser parser;
 
     // Private constructor.
-    private Visitor(SubCommandArgumentParser parser) {
+    private Visitor(ConsoleApplication app, SubCommandArgumentParser parser) {
+      this.app = app;
       this.parser = parser;
     }
 
@@ -93,7 +97,7 @@ final class SubCommandBuilder {
         handlers = new LinkedList<SubCommandHandler>();
 
         // We always need a help properties sub-command handler.
-        helpHandler = HelpSubCommandHandler.create(parser);
+        helpHandler = HelpSubCommandHandler.create(app, parser);
         handlers.add(helpHandler);
 
         processPath(ManagedObjectPath.emptyPath());
@@ -126,11 +130,11 @@ final class SubCommandBuilder {
         ManagedObjectPath<?, ?> p) {
       try {
         // Create the sub-commands.
-        handlers.add(CreateSubCommandHandler.create(parser, p, r));
-        handlers.add(DeleteSubCommandHandler.create(parser, p, r));
-        handlers.add(ListSubCommandHandler.create(parser, p, r));
-        handlers.add(GetPropSubCommandHandler.create(parser, p, r));
-        handlers.add(SetPropSubCommandHandler.create(parser, p, r));
+        handlers.add(CreateSubCommandHandler.create(app, parser, p, r));
+        handlers.add(DeleteSubCommandHandler.create(app, parser, p, r));
+        handlers.add(ListSubCommandHandler.create(app, parser, p, r));
+        handlers.add(GetPropSubCommandHandler.create(app, parser, p, r));
+        handlers.add(SetPropSubCommandHandler.create(app, parser, p, r));
 
         // Process the referenced managed object definition and its
         // sub-types.
@@ -151,11 +155,11 @@ final class SubCommandBuilder {
         ManagedObjectPath<?, ?> p) {
       try {
         // Create the sub-commands.
-        handlers.add(CreateSubCommandHandler.create(parser, p, r));
-        handlers.add(DeleteSubCommandHandler.create(parser, p, r));
-        handlers.add(ListSubCommandHandler.create(parser, p, r));
-        handlers.add(GetPropSubCommandHandler.create(parser, p, r));
-        handlers.add(SetPropSubCommandHandler.create(parser, p, r));
+        handlers.add(CreateSubCommandHandler.create(app, parser, p, r));
+        handlers.add(DeleteSubCommandHandler.create(app, parser, p, r));
+        handlers.add(ListSubCommandHandler.create(app, parser, p, r));
+        handlers.add(GetPropSubCommandHandler.create(app, parser, p, r));
+        handlers.add(SetPropSubCommandHandler.create(app, parser, p, r));
 
         // Process the referenced managed object definition and its
         // sub-types.
@@ -176,8 +180,8 @@ final class SubCommandBuilder {
         ManagedObjectPath<?, ?> p) {
       try {
         // Create the sub-commands.
-        handlers.add(GetPropSubCommandHandler.create(parser, p, r));
-        handlers.add(SetPropSubCommandHandler.create(parser, p, r));
+        handlers.add(GetPropSubCommandHandler.create(app, parser, p, r));
+        handlers.add(SetPropSubCommandHandler.create(app, parser, p, r));
 
         // Process the referenced managed object definition and its
         // sub-types.
@@ -281,6 +285,8 @@ final class SubCommandBuilder {
   /**
    * Get the set of sub-command handlers constructed by this builder.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @return Returns the set of sub-command handlers constructed by
@@ -289,8 +295,9 @@ final class SubCommandBuilder {
    *           If a sub-command could not be created successfully.
    */
   public Collection<SubCommandHandler> getSubCommandHandlers(
-      SubCommandArgumentParser parser) throws ArgumentException {
-    Visitor v = new Visitor(parser);
+      ConsoleApplication app, SubCommandArgumentParser parser)
+      throws ArgumentException {
+    Visitor v = new Visitor(app, parser);
     return v.getSubCommandHandlers();
   }
 

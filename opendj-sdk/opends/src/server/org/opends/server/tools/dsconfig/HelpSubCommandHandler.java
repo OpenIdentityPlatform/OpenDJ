@@ -294,7 +294,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
        * {@inheritDoc}
        */
       @Override
-      public Void visitUnknown(PropertyDefinition d, PrintStream p)
+      public Void visitUnknown(PropertyDefinition<?> d, PrintStream p)
           throws UnknownPropertyDefinitionException {
         PropertyDefinitionUsageBuilder usageBuilder =
           new PropertyDefinitionUsageBuilder(true);
@@ -458,18 +458,42 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new help-properties sub-command.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @return Returns the new help-properties sub-command.
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static HelpSubCommandHandler create(SubCommandArgumentParser parser)
+  public static synchronized HelpSubCommandHandler create(
+      ConsoleApplication app, SubCommandArgumentParser parser)
       throws ArgumentException {
-    return new HelpSubCommandHandler(parser);
+    if (INSTANCE == null) {
+      INSTANCE = new HelpSubCommandHandler(app, parser);
+    }
+    return INSTANCE;
   }
 
 
+
+  /**
+   * Gets the application-wide help sub-command handler.
+   *
+   * @return Returns the application-wide help sub-command handler.
+   */
+  public static synchronized HelpSubCommandHandler getInstance() {
+    if (INSTANCE == null) {
+      throw new RuntimeException("Help sub-command handler not initialized");
+    } else {
+      return INSTANCE;
+    }
+  }
+
+
+
+  // The singleton instance.
+  private static HelpSubCommandHandler INSTANCE = null;
 
   // The sub-command associated with this handler.
   private final SubCommand subCommand;
@@ -482,8 +506,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   private final Map<String, AbstractManagedObjectDefinition<?, ?>> types;
 
   // Private constructor.
-  private HelpSubCommandHandler(SubCommandArgumentParser parser)
-      throws ArgumentException {
+  private HelpSubCommandHandler(ConsoleApplication app,
+      SubCommandArgumentParser parser) throws ArgumentException {
+    super(app);
+
     // Create the sub-command.
     String name = "list-properties";
     int descriptionID = MSGID_DSCFG_DESCRIPTION_SUBCMD_HELPPROP;
@@ -649,7 +675,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
    * {@inheritDoc}
    */
   @Override
-  public int run(DSConfig app, PrintStream out, PrintStream err)
+  public int run()
       throws ArgumentException, ClientException {
     String typeName = typeArgument.getValue();
     Set<String> propertyNames = getPropertyNames();
@@ -682,10 +708,10 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       defns = Collections.<AbstractManagedObjectDefinition<?, ?>> singleton(d);
     }
 
-    if (!app.isVerbose()) {
-      displayNonVerbose(app, out, err, defns, propertyNames);
+    if (!getConsoleApplication().isVerbose()) {
+      displayNonVerbose(defns, propertyNames);
     } else {
-      displayVerbose(app, out, err, defns, propertyNames);
+      displayVerbose(defns, propertyNames);
     }
     return 0;
   }
@@ -693,10 +719,11 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
   // Output property summary table.
-  private void displayNonVerbose(DSConfig app, PrintStream out,
-      PrintStream err, Collection<AbstractManagedObjectDefinition<?, ?>> defns,
+  private void displayNonVerbose(
+      Collection<AbstractManagedObjectDefinition<?, ?>> defns,
       Set<String> propertyNames) {
-    if (!app.isScriptFriendly()) {
+    PrintStream out = getConsoleApplication().getOutputStream();
+    if (!getConsoleApplication().isScriptFriendly()) {
       out.println(DESCRIPTION_OPTIONS_TITLE);
       out.println();
       out.print(" r -- ");
@@ -728,7 +755,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     // Generate the table content.
     for (AbstractManagedObjectDefinition<?, ?> mod : defns) {
       Collection<PropertyDefinition<?>> pds;
-      if (app.isScriptFriendly()) {
+      if (getConsoleApplication().isScriptFriendly()) {
         pds = mod.getAllPropertyDefinitions();
       } else {
         pds = mod.getPropertyDefinitions();
@@ -767,7 +794,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     }
 
     TablePrinter printer;
-    if (app.isScriptFriendly()) {
+    if (getConsoleApplication().isScriptFriendly()) {
       printer = createScriptFriendlyTablePrinter(out);
     } else {
       printer = new TextTablePrinter(out);
@@ -778,9 +805,11 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
   // Display detailed help on managed objects and their properties.
-  private void displayVerbose(DSConfig app, PrintStream out, PrintStream err,
+  private void displayVerbose(
       Collection<AbstractManagedObjectDefinition<?, ?>> defns,
       Set<String> propertyNames) {
+    PrintStream out = getConsoleApplication().getOutputStream();
+
     // Construct line used to separate consecutive sections.
     char[] c1 = new char[MAX_LINE_WIDTH];
     Arrays.fill(c1, '=');
@@ -840,71 +869,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       }
     }
   }
-
-
-
-  // Display description of the single managed object.
-  /*private void displaySummaryForSingleManagedObject(DSConfig app,
-      PrintStream out, PrintStream err,
-      AbstractManagedObjectDefinition<?, ?> d, Set<String> propertyNames) {
-
-    // Display the title.
-    out.println(wrapText(String.format(HEADING_MANAGED_OBJECT, d
-        .getUserFriendlyName()), MAX_LINE_WIDTH));
-
-    out.println();
-    out.println(wrapText(d.getSynopsis(), MAX_LINE_WIDTH));
-    if (d.getDescription() != null) {
-      out.println();
-      out.println(wrapText(d.getDescription(), MAX_LINE_WIDTH));
-    }
-
-    // Output table of properties.
-    TableBuilder builder = new TableBuilder();
-
-    // Headings.
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_NAME));
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_OPTIONS));
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_SYNTAX));
-
-    // Sort keys.
-    builder.addSortKey(0);
-
-    // Generate the table content.
-    for (String name : propertyNames) {
-      PropertyDefinition<?> pd = d.getPropertyDefinition(name);
-
-      if (pd.hasOption(PropertyOption.HIDDEN)) {
-        continue;
-      }
-
-      // Display a property.
-      builder.startRow();
-      builder.appendCell(pd.getName());
-
-      // Display the options.
-      builder.appendCell(getPropertyOptionSummary(pd));
-
-      // Display the syntax.
-      PropertyDefinitionUsageBuilder v =
-        new PropertyDefinitionUsageBuilder(false);
-      String syntax = v.getUsage(pd);
-      if (syntax.length() < 40) {
-        builder.appendCell(syntax);
-      } else {
-        String msg = getMessage(MSGID_DSCFG_DESCRIPTION_PROPERTY_SYNTAX_HELP);
-        builder.appendCell(msg);
-      }
-    }
-
-    TextTablePrinter factory = new TextTablePrinter(out);
-
-    // Let the syntax column be expandable.
-    factory.setColumnWidth(2, 0);
-
-    out.println();
-    builder.print(factory);
-  }*/
 
 
 

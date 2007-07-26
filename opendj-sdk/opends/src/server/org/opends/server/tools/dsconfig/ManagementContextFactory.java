@@ -59,8 +59,8 @@ public interface ManagementContextFactory {
    * @throws ClientException
    *           If the management context could not be created.
    */
-  ManagementContext getManagementContext(DSConfig app) throws ArgumentException,
-      ClientException;
+  ManagementContext getManagementContext(ConsoleApplication app)
+      throws ArgumentException, ClientException;
 
 
 

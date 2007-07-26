@@ -41,7 +41,7 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> implements
     DefaultBehaviorProvider<T> {
 
   // The absolute path to the managed object containing the property.
-  private final ManagedObjectPath path;
+  private final ManagedObjectPath<?, ?> path;
 
   // The name of the property containing the inherited default values.
   private final String propertyName;
@@ -104,7 +104,7 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> implements
    * @return Returns the absolute path of the managed object
    *         containing the property which has the default values.
    */
-  public ManagedObjectPath getManagedObjectPath() {
+  public ManagedObjectPath<?, ?> getManagedObjectPath() {
     return path;
   }
 

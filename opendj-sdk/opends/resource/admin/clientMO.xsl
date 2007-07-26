@@ -195,7 +195,7 @@
         </xsl:call-template>
         <xsl:value-of
           select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                           '      ManagedObjectDefinition&lt;C, ?&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions);&#xa;')" />
+                           '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions);&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -312,7 +312,7 @@
         </xsl:call-template>
         <xsl:value-of
           select="concat('  &lt;C extends ', $java-class-name,'CfgClient&gt; C create', $java-relation-name, '(&#xa;',
-                           '      ManagedObjectDefinition&lt;C, ?&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException;&#xa;')" />
+                           '      ManagedObjectDefinition&lt;C, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -396,6 +396,18 @@
             org.opends.server.admin.client.CommunicationException
           </import>
         </xsl:if>
+        <xsl:for-each select="$this-local-relations[adm:one-to-zero-or-one]|$this-local-relations[adm:one-to-many]">
+          <xsl:variable name="java-class-name">
+            <xsl:call-template name="name-to-java">
+              <xsl:with-param name="value"
+                select="@managed-object-name" />
+            </xsl:call-template>
+          </xsl:variable>
+          <xsl:element name="import">
+            <xsl:value-of
+              select="concat(@managed-object-package, '.server.', $java-class-name, 'Cfg')" />
+          </xsl:element>
+        </xsl:for-each>
         <xsl:if
           test="$this-local-relations/adm:one-to-zero-or-one|$this-local-relations/adm:one-to-many">
           <import>java.util.Collection</import>

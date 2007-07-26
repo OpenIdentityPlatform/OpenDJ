@@ -24,42 +24,36 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
+package org.opends.server.tools.dsconfig;
 
-package org.opends.server.admin;
+import org.opends.server.tools.ClientException;
 
 
 
 /**
- * Thrown when an attempt is made to remove a mandatory property.
+ * An interface for validating user input.
+ *
+ * @param <T>
+ *          The type of the decoded input.
  */
-public class PropertyIsMandatoryException extends PropertyException {
+interface ValidationCallback<T> {
 
   /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 5328211711156565625L;
-
-
-
-  /**
-   * Create a new property is mandatory exception.
+   * Validates and decodes the user-provided input. Implementations
+   * must validate <code>input</code> and return the decoded value
+   * if the input is acceptable. If the input is unacceptable,
+   * implementations must return <code>null</code> and output a user
+   * friendly error message to the provided application console.
    *
-   * @param d
-   *          The property definition.
+   * @param app
+   *          The console application.
+   * @param input
+   *          The user input to be validated.
+   * @return Returns the decoded input if the input is valid, or
+   *         <code>null</code> if it is not.
+   * @throws ClientException
+   *           If an unexpected error occurred which prevented
+   *           validation.
    */
-  public PropertyIsMandatoryException(PropertyDefinition<?> d) {
-    super(d);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMessage() {
-    return "The property \"" + getPropertyDefinition().getName()
-        + "\" must be specified as it is mandatory";
-  }
-
+  T validate(ConsoleApplication app, String input) throws ClientException;
 }

@@ -244,7 +244,7 @@ public interface TestParentCfgClient extends ConfigurationClient {
    *          If the name is invalid.
    */
   <C extends TestChildCfgClient> C createTestChild(
-      ManagedObjectDefinition<C, ?> d, String name, Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException;
+      ManagedObjectDefinition<C, ? extends TestChildCfg> d, String name, Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException;
 
 
 
@@ -343,7 +343,7 @@ public interface TestParentCfgClient extends ConfigurationClient {
    * @return Returns a new Optional Test Child configuration instance.
    */
   <C extends TestChildCfgClient> C createOptionalTestChild(
-      ManagedObjectDefinition<C, ?> d, Collection<DefaultBehaviorException> exceptions);
+      ManagedObjectDefinition<C, ? extends TestChildCfg> d, Collection<DefaultBehaviorException> exceptions);
 
 
 

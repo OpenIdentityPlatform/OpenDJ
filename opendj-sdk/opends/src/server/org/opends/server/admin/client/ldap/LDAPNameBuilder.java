@@ -65,7 +65,8 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
    * @return Returns a new LDAP name representing the specified
    *         managed object path.
    */
-  public static LdapName create(ManagedObjectPath path, LDAPProfile profile) {
+  public static LdapName create(ManagedObjectPath<?, ?> path,
+      LDAPProfile profile) {
     LDAPNameBuilder builder = new LDAPNameBuilder(profile);
     path.serialize(builder);
     return builder.getInstance();
@@ -87,7 +88,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
    * @return Returns a new LDAP name representing the specified
    *         managed object path and instantiable relation.
    */
-  public static LdapName create(ManagedObjectPath path,
+  public static LdapName create(ManagedObjectPath<?, ?> path,
       InstantiableRelationDefinition<?, ?> relation, LDAPProfile profile) {
     LDAPNameBuilder builder = new LDAPNameBuilder(profile);
     path.serialize(builder);
@@ -125,7 +126,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
           InstantiableRelationDefinition<? super C, ? super S> r,
           AbstractManagedObjectDefinition<C, S> d, String name) {
     // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition) r);
+    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
 
     // Now add the single RDN representing the named instance.
     String type = profile.getInstantiableRelationChildRDNType(r);
@@ -167,7 +168,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
           OptionalRelationDefinition<? super C, ? super S> r,
           AbstractManagedObjectDefinition<C, S> d) {
     // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition) r);
+    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
   }
 
 
@@ -180,7 +181,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
           SingletonRelationDefinition<? super C, ? super S> r,
           AbstractManagedObjectDefinition<C, S> d) {
     // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition) r);
+    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
   }
 
 

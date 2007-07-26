@@ -87,7 +87,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
    * @param listener
    *          The underlying delete listener.
    */
-  public ConfigDeleteListenerAdaptor(ManagedObjectPath path,
+  public ConfigDeleteListenerAdaptor(ManagedObjectPath<?, ?> path,
       InstantiableRelationDefinition<?, S> relation,
       ConfigurationDeleteListener<S> listener) {
     this.path = path;
@@ -110,7 +110,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
    * @param listener
    *          The underlying delete listener.
    */
-  public ConfigDeleteListenerAdaptor(ManagedObjectPath path,
+  public ConfigDeleteListenerAdaptor(ManagedObjectPath<?, ?> path,
       OptionalRelationDefinition<?, S> relation,
       ConfigurationDeleteListener<S> listener) {
     this.path = path;
@@ -131,7 +131,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
       // Optional managed objects are located directly beneath the
       // parent and have a well-defined name. We need to make sure
       // that we are handling the correct entry.
-      ManagedObjectPath childPath = path.child(optionalRelation);
+      ManagedObjectPath<?, ?> childPath = path.child(optionalRelation);
       DN expectedDN = DNBuilder.create(childPath);
       if (!configEntry.getDN().equals(expectedDN)) {
         // Doesn't apply to us.
@@ -155,7 +155,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
     AttributeValue av = dn.getRDN().getAttributeValue(0);
     String name = av.getStringValue().trim();
 
-    ManagedObjectPath childPath;
+    ManagedObjectPath<?, ?> childPath;
     RelationDefinition<?, S> r;
     if (instantiableRelation != null) {
       childPath = path.child(instantiableRelation, name);
@@ -197,10 +197,10 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration>
 
 
   /**
-   * Get the configuiration delete listener associated with this
+   * Get the configuration delete listener associated with this
    * adaptor.
    *
-   * @return Returns the configuiration delete listener associated
+   * @return Returns the configuration delete listener associated
    *         with this adaptor.
    */
   ConfigurationDeleteListener<S> getConfigurationDeleteListener() {

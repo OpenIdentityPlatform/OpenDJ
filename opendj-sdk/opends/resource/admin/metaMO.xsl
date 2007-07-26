@@ -1201,7 +1201,7 @@
                          '     * {@inheritDoc}&#xa;',
                          '     */&#xa;',
                          '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
-                         '        ManagedObjectDefinition&lt;M, ?&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions) {&#xa;',
+                         '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, Collection&lt;DefaultBehaviorException&gt; exceptions) {&#xa;',
                          '      return impl.createChild(INSTANCE.get', $java-relation-name,'RelationDefinition(), d, exceptions).getConfiguration();&#xa;',
                          '    }&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
@@ -1254,7 +1254,7 @@
                          '     * {@inheritDoc}&#xa;',
                          '     */&#xa;',
                          '    public &lt;M extends ', $java-class-name, 'CfgClient&gt; M create', $java-relation-name, '(&#xa;',
-                         '        ManagedObjectDefinition&lt;M, ?&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException {&#xa;',
+                         '        ManagedObjectDefinition&lt;M, ? extends ', $java-class-name,'Cfg&gt; d, String name, Collection&lt;DefaultBehaviorException&gt; exceptions) throws IllegalManagedObjectNameException {&#xa;',
                          '      return impl.createChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), d, name, exceptions).getConfiguration();&#xa;',
                          '    }&#xa;')" />
         <xsl:text>&#xa;</xsl:text>

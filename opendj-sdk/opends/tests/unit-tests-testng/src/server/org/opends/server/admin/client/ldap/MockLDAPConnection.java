@@ -209,7 +209,7 @@ public class MockLDAPConnection extends LDAPConnection {
    * {@inheritDoc}
    */
   @Override
-  public Collection<LdapName> listEntries(LdapName dn) throws NamingException {
+  public Collection<LdapName> listEntries(LdapName dn, String filter) throws NamingException {
     MockEntry entry = getEntry(dn);
 
     if (entry == null) {

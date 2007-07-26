@@ -63,7 +63,7 @@ public final class InternalManagementContextFactory implements
   /**
    * {@inheritDoc}
    */
-  public ManagementContext getManagementContext(DSConfig app)
+  public ManagementContext getManagementContext(ConsoleApplication app)
       throws ArgumentException, ClientException {
     return context;
   }

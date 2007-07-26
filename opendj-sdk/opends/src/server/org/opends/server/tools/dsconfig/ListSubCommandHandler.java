@@ -51,7 +51,6 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
@@ -75,6 +74,8 @@ final class ListSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new list-xxx sub-command for an instantiable relation.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param p
@@ -85,10 +86,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static ListSubCommandHandler create(SubCommandArgumentParser parser,
-      ManagedObjectPath<?, ?> p, InstantiableRelationDefinition<?, ?> r)
-      throws ArgumentException {
-    return new ListSubCommandHandler(parser, p, r, r.getPluralName(), r
+  public static ListSubCommandHandler create(ConsoleApplication app,
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
+      InstantiableRelationDefinition<?, ?> r) throws ArgumentException {
+    return new ListSubCommandHandler(app, parser, p, r, r.getPluralName(), r
         .getUserFriendlyPluralName());
   }
 
@@ -97,6 +98,8 @@ final class ListSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new list-xxx sub-command for an optional relation.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param p
@@ -107,10 +110,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static ListSubCommandHandler create(SubCommandArgumentParser parser,
-      ManagedObjectPath<?, ?> p, OptionalRelationDefinition<?, ?> r)
-      throws ArgumentException {
-    return new ListSubCommandHandler(parser, p, r, r.getName(), r
+  public static ListSubCommandHandler create(ConsoleApplication app,
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
+      OptionalRelationDefinition<?, ?> r) throws ArgumentException {
+    return new ListSubCommandHandler(app, parser, p, r, r.getName(), r
         .getUserFriendlyName());
   }
 
@@ -129,9 +132,12 @@ final class ListSubCommandHandler extends SubCommandHandler {
 
 
   // Private constructor.
-  private ListSubCommandHandler(SubCommandArgumentParser parser,
-      ManagedObjectPath<?, ?> p, RelationDefinition<?, ?> r, String rname,
-      String rufn) throws ArgumentException {
+  private ListSubCommandHandler(ConsoleApplication app,
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
+      RelationDefinition<?, ?> r, String rname, String rufn)
+      throws ArgumentException {
+    super(app);
+
     this.path = p;
     this.relation = r;
 
@@ -169,7 +175,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
    * {@inheritDoc}
    */
   @Override
-  public int run(DSConfig app, PrintStream out, PrintStream err)
+  public int run()
       throws ArgumentException, ClientException {
     // Get the property names.
     Set<String> propertyNames = getPropertyNames();
@@ -181,7 +187,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
     }
 
     PropertyValuePrinter valuePrinter = new PropertyValuePrinter(getSizeUnit(),
-        getTimeUnit(), app.isScriptFriendly());
+        getTimeUnit(), getConsoleApplication().isScriptFriendly());
 
     // Get the naming argument values.
     List<String> names = getNamingArgValues(namingArgs);
@@ -196,10 +202,9 @@ final class ListSubCommandHandler extends SubCommandHandler {
     }
 
     // List the children.
-    ManagementContext context = app.getManagementContext();
     ManagedObject<?> parent;
     try {
-      parent = getManagedObject(context, path, names);
+      parent = getManagedObject(path, names);
     } catch (AuthorizationException e) {
       int msgID = MSGID_DSCFG_ERROR_LIST_AUTHZ;
       String msg = getMessage(msgID, ufn);
@@ -315,8 +320,9 @@ final class ListSubCommandHandler extends SubCommandHandler {
     }
 
     // Output the results.
-    if (app.isScriptFriendly()) {
+    if (getConsoleApplication().isScriptFriendly()) {
       // Output just the names of the children.
+      PrintStream out = getConsoleApplication().getOutputStream();
       for (String name : children.keySet()) {
         out.println(name);
       }
@@ -359,11 +365,11 @@ final class ListSubCommandHandler extends SubCommandHandler {
         for (String propertyName : propertyNames) {
           try {
             PropertyDefinition<?> pd = d.getPropertyDefinition(propertyName);
-            displayProperty(app, builder, child, pd, valuePrinter);
+            displayProperty(builder, child, pd, valuePrinter);
           } catch (IllegalArgumentException e) {
             // Assume this child managed object does not support this
             // property.
-            if (app.isScriptFriendly()) {
+            if (getConsoleApplication().isScriptFriendly()) {
               builder.appendCell();
             } else {
               builder.appendCell("-");
@@ -372,7 +378,8 @@ final class ListSubCommandHandler extends SubCommandHandler {
         }
       }
 
-      if (app.isScriptFriendly()) {
+      PrintStream out = getConsoleApplication().getOutputStream();
+      if (getConsoleApplication().isScriptFriendly()) {
         TablePrinter printer = createScriptFriendlyTablePrinter(out);
         builder.print(printer);
       } else {
@@ -388,12 +395,11 @@ final class ListSubCommandHandler extends SubCommandHandler {
 
 
   // Display the set of values associated with a property.
-  private <T> void displayProperty(DSConfig app, TableBuilder builder,
-      ManagedObject<?> mo, PropertyDefinition<T> pd,
-      PropertyValuePrinter valuePrinter) {
+  private <T> void displayProperty(TableBuilder builder, ManagedObject<?> mo,
+      PropertyDefinition<T> pd, PropertyValuePrinter valuePrinter) {
     SortedSet<T> values = mo.getPropertyValues(pd);
     if (values.isEmpty()) {
-      if (app.isScriptFriendly()) {
+      if (getConsoleApplication().isScriptFriendly()) {
         builder.appendCell();
       } else {
         builder.appendCell("-");

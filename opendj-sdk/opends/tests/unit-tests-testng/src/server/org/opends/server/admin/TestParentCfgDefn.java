@@ -427,7 +427,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
      * {@inheritDoc}
      */
     public <M extends TestChildCfgClient> M createTestChild(
-        ManagedObjectDefinition<M, ?> d, String name, Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException {
+        ManagedObjectDefinition<M, ? extends TestChildCfg> d, String name, Collection<DefaultBehaviorException> exceptions) throws IllegalManagedObjectNameException {
       return impl.createChild(INSTANCE.getTestChildrenRelationDefinition(), d, name, exceptions).getConfiguration();
     }
 
@@ -470,7 +470,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
      * {@inheritDoc}
      */
     public <M extends TestChildCfgClient> M createOptionalTestChild(
-        ManagedObjectDefinition<M, ?> d, Collection<DefaultBehaviorException> exceptions) {
+        ManagedObjectDefinition<M, ? extends TestChildCfg> d, Collection<DefaultBehaviorException> exceptions) {
       return impl.createChild(INSTANCE.getOptionalTestChildRelationDefinition(), d, exceptions).getConfiguration();
     }
 

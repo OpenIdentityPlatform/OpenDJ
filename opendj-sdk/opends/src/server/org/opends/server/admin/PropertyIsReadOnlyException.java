@@ -47,7 +47,7 @@ public class PropertyIsReadOnlyException extends PropertyException {
    * @param d
    *          The property definition.
    */
-  public PropertyIsReadOnlyException(PropertyDefinition d) {
+  public PropertyIsReadOnlyException(PropertyDefinition<?> d) {
     super(d);
   }
 
