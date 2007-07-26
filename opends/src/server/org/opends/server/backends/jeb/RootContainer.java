@@ -223,7 +223,7 @@ public class RootContainer
       TRACER.debugInfo("Free memory in heap: %d bytes", heapFreeSize);
     }
 
-    openEntryContainers(config.getBackendBaseDN());
+    openAndRegisterEntryContainers(config.getBackendBaseDN());
   }
 
   /**
@@ -235,28 +235,55 @@ public class RootContainer
    * transactional.
    *
    * @param baseDN The base DN of the entry container to open.
+   * @param name The name of the entry container or <CODE>NULL</CODE> to open
+   * the default entry container for the given base DN.
    * @return The opened entry container.
    * @throws DatabaseException If an error occurs while opening the entry
    *                           container.
    * @throws ConfigException If an configuration error occurs while opening
    *                         the entry container.
    */
-  public EntryContainer openEntryContainer(DN baseDN)
+  public EntryContainer openEntryContainer(DN baseDN, String name)
       throws DatabaseException, ConfigException
   {
-    EntryContainer ec = new EntryContainer(baseDN, backend, config, env, this);
+    String databasePrefix;
+    if(name == null || name.equals(""))
+    {
+      databasePrefix = baseDN.toNormalizedString();
+    }
+    else
+    {
+      databasePrefix = name;
+    }
+
+    EntryContainer ec = new EntryContainer(baseDN, databasePrefix,
+                                           backend, config, env, this);
+    ec.open();
+    return ec;
+  }
+
+  /**
+   * Registeres the entry container for a base DN.
+   *
+   * @param baseDN The base DN of the entry container to close.
+   * @param entryContainer The entry container to register for the baseDN.
+   * @throws DatabaseException If an error occurs while opening the entry
+   *                           container.
+   */
+  public void registerEntryContainer(DN baseDN,
+                                     EntryContainer entryContainer)
+      throws DatabaseException
+  {
     EntryContainer ec1=this.entryContainers.get(baseDN);
 
     //If an entry container for this baseDN is already open we don't allow
     //another to be opened.
     if (ec1 != null)
-      throw new DatabaseException("Entry container for baseDN " +
-          baseDN.toString() + " already is open.");
+      throw new DatabaseException("An entry container named " +
+          ec1.getDatabasePrefix() + " is alreadly registered for base DN " +
+          baseDN.toString());
 
-    ec.open();
-    this.entryContainers.put(baseDN, ec);
-
-    return ec;
+    this.entryContainers.put(baseDN, entryContainer);
   }
 
   /**
@@ -268,15 +295,16 @@ public class RootContainer
    * @throws ConfigException if a configuration error occurs while opening the
    *                         container.
    */
-  private void openEntryContainers(Set<DN> baseDNs)
+  private void openAndRegisterEntryContainers(Set<DN> baseDNs)
       throws DatabaseException, ConfigException
   {
     EntryID id;
     EntryID highestID = null;
     for(DN baseDN : baseDNs)
     {
-      EntryContainer ec = openEntryContainer(baseDN);
+      EntryContainer ec = openEntryContainer(baseDN, null);
       id = ec.getHighestEntryID();
+      registerEntryContainer(baseDN, ec);
       if(highestID == null || id.compareTo(highestID) > 0)
       {
         highestID = id;
@@ -287,48 +315,15 @@ public class RootContainer
   }
 
   /**
-   * Close the entry container for a base DN.
+   * Unregisteres the entry container for a base DN.
    *
    * @param baseDN The base DN of the entry container to close.
-   * @throws DatabaseException If an error occurs while closing the entry
-   *                           container.
+   * @return The entry container that was unregistered or NULL if a entry
+   * container for the base DN was not registered.
    */
-  public void closeEntryContainer(DN baseDN) throws DatabaseException
+  public EntryContainer unregisterEntryContainer(DN baseDN)
   {
-    EntryContainer ec = getEntryContainer(baseDN);
-    ec.exclusiveLock.lock();
-    try
-    {
-      ec.close();
-      entryContainers.remove(baseDN);
-    }
-    finally
-    {
-      ec.exclusiveLock.unlock();
-    }
-  }
-
-  /**
-   * Close and remove a entry container for a base DN from disk.
-   *
-   * @param baseDN The base DN of the entry container to remove.
-   * @throws DatabaseException If an error occurs while removing the entry
-   *                           container.
-   */
-  public void removeEntryContainer(DN baseDN) throws DatabaseException
-  {
-    EntryContainer ec = getEntryContainer(baseDN);
-    ec.exclusiveLock.lock();
-    try
-    {
-      ec.close();
-      ec.removeContainer();
-      entryContainers.remove(baseDN);
-    }
-    finally
-    {
-      ec.exclusiveLock.unlock();
-    }
+    return entryContainers.remove(baseDN);
 
   }
 
@@ -499,7 +494,16 @@ public class RootContainer
   {
     for(DN baseDN : entryContainers.keySet())
     {
-      closeEntryContainer(baseDN);
+      EntryContainer ec = unregisterEntryContainer(baseDN);
+      ec.exclusiveLock.lock();
+      try
+      {
+        ec.close();
+      }
+      finally
+      {
+        ec.exclusiveLock.unlock();
+      }
     }
 
     if (env != null)

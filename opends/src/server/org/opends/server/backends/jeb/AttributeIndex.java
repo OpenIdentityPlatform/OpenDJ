@@ -139,7 +139,8 @@ public class AttributeIndex
     this.state = state;
 
     AttributeType attrType = indexConfig.getIndexAttribute();
-    String name = attrType.getNameOrOID();
+    String name =
+        entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
     int indexEntryLimit = indexConfig.getIndexEntryLimit();
 
     if (indexConfig.getIndexType().contains(JEIndexCfgDefn.IndexType.EQUALITY))
@@ -1216,7 +1217,8 @@ public class AttributeIndex
     try
     {
       AttributeType attrType = cfg.getIndexAttribute();
-      String name = attrType.getNameOrOID();
+      String name =
+        entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
       int indexEntryLimit = cfg.getIndexEntryLimit();
 
       if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.EQUALITY))
@@ -1260,7 +1262,7 @@ public class AttributeIndex
           entryContainer.exclusiveLock.lock();
           try
           {
-            entryContainer.removeDatabase(equalityIndex);
+            entryContainer.deleteDatabase(equalityIndex);
             equalityIndex = null;
           }
           catch(DatabaseException de)
@@ -1314,7 +1316,7 @@ public class AttributeIndex
           entryContainer.exclusiveLock.lock();
           try
           {
-            entryContainer.removeDatabase(presenceIndex);
+            entryContainer.deleteDatabase(presenceIndex);
             presenceIndex = null;
           }
           catch(DatabaseException de)
@@ -1377,7 +1379,7 @@ public class AttributeIndex
           entryContainer.exclusiveLock.lock();
           try
           {
-            entryContainer.removeDatabase(substringIndex);
+            entryContainer.deleteDatabase(substringIndex);
             substringIndex = null;
           }
           catch(DatabaseException de)
@@ -1431,7 +1433,7 @@ public class AttributeIndex
           entryContainer.exclusiveLock.lock();
           try
           {
-            entryContainer.removeDatabase(orderingIndex);
+            entryContainer.deleteDatabase(orderingIndex);
             orderingIndex = null;
           }
           catch(DatabaseException de)
@@ -1485,7 +1487,7 @@ public class AttributeIndex
           entryContainer.exclusiveLock.lock();
           try
           {
-            entryContainer.removeDatabase(approximateIndex);
+            entryContainer.deleteDatabase(approximateIndex);
             approximateIndex = null;
           }
           catch(DatabaseException de)
@@ -1595,7 +1597,7 @@ public class AttributeIndex
   public String getName()
   {
     StringBuilder builder = new StringBuilder();
-    builder.append(entryContainer.getContainerName());
+    builder.append(entryContainer.getDatabasePrefix());
     builder.append("_");
     builder.append(indexConfig.getIndexAttribute().getNameOrOID());
     return builder.toString();

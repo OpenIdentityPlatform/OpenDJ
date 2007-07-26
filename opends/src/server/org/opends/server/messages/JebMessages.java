@@ -1215,6 +1215,28 @@ public class JebMessages
   public static final int MSGID_JEB_INVALID_LOGGING_LEVEL =
        CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 156;
 
+  /**
+   * The message ID of the message indicating the migration stage has started
+   * during an import process. This takes two arguments, which are the type
+   * of entries being migrated and the base DN of the entry container they
+   * are from.
+   */
+  public static final int MSGID_JEB_IMPORT_MIGRATION_START =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 157;
+
+  /**
+   * The message ID of the message indicating the LDIF reading stage has
+   * started during an import process.
+   */
+  public static final int MSGID_JEB_IMPORT_LDIF_START =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 158;
+
+  /**
+   * The message ID of the message indicating the LDIF reading stage has
+   * ended during an import process.
+   */
+  public static final int MSGID_JEB_IMPORT_LDIF_END =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 159;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -1426,7 +1448,7 @@ public class JebMessages
                     "Exported %d records and skipped %d " +
                     "(recent rate %.1f/sec)");
     registerMessage(MSGID_JEB_IMPORT_THREAD_COUNT,
-                    "Starting LDIF import (using %d threads)");
+                    "Starting import (using %d threads)");
     registerMessage(MSGID_JEB_IMPORT_BUFFER_SIZE,
                     "Buffer size per thread = %,d");
     registerMessage(MSGID_JEB_IMPORT_LDIF_PROCESSING_TIME,
@@ -1434,10 +1456,10 @@ public class JebMessages
     registerMessage(MSGID_JEB_IMPORT_INDEX_PROCESSING_TIME,
                     "Index processing took %d seconds");
     registerMessage(MSGID_JEB_IMPORT_BEGINNING_INTERMEDIATE_MERGE,
-                    "Ending LDIF import pass %d because the pass size has " +
+                    "Ending import pass %d because the pass size has " +
                     "been reached.  Beginning the intermediate index merge");
     registerMessage(MSGID_JEB_IMPORT_BEGINNING_FINAL_MERGE,
-                    "End of LDIF reached.  Beginning final index merge");
+                    "Beginning final index merge");
     registerMessage(MSGID_JEB_IMPORT_RESUMING_LDIF_PROCESSING,
                     "Intermediate index merge processing complete (index " +
                     "processing time %d seconds).  Resuming LDIF processing");
@@ -1446,13 +1468,14 @@ public class JebMessages
     registerMessage(MSGID_JEB_IMPORT_CLOSING_DATABASE,
                     "Flushing data to disk");
     registerMessage(MSGID_JEB_IMPORT_FINAL_STATUS,
-                    "Processed %d entries, imported %d, skipped %d, and " +
-                    "rejected %d in %d seconds (average rate %.1f/sec)");
+                    "Processed %d entries, imported %d, skipped %d, " +
+                    "rejected %d and migrated %d in %d seconds " +
+                    "(average rate %.1f/sec)");
     registerMessage(MSGID_JEB_IMPORT_ENTRY_LIMIT_EXCEEDED_COUNT,
                     "Number of index values that exceeded the entry limit: %d");
     registerMessage(MSGID_JEB_IMPORT_PROGRESS_REPORT,
-                    "Processed %d entries, skipped %d, and rejected %d " +
-                    "(recent rate %.1f/sec)");
+                    "Processed %d entries, skipped %d, rejected %d, and " +
+                    "migrated %d (recent rate %.1f/sec)");
     registerMessage(MSGID_JEB_IMPORT_CACHE_AND_MEMORY_REPORT,
                     "Free memory = %d MB, Cache miss rate = %.1f/entry");
     registerMessage(MSGID_JEB_INDEX_MERGE_NO_DATA,
@@ -1575,5 +1598,11 @@ public class JebMessages
                     "imported entries");
     registerMessage(MSGID_JEB_IMPORT_CREATE_TMPDIR_ERROR,
                     "Unable to create the temporary directory %s");
+    registerMessage(MSGID_JEB_IMPORT_MIGRATION_START,
+                    "Migrating %s entries for base DN %s");
+    registerMessage(MSGID_JEB_IMPORT_LDIF_START,
+                    "Processing LDIF");
+    registerMessage(MSGID_JEB_IMPORT_LDIF_END,
+                    "End of LDIF reached");
   }
 }

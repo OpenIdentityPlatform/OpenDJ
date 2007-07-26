@@ -1601,7 +1601,7 @@ public final class StaticUtils
       buffer.append("(");
       for (StackTraceElement e : t.getStackTrace())
       {
-        if (i > 4)
+        if (i > 20)
         {
           buffer.append(" ...");
           break;

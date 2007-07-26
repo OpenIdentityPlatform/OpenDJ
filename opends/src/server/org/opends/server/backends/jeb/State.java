@@ -117,8 +117,10 @@ public class State extends DatabaseContainer
   public boolean getIndexTrustState(Transaction txn, Index index)
       throws DatabaseException
   {
+    String sortName =
+        index.getName().replace(entryContainer.getDatabasePrefix(), "");
     DatabaseEntry key =
-        new DatabaseEntry(StaticUtils.getBytes(index.getName()));
+        new DatabaseEntry(StaticUtils.getBytes(sortName));
     DatabaseEntry data = new DatabaseEntry();
 
     OperationStatus status;
@@ -145,8 +147,10 @@ public class State extends DatabaseContainer
                                     boolean trusted)
        throws DatabaseException
   {
+    String sortName =
+        index.getName().replace(entryContainer.getDatabasePrefix(), "");
     DatabaseEntry key =
-        new DatabaseEntry(StaticUtils.getBytes(index.getName()));
+        new DatabaseEntry(StaticUtils.getBytes(sortName));
     DatabaseEntry data = new DatabaseEntry();
 
     if(trusted)
@@ -162,4 +166,6 @@ public class State extends DatabaseContainer
     }
     return true;
   }
+
+  // TODO: Make sure to update the VLV state access methods to use shortname.
 }

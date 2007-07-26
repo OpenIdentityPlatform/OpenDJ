@@ -92,10 +92,7 @@ public abstract class DatabaseContainer
     this.env = env;
     this.entryContainer = entryContainer;
     this.databases = new CopyOnWriteArrayList<Database>();
-
-    StringBuilder builder = new StringBuilder();
-    buildDatabaseName(builder, name);
-    this.name = builder.toString();
+    this.name = name;
   }
 
   /**
@@ -172,19 +169,6 @@ public abstract class DatabaseContainer
   public void open() throws DatabaseException
   {
     getDatabase();
-  }
-
-  /**
-   * Constructs a full JE database name incorporating a entryContainer name.
-   *
-   * @param builder A string builder to which the full name will be appended.
-   * @param name    The short database name.
-   */
-  private void buildDatabaseName(StringBuilder builder, String name)
-  {
-    builder.append(entryContainer.getContainerName());
-    builder.append('_');
-    builder.append(name);
   }
 
   /**
@@ -384,5 +368,15 @@ public abstract class DatabaseContainer
       throws DatabaseException
   {
     return getDatabase().preload(config);
+  }
+
+  /**
+   * Set the JE database name to use for this container.
+   *
+   * @param name The database name to use for this container.
+   */
+  void setName(String name)
+  {
+    this.name = name;
   }
 }

@@ -95,6 +95,9 @@ public class LDIFImportConfig
   // Indicates whether the import is encrypted.
   private boolean isEncrypted;
 
+  // Indicates whether to clear all base DNs in a backend.
+  private boolean clearBackend;
+
   // Indicates whether to replace existing entries when appending
   // data.
   private boolean replaceExistingEntries;
@@ -184,6 +187,7 @@ public class LDIFImportConfig
     invokeImportPlugins    = false;
     isCompressed           = false;
     isEncrypted            = false;
+    clearBackend           = false;
     validateSchema         = true;
     reader                 = null;
     rejectWriter           = null;
@@ -790,6 +794,34 @@ public class LDIFImportConfig
   public void setEncrypted(boolean isEncrypted)
   {
     this.isEncrypted = isEncrypted;
+  }
+
+
+
+  /**
+   * Indicates whether to clear the entire backend if importing to a
+   * backend with more than one base DNs.
+   *
+   * @return <CODE>true</code> if the entire backend should be
+   * cleared or <CODE>false</CODE> if not.
+   */
+  public boolean clearBackend()
+  {
+    return clearBackend;
+  }
+
+
+
+  /**
+   * Specifies whether to clear the entire backend if importing to a
+   * backend.
+   *
+   * @param clearBackend Indicates whether to clear the entire
+   * backend.
+   */
+  public void setClearBackend(boolean clearBackend)
+  {
+    this.clearBackend = clearBackend;
   }
 
 
