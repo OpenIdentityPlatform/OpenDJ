@@ -664,6 +664,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         } catch (IllegalManagedObjectNameException e) {
           ArgumentException ae = ArgumentExceptionFactory
               .adaptIllegalManagedObjectNameException(e, d);
+          app.println();
           app.printMessage(ae.getMessage());
           return null;
         }
@@ -701,6 +702,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         // A child with the specified name must already exist.
         int msgID = MSGID_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS;
         String msg = getMessage(msgID, relation.getUserFriendlyName(), input);
+        app.println();
         app.printMessage(msg);
         return null;
       }

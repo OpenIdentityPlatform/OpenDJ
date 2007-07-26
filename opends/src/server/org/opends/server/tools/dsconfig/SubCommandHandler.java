@@ -947,6 +947,7 @@ abstract class SubCommandHandler {
     }
     default: {
       // Display a menu.
+      Arrays.sort(children, String.CASE_INSENSITIVE_ORDER);
       List<String> choices = Arrays.asList(children);
       int msgID = MSGID_DSCFG_FINDER_PROMPT_MANY;
       String msg = getMessage(msgID, d.getUserFriendlyName());
