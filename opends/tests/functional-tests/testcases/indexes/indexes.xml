@@ -121,13 +121,13 @@
                 'functionFailureTC' : 'Indexes - Modify' ,
                 'functionMessage'   : 'Adding substring index to attribute uid'       ,
                 'functionArguments' : { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
-                                      'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-                                      'dsInstanceDn'      : DIRECTORY_INSTANCE_DN   ,
-                                      'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
-                                      'DNToModify'        : 'ds-cfg-index-attribute=uid,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config' ,
-                                      'attributeName'     : 'ds-cfg-index-type'     ,
-                                      'newAttributeValue' : 'substring'             ,
-                                      'changetype'        : 'add'                   }
+                                        'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                                        'dsInstanceDn'      : DIRECTORY_INSTANCE_DN   ,
+                                        'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                                        'DNToModify'        : 'ds-cfg-index-attribute=uid,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config' ,
+                                        'attributeName'     : 'ds-cfg-index-type'     ,
+                                        'newAttributeValue' : 'substring'             ,
+                                        'changetype'        : 'add'                   }
               }
             </call>
   
@@ -172,18 +172,89 @@
     </block>
   </function>
 
-  <!--
   <function name="indexes_add" scope="local">
-  </function>
+    <!--
+      This test does a bunch of searches on the 
+      and then verifies that it worked
+      #@TestMarker                indexes
+      #@TestName                  indexes_add
+      #@TestIssue                 TODO: look up the issue in issue tracker
+      #@TestPurpose               harden the default indexes
+      #@TestPreamble              none
+      #@TestStep                  iterate through file search.filters
+      #@TestPostamble             none
+      #@TestResult                Success if entry are indexed correctly
+    -->
+    <block name="'indexes_add'">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'loopThroughFilters'">
+              { 'filters' : 'before-add' }
+            </call>
+            <call function="'runFunction'">
+              { 'functionName'      : 'addIndex',
+                'functionException' : 'LDAP.AddIndexException',
+                'functionFailureTC' : 'Indexes - Add' ,
+                'functionMessage'   : 'Adding presence index to attribute st  ',
+                'functionArguments' : { indexAttribute    : 'st'           ,
+                                        indexTypes        : [ 'presence' ]
+                                      }
+              }
+            </call>
   
-  <function name="indexes_rebuild" scope="local">
+            <call function="'runFunction'">
+              { 'functionName'      : 'StopDsWithScript'               ,
+                'functionException' : 'CLI.stop-ds'                    ,
+                'functionFailureTC' : 'Indexes - Modify' ,
+                'functionArguments' : { 'location'  : STAF_LOCAL_HOSTNAME   ,
+                                        'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                                        'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                                        'dsBindDN'  : DIRECTORY_INSTANCE_DN  ,
+                                        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+              }
+            </call>
+            <call function="'runFunction'">
+              { 'functionName'      : 'CLI_rebuild-index' ,
+                'functionException' : 'CLI.RebuildIndex'  ,
+                'functionFailureTC' : 'Indexes - Modify'  ,
+                'functionArguments' : { 'baseDN'     : DIRECTORY_INSTANCE_SFX ,
+                                        'attributes' : [ 'st' ]  
+                                      }
+              }
+            </call>
+            <call function="'runFunction'">
+              { 'functionName'      : 'StartDsWithScript',
+                'functionException' : 'CLI.start-ds'     ,
+                'functionFailureTC' : 'Indexes - Modify' ,
+                'functionArguments' : { 'location' : STAF_LOCAL_HOSTNAME }
+              }
+            </call>
+            <call function="'loopThroughFilters'">
+              { 'filters' : 'after-add' }
+            </call>
+          </sequence>
+          <catch exception="'STAXException.LDAP.AddIndexException'">
+            <message log="1" level="'fatal'">'Fatal Error: Failed to add index for attribute st'</message>
+          </catch>
+          <catch exception="'STAXException.CLI.RebuildIndex'">
+            <message log="1" level="'fatal'">'Fatal Error: Failed to rebuild index for attribute st'</message>
+          </catch>
+        </try>
+      </sequence>
+    </block>
   </function>
+
+  <!--
   
   <function name="indexes_delete" scope="local">
   </function>
 
   <function name="indexes_verify" scope="local">
   </function>
+  
+  <function name="indexes_search_limit">
+  </function> 
   -->
   
   <function name="loopThroughFilters" scope="local">
@@ -218,7 +289,7 @@
             if self.isIndexed.startswith('NOT'):
               return 'NOT'
             else:
-              return 'COUNT'
+              return 'INDEX:%s' % (self.attribute)
             
           def pass(self):
             self.status='pass'
