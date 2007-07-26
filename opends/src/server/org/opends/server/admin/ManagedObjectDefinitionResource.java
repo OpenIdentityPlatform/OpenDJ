@@ -46,7 +46,8 @@ import java.util.Properties;
 public final class ManagedObjectDefinitionResource {
 
   // Mapping from definition to property tables.
-  private final Map<AbstractManagedObjectDefinition, Properties> properties;
+  private final Map<AbstractManagedObjectDefinition<?, ?>,
+      Properties> properties;
 
   // The resource name prefix.
   private final String prefix;
@@ -71,7 +72,7 @@ public final class ManagedObjectDefinitionResource {
   // Private constructor.
   private ManagedObjectDefinitionResource(String prefix) {
     this.properties =
-      new HashMap<AbstractManagedObjectDefinition, Properties>();
+      new HashMap<AbstractManagedObjectDefinition<?, ?>, Properties>();
     this.prefix = prefix;
   }
 
@@ -89,7 +90,7 @@ public final class ManagedObjectDefinitionResource {
    * @throws MissingResourceException
    *           If the key was not found.
    */
-  public String getString(AbstractManagedObjectDefinition d,
+  public String getString(AbstractManagedObjectDefinition<?, ?> d,
       String key) throws MissingResourceException {
     Properties p = getProperties(d);
     String result = p.getProperty(key);
@@ -111,7 +112,7 @@ public final class ManagedObjectDefinitionResource {
   // lazily
   // loading it if necessary.
   private synchronized Properties getProperties(
-      AbstractManagedObjectDefinition d)
+      AbstractManagedObjectDefinition<?, ?> d)
       throws MissingResourceException {
     Properties p = properties.get(d);
 

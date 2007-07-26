@@ -100,11 +100,14 @@ public abstract class LDAPConnection {
    *
    * @param dn
    *          The name of the entry to list.
+   * @param filter
+   *          An LDAP filter string, or <code>null</code> indicating
+   *          the default filter of <code>(objectclass=*)</code>.
    * @return Returns the names of the children.
    * @throws NamingException
    *           If an error occurred whilst listing the children.
    */
-  public abstract Collection<LdapName> listEntries(LdapName dn)
+  public abstract Collection<LdapName> listEntries(LdapName dn, String filter)
       throws NamingException;
 
 

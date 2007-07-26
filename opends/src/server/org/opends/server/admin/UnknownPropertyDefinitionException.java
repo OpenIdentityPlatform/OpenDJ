@@ -53,7 +53,7 @@ public final class UnknownPropertyDefinitionException
    * @param p
    *          The visitor parameter if there was one.
    */
-  public UnknownPropertyDefinitionException(PropertyDefinition d, Object p) {
+  public UnknownPropertyDefinitionException(PropertyDefinition<?> d, Object p) {
     super(d);
     this.parameter = p;
   }

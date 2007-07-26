@@ -24,42 +24,20 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
-
-package org.opends.server.admin;
+package org.opends.server.tools.dsconfig;
 
 
 
 /**
- * Thrown when an attempt is made to remove a mandatory property.
+ * An interface for displaying help interactively.
  */
-public class PropertyIsMandatoryException extends PropertyException {
+interface HelpCallback {
 
   /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 5328211711156565625L;
-
-
-
-  /**
-   * Create a new property is mandatory exception.
+   * Displays help to the provided application console.
    *
-   * @param d
-   *          The property definition.
+   * @param app
+   *          The console application.
    */
-  public PropertyIsMandatoryException(PropertyDefinition<?> d) {
-    super(d);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getMessage() {
-    return "The property \"" + getPropertyDefinition().getName()
-        + "\" must be specified as it is mandatory";
-  }
-
+  void display(ConsoleApplication app);
 }

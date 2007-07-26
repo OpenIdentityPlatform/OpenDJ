@@ -60,7 +60,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
    *          The managed object path.
    * @return Returns a new DN representing the specified managed object path.
    */
-  public static DN create(ManagedObjectPath path) {
+  public static DN create(ManagedObjectPath<?, ?> path) {
     DNBuilder builder = new DNBuilder();
     path.serialize(builder);
     return builder.getInstance();
@@ -79,7 +79,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
    * @return Returns a new DN representing the specified managed
    *         object path and relation.
    */
-  public static DN create(ManagedObjectPath path,
+  public static DN create(ManagedObjectPath<?, ?> path,
       RelationDefinition<?, ?> relation) {
     DNBuilder builder = new DNBuilder();
     path.serialize(builder);
@@ -113,7 +113,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
           InstantiableRelationDefinition<? super C, ? super S> r,
           AbstractManagedObjectDefinition<C, S> d, String name) {
     // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition) r);
+    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
 
     // Now add the single RDN representing the named instance.
     String type = profile.getInstantiableRelationChildRDNType(r);
@@ -151,7 +151,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
           OptionalRelationDefinition<? super C, ? super S> r,
           AbstractManagedObjectDefinition<C, S> d) {
     // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition) r);
+    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
   }
 
 
@@ -164,7 +164,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
           SingletonRelationDefinition<? super C, ? super S> r,
           AbstractManagedObjectDefinition<C, S> d) {
     // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement((RelationDefinition) r);
+    appendManagedObjectPathElement((RelationDefinition<?, ?>) r);
   }
 
 

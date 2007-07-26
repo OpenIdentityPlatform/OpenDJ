@@ -311,7 +311,7 @@ public final class PropertyDefinitionUsageBuilder {
      * {@inheritDoc}
      */
     @Override
-    public String visitUnknown(PropertyDefinition d, Void p)
+    public String visitUnknown(PropertyDefinition<?> d, Void p)
         throws UnknownPropertyDefinitionException {
       return "?";
     }

@@ -150,6 +150,18 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
 
 
     /**
+     * Get the name associated with this element if applicable.
+     *
+     * @return Returns the name associated with this element if
+     *         applicable.
+     */
+    public String getName() {
+      return null;
+    }
+
+
+
+    /**
      * Get the relation definition associated with this element.
      *
      * @return Returns the relation definition associated with this
@@ -203,6 +215,16 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       super(d);
       this.r = r;
       this.name = name;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getName() {
+      return name;
     }
 
 
@@ -395,8 +417,8 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
 
 
     // Common element serialization.
-    private <M, N> void serializeElement(RelationDefinition r,
-        AbstractManagedObjectDefinition d) {
+    private <M, N> void serializeElement(RelationDefinition<?, ?> r,
+        AbstractManagedObjectDefinition<?, ?> d) {
       // Always specify the relation name.
       builder.append("/relation=");
       builder.append(r.getName());
@@ -636,6 +658,49 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
 
 
   /**
+   * Creates a new managed object path which has the same structure as
+   * this path except that the final path element is associated with
+   * the specified managed object definition.
+   *
+   * @param <CC>
+   *          The type of client managed object configuration that
+   *          this path will reference.
+   * @param <SS>
+   *          The type of server managed object configuration that
+   *          this path will reference.
+   * @param nd
+   *          The new managed object definition.
+   * @return Returns a new managed object path which has the same
+   *         structure as this path except that the final path element
+   *         is associated with the specified managed object
+   *         definition.
+   */
+  @SuppressWarnings("unchecked")
+  public <CC extends C, SS extends S> ManagedObjectPath<CC, SS> asSubType(
+      AbstractManagedObjectDefinition<CC, SS> nd) {
+    if (r instanceof InstantiableRelationDefinition) {
+      InstantiableRelationDefinition<? super C, ? super S> ir =
+        (InstantiableRelationDefinition<? super C, ? super S>) r;
+      if (elements.size() == 0) {
+        return parent().child(ir, nd, null);
+      } else {
+        return parent().child(ir, nd,
+            elements.get(elements.size() - 1).getName());
+      }
+    } else if (r instanceof OptionalRelationDefinition) {
+      OptionalRelationDefinition<? super C, ? super S> or =
+        (OptionalRelationDefinition<? super C, ? super S>) r;
+      return parent().child(or, nd);
+    } else {
+      SingletonRelationDefinition<? super C, ? super S> sr =
+        (SingletonRelationDefinition<? super C, ? super S>) r;
+      return parent().child(sr, nd);
+    }
+  }
+
+
+
+  /**
    * Creates a new child managed object path beneath the provided
    * parent path having the specified managed object definition.
    *
@@ -804,7 +869,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
     if (obj == this) {
       return true;
     } else if (obj instanceof ManagedObjectPath) {
-      ManagedObjectPath other = (ManagedObjectPath) obj;
+      ManagedObjectPath<?, ?> other = (ManagedObjectPath<?, ?>) obj;
       return toString().equals(other.toString());
     } else {
       return false;

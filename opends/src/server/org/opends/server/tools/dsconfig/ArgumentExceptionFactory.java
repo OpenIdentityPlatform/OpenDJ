@@ -45,6 +45,7 @@ import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
+import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 
 
@@ -66,7 +67,8 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException adaptIllegalManagedObjectNameException(
-      IllegalManagedObjectNameException e, AbstractManagedObjectDefinition d) {
+      IllegalManagedObjectNameException e,
+      AbstractManagedObjectDefinition<?, ?> d) {
     String illegalName = e.getIllegalName();
     PropertyDefinition<?> pd = e.getNamingPropertyDefinition();
 
@@ -112,7 +114,7 @@ public final class ArgumentExceptionFactory {
    */
   public static ArgumentException adaptMissingMandatoryPropertiesException(
       MissingMandatoryPropertiesException e,
-      AbstractManagedObjectDefinition d) {
+      AbstractManagedObjectDefinition<?, ?> d) {
     int msgID = MSGID_DSCFG_ERROR_CREATE_MMPE;
     StringBuilder builder = new StringBuilder();
     boolean isFirst = true;
@@ -139,7 +141,7 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException adaptPropertyException(PropertyException e,
-      AbstractManagedObjectDefinition d) {
+      AbstractManagedObjectDefinition<?, ?> d) {
     if (e instanceof IllegalPropertyValueException) {
       IllegalPropertyValueException pe = (IllegalPropertyValueException) e;
       return adapt(d, pe);
@@ -197,6 +199,24 @@ public final class ArgumentExceptionFactory {
   public static ArgumentException missingBindPassword(String bindDN) {
     int msgID = MSGID_DSCFG_ERROR_NO_PASSWORD;
     String msg = getMessage(msgID, bindDN);
+    return new ArgumentException(msgID, msg);
+  }
+
+
+
+  /**
+   * Creates an argument exception which should be used when an
+   * argument, which is mandatory when the application is
+   * non-interactive, has not been specified.
+   *
+   * @param arg
+   *          The missing argument.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException missingMandatoryNonInteractiveArgument(
+      Argument arg) {
+    int msgID = MSGID_DSCFG_ERROR_MISSING_NON_INTERACTIVE_ARG;
+    String msg = getMessage(msgID, arg.getLongIdentifier());
     return new ArgumentException(msgID, msg);
   }
 
@@ -309,26 +329,6 @@ public final class ArgumentExceptionFactory {
 
 
   /**
-   * Creates an argument exception which should be used when an
-   * attempt is made to set the naming property for a managed object
-   * during creation.
-   *
-   * @param d
-   *          The managed object definition.
-   * @param pd
-   *          The naming property definition.
-   * @return Returns an argument exception.
-   */
-  public static ArgumentException unableToSetNamingProperty(
-      AbstractManagedObjectDefinition d, PropertyDefinition<?> pd) {
-    int msgID = MSGID_DSCFG_ERROR_UNABLE_TO_SET_NAMING_PROPERTY;
-    String message = getMessage(msgID, pd.getName(), d.getUserFriendlyName());
-    return new ArgumentException(msgID, message);
-  }
-
-
-
-  /**
    * Creates an argument exception which should be used when the bind
    * password could not be read from the standard input.
    *
@@ -360,6 +360,22 @@ public final class ArgumentExceptionFactory {
 
 
   /**
+   * Creates an argument exception which should be used when
+   * interaction with the console fails due to an IO exception.
+   *
+   * @param cause
+   *          The reason why console input failed.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException unableToReadConsoleInput(Exception cause) {
+    int msgID = MSGID_DSCFG_ERROR_CANNOT_READ_CONSOLE_INPUT;
+    String message = getMessage(msgID, cause.getMessage());
+    return new ArgumentException(msgID, message, cause);
+  }
+
+
+
+  /**
    * Creates an argument exception which should be used when an
    * attempt is made to reset a mandatory property that does not have
    * any default values.
@@ -374,10 +390,30 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unableToResetMandatoryProperty(
-      AbstractManagedObjectDefinition d, String name, String setOption) {
+      AbstractManagedObjectDefinition<?, ?> d, String name, String setOption) {
     int msgID = MSGID_DSCFG_ERROR_UNABLE_TO_RESET_MANDATORY_PROPERTY;
     String message = getMessage(msgID, d.getUserFriendlyPluralName(), name,
         setOption);
+    return new ArgumentException(msgID, message);
+  }
+
+
+
+  /**
+   * Creates an argument exception which should be used when an
+   * attempt is made to set the naming property for a managed object
+   * during creation.
+   *
+   * @param d
+   *          The managed object definition.
+   * @param pd
+   *          The naming property definition.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException unableToSetNamingProperty(
+      AbstractManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd) {
+    int msgID = MSGID_DSCFG_ERROR_UNABLE_TO_SET_NAMING_PROPERTY;
+    String message = getMessage(msgID, pd.getName(), d.getUserFriendlyName());
     return new ArgumentException(msgID, message);
   }
 
@@ -394,7 +430,7 @@ public final class ArgumentExceptionFactory {
    * @return Returns an argument exception.
    */
   public static ArgumentException unknownProperty(
-      AbstractManagedObjectDefinition d, String name) {
+      AbstractManagedObjectDefinition<?, ?> d, String name) {
     int msgID = MSGID_DSCFG_ERROR_PROPERTY_UNRECOGNIZED;
     String message = getMessage(msgID, name, d.getUserFriendlyPluralName());
     return new ArgumentException(msgID, message);
@@ -414,7 +450,7 @@ public final class ArgumentExceptionFactory {
    *          A usage string describing the allowed sub-types.
    * @return Returns an argument exception.
    */
-  public static ArgumentException unknownSubType(RelationDefinition r,
+  public static ArgumentException unknownSubType(RelationDefinition<?, ?> r,
       String typeName, String typeUsage) {
     int msgID = MSGID_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED;
     String msg = getMessage(msgID, typeName, r.getUserFriendlyName(),
@@ -451,8 +487,8 @@ public final class ArgumentExceptionFactory {
    *          The definition of the managed object that was retrieved.
    * @return Returns an argument exception.
    */
-  public static ArgumentException wrongManagedObjectType(RelationDefinition r,
-      ManagedObjectDefinition d) {
+  public static ArgumentException wrongManagedObjectType(
+      RelationDefinition<?, ?> r, ManagedObjectDefinition<?, ?> d) {
     int msgID = MSGID_DSCFG_ERROR_TYPE_UNRECOGNIZED;
     String msg = getMessage(msgID, r.getUserFriendlyName(), d
         .getUserFriendlyName());
@@ -470,8 +506,8 @@ public final class ArgumentExceptionFactory {
    *          The default behavior exception.
    * @return Returns an argument exception.
    */
-  private static ArgumentException adapt(AbstractManagedObjectDefinition d,
-      DefaultBehaviorException e) {
+  private static ArgumentException adapt(
+      AbstractManagedObjectDefinition<?, ?> d, DefaultBehaviorException e) {
     int msgID = MSGID_DSCFG_ERROR_PROPERTY_DEFAULT_BEHAVIOR;
     String message = getMessage(msgID, d.getUserFriendlyName(), e
         .getPropertyDefinition().getName(), e.getMessage());
@@ -490,7 +526,8 @@ public final class ArgumentExceptionFactory {
    *          The illegal property value exception.
    * @return Returns an argument exception.
    */
-  private static ArgumentException adapt(AbstractManagedObjectDefinition d,
+  private static ArgumentException adapt(
+      AbstractManagedObjectDefinition<?, ?> d,
       IllegalPropertyValueException e) {
     PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(true);
     String syntax = b.getUsage(e.getPropertyDefinition());
@@ -518,7 +555,8 @@ public final class ArgumentExceptionFactory {
    *          The illegal property string value exception.
    * @return Returns an argument exception.
    */
-  private static ArgumentException adapt(AbstractManagedObjectDefinition d,
+  private static ArgumentException adapt(
+      AbstractManagedObjectDefinition<?, ?> d,
       IllegalPropertyValueStringException e) {
     PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(true);
     String syntax = b.getUsage(e.getPropertyDefinition());
@@ -547,7 +585,8 @@ public final class ArgumentExceptionFactory {
    *          The property is mandatory exception.
    * @return Returns an argument exception.
    */
-  private static ArgumentException adapt(AbstractManagedObjectDefinition d,
+  private static ArgumentException adapt(
+      AbstractManagedObjectDefinition<?, ?> d,
       PropertyIsMandatoryException e) {
     int msgID = MSGID_DSCFG_ERROR_PROPERTY_MANDATORY;
     String message = getMessage(msgID, d.getUserFriendlyName(), e
@@ -567,7 +606,8 @@ public final class ArgumentExceptionFactory {
    *          The property is read-only exception.
    * @return Returns an argument exception.
    */
-  private static ArgumentException adapt(AbstractManagedObjectDefinition d,
+  private static ArgumentException adapt(
+      AbstractManagedObjectDefinition<?, ?> d,
       PropertyIsReadOnlyException e) {
     int msgID = MSGID_DSCFG_ERROR_PROPERTY_READ_ONLY;
     String message = getMessage(msgID, d.getUserFriendlyName(), e
@@ -587,7 +627,8 @@ public final class ArgumentExceptionFactory {
    *          The property is single-valued exception.
    * @return Returns an argument exception.
    */
-  private static ArgumentException adapt(AbstractManagedObjectDefinition d,
+  private static ArgumentException adapt(
+      AbstractManagedObjectDefinition<?, ?> d,
       PropertyIsSingleValuedException e) {
     int msgID = MSGID_DSCFG_ERROR_PROPERTY_SINGLE_VALUED;
     String message = getMessage(msgID, d.getUserFriendlyName(), e

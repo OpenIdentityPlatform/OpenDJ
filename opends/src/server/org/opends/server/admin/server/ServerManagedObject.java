@@ -128,7 +128,7 @@ public final class ServerManagedObject<S extends Configuration> implements
      *           If the default values could not be retrieved or
      *           decoded properly.
      */
-    public static <T> Collection<T> getDefaultValues(ManagedObjectPath p,
+    public static <T> Collection<T> getDefaultValues(ManagedObjectPath<?, ?> p,
         PropertyDefinition<T> pd, ConfigEntry newConfigEntry)
         throws DefaultBehaviorException {
       DefaultValueFinder<T> v = new DefaultValueFinder<T>(newConfigEntry);
@@ -140,7 +140,7 @@ public final class ServerManagedObject<S extends Configuration> implements
     private DefaultBehaviorException exception = null;
 
     // The path of the managed object containing the next property.
-    private ManagedObjectPath nextPath = null;
+    private ManagedObjectPath<?, ?> nextPath = null;
 
     // The next property whose default values were required.
     private PropertyDefinition<T> nextProperty = null;
@@ -232,8 +232,8 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
     // Find the default values for the next path/property.
-    private Collection<T> find(ManagedObjectPath p, PropertyDefinition<T> pd)
-        throws DefaultBehaviorException {
+    private Collection<T> find(ManagedObjectPath<?, ?> p,
+        PropertyDefinition<T> pd) throws DefaultBehaviorException {
       nextPath = p;
       nextProperty = pd;
 
@@ -393,7 +393,8 @@ public final class ServerManagedObject<S extends Configuration> implements
    *           not be decoded.
    */
   static <S extends Configuration> ServerManagedObject<? extends S> decode(
-      ManagedObjectPath path, AbstractManagedObjectDefinition<?, S> definition,
+      ManagedObjectPath<?, ?> path,
+      AbstractManagedObjectDefinition<?, S> definition,
       ConfigEntry configEntry) throws DefinitionDecodingException,
       ServerManagedObjectDecodingException {
     return decode(path, definition, configEntry, null);
@@ -427,7 +428,8 @@ public final class ServerManagedObject<S extends Configuration> implements
    *           not be decoded.
    */
   static <S extends Configuration> ServerManagedObject<? extends S> decode(
-      ManagedObjectPath path, AbstractManagedObjectDefinition<?, S> definition,
+      ManagedObjectPath<?, ?> path,
+      AbstractManagedObjectDefinition<?, S> definition,
       ConfigEntry configEntry, ConfigEntry newConfigEntry)
       throws DefinitionDecodingException, ServerManagedObjectDecodingException {
     // First determine the correct definition to use for the entry.
@@ -476,7 +478,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
   // Decode helper method required to avoid generics warning.
   private static <S extends Configuration> ServerManagedObject<S> decodeAux(
-      ManagedObjectPath path, ManagedObjectDefinition<?, S> d,
+      ManagedObjectPath<?, ?> path, ManagedObjectDefinition<?, S> d,
       Map<PropertyDefinition<?>, SortedSet<?>> properties,
       ConfigEntry configEntry) {
     return new ServerManagedObject<S>(path, d, properties, configEntry);
@@ -487,7 +489,7 @@ public final class ServerManagedObject<S extends Configuration> implements
   // Create a property using the provided string values.
   private static <T> void decodeProperty(
       Map<PropertyDefinition<?>, SortedSet<?>> properties,
-      ManagedObjectPath path, PropertyDefinition<T> pd,
+      ManagedObjectPath<?, ?> path, PropertyDefinition<T> pd,
       List<String> stringValues, ConfigEntry newConfigEntry)
       throws PropertyException {
     PropertyException exception = null;
@@ -611,7 +613,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
   // Create an new server side managed object.
-  private ServerManagedObject(ManagedObjectPath path,
+  private ServerManagedObject(ManagedObjectPath<?, ?> path,
       ManagedObjectDefinition<?, S> d,
       Map<PropertyDefinition<?>, SortedSet<?>> properties,
       ConfigEntry configEntry) {
@@ -681,7 +683,8 @@ public final class ServerManagedObject<S extends Configuration> implements
       ConfigurationChangeListener<? super S> listener) {
     for (ConfigChangeListener l : configEntry.getChangeListeners()) {
       if (l instanceof ConfigChangeListenerAdaptor) {
-        ConfigChangeListenerAdaptor adaptor = (ConfigChangeListenerAdaptor) l;
+        ConfigChangeListenerAdaptor<?> adaptor =
+          (ConfigChangeListenerAdaptor<?>) l;
         if (adaptor.getConfigurationChangeListener() == listener) {
           configEntry.deregisterChangeListener(adaptor);
         }
@@ -761,7 +764,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       InstantiableRelationDefinition<?, M> d, String name)
       throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
-    ManagedObjectPath childPath = path.child(d, name);
+    ManagedObjectPath<?, ?> childPath = path.child(d, name);
     return getChild(childPath, d);
   }
 
@@ -787,7 +790,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       OptionalRelationDefinition<?, M> d) throws IllegalArgumentException,
       ConfigException {
     validateRelationDefinition(d);
-    ManagedObjectPath childPath = path.child(d);
+    ManagedObjectPath<?, ?> childPath = path.child(d);
     return getChild(childPath, d);
   }
 
@@ -813,7 +816,7 @@ public final class ServerManagedObject<S extends Configuration> implements
       SingletonRelationDefinition<?, M> d) throws IllegalArgumentException,
       ConfigException {
     validateRelationDefinition(d);
-    ManagedObjectPath childPath = path.child(d);
+    ManagedObjectPath<?, ?> childPath = path.child(d);
     return getChild(childPath, d);
   }
 
@@ -866,7 +869,7 @@ public final class ServerManagedObject<S extends Configuration> implements
    *
    * @return Returns the path of this server managed object.
    */
-  public ManagedObjectPath getManagedObjectPath() {
+  public ManagedObjectPath<?, ?> getManagedObjectPath() {
     return path;
   }
 
@@ -1159,7 +1162,8 @@ public final class ServerManagedObject<S extends Configuration> implements
       if (configEntry != null) {
         for (ConfigAddListener l : configEntry.getAddListeners()) {
           if (l instanceof ConfigAddListenerAdaptor) {
-            ConfigAddListenerAdaptor adaptor = (ConfigAddListenerAdaptor) l;
+            ConfigAddListenerAdaptor<?> adaptor =
+              (ConfigAddListenerAdaptor<?>) l;
             if (adaptor.getConfigurationAddListener() == listener) {
               configEntry.deregisterAddListener(adaptor);
             }
@@ -1184,8 +1188,8 @@ public final class ServerManagedObject<S extends Configuration> implements
       if (configEntry != null) {
         for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
           if (l instanceof ConfigDeleteListenerAdaptor) {
-            ConfigDeleteListenerAdaptor adaptor =
-              (ConfigDeleteListenerAdaptor) l;
+            ConfigDeleteListenerAdaptor<?> adaptor =
+              (ConfigDeleteListenerAdaptor<?>) l;
             if (adaptor.getConfigurationDeleteListener() == listener) {
               configEntry.deregisterDeleteListener(adaptor);
             }
@@ -1204,7 +1208,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
   // Get a child managed object.
   private <M extends Configuration> ServerManagedObject<? extends M> getChild(
-      ManagedObjectPath childPath, RelationDefinition<?, M> d)
+      ManagedObjectPath<?, ?> childPath, RelationDefinition<?, M> d)
       throws ConfigException {
     // Get the configuration entry.
     DN targetDN = DNBuilder.create(childPath);
@@ -1310,7 +1314,8 @@ public final class ServerManagedObject<S extends Configuration> implements
   // object.
   private void validateRelationDefinition(RelationDefinition<?, ?> rd)
       throws IllegalArgumentException {
-    RelationDefinition tmp = definition.getRelationDefinition(rd.getName());
+    RelationDefinition<?, ?> tmp =
+      definition.getRelationDefinition(rd.getName());
     if (tmp != rd) {
       throw new IllegalArgumentException("The relation " + rd.getName()
           + " is not associated with a " + definition.getName());

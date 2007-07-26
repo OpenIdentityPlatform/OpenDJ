@@ -85,7 +85,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
    * @param listener
    *          The underlying add listener.
    */
-  public ConfigAddListenerAdaptor(ManagedObjectPath path,
+  public ConfigAddListenerAdaptor(ManagedObjectPath<?, ?> path,
       InstantiableRelationDefinition<?, S> relation,
       ConfigurationAddListener<S> listener) {
     this.path = path;
@@ -108,7 +108,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
    * @param listener
    *          The underlying add listener.
    */
-  public ConfigAddListenerAdaptor(ManagedObjectPath path,
+  public ConfigAddListenerAdaptor(ManagedObjectPath<?, ?> path,
       OptionalRelationDefinition<?, S> relation,
       ConfigurationAddListener<S> listener) {
     this.path = path;
@@ -129,7 +129,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
       // Optional managed objects are located directly beneath the
       // parent and have a well-defined name. We need to make sure
       // that we are handling the correct entry.
-      ManagedObjectPath childPath = path.child(optionalRelation);
+      ManagedObjectPath<?, ?> childPath = path.child(optionalRelation);
       DN expectedDN = DNBuilder.create(childPath);
       if (!configEntry.getDN().equals(expectedDN)) {
         // Doesn't apply to us.
@@ -153,7 +153,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     AttributeValue av = dn.getRDN().getAttributeValue(0);
     String name = av.getStringValue().trim();
 
-    ManagedObjectPath childPath;
+    ManagedObjectPath<?, ?> childPath;
     RelationDefinition<?, S> r;
     if (instantiableRelation != null) {
       childPath = path.child(instantiableRelation, name);

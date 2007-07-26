@@ -53,7 +53,7 @@ public class IllegalPropertyValueStringException extends PropertyException {
    * @param value
    *          The illegal property value string.
    */
-  public IllegalPropertyValueStringException(PropertyDefinition d,
+  public IllegalPropertyValueStringException(PropertyDefinition<?> d,
       String value) {
     super(d);
     this.value = value;

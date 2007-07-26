@@ -95,7 +95,7 @@ public final class ManagedObjectDefinitionI18NResource {
 
 
   // Mapping from definition to locale-based resource bundle.
-  private final Map<AbstractManagedObjectDefinition,
+  private final Map<AbstractManagedObjectDefinition<?, ?>,
     Map<Locale, ResourceBundle>> resources;
 
 
@@ -107,7 +107,7 @@ public final class ManagedObjectDefinitionI18NResource {
 
   // Private constructor.
   private ManagedObjectDefinitionI18NResource(String prefix) {
-    this.resources = new HashMap<AbstractManagedObjectDefinition,
+    this.resources = new HashMap<AbstractManagedObjectDefinition<?, ?>,
       Map<Locale, ResourceBundle>>();
     this.prefix = prefix;
   }
@@ -127,7 +127,7 @@ public final class ManagedObjectDefinitionI18NResource {
    * @throws MissingResourceException
    *           If the key was not found.
    */
-  public String getMessage(AbstractManagedObjectDefinition d,
+  public String getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key) throws MissingResourceException {
     return getMessage(d, key, Locale.getDefault(), (String[]) null);
   }
@@ -149,7 +149,7 @@ public final class ManagedObjectDefinitionI18NResource {
    * @throws MissingResourceException
    *           If the key was not found.
    */
-  public String getMessage(AbstractManagedObjectDefinition d,
+  public String getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, Locale locale) throws MissingResourceException {
     return getMessage(d, key, locale, (String[]) null);
   }
@@ -174,7 +174,7 @@ public final class ManagedObjectDefinitionI18NResource {
    * @throws MissingResourceException
    *           If the key was not found.
    */
-  public String getMessage(AbstractManagedObjectDefinition d,
+  public String getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, Locale locale, String... args)
       throws MissingResourceException {
     ResourceBundle resource = getResourceBundle(d, locale);
@@ -205,7 +205,7 @@ public final class ManagedObjectDefinitionI18NResource {
    * @throws MissingResourceException
    *           If the key was not found.
    */
-  public String getMessage(AbstractManagedObjectDefinition d,
+  public String getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, String... args) throws MissingResourceException {
     return getMessage(d, key, Locale.getDefault(), args);
   }
@@ -215,7 +215,7 @@ public final class ManagedObjectDefinitionI18NResource {
   // Retrieve the resource bundle associated with a managed object and
   // locale, lazily loading it if necessary.
   private synchronized ResourceBundle getResourceBundle(
-      AbstractManagedObjectDefinition d, Locale locale)
+      AbstractManagedObjectDefinition<?, ?> d, Locale locale)
       throws MissingResourceException {
     // First get the locale-resource mapping, creating it if
     // necessary.

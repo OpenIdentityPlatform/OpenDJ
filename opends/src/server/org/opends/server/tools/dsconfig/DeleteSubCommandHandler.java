@@ -31,7 +31,6 @@ package org.opends.server.tools.dsconfig;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.messages.ToolMessages.*;
 
-import java.io.PrintStream;
 import java.util.List;
 
 import org.opends.server.admin.DefinitionDecodingException;
@@ -45,7 +44,6 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
@@ -81,6 +79,8 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
    * Creates a new delete-xxx sub-command for an instantiable
    * relation.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param p
@@ -91,10 +91,10 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static DeleteSubCommandHandler create(SubCommandArgumentParser parser,
-      ManagedObjectPath<?, ?> p, InstantiableRelationDefinition<?, ?> r)
-      throws ArgumentException {
-    return new DeleteSubCommandHandler(parser, p, r, p.child(r, "DUMMY"));
+  public static DeleteSubCommandHandler create(ConsoleApplication app,
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
+      InstantiableRelationDefinition<?, ?> r) throws ArgumentException {
+    return new DeleteSubCommandHandler(app, parser, p, r, p.child(r, "DUMMY"));
   }
 
 
@@ -102,6 +102,8 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
   /**
    * Creates a new delete-xxx sub-command for an optional relation.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param p
@@ -112,10 +114,10 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static DeleteSubCommandHandler create(SubCommandArgumentParser parser,
-      ManagedObjectPath<?, ?> p, OptionalRelationDefinition<?, ?> r)
-      throws ArgumentException {
-    return new DeleteSubCommandHandler(parser, p, r, p.child(r));
+  public static DeleteSubCommandHandler create(ConsoleApplication app,
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
+      OptionalRelationDefinition<?, ?> r) throws ArgumentException {
+    return new DeleteSubCommandHandler(app, parser, p, r, p.child(r));
   }
 
   // The argument which should be used to force deletion.
@@ -137,9 +139,12 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
 
   // Private constructor.
-  private DeleteSubCommandHandler(SubCommandArgumentParser parser,
-      ManagedObjectPath<?, ?> p, RelationDefinition<?, ?> r,
-      ManagedObjectPath<?, ?> c) throws ArgumentException {
+  private DeleteSubCommandHandler(ConsoleApplication app,
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
+      RelationDefinition<?, ?> r, ManagedObjectPath<?, ?> c)
+      throws ArgumentException {
+    super(app);
+
     this.path = p;
     this.relation = r;
 
@@ -179,16 +184,14 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
    * {@inheritDoc}
    */
   @Override
-  public int run(DSConfig app, PrintStream out, PrintStream err)
-      throws ArgumentException, ClientException {
+  public int run() throws ArgumentException, ClientException {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(namingArgs);
 
     // Delete the child managed object.
-    ManagementContext context = app.getManagementContext();
     ManagedObject<?> parent = null;
     try {
-      parent = getManagedObject(context, path, names);
+      parent = getManagedObject(path, names);
     } catch (AuthorizationException e) {
       int msgID = MSGID_DSCFG_ERROR_DELETE_AUTHZ;
       String msg = getMessage(msgID, relation.getUserFriendlyName());
@@ -213,8 +216,8 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     } catch (ConcurrentModificationException e) {
       int msgID = MSGID_DSCFG_ERROR_DELETE_CME;
       String msg = getMessage(msgID, relation.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msgID,
-          msg);
+      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
+          msgID, msg);
     } catch (ManagedObjectNotFoundException e) {
       // Ignore the error if the deletion is being forced.
       if (!forceArgument.isPresent()) {
@@ -227,25 +230,28 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
     if (parent != null) {
       try {
-        // Confirm deletion.
-        String prompt = String.format(Messages.getString("delete.confirm"),
-            relation.getUserFriendlyName());
-        if (!app.confirmAction(prompt)) {
-          // Output failure message.
-          String msg = String.format(Messages.getString("delete.failed"),
-              relation.getUserFriendlyName());
-          app.displayVerboseMessage(msg);
-          return 1;
-        }
-
         if (relation instanceof InstantiableRelationDefinition) {
           InstantiableRelationDefinition<?, ?> irelation =
             (InstantiableRelationDefinition<?, ?>) relation;
-          parent.removeChild(irelation, names.get(names.size() - 1));
+          String childName = names.get(names.size() - 1);
+          if (childName == null) {
+            childName = readChildName(parent, irelation, null);
+          }
+
+          if (confirmDeletion()) {
+            parent.removeChild(irelation, childName);
+          } else {
+            return 1;
+          }
         } else if (relation instanceof OptionalRelationDefinition) {
           OptionalRelationDefinition<?, ?> orelation =
             (OptionalRelationDefinition<?, ?>) relation;
-          parent.removeChild(orelation);
+
+          if (confirmDeletion()) {
+            parent.removeChild(orelation);
+          } else {
+            return 1;
+          }
         }
       } catch (AuthorizationException e) {
         int msgID = MSGID_DSCFG_ERROR_DELETE_AUTHZ;
@@ -282,9 +288,26 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     // Output success message.
     String msg = String.format(Messages.getString("delete.done"), relation
         .getUserFriendlyName());
-    app.displayVerboseMessage(msg);
+    getConsoleApplication().printVerboseMessage(msg);
 
     return 0;
+  }
+
+
+
+  // Confirm deletion.
+  private boolean confirmDeletion() throws ArgumentException {
+    String prompt = String.format(Messages.getString("delete.confirm"),
+        relation.getUserFriendlyName());
+    if (!getConsoleApplication().confirmAction(prompt)) {
+      // Output failure message.
+      String msg = String.format(Messages.getString("delete.failed"), relation
+          .getUserFriendlyName());
+      getConsoleApplication().printVerboseMessage(msg);
+      return false;
+    } else {
+      return true;
+    }
   }
 
 }

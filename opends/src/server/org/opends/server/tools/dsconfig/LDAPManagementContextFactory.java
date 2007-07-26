@@ -94,7 +94,7 @@ public final class LDAPManagementContextFactory implements
   /**
    * {@inheritDoc}
    */
-  public ManagementContext getManagementContext(DSConfig app)
+  public ManagementContext getManagementContext(ConsoleApplication app)
       throws ArgumentException, ClientException {
     // Lazily create the LDAP management context.
     if (context == null) {

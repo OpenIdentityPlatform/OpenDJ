@@ -152,7 +152,7 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
   @Override
   public void deleteSubtree(LdapName dn) throws NamingException {
     // Delete the children first.
-    for (LdapName child : listEntries(dn)) {
+    for (LdapName child : listEntries(dn, null)) {
       deleteSubtree(child);
     }
 
@@ -189,8 +189,12 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
    * {@inheritDoc}
    */
   @Override
-  public Collection<LdapName> listEntries(LdapName dn) throws NamingException {
-    String filter = "(objectClass=*)";
+  public Collection<LdapName> listEntries(LdapName dn, String filter)
+      throws NamingException {
+    if (filter == null) {
+      filter = "(objectClass=*)";
+    }
+
     SearchControls controls = new SearchControls();
     controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
 

@@ -118,7 +118,8 @@ public final class RelativeInheritedDefaultBehaviorProvider<T> implements
    * @return Returns the absolute path of the managed object
    *         containing the property which has the default values.
    */
-  public ManagedObjectPath getManagedObjectPath(ManagedObjectPath path) {
+  public ManagedObjectPath<?, ?> getManagedObjectPath(
+      ManagedObjectPath<?, ?> path) {
     return path.parent(offset);
   }
 

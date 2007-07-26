@@ -220,7 +220,7 @@ public final class PropertySet implements PropertyProvider {
   }
 
   // The properties.
-  private final Map<PropertyDefinition, MyProperty> properties;
+  private final Map<PropertyDefinition<?>, MyProperty<?>> properties;
 
 
 
@@ -228,7 +228,7 @@ public final class PropertySet implements PropertyProvider {
    * Creates a new empty property set.
    */
   public PropertySet() {
-    this.properties = new HashMap<PropertyDefinition, MyProperty>();
+    this.properties = new HashMap<PropertyDefinition<?>, MyProperty<?>>();
   }
 
 
@@ -286,7 +286,7 @@ public final class PropertySet implements PropertyProvider {
       throw new IllegalArgumentException("Unknown property " + d.getName());
     }
 
-    return properties.get(d);
+    return (Property<T>) properties.get(d);
   }
 
 
@@ -445,7 +445,7 @@ public final class PropertySet implements PropertyProvider {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append('{');
-    for (Map.Entry<PropertyDefinition, MyProperty> entry : properties
+    for (Map.Entry<PropertyDefinition<?>, MyProperty<?>> entry : properties
         .entrySet()) {
       builder.append(entry.getKey().getName());
       builder.append('=');

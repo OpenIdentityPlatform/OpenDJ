@@ -70,7 +70,7 @@ public final class AggregationRelationDefinition
 
     // The path identifying the location of the referenced managed
     // objects.
-    private ManagedObjectPath path;
+    private ManagedObjectPath<?, ?> path;
 
     // The plural name of the relation.
     private final String pluralName;
@@ -131,7 +131,7 @@ public final class AggregationRelationDefinition
      *          The path identifying the location of the referenced
      *          managed objects.
      */
-    public void setPath(ManagedObjectPath path) {
+    public void setPath(ManagedObjectPath<?, ?> path) {
       this.path = path;
     }
 
@@ -157,7 +157,7 @@ public final class AggregationRelationDefinition
 
   // The path identifying the location of the referenced managed
   // objects.
-  private final ManagedObjectPath path;
+  private final ManagedObjectPath<?, ?> path;
 
   // The plural name of the relation.
   private final String pluralName;
@@ -166,7 +166,7 @@ public final class AggregationRelationDefinition
 
   // Private constructor.
   private AggregationRelationDefinition(Common<C, S> common, String pluralName,
-      ManagedObjectPath path, int minOccurs, int maxOccurs)
+      ManagedObjectPath<?, ?> path, int minOccurs, int maxOccurs)
       throws IllegalArgumentException {
     super(common);
 
@@ -228,7 +228,7 @@ public final class AggregationRelationDefinition
    * @return Returns the path identifying the location of the
    *         referenced managed objects.
    */
-  public ManagedObjectPath getPath() {
+  public ManagedObjectPath<?, ?> getPath() {
     return path;
   }
 

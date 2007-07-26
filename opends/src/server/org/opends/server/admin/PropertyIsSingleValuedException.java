@@ -48,7 +48,7 @@ public class PropertyIsSingleValuedException extends PropertyException {
    * @param d
    *          The property definition.
    */
-  public PropertyIsSingleValuedException(PropertyDefinition d) {
+  public PropertyIsSingleValuedException(PropertyDefinition<?> d) {
     super(d);
   }
 

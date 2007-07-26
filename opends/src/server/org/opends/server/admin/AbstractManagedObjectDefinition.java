@@ -334,13 +334,13 @@ public abstract class AbstractManagedObjectDefinition
    *           If the specified property name was null or empty or if
    *           the requested property definition was not found.
    */
-  public final PropertyDefinition getPropertyDefinition(String name)
+  public final PropertyDefinition<?> getPropertyDefinition(String name)
       throws IllegalArgumentException {
     if ((name == null) || (name.length() == 0)) {
       throw new IllegalArgumentException("null or empty property name");
     }
 
-    PropertyDefinition d = allPropertyDefinitions.get(name);
+    PropertyDefinition<?> d = allPropertyDefinitions.get(name);
     if (d == null) {
       throw new IllegalArgumentException("property definition \"" + name
           + "\" not found");
@@ -380,13 +380,13 @@ public abstract class AbstractManagedObjectDefinition
    *           If the specified relation name was null or empty or if
    *           the requested relation definition was not found.
    */
-  public final RelationDefinition getRelationDefinition(String name)
+  public final RelationDefinition<?, ?> getRelationDefinition(String name)
       throws IllegalArgumentException {
     if ((name == null) || (name.length() == 0)) {
       throw new IllegalArgumentException("null or empty relation name");
     }
 
-    RelationDefinition d = allRelationDefinitions.get(name);
+    RelationDefinition<?, ?> d = allRelationDefinitions.get(name);
     if (d == null) {
       throw new IllegalArgumentException("relation definition \"" + name
           + "\" not found");
@@ -642,7 +642,8 @@ public abstract class AbstractManagedObjectDefinition
    * @param d
    *          The relation definition to be deregistered.
    */
-  protected final void deregisterRelationDefinition(RelationDefinition d) {
+  protected final void deregisterRelationDefinition(
+      RelationDefinition<?, ?> d) {
     String name = d.getName();
 
     relationDefinitions.remove(name);
@@ -660,7 +661,7 @@ public abstract class AbstractManagedObjectDefinition
    * @param d
    *          The property definition to be registered.
    */
-  protected final void registerPropertyDefinition(PropertyDefinition d) {
+  protected final void registerPropertyDefinition(PropertyDefinition<?> d) {
     String name = d.getName();
 
     propertyDefinitions.put(name, d);
@@ -678,7 +679,7 @@ public abstract class AbstractManagedObjectDefinition
    * @param d
    *          The relation definition to be registered.
    */
-  protected final void registerRelationDefinition(RelationDefinition d) {
+  protected final void registerRelationDefinition(RelationDefinition<?, ?> d) {
     String name = d.getName();
 
     relationDefinitions.put(name, d);

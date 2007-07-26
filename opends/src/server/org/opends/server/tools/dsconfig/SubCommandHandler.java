@@ -82,12 +82,10 @@ abstract class SubCommandHandler {
    * A path serializer which is used to retrieve a managed object
    * based on a path and a list of path arguments.
    */
-  private static class ManagedObjectFinder implements
-      ManagedObjectPathSerializer {
+  private class ManagedObjectFinder implements ManagedObjectPathSerializer {
 
     // Any argument exception that was caught when attempting to find
-    // the
-    // managed object.
+    // the managed object.
     private ArgumentException ae;
 
     // The index of the next path argument to be retrieved.
@@ -103,8 +101,7 @@ abstract class SubCommandHandler {
     private ConcurrentModificationException cme;
 
     // Any operation exception that was caught when attempting to find
-    // the
-    // managed object.
+    // the managed object.
     private DefinitionDecodingException dde;
 
     // Flag indicating whether or not an exception occurred during
@@ -133,6 +130,18 @@ abstract class SubCommandHandler {
         String childName = args.get(argIndex++);
 
         try {
+          // If the name is null then we must be interactive - so let
+          // the user choose.
+          if (childName == null) {
+            try {
+              childName = readChildName(managedObject, r, d);
+            } catch (ArgumentException e) {
+              ae = e;
+              gotException = true;
+              return;
+            }
+          }
+
           ManagedObject<?> child = managedObject.getChild(r, childName);
 
           // Check that child is a sub-type of the specified
@@ -377,13 +386,13 @@ abstract class SubCommandHandler {
     // arguments.
     private ArgumentException e = null;
 
-    // The sub-command.
-    private final SubCommand subCommand;
-
     // Indicates whether the sub-command is a create-xxx
     // sub-command, in which case the final path element will
     // have different usage information.
     private final boolean isCreate;
+
+    // The sub-command.
+    private final SubCommand subCommand;
 
     // The number of path elements to expect.
     private int sz;
@@ -435,17 +444,17 @@ abstract class SubCommandHandler {
             PropertyDefinitionUsageBuilder b =
               new PropertyDefinitionUsageBuilder(false);
             String usage = "{" + b.getUsage(pd) + "}";
-            arg = new StringArgument(argName, null, argName, true, true, usage,
-                MSGID_DSCFG_DESCRIPTION_NAME_CREATE_EXT, d
+            arg = new StringArgument(argName, null, argName, false, true,
+                usage, MSGID_DSCFG_DESCRIPTION_NAME_CREATE_EXT, d
                     .getUserFriendlyName(), pd.getName(), pd.getSynopsis());
           } else {
-            arg = new StringArgument(argName, null, argName, true, true,
+            arg = new StringArgument(argName, null, argName, false, true,
                 "{NAME}", MSGID_DSCFG_DESCRIPTION_NAME_CREATE, d
                     .getUserFriendlyName());
           }
         } else {
           // A normal naming argument.
-          arg = new StringArgument(argName, null, argName, true, true,
+          arg = new StringArgument(argName, null, argName, false, true,
               "{NAME}", MSGID_DSCFG_DESCRIPTION_NAME, d.getUserFriendlyName());
         }
         subCommand.addArgument(arg);
@@ -534,6 +543,9 @@ abstract class SubCommandHandler {
   // The argument which should be used to request advanced mode.
   private BooleanArgument advancedModeArgument;
 
+  // The application instance.
+  private final ConsoleApplication app;
+
   // The argument which should be used to specify zero or more
   // property names.
   private StringArgument propertyArgument;
@@ -554,9 +566,12 @@ abstract class SubCommandHandler {
 
   /**
    * Create a new sub-command handler.
+   *
+   * @param app
+   *          The application instance.
    */
-  protected SubCommandHandler() {
-    // No implementation required.
+  protected SubCommandHandler(ConsoleApplication app) {
+    this.app = app;
   }
 
 
@@ -585,12 +600,6 @@ abstract class SubCommandHandler {
   /**
    * Run this sub-command handler.
    *
-   * @param app
-   *          The application.
-   * @param out
-   *          The application output stream.
-   * @param err
-   *          The application error stream.
    * @return Returns zero if the sub-command completed successfully or
    *         non-zero if it did not.
    * @throws ArgumentException
@@ -599,8 +608,7 @@ abstract class SubCommandHandler {
    * @throws ClientException
    *           If the management context could not be created.
    */
-  public abstract int run(DSConfig app, PrintStream out, PrintStream err)
-      throws ArgumentException, ClientException;
+  public abstract int run() throws ArgumentException, ClientException;
 
 
 
@@ -685,11 +693,20 @@ abstract class SubCommandHandler {
 
 
   /**
+   * Gets the console application instance.
+   *
+   * @return Returns the console application instance.
+   */
+  protected final ConsoleApplication getConsoleApplication() {
+    return app;
+  }
+
+
+
+  /**
    * Get the managed object referenced by the provided managed object
    * path.
    *
-   * @param context
-   *          The management context.
    * @param path
    *          The managed object path.
    * @param args
@@ -718,15 +735,17 @@ abstract class SubCommandHandler {
    * @throws ArgumentException
    *           If one of the naming arguments referenced a managed
    *           object of the wrong type.
+   * @throws ClientException
+   *           If the management context could not be created.
    */
-  protected final ManagedObject<?> getManagedObject(ManagementContext context,
+  protected final ManagedObject<?> getManagedObject(
       ManagedObjectPath<?, ?> path, List<String> args)
       throws ArgumentException, AuthorizationException,
       DefinitionDecodingException, ManagedObjectDecodingException,
       CommunicationException, ConcurrentModificationException,
-      ManagedObjectNotFoundException {
+      ManagedObjectNotFoundException, ClientException {
     ManagedObjectFinder finder = new ManagedObjectFinder();
-    return finder.find(context, path, args);
+    return finder.find(app.getManagementContext(), path, args);
   }
 
 
@@ -737,12 +756,22 @@ abstract class SubCommandHandler {
    * @param namingArgs
    *          The naming arguments.
    * @return Returns the values of the naming arguments.
+   * @throws ArgumentException
+   *           If one of the naming arguments is missing and the
+   *           application is non-interactive.
    */
   protected final List<String> getNamingArgValues(
-      List<StringArgument> namingArgs) {
+      List<StringArgument> namingArgs) throws ArgumentException {
     ArrayList<String> values = new ArrayList<String>(namingArgs.size());
     for (StringArgument arg : namingArgs) {
-      values.add(arg.getValue());
+      String value = arg.getValue();
+
+      if (value == null && !app.isInteractive()) {
+        throw ArgumentExceptionFactory
+            .missingMandatoryNonInteractiveArgument(arg);
+      } else {
+        values.add(value);
+      }
     }
     return values;
   }
@@ -848,6 +877,81 @@ abstract class SubCommandHandler {
       return recordModeArgument.isPresent();
     } else {
       return false;
+    }
+  }
+
+
+
+  /**
+   * Interactively prompts the user to select from a choice of child
+   * managed objects.
+   * <p>
+   * This method will adapt according to the available choice. For
+   * example, if there is only one choice, then a question will be
+   * asked. If there are no children then an
+   * <code>ArgumentException</code> will be thrown.
+   *
+   * @param <C>
+   *          The type of child client configuration.
+   * @param <S>
+   *          The type of child server configuration.
+   * @param parent
+   *          The parent managed object.
+   * @param r
+   *          The relation between the parent and the children.
+   * @param d
+   *          The type of child managed object to choose from.
+   * @return Returns the name of the managed object that the user
+   *         selected.
+   * @throws CommunicationException
+   *           If the server cannot be contacted.
+   * @throws ConcurrentModificationException
+   *           If the parent managed object has been deleted.
+   * @throws AuthorizationException
+   *           If the children cannot be listed due to an
+   *           authorization failure.
+   * @throws ArgumentException
+   *           If the user input can be read from the console or if
+   *           there are no children.
+   */
+  protected final <C extends ConfigurationClient, S extends Configuration>
+      String readChildName(ManagedObject<?> parent,
+      InstantiableRelationDefinition<C, S> r,
+      AbstractManagedObjectDefinition<? extends C, ? extends S> d)
+      throws AuthorizationException, ConcurrentModificationException,
+      CommunicationException, ArgumentException {
+    if (d == null) {
+      d = r.getChildDefinition();
+    }
+
+    String[] children = parent.listChildren(r, d);
+    switch (children.length) {
+    case 0: {
+      // No options available - abort.
+      int msgID = MSGID_DSCFG_ERROR_FINDER_NO_CHILDREN;
+      String msg = getMessage(msgID, d.getUserFriendlyPluralName());
+      throw new ArgumentException(msgID, msg);
+    }
+    case 1: {
+      // Only one option available so confirm that the user wishes to
+      // access it.
+      int msgID = MSGID_DSCFG_FINDER_PROMPT_SINGLE;
+      String msg = getMessage(msgID, d.getUserFriendlyName(), children[0]);
+      if (getConsoleApplication().confirmAction(msg)) {
+        return children[0];
+      } else {
+        msgID = MSGID_DSCFG_ERROR_FINDER_SINGLE_CHILD_REJECTED;
+        msg = getMessage(msgID, d.getUserFriendlyName());
+        throw new ArgumentException(msgID, msg);
+      }
+    }
+    default: {
+      // Display a menu.
+      List<String> choices = Arrays.asList(children);
+      int msgID = MSGID_DSCFG_FINDER_PROMPT_MANY;
+      String msg = getMessage(msgID, d.getUserFriendlyName());
+      return getConsoleApplication().readChoice(msg, choices, choices, null);
+    }
     }
   }
 

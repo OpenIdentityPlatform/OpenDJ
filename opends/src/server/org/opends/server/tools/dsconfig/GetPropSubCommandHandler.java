@@ -59,7 +59,6 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
@@ -84,6 +83,8 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    * Creates a new get-xxx-prop sub-command for an instantiable
    * relation.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -94,15 +95,19 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static GetPropSubCommandHandler create(
+  public static GetPropSubCommandHandler create(ConsoleApplication app,
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       InstantiableRelationDefinition<?, ?> r) throws ArgumentException {
-    return new GetPropSubCommandHandler(parser, path.child(r, "DUMMY"), r);
+    return new GetPropSubCommandHandler(app, parser, path.child(r, "DUMMY"), r);
   }
+
+
 
   /**
    * Creates a new get-xxx-prop sub-command for an optional relation.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -113,15 +118,19 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static GetPropSubCommandHandler create(
+  public static GetPropSubCommandHandler create(ConsoleApplication app,
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       OptionalRelationDefinition<?, ?> r) throws ArgumentException {
-    return new GetPropSubCommandHandler(parser, path.child(r), r);
+    return new GetPropSubCommandHandler(app, parser, path.child(r), r);
   }
+
+
 
   /**
    * Creates a new get-xxx-prop sub-command for a singleton relation.
    *
+   * @param app
+   *          The console application.
    * @param parser
    *          The sub-command argument parser.
    * @param path
@@ -132,10 +141,10 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static GetPropSubCommandHandler create(
+  public static GetPropSubCommandHandler create(ConsoleApplication app,
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       SingletonRelationDefinition<?, ?> r) throws ArgumentException {
-    return new GetPropSubCommandHandler(parser, path.child(r), r);
+    return new GetPropSubCommandHandler(app, parser, path.child(r), r);
   }
 
   // The sub-commands naming arguments.
@@ -150,9 +159,11 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
   // Private constructor.
-  private GetPropSubCommandHandler(SubCommandArgumentParser parser,
-      ManagedObjectPath<?, ?> path, RelationDefinition<?, ?> r)
-      throws ArgumentException {
+  private GetPropSubCommandHandler(ConsoleApplication app,
+      SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
+      RelationDefinition<?, ?> r) throws ArgumentException {
+    super(app);
+
     this.path = path;
 
     // Create the sub-command.
@@ -192,21 +203,19 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    * {@inheritDoc}
    */
   @Override
-  public int run(DSConfig app, PrintStream out, PrintStream err)
-      throws ArgumentException, ClientException {
+  public int run() throws ArgumentException, ClientException {
     // Get the property names.
     Set<String> propertyNames = getPropertyNames();
     PropertyValuePrinter valuePrinter = new PropertyValuePrinter(getSizeUnit(),
-        getTimeUnit(), app.isScriptFriendly());
+        getTimeUnit(), getConsoleApplication().isScriptFriendly());
 
     // Get the naming argument values.
     List<String> names = getNamingArgValues(namingArgs);
 
     // Get the targeted managed object.
-    ManagementContext context = app.getManagementContext();
     ManagedObject<?> child;
     try {
-      child = getManagedObject(context, path, names);
+      child = getManagedObject(path, names);
     } catch (AuthorizationException e) {
       int msgID = MSGID_DSCFG_ERROR_GET_CHILD_AUTHZ;
       String ufn = path.getManagedObjectDefinition().getUserFriendlyName();
@@ -273,11 +282,12 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
       }
 
       if (propertyNames.isEmpty() || propertyNames.contains(pd.getName())) {
-        displayProperty(app, builder, child, pd, valuePrinter);
+        displayProperty(builder, child, pd, valuePrinter);
       }
     }
 
-    if (app.isScriptFriendly()) {
+    PrintStream out = getConsoleApplication().getOutputStream();
+    if (getConsoleApplication().isScriptFriendly()) {
       TablePrinter printer = createScriptFriendlyTablePrinter(out);
       builder.print(printer);
     } else {
@@ -293,9 +303,8 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
   // Display the set of values associated with a property.
-  private <T> void displayProperty(final DSConfig app, TableBuilder builder,
-      ManagedObject<?> mo, PropertyDefinition<T> pd,
-      PropertyValuePrinter valuePrinter) {
+  private <T> void displayProperty(TableBuilder builder, ManagedObject<?> mo,
+      PropertyDefinition<T> pd, PropertyValuePrinter valuePrinter) {
     SortedSet<T> values = mo.getPropertyValues(pd);
     if (values.isEmpty()) {
       // There are no values or default values. Display the default
@@ -313,7 +322,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
 
         public String visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
-          if (app.isVerbose()) {
+          if (getConsoleApplication().isVerbose()) {
             return d.getSynopsis();
           } else {
             return null;
@@ -351,7 +360,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
       String content = pd.getDefaultBehaviorProvider().accept(visitor, null);
       if (content == null) {
-        if (app.isScriptFriendly()) {
+        if (getConsoleApplication().isScriptFriendly()) {
           builder.appendCell();
         } else {
           builder.appendCell("-");
@@ -370,7 +379,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         builder.startRow();
         builder.appendCell(pd.getName());
 
-        if (app.isScriptFriendly()) {
+        if (getConsoleApplication().isScriptFriendly()) {
           for (T value : values) {
             builder.appendCell(valuePrinter.print(pd, value));
           }
