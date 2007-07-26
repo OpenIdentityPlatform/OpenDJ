@@ -155,6 +155,7 @@ public abstract class ConsoleApplication {
         String ninput = input.toLowerCase().trim();
         if (ninput.length() == 0) {
           // Empty input.
+          app.println();
           app.printMessage(errMsg);
         } else if (no.startsWith(ninput)) {
           return false;
@@ -162,6 +163,7 @@ public abstract class ConsoleApplication {
           return true;
         } else {
           // Try again...
+          app.println();
           app.printMessage(errMsg);
         }
 
@@ -208,7 +210,7 @@ public abstract class ConsoleApplication {
    *          The verbose message.
    */
   public final void printVerboseMessage(String msg) {
-    if (isVerbose()) {
+    if (isVerbose() || isInteractive()) {
       err.println(wrapText(msg, MAX_LINE_WIDTH));
     }
   }
@@ -375,7 +377,6 @@ public abstract class ConsoleApplication {
           printMessage(prompt);
           println();
           builder.print(printer);
-          println();
 
           return null;
         } else {
@@ -389,7 +390,6 @@ public abstract class ConsoleApplication {
             app.println();
             String errMsg = getMessage(MSGID_DSCFG_ERROR_GENERAL_CHOICE, size);
             app.printMessage(errMsg);
-            app.println();
             return null;
           }
         }
