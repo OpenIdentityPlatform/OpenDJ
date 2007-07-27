@@ -382,6 +382,24 @@ public interface ManagedObject<T extends ConfigurationClient> extends
 
 
   /**
+   * Get the default values of the specified property.
+   *
+   * @param <P>
+   *          The type of the property to be retrieved.
+   * @param pd
+   *          The property to be retrieved.
+   * @return Returns the property's default values, or an empty set
+   *         if there are no default values defined.
+   * @throws IllegalArgumentException
+   *           If the property definition is not associated with this
+   *           managed object's definition.
+   */
+  <P> SortedSet<P> getPropertyDefaultValues(PropertyDefinition<P> pd)
+      throws IllegalArgumentException;
+
+
+
+  /**
    * Get the effective value of the specified property.
    * <p>
    * See the class description for more information about how the

@@ -644,6 +644,17 @@ final class LDAPManagedObject<T extends ConfigurationClient> implements
   /**
    * {@inheritDoc}
    */
+  public <P> SortedSet<P> getPropertyDefaultValues(PropertyDefinition<P> pd)
+      throws IllegalArgumentException {
+    Property<P> p = properties.getProperty(pd);
+    return p.getDefaultValues();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public <P> P getPropertyValue(PropertyDefinition<P> pd)
       throws IllegalArgumentException {
     return properties.getPropertyValue(pd);
