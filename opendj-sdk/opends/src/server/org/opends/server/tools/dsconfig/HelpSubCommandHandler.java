@@ -373,7 +373,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       + "field.monitoring"); //$NON-NLS-1$
 
   private static final String FIELD_NO =
-    Messages.getString("general.no"); //$NON-NLS-1$
+    getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO);
 
   private static final String FIELD_READ_ONLY = Messages.getString(KEY_PREFIX
       + "field.read-only"); //$NON-NLS-1$
@@ -385,7 +385,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       + "field.undefined"); //$NON-NLS-1$
 
   private static final String FIELD_YES =
-    Messages.getString("general.yes"); //$NON-NLS-1$
+    getMessage(MSGID_DSCFG_GENERAL_CONFIRM_YES);
 
   private final static String HEADING_ADVANCED = Messages
       .getString(KEY_PREFIX + "heading.advanced"); //$NON-NLS-1$
