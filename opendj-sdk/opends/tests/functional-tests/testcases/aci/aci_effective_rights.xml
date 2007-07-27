@@ -92,6 +92,21 @@
                 </if>
     
                 <script>
+                    allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'
+                </script>
+        
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : allow_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <script>
                     curr_aci_ldif_file = 'add_effrights_aci.ldif'
                     curr_aci=retrieve_aci('%s/aci/aci_effective_rights/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
@@ -3028,6 +3043,21 @@
                     <tcstatus result="'fail'"/>
                 </if>
     
+                <script>
+                    allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'
+                </script>
+        
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : allow_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
                 <message>
                    'ACI: Effective Rights: Preamble - putting back Search Global ACI'
                 </message>
