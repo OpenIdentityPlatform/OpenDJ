@@ -28,4 +28,3 @@ LOGS_ROOT                   = '%s' % TMPDIR
 LOGS_URI                    = ''
 SEND_MAIL_AFTER_TEST_RUN    = 'false'
 SEND_MAIL_TO                = ''
-DSCONFIG                    = 'dsconfig'
