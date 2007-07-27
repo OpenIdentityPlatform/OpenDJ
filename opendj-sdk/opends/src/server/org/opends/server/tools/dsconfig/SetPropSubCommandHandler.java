@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.opends.server.admin.DefinitionDecodingException;
@@ -249,6 +250,10 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Create the naming arguments.
     this.namingArgs = createNamingArgs(subCommand, path, false);
+
+    // Register common arguments.
+    registerAdvancedModeArgument(this.subCommand,
+        MSGID_DSCFG_DESCRIPTION_ADVANCED_SET, r.getUserFriendlyName());
 
     // Create the --set argument.
     this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET,
@@ -492,6 +497,36 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       } catch (PropertyException e) {
         throw ArgumentExceptionFactory.adaptPropertyException(e, d);
       }
+    }
+
+    // Interactively set properties if applicable.
+    if (getConsoleApplication().isInteractive()) {
+      SortedSet<PropertyDefinition<?>> properties =
+        new TreeSet<PropertyDefinition<?>>();
+
+      for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
+        if (pd.hasOption(PropertyOption.HIDDEN)) {
+          continue;
+        }
+
+        if (pd.hasOption(PropertyOption.READ_ONLY)) {
+          continue;
+        }
+
+        if (pd.hasOption(PropertyOption.MONITORING)) {
+          continue;
+        }
+
+        if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+          continue;
+        }
+
+        properties.add(pd);
+      }
+
+      PropertyValueReader reader =
+        new PropertyValueReader(getConsoleApplication());
+      reader.readAll(child, properties);
     }
 
     try {
