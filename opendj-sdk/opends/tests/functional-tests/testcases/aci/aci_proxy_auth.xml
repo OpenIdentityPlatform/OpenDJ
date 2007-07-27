@@ -92,9 +92,24 @@
                     <tcstatus result="'fail'"/>
                 </if>
     
-              <message>
+                <script>
+                    allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'
+                </script>
+        
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : allow_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <message>
                  'ACI: Proxy Auth: Preamble - existing branch, user searching entry that will be targeted in future tests'
-              </message>
+                </message>
   
               <call function="'SearchObject'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -2637,6 +2652,21 @@
                   <tcstatus result="'fail'"/>
               </if>
   
+                <script>
+                    allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'
+                </script>
+        
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : allow_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
                 <message>
                    'ACI: Proxy Auth: Postamble - Resetting Search Global ACI'
                 </message>
