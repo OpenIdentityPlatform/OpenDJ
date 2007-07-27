@@ -401,7 +401,7 @@ public class InProcessServerController {
           // report the error to the user
           StringBuilder error = op.getErrorMessage();
           throw new ApplicationException(
-                  ApplicationException.Type.IMPORT_ERROR,
+              ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
                   getMsg("error-apply-ldif-modify", dnByteString.toString(),
                           error != null ? error.toString() : ""),
                   null);
@@ -424,7 +424,7 @@ public class InProcessServerController {
           // report the error to the user
           StringBuilder error = addOp.getErrorMessage();
           throw new ApplicationException(
-                  ApplicationException.Type.IMPORT_ERROR,
+              ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
                   getMsg("error-apply-ldif-add", dnByteString.toString(),
                           error != null ? error.toString() : ""),
                   null);
@@ -441,7 +441,7 @@ public class InProcessServerController {
           // report the error to the user
           StringBuilder error = delOp.getErrorMessage();
           throw new ApplicationException(
-                  ApplicationException.Type.IMPORT_ERROR,
+              ApplicationReturnCode.ReturnCode.IMPORT_ERROR,
                   getMsg("error-apply-ldif-delete", dnByteString.toString(),
                           error != null ? error.toString() : ""),
                   null);
@@ -449,7 +449,7 @@ public class InProcessServerController {
         break;
       default:
         LOG.log(Level.SEVERE, "Unexpected record type " + cre.getClass());
-        throw new ApplicationException(ApplicationException.Type.BUG,
+        throw new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
                 getMsg("bug-msg"),
                 null);
     }

@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup.util;
 
+import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.i18n.ResourceProvider;
@@ -85,9 +86,9 @@ public class ServerHealthChecker {
       if (e instanceof ApplicationException) {
         throw (ApplicationException)e;
       } else {
-        throw new ApplicationException(ApplicationException.Type.APPLICATION,
-                ResourceProvider.getInstance().getMsg(
-                        "error-server-health-check-failure"), e);
+        throw new ApplicationException(
+            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, ResourceProvider
+                .getInstance().getMsg("error-server-health-check-failure"), e);
       }
     } finally {
       if (control != null) {

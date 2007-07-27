@@ -158,7 +158,7 @@ public class FileManager {
         if (target.exists()) {
           if (!target.delete()) {
             throw new ApplicationException(
-                    ApplicationException.Type.FILE_SYSTEM_ERROR,
+                ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                     getMsg("error-deleting-file",
                             Utils.getPath(target)), null);
           }
@@ -166,7 +166,7 @@ public class FileManager {
       }
       if (!fileToRename.renameTo(target)) {
         throw new ApplicationException(
-                ApplicationException.Type.FILE_SYSTEM_ERROR,
+            ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                 getMsg("error-renaming-file",
                         Utils.getPath(fileToRename),
                         Utils.getPath(target)), null);
@@ -525,7 +525,7 @@ public class FileManager {
             } catch (Exception e) {
               String errMsg = getMsg("error-copying-file", args);
               throw new ApplicationException(
-                      ApplicationException.Type.FILE_SYSTEM_ERROR,
+                  ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                       errMsg, null);
             } finally {
               if (fis != null) {
@@ -546,7 +546,8 @@ public class FileManager {
           } else {
             String errMsg = getMsg("error-copying-file", args);
             throw new ApplicationException(
-                    ApplicationException.Type.FILE_SYSTEM_ERROR, errMsg, null);
+                ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+                errMsg, null);
           }
         } else {
           LOG.log(Level.INFO, "Ignoring file '" +
@@ -646,7 +647,8 @@ public class FileManager {
           errMsg = getMsg("error-deleting-directory", arg);
         }
         throw new ApplicationException(
-                ApplicationException.Type.FILE_SYSTEM_ERROR, errMsg, null);
+            ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+            errMsg, null);
       }
 
       if (application != null) {

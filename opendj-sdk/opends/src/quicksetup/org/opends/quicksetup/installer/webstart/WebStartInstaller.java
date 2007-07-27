@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.webstart.JnlpProperties;
@@ -215,7 +216,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
     } catch (ApplicationException ex)
     {
-      if (ApplicationException.Type.CANCEL.equals(ex.getType())) {
+      if (ApplicationReturnCode.ReturnCode.CANCELLED.equals(ex.getType())) {
         uninstall();
         setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);
         notifyListeners(null);
@@ -254,7 +255,8 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       updateSummaryWithServerState(hmSummary);
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
-          ApplicationException.Type.BUG, getThrowableMsg("bug-msg", t), t);
+          ApplicationReturnCode.ReturnCode.BUG,
+          getThrowableMsg("bug-msg", t), t);
       String msg = getFormattedError(ex, true);
       notifyListeners(msg);
       LOG.log(Level.SEVERE, "Error installing.", t);
@@ -409,8 +411,9 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
 
     if (in == null)
     {
-      throw new ApplicationException(ApplicationException.Type.DOWNLOAD_ERROR,
-          getMsg("error-zipinputstreamnull", new String[] {zipName}), null);
+      throw new ApplicationException(
+          ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR, getMsg(
+              "error-zipinputstreamnull", new String[] { zipName }), null);
     }
 
     notifyListeners(getFormattedDone());
@@ -433,7 +436,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
         if (!Utils.createDirectory(parent))
         {
           throw new ApplicationException(
-              ApplicationException.Type.FILE_SYSTEM_ERROR,
+              ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
               getMsg("error-could-not-create-parent-dir",
                   new String[] {parent}), null);
         }
@@ -441,7 +444,7 @@ public class WebStartInstaller extends Installer implements JnlpProperties {
       catch (IOException ioe)
       {
         throw new ApplicationException(
-            ApplicationException.Type.FILE_SYSTEM_ERROR,
+            ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
             getMsg("error-could-not-create-parent-dir", new String[] {parent}),
             ioe);
       }

@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.webstart.JnlpProperties;
 import org.opends.quicksetup.util.Utils;
@@ -141,7 +142,7 @@ public class InstallerHelper implements JnlpProperties {
         break;
       default:
         throw new ApplicationException(
-                ApplicationException.Type.WINDOWS_SERVICE_ERROR,
+            ApplicationReturnCode.ReturnCode.WINDOWS_SERVICE_ERROR,
                 errorMessage, null);
     }
   }
@@ -155,7 +156,7 @@ public class InstallerHelper implements JnlpProperties {
     int code = ConfigureWindowsService.disableService(System.out, System.err);
     if (code == ConfigureWindowsService.SERVICE_DISABLE_ERROR) {
       throw new ApplicationException(
-              ApplicationException.Type.WINDOWS_SERVICE_ERROR,
+          ApplicationReturnCode.ReturnCode.WINDOWS_SERVICE_ERROR,
               getMsg("error-disabling-windows-service"), null);
     }
   }
@@ -188,7 +189,8 @@ public class InstallerHelper implements JnlpProperties {
     {
       String failedMsg = getThrowableMsg("error-creating-temp-file", null, ioe);
       throw new ApplicationException(
-          ApplicationException.Type.FILE_SYSTEM_ERROR, failedMsg, ioe);
+          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+          failedMsg, ioe);
     }
 
     try
@@ -205,19 +207,19 @@ public class InstallerHelper implements JnlpProperties {
       writer.close();
     } catch (DirectoryException de) {
       throw new ApplicationException(
-              ApplicationException.Type.CONFIGURATION_ERROR,
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
               getThrowableMsg("error-importing-ldif", null, de), de);
     } catch (LDIFException le) {
       throw new ApplicationException(
-              ApplicationException.Type.CONFIGURATION_ERROR,
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
               getThrowableMsg("error-importing-ldif", null, le), le);
     } catch (IOException ioe) {
       throw new ApplicationException(
-              ApplicationException.Type.CONFIGURATION_ERROR,
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
               getThrowableMsg("error-importing-ldif", null, ioe), ioe);
     } catch (Throwable t) {
       throw new ApplicationException(
-              ApplicationException.Type.BUG, getThrowableMsg(
+          ApplicationReturnCode.ReturnCode.BUG, getThrowableMsg(
               "bug-msg", t), t);
     }
     return ldifFile;
@@ -412,7 +414,8 @@ public class InstallerHelper implements JnlpProperties {
       String errorMessage = getMsg("error-configuring-remote-generic",
           serverDisplay, t.toString());
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR, errorMessage, t);
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          t);
     }
   }
 
@@ -514,7 +517,8 @@ public class InstallerHelper implements JnlpProperties {
       String errorMessage = getMsg("error-configuring-remote-generic",
           serverDisplay, t.toString());
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR, errorMessage, t);
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          t);
     }
   }
 

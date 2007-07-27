@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import java.security.KeyStoreException;
 
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.SecurityOptions;
@@ -158,7 +159,7 @@ public class OfflineInstaller extends Installer
 
     } catch (ApplicationException ex)
     {
-      if (ApplicationException.Type.CANCEL.equals(ex.getType())) {
+      if (ApplicationReturnCode.ReturnCode.CANCELLED.equals(ex.getType())) {
         uninstall();
         setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);
         notifyListeners(null);
@@ -197,7 +198,8 @@ public class OfflineInstaller extends Installer
       updateSummaryWithServerState(hmSummary);
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
-          ApplicationException.Type.BUG, getThrowableMsg("bug-msg", t), t);
+          ApplicationReturnCode.ReturnCode.BUG,
+          getThrowableMsg("bug-msg", t), t);
       String msg = getFormattedError(ex, true);
       notifyListeners(msg);
       LOG.log(Level.SEVERE, "Error installing.", t);

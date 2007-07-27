@@ -27,6 +27,8 @@
 
 package org.opends.quicksetup;
 
+import static org.opends.quicksetup.ApplicationReturnCode.ReturnCode;
+
 /**
  * This exception is used to encapsulate all the error that we might have
  * during the installation.
@@ -42,69 +44,7 @@ public class ApplicationException extends Exception
 
   private String formattedMsg = null;
 
-  private Type type;
-
-  /**
-   * This enum contains the different type of ApplicationException that we can
-   * have.
-   *
-   */
-  public enum Type
-  {
-    /**
-     * Error related to file system error: IOException writing files, permission
-     * errors, etc.
-     */
-    FILE_SYSTEM_ERROR,
-    /**
-     * Error downloading jar files from web start server.  This is specific
-     * to the web start installation.
-     */
-    DOWNLOAD_ERROR,
-    /**
-     * Error during the configuration of the Directory Server.
-     */
-    CONFIGURATION_ERROR,
-    /**
-     * Error during the import of data (base entry, from LDIF file or
-     * automatically generated data).
-     */
-    IMPORT_ERROR,
-    /**
-     * Error starting the Open DS server.
-     */
-    START_ERROR,
-
-    /**
-     * Error stopping the Open DS server.
-     */
-    STOP_ERROR,
-
-    /**
-     * Error enabling the Windows service.
-     */
-    WINDOWS_SERVICE_ERROR,
-
-    /**
-     * Application specific error.
-     */
-    APPLICATION,
-
-    /**
-     * Error invoking an OpenDS tool.
-     */
-    TOOL_ERROR,
-
-    /**
-     * User canceled operation.
-     */
-    CANCEL,
-
-    /**
-     * A bug (for instance when we throw an IllegalStateException).
-     */
-    BUG
-  }
+  private ReturnCode type;
 
   /**
    * Creates a new ApplicationException of type FILE_SYSTEM_ERROR.
@@ -113,17 +53,23 @@ public class ApplicationException extends Exception
    * @return ApplicationException with Type property being FILE_SYSTEM_ERROR
    */
   public static ApplicationException createFileSystemException(String msg,
-                                                               Exception e) {
-    return new ApplicationException(Type.FILE_SYSTEM_ERROR, msg, e);
+      Exception e)
+  {
+    return new ApplicationException(ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+        msg, e);
   }
 
   /**
    * The constructor of the ApplicationException.
-   * @param type the type of error we have.
-   * @param localizedMsg a localized string describing the problem.
-   * @param rootCause the root cause of this exception.
+   *
+   * @param type
+   *          the type of error we have.
+   * @param localizedMsg
+   *          a localized string describing the problem.
+   * @param rootCause
+   *          the root cause of this exception.
    */
-  public ApplicationException(Type type, String localizedMsg,
+  public ApplicationException(ReturnCode type, String localizedMsg,
                               Throwable rootCause)
   {
     super(localizedMsg, rootCause);
@@ -137,7 +83,7 @@ public class ApplicationException extends Exception
    * @param formattedMsg a localized message with extra formatting
    * @param rootCause the root cause of this exception.
    */
-  public ApplicationException(Type type, String localizedMsg,
+  public ApplicationException(ReturnCode type, String localizedMsg,
                               String formattedMsg, Throwable rootCause)
   {
     super(localizedMsg, rootCause);
@@ -149,7 +95,7 @@ public class ApplicationException extends Exception
    * Returns the Type of this exception.
    * @return the Type of this exception.
    */
-  public Type getType()
+  public ReturnCode getType()
   {
     return type;
   }

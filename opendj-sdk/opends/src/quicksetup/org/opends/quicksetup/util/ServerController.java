@@ -204,10 +204,10 @@ public class ServerController {
           * The return code is not the one expected, assume the server could
           * not be stopped.
           */
-          throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
-                  ResourceProvider.getInstance().getMsg(
-                          "error-stopping-server-code",
-                          String.valueOf(returnValue)),
+          throw new ApplicationException(
+              ApplicationReturnCode.ReturnCode.STOP_ERROR, ResourceProvider
+                  .getInstance().getMsg("error-stopping-server-code",
+                      String.valueOf(returnValue)),
                   null);
         } else {
           if (application != null) {
@@ -219,8 +219,9 @@ public class ServerController {
         }
 
       } catch (Exception e) {
-        throw new ApplicationException(ApplicationException.Type.STOP_ERROR,
-                getThrowableMsg("error-stopping-server", e), e);
+        throw new ApplicationException(
+            ApplicationReturnCode.ReturnCode.STOP_ERROR, getThrowableMsg(
+                "error-stopping-server", e), e);
       }
     } finally {
       if (suppressOutput && StandardOutputSuppressor.isSuppressed()) {
@@ -437,7 +438,7 @@ public class ServerController {
           if (Utils.isWindows())
           {
             throw new ApplicationException(
-                ApplicationException.Type.START_ERROR,
+                ApplicationReturnCode.ReturnCode.START_ERROR,
                     getMsg("error-starting-server-in-windows",
                             String.valueOf(port)),
                     null);
@@ -445,7 +446,7 @@ public class ServerController {
           else
           {
             throw new ApplicationException(
-                ApplicationException.Type.START_ERROR,
+                ApplicationReturnCode.ReturnCode.START_ERROR,
                     getMsg("error-starting-server-in-unix",
                             String.valueOf(port)),
                     null);
@@ -455,9 +456,9 @@ public class ServerController {
 
     } catch (IOException ioe)
     {
-      throw new ApplicationException(ApplicationException.Type.START_ERROR,
-              getThrowableMsg("error-starting-server", ioe),
-              ioe);
+      throw new ApplicationException(
+            ApplicationReturnCode.ReturnCode.START_ERROR, getThrowableMsg(
+                "error-starting-server", ioe), ioe);
     }
   } finally {
       if (suppressOuput && StandardOutputSuppressor.isSuppressed()) {
@@ -611,9 +612,9 @@ public class ServerController {
             }
           } catch (Throwable t)
           {
-            ex =
-                new ApplicationException(ApplicationException.Type.START_ERROR,
-                    getThrowableMsg(errorTag, t), t);
+            ex = new ApplicationException(
+                ApplicationReturnCode.ReturnCode.START_ERROR,
+                getThrowableMsg(errorTag, t), t);
 
           }
           isFinished = true;

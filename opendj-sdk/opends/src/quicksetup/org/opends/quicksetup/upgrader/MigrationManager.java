@@ -28,6 +28,7 @@
 package org.opends.quicksetup.upgrader;
 
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.Constants;
@@ -173,8 +174,8 @@ public class MigrationManager {
     } catch (Exception e) {
       String msg = getMsg("error-applying-custom-config");
       LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              msg, e);
+      throw new ApplicationException(
+          ApplicationReturnCode.ReturnCode.IMPORT_ERROR, msg, e);
     }
   }
 
@@ -195,8 +196,8 @@ public class MigrationManager {
     } catch (Exception e) {
       String msg = getMsg("error-applying-custom-schema");
       LOG.log(Level.INFO, msg, e);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-              msg, e);
+      throw new ApplicationException(
+          ApplicationReturnCode.ReturnCode.IMPORT_ERROR, msg, e);
     }
   }
 
@@ -268,8 +269,9 @@ public class MigrationManager {
           } else if (retry.equals(r)) {
             // do nothing; will retry;
           } else {
-            throw new ApplicationException(ApplicationException.Type.CANCEL,
-                    getMsg("upgrade-canceled"), e);
+            throw new ApplicationException(
+                ApplicationReturnCode.ReturnCode.CANCELLED,
+                getMsg("upgrade-canceled"), e);
           }
         } else {
           throw e;
@@ -336,7 +338,7 @@ public class MigrationManager {
     int ret = oo.getReturnCode();
     if (ret != 0) {
       throw new ApplicationException(
-              ApplicationException.Type.TOOL_ERROR,
+          ApplicationReturnCode.ReturnCode.TOOL_ERROR,
               getMsg("error-ldif-diff-tool-return-code",
                       Integer.toString(ret)),
               null);

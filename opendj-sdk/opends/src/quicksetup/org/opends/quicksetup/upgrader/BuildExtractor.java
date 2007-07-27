@@ -115,7 +115,7 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
                   Utils.getPath(buildFile),
                   installation.getInvalidityReason());
           error = new ApplicationException(
-                ApplicationException.Type.APPLICATION,
+              ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
                   invalidMsg, null);
           System.err.println(invalidMsg);
         }
@@ -123,8 +123,9 @@ public class BuildExtractor extends UpgradeLauncher implements CliApplication {
     } catch (Throwable t) {
       LOG.log(Level.INFO, "unexpected error extracting build", t);
       String reason = t.getLocalizedMessage();
-      error = new ApplicationException(ApplicationException.Type.APPLICATION,
-                getMsg("build-extractor-error", reason), t);
+      error = new ApplicationException(
+          ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, getMsg(
+              "build-extractor-error", reason), t);
       System.err.println(reason);
     } finally   {
       finished = true;

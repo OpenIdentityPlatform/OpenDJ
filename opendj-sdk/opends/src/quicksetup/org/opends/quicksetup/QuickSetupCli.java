@@ -30,55 +30,18 @@ package org.opends.quicksetup;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
+import org.opends.quicksetup.ApplicationReturnCode.ReturnCode;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.server.util.StaticUtils;
 
 /**
- * Controller for managing the execution of a CliApplication.
+ * This enum contains the different type of ApplicationException that we can
+ * have.
+ *
  */
 public class QuickSetupCli {
-
-  /**
-   * Return code: Application successful.
-   */
-  static public int SUCCESSFUL = 0;
-
-  /**
-   * Return code: User Cancelled uninstall.
-   */
-  static public int CANCELLED = 1;
-
-  /**
-   * Return code: User provided invalid data.
-   */
-  static public int USER_DATA_ERROR = 2;
-
-  /**
-   * Return code: Error accessing file system (reading/writing).
-   */
-  static public int ERROR_ACCESSING_FILE_SYSTEM = 3;
-
-  /**
-   * Return code: Error stopping server.
-   */
-  static public int ERROR_STOPPING_SERVER = 4;
-
-  /**
-   * Return code: Bug.
-   */
-  static public int BUG = 5;
-
-  /**
-   * Return code: Bug.
-   */
-  static public int PRINT_VERSION = 50;
-
-  /**
-   * Return code for errors that are non-specified.
-   */
-  static public int UNKNOWN = 100;
 
   /** Arguments passed in the command line. */
   protected Launcher launcher;
@@ -112,9 +75,9 @@ public class QuickSetupCli {
    * @return the return code (SUCCESSFUL, CANCELLED, USER_DATA_ERROR,
    * ERROR_ACCESSING_FILE_SYSTEM, ERROR_STOPPING_SERVER or BUG.
    */
-  public int run()
+  public ReturnCode run()
   {
-    int returnValue;
+    ReturnCode returnValue;
     // Parse the arguments
     try
     {
@@ -149,39 +112,17 @@ public class QuickSetupCli {
         ApplicationException ue = cliApp.getRunError();
         if (ue != null)
         {
-          ApplicationException.Type type = ue.getType();
-          if (type != null) {
-            switch (type)
-            {
-            case FILE_SYSTEM_ERROR:
-              returnValue = ERROR_ACCESSING_FILE_SYSTEM;
-              break;
-
-            case STOP_ERROR:
-              returnValue = ERROR_STOPPING_SERVER;
-              break;
-
-            case BUG:
-              returnValue = BUG;
-              break;
-
-            default:
-              returnValue = UNKNOWN;
-              break;
-            }
-          } else {
-            returnValue = UNKNOWN;
-          }
+          returnValue = ue.getType();
         }
         else
         {
-          returnValue = SUCCESSFUL;
+          returnValue = ApplicationReturnCode.ReturnCode.SUCCESSFUL;
         }
       }
       else
       {
         // User cancelled installation.
-        returnValue = CANCELLED;
+        returnValue = ApplicationReturnCode.ReturnCode.CANCELLED;
       }
     }
     catch (UserDataException uude)
@@ -190,7 +131,7 @@ public class QuickSetupCli {
       System.err.println(StaticUtils.wrapText(uude.getLocalizedMessage(),
               Utils.getCommandLineMaxLineWidth()));
       System.err.println();
-      returnValue = USER_DATA_ERROR;
+      returnValue = ReturnCode.USER_DATA_ERROR;
     }
     return returnValue;
   }

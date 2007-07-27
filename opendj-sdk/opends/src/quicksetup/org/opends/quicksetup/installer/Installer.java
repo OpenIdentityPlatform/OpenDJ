@@ -724,9 +724,11 @@ public abstract class Installer extends GuiApplication {
     }
     catch (IOException ioe)
     {
-      String failedMsg = getThrowableMsg("error-creating-temp-file", null, ioe);
+      String failedMsg = getThrowableMsg("error-creating-temp-file", null,
+          ioe);
       throw new ApplicationException(
-          ApplicationException.Type.FILE_SYSTEM_ERROR, failedMsg, ioe);
+          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+          failedMsg, ioe);
     }
   }
 
@@ -845,13 +847,13 @@ public abstract class Installer extends GuiApplication {
       if (result != 0)
       {
         throw new ApplicationException(
-            ApplicationException.Type.CONFIGURATION_ERROR,
+            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
             getMsg("error-configuring"), null);
       }
     } catch (Throwable t)
     {
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR,
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg("error-configuring", null, t), t);
     }
 
@@ -958,7 +960,7 @@ public abstract class Installer extends GuiApplication {
     catch (Throwable t)
     {
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR,
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg("error-configuring-certificate", null, t), t);
     }
   }
@@ -1003,13 +1005,13 @@ public abstract class Installer extends GuiApplication {
       if (result != 0)
       {
         throw new ApplicationException(
-            ApplicationException.Type.CONFIGURATION_ERROR,
+            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
             getMsg("error-creating-base-entry"), null);
       }
     } catch (Throwable t)
     {
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR,
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg("error-creating-base-entry", null, t), t);
     }
 
@@ -1049,13 +1051,13 @@ public abstract class Installer extends GuiApplication {
       if (result != 0)
       {
         throw new ApplicationException(
-            ApplicationException.Type.CONFIGURATION_ERROR,
+            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
             getMsg("error-importing-ldif"), null);
       }
     } catch (Throwable t)
     {
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR,
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg("error-importing-ldif", null, t), t);
     }
   }
@@ -1098,14 +1100,14 @@ public abstract class Installer extends GuiApplication {
       if (result != 0)
       {
         throw new ApplicationException(
-            ApplicationException.Type.CONFIGURATION_ERROR,
+            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
             getMsg("error-import-ldif-tool-return-code",
                     Integer.toString(result)), null);
       }
     } catch (Throwable t)
     {
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR,
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
           getThrowableMsg("error-import-automatically-generated",
                   new String[] { Utils.listToString(argList, " "),
                           t.getLocalizedMessage()}, t), t);
@@ -1326,7 +1328,7 @@ public abstract class Installer extends GuiApplication {
     {
       String failedMsg = getThrowableMsg("error-connecting-to-local", null, ne);
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR, failedMsg, ne);
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, failedMsg, ne);
     }
     finally
     {
@@ -1515,7 +1517,7 @@ public abstract class Installer extends GuiApplication {
       setCurrentProgressStep(InstallProgressStep.CANCELING);
       notifyListeners(null);
       throw new ApplicationException(
-            ApplicationException.Type.CANCEL,
+          ApplicationReturnCode.ReturnCode.CANCELLED,
             getMsg("upgrade-canceled"), null);
     }
   }
@@ -1659,7 +1661,7 @@ public abstract class Installer extends GuiApplication {
       {
       }
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR, failedMsg, t);
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, failedMsg, t);
     }
 
     Set<SuffixDescriptor> suffixes =
@@ -1701,7 +1703,7 @@ public abstract class Installer extends GuiApplication {
           {
             String[] arg = {server.getHostPort(true)};
             throw new ApplicationException(
-                ApplicationException.Type.CONFIGURATION_ERROR,
+                ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
                 getMsg("cannot-connect-to-remote-generic", arg), ne);
           }
           finally
@@ -1735,7 +1737,7 @@ public abstract class Installer extends GuiApplication {
             if (nTries == 1)
             {
               throw new ApplicationException(
-                  ApplicationException.Type.APPLICATION,
+                  ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
                   pnfe.getLocalizedMessage(), null);
             }
             try
@@ -1871,7 +1873,8 @@ public abstract class Installer extends GuiApplication {
           String failedMsg = getThrowableMsg("error-connecting-to-local", null,
               t);
           throw new ApplicationException(
-              ApplicationException.Type.CONFIGURATION_ERROR, failedMsg, t);
+              ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+              failedMsg, t);
         }
         createLocalAds(localCtx, false);
         notifyListeners(getFormattedDone());
@@ -2003,7 +2006,7 @@ public abstract class Installer extends GuiApplication {
                 if (nTries == 1)
                 {
                   throw new ApplicationException(
-                      ApplicationException.Type.APPLICATION,
+                      ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
                       pnfe.getLocalizedMessage(), null);
                 }
                 try
@@ -2027,14 +2030,14 @@ public abstract class Installer extends GuiApplication {
       {
         String[] arg = {getHostDisplay(auth)};
         throw new ApplicationException(
-            ApplicationException.Type.CONFIGURATION_ERROR,
+            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
             getMsg("cannot-connect-to-remote-permissions", arg), x);
       }
       catch (NamingException ne)
       {
         String[] arg = {getHostDisplay(auth)};
         throw new ApplicationException(
-            ApplicationException.Type.CONFIGURATION_ERROR,
+            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
             getMsg("cannot-connect-to-remote-generic", arg), ne);
       }
       catch (TopologyCacheException tpe)
@@ -2042,14 +2045,14 @@ public abstract class Installer extends GuiApplication {
         LOG.log(Level.WARNING, "Error reloading topology cache to "+
             "configure ADS replication.", tpe);
         throw new ApplicationException(
-            ApplicationException.Type.CONFIGURATION_ERROR,
+            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
             getMsg("bug-msg"), tpe);
       }
       catch (ADSContextException ace)
       {
         String[] args = {getHostDisplay(auth), ace.toString()};
         throw new ApplicationException(
-            ApplicationException.Type.CONFIGURATION_ERROR,
+            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
             getMsg("remote-ads-exception", args), ace);
       }
       finally
@@ -2092,7 +2095,8 @@ public abstract class Installer extends GuiApplication {
           String failedMsg = getThrowableMsg("error-connecting-to-local", null,
               t);
           throw new ApplicationException(
-              ApplicationException.Type.CONFIGURATION_ERROR, failedMsg, t);
+              ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
+              failedMsg, t);
         }
         createLocalAds(localCtx, true);
         int replicationPort =
@@ -2117,7 +2121,7 @@ public abstract class Installer extends GuiApplication {
       catch (ADSContextException ace)
       {
         throw new ApplicationException(
-            ApplicationException.Type.CONFIGURATION_ERROR,
+            ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR,
             getMsg("ads-exception", ace.toString()), ace);
       }
       finally
@@ -3807,7 +3811,7 @@ public abstract class Installer extends GuiApplication {
     {
       String failedMsg = getThrowableMsg("bug-msg", null, t);
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR, failedMsg, t);
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, failedMsg, t);
     }
   }
 
@@ -3861,7 +3865,8 @@ public abstract class Installer extends GuiApplication {
       String errorMessage = getMsg("cannot-connect-to-remote-generic",
           server.getHostPort(true), ne.toString(true));
       throw new ApplicationException(
-          ApplicationException.Type.CONFIGURATION_ERROR, errorMessage, ne);
+          ApplicationReturnCode.ReturnCode.CONFIGURATION_ERROR, errorMessage,
+          ne);
     }
     return ctx;
   }
@@ -3903,8 +3908,9 @@ public abstract class Installer extends GuiApplication {
       {
         LOG.log(Level.SEVERE, "Error creating task "+attrs, ne);
         String[] arg = {sourceServerDisplay};
-        throw new ApplicationException(ApplicationException.Type.APPLICATION,
-            getThrowableMsg("error-launching-initialization", arg, ne), ne);
+        throw new ApplicationException(
+            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, getThrowableMsg(
+                "error-launching-initialization", arg, ne), ne);
       }
       i++;
     }
@@ -4054,7 +4060,8 @@ public abstract class Installer extends GuiApplication {
               helper.isStoppedByError(state))
           {
             ApplicationException ae = new ApplicationException(
-                ApplicationException.Type.APPLICATION, errorMsg, null);
+                ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, errorMsg,
+                null);
             if ((lastLogMsg != null) &&
                 helper.isPeersNotFoundError(lastLogMsg))
             {
@@ -4081,8 +4088,9 @@ public abstract class Installer extends GuiApplication {
       catch (NamingException ne)
       {
         String[] arg = {sourceServerDisplay};
-        throw new ApplicationException(ApplicationException.Type.APPLICATION,
-            getThrowableMsg("error-pooling-initialization", arg, ne), ne);
+        throw new ApplicationException(
+            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, getThrowableMsg(
+                "error-pooling-initialization", arg, ne), ne);
       }
     }
   }

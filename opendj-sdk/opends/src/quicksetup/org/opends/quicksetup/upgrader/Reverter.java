@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataException;
@@ -341,8 +342,9 @@ public class Reverter extends Application implements CliApplication {
                 UserInteraction.MessageType.WARNING,
                 new String[] { cont, cancel },
                 cont))) {
-          throw new ApplicationException(ApplicationException.Type.CANCEL,
-                  getMsg("reversion-canceled"), null);
+          throw new ApplicationException(
+              ApplicationReturnCode.ReturnCode.CANCELLED,
+              getMsg("reversion-canceled"), null);
         }
       }
 
@@ -351,7 +353,7 @@ public class Reverter extends Application implements CliApplication {
     } catch (Throwable e) {
       if (!(e instanceof ApplicationException)) {
         runError = new ApplicationException(
-                ApplicationException.Type.BUG,
+            ApplicationReturnCode.ReturnCode.BUG,
                 e.getLocalizedMessage(), e);
       } else {
         runError = (ApplicationException)e;
@@ -405,7 +407,7 @@ public class Reverter extends Application implements CliApplication {
       throw ae;
     } catch (Exception e) {
       throw new ApplicationException(
-              ApplicationException.Type.FILE_SYSTEM_ERROR,
+          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
               getMsg("error-backup-filesystem"),
               e);
     }

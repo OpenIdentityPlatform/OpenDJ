@@ -604,7 +604,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
     catch (Throwable t) {
       ue = new ApplicationException(
-              ApplicationException.Type.BUG,
+              ApplicationReturnCode.ReturnCode.BUG,
               getThrowableMsg("bug-msg", t), t);
       status = UninstallProgressStep.FINISHED_WITH_ERROR;
       String msg = getFormattedError(ue, true);
@@ -917,7 +917,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         errMsg = getMsg("error-deleting-directory", arg);
       }
       throw new ApplicationException(
-              ApplicationException.Type.FILE_SYSTEM_ERROR, errMsg, null);
+          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+          errMsg, null);
     }
 
     notifyListeners(getFormattedDone() + getLineBreak());
@@ -1021,7 +1022,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         break;
       default:
         throw new ApplicationException(
-                ApplicationException.Type.WINDOWS_SERVICE_ERROR,
+            ApplicationReturnCode.ReturnCode.WINDOWS_SERVICE_ERROR,
                 errorMessage, null);
     }
   }
