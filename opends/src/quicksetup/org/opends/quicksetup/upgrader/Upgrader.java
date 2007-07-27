@@ -30,6 +30,7 @@ package org.opends.quicksetup.upgrader;
 import org.opends.quicksetup.CliApplication;
 import static org.opends.quicksetup.Installation.*;
 
+import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.ProgressStep;
 import org.opends.quicksetup.ApplicationException;
@@ -793,8 +794,9 @@ public class Upgrader extends GuiApplication implements CliApplication {
           LOG.log(Level.INFO,
                   "Error starting server in order to apply custom" +
                           "schema and/or configuration", e);
-          throw new ApplicationException(ApplicationException.Type.APPLICATION,
-                  getMsg("error-starting-server"), e);
+          throw new ApplicationException(
+              ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+              getMsg("error-starting-server"), e);
         }
 
         checkAbort();
@@ -848,7 +850,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
           LOG.log(Level.INFO, "server stopped");
         } catch (Throwable t) {
           LOG.log(Level.INFO, "Error stopping server", t);
-          throw new ApplicationException(ApplicationException.Type.BUG,
+          throw new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
                   getMsg("error-stopping-server"), t);
         }
       }
@@ -889,7 +891,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 Utils.listToString(errors,
                         Constants.LINE_SEPARATOR, /*bullet=*/"\u2022 ", "");
         ApplicationException ae = new ApplicationException(
-                ApplicationException.Type.APPLICATION,
+                ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
                 getMsg("error-upgraded-server-starts-with-errors",
                         Constants.LINE_SEPARATOR + formattedDetails), null);
         UserInteraction ui = userInteraction();
@@ -945,7 +947,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
             int port = getInstallation().getCurrentConfiguration().getPort();
             if (port != -1 && !Utils.canUseAsPort(port)) {
               throw new ApplicationException(
-                      ApplicationException.Type.APPLICATION,
+                  ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
                       getMsg("error-port-in-use", Integer.toString(port)),
                       null);
             }
@@ -975,7 +977,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       } catch (IOException ioe) {
         LOG.log(Level.INFO, "error determining if server running");
         this.runWarning = new ApplicationException(
-                ApplicationException.Type.TOOL_ERROR,
+            ApplicationReturnCode.ReturnCode.TOOL_ERROR,
                 getMsg("error-server-status"), ioe);
       }
 
@@ -983,7 +985,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       // We don't consider a  user cancelation exception
       // to be an error.
-      if (ae.getType() != ApplicationException.Type.CANCEL) {
+      if (ae.getType() != ApplicationReturnCode.ReturnCode.CANCELLED) {
         this.runError = ae;
       } else {
         this.abort = true;
@@ -991,7 +993,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     } catch (Throwable t) {
       this.runError =
-              new ApplicationException(ApplicationException.Type.BUG,
+              new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
                       getMsg("bug-msg"), t);
     } finally {
       try {
@@ -1111,7 +1113,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   private void checkAbort() throws ApplicationException {
     if (abort) throw new ApplicationException(
-            ApplicationException.Type.CANCEL,
+        ApplicationReturnCode.ReturnCode.CANCELLED,
             getMsg("upgrade-canceled"), null);
   }
 
@@ -1247,7 +1249,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       throw ae;
     } catch (Exception e) {
       throw new ApplicationException(
-              ApplicationException.Type.FILE_SYSTEM_ERROR,
+          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
               getMsg("error-backup-filesystem"),
               e);
     }
@@ -1260,7 +1262,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       int ret = output.getReturnCode();
       if (ret != 0) {
         throw new ApplicationException(
-                ApplicationException.Type.TOOL_ERROR,
+            ApplicationReturnCode.ReturnCode.TOOL_ERROR,
                 getMsg("error-backup-db-tool-return-code",
                         Integer.toString(ret)),
                 null);
@@ -1270,7 +1272,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       throw ae;
     } catch (Exception e) {
       throw new ApplicationException(
-              ApplicationException.Type.TOOL_ERROR,
+          ApplicationReturnCode.ReturnCode.TOOL_ERROR,
               getMsg("error-backup-db"), e);
     }
   }
@@ -1317,7 +1319,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       throw ae;
     } catch (Exception e) {
       throw new ApplicationException(
-              ApplicationException.Type.FILE_SYSTEM_ERROR,
+          ApplicationReturnCode.ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
               getMsg("error-initializing-upgrade"), e);
     }
   }

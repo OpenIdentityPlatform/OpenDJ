@@ -572,8 +572,8 @@ public abstract class GuiApplication extends Application {
       String msg = getMsg("error-starting-server-with-no-connection-handlers",
           (t.getMessage() == null) ? t.toString() : t.getMessage());
       LOG.log(Level.INFO, msg, t);
-      throw new ApplicationException(ApplicationException.Type.IMPORT_ERROR,
-          msg, t);
+      throw new ApplicationException(
+          ApplicationReturnCode.ReturnCode.IMPORT_ERROR, msg, t);
     }
   }
 

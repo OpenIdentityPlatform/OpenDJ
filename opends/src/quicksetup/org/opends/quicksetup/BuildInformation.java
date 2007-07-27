@@ -107,8 +107,9 @@ public class BuildInformation implements Comparable {
         }
       }
     } catch (IOException e) {
-      throw new ApplicationException(ApplicationException.Type.START_ERROR,
-              getMsg("error-creating-build-info"), e);
+      throw new ApplicationException(
+          ApplicationReturnCode.ReturnCode.START_ERROR,
+          getMsg("error-creating-build-info"), e);
     } finally {
       if (is != null) {
         try {
@@ -381,8 +382,9 @@ public class BuildInformation implements Comparable {
           throws ApplicationException {
     for (String prop : props) {
       if (null == values.get(prop)) {
-        throw new ApplicationException(ApplicationException.Type.TOOL_ERROR,
-                getMsg("error-prop-value", prop), null);
+        throw new ApplicationException(
+            ApplicationReturnCode.ReturnCode.TOOL_ERROR, getMsg(
+                "error-prop-value", prop), null);
       }
     }
 

@@ -269,15 +269,18 @@ public abstract class Launcher {
    * @return 0 if everything worked fine, and an error code if something wrong
    *         occurred.
    */
-  protected int launchCli(CliApplication cliApp) {
+  protected int launchCli(CliApplication cliApp)
+  {
     System.setProperty("org.opends.quicksetup.cli", "true");
     QuickSetupCli cli = new QuickSetupCli(cliApp, this);
-    int returnValue = cli.run();
-    if (returnValue == QuickSetupCli.USER_DATA_ERROR) {
+    ApplicationReturnCode.ReturnCode returnValue = cli.run();
+    if (returnValue.equals(ApplicationReturnCode.ReturnCode.USER_DATA_ERROR))
+    {
       printUsage(true);
-      System.exit(QuickSetupCli.USER_DATA_ERROR);
+      System.exit(ApplicationReturnCode.ReturnCode.USER_DATA_ERROR
+          .getReturnCode());
     }
-    return returnValue;
+    return returnValue.getReturnCode();
   }
 
   /**
@@ -341,11 +344,12 @@ public abstract class Launcher {
     if (shouldPrintVersion())
     {
       printVersion();
-      System.exit(QuickSetupCli.PRINT_VERSION);
+      System.exit(ApplicationReturnCode.ReturnCode.PRINT_VERSION
+          .getReturnCode());
     }
     else if (shouldPrintUsage()) {
       printUsage(false);
-      System.exit(QuickSetupCli.SUCCESSFUL);
+      System.exit(ApplicationReturnCode.ReturnCode.SUCCESSFUL.getReturnCode());
     } else if (isCli()) {
       CliApplication cliApp = createCliApplication();
       int exitCode = launchCli(cliApp);

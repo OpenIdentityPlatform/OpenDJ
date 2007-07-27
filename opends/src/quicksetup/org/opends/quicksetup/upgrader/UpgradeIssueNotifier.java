@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup.upgrader;
 
+import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.BuildInformation;
 import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.ApplicationException;
@@ -77,8 +78,9 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                     directive.getMessage());
           }
         }
-        throw new ApplicationException(ApplicationException.Type.APPLICATION,
-                getMsg("upgrade-oracle-unsupported", args), null);
+        throw new ApplicationException(
+            ApplicationReturnCode.ReturnCode.APPLICATION_ERROR, getMsg(
+                "upgrade-oracle-unsupported", args), null);
       } else {
         if (ui != null) {
           for (VersionIssueNotifier.Directive directive : issues) {
@@ -135,13 +137,14 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                     new String[]{cont, cancel},
                     defaultAction))) {
               throw new ApplicationException(
-                      ApplicationException.Type.CANCEL,
+                  ApplicationReturnCode.ReturnCode.CANCELLED,
                       getMsg("upgrade-canceled"), null);
             }
           }
         } else {
-          throw new ApplicationException(ApplicationException.Type.APPLICATION,
-                  getMsg("oracle-no-silent"), null);
+          throw new ApplicationException(
+              ApplicationReturnCode.ReturnCode.APPLICATION_ERROR,
+              getMsg("oracle-no-silent"), null);
         }
       }
     }

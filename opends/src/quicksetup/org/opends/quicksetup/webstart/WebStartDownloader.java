@@ -38,6 +38,7 @@ import javax.jnlp.UnavailableServiceException;
 
 import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.ApplicationReturnCode;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -134,7 +135,7 @@ public class WebStartDownloader implements DownloadServiceListener,
         {
           // This is a bug
           ex =
-              new ApplicationException(ApplicationException.Type.BUG,
+              new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
                       getExceptionMsg(
                   "bug-msg", mfe), mfe);
         } catch (IOException ioe)
@@ -152,13 +153,14 @@ public class WebStartDownloader implements DownloadServiceListener,
           String[] arg =
             { buf.toString() };
           ex =
-              new ApplicationException(ApplicationException.Type.DOWNLOAD_ERROR,
-                  getExceptionMsg("downloading-error", arg, ioe), ioe);
+              new ApplicationException(
+              ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR,
+              getExceptionMsg("downloading-error", arg, ioe), ioe);
         } catch (Throwable t)
         {
           // This is a bug
           ex =
-              new ApplicationException(ApplicationException.Type.BUG,
+              new ApplicationException(ApplicationReturnCode.ReturnCode.BUG,
                       getExceptionMsg(
                   "bug-msg", t), t);
         }
@@ -363,8 +365,9 @@ public class WebStartDownloader implements DownloadServiceListener,
   public void downloadFailed(URL url, String version)
   {
     ex =
-        new ApplicationException(ApplicationException.Type.DOWNLOAD_ERROR,
-            getMsg("downloading-error", new String[] { url.toString() }), null);
+        new ApplicationException(
+        ApplicationReturnCode.ReturnCode.DOWNLOAD_ERROR, getMsg(
+            "downloading-error", new String[] { url.toString() }), null);
   }
 
   /**
