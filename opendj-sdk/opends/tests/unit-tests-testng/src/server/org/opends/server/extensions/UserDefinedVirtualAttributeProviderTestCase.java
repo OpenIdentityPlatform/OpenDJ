@@ -134,8 +134,14 @@ public class UserDefinedVirtualAttributeProviderTestCase
     {
       if (rule.getAttributeType().equals(descriptionType))
       {
+        // Due to a bug in JDK versions prior to 1.5.0_08, we have to
+        // rewrite the following code.
+        // UserDefinedVirtualAttributeProvider provider =
+        //     (UserDefinedVirtualAttributeProvider)
+        Object providerAsObject = rule.getProvider();
         UserDefinedVirtualAttributeProvider provider =
-             (UserDefinedVirtualAttributeProvider) rule.getProvider();
+             (UserDefinedVirtualAttributeProvider)providerAsObject;
+        
         assertFalse(provider.isMultiValued());
         assertFalse(provider.isSearchable(rule, searchOperation));
 
@@ -190,8 +196,14 @@ public class UserDefinedVirtualAttributeProviderTestCase
     {
       if (rule.getAttributeType().equals(descriptionType))
       {
+        // Due to a bug in JDK versions prior to 1.5.0_08, we have to
+        // rewrite the following code.
+        // UserDefinedVirtualAttributeProvider provider =
+        //     (UserDefinedVirtualAttributeProvider)
+        Object providerAsObject = rule.getProvider();
         UserDefinedVirtualAttributeProvider provider =
-             (UserDefinedVirtualAttributeProvider) rule.getProvider();
+             (UserDefinedVirtualAttributeProvider)providerAsObject;
+
         assertTrue(provider.isMultiValued());
         assertFalse(provider.isSearchable(rule, searchOperation));
 

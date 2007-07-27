@@ -30,6 +30,9 @@ package org.opends.server.admin;
 
 /**
  * A mock LDAP profile wrapper for testing purposes.
+ *
+ * NOTE:  The seemingly unnecessary casts throughout this class are
+ * required to work around a bug in JDK versions prior to 1.5.0_08.
  */
 public final class MockLDAPProfile extends LDAPProfile.Wrapper {
 
@@ -40,43 +43,43 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
     // No implementation required.
   }
 
-
-
   /**
    * {@inheritDoc}
    */
   @Override
   public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d,
       PropertyDefinition<?> pd) {
-    if (d == TestParentCfgDefn.getInstance()) {
+
+    // These casts throughout are required to work around a bug in JDK versions prior to 1.5.0_08.
+    if (d == (AbstractManagedObjectDefinition<?, ?>)TestParentCfgDefn.getInstance()) {
       TestParentCfgDefn td = TestParentCfgDefn.getInstance();
 
-      if (pd == td.getMandatoryBooleanPropertyPropertyDefinition()) {
+      if (pd == (PropertyDefinition<?>)td.getMandatoryBooleanPropertyPropertyDefinition()) {
         return "ds-cfg-virtual-attribute-enabled";
-      } else if (pd == td.getMandatoryClassPropertyPropertyDefinition()) {
+      } else if (pd == (PropertyDefinition<?>)td.getMandatoryClassPropertyPropertyDefinition()) {
         return "ds-cfg-virtual-attribute-class";
-      } else if (pd == td
+      } else if (pd == (PropertyDefinition<?>)td
           .getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition()) {
         return "ds-cfg-virtual-attribute-type";
-      } else if (pd == td.getOptionalMultiValuedDNPropertyPropertyDefinition()) {
+      } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNPropertyPropertyDefinition()) {
         return "ds-cfg-virtual-attribute-base-dn";
       } else {
         throw new RuntimeException("Unexpected test-parent property"
             + pd.getName());
       }
-    } else if (d == TestChildCfgDefn.getInstance()) {
+    } else if (d == (AbstractManagedObjectDefinition<?, ?>)TestChildCfgDefn.getInstance()) {
       TestChildCfgDefn td = TestChildCfgDefn.getInstance();
 
-      if (pd == td.getMandatoryBooleanPropertyPropertyDefinition()) {
+      if (pd == (PropertyDefinition<?>)td.getMandatoryBooleanPropertyPropertyDefinition()) {
         return "ds-cfg-virtual-attribute-enabled";
-      } else if (pd == td.getMandatoryClassPropertyPropertyDefinition()) {
+      } else if (pd == (PropertyDefinition<?>)td.getMandatoryClassPropertyPropertyDefinition()) {
         return "ds-cfg-virtual-attribute-class";
-      } else if (pd == td
+      } else if (pd == (PropertyDefinition<?>)td
           .getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition()) {
         return "ds-cfg-virtual-attribute-type";
-      } else if (pd == td.getOptionalMultiValuedDNProperty1PropertyDefinition()) {
+      } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNProperty1PropertyDefinition()) {
         return "ds-cfg-virtual-attribute-base-dn";
-      } else if (pd == td.getOptionalMultiValuedDNProperty2PropertyDefinition()) {
+      } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNProperty2PropertyDefinition()) {
         return "ds-cfg-virtual-attribute-group-dn";
       } else {
         throw new RuntimeException("Unexpected test-child property"
@@ -112,9 +115,10 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
    */
   @Override
   public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
-    if (d == TestParentCfgDefn.getInstance()) {
+    // These casts throughout are required to work around a bug in JDK versions prior to 1.5.0_08.
+    if (d == (AbstractManagedObjectDefinition<?, ?>)TestParentCfgDefn.getInstance()) {
       return "ds-cfg-virtual-attribute";
-    } else if (d == TestChildCfgDefn.getInstance()) {
+    } else if (d == (AbstractManagedObjectDefinition<?, ?>)TestChildCfgDefn.getInstance()) {
       return "ds-cfg-virtual-attribute";
     } else {
       // Not known.

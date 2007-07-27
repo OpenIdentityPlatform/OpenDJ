@@ -643,8 +643,14 @@ public class VirtualStaticGroupTestCase
     }
     assertNotNull(rule);
 
+    // Due to a bug in JDK versions prior to 1.5.0_08, we have to
+    // rewrite the following code.
+    // MemberVirtualAttributeProvider provider =
+    //      (MemberVirtualAttributeProvider) rule.getProvider();
+    Object providerAsObject = rule.getProvider();
     MemberVirtualAttributeProvider provider =
-         (MemberVirtualAttributeProvider) rule.getProvider();
+         (MemberVirtualAttributeProvider) providerAsObject;
+
     assertNotNull(provider);
 
     Entry entry = DirectoryServer.getEntry(vsm);
@@ -716,8 +722,14 @@ public class VirtualStaticGroupTestCase
     }
     assertNotNull(rule);
 
+    // Due to a bug in JDK versions prior to 1.5.0_08, we have to
+    // rewrite the following code.
+    // MemberVirtualAttributeProvider provider =
+    //      (MemberVirtualAttributeProvider) rule.getProvider();
+    Object providerAsObject = rule.getProvider();
     MemberVirtualAttributeProvider provider =
-         (MemberVirtualAttributeProvider) rule.getProvider();
+         (MemberVirtualAttributeProvider) providerAsObject;
+
     assertNotNull(provider);
 
     Entry entry = DirectoryServer.getEntry(vn);
