@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
+<adm:managed-object name="vlv-je-index" plural-name="vlv-je-indexes"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The <adm:user-friendly-plural-name/> are used to store information about
+    a specific search request that makes it possible to efficiently process
+    them using the VLV control.
+  </adm:synopsis>
+  <adm:description>
+    A VLV index effectively notifies the server that a virtual list view, with
+    specific query and sort parameters, will be performed. This index also
+    allows the server to collect and maintain the information required to make
+    using the virtual list view faster.
+  </adm:description>
+  <adm:tag name="database" />
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:oid>1.3.6.1.4.1.26027.1.2.117</ldap:oid>
+      <ldap:name>ds-cfg-vlv-je-index</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="vlv-index-base-dn"
+                mandatory="true"
+                multi-valued="false">
+    <adm:synopsis>
+      This specifies the base DN used in the search query being indexed.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:other>
+        <adm:synopsis>
+          The index will need to be rebuilt after this modifying this
+          property.
+        </adm:synopsis>
+      </adm:other>
+    </adm:requires-admin-action>
+    <adm:syntax>
+      <adm:dn/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.437</ldap:oid>
+        <ldap:name>ds-cfg-vlv-je-index-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="vlv-index-scope"
+                mandatory="true"
+                multi-valued="false">
+    <adm:synopsis>
+      This specifies the LDAP scope of the query being indexed.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:other>
+        <adm:synopsis>
+          The index will need to be rebuilt after this modifying this
+          property.
+        </adm:synopsis>
+      </adm:other>
+    </adm:requires-admin-action>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="base-level">
+          <adm:synopsis>
+            Search the base object only.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="single-object">
+          <adm:synopsis>
+            Search subordinate objects to the base object but not include
+            the base object itself.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="subordinate-subtree">
+          <adm:synopsis>
+            Search the entire subtree below the base object but not include
+            the base object itself.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="whole-subtree">
+          <adm:synopsis>
+            Search the base object and the entire subtree below the base
+            object.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.438</ldap:oid>
+        <ldap:name>ds-cfg-vlv-je-index-scope </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="vlv-index-filter"
+                mandatory="true"
+                multi-valued="false">
+    <adm:synopsis>
+      This specifies the LDAP filter used in the query being indexed.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:other>
+        <adm:synopsis>
+          The index will need to be rebuilt after this modifying this
+          property.
+        </adm:synopsis>
+      </adm:other>
+    </adm:requires-admin-action>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.439</ldap:oid>
+        <ldap:name>ds-cfg-vlv-je-index-filter</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="vlv-index-sort-order"
+                mandatory="true"
+                multi-valued="false">
+    <adm:synopsis>
+      This specifies the names of attributes to sort the entries for the query
+      being indexed.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:other>
+        <adm:synopsis>
+         The index will need to be rebuilt after this modifying this
+          property.
+        </adm:synopsis>
+      </adm:other>
+    </adm:requires-admin-action>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.440</ldap:oid>
+        <ldap:name>ds-cfg-vlv-je-index-sort-order</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="vlv-index-name"
+                mandatory="true"
+                multi-valued="false"
+                read-only="true">
+    <adm:synopsis>
+      This specifies a unique name for this VLV index.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.441</ldap:oid>
+        <ldap:name>ds-cfg-vlv-je-index-name</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="vlv-index-sorted-set-capacity"
+                mandatory="false"
+                multi-valued="false"
+                read-only="true">
+    <adm:synopsis>
+      This specifies the number of entry IDs to store in a single
+      sorted set before it must be split.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          4000
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer>
+        <adm:unit-synopsis>
+          Number of entry IDs
+        </adm:unit-synopsis>
+      </adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.442</ldap:oid>
+        <ldap:name>ds-cfg-vlv-je-index-maximum-block-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

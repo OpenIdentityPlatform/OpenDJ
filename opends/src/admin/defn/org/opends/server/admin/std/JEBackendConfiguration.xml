@@ -66,6 +66,22 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
+  <adm:relation name="vlv-je-index">
+    <adm:one-to-many naming-property="vlv-index-name"/>
+     <adm:profile name="ldap">
+      <ldap:rdn-sequence>
+        cn=VLV Index
+      </ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="vlv-index-base-dn" />
+        <cli:default-property name="vlv-index-scope" />
+        <cli:default-property name="vlv-index-filter" />
+        <cli:default-property name="vlv-index-sort-order" />
+      </cli:relation>
+    </adm:profile>
+  </adm:relation>
   <adm:property-override name="backend-class">
     <adm:default-behavior>
       <adm:defined>

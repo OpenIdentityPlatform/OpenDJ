@@ -44,21 +44,10 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ErrorLogCategory;
-import org.opends.server.types.ErrorLogSeverity;
-import org.opends.server.types.SearchFilter;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.ServerConstants;
 
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import static org.opends.server.messages.JebMessages.*;
 import java.util.ArrayList;
@@ -174,6 +163,12 @@ public class VerifyJob
    * A list of the attribute indexes to be verified.
    */
   ArrayList<AttributeIndex> attrIndexList = new ArrayList<AttributeIndex>();
+
+  /**
+   * A list of the VLV indexes to be verified.
+   */
+  ArrayList<VLVIndex> vlvIndexList = new ArrayList<VLVIndex>();
+
 /**
  * The types of indexes that are verifiable.
  */
@@ -200,9 +195,10 @@ public class VerifyJob
    * @return The error count.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws JebException If an error occurs in the JE backend.
+   * @throws DirectoryException If an error occurs while verifying the backend.
    */
   public long verifyBackend(RootContainer rootContainer, Entry statEntry) throws
-      DatabaseException, JebException
+      DatabaseException, JebException, DirectoryException
   {
     this.rootContainer = rootContainer;
     EntryContainer entryContainer =
@@ -249,6 +245,26 @@ public class VerifyJob
           else if (lowerName.equals("id2subtree"))
           {
             verifyID2Subtree = true;
+          }
+          else if(lowerName.startsWith("vlv."))
+          {
+            if(lowerName.length() < 5)
+            {
+              int msgID = MSGID_JEB_VLV_INDEX_NOT_CONFIGURED;
+              String msg = getMessage(msgID, lowerName);
+              throw new JebException(msgID, msg);
+            }
+
+            VLVIndex vlvIndex =
+                entryContainer.getVLVIndex(lowerName.substring(4));
+            if(vlvIndex == null)
+            {
+              int msgID = MSGID_JEB_VLV_INDEX_NOT_CONFIGURED;
+              String msg = getMessage(msgID, lowerName.substring(4));
+              throw new JebException(msgID, msg);
+            }
+
+            vlvIndexList.add(vlvIndex);
           }
           else
           {
@@ -304,6 +320,12 @@ public class VerifyJob
         else
         {
           iterateID2Entry();
+
+          // Make sure the vlv indexes are in correct order.
+          for(VLVIndex vlvIndex : vlvIndexList)
+          {
+            iterateVLVIndex(vlvIndex, false);
+          }
         }
       }
       finally
@@ -507,8 +529,10 @@ public class VerifyJob
    *
    * @throws JebException If an error occurs in the JE backend.
    * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If an error occurs reading values in the index.
    */
-  private void iterateIndex() throws JebException, DatabaseException
+  private void iterateIndex()
+      throws JebException, DatabaseException, DirectoryException
   {
     if (verifyDN2ID)
     {
@@ -524,17 +548,23 @@ public class VerifyJob
     }
     else
     {
-      AttributeIndex attrIndex = attrIndexList.get(0);
-      iterateAttrIndex(attrIndex.getAttributeType(),
-              attrIndex.equalityIndex, IndexType.EQ );
-      iterateAttrIndex(attrIndex.getAttributeType(),
-              attrIndex.presenceIndex, IndexType.PRES);
-      iterateAttrIndex(attrIndex.getAttributeType(),
-              attrIndex.substringIndex, IndexType.SUBSTRING);
-      iterateAttrIndex(attrIndex.getAttributeType(),
-              attrIndex.orderingIndex, IndexType.ORDERING);
-      iterateAttrIndex(attrIndex.getAttributeType(),
-              attrIndex.approximateIndex, IndexType.APPROXIMATE);
+      if(attrIndexList.size() > 0)
+      {
+        AttributeIndex attrIndex = attrIndexList.get(0);
+        iterateAttrIndex(attrIndex.getAttributeType(),
+                         attrIndex.equalityIndex, IndexType.EQ );
+        iterateAttrIndex(attrIndex.getAttributeType(),
+                         attrIndex.presenceIndex, IndexType.PRES);
+        iterateAttrIndex(attrIndex.getAttributeType(),
+                         attrIndex.substringIndex, IndexType.SUBSTRING);
+        iterateAttrIndex(attrIndex.getAttributeType(),
+                         attrIndex.orderingIndex, IndexType.ORDERING);
+        iterateAttrIndex(attrIndex.getAttributeType(),
+                         attrIndex.approximateIndex, IndexType.APPROXIMATE);
+      } else if(vlvIndexList.size() > 0)
+      {
+        iterateVLVIndex(vlvIndexList.get(0), true);
+      }
     }
   }
 
@@ -976,6 +1006,130 @@ public class VerifyJob
   }
 
   /**
+   * Iterate through the entries in a VLV index to perform a check for index
+   * cleanliness.
+   *
+   * @param vlvIndex The VLV index to perform the check against.
+   * @param verifyID True to verify the IDs against id2entry.
+   * @throws JebException If an error occurs in the JE backend.
+   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If an error occurs reading values in the index.
+   */
+  private void iterateVLVIndex(VLVIndex vlvIndex, boolean verifyID)
+      throws JebException, DatabaseException, DirectoryException
+  {
+    if(vlvIndex == null)
+    {
+      return;
+    }
+
+    Cursor cursor = vlvIndex.openCursor(null, new CursorConfig());
+    try
+    {
+      DatabaseEntry key = new DatabaseEntry();
+      OperationStatus status;
+      LockMode lockMode = LockMode.DEFAULT;
+      DatabaseEntry data = new DatabaseEntry();
+
+      status = cursor.getFirst(key, data, lockMode);
+      SortValues lastValues = null;
+      while(status == OperationStatus.SUCCESS)
+      {
+        SortValuesSet sortValuesSet =
+            new SortValuesSet(key.getData(), data.getData(), vlvIndex,
+                              id2entry);
+        for(int i = 0; i < sortValuesSet.getEntryIDs().length; i++)
+        {
+          keyCount++;
+          SortValues values = sortValuesSet.getSortValues(i);
+          if(lastValues != null && lastValues.compareTo(values) >= 1)
+          {
+            // Make sure the values is larger then the previous one.
+            if(debugEnabled())
+            {
+              TRACER.debugError("Values %s and %s are incorrectly ordered",
+                                lastValues, values, keyDump(vlvIndex,
+                                          sortValuesSet.getKeySortValues()));
+            }
+            errorCount++;
+          }
+          if(i == sortValuesSet.getEntryIDs().length - 1 &&
+              key.getData().length != 0)
+          {
+            // If this is the last one in a bounded set, make sure it is the
+            // same as the database key.
+            byte[] encodedKey = vlvIndex.encodeKey(values.getEntryID(),
+                                                   values.getValues());
+            if(!Arrays.equals(key.getData(), encodedKey))
+            {
+              if(debugEnabled())
+              {
+                TRACER.debugError("Incorrect key for SortValuesSet in VLV " +
+                    "index %s. Last values bytes %s, Key bytes %s",
+                                  vlvIndex.getName(), encodedKey, key);
+              }
+              errorCount++;
+            }
+          }
+          lastValues = values;
+
+          if(verifyID)
+          {
+            Entry entry;
+            EntryID id = new EntryID(values.getEntryID());
+            try
+            {
+              entry = id2entry.get(null, id);
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+              errorCount++;
+              continue;
+            }
+
+            if (entry == null)
+            {
+              errorCount++;
+              if (debugEnabled())
+              {
+                TRACER.debugError("Reference to unknown ID %d%n%s",
+                                  id.longValue(),
+                                  keyDump(vlvIndex,
+                                          sortValuesSet.getKeySortValues()));
+              }
+              continue;
+            }
+
+            SortValues entryValues =
+                new SortValues(id, entry, vlvIndex.sortOrder);
+            if(entryValues.compareTo(values) != 0)
+            {
+              errorCount++;
+              if(debugEnabled())
+              {
+                TRACER.debugError("Reference to entry ID %d " +
+                    "which does not match the values%n%s",
+                                  id.longValue(),
+                                  keyDump(vlvIndex,
+                                          sortValuesSet.getKeySortValues()));
+              }
+            }
+          }
+        }
+        status = cursor.getNext(key, data, lockMode);
+      }
+    }
+    finally
+    {
+      cursor.close();
+    }
+  }
+
+  /**
    * Iterate through the entries in an attribute index to perform a check for
    * index cleanliness.
    * @param attrType The attribute type of the index to be checked.
@@ -1244,7 +1398,7 @@ public class VerifyJob
     {
       verifyID2Subtree(entryID, entry);
     }
-    verifyAttrIndex(entryID, entry);
+    verifyIndex(entryID, entry);
   }
 
   /**
@@ -1506,12 +1660,49 @@ public class VerifyJob
   }
 
   /**
+   * Construct a printable string from a raw key value.
+   *
+   * @param vlvIndex The vlvIndex database containing the key value.
+   * @param keySortValues THe sort values that is being used as the key.
+   * @return A string that may be logged or printed.
+   */
+  private String keyDump(VLVIndex vlvIndex, SortValues keySortValues)
+  {
+/*
+    String str;
+    try
+    {
+      str = new String(keyBytes, "UTF-8");
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      str = StaticUtils.bytesToHex(keyBytes);
+    }
+    return str;
+*/
+    StringBuilder buffer = new StringBuilder(128);
+    buffer.append("File: ");
+    buffer.append(vlvIndex.toString());
+    buffer.append(ServerConstants.EOL);
+    buffer.append("Key (last sort values):");
+    if(keySortValues == null)
+    {
+      buffer.append("UNBOUNDED (0x00)");
+    }
+    else
+    {
+      buffer.append(keySortValues.toString());
+    }
+    return buffer.toString();
+  }
+
+  /**
    * Check that an attribute index is complete for a given entry.
    *
    * @param entryID The entry ID.
    * @param entry The entry to be checked.
    */
-  private void verifyAttrIndex(EntryID entryID, Entry entry)
+  private void verifyIndex(EntryID entryID, Entry entry)
   {
     for (AttributeIndex attrIndex : attrIndexList)
     {
@@ -1536,6 +1727,67 @@ public class VerifyJob
                      entry.getDN().toString(),
                      e.getErrorMessage());
         }
+      }
+    }
+
+    for (VLVIndex vlvIndex : vlvIndexList)
+    {
+      try
+      {
+        if(vlvIndex.shouldInclude(entry))
+        {
+          if(!vlvIndex.containsValues(null, entryID.longValue(),
+                                  vlvIndex.getSortValues(entry)))
+          {
+            if(debugEnabled())
+            {
+              TRACER.debugError("Missing entry %s in VLV index %s",
+                                entry.getDN().toString(),
+                                vlvIndex.getName());
+            }
+            errorCount++;
+          }
+        }
+      }
+      catch (DirectoryException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+
+          TRACER.debugError("Error checking entry %s against filter or " +
+              "base DN for VLV index %s: %s",
+                     entry.getDN().toString(),
+                     vlvIndex.getName(),
+                     e.getErrorMessage());
+        }
+        errorCount++;
+      }
+      catch (DatabaseException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+
+          TRACER.debugError("Error reading VLV index %s for entry %s: %s",
+                     vlvIndex.getName(),
+                     entry.getDN().toString(),
+                     StaticUtils.getBacktrace(e));
+        }
+        errorCount++;
+      }
+      catch (JebException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+
+          TRACER.debugError("Error reading VLV index %s for entry %s: %s",
+                     vlvIndex.getName(),
+                     entry.getDN().toString(),
+                     StaticUtils.getBacktrace(e));
+        }
+        errorCount++;
       }
     }
   }

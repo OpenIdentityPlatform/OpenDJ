@@ -223,6 +223,11 @@ objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: entryuuid
 ds-cfg-index-type: equality
 
+dn: cn=VLV Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: VLV Index
+
 dn: ds-cfg-backend-id=backup,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend

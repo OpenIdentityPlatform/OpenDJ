@@ -48,7 +48,7 @@
               or $value = 'jdbc' or $value = 'tcp' or $value = 'tls'
               or $value = 'pkcs11' or $value = 'sasl' or $value = 'gssapi'
               or $value = 'md5' or $value = 'je' or $value = 'dse'
-              or $value = 'fifo'
+              or $value = 'fifo' or $value= 'vlv'
              "/>
   </xsl:template>
 </xsl:stylesheet>

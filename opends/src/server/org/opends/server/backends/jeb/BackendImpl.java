@@ -906,6 +906,16 @@ public class BackendImpl
       }
       throw createDirectoryException(e);
     }
+    catch (JebException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      String message = getMessage(MSGID_JEB_DATABASE_EXCEPTION, e.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, MSGID_JEB_DATABASE_EXCEPTION);
+    }
     finally
     {
       ec.sharedLock.unlock();

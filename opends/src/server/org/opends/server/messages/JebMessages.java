@@ -1239,6 +1239,29 @@ public class JebMessages
       CATEGORY_MASK_JEB | SEVERITY_MASK_INFORMATIONAL | 159;
 
   /**
+   * The message ID used to indicate an invalid sort attribute defined for a
+   * VLV index.
+   */
+  public static final int MSGID_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR =
+       CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 160;
+
+  /**
+   * The message ID used to indicate a bad search filter defined for a
+   * VLV index.
+   */
+  public static final int MSGID_JEB_CONFIG_VLV_INDEX_BAD_FILTER =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_SEVERE_ERROR | 161;
+
+  /**
+   * The message ID of an error indicating that there is no VLV index
+   * configured for an name that was provided to an index
+   * verification job.  This message takes one string argument which is the
+   * VLV index name.
+   */
+  public static final int MSGID_JEB_VLV_INDEX_NOT_CONFIGURED =
+      CATEGORY_MASK_JEB | SEVERITY_MASK_MILD_ERROR | 162;
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -1604,5 +1627,13 @@ public class JebMessages
                     "Processing LDIF");
     registerMessage(MSGID_JEB_IMPORT_LDIF_END,
                     "End of LDIF reached");
+    registerMessage(MSGID_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR,
+                    "Sort attribute %s for VLV index %s is not defined in " +
+                    "the server schema");
+    registerMessage(MSGID_JEB_CONFIG_VLV_INDEX_BAD_FILTER,
+                    "An error occured while parsing the search filter %s " +
+                    "defined for VLV index %s: %s");
+    registerMessage(MSGID_JEB_VLV_INDEX_NOT_CONFIGURED,
+                    "There is no VLV index configured with name '%s'");
   }
 }

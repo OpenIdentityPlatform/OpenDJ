@@ -402,6 +402,22 @@ ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
 
+dn: cn=VLV Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: VLV Index
+
+dn: ds-cfg-vlv-je-index-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-vlv-je-index
+ds-cfg-vlv-je-index-name: testvlvindex
+ds-cfg-vlv-je-index-base-dn: dc=rebuild, dc=jeb
+ds-cfg-vlv-je-index-scope: whole-subtree
+ds-cfg-vlv-je-index-filter: (objectClass=*)
+ds-cfg-vlv-je-index-sort-order: givenname -sn +uid
+
 dn: cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
@@ -443,6 +459,22 @@ ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
 
+dn: cn=VLV Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: VLV Index
+
+dn: ds-cfg-vlv-je-index-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-vlv-je-index
+ds-cfg-vlv-je-index-name: testvlvindex
+ds-cfg-vlv-je-index-base-dn: dc=com
+ds-cfg-vlv-je-index-scope: whole-subtree
+ds-cfg-vlv-je-index-filter: (objectClass=*)
+ds-cfg-vlv-je-index-sort-order: givenname -sn +uid
+
 dn: ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
@@ -465,6 +497,22 @@ ds-cfg-backend-import-pass-size: 0
 ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
+
+dn: cn=VLV Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: VLV Index
+
+dn: ds-cfg-vlv-je-index-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-vlv-je-index
+ds-cfg-vlv-je-index-name: testvlvindex
+ds-cfg-vlv-je-index-base-dn: dc=verify, dc=jeb
+ds-cfg-vlv-je-index-scope: whole-subtree
+ds-cfg-vlv-je-index-filter: (objectClass=*)
+ds-cfg-vlv-je-index-sort-order: givenname -sn +uid
 
 dn: cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
@@ -557,6 +605,7 @@ ds-cfg-backend-id: indexRoot
 ds-cfg-backend-writability-mode: enabled
 ds-cfg-backend-base-dn: dc=test,dc=com
 ds-cfg-backend-base-dn: dc=test1,dc=com
+ds-cfg-backend-base-dn: dc=vlvtest,dc=com
 ds-cfg-backend-directory: db_index_test
 ds-cfg-backend-mode: 700
 ds-cfg-backend-index-entry-limit: 13
@@ -569,6 +618,23 @@ ds-cfg-backend-import-pass-size: 0
 ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
+
+dn: cn=VLV Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: VLV Index
+
+dn: ds-cfg-vlv-je-index-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-vlv-je-index
+ds-cfg-vlv-je-index-name: testvlvindex
+ds-cfg-vlv-je-index-base-dn: dc=vlvtest,dc=com
+ds-cfg-vlv-je-index-scope: whole-subtree
+ds-cfg-vlv-je-index-filter: (objectClass=*)
+ds-cfg-vlv-je-index-sort-order: givenname -sn +uid
+ds-cfg-vlv-je-index-maximum-block-size: 7
 
 dn: cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add

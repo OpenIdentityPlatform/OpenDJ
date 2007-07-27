@@ -373,6 +373,53 @@ public class TestVerifyJob extends JebTestCase
     }
   }
 
+  /**
+   * Runs clean verify against the testvlvindex VLV index
+   * after adding various errors to each of these index files.
+   * @throws Exception if the error count is not equal to 6.
+   */
+  @Test() public void testCleanVLV() throws Exception {
+    String indexName = "testvlvindex";
+    preTest(4);
+    eContainer.sharedLock.lock();
+    try
+    {
+      VLVIndex vlvIndex = eContainer.getVLVIndex(indexName);
+
+      // Add an incorrectly ordered values.
+      SortValuesSet svs =
+          vlvIndex.getSortValuesSet(null, 0, new AttributeValue[3]);
+      long id = svs.getEntryIDs()[0];
+      Entry entry = eContainer.getID2Entry().get(null, new EntryID(id));
+
+      SortValuesSet svs2 = svs.split(2);
+      svs2.add(id, vlvIndex.getSortValues(entry));
+
+      // Add an invalid ID
+      svs2.add(1000, vlvIndex.getSortValues(entry));
+
+      // Muck up the values of another ID
+      id = svs.getEntryIDs()[0];
+      entry = eContainer.getID2Entry().get(null, new EntryID(id));
+      AttributeValue[] values = vlvIndex.getSortValues(entry);
+      AttributeValue[] badValues = new AttributeValue[values.length];
+      System.arraycopy(values, 1, badValues, 0, values.length - 1);
+      badValues[badValues.length-1] = values[0];
+      svs.remove(id, values);
+      svs.add(id, badValues);
+
+      vlvIndex.putSortValuesSet(null, svs);
+      vlvIndex.putSortValuesSet(null, svs2);
+      performBECleanVerify("vlv." + indexName, 3);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
+
+  }
+
+
   /*
      * Begin complete verify index tests. As described above, these are
      * tests that cursor through the id2entry database and validate
@@ -629,6 +676,51 @@ public class TestVerifyJob extends JebTestCase
     {
       eContainer.sharedLock.unlock();
     }
+  }
+
+  /**
+   * Runs complete verify against the testvlvindex VLV index
+   * after adding various errors to each of these index files.
+   * @throws Exception if the error count is not equal to 6.
+   */
+  @Test() public void testVerifyVLV() throws Exception {
+    String indexName = "testvlvindex";
+    preTest(4);
+    eContainer.sharedLock.lock();
+    try
+    {
+      VLVIndex vlvIndex = eContainer.getVLVIndex(indexName);
+
+      // Remove an ID
+      SortValuesSet svs =
+          vlvIndex.getSortValuesSet(null, 0, new AttributeValue[3]);
+      long id = svs.getEntryIDs()[0];
+      Entry entry = eContainer.getID2Entry().get(null, new EntryID(id));
+      svs.remove(id, vlvIndex.getSortValues(entry));
+
+      // Add an incorrectly ordered values.
+      SortValuesSet svs2 = svs.split(2);
+      svs2.add(1000, vlvIndex.getSortValues(entry));
+
+      // Muck up the values of another ID
+      id = svs.getEntryIDs()[0];
+      entry = eContainer.getID2Entry().get(null, new EntryID(id));
+      AttributeValue[] values = vlvIndex.getSortValues(entry);
+      AttributeValue[] badValues = new AttributeValue[values.length];
+      System.arraycopy(values, 1, badValues, 0, values.length - 1);
+      badValues[badValues.length-1] = values[0];
+      svs.remove(id, values);
+      svs.add(id, badValues);
+
+      vlvIndex.putSortValuesSet(null, svs);
+      vlvIndex.putSortValuesSet(null, svs2);
+      performBECompleteVerify("vlv." + indexName, 3);
+    }
+    finally
+    {
+      eContainer.sharedLock.unlock();
+    }
+
   }
 
   /* Various tests not either clean or complete */

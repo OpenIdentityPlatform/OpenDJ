@@ -38,7 +38,6 @@ import org.opends.server.types.SortKey;
 import org.opends.server.types.SortOrder;
 
 
-
 /**
  * This class defines a data structure that holds a set of attribute values that
  * are associated with a sort order for a given entry.  Any or all of the
@@ -62,6 +61,22 @@ public class SortValues
   private SortOrder sortOrder;
 
 
+
+  /**
+   * Creates a new sort values object with the provided information.
+   *
+   * @param entryID    The entry ID for the entry associated with this set of
+   *                   values.
+   * @param values     The attribute values for this sort values.
+   * @param sortOrder  The sort order to use to obtain the necessary values.
+   */
+  public SortValues(EntryID entryID, AttributeValue[] values,
+                    SortOrder sortOrder)
+  {
+    this.entryID = entryID;
+    this.sortOrder = sortOrder;
+    this.values = values;
+  }
 
   /**
    * Creates a new sort values object with the provided information.
@@ -243,5 +258,26 @@ public class SortValues
     buffer.append(entryID.toString());
     buffer.append(")");
   }
+
+  /**
+   * Retrieve the attribute values in this sort values.
+   *
+   * @return The array of attribute values for this sort values.
+   */
+  public AttributeValue[] getValues()
+  {
+    return values;
+  }
+
+  /**
+   * Retrieve the entry ID in this sort values.
+   *
+   * @return The entry ID for this sort values.
+   */
+  public long getEntryID()
+  {
+    return entryID.longValue();
+  }
 }
+
 

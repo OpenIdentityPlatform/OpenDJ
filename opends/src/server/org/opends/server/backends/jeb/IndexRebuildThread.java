@@ -71,6 +71,11 @@ public class IndexRebuildThread extends DirectoryThread
   AttributeIndex attrIndex = null;
 
   /**
+   * The VLV index to rebuild.
+   */
+  VLVIndex vlvIndex = null;
+
+  /**
    * The indexType to rebuild.
    */
   Index index = null;
@@ -112,7 +117,7 @@ public class IndexRebuildThread extends DirectoryThread
    */
   enum IndexType
   {
-    DN2ID, DN2URI, ID2CHILDREN, ID2SUBTREE, INDEX, ATTRIBUTEINDEX
+    DN2ID, DN2URI, ID2CHILDREN, ID2SUBTREE, INDEX, ATTRIBUTEINDEX, VLVINDEX
   }
 
   /**
@@ -161,6 +166,21 @@ public class IndexRebuildThread extends DirectoryThread
   }
 
   /**
+   * Construct a new index rebuild thread to rebuild an VLV index.
+   *
+   * @param ec The entry container to rebuild in.
+   * @param vlvIndex The VLV index to rebuild.
+   */
+  IndexRebuildThread(EntryContainer ec, VLVIndex vlvIndex)
+  {
+    super("Index Rebuild Thread " + vlvIndex.getName());
+    this.ec = ec;
+    this.indexType = IndexType.VLVINDEX;
+    this.vlvIndex = vlvIndex;
+    this.id2entry = ec.getID2Entry();
+  }
+
+  /**
    * Clear the database and prep it for the rebuild.
    *
    * @throws DatabaseException if a JE databse error occurs while clearing
@@ -202,6 +222,18 @@ public class IndexRebuildThread extends DirectoryThread
       return;
     }
 
+    if(indexType == IndexType.VLVINDEX && vlvIndex == null)
+    {
+      //TODO: throw error
+      if(debugEnabled())
+      {
+        TRACER.debugError("No VLV index specified. Rebuild process " +
+            "terminated.");
+      }
+
+      return;
+    }
+
     switch(indexType)
     {
       case DN2ID :
@@ -221,6 +253,10 @@ public class IndexRebuildThread extends DirectoryThread
       case ATTRIBUTEINDEX :
         ec.clearAttributeIndex(attrIndex);
         attrIndex.setRebuildStatus(true);
+        break;
+      case VLVINDEX :
+        ec.clearDatabase(vlvIndex);
+        vlvIndex.setRebuildStatus(true);
         break;
       case INDEX :
         ec.clearDatabase(index);
@@ -267,6 +303,18 @@ public class IndexRebuildThread extends DirectoryThread
       return;
     }
 
+    if(indexType == IndexType.VLVINDEX && vlvIndex == null)
+    {
+      //TODO: throw error
+      if(debugEnabled())
+      {
+        TRACER.debugError("No VLV index specified. Rebuild process " +
+            "terminated.");
+      }
+
+      return;
+    }
+
     try
     {
       totalEntries = getTotalEntries();
@@ -282,6 +330,8 @@ public class IndexRebuildThread extends DirectoryThread
         case ID2SUBTREE : rebuildID2Subtree();
           break;
         case ATTRIBUTEINDEX : rebuildAttributeIndex(attrIndex);
+          break;
+        case VLVINDEX : rebuildVLVIndex(vlvIndex);
           break;
         case INDEX : rebuildAttributeIndex(index);
       }
@@ -325,7 +375,7 @@ public class IndexRebuildThread extends DirectoryThread
 
     //Iterate through the id2entry database and insert associated dn2id
     //records.
-    Cursor cursor = id2entry.openCursor(null, null);
+    Cursor cursor = id2entry.openCursor(null, CursorConfig.READ_COMMITTED);
     try
     {
       DatabaseEntry key = new DatabaseEntry();
@@ -337,15 +387,14 @@ public class IndexRebuildThread extends DirectoryThread
            status == OperationStatus.SUCCESS;
            status = cursor.getNext(key, data, lockMode))
       {
+        Transaction txn = ec.beginTransaction();
         try
         {
           EntryID entryID = new EntryID(key);
           Entry entry = JebFormat.entryFromDatabase(data.getData());
 
-          //TODO: Should we add all records in a big transaction?
-          //TODO: Should we make each insert a transaction?
           // Insert into dn2id.
-          if (dn2id.insert(null, entry.getDN(), entryID))
+          if (dn2id.insert(txn, entry.getDN(), entryID))
           {
             rebuiltEntries++;
           }
@@ -363,13 +412,12 @@ public class IndexRebuildThread extends DirectoryThread
                         entry.getDN().toString(), entryID.longValue());
             }
           }
+          EntryContainer.transactionCommit(txn);
           processedEntries++;
         }
         catch (Exception e)
         {
-          //TODO: throw error stating that the indexType could be in an
-          // inconsistant state.
-          //TODO: Should we continue on or stop right now?
+          EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
@@ -410,7 +458,7 @@ public class IndexRebuildThread extends DirectoryThread
 
     //Iterate through the id2entry database and insert associated dn2uri
     //records.
-    Cursor cursor = id2entry.openCursor(null, null);
+    Cursor cursor = id2entry.openCursor(null, CursorConfig.READ_COMMITTED);
     try
     {
       DatabaseEntry key = new DatabaseEntry();
@@ -423,15 +471,14 @@ public class IndexRebuildThread extends DirectoryThread
            status == OperationStatus.SUCCESS;
            status = cursor.getNext(key, data, lockMode))
       {
+        Transaction txn = ec.beginTransaction();
         try
         {
           EntryID entryID = new EntryID(key);
           Entry entry = JebFormat.entryFromDatabase(data.getData());
 
-          //TODO: Should we add all records in a big transaction?
-          //TODO: Should we make each insert a transaction?
           // Insert into dn2uri.
-          if (dn2uri.addEntry(null, entry))
+          if (dn2uri.addEntry(txn, entry))
           {
             rebuiltEntries++;
           }
@@ -449,13 +496,12 @@ public class IndexRebuildThread extends DirectoryThread
                         entry.getDN().toString(), entryID.longValue());
             }
           }
+          EntryContainer.transactionCommit(txn);
           processedEntries++;
         }
         catch (Exception e)
         {
-          //TODO: throw error stating that the indexType could be in an
-          // inconsistant state.
-          //TODO: Should we continue on or stop right now?
+          EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
@@ -500,7 +546,7 @@ public class IndexRebuildThread extends DirectoryThread
 
     //Iterate through the id2entry database and insert associated dn2children
     //records.
-    Cursor cursor = id2entry.openCursor(null, null);
+    Cursor cursor = id2entry.openCursor(null, CursorConfig.READ_COMMITTED);
     try
     {
       DatabaseEntry key = new DatabaseEntry();
@@ -512,6 +558,7 @@ public class IndexRebuildThread extends DirectoryThread
            status == OperationStatus.SUCCESS;
            status = cursor.getNext(key, data, lockMode))
       {
+        Transaction txn = ec.beginTransaction();
         try
         {
           EntryID entryID = new EntryID(key);
@@ -525,11 +572,11 @@ public class IndexRebuildThread extends DirectoryThread
             dn2uri.targetEntryReferrals(entry.getDN(), null);
 
             // Read the parent ID from dn2id.
-            EntryID parentID = dn2id.get(null, parentDN);
+            EntryID parentID = dn2id.get(txn, parentDN);
             if (parentID != null)
             {
               // Insert into id2children for parent ID.
-              if(id2children.insertID(null, parentID.getDatabaseEntry(),
+              if(id2children.insertID(txn, parentID.getDatabaseEntry(),
                                       entryID))
               {
                 rebuiltEntries++;
@@ -561,11 +608,12 @@ public class IndexRebuildThread extends DirectoryThread
           {
             skippedEntries++;
           }
+          EntryContainer.transactionCommit(txn);
           processedEntries++;
         }
         catch (Exception e)
         {
-          //TODO: Should we continue on or stop right now?
+          EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
@@ -612,7 +660,7 @@ public class IndexRebuildThread extends DirectoryThread
 
     //Iterate through the id2entry database and insert associated dn2subtree
     //records.
-    Cursor cursor = id2entry.openCursor(null, null);
+    Cursor cursor = id2entry.openCursor(null, CursorConfig.READ_COMMITTED);
     try
     {
       DatabaseEntry key = new DatabaseEntry();
@@ -624,6 +672,7 @@ public class IndexRebuildThread extends DirectoryThread
            status == OperationStatus.SUCCESS;
            status = cursor.getNext(key, data, lockMode))
       {
+        Transaction txn = ec.beginTransaction();
         try
         {
           EntryID entryID = new EntryID(key);
@@ -639,11 +688,11 @@ public class IndexRebuildThread extends DirectoryThread
             dn2uri.targetEntryReferrals(entry.getDN(), null);
 
             // Read the parent ID from dn2id.
-            EntryID parentID = dn2id.get(null, parentDN);
+            EntryID parentID = dn2id.get(txn, parentDN);
             if (parentID != null)
             {
               // Insert into id2subtree for parent ID.
-              if(!id2subtree.insertID(null, parentID.getDatabaseEntry(),
+              if(!id2subtree.insertID(txn, parentID.getDatabaseEntry(),
                                       entryID))
               {
                 success = false;
@@ -703,11 +752,12 @@ public class IndexRebuildThread extends DirectoryThread
           {
             skippedEntries++;
           }
+          EntryContainer.transactionCommit(txn);
           processedEntries++;
         }
         catch (Exception e)
         {
-          //TODO: Should we continue on or stop right now?
+          EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
@@ -749,7 +799,7 @@ public class IndexRebuildThread extends DirectoryThread
 
     //Iterate through the id2entry database and insert associated indexType
     //records.
-    Cursor cursor = id2entry.openCursor(null, null);
+    Cursor cursor = id2entry.openCursor(null, CursorConfig.READ_COMMITTED);
     try
     {
       DatabaseEntry key = new DatabaseEntry();
@@ -761,13 +811,14 @@ public class IndexRebuildThread extends DirectoryThread
            status == OperationStatus.SUCCESS;
            status = cursor.getNext(key, data, lockMode))
       {
+        Transaction txn = ec.beginTransaction();
         try
         {
           EntryID entryID = new EntryID(key);
           Entry entry = JebFormat.entryFromDatabase(data.getData());
 
           // Insert into attribute indexType.
-          if(index.addEntry(null, entryID, entry))
+          if(index.addEntry(txn, entryID, entry))
           {
             rebuiltEntries++;
           }
@@ -786,11 +837,12 @@ public class IndexRebuildThread extends DirectoryThread
                         entry.getDN().toString(), entryID.longValue());
             }
           }
+          EntryContainer.transactionCommit(txn);
           processedEntries++;
         }
         catch (Exception e)
         {
-          //TODO: Should we continue on or stop right now?
+          EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
@@ -807,6 +859,87 @@ public class IndexRebuildThread extends DirectoryThread
       }
       index.setRebuildStatus(false);
       index.setTrusted(null, true);
+    }
+    finally
+    {
+      cursor.close();
+    }
+  }
+
+  /**
+   * Rebuild the VLV index.
+   *
+   * @param vlvIndex The VLV index to rebuild.
+   * @throws DatabaseException if an error occurs during rebuild.
+   */
+  private void rebuildVLVIndex(VLVIndex vlvIndex)
+      throws DatabaseException
+  {
+
+    //Iterate through the id2entry database and insert associated indexType
+    //records.
+    Cursor cursor = id2entry.openCursor(null, CursorConfig.READ_COMMITTED);
+    try
+    {
+      DatabaseEntry key = new DatabaseEntry();
+      DatabaseEntry data = new DatabaseEntry();
+      LockMode lockMode = LockMode.DEFAULT;
+
+      OperationStatus status;
+      for (status = cursor.getFirst(key, data, lockMode);
+           status == OperationStatus.SUCCESS;
+           status = cursor.getNext(key, data, lockMode))
+      {
+        Transaction txn = ec.beginTransaction();
+        try
+        {
+          EntryID entryID = new EntryID(key);
+          Entry entry = JebFormat.entryFromDatabase(data.getData());
+
+          // Insert into attribute indexType.
+          if(vlvIndex.addEntry(txn, entryID, entry))
+          {
+            rebuiltEntries++;
+          }
+          else
+          {
+            // The entry already exists in one or more entry sets.
+            // This could happen if some other process got to this entry
+            // before we did. Since the backend should be offline, this
+            // might be a problem.
+            if(debugEnabled())
+            {
+              duplicatedEntries++;
+              TRACER.debugInfo("Unable to insert entry with DN %s and ID %d " +
+                  "into the VLV index %s because it already " +
+                  "exists.",
+                        entry.getDN().toString(), entryID.longValue(),
+                        vlvIndex.getName());
+            }
+          }
+
+          EntryContainer.transactionCommit(txn);
+          processedEntries++;
+        }
+        catch (Exception e)
+        {
+          EntryContainer.transactionAbort(txn);
+          skippedEntries++;
+
+          int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;
+          String message = getMessage(msgID, index.getName(),
+                                      stackTraceToSingleLineString(e));
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.MILD_ERROR,
+                   message, msgID);
+
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+      vlvIndex.setRebuildStatus(false);
+      vlvIndex.setTrusted(null, true);
     }
     finally
     {
@@ -832,7 +965,7 @@ public class IndexRebuildThread extends DirectoryThread
 
     //Iterate through the id2entry database and insert associated indexType
     //records.
-    Cursor cursor = id2entry.openCursor(null, null);
+    Cursor cursor = id2entry.openCursor(null, CursorConfig.READ_COMMITTED);
     try
     {
       DatabaseEntry key = new DatabaseEntry();
@@ -844,13 +977,14 @@ public class IndexRebuildThread extends DirectoryThread
            status == OperationStatus.SUCCESS;
            status = cursor.getNext(key, data, lockMode))
       {
+        Transaction txn = ec.beginTransaction();
         try
         {
           EntryID entryID = new EntryID(key);
           Entry entry = JebFormat.entryFromDatabase(data.getData());
 
           // Insert into attribute indexType.
-          if(index.addEntry(null, entryID, entry))
+          if(index.addEntry(txn, entryID, entry))
           {
             rebuiltEntries++;
           }
@@ -869,11 +1003,12 @@ public class IndexRebuildThread extends DirectoryThread
                         entry.getDN().toString(), entryID.longValue());
             }
           }
+          EntryContainer.transactionCommit(txn);
           processedEntries++;
         }
         catch (Exception e)
         {
-          //TODO: Should we continue on or stop right now?
+          EntryContainer.transactionAbort(txn);
           skippedEntries++;
 
           int    msgID   = MSGID_JEB_REBUILD_INSERT_ENTRY_FAILED;

@@ -54,6 +54,8 @@ import static org.opends.server.messages.JebMessages.
     MSGID_JEB_REBUILD_INDEX_CONFLICT;
 import static org.opends.server.messages.JebMessages.
     MSGID_JEB_REBUILD_START;
+import static org.opends.server.messages.JebMessages.
+    MSGID_JEB_VLV_INDEX_NOT_CONFIGURED;
 import static org.opends.server.messages.MessageHandler.getMessage;
 
 /**
@@ -270,32 +272,35 @@ public class RebuildJob
     //Make sure there are no running rebuild jobs
     jobsMutex.lock();
 
-    for(RebuildJob otherJob : rebuildJobs)
+    try
     {
-      String conflictIndex =
-          job.rebuildConfig.checkConflicts(otherJob.rebuildConfig);
-      if(conflictIndex != null)
+      for(RebuildJob otherJob : rebuildJobs)
       {
-        jobsMutex.unlock();
-        //TODO: Throw error and bail out.
-        if(debugEnabled())
+        String conflictIndex =
+            job.rebuildConfig.checkConflicts(otherJob.rebuildConfig);
+        if(conflictIndex != null)
         {
-          TRACER.debugError("Conflit detected. This job config: %s, " +
-              "That job config: %s.",
-                     job.rebuildConfig, otherJob.rebuildConfig);
+          if(debugEnabled())
+          {
+            TRACER.debugError("Conflit detected. This job config: %s, " +
+                "That job config: %s.",
+                              job.rebuildConfig, otherJob.rebuildConfig);
+          }
+
+          int msgID = MSGID_JEB_REBUILD_INDEX_CONFLICT;
+          String msg = getMessage(msgID, conflictIndex);
+          throw new JebException(msgID, msg);
         }
-
-
-        int msgID = MSGID_JEB_REBUILD_INDEX_CONFLICT;
-        String msg = getMessage(msgID, conflictIndex);
-        throw new JebException(msgID, msg);
       }
+
+      //No conflicts are found. Add the job to the list of currently running
+      // jobs.
+      rebuildJobs.add(job);
     }
-
-    //No conflicts are found. Add the job to the list of currently running jobs.
-    rebuildJobs.add(job);
-
-    jobsMutex.unlock();
+    finally
+    {
+      jobsMutex.unlock();
+    }
   }
 
   private static void removeJob(RebuildJob job)
@@ -359,6 +364,26 @@ public class RebuildJob
           {
             rebuildThread = new IndexRebuildThread(entryContainer,
                                        IndexRebuildThread.IndexType.ID2SUBTREE);
+          }
+          else if (lowerName.startsWith("vlv."))
+          {
+            if(lowerName.length() < 5)
+            {
+              int msgID = MSGID_JEB_VLV_INDEX_NOT_CONFIGURED;
+              String msg = getMessage(msgID, lowerName);
+              throw new JebException(msgID, msg);
+            }
+
+            VLVIndex vlvIndex =
+                entryContainer.getVLVIndex(lowerName.substring(4));
+            if(vlvIndex == null)
+            {
+              int msgID = MSGID_JEB_VLV_INDEX_NOT_CONFIGURED;
+              String msg = getMessage(msgID, lowerName.substring(4));
+              throw new JebException(msgID, msg);
+            }
+
+            rebuildThread = new IndexRebuildThread(entryContainer, vlvIndex);
           }
           else
           {

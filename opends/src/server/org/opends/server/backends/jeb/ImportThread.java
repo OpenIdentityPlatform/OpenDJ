@@ -170,6 +170,8 @@ public class ImportThread extends DirectoryThread
       }
     }
 
+    nIndexes += entryContainer.getVLVIndexes().size();
+
     // Divide the total buffer size by the number of threads
     // and give that much to each index.
     long indexBufferSize = importContext.getBufferSize() / nIndexes;
@@ -186,64 +188,72 @@ public class ImportThread extends DirectoryThread
 
       if (attrIndex.equalityIndex != null)
       {
-        IndexBuilder indexBuilder =
-             new IndexBuilder(importContext,
+        AttributeIndexBuilder attributeIndexBuilder =
+             new AttributeIndexBuilder(importContext,
                               attrIndex.equalityIndex,
                               indexEntryLimit,
                               indexBufferSize);
-        builders.add(indexBuilder);
+        builders.add(attributeIndexBuilder);
       }
       if (attrIndex.presenceIndex != null)
       {
-        IndexBuilder indexBuilder =
-             new IndexBuilder(importContext,
+        AttributeIndexBuilder attributeIndexBuilder =
+             new AttributeIndexBuilder(importContext,
                               attrIndex.presenceIndex,
                               indexEntryLimit,
                               indexBufferSize);
-        builders.add(indexBuilder);
+        builders.add(attributeIndexBuilder);
       }
       if (attrIndex.substringIndex != null)
       {
-        IndexBuilder indexBuilder =
-             new IndexBuilder(importContext,
+        AttributeIndexBuilder attributeIndexBuilder =
+             new AttributeIndexBuilder(importContext,
                               attrIndex.substringIndex,
                               indexEntryLimit,
                               indexBufferSize);
-        builders.add(indexBuilder);
+        builders.add(attributeIndexBuilder);
       }
       if (attrIndex.orderingIndex != null)
       {
-        IndexBuilder indexBuilder =
-             new IndexBuilder(importContext, attrIndex.orderingIndex,
+        AttributeIndexBuilder attributeIndexBuilder =
+             new AttributeIndexBuilder(importContext, attrIndex.orderingIndex,
                               indexEntryLimit,
                               indexBufferSize);
-        builders.add(indexBuilder);
+        builders.add(attributeIndexBuilder);
       }
       if (attrIndex.approximateIndex != null)
       {
-        IndexBuilder indexBuilder =
-            new IndexBuilder(importContext, attrIndex.approximateIndex,
+        AttributeIndexBuilder attributeIndexBuilder =
+            new AttributeIndexBuilder(importContext, attrIndex.approximateIndex,
                              indexEntryLimit,
                              indexBufferSize);
-        builders.add(indexBuilder);
+        builders.add(attributeIndexBuilder);
       }
+    }
+
+    // Create an vlvIndex builder for each VLV index database.
+    for (VLVIndex vlvIndex : entryContainer.getVLVIndexes())
+    {
+      VLVIndexBuilder vlvIndexBuilder =
+          new VLVIndexBuilder(importContext, vlvIndex, indexBufferSize);
+      builders.add(vlvIndexBuilder);
     }
 
     // Create an index builder for the children index.
     Index id2Children = entryContainer.getID2Children();
-    IndexBuilder indexBuilder =
-         new IndexBuilder(importContext, id2Children,
+    AttributeIndexBuilder attributeIndexBuilder =
+         new AttributeIndexBuilder(importContext, id2Children,
                           importContext.getConfig().getBackendIndexEntryLimit(),
                           indexBufferSize);
-    builders.add(indexBuilder);
+    builders.add(attributeIndexBuilder);
 
     // Create an index builder for the subtree index.
     Index id2Subtree = entryContainer.getID2Subtree();
-    indexBuilder =
-         new IndexBuilder(importContext, id2Subtree,
+    attributeIndexBuilder =
+         new AttributeIndexBuilder(importContext, id2Subtree,
                           importContext.getConfig().getBackendIndexEntryLimit(),
                           indexBufferSize);
-    builders.add(indexBuilder);
+    builders.add(attributeIndexBuilder);
 
     for (IndexBuilder b : builders)
     {
