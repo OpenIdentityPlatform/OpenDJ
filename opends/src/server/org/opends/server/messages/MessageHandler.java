@@ -65,7 +65,7 @@ import java.util.IllegalFormatException;
  *   <LI>00C -- Access Control</LI>
  *   <LI>00D -- Administration framework</LI>
  *   <LI>00E -- Synchronization</LI>
- *   <LI>00E -- Version Compatibility (Flag Days)</LI>
+ *   <LI>00F -- Version Compatibility (Flag Days)</LI>
  *   <LI>800 through FFE -- Reserved for third-party modules</LI>
  *   <LI>FFF -- User-defined processing</LI>
  * </UL>
@@ -192,12 +192,12 @@ public class MessageHandler
   /**
    * The category bitmask used for messages associated with the Synchronization.
    */
-  public static final int CATEGORY_MASK_SYNC = 0x0E000000;
+  public static final int CATEGORY_MASK_SYNC = 0x00E00000;
 
   /**
    * The category bitmask used for messages associated with flag day messages.
    */
-  public static final int CATEGORY_MASK_VERSION_COMPATIBITY_ISSUES = 0x0F000000;
+  public static final int CATEGORY_MASK_VERSION_COMPATIBITY_ISSUES = 0x00F00000;
 
   /**
    * The category bitmask that will be used for messages associated with
