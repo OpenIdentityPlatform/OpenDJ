@@ -40,7 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
@@ -407,6 +409,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     // Create the naming arguments.
     this.namingArgs = createNamingArgs(subCommand, c, true);
 
+    // Register common arguments.
+    registerAdvancedModeArgument(this.subCommand,
+        MSGID_DSCFG_DESCRIPTION_ADVANCED_SET, r.getUserFriendlyName());
+
     // Create the --property argument which is used to specify
     // property values.
     this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET,
@@ -588,6 +594,32 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         setProperty(child, provider, pd);
       }
 
+      // Interactively set properties if applicable.
+      if (getConsoleApplication().isInteractive()) {
+        SortedSet<PropertyDefinition<?>> properties =
+          new TreeSet<PropertyDefinition<?>>();
+
+        for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
+          if (pd.hasOption(PropertyOption.HIDDEN)) {
+            continue;
+          }
+
+          if (pd.hasOption(PropertyOption.MONITORING)) {
+            continue;
+          }
+
+          if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+            continue;
+          }
+
+          properties.add(pd);
+        }
+
+        PropertyValueReader reader =
+          new PropertyValueReader(getConsoleApplication());
+        reader.readAll(child, properties);
+      }
+
       // Confirm commit.
       String prompt = String.format(Messages.getString("create.confirm"), d
           .getUserFriendlyName());
@@ -649,7 +681,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       final List<DefaultBehaviorException> exceptions)
       throws ArgumentException, ClientException {
     int msgID = MSGID_DSCFG_CREATE_NAME_PROMPT;
-    String msg = getMessage(msgID, relation.getUserFriendlyName());
+    String msg = getMessage(msgID, d.getUserFriendlyName());
     ValidationCallback<ManagedObject<? extends C>> validator =
       new ValidationCallback<ManagedObject<? extends C>>() {
 

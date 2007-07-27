@@ -9379,11 +9379,88 @@ public class ToolMessages
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1239;
 
   /**
+   * The message ID for the message that will be used in the property
+   * editing menu for resetting.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_MENU_RESET =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1240;
+
+  /**
+   * The message ID for the message that will be used in the property
+   * editing menu for setting a value.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_MENU_SET =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1241;
+
+  /**
+   * The message ID for the message that will be used in the property
+   * editing menu for adding a value.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_MENU_ADD =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1242;
+
+  /**
+   * The message ID for the message that will be used in the property
+   * editing menu for removing a value.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_MENU_REMOVE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1243;
+
+  /**
+   * The message ID for the message that will be used in the property
+   * editing menu for the continue option.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_MENU_CONTINUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1244;
+
+  /**
+   * The message ID for the message that will be used in the property
+   * editor as the prompt for removing a value.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_PROMPT_REMOVE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1245;
+
+  /**
+   * The message ID for the message that will be used in the property
+   * editor as the prompt for selecting a value.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_PROMPT_SELECT_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1246;
+
+  /**
+   * The message ID for the message that will be used in the property
+   * editor as the prompt for entering a value.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_PROMPT_ENTER_VALUE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1247;
+
+  /**
+   * The message ID for the message that will be used in the property
+   * editor as the title prompt for the property selection menu.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_MENU_TITLE =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1248;
+
+  /**
+   * The message ID for the message that will be used in the property
+   * editor as the prompt for mandatory properties.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_PROMPT_MANDATORY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1249;
+
+  /**
+   * The message ID for the message that will be used in the property
+   * editor as the prompt for property modification menu.
+   */
+  public static final int MSGID_DSCFG_VALUE_READER_PROMPT_MODIFY_MENU =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1250;
+
+  /**
    * The message ID for the message that will be used as the description of the
    * clearBackend argument.  This does not take any arguments.
    */
   public static final int MSGID_LDIFIMPORT_DESCRIPTION_CLEAR_BACKEND =
-       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1240;
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1251;
 
     /**
    * The message ID for the message that will be used if neither the
@@ -9392,7 +9469,7 @@ public class ToolMessages
    * includeBranchStrings and backendID options.
    */
   public static final int MSGID_LDIFIMPORT_MISSING_BACKEND_ARGUMENT =
-      CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1241;
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1252;
 
 
   /**
@@ -9402,7 +9479,7 @@ public class ToolMessages
    * option as an argument.
    */
   public static final int MSGID_LDIFIMPORT_MISSING_CLEAR_BACKEND =
-      CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1242;
+      CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1253;
 
   /**
    * Associates a set of generic messages with the message IDs defined in this
@@ -12432,6 +12509,24 @@ public class ToolMessages
                     "Invalid response. Please enter a value between 1 and %s");
     registerMessage(MSGID_DSCFG_ERROR_GENERAL_CONFIRM,
                     "Invalid response. Please enter \"%s\" or \"%s\"");
+    registerMessage(MSGID_DSCFG_VALUE_READER_MENU_ADD, "add a value");
+    registerMessage(MSGID_DSCFG_VALUE_READER_MENU_REMOVE, "remove a value");
+    registerMessage(MSGID_DSCFG_VALUE_READER_MENU_SET, "modify the value");
+    registerMessage(MSGID_DSCFG_VALUE_READER_MENU_RESET,
+        "reset the value back to its default");
+    registerMessage(MSGID_DSCFG_VALUE_READER_MENU_CONTINUE, "continue");
+    registerMessage(MSGID_DSCFG_VALUE_READER_PROMPT_REMOVE,
+        "Select the value to be removed from the \"%s\" property:");
+    registerMessage(MSGID_DSCFG_VALUE_READER_PROMPT_SELECT_VALUE,
+        "Select a value for the \"%s\" property:");
+    registerMessage(MSGID_DSCFG_VALUE_READER_PROMPT_ENTER_VALUE,
+        "Enter a value for the \"%s\" property:");
+    registerMessage(MSGID_DSCFG_VALUE_READER_MENU_TITLE,
+        "Select a property to be edited, or enter \"%d\" to continue:");
+    registerMessage(MSGID_DSCFG_VALUE_READER_PROMPT_MANDATORY,
+        "The property \"%s\" is mandatory and must have a value specified");
+    registerMessage(MSGID_DSCFG_VALUE_READER_PROMPT_MODIFY_MENU,
+        "Do you want to modify the \"%s\" property?");
     registerMessage(MSGID_LDIFIMPORT_DESCRIPTION_CLEAR_BACKEND,
                     "Remove all entries for all base DNs in the backend " +
                     "before importing");
