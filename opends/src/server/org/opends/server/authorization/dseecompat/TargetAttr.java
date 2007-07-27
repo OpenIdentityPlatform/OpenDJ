@@ -117,6 +117,7 @@ public class TargetAttr {
         }
     }
 
+
     /**
      * Converts each element of an array of attribute strings
      * to attribute types and adds them to either the user attributes HashSet or
@@ -256,29 +257,40 @@ public class TargetAttr {
      * First check is to see if the attribute type is operational. If so then
      * a match is true if the allOpAttributes boolean is true or if the
      * attribute type is found in the operational attributes HashSet.
+     * Both results can be negated if the expression operator is NOT_EQUALITY).
      *
      * Second check is similar to above, except the user attributes boolean
-     * and HashSet is examined. Both results can be negated if the expression
-     * operator is NOT_EQUALITT).
+     * and HashSet is examined.
+     *
      *
      * @param a The attribute type to evaluate.
      * @param targetAttr The targetAttr to apply to the attribute type.
      * @return True if the attribute type is applicable to the targetAttr.
      */
-    private static
-    boolean evalAttrType(AttributeType a, TargetAttr targetAttr) {
+      private static
+      boolean evalAttrType(AttributeType a, TargetAttr targetAttr) {
         boolean ret=false;
         if(a.isOperational()) {
-            if(targetAttr.isAllOpAttributes() ||
-                    targetAttr.opAttributes.contains(a))
-                ret=true;
+          if(targetAttr.isAllOpAttributes() ||
+                  targetAttr.opAttributes.contains(a))
+            ret=true;
+          if(targetAttr.isAllOpAttributes() ||
+             !targetAttr.opAttributes.isEmpty()) {
+            if(targetAttr.getOperator().
+                    equals(EnumTargetOperator.NOT_EQUALITY))
+              ret=!ret;
+          }
         } else {
-            if(targetAttr.isAllUserAttributes() ||
-                    targetAttr.attributes.contains(a))
-                ret=true;
+          if(targetAttr.isAllUserAttributes() ||
+                  targetAttr.attributes.contains(a))
+            ret=true;
+          if(targetAttr.isAllUserAttributes() ||
+                  !targetAttr.attributes.isEmpty()) {
+            if(targetAttr.getOperator().
+                    equals(EnumTargetOperator.NOT_EQUALITY))
+              ret=!ret;
+          }
         }
-        if(targetAttr.getOperator().equals(EnumTargetOperator.NOT_EQUALITY))
-            ret = !ret;
-        return ret;
-    }
-}
+      return ret;
+      }
+  }
