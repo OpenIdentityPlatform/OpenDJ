@@ -1562,6 +1562,21 @@
                 <call function="'testCase_Preamble'"/>
                           
                 <script>
+                    allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'
+                </script>
+        
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=aci branch, o=Delete Tests, o=ACI Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : allow_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <script>
                     curr_aci_ldif_file = 'add_allow-delete_aci4.ldif'
                     curr_aci=retrieve_aci('%s/aci/aci_delete_entry/%s' % (logsLocalDataDir,curr_aci_ldif_file));
                 </script>
@@ -1629,6 +1644,17 @@
                 }
                 </call>
     
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'ou=aci branch, o=Delete Tests, o=ACI Tests, dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : allow_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
                 <message>
                    'ACI: Delete: Delete Entry - delete branch, admin deleting aci'
                 </message>
