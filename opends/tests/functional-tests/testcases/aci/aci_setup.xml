@@ -115,23 +115,6 @@
                   'result'     : STAXResult }
               </call>
     
-              <message>
-                'ACI: ACI Setup: Enabling ACI'
-              </message>
-    
-              <call function="'modifyEntry'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                  'entryToBeModified'   : '%s/aci/aci_target/aci_handler.ldif' % logsRemoteDataDir }
-              </call>
-    
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-              </call>
-
             </sequence>      
           <!--- End Block DS Load Data -->	
           </block>		
