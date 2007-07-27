@@ -49,6 +49,8 @@ public class TargAttrFiltersTestCase  extends AciTestCase {
     return new Object[][] {
             {"add=st:(st=*),del=st:(st=*)"},
             {"add=st:(st=*) && cn:(cn=c*), del=st:(st=*) && sn:(sn=s*)"},
+            {"add=st:(st=*)"},
+            {"del=st:(st=*)"},
     };
   }
 
@@ -56,6 +58,8 @@ public class TargAttrFiltersTestCase  extends AciTestCase {
   @DataProvider(name = "invalidStatements")
   public Object[][] invalids() {
     return new Object[][] {
+            {"add=st:(st=*),deeeel =st:(st=*)"},
+            {"add=st:(st=*),foo =st:(st=*)"},
             {"add=st:(st=*),,,del=st:(st=*)"},
             {"add=st:(st=*),dellll =st:(st=*)"},
             {"add=st:(st=*)del=st:(st=*)"},

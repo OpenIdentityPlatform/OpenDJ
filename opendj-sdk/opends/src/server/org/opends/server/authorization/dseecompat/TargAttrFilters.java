@@ -63,6 +63,13 @@ public class TargAttrFilters {
      */
     private static final String ADD_OR_DEL_KEYWORD_GROUP = "(add|del)";
 
+    /*
+     * Regular expression used to check for valid expression separator.
+     */
+
+    private static final
+    String secondOpSeparator="\\)" +  ZERO_OR_MORE_WHITESPACE + ",";
+
     /**
      * Regular expression used to match the second operation of the filter list.
      * If the first was "add" this must be "del", if the first was "del" this
@@ -181,12 +188,20 @@ public class TargAttrFilters {
           String message = getMessage(msgID, expression);
           throw new AciException(msgID, message);
         } else if (filterLists.length == 1) {
-          //This check catches the case where there might not be a
-          //',' character between the first filter list and the second.
+          //Check if the there is something like ") , deel=". A bad token
+          //that the regular expression didn't pick up.
+          String [] filterList2=subExpression.split(secondOpSeparator);
+          if(filterList2.length == 2) {
+              int msgID = MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION;
+              String message = getMessage(msgID, expression);
+              throw new AciException(msgID, message);
+          }
           String sOp="del";
           if(getMask(firstOp) == TARGATTRFILTERS_DELETE)
             sOp="add";
           String rg= sOp + "=";
+          //This check catches the case where there might not be a
+          //',' character between the first filter list and the second.
           if(subExpression.indexOf(rg) != -1) {
             int msgID = MSGID_ACI_SYNTAX_INVALID_TARGATTRFILTERS_EXPRESSION;
             String message = getMessage(msgID, expression);
