@@ -121,13 +121,9 @@
 				<if expr="server.requiresSynchronization()">
 				  <sequence>					
 					<message> 'Instance requires REPLICATION configuration.' </message>
-					<script> 
-					  serverMap = {}
-					  serverMap['instance'] = server
-					</script>
 					  
 				    <call function="'configureReplication'">
-					  [serverMap]
+					  [server]
 				    </call>									
 				  </sequence>
 				</if>  					
@@ -457,7 +453,7 @@
 
 	
 	
-  <function name="configureReplication">
+  <function name="DEPRECATEDconfigureReplication">
     <function-prolog>
       This function configures replication in a given server.
 	</function-prolog>
@@ -557,7 +553,112 @@
   </function>	
 	
 
-	
+
+  <function name="configureReplication">
+    <function-prolog>
+      This function configures replication in a given server.
+	</function-prolog>
+	  
+	<function-list-args>
+      <function-arg-def name="syncserver" type="required">
+	    <function-arg-description>
+		  Server class instance representing the server to configure.			
+		</function-arg-description>
+        <function-arg-property name="type" value="Server"/>
+	  </function-arg-def>
+	</function-list-args>
+	  
+    <sequence>
+	  <!--- Configure replication using dsconfig -->		        
+	  <message>
+	    'Configure replication on server on host %s at directory %s' % (syncserver.getHostname(),syncserver.getDir())  
+	  </message>		
+		
+	  <script>
+        syncserverPath = '%s/%s' % (syncserver.getDir(),OPENDSNAME)
+	  </script>
+		
+		
+      <!--- Start DS -->				         
+      <call function="'StartDsWithScript'">
+        { 'location'  : syncserver.getHostname(),
+           'dsPath' : syncserverPath }
+      </call>
+
+      <message>
+	    'Create synchronization provider'
+	  </message>
+						
+	  <call function="'createSyncProvider'">
+        { 'location' : syncserver.getHostname(),
+          'dsPath' : syncserverPath,
+          'dsInstanceHost'    : syncserver.getHostname(),
+          'dsInstancePort'   : syncserver.getPort(),
+          'dsInstanceDn'    : syncserver.getRootDn(),
+          'dsInstancePswd'  : syncserver.getRootPwd() }
+      </call>
+
+      <script>
+        replicationServer = syncserver.getChangelogServer()
+        replicatedSuffixList = server.getSynchronizedSuffixList()
+      </script>        
+
+      <if expr="replicationServer">
+        <sequence>
+          <message>
+            'Create replication server listening on port: %s' % replicationServer.getPort()
+          </message>
+            
+    	  <call function="'createReplicationServer'">
+            { 'location' : syncserver.getHostname(),
+              'dsPath' : syncserverPath,
+              'dsInstanceHost'    : syncserver.getHostname(),
+              'dsInstancePort'   : syncserver.getPort(),
+              'dsInstanceDn'    : syncserver.getRootDn(),
+              'dsInstancePswd'  : syncserver.getRootPwd(),
+              'replicationPort'  : replicationServer.getPort(),
+              'replicationServerId'  :  replicationServer.getId(),
+              'replicationServerList'  :  replicationServer.getChangelogServerList() }
+          </call>          
+        </sequence>                    
+      </if>
+
+
+      <iterate var="suffix" in="replicatedSuffixList" indexvar="i">
+        <sequence>
+          <message>
+            'Create domain name for suffix: %s' % suffix.getSuffixDn()
+          </message>
+    
+    	  <call function="'createMultimasterDomain'">
+            { 'location' : syncserver.getHostname(),
+              'dsPath' : syncserverPath,
+              'dsInstanceHost'    : syncserver.getHostname(),
+              'dsInstancePort'   : syncserver.getPort(),
+              'dsInstanceDn'    : syncserver.getRootDn(),
+              'dsInstancePswd'  : syncserver.getRootPwd(),
+              'domainName'  : 'SUFFIX-%s' % i,
+              'replicationDn'  : suffix.getSuffixDn(),
+              'serverId'  :  suffix.getId(),
+              'replicationServerList'  :  suffix.getChangelogServerList() }
+          </call>                                  
+        </sequence>
+      </iterate>          
+                        
+
+      <!--- Stop DS -->					      
+      <call function="'StopDsWithScript'">
+        { 'location'  : syncserver.getHostname(),
+          'dsHost' : syncserver.getHostname(),
+          'dsPath' : syncserverPath,
+          'dsPort'    : syncserver.getPort(),
+          'dsBindDN'  : syncserver.getRootDn(),
+          'dsBindPwd' : syncserver.getRootPwd() }
+      </call>				
+		
+	</sequence>		  
+  </function>	
+                	
 
 	
   <function name="readTopology">
@@ -811,5 +912,6 @@
 	</sequence>  
 	    
   </function>
+
 		
 </stax>

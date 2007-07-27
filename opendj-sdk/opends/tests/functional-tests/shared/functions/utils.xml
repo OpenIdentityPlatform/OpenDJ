@@ -53,6 +53,9 @@
     </function-map-args>
 
     <sequence>
+      <if expr="expected == NO_CHECK">
+        <return/>
+      </if>                
       <if expr="returncode == expected">
         <sequence>
           <if expr="result == ''">
@@ -103,6 +106,9 @@
       </function-arg-def>
     </function-map-args>  
     <sequence>		
+      <if expr="expected == NO_CHECK">
+        <return/>
+      </if>        
       <if expr="returncode == expected">
         <sequence>
           <if expr="STAXCurrentTestcase != None">
