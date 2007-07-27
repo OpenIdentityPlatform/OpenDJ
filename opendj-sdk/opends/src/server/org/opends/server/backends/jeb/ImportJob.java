@@ -359,6 +359,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
 
       ArrayList<IndexMergeThread> mergers = new ArrayList<IndexMergeThread>();
 
+      ArrayList<VLVIndexMergeThread> vlvIndexMergeThreads =
+        new ArrayList<VLVIndexMergeThread>();
+
       // Create merge threads for each base DN.
       for (ImportContext importContext : importMap.values())
       {
@@ -420,6 +423,14 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           }
         }
 
+        for(VLVIndex vlvIndex : entryContainer.getVLVIndexes())
+        {
+          VLVIndexMergeThread vlvIndexMergeThread =
+              new VLVIndexMergeThread(config, ldifImportConfig, vlvIndex);
+          vlvIndexMergeThread.setUncaughtExceptionHandler(this);
+          vlvIndexMergeThreads.add(vlvIndexMergeThread);
+        }
+
         // Id2Children index.
         Index id2Children = entryContainer.getID2Children();
         IndexMergeThread indexMergeThread =
@@ -444,9 +455,28 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       {
         imt.start();
       }
+      for (VLVIndexMergeThread imt : vlvIndexMergeThreads)
+      {
+        imt.start();
+      }
 
       // Wait for the threads to finish.
       for (IndexMergeThread imt : mergers)
+      {
+        try
+        {
+          imt.join();
+        }
+        catch (InterruptedException e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+      // Wait for the threads to finish.
+      for (VLVIndexMergeThread imt : vlvIndexMergeThreads)
       {
         try
         {
@@ -977,7 +1007,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     threads.remove(t);
     int msgID = MSGID_JEB_IMPORT_THREAD_EXCEPTION;
     String msg = getMessage(msgID, t.getName(),
-                            StaticUtils.stackTraceToSingleLineString(e));
+                        StaticUtils.stackTraceToSingleLineString(e.getCause()));
     logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, msg,
              msgID);
   }

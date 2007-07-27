@@ -136,6 +136,34 @@ public class State extends DatabaseContainer
   }
 
   /**
+   * Fetch index state from the database.
+   * @param txn The database transaction or null if none.
+   * @param vlvIndex The index storing the trusted state info.
+   * @return The trusted state of the index in the database.
+   * @throws DatabaseException If an error occurs in the JE database.
+   */
+  public boolean getIndexTrustState(Transaction txn, VLVIndex vlvIndex)
+      throws DatabaseException
+  {
+    String shortName =
+        vlvIndex.getName().replace(entryContainer.getDatabasePrefix(), "");
+    DatabaseEntry key =
+        new DatabaseEntry(StaticUtils.getBytes(shortName));
+    DatabaseEntry data = new DatabaseEntry();
+
+    OperationStatus status;
+    status = read(txn, key, data, LockMode.DEFAULT);
+
+    if (status != OperationStatus.SUCCESS)
+    {
+      return false;
+    }
+
+    byte[] bytes = data.getData();
+    return Arrays.equals(bytes, trueBytes);
+  }
+
+  /**
    * Put index state to database.
    * @param txn The database transaction or null if none.
    * @param index The index storing the trusted state info.
@@ -147,10 +175,10 @@ public class State extends DatabaseContainer
                                     boolean trusted)
        throws DatabaseException
   {
-    String sortName =
+    String shortName =
         index.getName().replace(entryContainer.getDatabasePrefix(), "");
     DatabaseEntry key =
-        new DatabaseEntry(StaticUtils.getBytes(sortName));
+        new DatabaseEntry(StaticUtils.getBytes(shortName));
     DatabaseEntry data = new DatabaseEntry();
 
     if(trusted)
@@ -167,5 +195,35 @@ public class State extends DatabaseContainer
     return true;
   }
 
-  // TODO: Make sure to update the VLV state access methods to use shortname.
+  /**
+   * Put VLV index state to database.
+   * @param txn The database transaction or null if none.
+   * @param vlvIndex The VLV index storing the trusted state info.
+   * @param trusted The state value to put into the database.
+   * @return true if the entry was written, false if it was not.
+   * @throws DatabaseException If an error occurs in the JE database.
+   */
+  public boolean putIndexTrustState(Transaction txn, VLVIndex vlvIndex,
+                                    boolean trusted)
+       throws DatabaseException
+  {
+    String shortName =
+        vlvIndex.getName().replace(entryContainer.getDatabasePrefix(), "");
+    DatabaseEntry key =
+        new DatabaseEntry(StaticUtils.getBytes(shortName));
+    DatabaseEntry data = new DatabaseEntry();
+
+    if(trusted)
+      data.setData(trueBytes);
+    else
+      data.setData(falseBytes);
+
+    OperationStatus status;
+    status = put(txn, key, data);
+    if (status != OperationStatus.SUCCESS)
+    {
+      return false;
+    }
+    return true;
+  }
 }

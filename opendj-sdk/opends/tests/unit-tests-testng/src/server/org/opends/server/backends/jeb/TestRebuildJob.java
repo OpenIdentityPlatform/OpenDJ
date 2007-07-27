@@ -73,7 +73,8 @@ public class TestRebuildJob extends JebTestCase
         { "mail.substring" },
         { "mail.ordering" },
         { "mail.equality" },
-        { "mail.approximate" }
+        { "mail.approximate" },
+        { "vlv.testvlvindex" }
     };
   }
 
@@ -164,8 +165,14 @@ public class TestRebuildJob extends JebTestCase
     be=(BackendImpl) DirectoryServer.getBackend(beID);
     be.rebuildBackend(rebuildConfig);
 
-    assertEquals(verifyBackend("mail"), 0);
-
+    if(index.contains(".") && !index.startsWith("vlv."))
+    {
+      assertEquals(verifyBackend(index.split("\\.")[0]), 0);
+    }
+    else
+    {
+      assertEquals(verifyBackend(index), 0);
+    }
   }
 
   @Test(dataProvider = "badIndexes",

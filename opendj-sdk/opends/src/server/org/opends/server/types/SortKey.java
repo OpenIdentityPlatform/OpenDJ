@@ -280,5 +280,94 @@ public class SortKey
 
     buffer.append(")");
   }
+
+  /**
+   * Retrieves the hash code for this sort key.
+   *
+   * @return  The hash code for this sort key.
+   */
+  public int hashCode()
+  {
+    int hashCode = 0;
+
+    if(ascending)
+    {
+      hashCode += 1;
+    }
+
+    hashCode += attributeType.hashCode();
+
+    if(orderingRule != null)
+    {
+      hashCode += orderingRule.hashCode();
+    }
+
+    return hashCode;
+  }
+
+  /**
+   * Indicates whether this sort key is equal to the provided
+   * object.
+   *
+   * @param  o  The object for which to make the determination.
+   *
+   * @return  <CODE>true</CODE> if the provide object is equal to this
+   *          sort key, or <CODE>false</CODE> if it is not.
+   */
+  public boolean equals(Object o)
+  {
+    if(o == null)
+    {
+      return false;
+    }
+
+    if (o == this)
+    {
+      return true;
+    }
+
+    if (! (o instanceof SortKey))
+    {
+      return false;
+    }
+
+    SortKey s = (SortKey) o;
+
+    if(ascending != s.ascending)
+    {
+      return false;
+    }
+
+    if(!attributeType.equals(s.attributeType))
+    {
+      return false;
+    }
+
+    if(orderingRule != null)
+    {
+      if(s.orderingRule != null)
+      {
+        if(!orderingRule.equals(s.orderingRule))
+        {
+          return false;
+        }
+      }
+      else if(!orderingRule.equals(
+          s.attributeType.getOrderingMatchingRule()))
+      {
+        return false;
+      }
+    }
+    else if(s.orderingRule != null)
+    {
+      if(!attributeType.getOrderingMatchingRule().equals(
+          s.orderingRule))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
 

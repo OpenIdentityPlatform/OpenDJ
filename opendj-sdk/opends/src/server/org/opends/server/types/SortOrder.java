@@ -131,5 +131,65 @@ public class SortOrder
 
     buffer.append(")");
   }
+
+  /**
+   * Retrieves the hash code for this sort order.
+   *
+   * @return  The hash code for this sort order.
+   */
+  public int hashCode()
+  {
+    int hashCode = 0;
+    for(SortKey sortKey : sortKeys)
+    {
+      hashCode += sortKey.hashCode();
+    }
+
+    return hashCode;
+  }
+
+  /**
+   * Indicates whether this sort order is equal to the provided
+   * object.
+   *
+   * @param  o  The object for which to make the determination.
+   *
+   * @return  <CODE>true</CODE> if the provide object is equal to this
+   *          sort order, or <CODE>false</CODE> if it is not.
+   */
+  public boolean equals(Object o)
+  {
+    if(o == null)
+    {
+      return false;
+    }
+
+    if (o == this)
+    {
+      return true;
+    }
+
+    if (! (o instanceof SortOrder))
+    {
+      return false;
+    }
+
+    SortOrder s = (SortOrder) o;
+
+    if(sortKeys.length != s.sortKeys.length)
+    {
+      return false;
+    }
+
+    for(int i = 0; i < sortKeys.length; i++)
+    {
+      if(!sortKeys[i].equals(s.sortKeys[i]))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
 

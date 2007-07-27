@@ -61,6 +61,7 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.util.StaticUtils;
 import static org.opends.server.tools.ToolConstants.*;
 import org.opends.server.admin.std.server.BackendCfg;
 
@@ -546,7 +547,8 @@ public class VerifyIndex
     catch (Exception e)
     {
       int    msgID   = MSGID_VERIFYINDEX_ERROR_DURING_VERIFY;
-      String message = getMessage(msgID, getExceptionMessage(e));
+      String message = getMessage(msgID,
+                                  StaticUtils.stackTraceToSingleLineString(e));
       logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR, message,
                msgID);
       returnCode = 1;

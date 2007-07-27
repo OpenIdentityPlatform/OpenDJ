@@ -59,6 +59,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.JEBackendCfg;
 import org.opends.server.admin.std.server.JEIndexCfg;
+import org.opends.server.admin.std.server.VLVJEIndexCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -70,9 +71,7 @@ import org.opends.server.config.ConfigException;
  * the guts of the backend API methods for LDAP operations.
  */
 public class EntryContainer
-    implements ConfigurationChangeListener<JEBackendCfg>,
-    ConfigurationAddListener<JEIndexCfg>,
-    ConfigurationDeleteListener<JEIndexCfg>
+    implements ConfigurationChangeListener<JEBackendCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -114,6 +113,16 @@ public class EntryContainer
    * The attribute used to return a search index debug string to the client.
    */
   public static final String ATTR_DEBUG_SEARCH_INDEX = "debugsearchindex";
+
+  /**
+   * The attribute index configuration manager.
+   */
+  public AttributeJEIndexCfgManager attributeJEIndexCfgManager;
+
+  /**
+   * The vlv index configuration manager.
+   */
+  public VLVJEIndexCfgManager vlvJEIndexCfgManager;
 
   /**
    * The backend to which this entry entryContainer belongs.
@@ -176,6 +185,11 @@ public class EntryContainer
   private HashMap<AttributeType, AttributeIndex> attrIndexMap;
 
   /**
+   * The set of VLV indexes.
+   */
+  private HashMap<String, VLVIndex> vlvIndexMap;
+
+  /**
    * Cached value from config so they don't have to be retrieved per operation.
    */
   private int deadlockRetryLimit;
@@ -187,6 +201,196 @@ public class EntryContainer
   private int indexEntryLimit;
 
   private String databasePrefix;
+  /**
+   * This class is responsible for managing the configuraiton for attribute
+   * indexes used within this entry container.
+   */
+  public class AttributeJEIndexCfgManager implements
+      ConfigurationAddListener<JEIndexCfg>,
+      ConfigurationDeleteListener<JEIndexCfg>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationAddAcceptable(JEIndexCfg cfg,
+                                               List<String> unacceptableReasons)
+    {
+      // TODO: validate more before returning true?
+      return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationAdd(JEIndexCfg cfg)
+    {
+      ConfigChangeResult ccr;
+      boolean adminActionRequired = false;
+      ArrayList<String> messages = new ArrayList<String>();
+
+      try
+      {
+        AttributeIndex index =
+            new AttributeIndex(cfg, state, env, EntryContainer.this);
+        index.open();
+        attrIndexMap.put(cfg.getIndexAttribute(), index);
+      }
+      catch(Exception e)
+      {
+        messages.add(StaticUtils.stackTraceToSingleLineString(e));
+        ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                                     adminActionRequired,
+                                     messages);
+        return ccr;
+      }
+
+      adminActionRequired = true;
+      int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
+      messages.add(getMessage(msgID, cfg.getIndexAttribute().getNameOrOID()));
+      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
+                                    messages);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public synchronized boolean isConfigurationDeleteAcceptable(
+        JEIndexCfg cfg, List<String> unacceptableReasons)
+    {
+      // TODO: validate more before returning true?
+      return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationDelete(JEIndexCfg cfg)
+    {
+      ConfigChangeResult ccr;
+      boolean adminActionRequired = false;
+      ArrayList<String> messages = new ArrayList<String>();
+
+      exclusiveLock.lock();
+      try
+      {
+        AttributeIndex index = attrIndexMap.get(cfg.getIndexAttribute());
+        deleteAttributeIndex(index);
+        attrIndexMap.remove(cfg.getIndexAttribute());
+      }
+      catch(DatabaseException de)
+      {
+        messages.add(StaticUtils.stackTraceToSingleLineString(de));
+        ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                                     adminActionRequired,
+                                     messages);
+        return ccr;
+      }
+      finally
+      {
+        exclusiveLock.unlock();
+      }
+
+      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
+                                    messages);
+    }
+  }
+
+  /**
+   * This class is responsible for managing the configuraiton for VLV indexes
+   * used within this entry container.
+   */
+  public class VLVJEIndexCfgManager implements
+      ConfigurationAddListener<VLVJEIndexCfg>,
+      ConfigurationDeleteListener<VLVJEIndexCfg>
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationAddAcceptable(
+        VLVJEIndexCfg cfg, List<String> unacceptableReasons)
+    {
+      // TODO: validate more before returning true?
+      return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationAdd(VLVJEIndexCfg cfg)
+    {
+      ConfigChangeResult ccr;
+      boolean adminActionRequired = false;
+      ArrayList<String> messages = new ArrayList<String>();
+
+      try
+      {
+        VLVIndex vlvIndex = new VLVIndex(cfg, state, env, EntryContainer.this);
+        vlvIndex.open();
+        vlvIndexMap.put(cfg.getVLVIndexName().toLowerCase(), vlvIndex);
+      }
+      catch(Exception e)
+      {
+        messages.add(StaticUtils.stackTraceToSingleLineString(e));
+        ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                                     adminActionRequired,
+                                     messages);
+        return ccr;
+      }
+
+      adminActionRequired = true;
+      int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
+      messages.add(getMessage(msgID, cfg.getVLVIndexName()));
+      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
+                                    messages);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationDeleteAcceptable(VLVJEIndexCfg cfg,
+                                               List<String> unacceptableReasons)
+    {
+      // TODO: validate more before returning true?
+      return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationDelete(VLVJEIndexCfg cfg)
+    {
+      ConfigChangeResult ccr;
+      boolean adminActionRequired = false;
+      ArrayList<String> messages = new ArrayList<String>();
+
+      exclusiveLock.lock();
+      try
+      {
+        VLVIndex vlvIndex =
+            vlvIndexMap.get(cfg.getVLVIndexName().toLowerCase());
+        vlvIndex.close();
+        deleteDatabase(vlvIndex);
+        vlvIndexMap.remove(cfg.getVLVIndexName());
+      }
+      catch(DatabaseException de)
+      {
+        messages.add(StaticUtils.stackTraceToSingleLineString(de));
+        ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                                     adminActionRequired,
+                                     messages);
+        return ccr;
+      }
+      finally
+      {
+        exclusiveLock.unlock();
+      }
+
+      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
+                                    messages);
+    }
+
+  }
+
   /**
    * A read write lock to handle schema changes and bulk changes.
    */
@@ -243,9 +447,20 @@ public class EntryContainer
     // Instantiate the attribute indexes.
     attrIndexMap = new HashMap<AttributeType, AttributeIndex>();
 
+    // Instantiate the VLV indexes.
+    vlvIndexMap = new HashMap<String, VLVIndex>();
+
     config.addJEChangeListener(this);
-    config.addJEIndexAddListener(this);
-    config.addJEIndexDeleteListener(this);
+
+    attributeJEIndexCfgManager =
+        new AttributeJEIndexCfgManager();
+    config.addJEIndexAddListener(attributeJEIndexCfgManager);
+    config.addJEIndexDeleteListener(attributeJEIndexCfgManager);
+
+    vlvJEIndexCfgManager =
+        new VLVJEIndexCfgManager();
+    config.addVLVJEIndexAddListener(vlvJEIndexCfgManager);
+    config.addVLVJEIndexDeleteListener(vlvJEIndexCfgManager);
   }
 
   /**
@@ -298,6 +513,15 @@ public class EntryContainer
         index.open();
         attrIndexMap.put(indexCfg.getIndexAttribute(), index);
       }
+
+      for(String idx : config.listVLVJEIndexes())
+      {
+        VLVJEIndexCfg vlvIndexCfg = config.getVLVJEIndex(idx);
+
+        VLVIndex vlvIndex = new VLVIndex(vlvIndexCfg, state, env, this);
+        vlvIndex.open();
+        vlvIndexMap.put(vlvIndexCfg.getVLVIndexName().toLowerCase(), vlvIndex);
+      }
     }
     catch (DatabaseException de)
     {
@@ -326,8 +550,10 @@ public class EntryContainer
     }
 
     config.removeJEChangeListener(this);
-    config.removeJEIndexAddListener(this);
-    config.removeJEIndexDeleteListener(this);
+    config.removeJEIndexAddListener(attributeJEIndexCfgManager);
+    config.removeJEIndexDeleteListener(attributeJEIndexCfgManager);
+    config.removeVLVJEIndexDeleteListener(vlvJEIndexCfgManager);
+    config.removeVLVJEIndexDeleteListener(vlvJEIndexCfgManager);
   }
 
   /**
@@ -397,6 +623,17 @@ public class EntryContainer
   }
 
   /**
+   * Look for an VLV index for the given index name.
+   *
+   * @param vlvIndexName The vlv index name for which an vlv index is needed.
+   * @return The VLV index or null if there is none with that name.
+   */
+  public VLVIndex getVLVIndex(String vlvIndexName)
+  {
+    return vlvIndexMap.get(vlvIndexName);
+  }
+
+  /**
    * Retrieve all attribute indexes.
    *
    * @return All attribute indexes defined in this entry container.
@@ -406,6 +643,15 @@ public class EntryContainer
     return attrIndexMap.values();
   }
 
+  /**
+   * Retrieve all VLV indexes.
+   *
+   * @return The collection of VLV indexes defined in this entry container.
+   */
+  public Collection<VLVIndex> getVLVIndexes()
+  {
+    return vlvIndexMap.values();
+  }
 
   /**
    * Determine the highest entryID in the entryContainer.
@@ -448,9 +694,10 @@ public class EntryContainer
    *          If a problem occurs while processing the
    *          search.
    * @throws DatabaseException If an error occurs in the JE database.
+   * @throws JebException If an error occurs in the JE database.
    */
   public void search(SearchOperation searchOperation)
-       throws DirectoryException, DatabaseException
+       throws DirectoryException, DatabaseException, JebException
   {
     DN baseDN = searchOperation.getBaseDN();
     SearchScope searchScope = searchOperation.getScope();
@@ -617,54 +864,115 @@ public class EntryContainer
       debugBuffer = new StringBuilder();
     }
 
-    // Create an index filter to get the search result candidate entries.
-    IndexFilter indexFilter =
-         new IndexFilter(this, searchOperation, debugBuffer);
-
-    // Evaluate the filter against the attribute indexes.
-    EntryIDSet entryIDList = indexFilter.evaluate();
-
-    // Evaluate the search scope against the id2children and id2subtree indexes.
+    EntryIDSet entryIDList = null;
     boolean candidatesAreInScope = false;
-    if (entryIDList.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
+    if(sortRequest != null)
     {
-      // Read the ID from dn2id.
-      EntryID baseID = dn2id.get(null, baseDN);
-      if (baseID == null)
+      for(VLVIndex vlvIndex : vlvIndexMap.values())
       {
-        int messageID = MSGID_JEB_SEARCH_NO_SUCH_OBJECT;
-        String message = getMessage(messageID, baseDN.toString());
-        DN matchedDN = getMatchedDN(baseDN);
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-            message, messageID, matchedDN, null);
-      }
-      DatabaseEntry baseIDData = baseID.getDatabaseEntry();
-
-      EntryIDSet scopeList;
-      if (searchScope == SearchScope.SINGLE_LEVEL)
-      {
-        scopeList = id2children.readKey(baseIDData, null, LockMode.DEFAULT);
-      }
-      else
-      {
-        scopeList = id2subtree.readKey(baseIDData, null, LockMode.DEFAULT);
-        if (searchScope == SearchScope.WHOLE_SUBTREE)
+        try
         {
-          // The id2subtree list does not include the base entry ID.
-          scopeList.add(baseID);
+          entryIDList =
+              vlvIndex.evaluate(null, searchOperation, sortRequest, vlvRequest,
+                                debugBuffer);
+          if(entryIDList != null)
+          {
+            searchOperation.addResponseControl(
+                new ServerSideSortResponseControl(LDAPResultCode.SUCCESS,
+                                                  null));
+            candidatesAreInScope = true;
+            break;
+          }
+        }
+        catch (DirectoryException de)
+        {
+          searchOperation.addResponseControl(
+              new ServerSideSortResponseControl(
+                  de.getResultCode().getIntValue(), null));
+
+          if (sortRequest.isCritical())
+          {
+            throw de;
+          }
         }
       }
-      entryIDList.retainAll(scopeList);
-      if (debugBuffer != null)
+    }
+
+    if(entryIDList == null)
+    {
+      // Create an index filter to get the search result candidate entries.
+      IndexFilter indexFilter =
+          new IndexFilter(this, searchOperation, debugBuffer);
+
+      // Evaluate the filter against the attribute indexes.
+      entryIDList = indexFilter.evaluate();
+
+      // Evaluate the search scope against the id2children and id2subtree
+      // indexes.
+      if (entryIDList.size() > IndexFilter.FILTER_CANDIDATE_THRESHOLD)
       {
-        debugBuffer.append(" scope=");
-        debugBuffer.append(searchScope);
-        scopeList.toString(debugBuffer);
+        // Read the ID from dn2id.
+        EntryID baseID = dn2id.get(null, baseDN);
+        if (baseID == null)
+        {
+          int messageID = MSGID_JEB_SEARCH_NO_SUCH_OBJECT;
+          String message = getMessage(messageID, baseDN.toString());
+          DN matchedDN = getMatchedDN(baseDN);
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+              message, messageID, matchedDN, null);
+        }
+        DatabaseEntry baseIDData = baseID.getDatabaseEntry();
+
+        EntryIDSet scopeList;
+        if (searchScope == SearchScope.SINGLE_LEVEL)
+        {
+          scopeList = id2children.readKey(baseIDData, null, LockMode.DEFAULT);
+        }
+        else
+        {
+          scopeList = id2subtree.readKey(baseIDData, null, LockMode.DEFAULT);
+          if (searchScope == SearchScope.WHOLE_SUBTREE)
+          {
+            // The id2subtree list does not include the base entry ID.
+            scopeList.add(baseID);
+          }
+        }
+        entryIDList.retainAll(scopeList);
+        if (debugBuffer != null)
+        {
+          debugBuffer.append(" scope=");
+          debugBuffer.append(searchScope);
+          scopeList.toString(debugBuffer);
+        }
+        if (scopeList.isDefined())
+        {
+          // In this case we know that every candidate is in scope.
+          candidatesAreInScope = true;
+        }
       }
-      if (scopeList.isDefined())
+
+      if (sortRequest != null)
       {
-        // In this case we know that every candidate is in scope.
-        candidatesAreInScope = true;
+        try
+        {
+          entryIDList = EntryIDSetSorter.sort(this, entryIDList,
+                                              searchOperation,
+                                              sortRequest.getSortOrder(),
+                                              vlvRequest);
+          searchOperation.addResponseControl(
+              new ServerSideSortResponseControl(LDAPResultCode.SUCCESS, null));
+        }
+        catch (DirectoryException de)
+        {
+          searchOperation.addResponseControl(
+              new ServerSideSortResponseControl(
+                  de.getResultCode().getIntValue(), null));
+
+          if (sortRequest.isCritical())
+          {
+            throw de;
+          }
+        }
       }
     }
 
@@ -697,30 +1005,6 @@ public class EntryContainer
 
     if (entryIDList.isDefined())
     {
-      if (sortRequest != null)
-      {
-        try
-        {
-          entryIDList = EntryIDSetSorter.sort(this, entryIDList,
-                                              searchOperation,
-                                              sortRequest.getSortOrder(),
-                                              vlvRequest);
-          searchOperation.addResponseControl(
-               new ServerSideSortResponseControl(LDAPResultCode.SUCCESS, null));
-        }
-        catch (DirectoryException de)
-        {
-          searchOperation.addResponseControl(
-               new ServerSideSortResponseControl(
-                        de.getResultCode().getIntValue(), null));
-
-          if (sortRequest.isCritical())
-          {
-            throw de;
-          }
-        }
-      }
-
       searchIndexed(entryIDList, candidatesAreInScope, searchOperation,
                     pageRequest);
     }
@@ -3313,6 +3597,11 @@ public class EntryContainer
     {
       index.addEntry(txn, entryID, entry);
     }
+
+    for (VLVIndex vlvIndex : vlvIndexMap.values())
+    {
+      vlvIndex.addEntry(txn, entryID, entry);
+    }
   }
 
   /**
@@ -3332,6 +3621,11 @@ public class EntryContainer
     {
       index.removeEntry(txn, entryID, entry);
     }
+
+    for (VLVIndex vlvIndex : vlvIndexMap.values())
+    {
+      vlvIndex.removeEntry(txn, entryID, entry);
+    }
   }
 
   /**
@@ -3344,11 +3638,13 @@ public class EntryContainer
    * @param entryID The ID of the entry that was changed.
    * @param mods The sequence of modifications made to the entry.
    * @throws DatabaseException If an error occurs in the JE database.
+   * @throws DirectoryException If a Directory Server error occurs.
+   * @throws JebException If an error occurs in the JE backend.
    */
   private void indexModifications(Transaction txn, Entry oldEntry,
                                   Entry newEntry,
                                   EntryID entryID, List<Modification> mods)
-      throws DatabaseException
+      throws DatabaseException, DirectoryException, JebException
   {
     // Process in index configuration order.
     for (AttributeIndex index : attrIndexMap.values())
@@ -3369,6 +3665,11 @@ public class EntryContainer
       {
         index.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
       }
+    }
+
+    for(VLVIndex vlvIndex : vlvIndexMap.values())
+    {
+      vlvIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
     }
   }
 
@@ -3416,6 +3717,11 @@ public class EntryContainer
     for(AttributeIndex index : attrIndexMap.values())
     {
       index.listDatabases(dbList);
+    }
+
+    for (VLVIndex vlvIndex : vlvIndexMap.values())
+    {
+      dbList.add(vlvIndex);
     }
   }
 
@@ -3858,92 +4164,6 @@ public class EntryContainer
     this.indexEntryLimit = config.getBackendIndexEntryLimit();
     return new ConfigChangeResult(ResultCode.SUCCESS,
                                   adminActionRequired, messages);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public synchronized boolean isConfigurationAddAcceptable(
-      JEIndexCfg cfg, List<String> unacceptableReasons)
-  {
-    // TODO: validate more before returning true?
-    return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public synchronized ConfigChangeResult applyConfigurationAdd(JEIndexCfg cfg)
-  {
-    ConfigChangeResult ccr;
-    boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
-
-    try
-    {
-      AttributeIndex index =
-          new AttributeIndex(cfg, state, env, this);
-      index.open();
-      attrIndexMap.put(cfg.getIndexAttribute(), index);
-    }
-    catch(Exception e)
-    {
-      messages.add(StaticUtils.stackTraceToSingleLineString(e));
-      ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                   adminActionRequired,
-                                   messages);
-      return ccr;
-    }
-
-    adminActionRequired = true;
-    int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
-    messages.add(getMessage(msgID, cfg.getIndexAttribute().getNameOrOID()));
-    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-                                  messages);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public synchronized boolean isConfigurationDeleteAcceptable(
-      JEIndexCfg cfg, List<String> unacceptableReasons)
-  {
-    // TODO: validate more before returning true?
-    return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public synchronized ConfigChangeResult applyConfigurationDelete(
-      JEIndexCfg cfg)
-  {
-    ConfigChangeResult ccr;
-    boolean adminActionRequired = false;
-    ArrayList<String> messages = new ArrayList<String>();
-
-    exclusiveLock.lock();
-    try
-    {
-      AttributeIndex index = attrIndexMap.get(cfg.getIndexAttribute());
-      deleteAttributeIndex(index);
-      attrIndexMap.remove(cfg.getIndexAttribute());
-    }
-    catch(DatabaseException de)
-    {
-      messages.add(StaticUtils.stackTraceToSingleLineString(de));
-      ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                   adminActionRequired,
-                                   messages);
-      return ccr;
-    }
-    finally
-    {
-      exclusiveLock.unlock();
-    }
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-                                  messages);
   }
 
   /**
