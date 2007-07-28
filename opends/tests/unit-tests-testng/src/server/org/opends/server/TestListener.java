@@ -52,8 +52,6 @@ import java.io.FileNotFoundException;
 /**
  * This class is our replacement for the test results that TestNG generates.
  *   It prints out test to the console as they happen.
- *   It
- *
  */
 public class TestListener extends TestListenerAdapter implements IReporter {
   private final StringBuilder _bufferedTestFailures = new StringBuilder();
@@ -195,9 +193,19 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
+
   public void onTestSuccess(ITestResult tr) {
     super.onTestSuccess(tr);
     addTestResult(tr);
+
+    // Clear the test parameters on a successful test because they take up a lot
+    // of memory and we won't need them again (as we might with a failed test).
+    clearTestParameters(tr);
+  }
+
+  private static final String[][] CLEARED_TEST_PARAMETERS = {{"<test-parameters-cleared>"}};
+  private void clearTestParameters(ITestResult tr) {
+    tr.setParameters(CLEARED_TEST_PARAMETERS);
   }
 
   public void onTestFailure(ITestResult tr) {
