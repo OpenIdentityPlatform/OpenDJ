@@ -85,7 +85,7 @@ public class GetConnectionIDExtendedOperation
    */
   public void finalizeExtendedOperationHandler()
   {
-    DirectoryServer.deregisterSupportedExtension(OID_WHO_AM_I_REQUEST);
+    DirectoryServer.deregisterSupportedExtension(OID_GET_CONNECTION_ID_EXTOP);
 
     deregisterControlsAndFeatures();
   }
