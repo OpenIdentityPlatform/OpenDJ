@@ -96,7 +96,7 @@
       #@TestPostamble             none
       #@TestResult                Success if OpenDS returns 0
     -->
-    <testcase name="'%s' % STAXCurrentFunction">
+    <testcase name="'%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],STAXCurrentFunction)">
       <sequence>
         <call function="'testCase_Preamble'" />
         <call function="'SearchObject'">
