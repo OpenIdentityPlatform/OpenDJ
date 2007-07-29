@@ -498,6 +498,32 @@ public class ServerConstants
 
 
   /**
+   * The name of the attribute that is used to specify the connection ID of the
+   * connection to disconnect.
+   */
+  public static final String ATTR_TASK_DISCONNECT_CONN_ID =
+       "ds-task-disconnect-connection-id";
+
+
+
+  /**
+   * The name of the attribute that is used to specify the disconnect message.
+   */
+  public static final String ATTR_TASK_DISCONNECT_MESSAGE =
+       "ds-task-disconnect-message";
+
+
+
+  /**
+   * The name of the attribute that is used to indicate whether to notify the
+   * connection it is about to be terminated.
+   */
+  public static final String ATTR_TASK_DISCONNECT_NOTIFY_CLIENT =
+       "ds-task-disconnect-notify-client";
+
+
+
+  /**
    * The name of the attribute that is used to specify the total number of
    * connections established since startup, formatted in camel case.
    */
@@ -683,6 +709,15 @@ public class ServerConstants
    */
   public static final String OID_EXTENSIBLE_OBJECT =
        "1.3.6.1.4.1.1466.101.120.111";
+
+
+
+  /**
+   * The OID for the extended operation that can be used to get the client
+   * connection ID.  It will be both the request and response OID.
+   */
+  public static final String OID_GET_CONNECTION_ID_EXTOP =
+       "1.3.6.1.4.1.26027.1.6.2";
 
 
 
