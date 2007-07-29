@@ -46,6 +46,18 @@ ds-cfg-writability-mode: enabled
 ds-cfg-bind-with-dn-requires-password: true
 ds-cfg-reject-unauthenticated-requests: false
 ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,cn=config
+ds-cfg-allowed-task: org.opends.server.tasks.AddSchemaFileTask
+ds-cfg-allowed-task: org.opends.server.tasks.BackupTask
+ds-cfg-allowed-task: org.opends.server.tasks.DisconnectClientTask
+ds-cfg-allowed-task: org.opends.server.tasks.EnterLockdownModeTask
+ds-cfg-allowed-task: org.opends.server.tasks.ExportTask
+ds-cfg-allowed-task: org.opends.server.tasks.ImportTask
+ds-cfg-allowed-task: org.opends.server.tasks.InitializeTargetTask
+ds-cfg-allowed-task: org.opends.server.tasks.InitializeTask
+ds-cfg-allowed-task: org.opends.server.tasks.LeaveLockdownModeTask
+ds-cfg-allowed-task: org.opends.server.tasks.RebuildTask
+ds-cfg-allowed-task: org.opends.server.tasks.RestoreTask
+ds-cfg-allowed-task: org.opends.server.tasks.ShutdownTask
 
 dn: cn=Access Control Handler,cn=config
 objectClass: top

@@ -1530,6 +1530,8 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.454 NAME 'ds-task-disconnect-message'
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.455
   NAME 'ds-task-disconnect-notify-client' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.456 NAME 'ds-cfg-allowed-task'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1744,7 +1746,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.40 NAME 'ds-cfg-root-config'
   ds-cfg-proxied-authorization-identity-mapper-dn $ ds-cfg-writability-mode $
   ds-cfg-reject-unauthenticated-requests  $
   ds-cfg-bind-with-dn-requires-password $ ds-cfg-lookthrough-limit $
-  ds-cfg-smtp-server ) X-ORIGIN 'OpenDS Directory Server' )
+  ds-cfg-smtp-server $ ds-cfg-allowed-task )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.41 NAME 'ds-cfg-root-dn' SUP top
   AUXILIARY MAY ds-cfg-alternate-bind-dn X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.42 NAME 'ds-cfg-root-dse'

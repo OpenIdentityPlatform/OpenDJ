@@ -501,5 +501,30 @@
     </adm:profile>
   </adm:property>
 
+  <adm:property name="allowed-task" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the fully-qualified name of a Java class that may be invoked in
+      the server.  Any attempt to invoke a task not included in the list of
+      allowed tasks will be rejected.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          If no values are defined, then the server will not allow any tasks to
+          be invoked.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.454</ldap:oid>
+        <ldap:name>ds-cfg-allowed-task</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:managed-object>
 

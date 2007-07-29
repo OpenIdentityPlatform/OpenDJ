@@ -1829,6 +1829,13 @@ public class TaskScheduler
     }
 
     String taskClassName = value.getStringValue();
+    if (! DirectoryServer.getAllowedTasks().contains(taskClassName))
+    {
+      int    msgID   = MSGID_TASKSCHED_NOT_ALLOWED_TASK;
+      String message = getMessage(msgID, taskClassName);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                   msgID);
+    }
 
 
     // Try to load the specified class.

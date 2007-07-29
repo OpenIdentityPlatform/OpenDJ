@@ -251,6 +251,8 @@ public class CoreConfigManager
       }
     }
     DirectoryServer.setMailServerPropertySets(mailServerProperties);
+
+    DirectoryServer.setAllowedTasks(globalConfig.getAllowedTask());
   }
 
 
