@@ -41,7 +41,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.backends.task.TaskState;
+import org.opends.server.backends.task.*;
 import org.opends.server.types.*;
 
 import java.util.ArrayList;
@@ -154,4 +154,56 @@ public class TasksTestCase extends DirectoryServerTestCase {
     }
   }
 
+
+
+  /**
+   * Retrieves the specified task from the server, waiting for it to finish all
+   * the running its going to do before returning.
+   *
+   * @param  taskEntryDN  The DN of the entry for the task to retrieve.
+   *
+   * @return  The requested task entry.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  protected Task getCompletedTask(DN taskEntryDN)
+          throws Exception
+  {
+    TaskBackend taskBackend =
+         (TaskBackend) DirectoryServer.getBackend(DN.decode("cn=tasks"));
+    Task task = taskBackend.getScheduledTask(taskEntryDN);
+    if (task == null)
+    {
+      long stopWaitingTime = System.currentTimeMillis() + 10000L;
+      while ((task == null) && (System.currentTimeMillis() < stopWaitingTime))
+      {
+        Thread.sleep(10);
+        task = taskBackend.getScheduledTask(taskEntryDN);
+      }
+    }
+
+    if (task == null)
+    {
+      throw new AssertionError("There is no such task " +
+                               taskEntryDN.toString());
+    }
+
+    if (! TaskState.isDone(task.getTaskState()))
+    {
+      long stopWaitingTime = System.currentTimeMillis() + 20000L;
+      while ((! TaskState.isDone(task.getTaskState())) &&
+             (System.currentTimeMillis() < stopWaitingTime))
+      {
+        Thread.sleep(10);
+      }
+    }
+
+    if (! TaskState.isDone(task.getTaskState()))
+    {
+      throw new AssertionError("Task " + taskEntryDN.toString() +
+                               " did not complete in a timely manner.");
+    }
+
+    return task;
+  }
 }
