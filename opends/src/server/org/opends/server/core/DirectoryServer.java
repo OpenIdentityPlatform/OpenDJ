@@ -522,6 +522,9 @@ public class DirectoryServer
   // The error logger that will be used during the Directory Server startup.
   private TextErrorLogPublisher startupErrorLogPublisher;
 
+  // The set of allowed task classes.
+  private Set<String> allowedTasks;
+
   // The fully-qualified name of the configuration handler class.
   private String configClass;
 
@@ -718,6 +721,7 @@ public class DirectoryServer
          new CopyOnWriteArrayList<ExportTaskListener>();
     directoryServer.importTaskListeners =
          new CopyOnWriteArrayList<ImportTaskListener>();
+    directoryServer.allowedTasks = new LinkedHashSet<String>(0);
   }
 
 
@@ -7387,6 +7391,33 @@ public class DirectoryServer
                                                             provider)
   {
     directoryServer.synchronizationProviders.remove(provider);
+  }
+
+
+
+  /**
+   * Retrieves a set containing the names of the allowed tasks that may be
+   * invoked in the server.
+   *
+   * @return  A set containing the names of the allowed tasks that may be
+   *          invoked in the server.
+   */
+  public static Set<String> getAllowedTasks()
+  {
+    return directoryServer.allowedTasks;
+  }
+
+
+
+  /**
+   * Specifies the set of allowed tasks that may be invoked in the server.
+   *
+   * @param  allowedTasks  A set containing the names of the allowed tasks that
+   *                       may be invoked in the server.
+   */
+  public static void setAllowedTasks(Set<String> allowedTasks)
+  {
+    directoryServer.allowedTasks = allowedTasks;
   }
 
 

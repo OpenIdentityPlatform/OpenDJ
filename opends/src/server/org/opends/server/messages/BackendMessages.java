@@ -3227,6 +3227,16 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used if an attempt is made to
+   * schedule a task that is not included in the set of allowed tasks.  This
+   * takes a single argument, which is the name of the target class.
+   */
+  public static final int MSGID_TASKSCHED_NOT_ALLOWED_TASK =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_SEVERE_ERROR | 298;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -4238,6 +4248,9 @@ public class BackendMessages
                     "The provided task entry contains multiple values for " +
                     "the %s attribute, which is used to specify the task " +
                     "class name, but only a single value is allowed");
+    registerMessage(MSGID_TASKSCHED_NOT_ALLOWED_TASK,
+                    "The Directory Server is not configured to allow task " +
+                    "%s to be invoked");
     registerMessage(MSGID_TASKSCHED_CANNOT_LOAD_CLASS,
                     "An error occurred while attempting to load class %s " +
                     "specified in attribute %s of the provided task entry:  " +
