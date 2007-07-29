@@ -405,6 +405,13 @@ cn: Cancel
 ds-cfg-extended-operation-handler-class: org.opends.server.extensions.CancelExtendedOperation
 ds-cfg-extended-operation-handler-enabled: true
 
+dn: cn=Get Connection ID,cn=Extended Operations,cn=config
+objectClass: top
+objectClass: ds-cfg-extended-operation-handler
+cn: Cancel
+ds-cfg-extended-operation-handler-class: org.opends.server.extensions.GetConnectionIDExtendedOperation
+ds-cfg-extended-operation-handler-enabled: true
+
 dn: cn=Password Modify,cn=Extended Operations,cn=config
 objectClass: top
 objectClass: ds-cfg-extended-operation-handler

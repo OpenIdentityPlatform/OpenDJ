@@ -1520,6 +1520,16 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.451
   NAME 'ds-task-import-clear-backend'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.453
+  NAME 'ds-task-disconnect-connection-id'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.454 NAME 'ds-task-disconnect-message'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.455
+  NAME 'ds-task-disconnect-notify-client' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -2137,5 +2147,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.118
   NAME 'ds-cfg-smtp-alert-handler' SUP ds-cfg-alert-handler STRUCTURAL
   MUST ( ds-cfg-sender-address $ ds-cfg-recipient-address $
   ds-cfg-message-subject $ ds-cfg-message-body )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.119
+  NAME 'ds-task-disconnect' SUP ds-task STRUCTURAL
+  MUST ds-task-disconnect-connection-id
+  MAY ( ds-task-disconnect-message $ ds-task-disconnect-notify-client )
   X-ORIGIN 'OpenDS Directory Server' )
 

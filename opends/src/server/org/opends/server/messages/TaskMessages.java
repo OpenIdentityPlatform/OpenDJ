@@ -274,6 +274,76 @@ public class TaskMessages
 
 
   /**
+   * The message ID for the message that will be used if the client does not
+   * have the DISCONNECT_CLIENT privilege.  It does not take any arguments.
+   */
+  public static final int  MSGID_TASK_DISCONNECT_NO_PRIVILEGE =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 25;
+
+
+
+  /**
+   * The message ID for the message that will be used if the provided connection
+   * ID cannot be decoded.  This takes a single argument, which is the invalid
+   * value.
+   */
+  public static final int  MSGID_TASK_DISCONNECT_INVALID_CONN_ID =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 26;
+
+
+
+  /**
+   * The message ID for the message that will be used if the task entry does
+   * not specify a target connection ID.  This takes a single argument, which is
+   * the name of the attribute type used to specify the target connection ID.
+   */
+  public static final int  MSGID_TASK_DISCONNECT_NO_CONN_ID =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 27;
+
+
+
+  /**
+   * The message ID for the message that will be used if the notifyClient
+   * attribute value cannot be decoded.  This takes a single argument, which is
+   * the invalid value.
+   */
+  public static final int  MSGID_TASK_DISCONNECT_INVALID_NOTIFY_CLIENT =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 28;
+
+
+
+  /**
+   * The message ID for the message that will be used as a generic message that
+   * may be sent to the client if no other value is given.  It does not take
+   * any arguments.
+   */
+  public static final int  MSGID_TASK_DISCONNECT_GENERIC_MESSAGE =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_INFORMATIONAL | 29;
+
+
+
+  /**
+   * The message ID for the message that will be used if no client connection
+   * can be found with the specified connection ID.  It takes a single argument,
+   * which is the target connection ID.
+   */
+  public static final int  MSGID_TASK_DISCONNECT_NO_SUCH_CONNECTION =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_SEVERE_ERROR | 30;
+
+
+
+  /**
+   * The message ID for the message that will be used as the message ID for the
+   * disconnectClient method.  The associated message will be defined, but it
+   * will not actually be used, since only the message ID is needed.  It does
+   * not take any arguments.
+   */
+  public static final int  MSGID_TASK_DISCONNECT_MESSAGE =
+       CATEGORY_MASK_TASK | SEVERITY_MASK_INFORMATIONAL | 31;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -362,6 +432,26 @@ public class TaskMessages
     registerMessage(MSGID_TASK_LEAVELOCKDOWN_NOT_LOOPBACK,
                     "Only root users connected from a loopback address may " +
                     "cause the server to leave lockdown mode");
+
+
+    registerMessage(MSGID_TASK_DISCONNECT_NO_PRIVILEGE,
+                    "You do not have sufficient privileges to terminate " +
+                    "client connections");
+    registerMessage(MSGID_TASK_DISCONNECT_INVALID_CONN_ID,
+                    "Unable to decode value %s as an integer connection ID");
+    registerMessage(MSGID_TASK_DISCONNECT_NO_CONN_ID,
+                    "Attribute %s must be provided to specify the connection " +
+                    "ID for the client to disconnect");
+    registerMessage(MSGID_TASK_DISCONNECT_INVALID_NOTIFY_CLIENT,
+                    "Unable to decode value %s as an indication of whether " +
+                    "to notify the client before disconnecting it.  The " +
+                    "provided value should be either 'true' or 'false'");
+    registerMessage(MSGID_TASK_DISCONNECT_GENERIC_MESSAGE,
+                    "An administrator has terminated this client connection");
+    registerMessage(MSGID_TASK_DISCONNECT_NO_SUCH_CONNECTION,
+                    "There is no client connection with connection ID %s");
+    registerMessage(MSGID_TASK_DISCONNECT_MESSAGE,
+                    "An administrator has terminated this client connection");
   }
 }
 
