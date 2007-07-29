@@ -109,7 +109,7 @@
 <!-- Usage section - bottom  -->
 	
 <!-- Downloader section - top    -->
-  <target name="download-do-prepare-check-proxy">
+  <target name="download-do-prepare-check-proxy" unless="proxy.disabled">
     <echo>Checking for proxy [${proxy.host}:${proxy.port}] as user [${proxy.user}].</echo>
     <echo>Note: If these values do not match your environment, </echo>
     <echo>      please use the 'configure' target</echo>
@@ -716,6 +716,7 @@ email.server.pwd=${email.server.pwd.input}
       </filterchain>
     </copy>
     <property file="${staf.tmp.dir}/percentage.properties"/>
+    <echo>Test Success Rate: ${test.percentage}%</echo>
   </target>
 
   <target name="send-mail" if="email.send" depends="send-mail-get-percentage">
@@ -1111,7 +1112,8 @@ email.server.pwd=${email.server.pwd.input}
 	</target>
 
   <target name="restart">
-    <antcall target="stop" inheritAll="false" />
+    <antcall target="stop"  inheritAll="false" />
+    <sleep seconds="10"                        />
     <antcall target="start" inheritAll="false" />
   </target>
 <!--  Macros section - bottom -->
@@ -1165,5 +1167,17 @@ email.server.pwd=${email.server.pwd.input}
 </replacetoken>
       <replacevalue></replacevalue>
     </replace>
+  </target>
+  
+  <target name="generate-report">
+    <tstamp>
+      <format property="tstamp.today" pattern="yyyyMMdd"/>
+    </tstamp>
+    <fileset id="resultxml" file="${tstamp.today}-*/**/reports/results.xml" />
+    <xslt processor="trax"
+          in="C:\Users\arnaud\.hudson\jobs\opends-vista-functional-tests\workspace\opends\tests\functional-run\tmp\20070726-234928\Windows-x86-jvm1.5\reports\results.xml" 
+          out="${staf.tmp.dir}/results.html"
+          style="shared/xsl/gen-alltests-report.xsl">
+    </xslt>
   </target>
 </project>
