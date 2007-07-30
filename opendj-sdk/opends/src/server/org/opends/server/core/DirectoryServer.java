@@ -2058,6 +2058,21 @@ public class DirectoryServer
 
 
   /**
+   * Indicates whether the Directory Server is configured with information about
+   * one or more mail servers and may therefore be used to send e-mail messages.
+   *
+   * @return  {@code true} if the Directory Server is configured to be able to
+   *          send e-mail messages, or {@code false} if not.
+   */
+  public static boolean mailServerConfigured()
+  {
+    return ((directoryServer.mailServerPropertySets != null) &&
+            (! directoryServer.mailServerPropertySets.isEmpty()));
+  }
+
+
+
+  /**
    * Specifies the set of mail server properties that should be used for SMTP
    * communication.
    *

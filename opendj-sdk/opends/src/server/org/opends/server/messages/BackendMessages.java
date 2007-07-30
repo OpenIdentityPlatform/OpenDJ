@@ -3237,6 +3237,17 @@ public class BackendMessages
 
 
   /**
+   * The message ID for the message that will be used as the body of the
+   * notification e-mail message sent when a task is completed.  It takes
+   * five arguments, which are string representations of the task ID, task
+   * state, scheduled start date, actual start date, and completion date.
+   */
+  public static final int MSGID_TASK_COMPLETION_BODY =
+       CATEGORY_MASK_BACKEND | SEVERITY_MASK_INFORMATIONAL | 299;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -3993,6 +4004,14 @@ public class BackendMessages
     registerMessage(MSGID_TASK_EXECUTE_FAILED,
                     "An error occurred while executing the task defined in " +
                     "entry %s:  %s");
+    registerMessage(MSGID_TASK_COMPLETION_BODY,
+                    "Task ID:  %s\r\n" +
+                    "Task State:  %s\r\n" +
+                    "Scheduled Start Time:  %s\r\n" +
+                    "Actual Start Time:  %s\r\n" +
+                    "Completion Time:  %s\r\n" +
+                    "\r\n" +
+                    "Log Messages:\r\n");
 
 
     registerMessage(MSGID_RECURRINGTASK_NO_ID_ATTRIBUTE,

@@ -29,16 +29,19 @@ package org.opends.server.backends.task;
 
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.types.ErrorLogSeverity;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.ErrorLogCategory;
+import org.opends.server.types.ErrorLogSeverity;
+
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.Map;
+
 
 
 /**
@@ -56,15 +59,11 @@ public class TaskThread
 
 
 
-
   // Indicates whether a request has been made for this thread to exit.
   private boolean exitRequested;
 
   // The thread ID for this task thread.
   private int threadID;
-
-  // The task currently being processed by this thread.
-  private Task task;
 
   // The reference to the scheduler with which this thread is associated.
   private TaskScheduler taskScheduler;
@@ -90,9 +89,10 @@ public class TaskThread
     this.taskScheduler = taskScheduler;
     this.threadID      = threadID;
 
-    task          = null;
     notifyLock    = new Object();
     exitRequested = false;
+
+    setAssociatedTask(null);
   }
 
 
@@ -106,7 +106,7 @@ public class TaskThread
    */
   public Task getTask()
   {
-    return task;
+    return getAssociatedTask();
   }
 
 
@@ -119,7 +119,7 @@ public class TaskThread
    */
   public void setTask(Task task)
   {
-    this.task = task;
+    setAssociatedTask(task);
 
     synchronized (notifyLock)
     {
@@ -142,11 +142,11 @@ public class TaskThread
   public void interruptTask(TaskState interruptState, String interruptReason,
                             boolean exitThread)
   {
-    if (task != null)
+    if (getAssociatedTask() != null)
     {
       try
       {
-        task.interruptTask(interruptState, interruptReason);
+        getAssociatedTask().interruptTask(interruptState, interruptReason);
       }
       catch (Exception e)
       {
@@ -173,7 +173,7 @@ public class TaskThread
   {
     while (! exitRequested)
     {
-      if (task == null)
+      if (getAssociatedTask() == null)
       {
         try
         {
@@ -195,8 +195,8 @@ public class TaskThread
 
       try
       {
-        TaskState returnState = task.execute();
-        task.setTaskState(returnState);
+        TaskState returnState = getAssociatedTask().execute();
+        getAssociatedTask().setTaskState(returnState);
       }
       catch (Exception e)
       {
@@ -205,17 +205,20 @@ public class TaskThread
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
+        Task task = getAssociatedTask();
+
         int    msgID   = MSGID_TASK_EXECUTE_FAILED;
         String message = getMessage(msgID,
                                     String.valueOf(task.getTaskEntry().getDN()),
                                     stackTraceToSingleLineString(e));
 
-        task.addLogMessage(ErrorLogSeverity.FATAL_ERROR, msgID, message);
+        logError(ErrorLogCategory.TASK, ErrorLogSeverity.FATAL_ERROR, message,
+                 msgID);
         task.setTaskState(TaskState.STOPPED_BY_ERROR);
       }
 
-      Task completedTask = task;
-      task = null;
+      Task completedTask = getAssociatedTask();
+      setAssociatedTask(null);
       if (! taskScheduler.threadDone(this, completedTask))
       {
         exitRequested = true;
@@ -223,12 +226,15 @@ public class TaskThread
       }
     }
 
-    if (task != null)
+    if (getAssociatedTask() != null)
     {
+      Task task = getAssociatedTask();
       task.setTaskState(TaskState.STOPPED_BY_SHUTDOWN);
       taskScheduler.threadDone(this, task);
     }
   }
+
+
 
   /**
    * Retrieves any relevent debug information with which this tread is
@@ -239,7 +245,11 @@ public class TaskThread
   public Map<String, String> getDebugProperties()
   {
     Map<String, String> properties = super.getDebugProperties();
-    properties.put("task", task.toString());
+
+    if (getAssociatedTask() != null)
+    {
+      properties.put("task", getAssociatedTask().toString());
+    }
 
     return properties;
   }
