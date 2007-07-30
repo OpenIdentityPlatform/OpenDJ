@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.io.File;
 import java.io.IOException;
 import java.io.BufferedReader;
@@ -110,6 +111,12 @@ public class ExternalTools {
     LOG.log(Level.INFO, "Invoking " + Utils.listToString(args, " "));
 
     ProcessBuilder pb = new ProcessBuilder(args);
+    Map<String, String> env = pb.environment();
+    env.put("JAVA_HOME", System.getProperty("java.home"));
+    /* Remove JAVA_BIN to be sure that we use the JVM running the
+     * uninstaller JVM to run the command.
+     */
+    env.remove("JAVA_BIN");
     Process p = pb.start();
 
     BufferedReader out =
