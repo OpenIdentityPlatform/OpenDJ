@@ -437,6 +437,8 @@
       <function-arg-def name="attributes" type="required">
         <function-arg-description>
           Specify a list of attributes to trigger index rebuild on
+          This should be passed on as a python array like
+          [ 'uid', 'telephonenumber' ]
         </function-arg-description>
       </function-arg-def>
     </function-map-args>
@@ -444,13 +446,64 @@
     <sequence>
       <script>
         _cmd='%s/rebuild-index%s' % (dsBinPath,fileExt)
-        _args=' -b %s -i %s' % ( baseDN, ' '.join(attributes) )
+        _args=' -b %s -i %s' % ( baseDN, ' -i '.join(attributes) )
       </script>
       <message log="1" level="'info'">
         '%s %s' % (_cmd,_args)
       </message>
         
       <process name="'rebuild-index'">
+        <location>'%s' % location</location>
+        <command>'%s' % _cmd</command>
+        <parms>'%s' % _args</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  <function name="CLI_verify-index">
+    <function-prolog>
+      This wraps the verify-index tool to make it easy to use from STAX
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="baseDN" type="required">
+        <function-arg-description>
+          Specify a back-end supporting indexing and triggers a verification of all 
+          indexes in the scope of the provided baseDN
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="attributes" type="required">
+        <function-arg-description>
+          Specify a list of attributes to trigger index verification on
+          This should be passed as a python array like
+          [ 'uid','telephonenumber' ]
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="clean" type="optional">
+        <function-arg-description>
+          Specify a list of attributes to trigger index verification on
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <script>
+        _cmd='%s/verify-index%s' % (dsBinPath,fileExt)
+        _args=' -b %s -i %s' % ( baseDN, ' -i '.join(attributes) )
+      </script>
+      <message log="1" level="'info'">
+        '%s %s' % (_cmd,_args)
+      </message>
+        
+      <process name="'verify-index'">
         <location>'%s' % location</location>
         <command>'%s' % _cmd</command>
         <parms>'%s' % _args</parms>
