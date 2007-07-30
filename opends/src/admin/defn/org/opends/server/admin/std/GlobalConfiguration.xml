@@ -693,5 +693,27 @@
     </adm:profile>
   </adm:property>
 
+  <adm:property name="idle-time-limit" mandatory="false" multi-valued="false">
+    <adm:synopsis>
+      Specifies the maximum lenght of time that a client connection may remain
+      established since its last completed operation.  A value of "0 seconds"
+      indicates that no idle time limit will be enforced.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0 seconds</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="0"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.463</ldap:oid>
+        <ldap:name>ds-cfg-idle-time-limit</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:managed-object>
 

@@ -337,6 +337,8 @@ public class CoreConfigManager
 
     DirectoryServer.setReturnBindErrorMessages(
          globalConfig.isReturnBindErrorMessages());
+
+    DirectoryServer.setIdleTimeLimit(globalConfig.getIdleTimeLimit());
   }
 
 
