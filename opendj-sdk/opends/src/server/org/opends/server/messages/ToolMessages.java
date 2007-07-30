@@ -9482,6 +9482,232 @@ public class ToolMessages
       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1253;
 
   /**
+   * The message ID for the message which will be used in dsconfig
+   * help for enumerations.
+   */
+  public static final int MSGID_DSCFG_HELP_FIELD_ENUM =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1254;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for undefined default behavior.
+   */
+  public static final int MSGID_DSCFG_HELP_FIELD_UNDEFINED =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1255;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for absolute inherited default behavior.
+   */
+  public static final int MSGID_DSCFG_HELP_FIELD_INHERITED_ABS =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1256;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for offset > 0 inherited default behavior.
+   */
+  public static final int MSGID_DSCFG_HELP_FIELD_INHERITED_PARENT =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1257;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for offset 0 inherited default behavior.
+   */
+  public static final int MSGID_DSCFG_HELP_FIELD_INHERITED_THIS =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1258;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for server restart.
+   */
+  public static final int MSGID_DSCFG_HELP_FIELD_SERVER_RESTART =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1259;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for component restart.
+   */
+  public static final int MSGID_DSCFG_HELP_FIELD_COMPONENT_RESTART =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1260;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for read-only.
+   */
+  public static final int MSGID_DSCFG_HELP_FIELD_READ_ONLY =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1261;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for monitoring.
+   */
+  public static final int MSGID_DSCFG_HELP_FIELD_MONITORING =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1262;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the property heading.
+   */
+  public static final int MSGID_DSCFG_HELP_HEADING_PROPERTY =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1263;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the component heading.
+   */
+  public static final int MSGID_DSCFG_HELP_HEADING_COMPONENT =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1264;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the default heading.
+   */
+  public static final int MSGID_DSCFG_HELP_HEADING_DEFAULT =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1265;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the mandatory heading.
+   */
+  public static final int MSGID_DSCFG_HELP_HEADING_MANDATORY =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1266;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the advanced heading.
+   */
+  public static final int MSGID_DSCFG_HELP_HEADING_ADVANCED =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1267;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the multi-valued heading.
+   */
+  public static final int MSGID_DSCFG_HELP_HEADING_MULTI_VALUED =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1268;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the read-only heading.
+   */
+  public static final int MSGID_DSCFG_HELP_HEADING_READ_ONLY =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1269;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the syntax heading.
+   */
+  public static final int MSGID_DSCFG_HELP_HEADING_SYNTAX =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1270;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the options description.
+   */
+  public static final int MSGID_DSCFG_HELP_DESCRIPTION_OPTION =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1271;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the readable description.
+   */
+  public static final int MSGID_DSCFG_HELP_DESCRIPTION_READ =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1272;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the writable description.
+   */
+  public static final int MSGID_DSCFG_HELP_DESCRIPTION_WRITE =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1273;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the mandatory description.
+   */
+  public static final int MSGID_DSCFG_HELP_DESCRIPTION_MANDATORY =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1274;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the single-valued description.
+   */
+  public static final int MSGID_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1275;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the admin-action description.
+   */
+  public static final int MSGID_DSCFG_HELP_DESCRIPTION_ADMIN_ACTION =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1276;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the creation confirmation question.
+   */
+  public static final int MSGID_DSCFG_CONFIRM_CREATE =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1277;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the deletion confirmation question.
+   */
+  public static final int MSGID_DSCFG_CONFIRM_DELETE =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1278;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the modify confirmation question.
+   */
+  public static final int MSGID_DSCFG_CONFIRM_MODIFY =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1279;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the creation successful confirmation message.
+   */
+  public static final int MSGID_DSCFG_CONFIRM_CREATE_SUCCESS =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1280;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the deletion successful confirmation message.
+   */
+  public static final int MSGID_DSCFG_CONFIRM_DELETE_SUCCESS =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1281;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the modify successful confirmation message.
+   */
+  public static final int MSGID_DSCFG_CONFIRM_MODIFY_SUCCESS =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1282;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the creation failure confirmation message.
+   */
+  public static final int MSGID_DSCFG_CONFIRM_CREATE_FAIL =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1283;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the deletion failure confirmation message.
+   */
+  public static final int MSGID_DSCFG_CONFIRM_DELETE_FAIL =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1284;
+
+  /**
+   * The message ID for the message which will be used in dsconfig
+   * help for the modify failure confirmation message.
+   */
+  public static final int MSGID_DSCFG_CONFIRM_MODIFY_FAIL =
+    CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1285;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined in this
    * class.
    */
@@ -12539,6 +12765,73 @@ public class ToolMessages
                     "remove all entries for all base DNs (%s) in the " +
                     "backend. The %s argument must be given to continue with " +
                     "import");
+    registerMessage(MSGID_DSCFG_HELP_FIELD_ENUM,
+        "one of the following values:");
+    registerMessage(MSGID_DSCFG_HELP_FIELD_UNDEFINED,
+        "undefined");
+    registerMessage(MSGID_DSCFG_HELP_FIELD_INHERITED_ABS,
+        "inherits from the property \"%s\" in the %s");
+    registerMessage(MSGID_DSCFG_HELP_FIELD_INHERITED_PARENT,
+        "inherits from the property \"%s\" in the parent %s");
+    registerMessage(MSGID_DSCFG_HELP_FIELD_INHERITED_THIS,
+        "inherits from the property \"%s\" in this %s");
+    registerMessage(MSGID_DSCFG_HELP_FIELD_SERVER_RESTART,
+        "The server must be restarted in order for changes to this property " +
+        "to take effect");
+    registerMessage(MSGID_DSCFG_HELP_FIELD_COMPONENT_RESTART,
+        "The %s must be restarted in order for changes to this property to " +
+        "take effect");
+    registerMessage(MSGID_DSCFG_HELP_FIELD_READ_ONLY,
+        "read-only - this property can only be specified when the %s " +
+        "is created");
+    registerMessage(MSGID_DSCFG_HELP_FIELD_MONITORING,
+        "monitoring - this property is automatically generated by the server");
+    registerMessage(MSGID_DSCFG_HELP_HEADING_PROPERTY,
+        "Property: %s");
+    registerMessage(MSGID_DSCFG_HELP_HEADING_COMPONENT,
+        "Component: %s");
+    registerMessage(MSGID_DSCFG_HELP_HEADING_DEFAULT,
+        "Default behavior");
+    registerMessage(MSGID_DSCFG_HELP_HEADING_MANDATORY,
+        "Mandatory");
+    registerMessage(MSGID_DSCFG_HELP_HEADING_ADVANCED,
+        "Advanced");
+    registerMessage(MSGID_DSCFG_HELP_HEADING_MULTI_VALUED,
+        "Multi-valued");
+    registerMessage(MSGID_DSCFG_HELP_HEADING_READ_ONLY,
+        "Read-only");
+    registerMessage(MSGID_DSCFG_HELP_HEADING_SYNTAX,
+        "Syntax");
+    registerMessage(MSGID_DSCFG_HELP_DESCRIPTION_OPTION,
+        "Option Types:");
+    registerMessage(MSGID_DSCFG_HELP_DESCRIPTION_READ,
+        "Property value(s) are readable");
+    registerMessage(MSGID_DSCFG_HELP_DESCRIPTION_WRITE,
+        "Property value(s) are writable");
+    registerMessage(MSGID_DSCFG_HELP_DESCRIPTION_MANDATORY,
+        "The property is mandatory");
+    registerMessage(MSGID_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED,
+        "The property is single-valued");
+    registerMessage(MSGID_DSCFG_HELP_DESCRIPTION_ADMIN_ACTION,
+        "Administrative action is required for changes to take effect");
+    registerMessage(MSGID_DSCFG_CONFIRM_CREATE,
+        "Are you sure that you want to create the %s?");
+    registerMessage(MSGID_DSCFG_CONFIRM_DELETE,
+        "Are you sure that you want to delete the %s?");
+    registerMessage(MSGID_DSCFG_CONFIRM_MODIFY,
+        "Are you sure that you want to modify the %s?");
+    registerMessage(MSGID_DSCFG_CONFIRM_CREATE_SUCCESS,
+        "The %s was created successfully");
+    registerMessage(MSGID_DSCFG_CONFIRM_DELETE_SUCCESS,
+        "The %s was deleted successfully");
+    registerMessage(MSGID_DSCFG_CONFIRM_MODIFY_SUCCESS,
+        "The %s was modified successfully");
+    registerMessage(MSGID_DSCFG_CONFIRM_CREATE_FAIL,
+        "The %s was not created");
+    registerMessage(MSGID_DSCFG_CONFIRM_DELETE_FAIL,
+        "The %s was not deleted");
+    registerMessage(MSGID_DSCFG_CONFIRM_MODIFY_FAIL,
+        "The %s was not modified");
   }
 }
 

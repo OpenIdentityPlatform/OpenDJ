@@ -51,7 +51,6 @@ import org.opends.admin.ads.ADSContextException.ErrorType;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
-import org.opends.server.tools.dsconfig.Messages;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -67,22 +66,20 @@ import org.opends.server.util.table.TextTablePrinter;
 public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
 {
   // Strings used in property help.
-  private static final String KEY_PREFIX = "help-properties.";
+  private final static String DESCRIPTION_OPTIONS_TITLE =
+    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_OPTION);
 
-  private final static String DESCRIPTION_OPTIONS_TITLE = Messages
-      .getString(KEY_PREFIX + "description.options"); //$NON-NLS-1$
+  private final static String DESCRIPTION_OPTIONS_READ =
+    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_READ);
 
-  private final static String DESCRIPTION_OPTIONS_READ = Messages
-      .getString(KEY_PREFIX + "description.read"); //$NON-NLS-1$
+  private final static String DESCRIPTION_OPTIONS_WRITE =
+    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_WRITE);
 
-  private final static String DESCRIPTION_OPTIONS_WRITE = Messages
-      .getString(KEY_PREFIX + "description.write"); //$NON-NLS-1$
+  private final static String DESCRIPTION_OPTIONS_MANDATORY =
+    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_MANDATORY);
 
-  private final static String DESCRIPTION_OPTIONS_MANDATORY = Messages
-      .getString(KEY_PREFIX + "description.mandatory"); //$NON-NLS-1$
-
-  private final static String DESCRIPTION_OPTIONS_SINGLE = Messages
-      .getString(KEY_PREFIX + "description.single-valued"); //$NON-NLS-1$
+  private final static String DESCRIPTION_OPTIONS_SINGLE =
+    getMessage(MSGID_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED);
 
   /**
    * The subcommand Parser.

@@ -97,9 +97,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       public String visitAbsoluteInherited(
           AbsoluteInheritedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
-        return String.format(FIELD_INHERITS_ABSOLUTE, d.getPropertyName(), d
-            .getManagedObjectPath().getRelationDefinition()
-            .getUserFriendlyName());
+        return getMessage(MSGID_DSCFG_HELP_FIELD_INHERITED_ABS, d
+            .getPropertyName(), d.getManagedObjectPath()
+            .getRelationDefinition().getUserFriendlyName());
       }
 
 
@@ -125,7 +125,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         boolean isFirst = true;
         for (String s : d.getDefaultValues()) {
           if (!isFirst) {
-            builder.append(", "); //$NON-NLS-1$
+            builder.append(", ");
           }
 
           T value = p.decodeValue(s);
@@ -144,11 +144,11 @@ final class HelpSubCommandHandler extends SubCommandHandler {
           RelativeInheritedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         if (d.getRelativeOffset() == 0) {
-          return String.format(FIELD_INHERITS_RELATIVE_THIS, d
+          return getMessage(MSGID_DSCFG_HELP_FIELD_INHERITED_THIS, d
               .getPropertyName(), d.getManagedObjectDefinition()
               .getUserFriendlyName());
         } else {
-          return String.format(FIELD_INHERITS_RELATIVE_PARENT, d
+          return getMessage(MSGID_DSCFG_HELP_FIELD_INHERITED_PARENT, d
               .getPropertyName(), d.getManagedObjectDefinition()
               .getUserFriendlyName());
         }
@@ -161,7 +161,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
        */
       public String visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
-        return FIELD_UNDEFINED;
+        return getMessage(MSGID_DSCFG_HELP_FIELD_UNDEFINED);
       }
 
     }
@@ -221,7 +221,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       @Override
       public <E extends Enum<E>> Void visitEnum(EnumPropertyDefinition<E> d,
           PrintStream p) {
-        displayUsage(p, FIELD_ENUM);
+        displayUsage(p, getMessage(MSGID_DSCFG_HELP_FIELD_ENUM));
         p.println();
 
         TableBuilder builder = new TableBuilder();
@@ -265,7 +265,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
         TableBuilder builder = new TableBuilder();
         builder.startRow();
-        builder.appendCell(HEADING_SYNTAX);
+        builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_SYNTAX));
         builder.appendCell(HEADING_SEPARATOR);
         builder.appendCell(usageBuilder.getUsage(d));
 
@@ -309,7 +309,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       private void displayUsage(PrintStream p, String usage) {
         TableBuilder builder = new TableBuilder();
         builder.startRow();
-        builder.appendCell(HEADING_SYNTAX);
+        builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_SYNTAX));
         builder.appendCell(HEADING_SEPARATOR);
         builder.appendCell(usage);
 
@@ -352,84 +352,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   }
 
   // Strings used in property help.
-  private static final String KEY_PREFIX = "help-properties.";
-
-  private static final String FIELD_COMPONENT_RESTART = Messages
-      .getString(KEY_PREFIX + "field.component.restart"); //$NON-NLS-1$
-
-  private static final String FIELD_ENUM = Messages.getString(KEY_PREFIX
-      + "field.enum"); //$NON-NLS-1$
-
-  private static final String FIELD_INHERITS_ABSOLUTE = Messages
-      .getString(KEY_PREFIX + "field.inherits.abs"); //$NON-NLS-1$
-
-  private static final String FIELD_INHERITS_RELATIVE_PARENT = Messages
-      .getString(KEY_PREFIX + "field.inherits.parent"); //$NON-NLS-1$
-
-  private static final String FIELD_INHERITS_RELATIVE_THIS = Messages
-      .getString(KEY_PREFIX + "field.inherits.this"); //$NON-NLS-1$
-
-  private static final String FIELD_MONITORING = Messages.getString(KEY_PREFIX
-      + "field.monitoring"); //$NON-NLS-1$
-
-  private static final String FIELD_NO =
-    getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO);
-
-  private static final String FIELD_READ_ONLY = Messages.getString(KEY_PREFIX
-      + "field.read-only"); //$NON-NLS-1$
-
-  private static final String FIELD_SERVER_RESTART = Messages
-      .getString(KEY_PREFIX + "field.server.restart"); //$NON-NLS-1$
-
-  private static final String FIELD_UNDEFINED = Messages.getString(KEY_PREFIX
-      + "field.undefined"); //$NON-NLS-1$
-
-  private static final String FIELD_YES =
-    getMessage(MSGID_DSCFG_GENERAL_CONFIRM_YES);
-
-  private final static String HEADING_ADVANCED = Messages
-      .getString(KEY_PREFIX + "heading.advanced"); //$NON-NLS-1$
-
-  private final static String HEADING_DEFAULT = Messages.getString(KEY_PREFIX
-      + "heading.default"); //$NON-NLS-1$
-
-  private static final String HEADING_MANAGED_OBJECT = Messages
-      .getString(KEY_PREFIX + "heading.managed-object"); //$NON-NLS-1$
-
-  private final static String HEADING_MANDATORY = Messages.getString(KEY_PREFIX
-      + "heading.mandatory"); //$NON-NLS-1$
-
-  private final static String HEADING_MULTI_VALUED = Messages
-      .getString(KEY_PREFIX + "heading.multi-valued"); //$NON-NLS-1$
-
-  private static final String HEADING_PROPERTY = Messages.getString(KEY_PREFIX
-      + "heading.property"); //$NON-NLS-1$
-
-  private final static String HEADING_READ_ONLY = Messages.getString(KEY_PREFIX
-      + "heading.read-only"); //$NON-NLS-1$
-
-  private final static String HEADING_SEPARATOR = " : "; //$NON-NLS-1$
-
-  private final static String HEADING_SYNTAX = Messages.getString(KEY_PREFIX
-      + "heading.syntax"); //$NON-NLS-1$
-
-  private final static String DESCRIPTION_OPTIONS_TITLE = Messages
-      .getString(KEY_PREFIX + "description.options"); //$NON-NLS-1$
-
-  private final static String DESCRIPTION_OPTIONS_READ = Messages
-      .getString(KEY_PREFIX + "description.read"); //$NON-NLS-1$
-
-  private final static String DESCRIPTION_OPTIONS_WRITE = Messages
-      .getString(KEY_PREFIX + "description.write"); //$NON-NLS-1$
-
-  private final static String DESCRIPTION_OPTIONS_MANDATORY = Messages
-      .getString(KEY_PREFIX + "description.mandatory"); //$NON-NLS-1$
-
-  private final static String DESCRIPTION_OPTIONS_SINGLE = Messages
-      .getString(KEY_PREFIX + "description.single-valued"); //$NON-NLS-1$
-
-  private final static String DESCRIPTION_OPTIONS_ADMIN = Messages
-      .getString(KEY_PREFIX + "description.admin-action"); //$NON-NLS-1$
+  private final static String HEADING_SEPARATOR = " : ";
 
   // Width of biggest heading (need to be careful of I18N).
   private final static int HEADING_WIDTH;
@@ -447,11 +370,14 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   private static final Character OPTION_DSCFG_SHORT_TYPE = 't';
 
   static {
-    int tmp = HEADING_SYNTAX.length();
-    tmp = Math.max(tmp, HEADING_DEFAULT.length());
-    tmp = Math.max(tmp, HEADING_MULTI_VALUED.length());
-    tmp = Math.max(tmp, HEADING_MANDATORY.length());
-    tmp = Math.max(tmp, HEADING_READ_ONLY.length());
+    int tmp = getMessage(MSGID_DSCFG_HELP_HEADING_SYNTAX).length();
+    tmp = Math.max(tmp, getMessage(MSGID_DSCFG_HELP_HEADING_DEFAULT).length());
+    tmp = Math.max(tmp, getMessage(MSGID_DSCFG_HELP_HEADING_MULTI_VALUED)
+        .length());
+    tmp = Math
+        .max(tmp, getMessage(MSGID_DSCFG_HELP_HEADING_MANDATORY).length());
+    tmp = Math
+        .max(tmp, getMessage(MSGID_DSCFG_HELP_HEADING_READ_ONLY).length());
     HEADING_WIDTH = tmp;
   }
 
@@ -547,7 +473,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     PropertyDefinition<?> pd = d.getPropertyDefinition(name);
 
     // Display the title.
-    out.println(String.format(HEADING_PROPERTY, name));
+    out.println(getMessage(MSGID_DSCFG_HELP_HEADING_PROPERTY, name));
 
     // Display the property synopsis and description.
     out.println();
@@ -570,48 +496,48 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     DefaultBehaviorPrinter defaultPrinter = new DefaultBehaviorPrinter();
 
     builder.startRow();
-    builder.appendCell(HEADING_DEFAULT);
+    builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_DEFAULT));
     builder.appendCell(HEADING_SEPARATOR);
     builder.appendCell(defaultPrinter.print(pd));
 
     // Display options.
     builder.startRow();
-    builder.appendCell(HEADING_ADVANCED);
+    builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_ADVANCED));
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.ADVANCED)) {
-      builder.appendCell(FIELD_YES);
+      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_YES));
     } else {
-      builder.appendCell(FIELD_NO);
+      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO));
     }
 
     builder.startRow();
-    builder.appendCell(HEADING_MULTI_VALUED);
+    builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_MULTI_VALUED));
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.MULTI_VALUED)) {
-      builder.appendCell(FIELD_YES);
+      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_YES));
     } else {
-      builder.appendCell(FIELD_NO);
+      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO));
     }
 
     builder.startRow();
-    builder.appendCell(HEADING_MANDATORY);
+    builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_MANDATORY));
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.MANDATORY)) {
-      builder.appendCell(FIELD_YES);
+      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_YES));
     } else {
-      builder.appendCell(FIELD_NO);
+      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO));
     }
 
     builder.startRow();
-    builder.appendCell(HEADING_READ_ONLY);
+    builder.appendCell(getMessage(MSGID_DSCFG_HELP_HEADING_READ_ONLY));
     builder.appendCell(HEADING_SEPARATOR);
     if (pd.hasOption(PropertyOption.MONITORING)) {
-      builder.appendCell(FIELD_MONITORING);
+      builder.appendCell(getMessage(MSGID_DSCFG_HELP_FIELD_MONITORING));
     } else if (pd.hasOption(PropertyOption.READ_ONLY)) {
-      builder.appendCell(String
-          .format(FIELD_READ_ONLY, d.getUserFriendlyName()));
+      builder.appendCell(getMessage(MSGID_DSCFG_HELP_FIELD_READ_ONLY, d
+          .getUserFriendlyName()));
     } else {
-      builder.appendCell(FIELD_NO);
+      builder.appendCell(getMessage(MSGID_DSCFG_GENERAL_CONFIRM_NO));
     }
 
     TextTablePrinter factory = new TextTablePrinter(out);
@@ -627,11 +553,11 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     if (synopsis == null) {
       switch (action.getType()) {
       case COMPONENT_RESTART:
-        synopsis = String.format(FIELD_COMPONENT_RESTART, d
+        synopsis = getMessage(MSGID_DSCFG_HELP_FIELD_COMPONENT_RESTART, d
             .getUserFriendlyName());
         break;
       case SERVER_RESTART:
-        synopsis = FIELD_SERVER_RESTART;
+        synopsis = getMessage(MSGID_DSCFG_HELP_FIELD_SERVER_RESTART);
         break;
       default:
         // Do nothing.
@@ -724,18 +650,18 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       Set<String> propertyNames) {
     PrintStream out = getConsoleApplication().getOutputStream();
     if (!getConsoleApplication().isScriptFriendly()) {
-      out.println(DESCRIPTION_OPTIONS_TITLE);
+      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_OPTION));
       out.println();
       out.print(" r -- ");
-      out.println(DESCRIPTION_OPTIONS_READ);
+      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_READ));
       out.print(" w -- ");
-      out.println(DESCRIPTION_OPTIONS_WRITE);
+      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_WRITE));
       out.print(" m -- ");
-      out.println(DESCRIPTION_OPTIONS_MANDATORY);
+      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_MANDATORY));
       out.print(" s -- ");
-      out.println(DESCRIPTION_OPTIONS_SINGLE);
+      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED));
       out.print(" a -- ");
-      out.println(DESCRIPTION_OPTIONS_ADMIN);
+      out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_ADMIN_ACTION));
       out.println();
       out.println();
     }
@@ -849,8 +775,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
           }
 
           // Display the title.
-          out.println(wrapText(String.format(HEADING_MANAGED_OBJECT, mod
-              .getUserFriendlyName()), MAX_LINE_WIDTH));
+          out.println(wrapText(getMessage(MSGID_DSCFG_HELP_HEADING_COMPONENT,
+              mod.getUserFriendlyName()), MAX_LINE_WIDTH));
 
           out.println();
           out.println(wrapText(mod.getSynopsis(), MAX_LINE_WIDTH));
@@ -878,9 +804,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     if (pd.hasOption(PropertyOption.MONITORING)
         || pd.hasOption(PropertyOption.READ_ONLY)) {
-      b.append("r-"); //$NON-NLS-1$
+      b.append("r-");
     } else {
-      b.append("rw"); //$NON-NLS-1$
+      b.append("rw");
     }
 
     if (pd.hasOption(PropertyOption.MANDATORY)) {

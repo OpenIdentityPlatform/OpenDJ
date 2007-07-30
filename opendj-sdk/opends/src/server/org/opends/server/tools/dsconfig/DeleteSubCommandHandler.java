@@ -286,7 +286,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     }
 
     // Output success message.
-    String msg = String.format(Messages.getString("delete.done"), relation
+    String msg = getMessage(MSGID_DSCFG_CONFIRM_DELETE_SUCCESS, relation
         .getUserFriendlyName());
     getConsoleApplication().printVerboseMessage(msg);
 
@@ -297,11 +297,11 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
   // Confirm deletion.
   private boolean confirmDeletion() throws ArgumentException {
-    String prompt = String.format(Messages.getString("delete.confirm"),
-        relation.getUserFriendlyName());
+    String prompt = getMessage(MSGID_DSCFG_CONFIRM_DELETE, relation
+        .getUserFriendlyName());
     if (!getConsoleApplication().confirmAction(prompt)) {
       // Output failure message.
-      String msg = String.format(Messages.getString("delete.failed"), relation
+      String msg = getMessage(MSGID_DSCFG_CONFIRM_DELETE_FAIL, relation
           .getUserFriendlyName());
       getConsoleApplication().printVerboseMessage(msg);
       return false;
