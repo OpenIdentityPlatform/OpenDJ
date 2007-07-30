@@ -36,7 +36,9 @@
   <property file="../../PRODUCT"                              />
   <property name="product.name"      value="${SHORT_NAME}"    />
   <property name="product.version" 
-            value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}"    />
+            value="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}"    />
+  <property name="product.package" 
+            value="${product.name}-${product.version}.zip"    />
   <!-- in case there's a custom installer properties file    -->
   <property file="../installer.properties"                    />
   <!-- in case there isn't - load default values             -->
@@ -52,7 +54,7 @@
   [all]
     bootstrap a fresh instance of ${product.name}
     run the oulu tests
-    wipeout the {{product.name} instance
+    wipeout the ${product.name} instance
     
   [get-bits]
     Download the bits from oulu university server
@@ -73,17 +75,36 @@
     </echo>
   </target>
 
-  <!-- download the bits from oulu university -->
-  <target name="get-bits.do" unless="oulu.uptodate">
-    <delete dir="${oulu.build.dir}" />
-    <mkdir dir="${oulu.build.dir}" />
-    <echo message="Downloading oulu bits ..." />
+  <target name="check-opends-build">
+    <condition property="opends.notbuilt">
+      <not>
+        <available file="${project.home.dir}/build/package/${product.package}"/>
+      </not>
+    </condition>
+  </target>
+  
+  <target name="build-opends" 
+    if="opends.notbuilt" 
+    depends="check-opends-build">
+    <ant dir="${project.home.dir}" 
+      antfile="${project.home.dir}/build.xml" 
+      target="package"/>
+  </target>
+  
+  <target name="set-proxy" if="proxy.http.port">
     <setproxy proxyhost="${proxy..http.host}" 
               proxyport="${proxy.http.port}" 
               proxyuser="${proxy.http.user}" 
               proxypassword="${proxy.http.pwd}" 
               socksproxyhost="${proxy.socks.host}" 
-              socksproxyport="${proxy.socks.port}"/>
+              socksproxyport="${proxy.socks.port}"/>  
+  </target>
+  
+  <!-- download the bits from oulu university -->
+  <target name="get-bits.do" depends="set-proxy" unless="oulu.uptodate">
+    <delete dir="${oulu.build.dir}" />
+    <mkdir dir="${oulu.build.dir}" />
+    <echo message="Downloading oulu bits ..." />
     <get 
       src="${oulu.home.url}/${oulu.ber.jar}" 
       dest="${oulu.build.dir}/${oulu.ber.jar}"
@@ -117,7 +138,7 @@
   <!-- end of of download related targets -->
   
   <!-- installer related targets -->
-  <target name="bootstrap">
+  <target name="bootstrap" depends="build-opends">
     <ant 
       antfile="installer.xml" 
       dir=".."

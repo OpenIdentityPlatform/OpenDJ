@@ -37,7 +37,7 @@
 	<property file="../PRODUCT"                                                />
   <property name="product.name"    value="${SHORT_NAME}"                     />
   <property name="product.version" 
-            value="${MAJOR_VERSION}.${MINOR_VERSION}${VERSION_QUALIFIER}"    />
+            value="${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}"       />
 	<!-- this is an optional file if you want to pass custom values           -->
 	<property file="installer.properties"                                      />
 	<!-- this is the file where the default values are defined                -->
@@ -45,13 +45,11 @@
 	<!-- Define default values for mandatory properties in case the
 		property files would not be found
 	-->
-  <condition property="script.ext" value=".bat">
+  <condition property="script.ext" value=".bat" else="">
     <os family="windows"/>
   </condition>
-  <condition property="script.ext" value="">
-    <not>
-      <isset property="script.ext"/>
-    </not>
+  <condition property="bin.dir" value="bat" else="bin">
+    <os family="windows"/>
   </condition>
   <!-- Usage section - top -->	
 	<target name="usage">
@@ -85,9 +83,7 @@ subtargets=
         </fileset>
       </unzip>
       <chmod perm="755">
-        <fileset dir="${full.install.dir}/bin">
-          <exclude name="*.bat"/>
-        </fileset>
+        <fileset dir="${full.install.dir}/bin" />
       </chmod>
     </target>
     
@@ -142,7 +138,7 @@ subtargets=
             unless="product.running" >
       <echo message="Starting ${product.name} ${product.version}... on ${os.name}" />
       <exec
-        executable="${full.install.dir}${file.separator}bin${file.separator}start-ds${script.ext}"
+        executable="${full.install.dir}${file.separator}${bin.dir}${file.separator}start-ds${script.ext}"
        spawn="true"/>
     </target>
     <target name="start" depends="status-do,start-do"/>
@@ -153,7 +149,7 @@ subtargets=
             description="stop the server">
       <echo message="Stopping ${product.name} ${product.version}..." />
       <exec
-        executable="${full.install.dir}${file.separator}bin${file.separator}stop-ds${script.ext}"
+        executable="${full.install.dir}${file.separator}${bin.dir}${file.separator}stop-ds${script.ext}"
         spawn="true">
         <arg line="-h ${host.name}"/>
         <arg line="-p ${port.ldap}"/>
