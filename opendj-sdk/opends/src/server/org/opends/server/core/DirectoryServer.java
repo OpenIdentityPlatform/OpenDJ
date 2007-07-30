@@ -522,6 +522,9 @@ public class DirectoryServer
   // The error logger that will be used during the Directory Server startup.
   private TextErrorLogPublisher startupErrorLogPublisher;
 
+  // The set of disabled privileges.
+  private Set<Privilege> disabledPrivileges;
+
   // The set of allowed task classes.
   private Set<String> allowedTasks;
 
@@ -722,6 +725,7 @@ public class DirectoryServer
     directoryServer.importTaskListeners =
          new CopyOnWriteArrayList<ImportTaskListener>();
     directoryServer.allowedTasks = new LinkedHashSet<String>(0);
+    directoryServer.disabledPrivileges = new LinkedHashSet<Privilege>(0);
   }
 
 
@@ -7418,6 +7422,46 @@ public class DirectoryServer
   public static void setAllowedTasks(Set<String> allowedTasks)
   {
     directoryServer.allowedTasks = allowedTasks;
+  }
+
+
+
+  /**
+   * Retrieves the set of privileges that have been disabled.
+   *
+   * @return  The set of privileges that have been disabled.
+   */
+  public static Set<Privilege> getDisabledPrivileges()
+  {
+    return directoryServer.disabledPrivileges;
+  }
+
+
+
+  /**
+   * Indicates whether the specified privilege is disabled.
+   *
+   * @param  privilege  The privilege for which to make the determination.
+   *
+   * @return  {@code true} if the specified privilege is disabled, or
+   *          {@code false} if not.
+   */
+  public static boolean isDisabled(Privilege privilege)
+  {
+    return directoryServer.disabledPrivileges.contains(privilege);
+  }
+
+
+
+  /**
+   * Specifies the set of privileges that should be disabled in the server.
+   *
+   * @param  disabledPrivileges  The set of privileges that should be disabled
+   *                             in the server.
+   */
+  public static void setDisabledPrivileges(Set<Privilege> disabledPrivileges)
+  {
+    directoryServer.disabledPrivileges = disabledPrivileges;
   }
 
 

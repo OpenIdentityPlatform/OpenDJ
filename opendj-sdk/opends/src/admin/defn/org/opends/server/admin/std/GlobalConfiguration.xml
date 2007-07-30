@@ -526,5 +526,146 @@
     </adm:profile>
   </adm:property>
 
+  <adm:property name="disabled-privilege" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the name of a privilege that should not be evaluated by the
+      server.  If a privilege is disabled, then it will be assumed that all
+      clients (including unauthenticated clients) will have that privilege.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          If no values are defined, then the server will enforce all privileges.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="bypass-acl">
+          <adm:synopsis>
+            Allows the associated user to bypass access control checks performed
+            by the server.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="modify-acl">
+          <adm:synopsis>
+            Allows the associated user to modify the server's access control
+            configuration.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="config-read">
+          <adm:synopsis>
+            Allows the associated user to read the server configuration.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="config-write">
+          <adm:synopsis>
+            Allows the associated user to update the server configuration.  The
+            config-read privilege is also required.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="jmx-read">
+          <adm:synopsis>
+            Allows the associated user to perform JMX read operations.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="jmx-write">
+          <adm:synopsis>
+            Allows the associated user to perform JMX write operations.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="jmx-notify">
+          <adm:synopsis>
+            Allows the associated user to subscribe to receive JMX
+            notifications.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="ldif-import">
+          <adm:synopsis>
+            Allows the user to request that the server process LDIF import
+            tasks.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="ldif-export">
+          <adm:synopsis>
+            Allows the user to request that the server process LDIF export
+            tasks.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="backend-backup">
+          <adm:synopsis>
+            Allows the user to request that the server process backup tasks.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="backend-restore">
+          <adm:synopsis>
+            Allows the user to request that the server process restore tasks.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="server-shutdown">
+          <adm:synopsis>
+            Allows the user to request that the server shut down.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="server-restart">
+          <adm:synopsis>
+            Allows the user to request that the server perform an in-core
+            restart.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="proxied-auth">
+          <adm:synopsis>
+            Allows the user to use the proxied authorization control, or to
+            perform a bind that specifies an alternate authorization identity.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="disconnect-client">
+          <adm:synopsis>
+            Allows the user to terminate other client connections.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="cancel-request">
+          <adm:synopsis>
+            Allows the user to cancel operations in progress on other client
+            connections.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="password-reset">
+          <adm:synopsis>
+            Allows the user to reset user passwords.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="data-sync">
+          <adm:synopsis>
+            Allows the user to participate in data synchronization.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="update-schema">
+          <adm:synopsis>
+            Allows the user to make changes to the server schema.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="privilege-change">
+          <adm:synopsis>
+            Allows the user to make changes to the set of defined root
+            privileges, as well as to grant and revoke privileges for users.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="unindexed-search">
+          <adm:synopsis>
+            Allows the user to request that the server process a search that
+            cannot be optimized using server indexes.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.455</ldap:oid>
+        <ldap:name>ds-cfg-disabled-privilege</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:managed-object>
 
