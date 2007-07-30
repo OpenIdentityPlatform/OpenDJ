@@ -168,7 +168,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
   private FileBasedArgument keyStorePasswordFileArg = null;
 
   /**
-   * The 'keyStorePasswordFile' global argument.
+   * The 'certNicknameArg' global argument.
    */
   private StringArgument certNicknameArg = null;
 

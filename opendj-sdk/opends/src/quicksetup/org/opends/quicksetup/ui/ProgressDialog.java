@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.statuspanel.ui;
+package org.opends.quicksetup.ui;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -46,11 +46,9 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
-import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.i18n.ResourceProvider;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
-
-import org.opends.statuspanel.i18n.ResourceProvider;
 
 /**
  * This panel is used to show the progress of the start/stop/restart operations.
@@ -87,7 +85,7 @@ public class ProgressDialog extends JDialog
   {
     super(frame);
     this.parent = frame;
-    setTitle(getMsg("statuspanel-dialog-title"));
+    setTitle(getMsg("progress-dialog-title"));
     createLayout();
   }
 

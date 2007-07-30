@@ -91,7 +91,7 @@ public class Configuration {
    * the configuration file.
    */
   public int getPort() throws IOException {
-    return getPort("ds-cfg-listen-port");
+    return getLDAPPort("ds-cfg-listen-port");
   }
 
   /**
@@ -103,7 +103,54 @@ public class Configuration {
    */
   public int getSecurePort() throws IOException {
     // TODO find out which is the attribute for this port.
-    return getPort("ds-cfg-listen-secure-port");
+    return getLDAPPort("ds-cfg-listen-secure-port");
+  }
+
+  /**
+   * Tells whether this server is configured as a replication server or not.
+   * @return <CODE>true</CODE> if the server is configured as a Replication
+   * Server and <CODE>false</CODE> otherwise.
+   * @throws IOException if there were problems reading the information from
+   * the configuration file.
+   */
+  public boolean isReplicationServer() throws IOException
+  {
+    return getReplicationPort() != -1;
+  }
+
+  /**
+   * Provides the Replication port as is specified in the config.ldif file.
+   * Returns -1 if this server is not a Replication Server.
+   *
+   * @return the Replication port specified in the config.ldif file.
+   * @throws IOException if there were problems reading the information from
+   * the configuration file.
+   */
+  public int getReplicationPort() throws IOException {
+    int port = -1;
+    String contents = getContents();
+    int index = contents.indexOf("cn=replication server");
+
+    if (index != -1) {
+      String attrWithPoints = "ds-cfg-replication-server-port:";
+      int index1 = contents.indexOf(attrWithPoints, index);
+      if (index1 != -1) {
+        int index2 =
+                contents.indexOf(Constants.LINE_SEPARATOR, index1);
+        if (index2 != -1) {
+          String sPort =
+                  contents.substring(attrWithPoints.length() +
+                          index1,
+                          index2).trim();
+          try {
+            port = Integer.parseInt(sPort);
+          } catch (NumberFormatException nfe) {
+            // do nothing;
+          }
+        }
+      }
+    }
+    return port;
   }
 
   /**
@@ -119,7 +166,7 @@ public class Configuration {
     return getConfigurationValues("ds-cfg-log-file");
   }
 
-  private int getPort(String portAttr) throws IOException {
+  private int getLDAPPort(String portAttr) throws IOException {
     int port = -1;
     String contents = getContents();
     int index = contents.indexOf("cn=ldap connection handler");
@@ -239,6 +286,15 @@ public class Configuration {
     return getConfigurationValues("ds-cfg-backend-directory");
   }
 
+  /**
+   * Returns the list of base dns as they appear in the configuration file.
+   *
+   * @return the list of base dns as they appear in the configuration file.
+   * @throws IOException if there is a problem reading the config file.
+   */
+  public Set<String> getBaseDNs() throws IOException {
+    return getConfigurationValues("ds-cfg-backend-base-dn");
+  }
 
   /**
    * Loads the contents of the configuration file into memory.

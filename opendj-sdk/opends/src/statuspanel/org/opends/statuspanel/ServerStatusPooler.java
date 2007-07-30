@@ -29,7 +29,10 @@ package org.opends.statuspanel;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
 import org.opends.statuspanel.event.ServerStatusChangeEvent;
@@ -47,6 +50,7 @@ public class ServerStatusPooler
 {
   private String dn;
   private String pwd;
+  private ApplicationTrustManager trustManager;
   private ServerStatusDescriptor lastDescriptor;
   private boolean stopPooling;
   private Thread poolingThread;
@@ -56,23 +60,28 @@ public class ServerStatusPooler
   private boolean stopping;
   private ConfigFromFile offLineConf = new ConfigFromFile();
   private ConfigFromLDAP onLineConf = new ConfigFromLDAP();
-  private String ldapUrl;
   private int nTriesWithErrorOnline;
+  private ConnectionProtocolPolicy policy;
 
   /* The pooling periods */
   private static final int OFFLINE_POOLING_PERIOD = 6000;
   private static final int ONLINE_POOLING_PERIOD = 4000;
 
+  private static final Logger LOG =
+    Logger.getLogger(ServerStatusPooler.class.getName());
+
   /**
    * Default constructor.
+   * @param policy the configuration policy to be used (whether we prefer the
+   * most secure, the less secure, a specific method...).
    */
-  public ServerStatusPooler()
+  public ServerStatusPooler(ConnectionProtocolPolicy policy)
   {
     /* This is required to retrieve the ldap url to be used by the
      * ConfigFromLDAP class.
      */
     offLineConf.readConfiguration();
-    ldapUrl = offLineConf.getLDAPURL();
+    this.policy = policy;
   }
 
   /**
@@ -232,13 +241,18 @@ public class ServerStatusPooler
    * information using LDAP.
    * @param dn the authentication Distinguished Name to bind.
    * @param pwd the authentication password to bind.
+   * @param trustManager the trust manager to be used for the secure
+   * connections.
+   * @throws ConfigException if a valid URL could not be found with the provided
+   * parameters.
    */
-  public void setAuthentication(String dn, String pwd)
+  public void setAuthentication(String dn, String pwd,
+      ApplicationTrustManager trustManager) throws ConfigException
   {
     this.dn = dn;
     this.pwd = pwd;
-    if ((ldapUrl != null) && (poolingThread != null) &&
-        poolingThread.isAlive() && !stopPooling)
+    this.trustManager = trustManager;
+    if ((poolingThread != null) && poolingThread.isAlive() && !stopPooling)
     {
       /* If we are pooling, stop the pooling update the connection information
        * and restart the pooling.  Set the stopPooling boolean to true to
@@ -258,12 +272,12 @@ public class ServerStatusPooler
         t.printStackTrace();
       }
       poolingThread = null;
-      onLineConf.setConnectionInfo(ldapUrl, dn, pwd);
+      onLineConf.setConnectionInfo(offLineConf, policy, dn, pwd, trustManager);
       startPooling();
     }
-    else if (ldapUrl != null)
+    else
     {
-      onLineConf.setConnectionInfo(ldapUrl, dn, pwd);
+      onLineConf.setConnectionInfo(offLineConf, policy, dn, pwd, trustManager);
     }
   }
 
@@ -330,20 +344,9 @@ public class ServerStatusPooler
           desc.setListeners(new HashSet<ListenerDescriptor>());
           desc.setOpenConnections(-1);
         }
-        else if (ldapUrl != null)
-        {
-          updateDescriptorWithOnLineInfo(desc);
-        }
         else
         {
-          /* We cannot retrieve an ldapurl from the config file.  Display
-           * what we got in the config file.
-           */
-          updateDescriptorWithOffLineInfo(desc);
-          if (desc.getErrorMessage() != null)
-          {
-            desc.setErrorMessage(getMsg("could-not-find-valid-ldapurl"));
-          }
+          updateDescriptorWithOnLineInfo(desc);
         }
       }
       catch (Exception ex)
@@ -372,10 +375,17 @@ public class ServerStatusPooler
     desc.setDatabases(offLineConf.getDatabases());
     desc.setListeners(offLineConf.getListeners());
     desc.setErrorMessage(offLineConf.getErrorMessage());
-    ldapUrl = offLineConf.getLDAPURL();
-    if ((ldapUrl != null) && (dn != null) && (pwd != null))
+    if ((dn != null) && (pwd != null))
     {
-      onLineConf.setConnectionInfo(ldapUrl, dn, pwd);
+      try
+      {
+        onLineConf.setConnectionInfo(offLineConf, policy, dn, pwd,
+            trustManager);
+      }
+      catch (ConfigException ce)
+      {
+        LOG.log(Level.WARNING, "Error retrieving LDAP URL: "+ce, ce);
+      }
     }
     desc.setOpenConnections(-1);
     desc.setJavaVersion(null);
@@ -406,8 +416,15 @@ public class ServerStatusPooler
       if (nTriesWithErrorOnline >= 5)
       {
         offLineConf.readConfiguration();
-        ldapUrl = offLineConf.getLDAPURL();
-        onLineConf.setConnectionInfo(ldapUrl, dn, pwd);
+        try
+        {
+          onLineConf.setConnectionInfo(offLineConf, policy, dn, pwd,
+              trustManager);
+        }
+        catch (ConfigException ce)
+        {
+          desc.setErrorMessage(ce.getMessage());
+        }
         nTriesWithErrorOnline = 0;
       }
     }
