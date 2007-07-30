@@ -1169,24 +1169,6 @@
                   }
                 </call>
     
-                <!-- The following operation can be removed when Issue 1473 is fixed. -->
-                <message>
-                   'ACI: Targattrfilter: Targattrfilter with mispelled del with add, admin deleting aci'
-                </message>
-    
-                <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_targattrfilter/del_aci.ldif' % logsRemoteDataDir }
-                </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
-                
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
