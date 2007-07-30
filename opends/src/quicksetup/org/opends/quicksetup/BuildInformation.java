@@ -93,6 +93,12 @@ public class BuildInformation implements Comparable {
     ProcessBuilder pb = new ProcessBuilder(args);
     InputStream is = null;
     try {
+      Map<String, String> env = pb.environment();
+      env.put("JAVA_HOME", System.getProperty("java.home"));
+      /* Remove JAVA_BIN to be sure that we use the JVM running the
+       * uninstaller JVM to run the command.
+       */
+      env.remove("JAVA_BIN");
       Process process = pb.start();
       is = process.getInputStream();
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
