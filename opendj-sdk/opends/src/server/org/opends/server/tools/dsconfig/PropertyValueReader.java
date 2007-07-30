@@ -99,10 +99,9 @@ final class PropertyValueReader {
      * {@inheritDoc}
      */
     public void display(ConsoleApplication app) {
-      HelpSubCommandHandler help = HelpSubCommandHandler.getInstance();
       app.println();
-      help.displayVerboseSingleProperty(mo.getManagedObjectDefinition(), pd
-          .getName(), app.getErrorStream());
+      HelpSubCommandHandler.displayVerboseSingleProperty(mo
+          .getManagedObjectDefinition(), pd.getName(), app.getErrorStream());
     }
 
   }

@@ -392,67 +392,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
    * @throws ArgumentException
    *           If the sub-command could not be created successfully.
    */
-  public static synchronized HelpSubCommandHandler create(
-      ConsoleApplication app, SubCommandArgumentParser parser)
-      throws ArgumentException {
-    if (INSTANCE == null) {
-      INSTANCE = new HelpSubCommandHandler(app, parser);
-    }
-    return INSTANCE;
-  }
-
-
-
-  /**
-   * Gets the application-wide help sub-command handler.
-   *
-   * @return Returns the application-wide help sub-command handler.
-   */
-  public static synchronized HelpSubCommandHandler getInstance() {
-    if (INSTANCE == null) {
-      throw new RuntimeException("Help sub-command handler not initialized");
-    } else {
-      return INSTANCE;
-    }
-  }
-
-
-
-  // The singleton instance.
-  private static HelpSubCommandHandler INSTANCE = null;
-
-  // The sub-command associated with this handler.
-  private final SubCommand subCommand;
-
-  // The argument which should be used to specify the type of managed
-  // object to be retrieved.
-  private final StringArgument typeArgument;
-
-  // A table listing all the available types of managed object.
-  private final Map<String, AbstractManagedObjectDefinition<?, ?>> types;
-
-  // Private constructor.
-  private HelpSubCommandHandler(ConsoleApplication app,
+  public static HelpSubCommandHandler create(ConsoleApplication app,
       SubCommandArgumentParser parser) throws ArgumentException {
-    super(app);
-
-    // Create the sub-command.
-    String name = "list-properties";
-    int descriptionID = MSGID_DSCFG_DESCRIPTION_SUBCMD_HELPPROP;
-    this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
-        descriptionID);
-
-    this.typeArgument = new StringArgument(OPTION_DSCFG_LONG_TYPE,
-        OPTION_DSCFG_SHORT_TYPE, OPTION_DSCFG_LONG_TYPE, false, false, true,
-        "{TYPE}", null, null, MSGID_DSCFG_DESCRIPTION_HELP_TYPE);
-    this.subCommand.addArgument(this.typeArgument);
-
-    // Register common arguments.
-    registerAdvancedModeArgument(this.subCommand,
-        MSGID_DSCFG_DESCRIPTION_ADVANCED_HELP);
-    registerPropertyNameArgument(this.subCommand);
-
-    this.types = new TreeMap<String, AbstractManagedObjectDefinition<?, ?>>();
+    return new HelpSubCommandHandler(app, parser);
   }
 
 
@@ -468,7 +410,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
    * @param out
    *          The output stream.
    */
-  public void displayVerboseSingleProperty(
+  public static void displayVerboseSingleProperty(
       AbstractManagedObjectDefinition<?, ?> d, String name, PrintStream out) {
     PropertyDefinition<?> pd = d.getPropertyDefinition(name);
 
@@ -569,6 +511,42 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       out.println();
       out.println(wrapText(synopsis, MAX_LINE_WIDTH));
     }
+  }
+
+
+
+  // The sub-command associated with this handler.
+  private final SubCommand subCommand;
+
+  // The argument which should be used to specify the type of managed
+  // object to be retrieved.
+  private final StringArgument typeArgument;
+
+  // A table listing all the available types of managed object.
+  private final Map<String, AbstractManagedObjectDefinition<?, ?>> types;
+
+  // Private constructor.
+  private HelpSubCommandHandler(ConsoleApplication app,
+      SubCommandArgumentParser parser) throws ArgumentException {
+    super(app);
+
+    // Create the sub-command.
+    String name = "list-properties";
+    int descriptionID = MSGID_DSCFG_DESCRIPTION_SUBCMD_HELPPROP;
+    this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
+        descriptionID);
+
+    this.typeArgument = new StringArgument(OPTION_DSCFG_LONG_TYPE,
+        OPTION_DSCFG_SHORT_TYPE, OPTION_DSCFG_LONG_TYPE, false, false, true,
+        "{TYPE}", null, null, MSGID_DSCFG_DESCRIPTION_HELP_TYPE);
+    this.subCommand.addArgument(this.typeArgument);
+
+    // Register common arguments.
+    registerAdvancedModeArgument(this.subCommand,
+        MSGID_DSCFG_DESCRIPTION_ADVANCED_HELP);
+    registerPropertyNameArgument(this.subCommand);
+
+    this.types = new TreeMap<String, AbstractManagedObjectDefinition<?, ?>>();
   }
 
 
