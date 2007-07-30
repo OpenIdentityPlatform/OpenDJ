@@ -31,6 +31,7 @@
   extends="backend"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
+
   <adm:synopsis>
     The task backend provides a mechanism for processing tasks in the
     OpenDS Directory Server. Tasks are intended to provide access to certain
@@ -51,6 +52,7 @@
     The org.opends.server.backends.task.TaskBackend class provides the entry
     point for the task backend implementation.
   </adm:description>
+
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:oid>1.3.6.1.4.1.26027.1.2.10</ldap:oid>
@@ -58,6 +60,7 @@
       <ldap:superior>ds-cfg-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+
   <adm:property-override name="backend-class">
     <adm:default-behavior>
       <adm:defined>
@@ -67,6 +70,7 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
+
   <adm:property name="task-backing-file"
     mandatory="true"
     multi-valued="false">
@@ -86,6 +90,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
   <adm:property name="task-retention-time"
     mandatory="false"
     multi-valued="false">
@@ -108,4 +113,34 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
+  <adm:property name="notification-sender-address"
+  mandatory="false"
+  multi-valued="false">
+    <adm:synopsis>
+      This specifies the e-mail address to use as the sender (i.e., "From:")
+      address for notification mail messages generated when a task completes
+      execution.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The default sender address used will be "opends-task-notification@"
+          followed by the canonical address of the system on which the server is
+          running.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.465</ldap:oid>
+        <ldap:name>ds-cfg-notification-sender-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:managed-object>
+

@@ -1553,6 +1553,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.463 NAME 'ds-cfg-idle-time-limit'
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.464 NAME 'ds-rlim-idle-time-limit'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE USAGE directoryOperation
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.465
+  NAME 'ds-cfg-notification-sender-address'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1622,7 +1626,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.9 NAME 'ds-cfg-schema-backend'
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.10 NAME 'ds-cfg-task-backend'
   SUP ds-cfg-backend STRUCTURAL MAY ( ds-cfg-task-backing-file $
-  ds-cfg-task-retention-time ) X-ORIGIN 'OpenDS Directory Server' )
+  ds-cfg-task-retention-time $ ds-cfg-notification-sender-address )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.11 NAME 'ds-cfg-branch'
   SUP top STRUCTURAL MUST cn X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.12

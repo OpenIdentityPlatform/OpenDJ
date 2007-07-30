@@ -38,12 +38,16 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
+import javax.mail.MessagingException;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -51,16 +55,13 @@ import org.opends.server.types.ErrorLogCategory;
 import org.opends.server.types.ErrorLogSeverity;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
+import org.opends.server.util.EMailMessage;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.messages.BackendMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
-import org.opends.server.messages.MessageHandler;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -125,6 +126,9 @@ public abstract class Task
   // The unique ID assigned to this task.
   private String taskID;
 
+  // The task backend with which this task is associated.
+  private TaskBackend taskBackend;
+
   // The current state of this task.
   private TaskState taskState;
 
@@ -153,6 +157,7 @@ public abstract class Task
 
     String taskDN = taskEntryDN.toString();
 
+    taskBackend       = taskScheduler.getTaskBackend();
     logMessageCounter = 0;
 
 
@@ -787,6 +792,8 @@ public abstract class Task
     return logMessages;
   }
 
+
+
   /**
    * Writes a message to the error log using the provided information.
    * Tasks should use this method to log messages to the error log instead of
@@ -800,12 +807,11 @@ public abstract class Task
    * @param  errorID   The error ID that uniquely identifies the provided format
    *                   string.
    */
-  protected void logError(ErrorLogCategory category,
-                              ErrorLogSeverity severity, int errorID)
+  protected void logError(ErrorLogCategory category, ErrorLogSeverity severity,
+                          int errorID)
   {
-    String message = MessageHandler.getMessage(errorID);
-
-    addLogMessage(severity, errorID, message);
+    // Simply pass this on to the server error logger, and it will call back
+    // to the addLogMessage method for this task.
     ErrorLogger.logError(category, severity, errorID);
   }
 
@@ -826,14 +832,12 @@ public abstract class Task
    * @param  args      The set of arguments to use for the provided format
    *                   string.
    */
-  protected void logError(ErrorLogCategory category,
-                              ErrorLogSeverity severity, int errorID,
-                              Object... args)
+  protected void logError(ErrorLogCategory category, ErrorLogSeverity severity,
+                          int errorID, Object... args)
   {
-    String message = MessageHandler.getMessage(errorID);
-
-    addLogMessage(severity, errorID, message);
-    ErrorLogger.logError(category, severity, errorID,args);
+    // Simply pass this on to the server error logger, and it will call back
+    // to the addLogMessage method for this task.
+    ErrorLogger.logError(category, severity, errorID, args);
   }
 
 
@@ -852,27 +856,28 @@ public abstract class Task
    * @param  errorID   The error ID that uniquely identifies the format string
    *                   used to generate the provided message.
    */
-  protected void logError(ErrorLogCategory category,
-                              ErrorLogSeverity severity, String message,
-                              int errorID)
+  protected void logError(ErrorLogCategory category, ErrorLogSeverity severity,
+                          String message, int errorID)
   {
-    addLogMessage(severity, errorID, message);
-    ErrorLogger.logError(category, severity, message,
-        errorID);
+    // Simply pass this on to the server error logger, and it will call back
+    // to the addLogMessage method for this task.
+    ErrorLogger.logError(category, severity, message, errorID);
   }
+
+
 
   /**
    * Adds a log message to the set of messages logged by this task.  This method
    * should not be called directly by tasks, but rather will be called
-   * indirectly through the logError methods in this class. It does not
+   * indirectly through the {@code ErrorLog.logError} methods. It does not
    * automatically persist the updated task information to disk.
    *
    * @param  severity       The severity level for the log message.
    * @param  messageID      The ID that uniquely identifies the log message.
    * @param  messageString  The text of the log message
    */
-  void addLogMessage(ErrorLogSeverity severity, int messageID,
-                     String messageString)
+  public void addLogMessage(ErrorLogSeverity severity, int messageID,
+                            String messageString)
   {
     Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
 
@@ -1067,8 +1072,8 @@ public abstract class Task
       int    msgID   = MSGID_TASK_EXECUTE_FAILED;
       String message = getMessage(msgID, String.valueOf(taskEntry.getDN()),
                                   stackTraceToSingleLineString(e));
-      logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR, message,
-               msgID);
+      ErrorLogger.logError(ErrorLogCategory.TASK, ErrorLogSeverity.SEVERE_ERROR,
+                           message, msgID);
     }
     finally
     {
@@ -1076,8 +1081,76 @@ public abstract class Task
       taskScheduler.writeState();
     }
 
-    // FIXME -- Send an e-mail message if appropriate.
+    try
+    {
+      sendNotificationEMailMessage();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+
     return taskState;
+  }
+
+
+
+  /**
+   * If appropriate, send an e-mail message with information about the
+   * completed task.
+   *
+   * @throws  MessagingException  If a problem occurs while attempting to send
+   *                              the message.
+   */
+  private void sendNotificationEMailMessage()
+          throws MessagingException
+  {
+    if (DirectoryServer.mailServerConfigured())
+    {
+      LinkedHashSet<String> recipients = new LinkedHashSet<String>();
+      recipients.addAll(notifyOnCompletion);
+      if (! TaskState.isSuccessful(taskState))
+      {
+        recipients.addAll(notifyOnError);
+      }
+
+      if (! recipients.isEmpty())
+      {
+        EMailMessage message =
+             new EMailMessage(taskBackend.getNotificationSenderAddress(),
+                              new ArrayList<String>(recipients),
+                              taskState.toString() + " " + taskID);
+
+        String scheduledStartDate;
+        if (scheduledStartTime <= 0)
+        {
+          scheduledStartDate = "";
+        }
+        else
+        {
+          scheduledStartDate = new Date(scheduledStartTime).toString();
+        }
+
+        String actualStartDate = new Date(actualStartTime).toString();
+        String completionDate  = new Date(completionTime).toString();
+
+        message.setBody(getMessage(MSGID_TASK_COMPLETION_BODY, taskID,
+                                   String.valueOf(taskState),
+                                   scheduledStartDate, actualStartDate,
+                                   completionDate));
+
+        for (String logMessage : logMessages)
+        {
+          message.appendToBody(logMessage);
+          message.appendToBody("\r\n");
+        }
+
+        message.send();
+      }
+    }
   }
 
 

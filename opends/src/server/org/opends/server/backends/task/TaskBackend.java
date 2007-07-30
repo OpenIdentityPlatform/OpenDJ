@@ -29,6 +29,7 @@ package org.opends.server.backends.task;
 
 
 import java.io.File;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -115,6 +116,9 @@ public class TaskBackend
   // The length of time in seconds after a task is completed that it should be
   // removed from the set of scheduled tasks.
   private long retentionTime;
+
+  // The e-mail address to use for the sender from notification messages.
+  private String notificationSenderAddress;
 
   // The path to the task backing file.
   private String taskBackingFile;
@@ -224,6 +228,22 @@ public class TaskBackend
     // Get the retention time that will be used to determine how long task
     // information stays around once the associated task is completed.
     retentionTime = cfg.getTaskRetentionTime();
+
+
+    // Get the notification sender address.
+    notificationSenderAddress = cfg.getNotificationSenderAddress();
+    if (notificationSenderAddress == null)
+    {
+      try
+      {
+        notificationSenderAddress = "opends-task-notification@" +
+             InetAddress.getLocalHost().getCanonicalHostName();
+      }
+      catch (Exception e)
+      {
+        notificationSenderAddress = "opends-task-notification@opends.org";
+      }
+    }
 
 
     // Get the path to the task data backing file.
@@ -1285,6 +1305,22 @@ public class TaskBackend
     }
 
 
+    String tmpNotificationAddress = configEntry.getNotificationSenderAddress();
+    if (tmpNotificationAddress == null)
+    {
+      try
+      {
+        tmpNotificationAddress = "opends-task-notification@" +
+             InetAddress.getLocalHost().getCanonicalHostName();
+      }
+      catch (Exception e)
+      {
+        tmpNotificationAddress = "opends-task-notification@opends.org";
+      }
+    }
+    notificationSenderAddress = tmpNotificationAddress;
+
+
     currentConfig = configEntry;
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
@@ -1314,6 +1350,20 @@ public class TaskBackend
   {
     File f = getFileForPath(taskBackingFile);
     return f.getPath();
+  }
+
+
+
+  /**
+   * Retrieves the sender address that should be used for e-mail notifications
+   * of task completion.
+   *
+   * @return  The sender address that should be used for e-mail notifications of
+   *          task completion.
+   */
+  public String getNotificationSenderAddress()
+  {
+    return notificationSenderAddress;
   }
 
 

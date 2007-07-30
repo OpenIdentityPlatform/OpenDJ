@@ -1357,6 +1357,18 @@ public class TaskScheduler
 
 
   /**
+   * Retrieves the task backend with which this scheduler is associated.
+   *
+   * @return  The task backend with which this scheduler is associated.
+   */
+  public TaskBackend getTaskBackend()
+  {
+    return taskBackend;
+  }
+
+
+
+  /**
    * Retrieves the root entry that is the common ancestor for all entries in the
    * task backend.
    *

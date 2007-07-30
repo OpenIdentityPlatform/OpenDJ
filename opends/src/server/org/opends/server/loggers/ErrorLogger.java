@@ -34,7 +34,10 @@ import java.util.ArrayList;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
+import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.backends.task.Task;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.messages.MessageHandler;
 import org.opends.server.types.*;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
@@ -47,7 +50,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
@@ -441,6 +443,16 @@ public class ErrorLogger implements
     {
       publisher.logError(category, severity, message, errorID);
     }
+
+    if (Thread.currentThread() instanceof DirectoryThread)
+    {
+      DirectoryThread thread = (DirectoryThread) Thread.currentThread();
+      Task task = thread.getAssociatedTask();
+      if (task != null)
+      {
+        task.addLogMessage(severity, errorID, message);
+      }
+    }
   }
 
 
@@ -467,6 +479,16 @@ public class ErrorLogger implements
     {
       publisher.logError(category, severity, message, errorID);
     }
+
+    if (Thread.currentThread() instanceof DirectoryThread)
+    {
+      DirectoryThread thread = (DirectoryThread) Thread.currentThread();
+      Task task = thread.getAssociatedTask();
+      if (task != null)
+      {
+        task.addLogMessage(severity, errorID, message);
+      }
+    }
   }
 
 
@@ -489,6 +511,16 @@ public class ErrorLogger implements
     for (ErrorLogPublisher publisher : errorPublishers)
     {
       publisher.logError(category, severity, message, errorID);
+    }
+
+    if (Thread.currentThread() instanceof DirectoryThread)
+    {
+      DirectoryThread thread = (DirectoryThread) Thread.currentThread();
+      Task task = thread.getAssociatedTask();
+      if (task != null)
+      {
+        task.addLogMessage(severity, errorID, message);
+      }
     }
   }
 }
