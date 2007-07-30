@@ -112,6 +112,16 @@ public class SMTPAlertHandler
   /**
    * {@inheritDoc}
    */
+  public AlertHandlerCfg getAlertHandlerConfiguration()
+  {
+    return currentConfig;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
                                            List<String> unacceptableReasons)
   {

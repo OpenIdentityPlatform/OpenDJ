@@ -52,6 +52,7 @@ import javax.management.MBeanServerFactory;
 
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
@@ -4551,6 +4552,31 @@ public class DirectoryServer
     {
       for (AlertHandler alertHandler : directoryServer.alertHandlers)
       {
+        AlertHandlerCfg config = alertHandler.getAlertHandlerConfiguration();
+        Set<String> enabledAlerts = config.getEnabledAlertType();
+        Set<String> disabledAlerts = config.getDisabledAlertType();
+        if ((enabledAlerts == null) || enabledAlerts.isEmpty())
+        {
+          if ((disabledAlerts != null) && disabledAlerts.contains(alertType))
+          {
+            continue;
+          }
+        }
+        else
+        {
+          if (enabledAlerts.contains(alertType))
+          {
+            if ((disabledAlerts != null) && disabledAlerts.contains(alertType))
+            {
+              continue;
+            }
+          }
+          else
+          {
+            continue;
+          }
+        }
+
         alertHandler.sendAlertNotification(generator, alertType, alertID,
                                            alertMessage);
       }

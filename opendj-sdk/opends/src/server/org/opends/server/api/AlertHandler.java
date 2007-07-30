@@ -69,6 +69,15 @@ public interface AlertHandler<T extends AlertHandlerCfg>
 
 
   /**
+   * Retrieves the current configuration for this alert handler.
+   *
+   * @return  The current configuration for this alert handler.
+   */
+  public AlertHandlerCfg getAlertHandlerConfiguration();
+
+
+
+  /**
    * Indicates whether the provided configuration is acceptable for
    * this alert handler.
    *

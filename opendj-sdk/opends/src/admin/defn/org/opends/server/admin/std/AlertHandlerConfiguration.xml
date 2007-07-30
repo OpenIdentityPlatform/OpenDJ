@@ -85,5 +85,62 @@
     </adm:profile>
   </adm:property>
 
+  <adm:property name="enabled-alert-type" mandatory="false" multi-valued="true">
+    <adm:synopsis>
+      Specifies the names of the alert types that are enabled for this alert
+      handler.  If there are any values for this attribute, then only alerts
+      with one of the specified types will be allowed (unless they are also
+      included in the disabled alert types).  If there are no values for this
+      attribute, then any alerts with a type not included in the list of
+      disabled alert types will be allowed.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          All alerts with types not included in the set of disabled alert types
+          will be allowed.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.457</ldap:oid>
+        <ldap:name>ds-cfg-enabled-alert-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="disabled-alert-type" mandatory="false"
+    multi-valued="true">
+    <adm:synopsis>
+      Specifies the names of the alert types that are disabled for this alert
+      handler.  If there are any values for this attribute, then no alerts with
+      any of the specified types will be allowed.  If there are no values for
+      this attribute, then only alerts with a type included in the set of
+      enabled alert types will be allowed, or if there are no values for the
+      enabled alert types option then all alert types will be allowed.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          If there is a set of enabled alert types, then only alerts with one of
+          those types will be allowed.  Otherwise, all alerts will be allowed.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.458</ldap:oid>
+        <ldap:name>ds-cfg-disabled-alert-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:managed-object>
 

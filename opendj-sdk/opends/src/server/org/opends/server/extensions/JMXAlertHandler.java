@@ -48,6 +48,7 @@ import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 
+import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
@@ -56,9 +57,11 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.ResultCode;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.messages.ConfigMessages.*;
@@ -74,7 +77,8 @@ import static org.opends.server.util.ServerConstants.*;
  */
 public class JMXAlertHandler
        extends NotificationBroadcasterSupport
-       implements AlertHandler<AlertHandlerCfg>, DynamicMBean,
+       implements AlertHandler<AlertHandlerCfg>,
+                  ConfigurationChangeListener<AlertHandlerCfg>, DynamicMBean,
                   DirectoryServerMBean
 {
   /**
@@ -89,6 +93,9 @@ public class JMXAlertHandler
        "org.opends.server.extensions.JMXAlertHandler";
 
 
+
+  // The current configuration for this alert handler.
+  private AlertHandlerCfg currentConfig;
 
   // The sequence number generator used for this alert handler.
   private AtomicLong sequenceNumber;
@@ -157,6 +164,19 @@ public class JMXAlertHandler
         throw new InitializationException(msgID, message, e);
       }
     }
+
+    configuration.addChangeListener(this);
+    currentConfig = configuration;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public AlertHandlerCfg getAlertHandlerConfiguration()
+  {
+    return currentConfig;
   }
 
 
@@ -373,6 +393,30 @@ public class JMXAlertHandler
     return new MBeanInfo(CLASS_NAME, "JMX Alert Handler",
                          new MBeanAttributeInfo[0], new MBeanConstructorInfo[0],
                          new MBeanOperationInfo[0], getNotificationInfo());
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(AlertHandlerCfg configuration,
+                      List<String> unacceptableReasons)
+  {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+                                        AlertHandlerCfg configuration)
+  {
+    currentConfig = configuration;
+
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 }
 

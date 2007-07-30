@@ -751,3 +751,11 @@ changetype: modify
 replace: ds-cfg-allow-retrieving-membership
 ds-cfg-allow-retrieving-membership: true
 
+dn: cn=Dummy Alert Handler,cn=Alert Handlers,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-alert-handler
+cn: Dummy Alert Handler
+ds-cfg-alert-handler-class: org.opends.server.extensions.DummyAlertHandler
+ds-cfg-alert-handler-enabled: true
+
