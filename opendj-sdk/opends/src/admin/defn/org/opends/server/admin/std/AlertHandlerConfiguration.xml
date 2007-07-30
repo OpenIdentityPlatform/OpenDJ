@@ -107,7 +107,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.457</ldap:oid>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.459</ldap:oid>
         <ldap:name>ds-cfg-enabled-alert-type</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -136,7 +136,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.458</ldap:oid>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.460</ldap:oid>
         <ldap:name>ds-cfg-disabled-alert-type</ldap:name>
       </ldap:attribute>
     </adm:profile>
