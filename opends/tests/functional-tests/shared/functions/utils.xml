@@ -911,16 +911,10 @@
       <message log="1" level="'info'" if="_displayMessage == True">'%s' % functionMessage</message>
       <message log="1" level="'debug'">'runFunction: %s: called with parameters [%s]' % (functionName,functionArguments)</message>
       <call function="'%s' % functionName">functionArguments</call>
-      <message log="1" level="'debug'">'runFunction: %s: returned [%s]' % (functionName,RC)</message>
       <script>
         _functionRC = RC
       </script>
-      <call function="'checkRC'" >
-        { 'returncode' : RC ,
-          'result'     : STAXResult,
-          'expected'   : expectedRC
-        }
-      </call>
+      <message log="1" level="'debug'">'runFunction: %s: returned [%s] with [%s]' % (functionName,RC,STAXResult)</message>
 
       <!-- this section handles the optional case when we need to set the 
            test case status
