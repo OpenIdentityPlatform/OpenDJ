@@ -37,9 +37,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.GlobalCfgDefn;
+import org.opends.server.admin.std.meta.RootDNCfgDefn;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
@@ -2484,6 +2487,54 @@ public class PrivilegeTestCase
     authInfo = new AuthenticationInfo(unprivRootEntry, true);
     unprivRootConn = new InternalClientConnection(authInfo);
     assertFalse(unprivRootConn.hasPrivilege(Privilege.PROXIED_AUTH, null));
+  }
+
+
+
+  /**
+   * Tests to ensure that the set of privileges defined in the server matches
+   * the set of privileges that can be configured as default root privileges,
+   * and that it also matches the set of privileges that can be disabled.
+   */
+  @Test()
+  public void testConfigurablePrivilegeSets()
+  {
+    HashSet<String> serverPrivNames = new HashSet<String>();
+    for (Privilege p : Privilege.values())
+    {
+      serverPrivNames.add(p.toString());
+    }
+
+    HashSet<String> defaultRootPrivNames = new HashSet<String>();
+    for (RootDNCfgDefn.DefaultRootPrivilegeName p :
+         RootDNCfgDefn.DefaultRootPrivilegeName.values())
+    {
+      defaultRootPrivNames.add(p.toString());
+      assertTrue(serverPrivNames.contains(p.toString()),
+                 "The set of server privileges does not contain potential " +
+                 "default root privilege " + p.toString());
+    }
+
+    HashSet<String> disableablePrivNames = new HashSet<String>();
+    for (GlobalCfgDefn.DisabledPrivilege p :
+         GlobalCfgDefn.DisabledPrivilege.values())
+    {
+      disableablePrivNames.add(p.toString());
+      assertTrue(serverPrivNames.contains(p.toString()),
+                 "The set of server privileges does not contain disableable " +
+                 "privilege " + p.toString());
+    }
+
+    for (String s : serverPrivNames)
+    {
+      assertTrue(defaultRootPrivNames.contains(s),
+                 "The set of available default root privileges does not " +
+                 "contain server privilege " + s);
+
+      assertTrue(disableablePrivNames.contains(s),
+                 "The set of disableable privileges does not contain server " +
+                 "privilege " + s);
+    }
   }
 
 
