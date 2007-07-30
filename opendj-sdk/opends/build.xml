@@ -226,7 +226,7 @@
     <echo level="warning"
           message="WARNING: Java version ${java.version} is too old."/>
     <echo level="warning"
-          message="Java version ${min.java.version} or later is required to build OpenDS."/>
+          message="Java version ${min.java.version} or later is required to build ${SHORT_NAME}."/>
   </target>
 
   <!-- Perform common initialization common to several targets. -->
@@ -583,11 +583,11 @@
 
     <!-- Set properties needed to find the packaged files -->
     <property name="pdir"
-         location="${package.dir}/OpenDS-${VERSION_NUMBER_STRING}" />
+         location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
 
     <!-- Clean up a minimal set of files/directories for the rebuild. -->
     <delete dir="${classes.dir}" />
-    <delete file="${package.dir}/lib/OpenDS.jar" />
+    <delete file="${package.dir}/lib/${SHORT_NAME}.jar" />
     <delete file="${pdir}.zip" />
     <delete dir="${quicksetup.classes.dir}" />
     <delete file="${package.dir}/lib/quicksetup.jar" />
@@ -617,7 +617,7 @@
     </copy>
 
     <!-- Generate the OpenDS.jar file -->
-    <jar jarfile="${pdir}/lib/OpenDS.jar"
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}" compress="true" index="true" />
 
     <!-- Recreate the quicksetup classes directory and recompile into it. -->
@@ -654,7 +654,7 @@
           <include name="build-tools.jar" />
         </fileset>
         <fileset dir="${pdir}/lib">
-          <include name="OpenDS.jar" />
+          <include name="${SHORT_NAME}.jar" />
         </fileset>
       </classpath>
     </javac>
@@ -677,7 +677,7 @@
       <compilerarg value="-Xlint:all" />
       <classpath>
         <fileset dir="${pdir}/lib">
-          <include name="OpenDS.jar" />
+          <include name="${SHORT_NAME}.jar" />
         </fileset>
       </classpath>
     </javac>
@@ -702,7 +702,7 @@
   <target name="prepackage" depends="cleancompile"
        description="Prepare the Directory Server package structure.">
     <property name="pdir"
-         location="${package.dir}/OpenDS-${VERSION_NUMBER_STRING}" />
+         location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
 
     <mkdir dir="${pdir}"                 />
     <mkdir dir="${pdir}/adminDb"         />
@@ -725,7 +725,7 @@
     <mkdir dir="${pdir}/logs"            />
 
     <delete dir="${ads.class.dir}"       />
-    <jar jarfile="${pdir}/lib/OpenDS.jar"
+    <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}" compress="true" index="true" />
 
     <jar jarfile="${pdir}/lib/quicksetup.jar"
@@ -811,19 +811,19 @@
   <!-- Package the Directory Server for distribution. -->
   <target name="package" depends="prepackage"
        description="Package the Directory Server for distribution.">
-    <zip destfile="${package.dir}/OpenDS-${VERSION_NUMBER_STRING}.zip">
-      <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/**/*"
-           excludes="OpenDS-${VERSION_NUMBER_STRING}/bin/*,OpenDS-${VERSION_NUMBER_STRING}/lib/_client-script.sh,OpenDS-${VERSION_NUMBER_STRING}/lib/_server-script.sh,OpenDS-${VERSION_NUMBER_STRING}/setup,OpenDS-${VERSION_NUMBER_STRING}/uninstall,OpenDS-${VERSION_NUMBER_STRING}/upgrade"
+    <zip destfile="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}.zip">
+      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/**/*"
+           excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade"
            filemode="644" dirmode="755" />
       <zipfileset dir="${package.dir}"
-           includes="OpenDS-${VERSION_NUMBER_STRING}/lib/_client-script.sh,OpenDS-${VERSION_NUMBER_STRING}/lib/_server-script.sh"
+           includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh"
            filemode="755" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/bin/*"
-           excludes="OpenDS-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
+      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*"
+           excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
            filemode="755" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
+      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
            filemode="644" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="OpenDS-${VERSION_NUMBER_STRING}/setup,OpenDS-${VERSION_NUMBER_STRING}/uninstall,OpenDS-${VERSION_NUMBER_STRING}/upgrade"
+      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade"
            filemode="755" dirmode="755" />
     </zip>
     <property name="package.built" value="true"/>
@@ -879,7 +879,7 @@
       </classpath>
     </javac>
 
-    <war destfile="${classes.dir}/OpenDS-${VERSION_NUMBER_STRING}-DSML.war"
+    <war destfile="${classes.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}-DSML.war"
          webxml="${dsml.dir}/webapp/web.xml">
       <fileset file="${dsml.dir}/webapp/server.properties" />
 
@@ -1238,7 +1238,7 @@
     <echo message="      package that are related to data access and at the" />
     <echo message="      verbose level or higher. The syntax of this target" />
     <echo message="      definition is the same as the org.opends.server.debug.target.x" />
-    <echo message="      property when starting OpenDS. " />
+    <echo message="      property when starting ${SHORT_NAME}. " />
     <echo message="      Default debug target:"/>
     <echo message="      org.opends.server:level=warning,category=caught|data|database-access|message|protocol" />
     <echo message=""/>
@@ -1381,7 +1381,7 @@
 
     <!-- Delete all of the report suite sub-directories since we only
          have a single suite. -->
-    <delete dir="${unittest.report.dir}/OpenDS"/>
+    <delete dir="${unittest.report.dir}/${SHORT_NAME}"/>
 
     <emma enabled="${coverage.enabled}" >
       <report sourcepath="${src.dir}" >
