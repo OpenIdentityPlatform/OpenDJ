@@ -516,16 +516,23 @@ public class BindOperationBasis
    */
   public final void setAuthFailureReason(int id, String reason)
   {
-    if (id < 0)
+    if (DirectoryServer.returnBindErrorMessages())
     {
-      authFailureID = 0;
+      appendErrorMessage(reason);
     }
     else
     {
-      authFailureID = id;
-    }
+      if (id < 0)
+      {
+        authFailureID = 0;
+      }
+      else
+      {
+        authFailureID = id;
+      }
 
-    authFailureReason = reason;
+      authFailureReason = reason;
+    }
   }
 
   /**

@@ -255,6 +255,9 @@ public class DirectoryServer
   // Indicates whether the server should reject unauthenticated requests.
   private boolean rejectUnauthenticatedRequests;
 
+  // Indicates whether bind responses should include failure reason messages.
+  private boolean returnBindErrorMessages;
+
   // The configuration manager that will handle the certificate mapper.
   private CertificateMapperConfigManager certificateMapperConfigManager;
 
@@ -726,6 +729,7 @@ public class DirectoryServer
          new CopyOnWriteArrayList<ImportTaskListener>();
     directoryServer.allowedTasks = new LinkedHashSet<String>(0);
     directoryServer.disabledPrivileges = new LinkedHashSet<Privilege>(0);
+    directoryServer.returnBindErrorMessages = false;
   }
 
 
@@ -7462,6 +7466,35 @@ public class DirectoryServer
   public static void setDisabledPrivileges(Set<Privilege> disabledPrivileges)
   {
     directoryServer.disabledPrivileges = disabledPrivileges;
+  }
+
+
+
+  /**
+   * Indicates whether responses to failed bind operations should include a
+   * message explaining the reason for the failure.
+   *
+   * @return  {@code true} if bind responses should include error messages, or
+   *          {@code false} if not.
+   */
+  public static boolean returnBindErrorMessages()
+  {
+    return directoryServer.returnBindErrorMessages;
+  }
+
+
+
+  /**
+   * Specifies whether responses to failed bind operations should include a
+   * message explaining the reason for the failure.
+   *
+   * @param  returnBindErrorMessages  Specifies whether responses to failed bind
+   *                                  operations should include a message
+   *                                  explaining the reason for the failure.
+   */
+  public static void setReturnBindErrorMessages(boolean returnBindErrorMessages)
+  {
+    directoryServer.returnBindErrorMessages = returnBindErrorMessages;
   }
 
 

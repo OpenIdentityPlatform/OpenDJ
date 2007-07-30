@@ -334,6 +334,9 @@ public class CoreConfigManager
       }
     }
     DirectoryServer.setDisabledPrivileges(disabledPrivileges);
+
+    DirectoryServer.setReturnBindErrorMessages(
+         globalConfig.isReturnBindErrorMessages());
   }
 
 

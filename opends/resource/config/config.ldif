@@ -46,6 +46,7 @@ ds-cfg-writability-mode: enabled
 ds-cfg-bind-with-dn-requires-password: true
 ds-cfg-reject-unauthenticated-requests: false
 ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,cn=config
+ds-cfg-return-bind-error-messages: false
 ds-cfg-allowed-task: org.opends.server.tasks.AddSchemaFileTask
 ds-cfg-allowed-task: org.opends.server.tasks.BackupTask
 ds-cfg-allowed-task: org.opends.server.tasks.DisconnectClientTask
