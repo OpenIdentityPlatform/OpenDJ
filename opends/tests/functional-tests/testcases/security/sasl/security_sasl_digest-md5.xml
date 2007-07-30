@@ -983,19 +983,17 @@
             <script>
                     global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
             </script>
-                
-            <call function="'modifyAnAttribute'">
+               
+            <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
-             </call>
-                
-             <message>
+                    'aciValue'               : global_aci ,
+                    'opType'                 : 'remove' }
+            </call>
+            
+            <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal sasl, sasl authentication'
             </message>
 
@@ -1135,17 +1133,15 @@
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, put back global search ACI'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
-             </call>
-                
+                    'aciValue'               : global_aci ,
+                    'opType'                 : 'add' }
+            </call>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -1236,18 +1232,16 @@
                     global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
             </script>
                 
-            <call function="'modifyAnAttribute'">
+            <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
-             </call>
-                
-             <message>
+                    'aciValue'               : global_aci ,
+                    'opType'                 : 'remove' }
+            </call>
+            
+            <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equal simple, sasl authentication'
             </message>
 
@@ -1387,17 +1381,15 @@
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, put back global search ACI'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
-             </call>
-                
+                    'aciValue'               : global_aci ,
+                    'opType'                 : 'add' }
+            </call>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -1488,18 +1480,16 @@
                     global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
             </script>
                 
-            <call function="'modifyAnAttribute'">
+            <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
-             </call>
-                
-             <message>
+                    'aciValue'               : global_aci ,
+                    'opType'                 : 'remove' }
+            </call>
+            
+            <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod  not equals simple, sasl authentication'
             </message>
 
@@ -1639,17 +1629,15 @@
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, put back global search ACI'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
-             </call>
-                
+                    'aciValue'               : global_aci ,
+                    'opType'                 : 'add' }
+            </call>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -1740,18 +1728,16 @@
                     global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
             </script>
                 
-            <call function="'modifyAnAttribute'">
+            <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
-             </call>
-                
-             <message>
+                    'aciValue'               : global_aci ,
+                    'opType'                 : 'remove' }
+            </call>
+            
+            <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding with authmethod equals none, sasl authentication'
             </message>
 
@@ -1893,17 +1879,15 @@
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, put back global search ACI'
             </message>
 
-            <call function="'modifyAnAttribute'">
+            <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
-             </call>
-                
+                    'aciValue'               : global_aci ,
+                    'opType'                 : 'add' }
+            </call>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
