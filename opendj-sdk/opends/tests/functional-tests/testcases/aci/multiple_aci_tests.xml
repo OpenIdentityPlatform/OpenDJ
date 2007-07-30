@@ -99,18 +99,15 @@
                    'ACI: Multiple ACIs: Preamble - Removing Search Global ACI'
                 </message>
     
-                <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_rm_global_search.ldif' % logsRemoteDataDir }
+                <call function="'modifyGlobalAci'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
+            
                 <message>
                    'ACI: Multiple ACIs: Preamble - user searching entry that will be targeted in future tests'
                 </message>
@@ -4330,20 +4327,16 @@
                    'ACI: Multiple ACIs: Postamble - Resetting Search Global ACI'
                 </message>
     
-                <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_reset_global_search.ldif' % logsRemoteDataDir }
+                <call function="'modifyGlobalAci'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
                 </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
-                
-              <call function="'testCase_Postamble'"/>
+            
+                <call function="'testCase_Postamble'"/>
   
             </sequence>
           </testcase>

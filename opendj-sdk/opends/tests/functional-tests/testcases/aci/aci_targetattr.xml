@@ -76,22 +76,19 @@
           <testcase name="'ACI: Targetattr: Preamble'">
             <sequence>
               <call function="'testCase_Preamble'"/>
-                <message>
+              <message>
                    'ACI: Targetattr: Preamble - Removing Search Global ACI'
-                </message>
+              </message>
     
-                <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_rm_global_search.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
-    
+              <call function="'modifyGlobalAci'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
+              </call>
+            
               <message>
                  'ACI: Targetattr: Preamble - existing branch, user searching entry that will be targeted in future tests'
               </message>
@@ -1583,23 +1580,19 @@
                   <tcstatus result="'fail'"/>
               </if>
   
-                <message>
+              <message>
                    'ACI: Targetattr: Postamble - Resetting Search Global ACI'
-                </message>
+              </message>
     
-                <call function="'modifyEntry'">
-                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'entryToBeModified'   : '%s/aci/aci_reset_global_search.ldif' % logsRemoteDataDir }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
-                
+              <call function="'modifyGlobalAci'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
+              </call>
+            
               <call function="'testCase_Postamble'"/>
   
             </sequence>
