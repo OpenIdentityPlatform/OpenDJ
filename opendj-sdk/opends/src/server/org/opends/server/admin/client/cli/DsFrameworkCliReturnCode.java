@@ -27,7 +27,6 @@
 package org.opends.server.admin.client.cli;
 
 import static org.opends.server.messages.AdminMessages.*;
-import static org.opends.server.messages.ToolMessages.*;
 
 import java.util.HashMap;
 
