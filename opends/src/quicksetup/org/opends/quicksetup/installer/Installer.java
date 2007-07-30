@@ -1722,7 +1722,7 @@ public abstract class Installer extends GuiApplication {
           Thread.sleep(3000);
         }
         catch (Throwable t) {}
-        int nTries = 4;
+        int nTries = 5;
         boolean initDone = false;
         while (!initDone)
         {
@@ -1989,7 +1989,7 @@ public abstract class Installer extends GuiApplication {
                 getMsg("progress-initializing-ads")));
 
             int replicationId = replica.getReplicationId();
-            int nTries = 1;
+            int nTries = 5;
             boolean initDone = false;
             while (!initDone)
             {
