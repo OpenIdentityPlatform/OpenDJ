@@ -39,7 +39,9 @@ import javax.swing.SwingUtilities;
 
 import org.opends.server.core.DirectoryServer;
 
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.ui.ProgressDialog;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
@@ -51,7 +53,6 @@ import org.opends.statuspanel.event.ServerStatusChangeListener;
 import org.opends.statuspanel.event.StatusPanelButtonListener;
 import org.opends.statuspanel.i18n.ResourceProvider;
 import org.opends.statuspanel.ui.LoginDialog;
-import org.opends.statuspanel.ui.ProgressDialog;
 import org.opends.statuspanel.ui.StatusPanelDialog;
 
 /**
@@ -86,8 +87,13 @@ StatusPanelButtonListener
 
   private Thread progressUpdater;
 
+  private ApplicationTrustManager trustManager;
+
 //Update period of the progress dialog.
   private static final int UPDATE_PERIOD = 500;
+
+  private static final ConnectionProtocolPolicy CONNECTION_POLICY =
+    ConnectionProtocolPolicy.USE_MOST_SECURE_AVAILABLE;
 
   /**
    * This method creates the control panel dialogs and to check the current
@@ -108,11 +114,12 @@ StatusPanelButtonListener
   {
     DirectoryServer.bootstrapClient();
     initLookAndFeel();
+    trustManager = new ApplicationTrustManager(null);
     /* Call this methods to create the dialogs (the control panel dialog
      * is generated when we call getLoginDialog()). */
     getLoginDialog();
     getProgressDialog();
-    serverStatusPooler = new ServerStatusPooler();
+    serverStatusPooler = new ServerStatusPooler(CONNECTION_POLICY);
     serverStatusPooler.addServerStatusChangeListener(this);
     serverStatusPooler.startPooling();
     desc = serverStatusPooler.getLastDescriptor();
@@ -445,9 +452,19 @@ StatusPanelButtonListener
     getLoginDialog().setVisible(true);
     if (!getLoginDialog().isCancelled())
     {
-      serverStatusPooler.setAuthentication(
-          getLoginDialog().getDirectoryManagerDn(),
-          getLoginDialog().getDirectoryManagerPwd());
+      try
+      {
+        serverStatusPooler.setAuthentication(
+            getLoginDialog().getDirectoryManagerDn(),
+            getLoginDialog().getDirectoryManagerPwd(),
+            trustManager);
+      }
+      catch (ConfigException ce)
+      {
+        Utilities.displayError(getLoginDialog(), ce.getMessage(),
+            getMsg("error-title"));
+        getLoginDialog().toFront();
+      }
     }
   }
 
@@ -468,7 +485,8 @@ StatusPanelButtonListener
   {
     if (loginDialog == null)
     {
-      loginDialog = new LoginDialog(getStatusPanelDialog());
+      loginDialog = new LoginDialog(getStatusPanelDialog(), trustManager,
+          CONNECTION_POLICY);
       loginDialog.setModal(true);
     }
     return loginDialog;
@@ -819,10 +837,10 @@ StatusPanelButtonListener
    * This method is used to update the progress dialog.
    *
    * We are receiving notifications from the installer and uninstaller (this
-   * class is a ProgressListener). However if we lots of notifications updating
-   * the progress panel every time we get a progress update can result of a lot
-   * of flickering. So the idea here is to have a minimal time between 2 updates
-   * of the progress dialog (specified by UPDATE_PERIOD).
+   * class is a ProgressListener). However if we send lots of notifications
+   * updating the progress panel every time we get a progress update can result
+   * of a lot of flickering. So the idea here is to have a minimal time between
+   * 2 updates of the progress dialog (specified by UPDATE_PERIOD).
    */
   private void runProgressUpdater()
   {

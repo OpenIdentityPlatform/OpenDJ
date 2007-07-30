@@ -184,7 +184,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   /**
    * ProgressUpdateListener implementation. Here we take the
-   * ProgressUpdateEvent and create an ProgressDescriptor that
+   * ProgressUpdateEvent and create a ProgressDescriptor that
    * will be used to update the progress dialog.
    *
    * @param ev the ProgressUpdateEvent we receive.

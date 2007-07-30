@@ -32,9 +32,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URI;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
@@ -46,16 +50,23 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.Step;
+import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
+import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.Utils;
 
+import org.opends.statuspanel.ConfigException;
 import org.opends.statuspanel.ConfigFromFile;
+import org.opends.statuspanel.ConnectionProtocolPolicy;
 import org.opends.statuspanel.i18n.ResourceProvider;
 
 /**
@@ -65,7 +76,7 @@ import org.opends.statuspanel.i18n.ResourceProvider;
  */
 public class LoginDialog extends JDialog
 {
-  private static final long serialVersionUID = 9049409381101152000L;
+  private static final long serialVersionUID = 9049606381601152500L;
 
   private JFrame parent;
 
@@ -82,16 +93,35 @@ public class LoginDialog extends JDialog
 
   private ConfigFromFile conf;
 
+  private ApplicationTrustManager trustManager;
+  private ConnectionProtocolPolicy policy;
+
+  private String usedUrl;
+
+  private static final Logger LOG =
+    Logger.getLogger(LoginDialog.class.getName());
+
   /**
    * Constructor of the LoginDialog.
    * @param parent the parent frame for this dialog.
+   * @param trustManager the trust manager to be used for the secure
+   * connections.
+   * @param policy the configuration policy to be used (whether we prefer the
+   * most secure, the less secure, a specific method...).
    */
-  public LoginDialog(JFrame parent)
+  public LoginDialog(JFrame parent, ApplicationTrustManager trustManager,
+      ConnectionProtocolPolicy policy)
   {
     super(parent);
     setTitle(getMsg("login-dialog-title"));
     this.parent = parent;
     getContentPane().add(createPanel());
+    if (trustManager == null)
+    {
+      throw new IllegalArgumentException("The trustmanager cannot be null.");
+    }
+    this.trustManager = trustManager;
+    this.policy = policy;
     /*
      * TODO: find a way to calculate this dynamically.  This is done to avoid
      * all the text in a single line.
@@ -331,16 +361,97 @@ public class LoginDialog extends JDialog
         InitialLdapContext ctx = null;
         try
         {
-          String ldapUrl = getLDAPURL();
-
-          if (ldapUrl != null)
+          String ldapUrl = getConfig().getLDAPURL();
+          String startTlsUrl = getConfig().getStartTLSURL();
+          String ldapsUrl = getConfig().getLDAPSURL();
+          switch (policy)
           {
-            ctx = Utils.createLdapContext(ldapUrl, tfDn.getText(),
-                  tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null);
-          }
-          else
-          {
-            throw new Error("could-not-find-valid-ldapurl");
+          case USE_STARTTLS:
+            if (startTlsUrl != null)
+            {
+              usedUrl = startTlsUrl;
+              ctx = Utils.createStartTLSContext(startTlsUrl, tfDn.getText(),
+                  tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null,
+                  getTrustManager(), null);
+            }
+            else
+            {
+              throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+            }
+            break;
+          case USE_LDAPS:
+            if (ldapsUrl != null)
+            {
+              usedUrl = ldapsUrl;
+              ctx = Utils.createLdapsContext(ldapsUrl, tfDn.getText(),
+                  tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null,
+                  getTrustManager());
+            }
+            else
+            {
+              throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+            }
+            break;
+          case USE_LDAP:
+            if (ldapUrl != null)
+            {
+              usedUrl = ldapUrl;
+              ctx = Utils.createLdapContext(ldapUrl, tfDn.getText(),
+                    tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null);
+            }
+            else
+            {
+              throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+            }
+            break;
+          case USE_MOST_SECURE_AVAILABLE:
+            if (ldapsUrl != null)
+            {
+              usedUrl = ldapsUrl;
+              ctx = Utils.createLdapsContext(ldapsUrl, tfDn.getText(),
+                  tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null,
+                  getTrustManager());
+            }
+            else if (startTlsUrl != null)
+            {
+              usedUrl = startTlsUrl;
+              ctx = Utils.createStartTLSContext(startTlsUrl, tfDn.getText(),
+                  tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null,
+                  getTrustManager(), null);
+            }
+            else if (ldapUrl != null)
+            {
+              usedUrl = ldapUrl;
+              ctx = Utils.createLdapContext(ldapUrl, tfDn.getText(),
+                    tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null);
+            }
+            else
+            {
+              throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+            }
+            break;
+          case USE_LESS_SECURE_AVAILABLE:
+            if (ldapUrl != null)
+            {
+              usedUrl = ldapUrl;
+              ctx = Utils.createLdapContext(ldapUrl, tfDn.getText(),
+                    tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null);
+            }
+            else if (ldapsUrl != null)
+            {
+              usedUrl = ldapsUrl;
+              ctx = Utils.createLdapsContext(ldapsUrl, tfDn.getText(),
+                  tfPwd.getText(), Utils.getDefaultLDAPTimeout(), null,
+                  getTrustManager());
+            }
+            else
+            {
+              throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+            }
+            break;
+            default:
+              throw new IllegalStateException("Unknown connection policy: "+
+                  policy);
           }
 
           /*
@@ -361,6 +472,9 @@ public class LoginDialog extends JDialog
             throw ne;
           }
           isServerRunning = Boolean.FALSE;
+        } catch (Error e)
+        {
+          throw e;
         } catch (IllegalStateException ise)
         {
           throw ise;
@@ -369,8 +483,9 @@ public class LoginDialog extends JDialog
         {
           throw new IllegalStateException("Unexpected throwable.", t);
         }
-        if (ctx != null)
+        finally
         {
+          if (ctx != null)
           try
           {
             ctx.close();
@@ -387,7 +502,59 @@ public class LoginDialog extends JDialog
       {
         if (throwable != null)
         {
-          if (throwable instanceof NamingException)
+          LOG.log(Level.INFO, "Error connecting: " + throwable, throwable);
+          if (Utils.isCertificateException(throwable))
+          {
+            ApplicationTrustManager.Cause cause =
+              trustManager.getLastRefusedCause();
+
+            LOG.log(Level.INFO, "Certificate exception cause: "+cause);
+            UserDataCertificateException.Type excType = null;
+            if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
+            {
+              excType = UserDataCertificateException.Type.NOT_TRUSTED;
+            }
+            else if (cause ==
+              ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
+            {
+              excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
+            }
+            else
+            {
+              String msg = Utils.getThrowableMsg(getI18n(),
+                  "error-connecting-to-local", null, throwable);
+              displayError(msg, getMsg("error-title"));
+            }
+
+            if (excType != null)
+            {
+              String h;
+              int p;
+              try
+              {
+                URI uri = new URI(usedUrl);
+                h = uri.getHost();
+                p = uri.getPort();
+              }
+              catch (Throwable t)
+              {
+                LOG.log(Level.WARNING,
+                    "Error parsing ldap url of ldap url.", t);
+                h = getMsg("not-available-label");
+                p = -1;
+              }
+              UserDataCertificateException udce =
+              new UserDataCertificateException(Step.REPLICATION_OPTIONS,
+                  getMsg("certificate-exception",
+                      new String[] {h, String.valueOf(p)}),
+                  throwable, h, p,
+                  getTrustManager().getLastRefusedChain(),
+                  getTrustManager().getLastRefusedAuthType(), excType);
+
+              handleCertificateException(udce);
+            }
+          }
+          else if (throwable instanceof NamingException)
           {
             boolean dnInvalid = false;
             boolean pwdInvalid = false;
@@ -463,7 +630,7 @@ public class LoginDialog extends JDialog
                   getMsg("error-title"));
             }
           }
-          else if (throwable instanceof Error)
+          else if (throwable instanceof ConfigException)
           {
             displayError(throwable.getMessage(), getMsg("error-title"));
           }
@@ -550,17 +717,6 @@ public class LoginDialog extends JDialog
   }
 
   /**
-   * Returns the ldap URL used to log into the server based in the contents
-   * of the config file.
-   * @return the ldap URL used to log into the server based in the contents
-   * of the config file.
-   */
-  private String getLDAPURL()
-  {
-    return getConfig().getLDAPURL();
-  }
-
-  /**
    * Returns the ConfigFromFile object that contains the configuration read
    * from the config file.
    * @return the ConfigFromFile object that contains the configuration read
@@ -594,6 +750,66 @@ public class LoginDialog extends JDialog
   }
 
   /**
+   * Returns the trust manager that can be used to establish secure connections.
+   * @return the trust manager that can be used to establish secure connections.
+   */
+  private ApplicationTrustManager getTrustManager()
+  {
+    return trustManager;
+  }
+
+  /**
+   * Displays a dialog asking the user to accept a certificate if the user
+   * accepts it, we update the trust manager and simulate a click on "OK" to
+   * re-check the authentication.
+   * This method assumes that we are being called from the event thread.
+   */
+  private void handleCertificateException(UserDataCertificateException ce)
+  {
+    CertificateDialog dlg = new CertificateDialog(parent, ce);
+    dlg.pack();
+    dlg.setVisible(true);
+    if (dlg.isAccepted())
+    {
+      X509Certificate[] chain = ce.getChain();
+      String authType = ce.getAuthType();
+      String host = ce.getHost();
+
+      if ((chain != null) && (authType != null) && (host != null))
+      {
+        LOG.log(Level.INFO, "Accepting certificate presented by host "+host);
+        getTrustManager().acceptCertificate(chain, authType, host);
+        /* Simulate a click on the OK */
+        SwingUtilities.invokeLater(new Runnable()
+        {
+          public void run()
+          {
+            okButton.doClick();
+          }
+        });
+      }
+      else
+      {
+        if (chain == null)
+        {
+          LOG.log(Level.WARNING,
+              "The chain is null for the UserDataCertificateException");
+        }
+        if (authType == null)
+        {
+          LOG.log(Level.WARNING,
+              "The auth type is null for the UserDataCertificateException");
+        }
+        if (host == null)
+        {
+          LOG.log(Level.WARNING,
+              "The host is null for the UserDataCertificateException");
+        }
+      }
+    }
+  }
+
+  /**
    * Method written for testing purposes.
    * @param args the arguments to be passed to the test program.
    */
@@ -602,7 +818,9 @@ public class LoginDialog extends JDialog
     try
     {
       // UIFactory.initialize();
-      LoginDialog dlg = new LoginDialog(new JFrame());
+      LoginDialog dlg = new LoginDialog(new JFrame(),
+          new ApplicationTrustManager(null),
+          ConnectionProtocolPolicy.USE_MOST_SECURE_AVAILABLE);
       dlg.pack();
       dlg.setVisible(true);
     } catch (Exception ex)

@@ -29,6 +29,7 @@ package org.opends.admin.ads.util;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.security.GeneralSecurityException;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -45,6 +46,7 @@ import javax.naming.ldap.StartTlsRequest;
 import javax.naming.ldap.StartTlsResponse;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 
 /**
@@ -492,6 +494,28 @@ public class ConnectionUtils
       }
     }
     return host;
+  }
+
+  /**
+   * Tells whether the provided Throwable was caused because of a problem with
+   * a certificate while trying to establish a connection.
+   * @param t the Throwable to analyze.
+   * @return <CODE>true</CODE> if the provided Throwable was caused because of a
+   * problem with a certificate while trying to establish a connection and
+   * <CODE>false</CODE> otherwise.
+   */
+  public static boolean isCertificateException(Throwable t)
+  {
+    boolean returnValue = false;
+
+    while (!returnValue && (t != null))
+    {
+      returnValue = (t instanceof SSLHandshakeException) ||
+      (t instanceof GeneralSecurityException);
+      t = t.getCause();
+    }
+
+    return returnValue;
   }
 
   /**

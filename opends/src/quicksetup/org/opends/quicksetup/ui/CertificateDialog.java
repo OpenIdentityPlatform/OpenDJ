@@ -101,7 +101,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     pack();
     if (getPreferredSize().width > parent.getWidth())
     {
-      setPreferredSize(new Dimension(parent.getWidth() - 20,
+      setPreferredSize(new Dimension(Math.max(parent.getWidth() - 20, 400),
           getPreferredSize().height));
     }
     pack();
@@ -204,9 +204,18 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     topPanel.add(Box.createHorizontalStrut(
         certificateDetails.getPreferredSize().width), gbc);
     gbc.insets.top = 0;
-    gbc.insets.bottom = UIFactory.TOP_INSET_INPUT_SUBPANEL;
     gbc.weighty = 1.0;
-    topPanel.add(certificateDetails, gbc);
+    JPanel auxPanel = new JPanel(new GridBagLayout());
+    gbc.weightx = 0.0;
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    auxPanel.add(Box.createVerticalStrut(100), gbc);
+    gbc.weightx = 1.0;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    auxPanel.add(certificateDetails, gbc);
+    gbc.insets = UIFactory.getCurrentStepPanelInsets();
+    gbc.insets.bottom = UIFactory.TOP_INSET_INPUT_SUBPANEL;
+    topPanel.add(auxPanel, gbc);
     certificateDetails.setVisible(false);
     gbc.weighty = 0.2;
     gbc.insets = UIFactory.getEmptyInsets();

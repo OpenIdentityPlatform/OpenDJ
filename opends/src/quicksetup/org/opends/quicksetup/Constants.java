@@ -72,6 +72,8 @@ public class Constants {
   /** Default dynamic name of directory manager. */
   public static final String DIRECTORY_MANAGER_DN = "cn=Directory Manager";
 
+  /** Default global admin UID. */
+  public static final String GLOBAL_ADMIN_UID = "admin";
   /** These HTML tags cause a line break in formatted text. */
   public static final String[] BREAKING_TAGS = {
           HTML_LINE_BREAK,

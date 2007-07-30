@@ -43,6 +43,7 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
 import org.opends.statuspanel.i18n.ResourceProvider;
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.util.Utils;
 
 /**
@@ -67,7 +68,10 @@ public class ConfigFromLDAP
 
   private String dn;
   private String pwd;
-  private String ldapUrl;
+  private String lastUrl;
+  private ConnectionProtocolPolicy policy;
+  private ConfigFromFile offlineConf;
+  private ApplicationTrustManager trustManager;
 
   private InitialLdapContext ctx;
   private String javaVersion;
@@ -83,15 +87,28 @@ public class ConfigFromLDAP
 
   /**
    * Sets the connection information required to contact the server using LDAP.
-   * @param ldapUrl the LDAP URL of the server.
+   * @param offlineConf the ConfigFromFile object used to retrieve the LDAP URL
+   * that will be used to connect to the server.
+   * @param policy the configuration policy to be used (whether we prefer the
+   * most secure, the less secure, a specific method...).
    * @param dn the authentication Distinguished Name to bind.
    * @param pwd the authentication password to bind.
+   * @param trustManager the trust manager to be used for the secure
+   * connections.
+   * @throws ConfigException if a valid URL could not be found with the provided
+   * parameters.
    */
-  public void setConnectionInfo(String ldapUrl, String dn, String pwd)
+  public void setConnectionInfo(ConfigFromFile offlineConf,
+      ConnectionProtocolPolicy policy, String dn, String pwd,
+      ApplicationTrustManager trustManager) throws ConfigException
   {
-    if (ldapUrl == null)
+    if (offlineConf == null)
     {
-      throw new IllegalArgumentException("ldapUrl cannot be null.");
+      throw new IllegalArgumentException("offlineConf cannot be null.");
+    }
+    if (policy == null)
+    {
+      throw new IllegalArgumentException("policy cannot be null.");
     }
     if (dn == null)
     {
@@ -101,9 +118,15 @@ public class ConfigFromLDAP
     {
       throw new IllegalArgumentException("pwd cannot be null.");
     }
+    this.trustManager = trustManager;
+    this.offlineConf = offlineConf;
+    this.policy = policy;
+    String ldapUrl = getURL(offlineConf, policy);
+
     if (!Utils.areDnsEqual(dn, this.dn) ||
         !pwd.equals(this.pwd) ||
-        !ldapUrl.equals(this.ldapUrl))
+        (policy != this.policy) ||
+        !ldapUrl.equals(lastUrl))
     {
       if (ctx != null)
       {
@@ -118,7 +141,7 @@ public class ConfigFromLDAP
       }
     }
 
-    this.ldapUrl = ldapUrl;
+    this.lastUrl = ldapUrl;
     this.dn = dn;
     this.pwd = pwd;
   }
@@ -265,8 +288,11 @@ public class ConfigFromLDAP
    * @return the InitialLdapContext object to be used to retrieve configuration
    * and monitoring information.
    * @throws NamingException if we could not get an InitialLdapContext.
+   * @throws ConfigException if we could not retrieve a valid LDAP URL in
+   * the configuration.
    */
-  private InitialLdapContext getDirContext() throws NamingException
+  private InitialLdapContext getDirContext() throws NamingException,
+  ConfigException
   {
     if (ctx != null)
     {
@@ -288,8 +314,86 @@ public class ConfigFromLDAP
     }
     if (ctx == null)
     {
-      ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
-          Utils.getDefaultLDAPTimeout(), null);
+      String ldapUrl = offlineConf.getLDAPURL();
+      String startTlsUrl = offlineConf.getStartTLSURL();
+      String ldapsUrl = offlineConf.getLDAPSURL();
+      switch (policy)
+      {
+      case USE_STARTTLS:
+        if (startTlsUrl != null)
+        {
+          ctx = Utils.createStartTLSContext(startTlsUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null, trustManager, null);
+        }
+        else
+        {
+          throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+        }
+        break;
+      case USE_LDAPS:
+        if (ldapsUrl != null)
+        {
+          ctx = Utils.createLdapsContext(ldapsUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null, trustManager);
+        }
+        else
+        {
+          throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+        }
+        break;
+      case USE_LDAP:
+        if (ldapUrl != null)
+        {
+          ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null);
+        }
+        else
+        {
+          throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+        }
+        break;
+      case USE_MOST_SECURE_AVAILABLE:
+        if (ldapsUrl != null)
+        {
+          ctx = Utils.createLdapsContext(ldapsUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null, trustManager);
+        }
+        else if (startTlsUrl != null)
+        {
+          ctx = Utils.createStartTLSContext(startTlsUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null,
+              trustManager, null);
+        }
+        else if (ldapUrl != null)
+        {
+          ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null);
+        }
+        else
+        {
+          throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+        }
+        break;
+      case USE_LESS_SECURE_AVAILABLE:
+        if (ldapUrl != null)
+        {
+          ctx = Utils.createLdapContext(ldapUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null);
+        }
+        else if (ldapsUrl != null)
+        {
+          ctx = Utils.createLdapsContext(ldapsUrl, dn, pwd,
+              Utils.getDefaultLDAPTimeout(), null, trustManager);
+        }
+        else
+        {
+          throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+        }
+        break;
+        default:
+          throw new IllegalStateException("Unknown connection policy: "+
+              policy);
+      }
     }
     return ctx;
   }
@@ -907,5 +1011,83 @@ public class ConfigFromLDAP
   private ResourceProvider getI18n()
   {
     return ResourceProvider.getInstance();
+  }
+
+  private String getURL(ConfigFromFile offlineConf,
+      ConnectionProtocolPolicy policy) throws ConfigException
+  {
+    String url;
+    String ldapUrl = offlineConf.getLDAPURL();
+    String startTlsUrl = offlineConf.getStartTLSURL();
+    String ldapsUrl = offlineConf.getLDAPSURL();
+    switch (policy)
+    {
+    case USE_STARTTLS:
+      if (startTlsUrl != null)
+      {
+        url = startTlsUrl;
+      }
+      else
+      {
+        throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+      }
+      break;
+    case USE_LDAPS:
+      if (ldapsUrl != null)
+      {
+        url = ldapsUrl;
+      }
+      else
+      {
+        throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+      }
+      break;
+    case USE_LDAP:
+      if (ldapUrl != null)
+      {
+        url = ldapUrl;
+      }
+      else
+      {
+        throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+      }
+      break;
+    case USE_MOST_SECURE_AVAILABLE:
+      if (ldapsUrl != null)
+      {
+        url = ldapsUrl;
+      }
+      else if (startTlsUrl != null)
+      {
+        url = startTlsUrl;
+      }
+      else if (ldapUrl != null)
+      {
+        url = ldapUrl;
+      }
+      else
+      {
+        throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+      }
+      break;
+    case USE_LESS_SECURE_AVAILABLE:
+      if (ldapUrl != null)
+      {
+        url = ldapUrl;
+      }
+      else if (ldapsUrl != null)
+      {
+        url = ldapsUrl;
+      }
+      else
+      {
+        throw new ConfigException(getMsg("could-not-find-valid-ldapurl"));
+      }
+      break;
+      default:
+        throw new IllegalStateException("Unknown connection policy: "+
+            policy);
+    }
+    return url;
   }
 }

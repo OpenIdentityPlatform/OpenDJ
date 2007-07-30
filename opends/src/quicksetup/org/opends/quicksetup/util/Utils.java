@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
-import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,7 +43,6 @@ import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 
 import org.opends.admin.ads.util.ConnectionUtils;
@@ -894,16 +892,7 @@ public class Utils
  */
   public static boolean isCertificateException(Throwable t)
   {
-    boolean returnValue = false;
-
-    while (!returnValue && (t != null))
-    {
-      returnValue = (t instanceof SSLHandshakeException) ||
-      (t instanceof GeneralSecurityException);
-      t = t.getCause();
-    }
-
-    return returnValue;
+    return ConnectionUtils.isCertificateException(t);
   }
 
   /**

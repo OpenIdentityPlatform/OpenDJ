@@ -115,7 +115,7 @@ public class UserData
         DataReplicationOptions.Type.STANDALONE, data,
         getDefaultReplicationPort());
     setReplicationOptions(repl);
-    setGlobalAdministratorUID("admin");
+    setGlobalAdministratorUID(Constants.GLOBAL_ADMIN_UID);
 
     SuffixesToReplicateOptions suffixes =
       new SuffixesToReplicateOptions(

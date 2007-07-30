@@ -33,6 +33,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.LDIFException;
@@ -43,9 +45,9 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ObjectClass;
-import org.opends.statuspanel.i18n.ResourceProvider;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
+import org.opends.statuspanel.i18n.ResourceProvider;
 
 /**
  * This class is used to retrieve configuration information directly from the
@@ -72,12 +74,17 @@ public class ConfigFromFile
 
   private HashSet<ListenerDescriptor> listeners =
     new HashSet<ListenerDescriptor>();
+  private HashSet<ListenerDescriptor> startTLSListeners =
+    new HashSet<ListenerDescriptor>();
   private HashSet<DatabaseDescriptor> databases =
     new HashSet<DatabaseDescriptor>();
   private HashSet<String> administrativeUsers = new HashSet<String>();
   private String errorMessage;
   private boolean replicationConfigured = false;
   private HashSet<String> replicatedSuffixes = new HashSet<String>();
+
+  private static final Logger LOG =
+    Logger.getLogger(ConfigFromFile.class.getName());
 
   /**
    * Default constructor.
@@ -96,6 +103,7 @@ public class ConfigFromFile
   {
     errorMessage = null;
     listeners.clear();
+    startTLSListeners.clear();
     databases.clear();
     administrativeUsers.clear();
     replicationConfigured = false;
@@ -117,16 +125,19 @@ public class ConfigFromFile
     }
     catch (IOException ioe)
     {
+      LOG.log(Level.SEVERE, "Error reading config file: "+ioe, ioe);
       errorMessage = Utils.getThrowableMsg(getI18n(),
           "error-reading-config-file", null, ioe);
     }
     catch (LDIFException le)
     {
+      LOG.log(Level.SEVERE, "Error reading config file: "+le, le);
       errorMessage = Utils.getThrowableMsg(getI18n(),
           "error-reading-config-file", null, le);
     }
     catch (Throwable t)
     {
+      LOG.log(Level.SEVERE, "Error reading config file: "+t, t);
       // Bug
       t.printStackTrace();
       errorMessage = Utils.getThrowableMsg(getI18n(),
@@ -199,6 +210,64 @@ public class ConfigFromFile
    */
   public String getLDAPURL()
   {
+    return getLDAPURL(false);
+  }
+
+  /**
+   * Returns the ldaps URL that we can use to connect to the server based in
+   * what we found in the config.ldif file.
+   * @return the ldaps URL that we can use to connect to the server based in
+   * what we found in the config.ldif file.
+   */
+  public String getLDAPSURL()
+  {
+    return getLDAPURL(true);
+  }
+
+  /**
+   * Returns the ldap URL that we can use to connect to the server using Start
+   * TLS based in what we found in the config.ldif file.
+   * @return the ldap URL that we can use to connect to the server using Start
+   * TLS based in what we found in the config.ldif file.
+   */
+  public String getStartTLSURL()
+  {
+    String url = null;
+    for (ListenerDescriptor desc : startTLSListeners)
+    {
+      if (desc.getState() == ListenerDescriptor.State.ENABLED)
+      {
+        int port = -1;
+        try
+        {
+          String addressPort = desc.getAddressPort();
+          int index = addressPort.indexOf(":");
+          if (index != -1)
+          {
+            port = Integer.parseInt(addressPort.substring(index+1));
+          }
+          else
+          {
+            port = Integer.parseInt(addressPort);
+          }
+        }
+        catch (Exception ex)
+        {
+          // Could not get the port
+        }
+
+        if (port != -1)
+        {
+          url = "ldap://localhost:"+port;
+          break;
+        }
+      }
+    }
+    return url;
+  }
+
+  private String getLDAPURL(boolean secure)
+  {
     String url = null;
 
     for (ListenerDescriptor desc : getListeners())
@@ -227,16 +296,17 @@ public class ConfigFromFile
 
         if (port != -1)
         {
-          if (desc.getProtocol() == ListenerDescriptor.Protocol.LDAP)
+          if (!secure &&
+              (desc.getProtocol() == ListenerDescriptor.Protocol.LDAP))
           {
             url = "ldap://localhost:"+port;
-            /* We prefer to test using the LDAP port: do not continue
-             * searching */
             break;
           }
-          else if (desc.getProtocol() == ListenerDescriptor.Protocol.LDAPS)
+          if (secure &&
+              (desc.getProtocol() == ListenerDescriptor.Protocol.LDAPS))
           {
             url = "ldaps://localhost:"+port;
+            break;
           }
         }
       }
@@ -383,6 +453,18 @@ public class ConfigFromFile
     }
     listeners.add(new ListenerDescriptor(addressPort, protocol,
         protocolDescription, state));
+    if (protocol == ListenerDescriptor.Protocol.LDAP)
+    {
+      String allowStartTLS = getFirstValue(entry, "ds-cfg-allow-start-tls");
+      if (allowStartTLS != null)
+      {
+        if ("true".equalsIgnoreCase(allowStartTLS.trim()))
+        {
+          startTLSListeners.add(new ListenerDescriptor(addressPort, protocol,
+              protocolDescription, state));
+        }
+      }
+    }
   }
 
   /**
