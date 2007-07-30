@@ -52,6 +52,7 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.LDAPSearch;
+import org.opends.server.tools.dsconfig.DSConfig;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.AuthenticationType;
@@ -1896,6 +1897,69 @@ public class BindOperationTestCase
          conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
                                 new ASN1OctetString("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
+  }
+
+
+
+  /**
+   * Tests the behavior of the returnBindErrorMessage configuration option.
+   */
+  @Test()
+  public void testReturnBindErrorMessage()
+  {
+    // Make sure that the default behavior is to not include the error message.
+    InternalClientConnection conn =
+         new InternalClientConnection(new AuthenticationInfo());
+
+    BindOperation bindOperation =
+         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
+                                new ASN1OctetString("wrongpassword"));
+    assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
+    assertTrue(((bindOperation.getErrorMessage() == null) ||
+                (bindOperation.getErrorMessage().length() == 0)),
+               bindOperation.getErrorMessage().toString());
+
+
+    // Change the server configuration so that error messages should be
+    // returned.
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "set-global-configuration-prop",
+      "--set", "return-bind-error-messages:true"
+    };
+    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+
+    bindOperation =
+         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
+                                new ASN1OctetString("wrongpassword"));
+    assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
+    assertTrue(bindOperation.getErrorMessage().length() > 0);
+
+
+    // Change the configuration back and make sure that the error message goes
+    // away.
+    args = new String[]
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "set-global-configuration-prop",
+      "--set", "return-bind-error-messages:false"
+    };
+    assertEquals(DSConfig.main(args, false, System.out, System.err), 0);
+
+    bindOperation =
+         conn.processSimpleBind(new ASN1OctetString("cn=Directory Manager"),
+                                new ASN1OctetString("wrongpassword"));
+    assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
+    assertTrue(((bindOperation.getErrorMessage() == null) ||
+                (bindOperation.getErrorMessage().length() == 0)),
+               bindOperation.getErrorMessage().toString());
   }
 
 

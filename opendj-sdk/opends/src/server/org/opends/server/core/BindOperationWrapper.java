@@ -166,7 +166,14 @@ public abstract class BindOperationWrapper extends OperationWrapper
    */
   public void setAuthFailureReason(int id, String reason)
   {
-    bind.setAuthFailureReason(id, reason);
+    if (DirectoryServer.returnBindErrorMessages())
+    {
+      bind.appendErrorMessage(reason);
+    }
+    else
+    {
+      bind.setAuthFailureReason(id, reason);
+    }
   }
 
   /**

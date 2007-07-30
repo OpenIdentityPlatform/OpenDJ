@@ -667,5 +667,31 @@
     </adm:profile>
   </adm:property>
 
+  <adm:property name="return-bind-error-messages" mandatory="false">
+    <adm:synopsis>
+      Indicates whether responses for failed bind operations should include a
+      message string providing the reason for the authentication failure.  Note
+      that these messages may include information that could potentially be used
+      by an attacker.  If this option is disabled, then these messages will
+      appear only in the server's access log.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          false
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.456</ldap:oid>
+        <ldap:name>ds-cfg-return-bind-error-messages</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:managed-object>
 
