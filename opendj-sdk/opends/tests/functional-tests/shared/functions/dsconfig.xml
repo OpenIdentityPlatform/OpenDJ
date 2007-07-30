@@ -49,6 +49,7 @@
               
   </function>
   
+  
   <!-- Set property value using dsconfig -->
   <function name="dsconfigSet">
     <function-prolog>
@@ -134,7 +135,7 @@
 			
       <function-arg-def name="expectedRC" type="optional" default="0">
       <function-arg-description>
-	 Expected return code value. Default value is 0
+        Expected return code value. Default value is 0
       </function-arg-description>
       <function-arg-property name="type" value="string"/>
     </function-arg-def>			
@@ -146,14 +147,11 @@
       <script>
         mylocation=location
         STAFCmdParams=''	
-        STAFCmd=''			  	
+        STAFCmd=''
       
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder)
           STAFCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
-
-        if attributeValue:
-            attributeValue=attributeValue.replace('"','QUOT')
             
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('set-%s-prop ' % (objectName))
@@ -188,12 +186,7 @@
         STAXCode=RC
         STAXReason=STAXResult
       </script>
-      <call function="'checktestRC'">
-          { 'returncode' : STAXCode ,
-            'result'     : STAXReason ,
-            'expected'   : expectedRC }
-      </call>
-              
+
       <return>
         STAXReason
       </return>
@@ -783,6 +776,387 @@
     
   </function>
 
+  <function name="addIndex">
+    <function-prolog>
+      This function eases adding JEB DB indexes
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+		
+      <function-arg-def name="host" 
+                        type="optional" 
+                        default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+		
+      <function-arg-def name="port" 
+                        type="optional" 
+                        default="'%s' % DIRECTORY_INSTANCE_PORT">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>		  
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+		
+      <function-arg-def name="rootDN" 
+                        type="optional" 
+                        default="'%s' % DIRECTORY_INSTANCE_DN">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+		
+      <function-arg-def name="rootPwd" 
+                        type="optional" 
+                        default="'%s' % DIRECTORY_INSTANCE_PSWD">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="backendID" 
+                        default="'%s' % DIRECTORY_INSTANCE_BE" 
+                        type="optional">
+        <function-arg-description>
+          The Back-end ID on to which to add an index
+        </function-arg-description>
+      </function-arg-def>
+					
+      <function-arg-def name="indexAttribute" type="required">
+        <function-arg-description>
+          ldap attribute on to which to add indexing
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="indexTypes" type="required">
+        <function-arg-description>
+          type of index to add
+          This has to be provided as a python array like 
+          [ 'presence', 'substring' ]
+        </function-arg-description>
+        <function-arg-property name="type" value="enum">
+          <function-arg-property-description>
+            This argument can only have one of those values
+          </function-arg-property-description>
+          <function-arg-property-data type="choice" value="'equality'"/>
+          <function-arg-property-data type="choice" value="'ordering'"/>
+          <function-arg-property-data type="choice" value="'presence'" />
+          <function-arg-property-data type="choice" value="'substring'"/>
+        </function-arg-property>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        dsconfigParams=''	
+        dsconfigCmd=''
+        dsBinPath='%s/%s' % (dsPath,fileFolder)
+        dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
+        dsconfigParams = 'create-je-index -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --set index-type:%s' % (host,port,rootDN,rootPwd,backendID, indexAttribute, ' --set index-type:'.join(indexTypes))
+      </script>
+     
+      <call function="'_dsconfigCommonArgs'"/>
+            
+      <message>
+        'Running [%s %s]' % (dsconfigCmd, dsconfigParams)
+      </message>
+           
+      <process name="'dsconfig addIndex'">
+        <location>'%s' % location</location>
+        <command>'%s' % dsconfigCmd</command>
+        <parms>'%s' % dsconfigParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <message>
+        '%s returned [%s] with [%s]' % (dsconfigCmd, RC,STAXResult)
+      </message>
+      <return>
+        RC, STAXResult
+      </return>
+    </sequence>
+  </function>
+  
+  
+  <function name="modifyIndex">
+    <function-prolog>
+      This function eases modifying JEB DB indexes
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+		
+      <function-arg-def name="host" 
+                        type="optional" 
+                        default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+		
+      <function-arg-def name="port" 
+                        type="optional" 
+                        default="'%s' % DIRECTORY_INSTANCE_PORT">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>		  
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+		
+      <function-arg-def name="rootDN" 
+                        type="optional" 
+                        default="'%s' % DIRECTORY_INSTANCE_DN">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+		
+      <function-arg-def name="rootPwd" 
+                        type="optional" 
+                        default="'%s' % DIRECTORY_INSTANCE_PSWD">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="backendID" 
+                        default="'%s' % DIRECTORY_INSTANCE_BE" 
+                        type="optional">
+        <function-arg-description>
+          The Back-end ID on to which to add an index
+        </function-arg-description>
+      </function-arg-def>
+					
+      <function-arg-def name="indexAttribute" type="required">
+        <function-arg-description>
+          ldap attribute on to which add indexing
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+      <function-arg-def name="operation">
+        <function-arg-description>
+          This parameters defines the operation to be performed.
+        </function-arg-description>
+        <function-arg-property name="type" value="enum">
+          <function-arg-property-description>
+            This argument can only have one of the following values
+          </function-arg-property-description>
+          <function-arg-property-data type="choice" value="'add'" />
+          <function-arg-property-data type="choice" value="'remove'"/>
+          <function-arg-property-data type="choice" value="'reset'"/>
+          <function-arg-property-data type="choice" value="'set'"/>
+        </function-arg-property>
+      
+      </function-arg-def> 
+      
+      <function-arg-def name="indexProperty" type="required">
+        <function-arg-description>
+          the property to manipulate if the operation is add or set
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="indexPropertyValue" type="optional">
+        <function-arg-description>
+          the value for the provided property
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        dsconfigParams=''	
+        dsconfigCmd=''
+        dsBinPath='%s/%s' % (dsPath,fileFolder)
+        dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
+        operationArguments = indexProperty
+        if indexPropertyValue:
+          operationArguments = '%s:%s' % (indexProperty, indexPropertyValue)
+        dsconfigParams = 'set-je-index-prop -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s --%s %s' % ( host, port, rootDN, rootPwd, backendID, indexAttribute, operation, operationArguments )
+      </script>
+     
+      <call function="'_dsconfigCommonArgs'"/>
+            
+      <message>
+        '%s %s' % (dsconfigCmd, dsconfigParams)
+      </message>
+           
+      <process name="'dsconfig modifyIndex'">
+        <location>'%s' % location</location>
+        <command>'%s' % dsconfigCmd</command>
+        <parms>'%s' % dsconfigParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <return>
+        STAXReason
+      </return>
+    </sequence>
+  </function>
+  
+  
+  <function name="removeIndex">
+    <function-prolog>
+      This function eases removing JEB DB indexes from STAX
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+		
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+		
+      <function-arg-def name="host" 
+                        type="optional" 
+                        default="'%s' % STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+		
+      <function-arg-def name="port" 
+                        type="optional" 
+                        default="'%s' % DIRECTORY_INSTANCE_PORT">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>		  
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+		
+      <function-arg-def name="rootDN" 
+                        type="optional" 
+                        default="'%s' % DIRECTORY_INSTANCE_DN">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+		
+      <function-arg-def name="rootPwd" 
+                        type="optional" 
+                        default="'%s' % DIRECTORY_INSTANCE_PSWD">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+      <function-arg-def name="backendID" 
+                        default="'%s' % DIRECTORY_INSTANCE_BE" 
+                        type="optional">
+        <function-arg-description>
+          The Back-end ID on to which to remove an index from
+        </function-arg-description>
+      </function-arg-def>
+					
+      <function-arg-def name="indexAttribute" type="required">
+        <function-arg-description>
+          ldap attribute on to which to remove indexing
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+			
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        dsconfigParams=''	
+        dsconfigCmd=''
+        dsBinPath='%s/%s' % (dsPath,fileFolder)
+        dsconfigCmd='%s/%s%s' % (dsBinPath,DSCONFIG,fileExt)
+        dsconfigParams = 'delete-je-index -h %s -p %s -D "%s" -w %s --backend-name %s --index-name %s' % (host,port,rootDN,rootPwd,backendID, indexAttribute)
+      </script>
+     
+      <call function="'_dsconfigCommonArgs'"/>
+            
+      <message>
+        'Running [%s %s]' % (dsconfigCmd, dsconfigParams)
+      </message>
+           
+      <process name="'dsconfig removeIndex'">
+        <location>'%s' % location</location>
+        <command>'%s' % dsconfigCmd</command>
+        <parms>'%s' % dsconfigParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <message>
+        '%s returned [%s] with [%s]' % (dsconfigCmd, RC,STAXResult)
+      </message>
+      <return>
+        RC, STAXResult
+      </return>
+    </sequence>
+  </function>
 
     
   <!-- Create synchronization provider using dsconfig -->

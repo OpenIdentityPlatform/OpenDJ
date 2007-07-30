@@ -34,7 +34,8 @@
           CurrentTestPath={'group':'indexes','suite':'indexes'}
           envAlreadyLoaded='true'
           _setupSteps=['testGroup_Preamble','testSuite_Preamble','indexes_setup']
-          _testSteps=['indexes_search','indexes_modify']
+          _testSteps=['indexes_search','indexes_modify','indexes_add','indexes_delete']
+          _cleanupSteps=['indexes_cleanup','testSuite_Postamble','testGroup_Postamble']
         </script>
         <!---
           #@TestSuiteName      Indexes
@@ -44,7 +45,7 @@
         -->
         
         <try>
-          <!-- the pre-requisites are in a separate ite -->
+          <!-- the pre-requisites are in a separate iteration -->
           <sequence>
             <iterate in="_setupSteps" var="_setupStep">
               <call function="_setupStep" />
@@ -60,7 +61,7 @@
             <message log="1" level="'fatal'">'Could not start at least one server in the topology. Bailing out.'</message>
           </catch>
           <finally>
-            <iterate in="['indexes_cleanup','testSuite_Postamble','testGroup_Postamble']" var="_cleanupStep">
+            <iterate in="_cleanupSteps" var="_cleanupStep">
               <call function="'%s' % _cleanupStep" />
             </iterate>
           </finally>
@@ -82,7 +83,7 @@
       #@TestPostamble             none
       #@TestResult                Success if entry are indexed correctly
     -->
-    <block name="'indexes_search'">
+    <block name="'Search'">
       <sequence>
         <message log="1" level="'info'">
           'starting the search tests'
@@ -108,7 +109,7 @@
       #@TestPostamble             none
       #@TestResult                Success if entry are indexed correctly
     -->
-    <block name="'indexes_modify'">
+    <block name="'Modify'">
       <sequence>
         <try>
           <sequence>
@@ -116,21 +117,17 @@
               { 'filters' : 'before-modify' }
             </call>
             <call function="'runFunction'">
-              { 'functionName'      : 'modifyAnAttribute',
+              { 'functionName'      : 'modifyIndex',
                 'functionException' : 'LDAP.ModifyException',
-                'functionFailureTC' : 'Indexes - Modify' ,
-                'functionMessage'   : 'Adding substring index to attribute uid'       ,
-                'functionArguments' : { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
-                                        'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-                                        'dsInstanceDn'      : DIRECTORY_INSTANCE_DN   ,
-                                        'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
-                                        'DNToModify'        : 'ds-cfg-index-attribute=uid,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config' ,
-                                        'attributeName'     : 'ds-cfg-index-type'     ,
-                                        'newAttributeValue' : 'substring'             ,
-                                        'changetype'        : 'add'                   }
+                'functionFailureTC' : '%s: %s: %s' % (CurrentTestPath['group'], CurrentTestPath['suite'], STAXCurrentBlock ) ,
+                'functionMessage'   : 'Adding substring index to attribute uid' ,
+                'functionArguments' : { 'operation'          : 'add'            ,
+                                        'indexAttribute'     : 'uid'            ,
+                                        'indexProperty'      : 'index-type'     ,
+                                        'indexPropertyValue' : 'substring'
+                                      }
               }
             </call>
-  
             <call function="'runFunction'">
               { 'functionName'      : 'StopDsWithScript'               ,
                 'functionException' : 'CLI.stop-ds'                    ,
@@ -179,13 +176,15 @@
       #@TestMarker                indexes
       #@TestName                  indexes_add
       #@TestIssue                 TODO: look up the issue in issue tracker
-      #@TestPurpose               harden the default indexes
+      #@TestPurpose               check if the user can add her own indexes
       #@TestPreamble              none
-      #@TestStep                  iterate through file search.filters
+      #@TestStep                  iterate through filters prior to adding indexes
+      #@TestStep                  add the indexes
+      #@TestStep                  iterate through filters after to adding indexes
       #@TestPostamble             none
       #@TestResult                Success if entry are indexed correctly
     -->
-    <block name="'indexes_add'">
+    <block name="'Add'">
       <sequence>
         <try>
           <sequence>
@@ -193,25 +192,26 @@
               { 'filters' : 'before-add' }
             </call>
             <call function="'runFunction'">
-              { 'functionName'      : 'addIndex',
-                'functionException' : 'LDAP.AddIndexException',
-                'functionFailureTC' : 'Indexes - Add' ,
-                'functionMessage'   : 'Adding presence index to attribute st  ',
-                'functionArguments' : { indexAttribute    : 'st'           ,
-                                        indexTypes        : [ 'presence' ]
+              { 'functionName'      : 'addIndex'                             ,
+                'functionException' : 'LDAP.AddIndexException'               ,
+                'functionFailureTC' : 'Indexes - Add'                        ,
+                'functionMessage'   : 'Adding presence and equality index to attribute st',
+                'functionArguments' : { 'indexAttribute'    : 'l'         ,
+                                        'indexTypes'        : [ 'presence', 'equality' ]
                                       }
               }
             </call>
   
             <call function="'runFunction'">
-              { 'functionName'      : 'StopDsWithScript'               ,
-                'functionException' : 'CLI.stop-ds'                    ,
-                'functionFailureTC' : 'Indexes - Modify' ,
-                'functionArguments' : { 'location'  : STAF_LOCAL_HOSTNAME   ,
+              { 'functionName'      : 'StopDsWithScript' ,
+                'functionException' : 'CLI.stop-ds'      ,
+                'functionFailureTC' : '%s: %s: %s' % (CurrentTestPath['group'], CurrentTestPath['suite'], STAXCurrentBlock ) ,
+                'functionArguments' : { 'location'  : STAF_LOCAL_HOSTNAME    ,
                                         'dsHost'    : DIRECTORY_INSTANCE_HOST,
                                         'dsPort'    : DIRECTORY_INSTANCE_PORT,
                                         'dsBindDN'  : DIRECTORY_INSTANCE_DN  ,
-                                        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                                        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD 
+                                      }
               }
             </call>
             <call function="'runFunction'">
@@ -219,14 +219,14 @@
                 'functionException' : 'CLI.RebuildIndex'  ,
                 'functionFailureTC' : 'Indexes - Modify'  ,
                 'functionArguments' : { 'baseDN'     : DIRECTORY_INSTANCE_SFX ,
-                                        'attributes' : [ 'st' ]  
+                                        'attributes' : [ 'l' ]  
                                       }
               }
             </call>
             <call function="'runFunction'">
               { 'functionName'      : 'StartDsWithScript',
                 'functionException' : 'CLI.start-ds'     ,
-                'functionFailureTC' : 'Indexes - Modify' ,
+                'functionFailureTC' : '%s: %s:  ' ,
                 'functionArguments' : { 'location' : STAF_LOCAL_HOSTNAME }
               }
             </call>
@@ -235,27 +235,105 @@
             </call>
           </sequence>
           <catch exception="'STAXException.LDAP.AddIndexException'">
-            <message log="1" level="'fatal'">'Fatal Error: Failed to add index for attribute st'</message>
+            <message log="1" level="'fatal'">'Fatal Error: Failed to add index for attribute l'</message>
           </catch>
           <catch exception="'STAXException.CLI.RebuildIndex'">
-            <message log="1" level="'fatal'">'Fatal Error: Failed to rebuild index for attribute st'</message>
+            <message log="1" level="'fatal'">'Fatal Error: Failed to rebuild index for attribute l'</message>
           </catch>
         </try>
       </sequence>
     </block>
   </function>
 
-  <!--
   
-  <function name="indexes_delete" scope="local">
+  <function name="indexes_remove" scope="local">
+    <!--
+      This test does a bunch of searches on the 
+      and then verifies that it worked
+      #@TestMarker                indexes
+      #@TestName                  indexes_remove
+      #@TestIssue                 TODO: look up the issue in issue tracker
+      #@TestPurpose               Check if the user can remove indexes
+      #@TestPreamble              none
+      #@TestStep                  iterate through filters prior to removing index
+      #@TestStep                  remove index
+      #@TestStep                  iterate through filters after to removing index
+      #@TestPostamble             none
+      #@TestResult                Success if entry are indexed as expected
+    -->
+    <block name="'Remove'">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'loopThroughFilters'">
+              { 'filters' : 'before-remove' }
+            </call>
+            <call function="'runFunction'">
+              { 'functionName'      : 'removeIndex'                           ,
+                'functionException' : 'LDAP.RemoveIndexException'             ,
+                'functionFailureTC' : '%s: %s: %s' % (CurrentTestPath['group'], CurrentTestPath['suite'], STAXCurrentBlock),
+                'functionMessage'   : 'Removing index on attribute l' ,
+                'functionArguments' : { 'indexAttribute'    : 'l' }
+              }
+            </call>
+            <call function="'loopThroughFilters'">
+              { 'filters' : 'after-remove' }
+            </call>
+          </sequence>
+          <catch exception="'STAXException.LDAP.RemoveIndexException'">
+            <message log="1" level="'fatal'">'Fatal Error: Failed to remove index for attribute l'</message>
+          </catch>
+        </try>
+      </sequence>
+    </block>
   </function>
 
-  <function name="indexes_verify" scope="local">
+  <function name="indexes_entry_limit">
+    <!--
+      This test does a bunch of searches on the 
+      and then verifies that it worked
+      #@TestMarker                indexes
+      #@TestName                  indexes_remove
+      #@TestIssue                 TODO: look up the issue in issue tracker
+      #@TestPurpose               Check if the user can remove indexes
+      #@TestPreamble              none
+      #@TestStep                  iterate through filters prior to removing index
+      #@TestStep                  remove index
+      #@TestStep                  iterate through filters after to removing index
+      #@TestPostamble             none
+      #@TestResult                Success if entry are indexed as expected
+    -->
+    <block name="'Entry_Limit'">
+      <sequence>
+        <try>
+          <sequence>
+            <call function="'loopThroughFilters'">
+              { 'filters' : 'before-entry-limit' }
+            </call>
+            <call function="'runFunction'">
+              { 'functionName'      : 'modifyIndex'                                ,
+                'functionException' : 'LDAP.ModifyIndexException'                  ,
+                'functionFailureTC' : '%s: %s: %s' % (CurrentTestPath['group'], CurrentTestPath['suite'], STAXCurrentBlock),
+                'functionMessage'   : 'Modify index entry limit on attribute uid'  ,
+                'functionArguments' : { 'operation'          : 'set'               ,
+                                        'indexAttribute'     : 'uid'               ,
+                                        'indexProperty'      : 'index-entry-limit' ,
+                                        'indexPropertyValue' : '3'
+                                      }
+              }
+            </call>
+            <call function="'loopThroughFilters'">
+              { 'filters' : 'after-entry-limit' }
+            </call>
+          </sequence>
+          <catch exception="'STAXException.LDAP.RemoveIndexException'">
+            <message log="1" level="'fatal'">'Fatal Error: Failed to remove index for attribute l'</message>
+          </catch>
+        </try>
+      </sequence>
+    </block>
   </function>
-  
-  <function name="indexes_search_limit">
-  </function> 
-  -->
+
   
   <function name="loopThroughFilters" scope="local">
     <function-map-args>
@@ -328,7 +406,7 @@
             testNumber=0
             
           </script>
-          <testcase name="'Indexes: %d.%s: %03d-%03d.%s: %s%02d' % ( len(_testSteps)-_testStepNumber, filters, len(indexTests)-indexTestNumber, indexTestNumber, test.getAttribute(), test.getName(), testNumber)" >
+          <testcase name="'%s: %d.%s: %03d-%03d.%s: %s%02d' % ( CurrentTestPath['group'], len(_testSteps)-_testStepNumber, filters, len(indexTests)-indexTestNumber, indexTestNumber, test.getAttribute(), test.getName(), testNumber)" >
             <sequence>
               <call function="'testCase_Preamble'" />
               <message log="1" level="'trace'">
@@ -347,7 +425,8 @@
               <script>
                 searchReturnCode, searchResultString = STAXResult[0]
                 srs=searchResultString.split('[')
-                srt=srs[1]
+                srt=srs[1].replace('\n','').replace(' ','').replace('\r','')
+                
                 if (str(searchReturnCode) == str(test.getRC())) and srt.startswith(test.getSearchString()):
                   test.pass()
                     
