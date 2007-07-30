@@ -89,6 +89,7 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.util.TimeThread;
 
 
 
@@ -107,6 +108,9 @@ public class LDAPClientConnection
   private static final DebugTracer TRACER = getTracer();
 
 
+
+  // The time that the last operation was completed.
+  private AtomicLong lastCompletionTime;
 
   // The next operation ID that should be used for this connection.
   private AtomicLong nextOperationID;
@@ -240,6 +244,7 @@ public class LDAPClientConnection
 
     ldapVersion          = 3;
     requestHandler       = null;
+    lastCompletionTime   = new AtomicLong(TimeThread.getTime());
     nextOperationID      = new AtomicLong(0);
     connectionValid      = true;
     disconnectRequested  = false;
@@ -1210,6 +1215,7 @@ public class LDAPClientConnection
       }
 
       operationsInProgress.remove(messageID);
+      lastCompletionTime.set(TimeThread.getTime());
 
       throw de;
     }
@@ -1247,7 +1253,15 @@ public class LDAPClientConnection
   public boolean removeOperationInProgress(int messageID)
   {
     AbstractOperation operation = operationsInProgress.remove(messageID);
-    return (operation != null);
+    if (operation == null)
+    {
+      return false;
+    }
+    else
+    {
+      lastCompletionTime.set(TimeThread.getTime());
+      return true;
+    }
   }
 
 
@@ -1333,6 +1347,12 @@ public class LDAPClientConnection
         }
       }
 
+      if (! (operationsInProgress.isEmpty() &&
+             getPersistentSearches().isEmpty()))
+      {
+        lastCompletionTime.set(TimeThread.getTime());
+      }
+
       operationsInProgress.clear();
 
 
@@ -1401,12 +1421,14 @@ public class LDAPClientConnection
         }
 
         operationsInProgress.remove(msgID);
+        lastCompletionTime.set(TimeThread.getTime());
       }
 
 
       for (PersistentSearch persistentSearch : getPersistentSearches())
       {
         DirectoryServer.deregisterPersistentSearch(persistentSearch);
+        lastCompletionTime.set(TimeThread.getTime());
       }
     }
     catch (Exception e)
@@ -2788,6 +2810,33 @@ public class LDAPClientConnection
   public String getCertificateAlias()
   {
     return connectionHandler.getSSLServerCertNickname();
+  }
+
+
+
+  /**
+   * Retrieves the length of time in milliseconds that this client
+   * connection has been idle.
+   * <BR><BR>
+   * Note that the default implementation will always return zero.
+   * Subclasses associated with connection handlers should override
+   * this method if they wish to provided idle time limit
+   * functionality.
+   *
+   * @return  The length of time in milliseconds that this client
+   *          connection has been idle.
+   */
+  public long getIdleTime()
+  {
+    if (operationsInProgress.isEmpty() && getPersistentSearches().isEmpty())
+    {
+      return (TimeThread.getTime() - lastCompletionTime.get());
+    }
+    else
+    {
+      // There's at least one operation in progress, so it's not idle.
+      return 0L;
+    }
   }
 }
 

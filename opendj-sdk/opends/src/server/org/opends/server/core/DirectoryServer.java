@@ -463,6 +463,9 @@ public class DirectoryServer
   // The number of connections currently established to the server.
   private long currentConnections;
 
+  // The idle time limit for the server.
+  private long idleTimeLimit;
+
   // The maximum number of connections that will be allowed at any given time.
   private long maxAllowedConnections;
 
@@ -731,6 +734,7 @@ public class DirectoryServer
     directoryServer.allowedTasks = new LinkedHashSet<String>(0);
     directoryServer.disabledPrivileges = new LinkedHashSet<Privilege>(0);
     directoryServer.returnBindErrorMessages = false;
+    directoryServer.idleTimeLimit = 0L;
   }
 
 
@@ -1204,6 +1208,7 @@ public class DirectoryServer
       if (startConnectionHandlers)
       {
         startConnectionHandlers();
+        new IdleTimeLimitThread().start();
       }
 
 
@@ -7521,6 +7526,35 @@ public class DirectoryServer
   public static void setReturnBindErrorMessages(boolean returnBindErrorMessages)
   {
     directoryServer.returnBindErrorMessages = returnBindErrorMessages;
+  }
+
+
+
+  /**
+   * Retrieves the maximum length of time in milliseconds that client
+   * connections should be allowed to remain idle without being disconnected.
+   *
+   * @return  The maximum length of time in milliseconds that client connections
+   *          should be allowed to remain idle without being disconnected.
+   */
+  public static long getIdleTimeLimit()
+  {
+    return directoryServer.idleTimeLimit;
+  }
+
+
+
+  /**
+   * Specifies the maximum length of time in milliseconds that client
+   * connections should be allowed to remain idle without being disconnected.
+   *
+   * @param  idleTimeLimit  The maximum length of time in milliseconds that
+   *                        client connections should be allowed to remain idle
+   *                        without being disconnected.
+   */
+  public static void setIdleTimeLimit(long idleTimeLimit)
+  {
+    directoryServer.idleTimeLimit = idleTimeLimit;
   }
 
 

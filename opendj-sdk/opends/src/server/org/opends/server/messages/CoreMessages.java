@@ -6277,6 +6277,58 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if a user entry contains
+   * multiple values for the user-specific idle time limit attribute.  This
+   * takes a single argument, which is the DN of the user entry.
+   */
+  public static final int MSGID_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 630;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurs while
+   * trying to parse a user-specific idle time limit value as an integer.  This
+   * takes two arguments, which are the provided time limit value and the DN of
+   * the user entry.
+   */
+  public static final int MSGID_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_WARNING | 631;
+
+
+
+  /**
+   * The message ID for the message that will be used to indicate that the idle
+   * time limit has been exceeded for a client connection.  It does not take any
+   * arguments.
+   */
+  public static final int MSGID_IDLETIME_LIMIT_EXCEEDED =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_INFORMATIONAL | 632;
+
+
+
+  /**
+   * The message ID for the message that will be used if an error occurred while
+   * trying to terminate a client connection.  It takes two arguments, which are
+   * the connection ID and a string representation of the exception that was
+   * caught.
+   */
+  public static final int MSGID_IDLETIME_DISCONNECT_ERROR =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_MILD_ERROR | 632;
+
+
+
+  /**
+   * The message ID for the message that will be used if an unexpected error
+   * occurred in the time thread.  It takes a single argument, which is a string
+   * representation of the exception that was caught.
+   */
+  public static final int MSGID_IDLETIME_UNEXPECTED_ERROR =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 632;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -7104,6 +7156,14 @@ public class CoreMessages
                     "The user-specific time limit value %s contained in " +
                     "user entry %s could not be parsed as an integer.  The " +
                     "default server time limit will be used");
+    registerMessage(MSGID_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS,
+                    "There are multiple user-specific idle time limit values " +
+                    "contained in user entry %s.  The default server idle " +
+                    "time limit will be used");
+    registerMessage(MSGID_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT,
+                    "The user-specific idle time limit value %s contained in " +
+                    "user entry %s could not be parsed as an integer.  The " +
+                    "default server idle time limit will be used");
     registerMessage(MSGID_BIND_PASSWORD_EXPIRING,
                     "The user password is about to expire (time to " +
                     "expiration:  %s)");
@@ -8549,6 +8609,17 @@ public class CoreMessages
     registerMessage(MSGID_ENTRYENCODECFG_INVALID_LENGTH,
                     "Unable to decode the provided entry encode " +
                     "configuration element because it has an invalid length");
+
+
+    registerMessage(MSGID_IDLETIME_LIMIT_EXCEEDED,
+                    "This connection has been teriminated because it has " +
+                    "remained idle for too long");
+    registerMessage(MSGID_IDLETIME_DISCONNECT_ERROR,
+                    "An error occurred while attempting to disconnect " +
+                    "client connection %d:  %s");
+    registerMessage(MSGID_IDLETIME_UNEXPECTED_ERROR,
+                    "An unexpected error occurred in the idle time limit " +
+                    "thread:  %s");
   }
 }
 

@@ -108,6 +108,9 @@ public abstract class ClientConnection
   // The time that this client connection was established.
   private long connectTime;
 
+  // The idle time limit for this client connection.
+  private long idleTimeLimit;
+
   // The opaque information used for storing intermediate state
   // information needed across multi-stage SASL binds.
   private Object saslAuthState;
@@ -138,6 +141,7 @@ public abstract class ClientConnection
     persistentSearches = new CopyOnWriteArrayList<PersistentSearch>();
     sizeLimit          = DirectoryServer.getSizeLimit();
     timeLimit          = DirectoryServer.getTimeLimit();
+    idleTimeLimit      = DirectoryServer.getIdleTimeLimit();
     lookthroughLimit   = DirectoryServer.getLookthroughLimit();
     finalized          = false;
     privileges         = new HashSet<Privilege>();
@@ -1274,6 +1278,39 @@ public abstract class ClientConnection
 
 
   /**
+   * Retrieves the maximum length of time in milliseconds that this
+   * client connection will be allowed to remain idle before it should
+   * be disconnected.
+   *
+   * @return  The maximum length of time in milliseconds that this
+   *          client connection will be allowed to remain idle before
+   *          it should be disconnected.
+   */
+  public final long getIdleTimeLimit()
+  {
+    return idleTimeLimit;
+  }
+
+
+
+  /**
+   * Specifies the maximum length of time in milliseconds that this
+   * client connection will be allowed to remain idle before it should
+   * be disconnected.
+   *
+   * @param  idleTimeLimit  The maximum length of time in milliseconds
+   *                        that this client connection will be
+   *                        allowed to remain idle before it should be
+   *                        disconnected.
+   */
+  public void setIdleTimeLimit(long idleTimeLimit)
+  {
+    this.idleTimeLimit = idleTimeLimit;
+  }
+
+
+
+  /**
    * Retrieves the default maximum number of entries that should
    * checked for matches during a search.
    *
@@ -1575,5 +1612,23 @@ public abstract class ClientConnection
     this.networkGroup = networkGroup;
   }
 
+
+
+  /**
+   * Retrieves the length of time in milliseconds that this client
+   * connection has been idle.
+   * <BR><BR>
+   * Note that the default implementation will always return zero.
+   * Subclasses associated with connection handlers should override
+   * this method if they wish to provided idle time limit
+   * functionality.
+   *
+   * @return  The length of time in milliseconds that this client
+   *          connection has been idle.
+   */
+  public long getIdleTime()
+  {
+    return 0L;
+  }
 }
 

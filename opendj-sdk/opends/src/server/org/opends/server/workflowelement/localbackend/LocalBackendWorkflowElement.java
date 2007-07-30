@@ -3091,6 +3091,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
     int     sizeLimit        = DirectoryServer.getSizeLimit();
     int     timeLimit        = DirectoryServer.getTimeLimit();
     int     lookthroughLimit = DirectoryServer.getLookthroughLimit();
+    long    idleTimeLimit    = DirectoryServer.getIdleTimeLimit();
     boolean skipPostOperation = false;
 
     // The password policy state information for this bind operation.
@@ -3705,6 +3706,53 @@ bindProcessing:
               }
 
 
+              // See if the user's entry contains a custom idle time limit.
+              attrType = DirectoryServer.getAttributeType(
+                              OP_ATTR_USER_IDLE_TIME_LIMIT, true);
+              attrList = userEntry.getAttribute(attrType);
+              if ((attrList != null) && (attrList.size() == 1))
+              {
+                Attribute a = attrList.get(0);
+                LinkedHashSet<AttributeValue>  values = a.getValues();
+                Iterator<AttributeValue> iterator = values.iterator();
+                if (iterator.hasNext())
+                {
+                  AttributeValue v = iterator.next();
+                  if (iterator.hasNext())
+                  {
+                    int msgID = MSGID_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS;
+                    String message =
+                         getMessage(msgID, String.valueOf(userEntry.getDN()));
+                    logError(ErrorLogCategory.CORE_SERVER,
+                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                  }
+                  else
+                  {
+                    try
+                    {
+                      idleTimeLimit =
+                           1000L * Long.parseLong(v.getStringValue());
+                    }
+                    catch (Exception e)
+                    {
+                      if (debugEnabled())
+                      {
+                        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                      }
+
+                      int msgID =
+                           MSGID_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT;
+                      String message =
+                           getMessage(msgID, v.getStringValue(),
+                                      String.valueOf(userEntry.getDN()));
+                      logError(ErrorLogCategory.CORE_SERVER,
+                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    }
+                  }
+                }
+              }
+
+
               // See if the user's entry contains a custom lookthrough limit.
               attrType =
                    DirectoryServer.getAttributeType(
@@ -4272,6 +4320,53 @@ bindProcessing:
               }
 
 
+              // See if the user's entry contains a custom idle time limit.
+              attrType = DirectoryServer.getAttributeType(
+                              OP_ATTR_USER_IDLE_TIME_LIMIT, true);
+              attrList = saslAuthUserEntry.getAttribute(attrType);
+              if ((attrList != null) && (attrList.size() == 1))
+              {
+                Attribute a = attrList.get(0);
+                LinkedHashSet<AttributeValue>  values = a.getValues();
+                Iterator<AttributeValue> iterator = values.iterator();
+                if (iterator.hasNext())
+                {
+                  AttributeValue v = iterator.next();
+                  if (iterator.hasNext())
+                  {
+                    int msgID = MSGID_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS;
+                    String message =
+                         getMessage(msgID, String.valueOf(userDNString));
+                    logError(ErrorLogCategory.CORE_SERVER,
+                             ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                  }
+                  else
+                  {
+                    try
+                    {
+                      idleTimeLimit =
+                           1000L * Long.parseLong(v.getStringValue());
+                    }
+                    catch (Exception e)
+                    {
+                      if (debugEnabled())
+                      {
+                        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                      }
+
+                      int msgID =
+                           MSGID_BIND_CANNOT_PROCESS_USER_IDLE_TIME_LIMIT;
+                      String message =
+                           getMessage(msgID, v.getStringValue(),
+                                      String.valueOf(userDNString));
+                      logError(ErrorLogCategory.CORE_SERVER,
+                               ErrorLogSeverity.SEVERE_WARNING, message, msgID);
+                    }
+                  }
+                }
+              }
+
+
               // See if the user's entry contains a custom lookthrough limit.
               attrType =
                    DirectoryServer.getAttributeType(
@@ -4422,6 +4517,7 @@ bindProcessing:
       clientConnection.setAuthenticationInfo(authInfo);
       clientConnection.setSizeLimit(sizeLimit);
       clientConnection.setTimeLimit(timeLimit);
+      clientConnection.setIdleTimeLimit(idleTimeLimit);
       clientConnection.setLookthroughLimit(lookthroughLimit);
       clientConnection.setMustChangePassword(mustChangePassword);
 

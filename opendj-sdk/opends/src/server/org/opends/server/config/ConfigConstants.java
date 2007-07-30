@@ -3541,6 +3541,15 @@ public class ConfigConstants
 
 
   /**
+   * The name of the operational attribute that may be included in user entries
+   * to specify an idle time limit to be applied for that user.
+   */
+  public static final String OP_ATTR_USER_IDLE_TIME_LIMIT =
+      NAME_PREFIX_RLIM + "idle-time-limit";
+
+
+
+  /**
    * The name of the operational attribute that may be included in user
    * entries to specify a size limit to be applied for that user.
    */
