@@ -960,8 +960,6 @@ public abstract class ClientConnection
   public boolean hasPrivilege(Privilege privilege,
                               Operation operation)
   {
-    boolean result;
-
     if (privilege == Privilege.PROXIED_AUTH)
     {
       // This determination should always be made against the
@@ -970,9 +968,11 @@ public abstract class ClientConnection
       Entry authEntry = authenticationInfo.getAuthenticationEntry();
       boolean isRoot  = authenticationInfo.isRoot();
       return getPrivileges(authEntry,
-                           isRoot).contains(Privilege.PROXIED_AUTH);
+                           isRoot).contains(Privilege.PROXIED_AUTH) ||
+             DirectoryServer.isDisabled(Privilege.PROXIED_AUTH);
     }
 
+    boolean result;
     if (operation == null)
     {
       result = privileges.contains(privilege);
@@ -992,7 +992,8 @@ public abstract class ClientConnection
       if (operation.getAuthorizationDN().equals(
                authenticationInfo.getAuthorizationDN()))
       {
-        result = privileges.contains(privilege);
+        result = privileges.contains(privilege) ||
+                 DirectoryServer.isDisabled(privilege);
         if (debugEnabled())
         {
           DN authDN = authenticationInfo.getAuthenticationDN();
@@ -1017,7 +1018,8 @@ public abstract class ClientConnection
           boolean isRoot =
                DirectoryServer.isRootDN(authorizationEntry.getDN());
           result = getPrivileges(authorizationEntry,
-                                 isRoot).contains(privilege);
+                                 isRoot).contains(privilege) ||
+                   DirectoryServer.isDisabled(privilege);
         }
       }
     }

@@ -63,6 +63,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.tools.LDAPSearch;
+import org.opends.server.tools.dsconfig.DSConfig;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -2295,6 +2296,66 @@ public class PrivilegeTestCase
     };
 
     assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
+
+
+  /**
+   * Tests the ability to disable a privilege so that an operation which will
+   * fail for a user without an appropriate privilege will succeed if that
+   * privilege is disabled.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testDisablePrivilege()
+         throws Exception
+  {
+    // Make sure that the operation fails when the privilege is not disabled.
+    String[] searchArgs =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-o", "mech=PLAIN",
+      "-o", "authid=dn:cn=Directory Manager",
+      "-o", "authzid=u:privileged.user",
+      "-w", "password",
+      "-b", "o=test",
+      "-s", "base",
+      "(objectClass=*)"
+    };
+
+    assertFalse(LDAPSearch.mainSearch(searchArgs, false, null, null) == 0);
+
+
+    // Disable the PROXIED_AUTH privilege and verify that the operation now
+    // succeeds.
+    String[] configArgs =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "set-global-configuration-prop",
+      "--add", "disabled-privilege:proxied-auth"
+    };
+    assertEquals(DSConfig.main(configArgs, false, System.out, System.err), 0);
+    assertEquals(LDAPSearch.mainSearch(searchArgs, false, null, null), 0);
+
+
+    // Re-enable the PROXIED_AUTH privilege and verify that the operation
+    // fails again.
+    configArgs = new String[]
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "set-global-configuration-prop",
+      "--remove", "disabled-privilege:proxied-auth"
+    };
+    assertEquals(DSConfig.main(configArgs, false, System.out, System.err), 0);
+    assertFalse(LDAPSearch.mainSearch(searchArgs, false, null, null) == 0);
   }
 
 

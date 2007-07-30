@@ -29,11 +29,13 @@ package org.opends.server.core;
 
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.GlobalCfgDefn;
 import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -43,6 +45,7 @@ import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.WritabilityMode;
 
@@ -253,6 +256,84 @@ public class CoreConfigManager
     DirectoryServer.setMailServerPropertySets(mailServerProperties);
 
     DirectoryServer.setAllowedTasks(globalConfig.getAllowedTask());
+
+
+    HashSet<Privilege> disabledPrivileges = new HashSet<Privilege>();
+    Set<GlobalCfgDefn.DisabledPrivilege> configuredDisabledPrivs =
+         globalConfig.getDisabledPrivilege();
+    if (configuredDisabledPrivs != null)
+    {
+      for (GlobalCfgDefn.DisabledPrivilege p : configuredDisabledPrivs)
+      {
+        switch (p)
+        {
+          case BACKEND_BACKUP:
+            disabledPrivileges.add(Privilege.BACKEND_BACKUP);
+            break;
+          case BACKEND_RESTORE:
+            disabledPrivileges.add(Privilege.BACKEND_RESTORE);
+            break;
+          case BYPASS_ACL:
+            disabledPrivileges.add(Privilege.BYPASS_ACL);
+            break;
+          case CANCEL_REQUEST:
+            disabledPrivileges.add(Privilege.CANCEL_REQUEST);
+            break;
+          case CONFIG_READ:
+            disabledPrivileges.add(Privilege.CONFIG_READ);
+            break;
+          case CONFIG_WRITE:
+            disabledPrivileges.add(Privilege.CONFIG_WRITE);
+            break;
+          case DATA_SYNC:
+            disabledPrivileges.add(Privilege.DATA_SYNC);
+            break;
+          case DISCONNECT_CLIENT:
+            disabledPrivileges.add(Privilege.DISCONNECT_CLIENT);
+            break;
+          case JMX_NOTIFY:
+            disabledPrivileges.add(Privilege.JMX_NOTIFY);
+            break;
+          case JMX_READ:
+            disabledPrivileges.add(Privilege.JMX_READ);
+            break;
+          case JMX_WRITE:
+            disabledPrivileges.add(Privilege.JMX_WRITE);
+            break;
+          case LDIF_EXPORT:
+            disabledPrivileges.add(Privilege.LDIF_EXPORT);
+            break;
+          case LDIF_IMPORT:
+            disabledPrivileges.add(Privilege.LDIF_IMPORT);
+            break;
+          case MODIFY_ACL:
+            disabledPrivileges.add(Privilege.MODIFY_ACL);
+            break;
+          case PASSWORD_RESET:
+            disabledPrivileges.add(Privilege.PASSWORD_RESET);
+            break;
+          case PRIVILEGE_CHANGE:
+            disabledPrivileges.add(Privilege.PRIVILEGE_CHANGE);
+            break;
+          case PROXIED_AUTH:
+            disabledPrivileges.add(Privilege.PROXIED_AUTH);
+            break;
+          case SERVER_RESTART:
+            disabledPrivileges.add(Privilege.SERVER_RESTART);
+            break;
+          case SERVER_SHUTDOWN:
+            disabledPrivileges.add(Privilege.SERVER_SHUTDOWN);
+            break;
+          case UNINDEXED_SEARCH:
+            disabledPrivileges.add(Privilege.UNINDEXED_SEARCH);
+            break;
+          case UPDATE_SCHEMA:
+            disabledPrivileges.add(Privilege.UPDATE_SCHEMA);
+            break;
+        }
+      }
+    }
+    DirectoryServer.setDisabledPrivileges(disabledPrivileges);
   }
 
 
