@@ -621,11 +621,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       }
 
       // Confirm commit.
-      String prompt = String.format(Messages.getString("create.confirm"), d
+      String prompt = getMessage(MSGID_DSCFG_CONFIRM_CREATE, d
           .getUserFriendlyName());
       if (!getConsoleApplication().confirmAction(prompt)) {
         // Output failure message.
-        String msg = String.format(Messages.getString("create.failed"), d
+        String msg = getMessage(MSGID_DSCFG_CONFIRM_CREATE_FAIL, d
             .getUserFriendlyName());
         getConsoleApplication().printVerboseMessage(msg);
         return 1;
@@ -635,7 +635,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       child.commit();
 
       // Output success message.
-      String msg = String.format(Messages.getString("create.done"), d
+      String msg = getMessage(MSGID_DSCFG_CONFIRM_CREATE_SUCCESS, d
           .getUserFriendlyName());
       getConsoleApplication().printVerboseMessage(msg);
     } catch (MissingMandatoryPropertiesException e) {

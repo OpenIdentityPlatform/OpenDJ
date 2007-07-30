@@ -531,11 +531,11 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     try {
       // Confirm commit.
-      String prompt = String.format(Messages.getString("modify.confirm"), d
+      String prompt = getMessage(MSGID_DSCFG_CONFIRM_MODIFY, d
           .getUserFriendlyName());
       if (!getConsoleApplication().confirmAction(prompt)) {
         // Output failure message.
-        String msg = String.format(Messages.getString("modify.failed"), d
+        String msg = getMessage(MSGID_DSCFG_CONFIRM_MODIFY_FAIL, d
             .getUserFriendlyName());
         getConsoleApplication().printVerboseMessage(msg);
         return 1;
@@ -544,7 +544,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       child.commit();
 
       // Output success message.
-      String msg = String.format(Messages.getString("modify.done"), d
+      String msg = getMessage(MSGID_DSCFG_CONFIRM_MODIFY_SUCCESS, d
           .getUserFriendlyName());
       getConsoleApplication().printVerboseMessage(msg);
     } catch (MissingMandatoryPropertiesException e) {
