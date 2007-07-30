@@ -208,7 +208,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
   }
 
   /**
-   * Initialize the parser with the Gloabal options ans subcommands.
+   * Initialize the parser with the Global options and subcommands.
    *
    * @param outStream
    *          The output stream to use for standard output, or <CODE>null</CODE>
@@ -274,7 +274,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
    * Initialize Global option.
    *
    * @param outStream
-   *          The output stream used forn the usage.
+   *          The output stream used for the usage.
    * @throws ArgumentException
    *           If there is a problem with any of the parameters used
    *           to create this argument.
@@ -642,28 +642,28 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       {
         // Nothing to do: if this occurs we will systematically refuse the
         // certificates.  Maybe we should avoid this and be strict, but we are
-        // in a best effor mode.
+        // in a best effort mode.
         LOG.log(Level.WARNING, "Error with the truststore", e);
       }
       catch (NoSuchAlgorithmException e)
       {
         // Nothing to do: if this occurs we will systematically refuse the
         // certificates.  Maybe we should avoid this and be strict, but we are
-        // in a best effor mode.
+        // in a best effort mode.
         LOG.log(Level.WARNING, "Error with the truststore", e);
       }
       catch (CertificateException e)
       {
         // Nothing to do: if this occurs we will systematically refuse the
         // certificates.  Maybe we should avoid this and be strict, but we are
-        // in a best effor mode.
+        // in a best effort mode.
         LOG.log(Level.WARNING, "Error with the truststore", e);
       }
       catch (IOException e)
       {
         // Nothing to do: if this occurs we will systematically refuse the
         // certificates.  Maybe we should avoid this and be strict, but we are
-        // in a best effor mode.
+        // in a best effort mode.
         LOG.log(Level.WARNING, "Error with the truststore", e);
       }
     }
@@ -701,8 +701,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
         // Nothing to do: if this occurs we will systematically refuse
         // the
         // certificates. Maybe we should avoid this and be strict, but
-        // we are
-        // in a best effor mode.
+        // we are in a best effort mode.
         LOG.log(Level.WARNING, "Error with the keystore", e);
       }
       catch (NoSuchAlgorithmException e)
@@ -711,7 +710,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
         // the
         // certificates. Maybe we should avoid this and be strict, but
         // we are
-        // in a best effor mode.
+        // in a best effort mode.
         LOG.log(Level.WARNING, "Error with the keystore", e);
       }
       catch (CertificateException e)
@@ -720,7 +719,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
         // the
         // certificates. Maybe we should avoid this and be strict, but
         // we are
-        // in a best effor mode.
+        // in a best effort mode.
         LOG.log(Level.WARNING, "Error with the keystore", e);
       }
       catch (IOException e)
@@ -729,7 +728,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
         // the
         // certificates. Maybe we should avoid this and be strict, but
         // we are
-        // in a best effor mode.
+        // in a best effort mode.
         LOG.log(Level.WARNING, "Error with the keystore", e);
       }
       ApplicationKeyManager akm = new ApplicationKeyManager(keyStore,
@@ -758,8 +757,6 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
    */
   public int validateGlobalOption(PrintStream err)
   {
-    ReturnCode returnCode = ReturnCode.SUCCESSFUL_NOP;
-
     // Couldn't have at the same time bindPassword and bindPasswordFile
     if(bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent())
     {
@@ -767,7 +764,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, bindPasswordArg.getLongIdentifier(),
                                   bindPasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return returnCode.CONFLICTING_ARGS.getReturnCode();
+      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
     }
 
     // Couldn't have at the same time trustAll and
@@ -778,7 +775,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
           trustStorePathArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return returnCode.CONFLICTING_ARGS.getReturnCode();
+      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
     }
     if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent())
     {
@@ -786,7 +783,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
           trustStorePasswordArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return returnCode.CONFLICTING_ARGS.getReturnCode();
+      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
     }
     if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent())
     {
@@ -794,7 +791,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
           trustStorePasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return returnCode.CONFLICTING_ARGS.getReturnCode();
+      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
     }
 
     // Couldn't have at the same time trustStorePasswordArg and
@@ -806,7 +803,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, trustStorePasswordArg
           .getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return returnCode.CONFLICTING_ARGS.getReturnCode();
+      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
     }
 
     // Couldn't have at the same time startTLSArg and
@@ -818,7 +815,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, startTLSArg
           .getLongIdentifier(), useSSLArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return returnCode.CONFLICTING_ARGS.getReturnCode();
+      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
     }
 
     return ReturnCode.SUCCESSFUL_NOP.getReturnCode();

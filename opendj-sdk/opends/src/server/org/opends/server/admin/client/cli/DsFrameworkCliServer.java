@@ -48,7 +48,6 @@ import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.util.args.Argument;
@@ -117,7 +116,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     GET_SERVER_PROPERTIES("get-server-properties"),
 
     /**
-     * The set-server-propertiess subcommand.
+     * The set-server-properties subcommand.
      */
     SET_SERVER_PROPERTIES("set-server-properties"),
 
@@ -940,7 +939,6 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     }
 
     // Check that all mandatory props are set.
-    HashSet<PropertyOption> propList;
     for (ServerProperty s : ServerProperty.values())
     {
       Argument arg = serverProperties.get(s);
