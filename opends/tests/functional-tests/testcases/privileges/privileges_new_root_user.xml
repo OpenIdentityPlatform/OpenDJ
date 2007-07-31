@@ -127,19 +127,13 @@
                    'Privileges: New Root User: bypass-acl, alternative root user removing search global ACI'
                 </message>
     
-                <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-                </script>
-                
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
-                    'dsInstancePswd'         : 'PrivsRule'  ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
                 </call>
                 
                 <message>
@@ -153,7 +147,7 @@
                     'dsInstancePswd'   : 'PrivsRule' ,
                     'dsBaseDN'         : 'uid=scarter,ou=People,o=Privileges Tests,dc=example,dc=com' ,
                     'dsFilter'         : 'objectclass=*'  ,
-                    'attributes'       : 'cn sn uid'}
+                    'attributes'       : 'cn sn uid' }
                 </call>
     
                 <script> 
@@ -275,15 +269,13 @@
                    'Privileges: New Root User: bypass-acl, alternative root user putting back global search ACI'
                 </message>
     
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
-                    'dsInstancePswd'         : 'PrivsRule'  ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
                 </call>
                 
                 <message>
@@ -340,19 +332,13 @@
                    'Privileges: New Root User: bypass-acl, alternate bind DN, alternative root user removing search global ACI'
                 </message>
     
-                <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-                </script>
-                
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
-                    'dsInstancePswd'         : 'PrivsRule'  ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
                 </call>
                 
                 <message>
@@ -412,15 +398,13 @@
                    'Privileges: New Root User:  bypass-acl, alternate bind DN, alternative root user putting back global search ACI'
                 </message>
     
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
-                    'dsInstancePswd'         : 'PrivsRule'  ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
                 </call>
                 
                 <message>
@@ -1159,7 +1143,7 @@
                 </message>
     
                 <script>
-                    global_aci="(target=\"ldap:///ou=People,o=Privileges Tests,dc=example,dc=com\")(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous write access\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
+                  another_aci="(target=\"ldap:///ou=People,o=Privileges Tests,dc=example,dc=com\")(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous write access\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
                 </script>
                 
                 <call function="'modifyAnAttribute'">
@@ -1169,7 +1153,7 @@
                     'dsInstancePswd'         : 'PrivsRule' ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
+                    'newAttributeValue'      : another_aci ,
                     'changetype'             : 'add' }
                 </call>
                 
@@ -1297,7 +1281,7 @@
                     'dsInstancePswd'         : 'PrivsRule' ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
+                    'newAttributeValue'      : another_aci ,
                     'changetype'             : 'delete' }
                 </call>
                 

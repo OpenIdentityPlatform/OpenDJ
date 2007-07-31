@@ -87,20 +87,13 @@
                    'Privileges: Directory Manager: bypass-acl, preamble, alternate root user removing global search ACI'
                 </message>
     
-                <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-                </script>
-                
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
-                    'dsInstancePswd'         : 'PrivsRule'  ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' 
-                  }
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
                 </call>
                 
                 <message>
@@ -240,19 +233,16 @@
                    'Privileges: Directory Manager: bypass-acl, alternate root user putting back global search ACI'
                 </message>
     
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
-                    'dsInstancePswd'         : 'PrivsRule'  ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' 
-                  }
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
                 </call>
                 
-               <message>
+                <message>
                    'Privileges: Directory Manager: bypass-acl, DM searching entry'
                 </message>
     
@@ -308,22 +298,15 @@
                    'Privileges: Directory Manager: bypass-acl, alternate bind DN, alternate root user removing global search ACI'
                 </message>
     
-                <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-                </script>
-                
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
-                    'dsInstancePswd'         : 'PrivsRule'  ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' 
-                  }
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
                 </call>
-    
+                
                 <message>
                    'Privileges: Directory Manager: bypass-acl, alternate bind DN, DM searching entry'
                 </message>
@@ -383,19 +366,16 @@
                    'Privileges: Directory Manager:  bypass-acl, alternate bind DN, alternate root user putting back global search ACI'
                 </message>
     
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'cn=Aroot' ,
-                    'dsInstancePswd'         : 'PrivsRule'  ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' 
-                  }
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
                 </call>
-    
-               <message>
+                
+                <message>
                    'Privileges: Directory Manager: bypass-acl, alternate bind DN, DM searching entry'
                 </message>
     
@@ -1150,7 +1130,7 @@
                 </message>
     
                 <script>
-                    global_aci="(target=\"ldap:///ou=People,o=Privileges Tests,dc=example,dc=com\")(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous write access\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
+                    another_aci="(target=\"ldap:///ou=People,o=Privileges Tests,dc=example,dc=com\")(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous write access\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
                 </script>
                 
                 <call function="'modifyAnAttribute'">
@@ -1160,7 +1140,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
+                    'newAttributeValue'      : another_aci ,
                     'changetype'             : 'add' 
                   }
                 </call>
@@ -1294,7 +1274,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
+                    'newAttributeValue'      : another_aci ,
                     'changetype'             : 'delete' 
                   }
                 </call>

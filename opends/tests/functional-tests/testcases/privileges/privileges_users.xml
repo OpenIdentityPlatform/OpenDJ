@@ -114,19 +114,13 @@
                    'Privileges: Users: bypass-acl, removing search global ACI'
                 </message>
     
-                <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-                </script>
-                
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
                 </call>
                 
                 <message>
@@ -244,15 +238,13 @@
                    'Privileges: Users:  Putting Back Search Global ACI'
                 </message>
     
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
                 </call>
                 
                 <message>
@@ -314,19 +306,13 @@
                    'Privileges: Users: bypass-acl with proxy, preamble, removing search global ACI'
                 </message>
     
-                <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-                </script>
-                
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
                 </call>
                 
                 <message>
@@ -505,15 +491,13 @@
                    'Privileges: Users:  bypass-acl with proxy, Putting Back Search Global ACI'
                 </message>
     
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
                 </call>
                 
                 <message>
@@ -575,19 +559,13 @@
                    'Privileges: Users: bypass-acl with minus notation, preamble, removing search global ACI'
                 </message>
     
-                <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-                </script>
-                
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
                 </call>
                 
                 <message>
@@ -762,15 +740,13 @@
                    'Privileges: Users:  bypass-acl with minus notation, Putting Back Search Global ACI'
                 </message>
     
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
                 </call>
                 
                 <message>
@@ -827,19 +803,13 @@
                    'Privileges: Users: bypass-acl self-modify add, preamble, removing search global ACI'
                 </message>
     
-                <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-                </script>
-                
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'delete' }
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
                 </call>
                 
                 <message>
@@ -890,15 +860,13 @@
                    'Privileges: Users:  bypass-acl self-modify add, Putting Back Search Global ACI'
                 </message>
     
-                <call function="'modifyAnAttribute'">
+                <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
-                    'changetype'             : 'add' }
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
                 </call>
                 
                 <message>
@@ -1903,7 +1871,7 @@
                 </message>
     
                 <script>
-                    global_aci="(target=\"ldap:///ou=People,o=Privileges Tests,dc=example,dc=com\")(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous write access\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
+                    another_aci="(target=\"ldap:///ou=People,o=Privileges Tests,dc=example,dc=com\")(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous write access\"; allow (write,add,delete) userdn=\"ldap:///anyone\";)"
                 </script>
                 
                 <call function="'modifyAnAttribute'">
@@ -1913,7 +1881,7 @@
                     'dsInstancePswd'         : 'ACIRules' ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
+                    'newAttributeValue'      : another_aci ,
                     'changetype'             : 'add' ,
                     'expectedRC'             : 50
                   }
@@ -1945,7 +1913,7 @@
                     'dsInstancePswd'         : 'ACIRules' ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
+                    'newAttributeValue'      : another_aci ,
                     'changetype'             : 'add' ,
                     'expectedRC'             : 50
                   }
@@ -1977,7 +1945,7 @@
                     'dsInstancePswd'         : 'ACIRules' ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
+                    'newAttributeValue'      : another_aci ,
                     'changetype'             : 'add' ,
                     'expectedRC'             : 50
                   }
@@ -2013,7 +1981,7 @@
                     'dsInstancePswd'         : 'ACIRules' ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci' ,
-                    'newAttributeValue'      : global_aci ,
+                    'newAttributeValue'      : another_aci ,
                     'changetype'             : 'add' }
                 </call>
                 
@@ -2111,7 +2079,7 @@
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
                     'attributeName'          : 'ds-cfg-global-aci',
-                    'newAttributeValue'      : global_aci ,
+                    'newAttributeValue'      : another_aci ,
                     'changetype'             : 'delete' }
                 </call>
                 
