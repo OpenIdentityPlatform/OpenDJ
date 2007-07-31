@@ -331,7 +331,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
       TableBuilder builder = new TableBuilder();
       builder.appendHeading(relation.getUserFriendlyName());
       builder
-          .appendHeading(getMessage(MSGID_DSCFG_HEADING_MANAGED_OBJECT_TYPE));
+          .appendHeading(getMessage(MSGID_DSCFG_HEADING_COMPONENT_TYPE));
       if (!propertyNames.isEmpty()) {
       }
       for (String propertyName : propertyNames) {

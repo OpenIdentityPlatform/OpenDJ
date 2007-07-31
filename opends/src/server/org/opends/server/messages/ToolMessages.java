@@ -7299,9 +7299,9 @@ public class ToolMessages
 
   /**
    * The message ID for the message that will be used as the
-   * heading of the managed object type column in tables.
+   * heading of the component category column in tables.
    */
-  public static final int MSGID_DSCFG_HEADING_MANAGED_OBJECT_NAME =
+  public static final int MSGID_DSCFG_HEADING_COMPONENT_NAME =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1018;
 
 
@@ -7912,7 +7912,7 @@ public class ToolMessages
    * The message ID for the message that will be used as the
    * heading of the managed object type column in list tables.
    */
-  public static final int MSGID_DSCFG_HEADING_MANAGED_OBJECT_TYPE =
+  public static final int MSGID_DSCFG_HEADING_COMPONENT_TYPE =
        CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1082;
 
 
@@ -9553,7 +9553,7 @@ public class ToolMessages
 
   /**
    * The message ID for the message which will be used in dsconfig
-   * help for the component heading.
+   * help for the component name heading.
    */
   public static final int MSGID_DSCFG_HELP_HEADING_COMPONENT =
     CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1264;
@@ -9704,6 +9704,49 @@ public class ToolMessages
    */
   public static final int MSGID_DSCFG_CONFIRM_MODIFY_FAIL =
     CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1285;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the list-properties category argument. This does
+   * not take any arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_HELP_CATEGORY =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1286;
+
+  /**
+   * The message ID for the message that will be used if the user
+   * requests help for a component category but specifies an unknown
+   * category name. This takes a single argument which is the invalid
+   * argument.
+   */
+  public static final int MSGID_DSCFG_ERROR_CATEGORY_UNRECOGNIZED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1287;
+
+  /**
+   * The message ID for the message that will be used if the user
+   * requests help for a component category and sub-type but specifies
+   * an unknown sub-type name. This takes two arguments which are the
+   * invalid type argument and the category.
+   */
+  public static final int MSGID_DSCFG_ERROR_CATEGORY_TYPE_UNRECOGNIZED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1288;
+
+  /**
+   * The message ID for the message that will be used if the user
+   * attempts to access a property which is not part of any managed
+   * object. This takes a single argument which is the name of the
+   * invalid property.
+   */
+  public static final int MSGID_DSCFG_ERROR_PROPERTY_UNRECOGNIZED_NO_DEFN =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_SEVERE_ERROR | 1289;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the list-properties category argument. This does
+   * not take any arguments.
+   */
+  public static final int MSGID_DSCFG_DESCRIPTION_HELP_INHERITED =
+       CATEGORY_MASK_TOOLS | SEVERITY_MASK_INFORMATIONAL | 1290;
 
 
 
@@ -12035,8 +12078,18 @@ public class ToolMessages
                     "value of the \"%s\" property: %s");
 
     registerMessage(MSGID_DSCFG_DESCRIPTION_HELP_TYPE,
-                    "The type(s) of components whose properties should be " +
+                    "The type of components whose properties should be " +
+                    "described. The value for TYPE must be one of the " +
+                    "component types associated with the CATEGORY specified " +
+                    "using the \"--category\" option");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_HELP_CATEGORY,
+                    "The category of components whose properties should be " +
                     "described");
+
+    registerMessage(MSGID_DSCFG_DESCRIPTION_HELP_INHERITED,
+                    "Modifies the display output to show the inherited " +
+                    "properties of components");
 
     registerMessage(MSGID_DSCFG_DESCRIPTION_TYPE,
                     "The type of %s which should be created. The value " +
@@ -12119,6 +12172,9 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_ERROR_PROPERTY_UNRECOGNIZED,
                     "The property \"%s\" is not a recognized property of %s");
 
+    registerMessage(MSGID_DSCFG_ERROR_PROPERTY_UNRECOGNIZED_NO_DEFN,
+                    "The property \"%s\" is not a recognized property");
+
     registerMessage(MSGID_DSCFG_ERROR_PROPERTY_INVALID_VALUE,
                     "The value \"%s\" is not a valid value for the %s " +
                     "property \"%s\" which has the following syntax: %s");
@@ -12168,10 +12224,10 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_ERROR_ILLEGAL_NAME_UNKNOWN,
                     "The name \"%s\" is not a valid name for the %s");
 
-    registerMessage(MSGID_DSCFG_HEADING_MANAGED_OBJECT_NAME,
+    registerMessage(MSGID_DSCFG_HEADING_COMPONENT_NAME,
                     "Component");
 
-    registerMessage(MSGID_DSCFG_HEADING_MANAGED_OBJECT_TYPE,
+    registerMessage(MSGID_DSCFG_HEADING_COMPONENT_TYPE,
                     "Type");
 
     registerMessage(MSGID_DSCFG_HEADING_PROPERTY_NAME,
@@ -12386,7 +12442,14 @@ public class ToolMessages
                     "It should be one of: %s");
 
     registerMessage(MSGID_DSCFG_ERROR_TYPE_UNRECOGNIZED,
-                    "\"%s\" is not a recognized type of managed object");
+                    "\"%s\" is not a recognized component type");
+
+    registerMessage(MSGID_DSCFG_ERROR_CATEGORY_UNRECOGNIZED,
+                    "\"%s\" is not a recognized component category");
+
+    registerMessage(MSGID_DSCFG_ERROR_CATEGORY_TYPE_UNRECOGNIZED,
+                    "\"%s\" is not a recognized component type in " +
+                    "category \"%s\"");
 
     registerMessage(MSGID_DSCFG_ERROR_WRONG_MANAGED_OBJECT_TYPE,
                     "The %s could not be retrieved because it was the " +
@@ -12789,7 +12852,7 @@ public class ToolMessages
     registerMessage(MSGID_DSCFG_HELP_HEADING_PROPERTY,
         "Property: %s");
     registerMessage(MSGID_DSCFG_HELP_HEADING_COMPONENT,
-        "Component: %s");
+        "Component name: %s");
     registerMessage(MSGID_DSCFG_HELP_HEADING_DEFAULT,
         "Default behavior");
     registerMessage(MSGID_DSCFG_HELP_HEADING_MANDATORY,

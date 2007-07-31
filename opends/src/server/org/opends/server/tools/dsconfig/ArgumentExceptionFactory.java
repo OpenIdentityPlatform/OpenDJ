@@ -421,6 +421,22 @@ public final class ArgumentExceptionFactory {
 
   /**
    * Creates an argument exception which should be used when a
+   * component category argument is not recognized.
+   *
+   * @param categoryName
+   *          The unrecognized component category.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException unknownCategory(String categoryName) {
+    int msgID = MSGID_DSCFG_ERROR_CATEGORY_UNRECOGNIZED;
+    String msg = getMessage(msgID, categoryName);
+    return new ArgumentException(msgID, msg);
+  }
+
+
+
+  /**
+   * Creates an argument exception which should be used when a
    * property name is not recognized.
    *
    * @param d
@@ -433,6 +449,22 @@ public final class ArgumentExceptionFactory {
       AbstractManagedObjectDefinition<?, ?> d, String name) {
     int msgID = MSGID_DSCFG_ERROR_PROPERTY_UNRECOGNIZED;
     String message = getMessage(msgID, name, d.getUserFriendlyPluralName());
+    return new ArgumentException(msgID, message);
+  }
+
+
+
+  /**
+   * Creates an argument exception which should be used when a
+   * property name is not recognized.
+   *
+   * @param name
+   *          The unrecognized property name.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException unknownProperty(String name) {
+    int msgID = MSGID_DSCFG_ERROR_PROPERTY_UNRECOGNIZED_NO_DEFN;
+    String message = getMessage(msgID, name);
     return new ArgumentException(msgID, message);
   }
 
@@ -465,12 +497,31 @@ public final class ArgumentExceptionFactory {
    * object type argument is not recognized.
    *
    * @param typeName
-   *          The unrecognized property sub-type.
+   *          The unrecognized component type.
    * @return Returns an argument exception.
    */
   public static ArgumentException unknownType(String typeName) {
     int msgID = MSGID_DSCFG_ERROR_TYPE_UNRECOGNIZED;
     String msg = getMessage(msgID, typeName);
+    return new ArgumentException(msgID, msg);
+  }
+
+
+
+  /**
+   * Creates an argument exception which should be used when a managed
+   * object type argument is not associated with a category.
+   *
+   * @param categoryName
+   *          The component category.
+   * @param typeName
+   *          The unrecognized component type.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException unknownTypeInCategory(String categoryName,
+      String typeName) {
+    int msgID = MSGID_DSCFG_ERROR_CATEGORY_TYPE_UNRECOGNIZED;
+    String msg = getMessage(msgID, typeName, categoryName);
     return new ArgumentException(msgID, msg);
   }
 
