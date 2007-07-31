@@ -52,7 +52,7 @@ public class ServerControllerTest extends QuickSetupTestCase {
    * Tests ability to stop the server.
    * @throws ApplicationException
    */
-  @Test
+  @Test(enabled = false)
   public void testStopServer() throws ApplicationException {
     if (!status.isServerRunning()) {
       controller.startServer();
@@ -66,7 +66,7 @@ public class ServerControllerTest extends QuickSetupTestCase {
    * Tests ability to start the server.
    * @throws ApplicationException
    */
-  @Test
+  @Test(enabled = false)
   public void testStartServer() throws ApplicationException {
     if (status.isServerRunning()) {
       controller.stopServer();

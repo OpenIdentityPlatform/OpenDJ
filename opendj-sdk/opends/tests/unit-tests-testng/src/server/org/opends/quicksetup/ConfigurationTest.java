@@ -46,57 +46,57 @@ public class ConfigurationTest extends QuickSetupTestCase {
     config = TestUtilities.getInstallation().getCurrentConfiguration();
   }
 
-  @Test
+  @Test(enabled = false)
   public void testGetDirectoryManagerDns() throws IOException {
     Set<String> dns = config.getDirectoryManagerDns();
     assertTrue(dns.size() > 0);
   }
 
-  @Test
+  @Test(enabled = false)
   public void testGetPort() throws IOException {
     assertTrue(TestUtilities.ldapPort.equals(config.getPort()));
   }
 
-  @Test
+  @Test(enabled = false)
   public void testGetSecurePort() throws IOException {
     // TODO: something more useful
     config.getSecurePort();
   }
 
-  @Test
+  @Test(enabled = false)
   public void testGetLogPaths() throws IOException {
     // TODO: something more useful
     config.getLogPaths();
   }
 
-  @Test
+  @Test(enabled = false)
   public void testHasBeenModified() throws IOException {
     assertTrue(config.hasBeenModified());
   }
 
-  @Test
+  @Test(enabled = false)
   public void testGetOutsideLogs() throws IOException {
     // TODO: something more useful
     config.getOutsideLogs();
   }
 
-  @Test
+  @Test(enabled = false)
   public void testGetOutsideDbs() throws IOException {
     // TODO: something more useful
     config.getOutsideDbs();
   }
 
-  @Test
+  @Test(enabled = false)
   public void testGetContents() throws IOException {
     assertNotNull(config.getContents());
   }
 
-  @Test
+  @Test(enabled = false)
   public void testGetDatabasePaths() throws IOException {
     assertTrue(config.getDatabasePaths().size() > 0);
   }
 
-  @Test
+  @Test(enabled = false)
   public void testLoad() {
     //TODO:  need way to verify reload
   }
