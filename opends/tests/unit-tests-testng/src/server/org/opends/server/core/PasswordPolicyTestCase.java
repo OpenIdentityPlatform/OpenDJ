@@ -5111,6 +5111,79 @@ public class PasswordPolicyTestCase
 
 
   /**
+   * Tests to ensure that the server will reject an attempt to set the password
+   * expiration warning interval to a value larger than the maximum password
+   * age.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testWarningIntervalGreaterThanMaxAge()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-maximum-password-age",
+      "ds-cfg-maximum-password-age: 5 days",
+      "-",
+      "replace: ds-cfg-password-expiration-warning-interval",
+      "ds-cfg-password-expiration-warning-interval: 10 days");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
+                0);
+  }
+
+
+
+  /**
+   * Tests to ensure that the server will reject an attempt to set the sum of
+   * the password expiration warning interval and the minimum password age to a
+   * value larger than the maximum password age.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testMinAgePlusWarningIntervalGreaterThanMaxAge()
+         throws Exception
+  {
+    String path = TestCaseUtils.createTempFile(
+      "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
+      "changetype: modify",
+      "replace: ds-cfg-maximum-password-age",
+      "ds-cfg-maximum-password-age: 5 days",
+      "-",
+      "replace: ds-cfg-minimum-password-age",
+      "ds-cfg-minimum-password-age: 3 days",
+      "-",
+      "replace: ds-cfg-password-expiration-warning-interval",
+      "ds-cfg-password-expiration-warning-interval: 3 days");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
+                0);
+  }
+
+
+
+  /**
    * Tests the <CODE>toString</CODE> methods with the default password policy.
    */
   @Test()
