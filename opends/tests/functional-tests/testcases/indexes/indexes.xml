@@ -34,7 +34,7 @@
           CurrentTestPath={'group':'indexes','suite':'indexes'}
           envAlreadyLoaded='true'
           _setupSteps=['testGroup_Preamble','testSuite_Preamble','indexes_setup']
-          _testSteps=['indexes_search','indexes_modify','indexes_add','indexes_delete']
+          _testSteps=['indexes_search','indexes_modify','indexes_add','indexes_remove']
           _cleanupSteps=['indexes_cleanup','testSuite_Postamble','testGroup_Postamble']
         </script>
         <!---
