@@ -1603,12 +1603,13 @@ public class JebMessages
                     "index entry limit in index %s. This index must be " +
                     "rebuilt before it can use the new limit");
     registerMessage(MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD,
-                    "Index %s is currently operating in a degraded read-only " +
-                    "state and must be rebuilt before it can used");
+                    "Due to changes in the configuration, index %s is " +
+                    "currently operating in a degraded state and must be " +
+                    "rebuilt before it can used");
     registerMessage(MSGID_JEB_INDEX_CORRUPT_REQUIRES_REBUILD,
                     "An error occurred while reading from index %s. The " +
                     "index seems to be corrupt and is now operating in " +
-                    "a degraded read-only state. The index must be rebuilt " +
+                    "a degraded state. The index must be rebuilt " +
                     "before it can return to normal operation");
     registerMessage(MSGID_JEB_IMPORT_BACKEND_ONLINE,
                     "The backend must be disabled before the import process" +

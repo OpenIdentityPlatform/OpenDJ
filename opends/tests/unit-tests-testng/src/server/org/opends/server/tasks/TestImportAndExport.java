@@ -32,10 +32,13 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.AddOperation;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.api.TestTaskListener;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
+import org.opends.server.types.ResultCode;
 import org.opends.server.backends.task.TaskState;
 
 import static org.testng.Assert.*;
@@ -136,7 +139,7 @@ public class TestImportAndExport extends TasksTestCase
   public Object[][] createData() throws Exception
   {
     return new Object[][] {
-         // A fairly simple, valid import task.
+         // A fairly simple, valid import task using backend ID.
          {
               TestCaseUtils.makeEntry(
                    "dn: ds-task-id=" + UUID.randomUUID() +
@@ -146,6 +149,25 @@ public class TestImportAndExport extends TasksTestCase
                    "objectclass: ds-task-import",
                    "ds-task-class-name: org.opends.server.tasks.ImportTask",
                    "ds-task-import-backend-id: userRoot",
+                   "ds-task-import-ldif-file: " + ldifFile.getPath(),
+                   "ds-task-import-reject-file: " + rejectFile.getPath(),
+                   "ds-task-import-overwrite-rejects: TRUE",
+                   "ds-task-import-exclude-attribute: description",
+                   "ds-task-import-exclude-filter: (st=CA)",
+                   "ds-task-import-exclude-branch: o=exclude,dc=example,dc=com"
+              ),
+              TaskState.COMPLETED_SUCCESSFULLY
+         },
+         // A fairly simple, valid import task using include base DN.
+         {
+              TestCaseUtils.makeEntry(
+                   "dn: ds-task-id=" + UUID.randomUUID() +
+                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "objectclass: top",
+                   "objectclass: ds-task",
+                   "objectclass: ds-task-import",
+                   "ds-task-class-name: org.opends.server.tasks.ImportTask",
+                   "ds-task-import-include-branch: dc=example,dc=com",
                    "ds-task-import-ldif-file: " + ldifFile.getPath(),
                    "ds-task-import-reject-file: " + rejectFile.getPath(),
                    "ds-task-import-overwrite-rejects: TRUE",
@@ -182,7 +204,7 @@ public class TestImportAndExport extends TasksTestCase
               ),
               TaskState.COMPLETED_SUCCESSFULLY
          },
-         // LDIF file does not exist.
+         // A partial, valid import task.
          {
               TestCaseUtils.makeEntry(
                    "dn: ds-task-id=" + UUID.randomUUID() +
@@ -191,40 +213,15 @@ public class TestImportAndExport extends TasksTestCase
                    "objectclass: ds-task",
                    "objectclass: ds-task-import",
                    "ds-task-class-name: org.opends.server.tasks.ImportTask",
-                   "ds-task-import-ldif-file: doesnotexist",
-                   "ds-task-import-backend-id: userRoot"
-              ),
-              TaskState.STOPPED_BY_ERROR
-         },
-         // Invalid exclude filter.
-         {
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-import",
-                   "ds-task-class-name: org.opends.server.tasks.ImportTask",
+                   "ds-task-import-include-branch: ou=people,dc=example,dc=com",
                    "ds-task-import-ldif-file: " + ldifFile.getPath(),
-                   "ds-task-import-backend-id: userRoot",
-                   "ds-task-import-exclude-filter: ()"
+                   "ds-task-import-reject-file: " + rejectFile.getPath(),
+                   "ds-task-import-overwrite-rejects: TRUE",
+                   "ds-task-import-exclude-attribute: description",
+                   "ds-task-import-exclude-filter: (st=CA)",
+                   "ds-task-import-exclude-branch: o=exclude,dc=example,dc=com"
               ),
-              TaskState.STOPPED_BY_ERROR
-         },
-         // Invalid include filter.
-         {
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-import",
-                   "ds-task-class-name: org.opends.server.tasks.ImportTask",
-                   "ds-task-import-ldif-file: " + ldifFile.getPath(),
-                   "ds-task-import-backend-id: userRoot",
-                   "ds-task-import-include-filter: ()"
-              ),
-              TaskState.STOPPED_BY_ERROR
+              TaskState.COMPLETED_SUCCESSFULLY
          },
          // Backend id does not exist.
          {
@@ -235,37 +232,8 @@ public class TestImportAndExport extends TasksTestCase
                    "objectclass: ds-task",
                    "objectclass: ds-task-import",
                    "ds-task-class-name: org.opends.server.tasks.ImportTask",
-                   "ds-task-import-ldif-file: " + ldifFile.getPath(),
-                   "ds-task-import-backend-id: doesnotexist"
-              ),
-              TaskState.STOPPED_BY_ERROR
-         },
-         // Backend does not support import.
-         {
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-import",
-                   "ds-task-class-name: org.opends.server.tasks.ImportTask",
-                   "ds-task-import-ldif-file: " + ldifFile.getPath(),
-                   "ds-task-import-backend-id: monitor"
-              ),
-              TaskState.STOPPED_BY_ERROR
-         },
-         // Backend does not handle include branch.
-         {
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-import",
-                   "ds-task-class-name: org.opends.server.tasks.ImportTask",
-                   "ds-task-import-ldif-file: " + ldifFile.getPath(),
-                   "ds-task-import-backend-id: userRoot",
-                   "ds-task-import-include-branch: dc=opends,dc=org"
+                   "ds-task-import-ldif-file: doesnotexist",
+                   "ds-task-import-backend-id: userRoot"
               ),
               TaskState.STOPPED_BY_ERROR
          },
@@ -289,12 +257,111 @@ public class TestImportAndExport extends TasksTestCase
   }
 
   /**
+   * Import and export tasks bad test data provider.
+   *
+   * @return The array of tasks test data.  The first column is a task entry
+   *  and the second column is the expected completed task state.
+   */
+  @DataProvider(name = "badimportexport")
+  public Object[][] createBadData() throws Exception
+  {
+    return new Object[][] {
+        // Invalid exclude filter.
+        {
+            TestCaseUtils.makeEntry(
+                "dn: ds-task-id=" + UUID.randomUUID() +
+                    ",cn=Scheduled Tasks,cn=Tasks",
+                "objectclass: top",
+                "objectclass: ds-task",
+                "objectclass: ds-task-import",
+                "ds-task-class-name: org.opends.server.tasks.ImportTask",
+                "ds-task-import-ldif-file: " + ldifFile.getPath(),
+                "ds-task-import-backend-id: userRoot",
+                "ds-task-import-exclude-filter: ()"
+            ),
+            ResultCode.UNWILLING_TO_PERFORM
+        },
+        // Invalid include filter.
+        {
+            TestCaseUtils.makeEntry(
+                "dn: ds-task-id=" + UUID.randomUUID() +
+                    ",cn=Scheduled Tasks,cn=Tasks",
+                "objectclass: top",
+                "objectclass: ds-task",
+                "objectclass: ds-task-import",
+                "ds-task-class-name: org.opends.server.tasks.ImportTask",
+                "ds-task-import-ldif-file: " + ldifFile.getPath(),
+                "ds-task-import-backend-id: userRoot",
+                "ds-task-import-include-filter: ()"
+            ),
+            ResultCode.UNWILLING_TO_PERFORM
+        },
+        // Backend id does not exist.
+        {
+            TestCaseUtils.makeEntry(
+                "dn: ds-task-id=" + UUID.randomUUID() +
+                    ",cn=Scheduled Tasks,cn=Tasks",
+                "objectclass: top",
+                "objectclass: ds-task",
+                "objectclass: ds-task-import",
+                "ds-task-class-name: org.opends.server.tasks.ImportTask",
+                "ds-task-import-ldif-file: " + ldifFile.getPath(),
+                "ds-task-import-backend-id: doesnotexist"
+            ),
+            ResultCode.UNWILLING_TO_PERFORM
+        },
+        // Backend does not support import.
+        {
+            TestCaseUtils.makeEntry(
+                "dn: ds-task-id=" + UUID.randomUUID() +
+                    ",cn=Scheduled Tasks,cn=Tasks",
+                "objectclass: top",
+                "objectclass: ds-task",
+                "objectclass: ds-task-import",
+                "ds-task-class-name: org.opends.server.tasks.ImportTask",
+                "ds-task-import-ldif-file: " + ldifFile.getPath(),
+                "ds-task-import-backend-id: monitor"
+            ),
+            ResultCode.UNWILLING_TO_PERFORM
+        },
+        // Backend does not handle include branch.
+        {
+            TestCaseUtils.makeEntry(
+                "dn: ds-task-id=" + UUID.randomUUID() +
+                    ",cn=Scheduled Tasks,cn=Tasks",
+                "objectclass: top",
+                "objectclass: ds-task",
+                "objectclass: ds-task-import",
+                "ds-task-class-name: org.opends.server.tasks.ImportTask",
+                "ds-task-import-ldif-file: " + ldifFile.getPath(),
+                "ds-task-import-backend-id: userRoot",
+                "ds-task-import-include-branch: dc=opends,dc=org"
+            ),
+            ResultCode.UNWILLING_TO_PERFORM
+        },
+        // Not specifying a destination.
+        {
+            TestCaseUtils.makeEntry(
+                "dn: ds-task-id=" + UUID.randomUUID() +
+                    ",cn=Scheduled Tasks,cn=Tasks",
+                "objectclass: top",
+                "objectclass: ds-task",
+                "objectclass: ds-task-import",
+                "ds-task-class-name: org.opends.server.tasks.ImportTask",
+                "ds-task-import-ldif-file: " + ldifFile.getPath()
+            ),
+            ResultCode.UNWILLING_TO_PERFORM
+        }
+    };
+  }
+
+  /**
    * Test that various import and export task definitions complete with the
    * expected state.
    * @param taskEntry The task entry.
    * @param expectedState The expected completion state of the task.
    */
-  @Test(enabled = false, dataProvider = "importexport", groups = "slow")
+  @Test(dataProvider = "importexport", groups = "slow")
   public void testImportExport(Entry taskEntry, TaskState expectedState)
        throws Exception
   {
@@ -328,5 +395,27 @@ public class TestImportAndExport extends TasksTestCase
       }
     }
  }
+
+  /**
+   * Add a task definition and check that it completes with the expected state.
+   * @param taskEntry The task entry.
+   * @param resultCode The expected result code of the task add.
+   * @throws Exception If the test fails.
+   */
+  @Test(dataProvider = "badimportexport")
+  public void testBadTask(Entry taskEntry, ResultCode resultCode)
+      throws Exception
+  {
+    InternalClientConnection connection =
+        InternalClientConnection.getRootConnection();
+
+    // Add the task.
+    AddOperation addOperation =
+        connection.processAdd(taskEntry.getDN(),
+                              taskEntry.getObjectClasses(),
+                              taskEntry.getUserAttributes(),
+                              taskEntry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), resultCode);
+  }
 
 }

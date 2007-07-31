@@ -224,19 +224,8 @@ public class ImportTask extends Task
     clearBackend = TaskUtils.getBoolean(attrList, false);
 
     // Make sure that either the "includeBranchStrings" argument or the
-    // "backendID" argument was provided, but not both.
-    if(!includeBranchStrings.isEmpty())
-    {
-      if(backendID != null)
-      {
-        int    msgID   = MSGID_LDIFIMPORT_CONFLICTING_OPTIONS;
-        String message = getMessage(msgID, typeIncludeBranch.getNameOrOID(),
-                                    typeBackendID.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                     msgID);
-      }
-    }
-    else if(backendID == null)
+    // "backendID" argument was provided.
+    if(includeBranchStrings.isEmpty() && backendID == null)
     {
       int    msgID   = MSGID_LDIFIMPORT_MISSING_BACKEND_ARGUMENT;
       String message = getMessage(msgID, typeIncludeBranch.getNameOrOID(),
@@ -245,15 +234,109 @@ public class ImportTask extends Task
                                    msgID);
     }
 
+    Backend backend = null;
+    ArrayList<DN> defaultIncludeBranches;
+    ArrayList<DN> excludeBranches =
+        new ArrayList<DN>(excludeBranchStrings.size());
+    ArrayList<DN> includeBranches =
+        new ArrayList<DN>(includeBranchStrings.size());
+
+    for (String s : includeBranchStrings)
+    {
+      DN includeBranch;
+      try
+      {
+        includeBranch = DN.decode(s);
+      }
+      catch (DirectoryException de)
+      {
+        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
+        String message = getMessage(msgID, s, de.getErrorMessage());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
+        String message = getMessage(msgID, s, getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+
+      if(! includeBranches.contains(includeBranch))
+      {
+        includeBranches.add(includeBranch);
+      }
+    }
+    for (String s : excludeBranchStrings)
+    {
+      DN excludeBranch;
+      try
+      {
+        excludeBranch = DN.decode(s);
+      }
+      catch (DirectoryException de)
+      {
+        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE;
+        String message = getMessage(msgID, s, de.getErrorMessage());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_EXCLUDE_BASE;
+        String message = getMessage(msgID, s, getExceptionMessage(e));
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+
+      if (! excludeBranches.contains(excludeBranch))
+      {
+        excludeBranches.add(excludeBranch);
+      }
+    }
+
+    for (String filterString : excludeFilterStrings)
+    {
+      try
+      {
+        SearchFilter.createFilterFromString(filterString);
+      }
+      catch (DirectoryException de)
+      {
+        int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_EXCLUDE_FILTER;
+        String message = getMessage(msgID, filterString,
+                                    de.getErrorMessage());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
+    for (String filterString : includeFilterStrings)
+    {
+      try
+      {
+        SearchFilter.createFilterFromString(filterString);
+      }
+      catch (DirectoryException de)
+      {
+        int    msgID   = MSGID_LDIFIMPORT_CANNOT_PARSE_INCLUDE_FILTER;
+        String message = getMessage(msgID, filterString,
+                                    de.getErrorMessage());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
+      }
+    }
+
     if(backendID != null)
     {
-      Backend backend = DirectoryServer.getBackend(backendID);
+      backend = DirectoryServer.getBackend(backendID);
       if (backend == null)
       {
         int    msgID   = MSGID_LDIFIMPORT_NO_BACKENDS_FOR_ID;
         String message = getMessage(msgID, backendID);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                   msgID);
+                                     msgID);
       }
       else if (! backend.supportsLDIFImport())
       {
@@ -262,11 +345,12 @@ public class ImportTask extends Task
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
                                      msgID);
       }
-      // Make sure that if the "backendID" argument was provided and the
-      // "append" option was not provided, the "clearBackend" argument was also
-      // provided if there are more then one baseDNs for the backend being
-      // imported.
-      else if(!append && backend.getBaseDNs().length > 1 && !clearBackend)
+      // Make sure that if the "backendID" argument was provided, no include
+      // base was included, and the "append" ption was not provided, the
+      // "clearBackend" argument was also provided if there are more then one
+      // baseDNs for the backend being imported.
+      else if(!append && includeBranchStrings.isEmpty() &&
+          backend.getBaseDNs().length > 1 && !clearBackend)
       {
         StringBuilder builder = new StringBuilder();
         for(DN dn : backend.getBaseDNs())
@@ -284,31 +368,8 @@ public class ImportTask extends Task
     else
     {
       // Find the backend that includes all the branches.
-      Backend backend = null;
-      for (String s : includeBranchStrings)
+      for(DN includeBranch : includeBranches)
       {
-        DN includeBranch;
-        try
-        {
-          includeBranch = DN.decode(s);
-        }
-        catch (DirectoryException de)
-        {
-          int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-          String message = getMessage(msgID, s, de.getErrorMessage());
-          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
-                   message, msgID);
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                       msgID);
-        }
-        catch (Exception e)
-        {
-          int    msgID   = MSGID_LDIFIMPORT_CANNOT_DECODE_INCLUDE_BASE;
-          String message = getMessage(msgID, s, getExceptionMessage(e));
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
-                                       msgID);
-        }
-
         Backend locatedBackend = DirectoryServer.getBackend(includeBranch);
         if(locatedBackend != null)
         {
@@ -320,11 +381,33 @@ public class ImportTask extends Task
           {
             // The include branches span across multiple backends.
             int    msgID   = MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE;
-            String message = getMessage(msgID, s, backend.getBackendID());
+            String message = getMessage(msgID,
+                                        includeBranch.toNormalizedString(),
+                                        backend.getBackendID());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message, msgID);
           }
         }
+      }
+    }
+
+    // Make sure the selected backend will handle all the include branches
+    defaultIncludeBranches = new ArrayList<DN>(backend.getBaseDNs().length);
+    for (DN dn : backend.getBaseDNs())
+    {
+      defaultIncludeBranches.add(dn);
+    }
+
+    for(DN includeBranch : includeBranches)
+    {
+      if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
+                                 excludeBranches))
+      {
+        int    msgID   = MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE;
+        String message = getMessage(msgID, includeBranch.toNormalizedString(),
+                                    backend.getBackendID());
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message,
+                                     msgID);
       }
     }
   }
@@ -408,11 +491,11 @@ public class ImportTask extends Task
     // Get the backend into which the LDIF should be imported.
     Backend       backend = null;
     ArrayList<DN> defaultIncludeBranches;
-    ArrayList<DN> excludeBranches = new ArrayList<DN>();
-    ArrayList<DN> includeBranches = new ArrayList<DN>();
+    ArrayList<DN> excludeBranches =
+        new ArrayList<DN>(excludeBranchStrings.size());
+    ArrayList<DN> includeBranches =
+        new ArrayList<DN>(includeBranchStrings.size());
 
-
-    includeBranches = new ArrayList<DN>(includeBranchStrings.size());
     for (String s : includeBranchStrings)
     {
       DN includeBranch;
@@ -437,7 +520,10 @@ public class ImportTask extends Task
         return TaskState.STOPPED_BY_ERROR;
       }
 
-      includeBranches.add(includeBranch);
+      if(! includeBranches.contains(includeBranch))
+      {
+        includeBranches.add(includeBranch);
+      }
     }
 
     if(backendID != null)
@@ -460,11 +546,12 @@ public class ImportTask extends Task
                  message, msgID);
         return TaskState.STOPPED_BY_ERROR;
       }
-      // Make sure that if the "backendID" argument was provided and the
-      // "append" option was not provided, the "clearBackend" argument was also
-      // provided if there are more then one baseDNs for the backend being
-      // imported.
-      else if(!append && backend.getBaseDNs().length > 1 && !clearBackend)
+      // Make sure that if the "backendID" argument was provided, no include
+      // base was included, and the "append" ption was not provided, the
+      // "clearBackend" argument was also provided if there are more then one
+      // baseDNs for the backend being imported.
+      else if(!append && includeBranches.isEmpty() &&
+          backend.getBaseDNs().length > 1 && !clearBackend)
       {
         StringBuilder builder = new StringBuilder();
         builder.append(backend.getBaseDNs()[0].toNormalizedString());
@@ -573,6 +660,23 @@ public class ImportTask extends Task
     if (includeBranchStrings.isEmpty())
     {
       includeBranches = defaultIncludeBranches;
+    }
+    else
+    {
+      // Make sure the selected backend will handle all the include branches
+      for(DN includeBranch : includeBranches)
+      {
+        if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
+                                   excludeBranches))
+        {
+          int    msgID   = MSGID_LDIFIMPORT_INVALID_INCLUDE_BASE;
+          String message = getMessage(msgID, includeBranch.toNormalizedString(),
+                                      backend.getBackendID());
+          logError(ErrorLogCategory.BACKEND, ErrorLogSeverity.SEVERE_ERROR,
+                   message, msgID);
+          return TaskState.STOPPED_BY_ERROR;
+        }
+      }
     }
 
     // Create the LDIF import configuration to use when reading the LDIF.

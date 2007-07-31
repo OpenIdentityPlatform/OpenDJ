@@ -94,10 +94,10 @@
             Search the base object only.
           </adm:synopsis>
         </adm:value>
-        <adm:value name="single-object">
+        <adm:value name="single-level">
           <adm:synopsis>
-            Search subordinate objects to the base object but not include
-            the base object itself.
+            Search immediate children of the base object but not include
+            any of their descendants and the base object itself.
           </adm:synopsis>
         </adm:value>
         <adm:value name="subordinate-subtree">
