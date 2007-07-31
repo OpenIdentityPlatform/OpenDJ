@@ -6329,6 +6329,29 @@ public class CoreMessages
 
 
   /**
+   * The message ID for the message that will be used if the maximum password
+   * age is enabled, but the warning interval is longer than the maximum age.
+   * This takes a single argument, which is the DN of the password policy
+   * configuration entry.
+   */
+  public static final int MSGID_PWPOLICY_WARNING_INTERVAL_LARGER_THAN_MAX_AGE =
+       CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 633;
+
+
+
+  /**
+   * The message ID for the message that will be used if the maximum password
+   * age is enabled, but the sum of the warning interval and the minimum age is
+   * greater than the maximum age.  This takes a single argument, which is the
+   * DN of the password policy configuration entry.
+   */
+  public static final int
+       MSGID_PWPOLICY_MIN_AGE_PLUS_WARNING_GREATER_THAN_MAX_AGE =
+            CATEGORY_MASK_CORE | SEVERITY_MASK_SEVERE_ERROR | 634;
+
+
+
+  /**
    * Associates a set of generic messages with the message IDs defined
    * in this class.
    */
@@ -7897,6 +7920,18 @@ public class CoreMessages
                     "contain any values for attribute " +
                     ATTR_PWPOLICY_DEFAULT_SCHEME + ", which specifies " +
                     "the set of default password storage schemes");
+    registerMessage(MSGID_PWPOLICY_WARNING_INTERVAL_LARGER_THAN_MAX_AGE,
+                    "The password policy configuration entry \"%s\" is " +
+                    "invalid because if a maximum password age is " +
+                    "configured, then the password expiration warning " +
+                    "interval must be shorter than the maximum password age");
+    registerMessage(MSGID_PWPOLICY_MIN_AGE_PLUS_WARNING_GREATER_THAN_MAX_AGE,
+                    "The password policy configuration entry \"%s\" is " +
+                    "invalid because if both a minimum password age and a " +
+                    "maximum password age are configured, then the sum of " +
+                    "the minimum password age and the password expiration " +
+                    "warning interval must be shorter than the maximum " +
+                    "password age");
     registerMessage(MSGID_PWPOLICY_DESCRIPTION_PW_ATTR,
                     "Specifies the attribute type used to hold user " +
                     "passwords.  This attribute type must be defined in the " +

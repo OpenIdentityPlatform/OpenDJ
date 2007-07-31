@@ -844,6 +844,30 @@ public class PasswordPolicy
       String message = getMessage(msgID, String.valueOf(configEntryDN));
       throw new ConfigException(msgID, message);
     }
+
+    // If both a maximum password age and a warning interval are provided, then
+    // ensure that the warning interval is less than the maximum age.  Further,
+    // if a minimum age is specified, then the sum of the minimum age and the
+    // warning interval should be less than the maximum age.
+    if (maximumPasswordAge > 0)
+    {
+      int warnInterval = Math.max(0, warningInterval);
+      if (minimumPasswordAge > 0)
+      {
+        if ((warnInterval + minimumPasswordAge) >= maximumPasswordAge)
+        {
+          msgID = MSGID_PWPOLICY_MIN_AGE_PLUS_WARNING_GREATER_THAN_MAX_AGE;
+          String message = getMessage(msgID, String.valueOf(configEntryDN));
+          throw new ConfigException(msgID, message);
+        }
+      }
+      else if (warnInterval >= maximumPasswordAge)
+      {
+        msgID = MSGID_PWPOLICY_WARNING_INTERVAL_LARGER_THAN_MAX_AGE;
+        String message = getMessage(msgID, String.valueOf(configEntryDN));
+        throw new ConfigException(msgID, message);
+      }
+    }
   }
 
 
