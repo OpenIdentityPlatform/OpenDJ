@@ -1,0 +1,11 @@
+uid subString uid=j* 0 INDEXED
+uid subString (uid=j*) 0 INDEXED
+l presence l=* 0 INDEXED
+l presence l=* 0 INDEXED
+l equality l=Cupertino 0 INDEXED
+l equality (l=Cupertino) 0 INDEXED
+l approximate (l~=ertino) 0 NOT-INDEXED
+l substring (l=Cup*) 0 INDEXED
+l substring l=Cup* 0 INDEXED
+l substring l=*tino 0 NOT-INDEXED
+l substring (l=*tino) 0 NOT-INDEXED

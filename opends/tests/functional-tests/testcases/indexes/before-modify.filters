@@ -1,0 +1,4 @@
+uid subString uid=j* 0 INDEXED
+uid subString (uid=j*) 0 INDEXED
+uid subString uid=*allace 0 NOT-INDEXED
+uid subString (uid=*allace) 0 NOT-INDEXED
