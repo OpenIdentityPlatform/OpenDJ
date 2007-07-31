@@ -2002,38 +2002,40 @@ public class UtilityMessages
                     "The provided argument \"%s\" is invalid because it does " +
                     "not include the argument name");
     registerMessage(MSGID_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID,
-                    "Argument --%s is not allowed for use with this program");
+                    "Argument \"--%s\" is not allowed for use with this " +
+                    "program");
     registerMessage(MSGID_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID,
-                    "Argument --%s requires a value but none was provided");
+                    "Argument \"--%s\" requires a value but none was provided");
     registerMessage(MSGID_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID,
-                    "The provided value \"%s\" for argument --%s is not " +
+                    "The provided value \"%s\" for argument \"--%s\" is not " +
                     "acceptable:  %s");
     registerMessage(MSGID_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID,
-                    "The argument --%s was included multiple times in the " +
-                    "provided set of arguments but it does not allow " +
+                    "The argument \"--%s\" was included multiple times in " +
+                    "the provided set of arguments but it does not allow " +
                     "multiple values");
     registerMessage(MSGID_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE,
-                    "A value was provided for argument --%s but that " +
+                    "A value was provided for argument \"--%s\" but that " +
                     "argument does not take a value");
     registerMessage(MSGID_ARGPARSER_INVALID_DASH_AS_ARGUMENT,
                     "The dash character by itself is invalid for use as an " +
                     "argument name");
     registerMessage(MSGID_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID,
-                    "Argument -%s is not allowed for use with this program");
+                    "Argument \"-%s\" is not allowed for use with this " +
+                    "program");
     registerMessage(MSGID_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID,
-                    "Argument -%s requires a value but none was provided");
+                    "Argument \"-%s\" requires a value but none was provided");
     registerMessage(MSGID_ARGPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID,
-                    "The provided value \"%s\" for argument -%s is not " +
+                    "The provided value \"%s\" for argument \"-%s\" is not " +
                     "acceptable:  %s");
     registerMessage(MSGID_ARGPARSER_NOT_MULTIVALUED_FOR_SHORT_ID,
-                    "The argument -%s was included multiple times in the " +
+                    "The argument \"-%s\" was included multiple times in the " +
                     "provided set of arguments but it does not allow " +
                     "multiple values");
     registerMessage(MSGID_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES,
-                    "The provided argument block '-%s%s' is illegal because " +
-                    "the '%s' argument requires a value but is in the same " +
-                    "block as at least one other argument that doesn't " +
-                    "require a value");
+                    "The provided argument block \"-%s%s\" is illegal " +
+                    "because the \"%s\" argument requires a value but is in " +
+                    "the same block as at least one other argument that " +
+                    "doesn't require a value");
     registerMessage(MSGID_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT,
                     "Argument \"%s\" does not start with one or two dashes " +
                     "and unnamed trailing arguments are not allowed");
@@ -2041,8 +2043,8 @@ public class UtilityMessages
                     "At least %d unnamed trailing arguments are required " +
                     "in the argument list, but too few were provided");
     registerMessage(MSGID_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG,
-                    "The argument %s is required to have a value but none " +
-                    "was provided in the argument list and no default " +
+                    "The argument \"--%s\" is required to have a value but "+
+                    "none was provided in the argument list and no default " +
                     "value is available");
 
 
@@ -2110,60 +2112,58 @@ public class UtilityMessages
                     "An error occurred while attempting to read the contents " +
                     "of the argument properties file %s:  %s");
     registerMessage(MSGID_SUBCMDPARSER_LONG_ARG_WITHOUT_NAME,
-                    "The provided command-line argument %s does not contain " +
-                    "an argument name");
+                    "The provided command-line argument \"%s\" does not " +
+                    "contain an argument name");
     registerMessage(MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_LONG_ID,
-                    "The provided argument --%s is not a valid global " +
+                    "The provided argument \"--%s\" is not a valid global " +
                     "argument identifier");
     registerMessage(MSGID_SUBCMDPARSER_NO_ARGUMENT_FOR_LONG_ID,
-                    "The provided argument --%s is not a valid global or " +
+                    "The provided argument \"--%s\" is not a valid global or " +
                     "subcommand argument identifier");
     registerMessage(MSGID_SUBCMDPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID,
-                    "Command-line argument --%s requires a value but none " +
-                    "was given");
+                    "Command-line argument \"--%s\" requires a value but " +
+                    "none was given");
     registerMessage(MSGID_SUBCMDPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID,
-                    "The provided value \"%s\" for argument --%s is not " +
+                    "The provided value \"%s\" for argument \"--%s\" is not " +
                     "acceptable:  %s");
     registerMessage(MSGID_SUBCMDPARSER_NOT_MULTIVALUED_FOR_LONG_ID,
-                    "The argument --%s was included multiple times in the " +
-                    "provided set of arguments but it does not allow " +
+                    "The argument \"--%s\" was included multiple times in " +
+                    "the provided set of arguments but it does not allow " +
                     "multiple values");
     registerMessage(MSGID_SUBCMDPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE,
-                    "A value was provided for argument --%s but that " +
+                    "A value was provided for argument \"--%s\" but that " +
                     "argument does not take a value");
     registerMessage(MSGID_SUBCMDPARSER_INVALID_DASH_AS_ARGUMENT,
                     "The dash character by itself is invalid for use as an " +
                     "argument name");
     registerMessage(MSGID_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID,
-                    "The provided argument -%s is not a valid global " +
+                    "The provided argument \"-%s\" is not a valid global " +
                     "argument identifier");
     registerMessage(MSGID_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID,
-                    "The provided argument -%s is not a valid global or " +
+                    "The provided argument \"-%s\" is not a valid global or " +
                     "subcommand argument identifier");
     registerMessage(MSGID_SUBCMDPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID,
-                    "Argument -%s requires a value but none was provided");
+                    "Argument \"-%s\" requires a value but none was provided");
     registerMessage(MSGID_SUBCMDPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID,
-                    "The provided value \"%s\" for argument -%s is not " +
+                    "The provided value \"%s\" for argument \"-%s\" is not " +
                     "acceptable:  %s");
     registerMessage(MSGID_SUBCMDPARSER_NOT_MULTIVALUED_FOR_SHORT_ID,
-                    "The argument -%s was included multiple times in the " +
+                    "The argument \"-%s\" was included multiple times in the " +
                     "provided set of arguments but it does not allow " +
                     "multiple values");
     registerMessage(MSGID_SUBCMDPARSER_CANT_MIX_ARGS_WITH_VALUES,
-                    "The provided argument block '-%s%s' is illegal because " +
-                    "the '%s' argument requires a value but is in the same " +
-                    "block as at least one other argument that doesn't " +
-                    "require a value");
+                    "The provided argument block \"-%s%s\" is illegal " +
+                    "because the \"%s\" argument requires a value but is " +
+                    "in the same block as at least one other argument that " +
+                    "doesn't require a value");
     registerMessage(MSGID_SUBCMDPARSER_INVALID_ARGUMENT,
-                    "The provided argument %s is not recognized");
+                    "The provided argument \"%s\" is not recognized");
     registerMessage(MSGID_SUBCMDPARSER_MULTIPLE_SUBCOMMANDS,
-                    "The provided argument %s specifies a valid subcommand, " +
-                    "but another subcommand %s was also given.  Only a " +
-                    "single subcommand may be provided");
+                    "The provided argument \"%s\" specifies a valid " +
+                    "subcommand, but another subcommand \"%s\" was also " +
+                    "given.  Only a single subcommand may be provided");
     registerMessage(MSGID_SUBCMDPARSER_NO_VALUE_FOR_REQUIRED_ARG,
-                    "The argument %s is required to have a value but none " +
-                    "was provided in the argument list and no default " +
-                    "value is available");
+                    "The argument \"--%s\" must be specified");
 
 
     registerMessage(MSGID_LDAPURL_NO_COLON_SLASH_SLASH,
