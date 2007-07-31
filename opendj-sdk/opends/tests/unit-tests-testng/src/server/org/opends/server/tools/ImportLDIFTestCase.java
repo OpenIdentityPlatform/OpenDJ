@@ -51,6 +51,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
   String configFilePath ;
   private String homeDirName;
   private String beID;
+  private String baseDN = "dc=example,dc=com";
 
   /**
   * Ensures that the ldif file is created with the entry.
@@ -179,6 +180,41 @@ public class ImportLDIFTestCase extends ToolsTestCase {
       "-f", DirectoryServer.getConfigFile(),
       "-l",ldifFilePath,
       "-n", beID,
+      "-R", rejectFilePath
+    };
+    assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);
+    //Reject file should be empty.
+    assertRejectedFile(reject,true);
+    //check the presence of some random attributes.
+    Attribute[]  attr =
+    {
+      new Attribute ("description",
+          "This is the description for Aaccf Amar"),
+      new Attribute("mail","user.0@example.com"),
+      new Attribute ("creatorsname", "cn=Import") ,
+      new Attribute("modifiersname","cn=Import")
+    }    ;
+    assertEntry(attr,true);
+  }
+
+  /**
+   * Tests a simple Import LDIF using base DN with none of the attributes
+   * excluded or included. It is expected to import the entry(ies)
+   * with all the attributes in the ldif file.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testImportDefaultBaseDN() throws Exception
+  {
+
+    File reject = File.createTempFile("reject", ".ldif");
+    String rejectFilePath = reject.getAbsolutePath();
+    String[] args =
+    {
+      "-f", DirectoryServer.getConfigFile(),
+      "-l", ldifFilePath,
+      "-b", baseDN,
       "-R", rejectFilePath
     };
     assertEquals(ImportLDIF.mainImportLDIF(args,false,System.out,System.err),0);

@@ -1090,8 +1090,10 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         }
 
         // Remove any overlapping include branches.
-        for(DN includeDN : includeBranches)
+        Iterator<DN> includeBranchIterator = includeBranches.iterator();
+        while(includeBranchIterator.hasNext())
         {
+          DN includeDN = includeBranchIterator.next();
           boolean keep = true;
           for(DN dn : includeBranches)
           {
@@ -1103,15 +1105,17 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           }
           if(!keep)
           {
-            includeBranches.remove(includeDN);
+            includeBranchIterator.remove();
           }
         }
 
         // Remvoe any exclude branches that are not are not under a include
         // branch since they will be migrated as part of the existing entries
         // outside of the include branches anyways.
-        for(DN excludeDN : excludeBranches)
+        Iterator<DN> excludeBranchIterator = excludeBranches.iterator();
+        while(excludeBranchIterator.hasNext())
         {
+          DN excludeDN = excludeBranchIterator.next();
           boolean keep = false;
           for(DN includeDN : includeBranches)
           {
@@ -1123,7 +1127,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
           }
           if(!keep)
           {
-            excludeBranches.remove(excludeDN);
+            excludeBranchIterator.remove();
           }
         }
 

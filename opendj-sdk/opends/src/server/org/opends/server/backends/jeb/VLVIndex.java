@@ -254,6 +254,7 @@ public class VLVIndex extends DatabaseContainer
     }
 
     this.count = new AtomicInteger(0);
+    this.config.addChangeListener(this);
   }
 
   /**
@@ -283,6 +284,18 @@ public class VLVIndex extends DatabaseContainer
     {
       cursor.close();
     }
+  }
+
+  /**
+   * Close the VLV index.
+   *
+   * @throws DatabaseException if a JE database error occurs while
+   * closing the index.
+   */
+  public void close() throws DatabaseException
+  {
+    super.close();
+    this.config.removeChangeListener(this);
   }
 
   /**
@@ -1431,6 +1444,9 @@ public class VLVIndex extends DatabaseContainer
     if(adminActionRequired)
     {
       trusted = false;
+      int msgID = MSGID_JEB_INDEX_ADD_REQUIRES_REBUILD;
+      String message = getMessage(msgID, name);
+      messages.add(message);
       try
       {
         state.putIndexTrustState(null, this, false);

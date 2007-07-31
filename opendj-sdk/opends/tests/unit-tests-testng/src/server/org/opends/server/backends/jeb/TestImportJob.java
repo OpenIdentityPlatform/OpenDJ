@@ -71,6 +71,11 @@ public class TestImportJob extends JebTestCase
       "objectclass: organizationalUnit\n" +
       "ou: People\n" +
       "\n" +
+      "dn: ou=Others,ou=People,dc=importtest,dc=com\n" +
+      "objectclass: top\n" +
+      "objectclass: organizationalUnit\n" +
+      "ou: Others\n" +
+      "\n" +
       "dn: dc=importtest1,dc=com\n" +
       "objectclass: top\n" +
       "objectclass: domain\n" +
@@ -326,9 +331,10 @@ public class TestImportJob extends JebTestCase
 
         if(baseDN.toString().equals("dc=importtest,dc=com"))
         {
-          assertEquals(entryContainer.getEntryCount(), 4);
+          assertEquals(entryContainer.getEntryCount(), 5);
           assertTrue(entryContainer.entryExists(baseDN));
           assertTrue(entryContainer.entryExists(DN.decode("ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("ou=Others,ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN.decode("uid=user.0,ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN.decode("uid=user.539,ou=People,dc=importtest,dc=com")));
 
@@ -365,6 +371,94 @@ public class TestImportJob extends JebTestCase
   }
 
   @Test(dependsOnMethods = "testImportAll")
+  public void testImportPartial() throws Exception
+  {
+    ArrayList<String> fileList = new ArrayList<String>();
+    fileList.add(homeDirName + File.separator + "top.ldif");
+    fileList.add(homeDirName + File.separator + "entries1.ldif");
+
+    ArrayList<DN> includeBranches = new ArrayList<DN>();
+    includeBranches.add(DN.decode("ou=People,dc=importtest,dc=com"));
+    ArrayList<DN> excludeBranches = new ArrayList<DN>();
+    excludeBranches.add(DN.decode("ou=Others,ou=People,dc=importtest,dc=com"));
+
+    ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
+    ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
+    LDIFImportConfig importConfig = new LDIFImportConfig(fileList);
+    importConfig.setAppendToExistingData(false);
+    importConfig.setReplaceExistingEntries(false);
+    importConfig.setValidateSchema(true);
+    importConfig.writeRejectedEntries(rejectedEntries);
+    importConfig.writeSkippedEntries(skippedEntries);
+    importConfig.setIncludeBranches(includeBranches);
+    importConfig.setExcludeBranches(excludeBranches);
+
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    TaskUtils.disableBackend(beID);
+    try
+    {
+      be.importLDIF(importConfig);
+    }
+    finally
+    {
+      TaskUtils.enableBackend(beID);
+    }
+
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    RootContainer rootContainer = be.getRootContainer();
+    EntryContainer entryContainer;
+
+    assertTrue(rejectedEntries.size() <= 0);
+    for(DN baseDN : baseDNs)
+    {
+      entryContainer = rootContainer.getEntryContainer(baseDN);
+      entryContainer.sharedLock.lock();
+      try
+      {
+        assertNotNull(entryContainer);
+
+        if(baseDN.toString().equals("dc=importtest,dc=com"))
+        {
+          assertEquals(entryContainer.getEntryCount(), 5);
+          assertTrue(entryContainer.entryExists(baseDN));
+          assertTrue(entryContainer.entryExists(DN.decode("ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("ou=Others,ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.0,ou=People,dc=importtest,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.539,ou=People,dc=importtest,dc=com")));
+
+          VerifyConfig verifyConfig = new VerifyConfig();
+          verifyConfig.setBaseDN(baseDN);
+
+          Entry statEntry=bldStatEntry("");
+          be=(BackendImpl) DirectoryServer.getBackend(beID);
+          be.verifyBackend(verifyConfig, statEntry);
+          assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+        }
+        else if(baseDN.toString().equals("dc=importtest1,dc=com"))
+        {
+          assertEquals(entryContainer.getEntryCount(), 3);
+          assertTrue(entryContainer.entryExists(baseDN));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.446,dc=importtest1,dc=com")));
+          assertTrue(entryContainer.entryExists(DN.decode("uid=user.362,dc=importtest1,dc=com")));
+
+          VerifyConfig verifyConfig = new VerifyConfig();
+          verifyConfig.setBaseDN(baseDN);
+
+          Entry statEntry=bldStatEntry("");
+          be=(BackendImpl) DirectoryServer.getBackend(beID);
+          be.verifyBackend(verifyConfig, statEntry);
+          assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+        }
+      }
+      finally
+      {
+        entryContainer.sharedLock.unlock();
+
+      }
+    }
+  }
+
+  @Test(dependsOnMethods = "testImportPartial")
   public void testImportReplaceExisting() throws Exception
   {
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
@@ -488,7 +582,7 @@ public class TestImportJob extends JebTestCase
       {
         if(baseDN.toString().equals("dc=importtest,dc=com"))
         {
-          assertEquals(entryContainer.getEntryCount(), 4);
+          assertEquals(entryContainer.getEntryCount(), 5);
           assertTrue(entryContainer.entryExists(baseDN));
           assertTrue(entryContainer.entryExists(DN.decode("ou=People,dc=importtest,dc=com")));
           assertTrue(entryContainer.entryExists(DN.decode("uid=user.0,ou=People,dc=importtest,dc=com")));
@@ -510,7 +604,7 @@ public class TestImportJob extends JebTestCase
     }
   }
 
-  @Test(dependsOnMethods = "testImportAll")
+  @Test(dependsOnMethods = "testImportPartial")
   public void testImportNotReplaceExisting() throws Exception
   {
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
@@ -534,7 +628,7 @@ public class TestImportJob extends JebTestCase
     assertTrue(rejectedEntries.toString().contains("uid=user.446,dc=importtest1,dc=com"));
   }
 
-  @Test(dependsOnMethods = "testImportAll")
+  @Test(dependsOnMethods = "testImportPartial")
   public void testImportSkip() throws Exception
   {
     ArrayList<DN> excludeBranches = new ArrayList<DN>();

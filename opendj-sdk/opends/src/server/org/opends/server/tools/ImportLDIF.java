@@ -420,20 +420,8 @@ public class ImportLDIF
     }
 
     // Make sure that either the "includeBranchStrings" argument or the
-    // "backendID" argument was provided, but not both.
-    if(includeBranchStrings.isPresent())
-    {
-      if(backendID.isPresent())
-      {
-        int    msgID   = MSGID_LDIFIMPORT_CONFLICTING_OPTIONS;
-        String message = getMessage(msgID,
-                                    includeBranchStrings.getLongIdentifier(),
-                                    backendID.getLongIdentifier());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-    }
-    else if(! backendID.isPresent())
+    // "backendID" argument was provided.
+    if(!includeBranchStrings.isPresent() && !backendID.isPresent())
     {
       int    msgID   = MSGID_LDIFIMPORT_MISSING_BACKEND_ARGUMENT;
       String message = getMessage(msgID,
@@ -925,12 +913,13 @@ public class ImportLDIF
       }
     }
 
-    // Make sure that if the "backendID" argument was provided and the "append"
-    // option was not provided, the "clearBackend" argument was also
-    // provided if there are more then one baseDNs for the backend being
-    // imported.
-    if(backendID.isPresent() && !append.isPresent() &&
-        defaultIncludeBranches.size() > 1 && !clearBackend.isPresent())
+    // Make sure that if the "backendID" argument was provided, no include base
+    // was included, and the "append" ption was not provided, the "clearBackend"
+    // argument was also provided if there are more then one baseDNs for the
+    // backend being imported.
+    if(backendID.isPresent() && !includeBranchStrings.isPresent() &&
+        !append.isPresent() && defaultIncludeBranches.size() > 1 &&
+        !clearBackend.isPresent())
     {
       StringBuilder builder = new StringBuilder();
       builder.append(backend.getBaseDNs()[0].toNormalizedString());

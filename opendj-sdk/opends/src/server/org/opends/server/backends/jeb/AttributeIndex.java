@@ -273,7 +273,7 @@ public class AttributeIndex
    * Close the attribute index.
    *
    * @throws DatabaseException if a JE database error occurs while
-   * openning the index.
+   * closing the index.
    */
   public void close() throws DatabaseException
   {
