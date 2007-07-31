@@ -81,7 +81,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Tests synchronized.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testSynchronize() throws Exception {
     File s = new File(fmWorkspace, "s");
     File t = new File(fmWorkspace, "t");
@@ -157,7 +157,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    *
    * @throws Exception If the test failed unexpectedly.
    */
-  @Test
+  @Test(enabled = false)
   public void testRenameFileExistentTarget() throws Exception {
     File src = File.createTempFile("src", null);
     File target = File.createTempFile("target", null);
@@ -178,7 +178,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    *
    * @throws Exception If the test failed unexpectedly.
    */
-  @Test(groups={"windows"}, expectedExceptions=IOException.class)
+  @Test(enabled = false, groups={"windows"}, expectedExceptions=IOException.class)
   public void testRenameFileLockedTarget() throws Exception {
     File src = File.createTempFile("src", null);
     File target = File.createTempFile("target", null);
@@ -197,7 +197,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Tests basic move.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testMove() throws Exception {
 
     File fromDir = new File(fmWorkspace, "from");
@@ -218,7 +218,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Tests basic move with filtering.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testMove2() throws Exception {
     File fromDir = new File(fmWorkspace, "from");
     fromDir.mkdir();
@@ -244,7 +244,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Tests basic delete.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testDelete() throws Exception {
     File dir = new File(fmWorkspace, "dir");
     dir.mkdir();
@@ -263,7 +263,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Tests basic delete with filtering.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testDelete2() throws Exception {
 
     // Create a filter that should reject the operation
@@ -290,7 +290,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Test recursive delete.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testDeleteRecursively() throws Exception {
     File dir = new File(fmWorkspace, "dir");
     createSourceFiles(dir, "abc");
@@ -303,7 +303,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Test recursive delete with filtering.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testDeleteRecursively1() throws Exception {
     File dir = new File(fmWorkspace, "dir");
     createSourceFiles(dir, "abc");
@@ -344,7 +344,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Test basic copy.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testCopy() throws Exception {
     File file = new File(fmWorkspace, "file");
     writeContents(file, "abc");
@@ -360,7 +360,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Make sure things fail if target is a file and not a directory.
    * @throws Exception if something unexpected
    */
-  @Test(expectedExceptions = ApplicationException.class)
+  @Test(enabled = false, expectedExceptions = ApplicationException.class)
   public void testCopy1() throws Exception {
     File file = new File(fmWorkspace, "file");
     writeContents(file, "abc");
@@ -373,7 +373,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Make sure things fail if target is a file and not a directory.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testCopy2() throws Exception {
     File file = new File(fmWorkspace, "file");
     String NEW_CHILD_CONTENT = "new";
@@ -399,7 +399,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Test copy recursively.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testCopyRecursively() throws Exception {
     File source = new File(fmWorkspace, "source");
     createSourceFiles(source, "abc");
@@ -417,7 +417,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Tests copy recursively with filtering.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testCopyRecursively1() throws Exception {
     // Test that a filter can stop a delete altogether
     FileFilter rejectOpFilter = new FileFilter() {
@@ -463,7 +463,7 @@ public class FileManagerTest extends QuickSetupTestCase {
    * Tests copy recursively with filtering and overwrite.
    * @throws Exception if something unexpected
    */
-  @Test
+  @Test(enabled = false)
   public void testCopyRecursively2() throws Exception {
     File source = new File(fmWorkspace, "source");
     String FILES_TO_COPY = "to copy";
