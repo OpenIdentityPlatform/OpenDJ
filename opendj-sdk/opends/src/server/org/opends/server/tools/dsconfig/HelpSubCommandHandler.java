@@ -35,9 +35,10 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.PrintStream;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -56,10 +57,12 @@ import org.opends.server.admin.PropertyDefinitionVisitor;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.StringPropertyDefinition;
+import org.opends.server.admin.Tag;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
@@ -351,6 +354,11 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     }
   }
 
+  /**
+   * The type component name to be used for top-level definitions.
+   */
+  private static final String GENERIC_TYPE = "generic";
+
   // Strings used in property help.
   private final static String HEADING_SEPARATOR = " : ";
 
@@ -358,16 +366,34 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   private final static int HEADING_WIDTH;
 
   /**
+   * The value for the long option inherited.
+   */
+  private static final String OPTION_DSCFG_LONG_INHERITED = "inherited";
+
+  /**
+   * The value for the short option inherited.
+   */
+  private static final Character OPTION_DSCFG_SHORT_INHERITED = null;
+
+  /**
    * The value for the long option type.
    */
   private static final String OPTION_DSCFG_LONG_TYPE = "type";
-
-
 
   /**
    * The value for the short option type.
    */
   private static final Character OPTION_DSCFG_SHORT_TYPE = 't';
+
+  /**
+   * The value for the long option category.
+   */
+  private static final String OPTION_DSCFG_LONG_CATEGORY = "category";
+
+  /**
+   * The value for the short option category.
+   */
+  private static final Character OPTION_DSCFG_SHORT_CATEGORY = 'c';
 
   static {
     int tmp = getMessage(MSGID_DSCFG_HELP_HEADING_SYNTAX).length();
@@ -380,6 +406,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         .max(tmp, getMessage(MSGID_DSCFG_HELP_HEADING_READ_ONLY).length());
     HEADING_WIDTH = tmp;
   }
+
+
 
   /**
    * Creates a new help-properties sub-command.
@@ -513,17 +541,31 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     }
   }
 
-
-
   // The sub-command associated with this handler.
   private final SubCommand subCommand;
 
-  // The argument which should be used to specify the type of managed
-  // object to be retrieved.
+  // The argument which should be used to specify the category of
+  // managed object to be retrieved.
+  private final StringArgument categoryArgument;
+
+  //The argument which should be used to display inherited properties.
+  private BooleanArgument inheritedModeArgument;
+
+  // The argument which should be used to specify the sub-type of
+  // managed object to be retrieved.
   private final StringArgument typeArgument;
 
-  // A table listing all the available types of managed object.
-  private final Map<String, AbstractManagedObjectDefinition<?, ?>> types;
+  // A table listing all the available types of managed object indexed
+  // on their parent type.
+  private final Map<String,
+    Map<String, AbstractManagedObjectDefinition<?, ?>>> categoryMap;
+
+  // A table listing all the available types of managed object indexed
+  // on their tag(s).
+  private final Map<Tag,
+    Map<String, AbstractManagedObjectDefinition<?, ?>>> tagMap;
+
+
 
   // Private constructor.
   private HelpSubCommandHandler(ConsoleApplication app,
@@ -536,17 +578,30 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     this.subCommand = new SubCommand(parser, name, false, 0, 0, null,
         descriptionID);
 
+    this.categoryArgument = new StringArgument(OPTION_DSCFG_LONG_CATEGORY,
+        OPTION_DSCFG_SHORT_CATEGORY, OPTION_DSCFG_LONG_CATEGORY, false, false,
+        true, "{CATEGORY}", null, null, MSGID_DSCFG_DESCRIPTION_HELP_CATEGORY);
+    this.subCommand.addArgument(this.categoryArgument);
+
     this.typeArgument = new StringArgument(OPTION_DSCFG_LONG_TYPE,
         OPTION_DSCFG_SHORT_TYPE, OPTION_DSCFG_LONG_TYPE, false, false, true,
         "{TYPE}", null, null, MSGID_DSCFG_DESCRIPTION_HELP_TYPE);
     this.subCommand.addArgument(this.typeArgument);
+
+    this.inheritedModeArgument = new BooleanArgument(
+        OPTION_DSCFG_LONG_INHERITED, OPTION_DSCFG_SHORT_INHERITED,
+        OPTION_DSCFG_LONG_INHERITED, MSGID_DSCFG_DESCRIPTION_HELP_INHERITED);
+    subCommand.addArgument(inheritedModeArgument);
 
     // Register common arguments.
     registerAdvancedModeArgument(this.subCommand,
         MSGID_DSCFG_DESCRIPTION_ADVANCED_HELP);
     registerPropertyNameArgument(this.subCommand);
 
-    this.types = new TreeMap<String, AbstractManagedObjectDefinition<?, ?>>();
+    this.categoryMap = new TreeMap<String,
+      Map<String, AbstractManagedObjectDefinition<?, ?>>>();
+    this.tagMap = new HashMap<Tag,
+      Map<String, AbstractManagedObjectDefinition<?, ?>>>();
   }
 
 
@@ -570,7 +625,47 @@ final class HelpSubCommandHandler extends SubCommandHandler {
    */
   public void registerManagedObjectDefinition(
       AbstractManagedObjectDefinition<?, ?> d) {
-    types.put(d.getName(), d);
+    // Determine the definition's base name.
+    AbstractManagedObjectDefinition<?, ?> parent = d;
+    while (parent.getParent() != null) {
+      parent = parent.getParent();
+    }
+
+    String baseName = parent.getName();
+    String typeName = null;
+    if (parent == d) {
+      // This was a top-level definition.
+      typeName = GENERIC_TYPE;
+    } else {
+      // For the type name we shorten it, if possible, by stripping
+      // off the trailing part of the name which matches the
+      // base-type.
+      String suffix = "-" + baseName;
+      typeName = d.getName();
+      if (typeName.endsWith(suffix)) {
+        typeName = typeName.substring(0, typeName.length() - suffix.length());
+      }
+    }
+
+    // Get the sub-type mapping, creating it if necessary.
+    Map<String, AbstractManagedObjectDefinition<?, ?>> subTypes = categoryMap
+        .get(baseName);
+    if (subTypes == null) {
+      subTypes = new TreeMap<String, AbstractManagedObjectDefinition<?, ?>>();
+      categoryMap.put(baseName, subTypes);
+    }
+
+    subTypes.put(typeName, d);
+
+    // Get the tag mapping, creating it if necessary.
+    for (Tag tag : d.getAllTags()) {
+      subTypes = tagMap.get(baseName);
+      if (subTypes == null) {
+        subTypes = new TreeMap<String, AbstractManagedObjectDefinition<?, ?>>();
+        tagMap.put(tag, subTypes);
+      }
+      subTypes.put(typeName, d);
+    }
   }
 
 
@@ -579,53 +674,118 @@ final class HelpSubCommandHandler extends SubCommandHandler {
    * {@inheritDoc}
    */
   @Override
-  public int run()
-      throws ArgumentException, ClientException {
+  public int run() throws ArgumentException, ClientException {
+    String categoryName = categoryArgument.getValue();
     String typeName = typeArgument.getValue();
+    Tag tag = null;
     Set<String> propertyNames = getPropertyNames();
 
-    AbstractManagedObjectDefinition<?, ?> d = null;
-    if (typeName != null) {
-      // Requested help regarding a single managed object type.
-      d = types.get(typeName);
-      if (d == null) {
+    List<AbstractManagedObjectDefinition<?, ?>> dlist =
+      new LinkedList<AbstractManagedObjectDefinition<?, ?>>();
+    AbstractManagedObjectDefinition<?, ?> tmp = null;
+
+    if (categoryName != null) {
+      // User requested a category of components.
+      Map<String, AbstractManagedObjectDefinition<?, ?>> subTypes = categoryMap
+          .get(categoryName);
+
+      if (subTypes == null) {
+        // Try a tag-base look-up.
+        try {
+          tag = Tag.valueOf(categoryName);
+        } catch (IllegalArgumentException e) {
+          throw ArgumentExceptionFactory.unknownCategory(categoryName);
+        }
+
+        categoryName = null;
+        subTypes = tagMap.get(tag);
+        if (subTypes == null) {
+          throw ArgumentExceptionFactory.unknownCategory(categoryName);
+        }
+      } else {
+        // Cache the generic definition for improved errors later on.
+        tmp = subTypes.get(GENERIC_TYPE);
+      }
+
+      if (typeName != null) {
+        AbstractManagedObjectDefinition<?, ?> d = subTypes.get(typeName);
+        if (d == null) {
+          throw ArgumentExceptionFactory.unknownTypeInCategory(categoryName,
+              typeName);
+        }
+        dlist.add(d);
+
+        // Cache the generic definition for improved errors later on.
+        tmp = d;
+      } else {
+        dlist.addAll(subTypes.values());
+      }
+    } else if (typeName != null) {
+      // User requested just the sub-type which could appear in
+      // multiple categories.
+      boolean isFound = false;
+
+      for (Map<String, AbstractManagedObjectDefinition<?, ?>> subTypes :
+        categoryMap.values()) {
+        AbstractManagedObjectDefinition<?, ?> d = subTypes.get(typeName);
+        if (d != null) {
+          dlist.add(d);
+          isFound = true;
+        }
+      }
+
+      if (!isFound) {
         throw ArgumentExceptionFactory.unknownType(typeName);
+      }
+    } else {
+      // User did not specify a category nor a sub-type.
+      for (Map<String, AbstractManagedObjectDefinition<?, ?>> subTypes :
+        categoryMap.values()) {
+        dlist.addAll(subTypes.values());
       }
     }
 
-    // Validate property names if the type was specified.
-    if (d != null) {
-      for (String propertyName : propertyNames) {
+    // Validate property names.
+    if (dlist.size() == 1) {
+      // Cache the generic definition for improved errors later on.
+      tmp = dlist.get(0);
+    }
+
+    for (String propertyName : propertyNames) {
+      boolean isFound = false;
+
+      for (AbstractManagedObjectDefinition<?, ?> d : dlist) {
         try {
           d.getPropertyDefinition(propertyName);
+          isFound = true;
         } catch (IllegalArgumentException e) {
-          throw ArgumentExceptionFactory.unknownProperty(d, propertyName);
+          // Ignore for now.
+        }
+      }
+
+      if (!isFound) {
+        if (tmp != null) {
+          throw ArgumentExceptionFactory.unknownProperty(tmp, propertyName);
+        } else {
+          throw ArgumentExceptionFactory.unknownProperty(propertyName);
         }
       }
     }
 
-    // Determine the set of managed objects to be displayed.
-    Collection<AbstractManagedObjectDefinition<?, ?>> defns;
-    if (d == null) {
-      defns = types.values();
+    if (!getConsoleApplication().isVerbose()) {
+      displayNonVerbose(categoryName, typeName, tag, propertyNames);
     } else {
-      defns = Collections.<AbstractManagedObjectDefinition<?, ?>> singleton(d);
+      displayVerbose(categoryName, typeName, tag, propertyNames);
     }
 
-    if (!getConsoleApplication().isVerbose()) {
-      displayNonVerbose(defns, propertyNames);
-    } else {
-      displayVerbose(defns, propertyNames);
-    }
     return 0;
   }
 
 
 
   // Output property summary table.
-  private void displayNonVerbose(
-      Collection<AbstractManagedObjectDefinition<?, ?>> defns,
-      Set<String> propertyNames) {
+  private void displayNonVerbose(String categoryName, String typeName,
+      Tag tag, Set<String> propertyNames) {
     PrintStream out = getConsoleApplication().getOutputStream();
     if (!getConsoleApplication().isScriptFriendly()) {
       out.println(getMessage(MSGID_DSCFG_HELP_DESCRIPTION_OPTION));
@@ -647,7 +807,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     // Headings.
     TableBuilder builder = new TableBuilder();
 
-    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_MANAGED_OBJECT_NAME));
+    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_COMPONENT_NAME));
+    builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_COMPONENT_TYPE));
     builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_NAME));
     builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_OPTIONS));
     builder.appendHeading(getMessage(MSGID_DSCFG_HEADING_PROPERTY_SYNTAX));
@@ -655,45 +816,78 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     // Sort keys.
     builder.addSortKey(0);
     builder.addSortKey(1);
+    builder.addSortKey(2);
 
     // Generate the table content.
-    for (AbstractManagedObjectDefinition<?, ?> mod : defns) {
-      Collection<PropertyDefinition<?>> pds;
-      if (getConsoleApplication().isScriptFriendly()) {
-        pds = mod.getAllPropertyDefinitions();
-      } else {
-        pds = mod.getPropertyDefinitions();
+    for (String category : categoryMap.keySet()) {
+      // Skip if this is the wrong category.
+      if (categoryName != null && !categoryName.equals(category)) {
+        continue;
       }
 
-      for (PropertyDefinition<?> pd : pds) {
-        if (pd.hasOption(PropertyOption.HIDDEN)) {
+      // Process the sub-types.
+      Map<String, AbstractManagedObjectDefinition<?, ?>> subTypes = categoryMap
+          .get(category);
+      for (String type : subTypes.keySet()) {
+        // Skip if this is the wrong sub-type.
+        if (typeName != null && !typeName.equals(type)) {
           continue;
         }
 
-        if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+        // Display help for each property.
+        AbstractManagedObjectDefinition<?, ?> mod = subTypes.get(type);
+
+        // Skip if this does not have the required tag.
+        if (tag != null && !mod.hasTag(tag)) {
           continue;
         }
 
-        if (!propertyNames.isEmpty() && !propertyNames.contains(pd.getName())) {
-          continue;
+        Set<PropertyDefinition<?>> pds = new TreeSet<PropertyDefinition<?>>();
+        if (inheritedModeArgument.isPresent()) {
+          pds.addAll(mod.getAllPropertyDefinitions());
+        } else {
+          pds.addAll(mod.getPropertyDefinitions());
+
+          // The list will still contain overridden properties.
+          if (mod.getParent() != null) {
+            pds.removeAll(mod.getParent().getAllPropertyDefinitions());
+          }
         }
 
-        // Display the property.
-        builder.startRow();
+        for (PropertyDefinition<?> pd : pds) {
+          if (pd.hasOption(PropertyOption.HIDDEN)) {
+            continue;
+          }
 
-        // Display the managed object type if necessary.
-        builder.appendCell(mod.getName());
+          if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+            continue;
+          }
 
-        // Display the property name.
-        builder.appendCell(pd.getName());
+          if (!propertyNames.isEmpty() &&
+              !propertyNames.contains(pd.getName())) {
+            continue;
+          }
 
-        // Display the options.
-        builder.appendCell(getPropertyOptionSummary(pd));
+          // Display the property.
+          builder.startRow();
 
-        // Display the syntax.
-        PropertyDefinitionUsageBuilder v =
-          new PropertyDefinitionUsageBuilder(false);
-        builder.appendCell(v.getUsage(pd));
+          // Display the component category.
+          builder.appendCell(category);
+
+          // Display the component type.
+          builder.appendCell(type);
+
+          // Display the property name.
+          builder.appendCell(pd.getName());
+
+          // Display the options.
+          builder.appendCell(getPropertyOptionSummary(pd));
+
+          // Display the syntax.
+          PropertyDefinitionUsageBuilder v = new PropertyDefinitionUsageBuilder(
+              false);
+          builder.appendCell(v.getUsage(pd));
+        }
       }
     }
 
@@ -709,9 +903,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
   // Display detailed help on managed objects and their properties.
-  private void displayVerbose(
-      Collection<AbstractManagedObjectDefinition<?, ?>> defns,
-      Set<String> propertyNames) {
+  private void displayVerbose(String categoryName, String typeName,
+      Tag tag, Set<String> propertyNames) {
     PrintStream out = getConsoleApplication().getOutputStream();
 
     // Construct line used to separate consecutive sections.
@@ -722,54 +915,88 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     // Display help for each managed object.
     boolean isFirstManagedObject = true;
-    for (AbstractManagedObjectDefinition<?, ?> mod : defns) {
-      // Display help for each property.
-      Set<PropertyDefinition<?>> pds =
-        new TreeSet<PropertyDefinition<?>>(mod.getAllPropertyDefinitions());
-      boolean isFirstProperty = true;
-      for (PropertyDefinition<?> pd : pds) {
-        if (pd.hasOption(PropertyOption.HIDDEN)) {
+    for (String category : categoryMap.keySet()) {
+      // Skip if this is the wrong category.
+      if (categoryName != null && !categoryName.equals(category)) {
+        continue;
+      }
+
+      // Process the sub-types.
+      Map<String, AbstractManagedObjectDefinition<?, ?>> subTypes = categoryMap
+          .get(category);
+      for (String type : subTypes.keySet()) {
+        // Skip if this is the wrong sub-type.
+        if (typeName != null && !typeName.equals(type)) {
           continue;
         }
 
-        if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+        // Display help for each property.
+        AbstractManagedObjectDefinition<?, ?> mod = subTypes.get(type);
+
+        // Skip if this does not have the required tag.
+        if (tag != null && !mod.hasTag(tag)) {
           continue;
         }
 
-        if (!propertyNames.isEmpty() && !propertyNames.contains(pd.getName())) {
-          continue;
+        Set<PropertyDefinition<?>> pds = new TreeSet<PropertyDefinition<?>>();
+        if (inheritedModeArgument.isPresent()) {
+          pds.addAll(mod.getAllPropertyDefinitions());
+        } else {
+          pds.addAll(mod.getPropertyDefinitions());
+
+          // The list will still contain overridden properties.
+          if (mod.getParent() != null) {
+            pds.removeAll(mod.getParent().getAllPropertyDefinitions());
+          }
         }
 
-        if (isFirstProperty) {
-          // User has requested properties relating to this managed
-          // object definition, so display the summary of the managed
-          // object.
-          if (!isFirstManagedObject) {
-            out.println();
-            out.println(c1);
-            out.println();
-          } else {
-            isFirstManagedObject = false;
+        boolean isFirstProperty = true;
+        for (PropertyDefinition<?> pd : pds) {
+          if (pd.hasOption(PropertyOption.HIDDEN)) {
+            continue;
           }
 
-          // Display the title.
-          out.println(wrapText(getMessage(MSGID_DSCFG_HELP_HEADING_COMPONENT,
-              mod.getUserFriendlyName()), MAX_LINE_WIDTH));
+          if (!isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+            continue;
+          }
+
+          if (!propertyNames.isEmpty() &&
+              !propertyNames.contains(pd.getName())) {
+            continue;
+          }
+
+          if (isFirstProperty) {
+            // User has requested properties relating to this managed
+            // object definition, so display the summary of the
+            // managed
+            // object.
+            if (!isFirstManagedObject) {
+              out.println();
+              out.println(c1);
+              out.println();
+            } else {
+              isFirstManagedObject = false;
+            }
+
+            // Display the title.
+            out.println(wrapText(getMessage(MSGID_DSCFG_HELP_HEADING_COMPONENT,
+                mod.getUserFriendlyName()), MAX_LINE_WIDTH));
+
+            out.println();
+            out.println(wrapText(mod.getSynopsis(), MAX_LINE_WIDTH));
+            if (mod.getDescription() != null) {
+              out.println();
+              out.println(wrapText(mod.getDescription(), MAX_LINE_WIDTH));
+            }
+          }
 
           out.println();
-          out.println(wrapText(mod.getSynopsis(), MAX_LINE_WIDTH));
-          if (mod.getDescription() != null) {
-            out.println();
-            out.println(wrapText(mod.getDescription(), MAX_LINE_WIDTH));
-          }
+          out.println(c2);
+          out.println();
+
+          displayVerboseSingleProperty(mod, pd.getName(), out);
+          isFirstProperty = false;
         }
-
-        out.println();
-        out.println(c2);
-        out.println();
-
-        displayVerboseSingleProperty(mod, pd.getName(), out);
-        isFirstProperty = false;
       }
     }
   }
