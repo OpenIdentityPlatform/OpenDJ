@@ -129,7 +129,7 @@ public final class DsFrameworkCliReturnCode
     MISSING_ADMIN_UID(15, MSGID_ADMIN_MISSING_ADMIN_UID),
 
     /**
-     * The administratior password is missing.
+     * The administrator password is missing.
      */
     MISSING_ADMIN_PASSWORD(16, MSGID_ADMIN_MISSING_ADMIN_PASSWORD),
 
