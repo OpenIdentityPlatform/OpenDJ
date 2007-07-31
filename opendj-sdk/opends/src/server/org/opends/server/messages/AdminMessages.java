@@ -718,7 +718,7 @@ public final class AdminMessages {
     registerMessage(MSGID_ADMIN_MISSING_ADMIN_UID,
         "The administration UID is missing");
     registerMessage(MSGID_ADMIN_MISSING_ADMIN_PASSWORD,
-        "The administratior password is missing");
+        "The administrator password is missing");
     registerMessage(MSGID_ADMIN_ERROR_UNEXPECTED,
         "An unexpected error occurs");
     registerMessage(MSGID_ADMIN_ERROR,
