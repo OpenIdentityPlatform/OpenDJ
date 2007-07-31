@@ -39,6 +39,7 @@
     
           <script>
             CurrentTestPath['group']='privileges'
+            GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
           </script>
       
           <call function="'testGroup_Preamble'"/>
