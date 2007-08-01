@@ -66,7 +66,7 @@ public class ADSContext
    * Enumeration containing the different server properties syntaxes
    * that could be stored in the ADS.
    */
-  public enum ServerPropertySyntax
+  public enum ADSPropertySyntax
   {
     /**
      * String syntax.
@@ -93,80 +93,80 @@ public class ADSContext
     /**
      * The ID used to identify the server.
      */
-    ID("id",ServerPropertySyntax.STRING),
+    ID("id",ADSPropertySyntax.STRING),
     /**
      * The host name of the server.
      */
-    HOST_NAME("hostname",ServerPropertySyntax.STRING),
+    HOST_NAME("hostname",ADSPropertySyntax.STRING),
     /**
      * The LDAP port of the server.
      */
-    LDAP_PORT("ldapport",ServerPropertySyntax.INTEGER),
+    LDAP_PORT("ldapport",ADSPropertySyntax.INTEGER),
     /**
      * The JMX port of the server.
      */
-    JMX_PORT("jmxport",ServerPropertySyntax.INTEGER),
+    JMX_PORT("jmxport",ADSPropertySyntax.INTEGER),
     /**
      * The JMX secure port of the server.
      */
-    JMXS_PORT("jmxsport",ServerPropertySyntax.INTEGER),
+    JMXS_PORT("jmxsport",ADSPropertySyntax.INTEGER),
     /**
      * The LDAPS port of the server.
      */
-    LDAPS_PORT("ldapsport",ServerPropertySyntax.INTEGER),
+    LDAPS_PORT("ldapsport",ADSPropertySyntax.INTEGER),
     /**
      * The certificate used by the server.
      */
-    CERTIFICATE("certificate",ServerPropertySyntax.STRING),
+    CERTIFICATE("certificate",ADSPropertySyntax.STRING),
     /**
      * The path where the server is installed.
      */
-    INSTANCE_PATH("instancepath",ServerPropertySyntax.STRING),
+    INSTANCE_PATH("instancepath",ADSPropertySyntax.STRING),
     /**
      * The description of the server.
      */
-    DESCRIPTION("description",ServerPropertySyntax.STRING),
+    DESCRIPTION("description",ADSPropertySyntax.STRING),
     /**
      * The OS of the machine where the server is installed.
      */
-    HOST_OS("os",ServerPropertySyntax.STRING),
+    HOST_OS("os",ADSPropertySyntax.STRING),
     /**
      * Whether LDAP is enabled or not.
      */
-    LDAP_ENABLED("ldapEnabled",ServerPropertySyntax.BOOLEAN),
+    LDAP_ENABLED("ldapEnabled",ADSPropertySyntax.BOOLEAN),
     /**
      * Whether LDAPS is enabled or not.
      */
-    LDAPS_ENABLED("ldapsEnabled",ServerPropertySyntax.BOOLEAN),
+    LDAPS_ENABLED("ldapsEnabled",ADSPropertySyntax.BOOLEAN),
     /**
      * Whether StartTLS is enabled or not.
      */
-    STARTTLS_ENABLED("startTLSEnabled",ServerPropertySyntax.BOOLEAN),
+    STARTTLS_ENABLED("startTLSEnabled",ADSPropertySyntax.BOOLEAN),
     /**
      * Whether JMX is enabled or not.
      */
-    JMX_ENABLED("jmxEnabled",ServerPropertySyntax.BOOLEAN),
+    JMX_ENABLED("jmxEnabled",ADSPropertySyntax.BOOLEAN),
     /**
      * Whether JMX is enabled or not.
      */
-    JMXS_ENABLED("jmxsEnabled",ServerPropertySyntax.BOOLEAN),
+    JMXS_ENABLED("jmxsEnabled",ADSPropertySyntax.BOOLEAN),
     /**
      * The location of the server.
      */
-    LOCATION("location",ServerPropertySyntax.STRING),
+    LOCATION("location",ADSPropertySyntax.STRING),
     /**
      * The groups to which this server belongs.
      */
-    GROUPS("memberofgroups",ServerPropertySyntax.STRING);
+    GROUPS("memberofgroups",ADSPropertySyntax.STRING);
 
     private String attrName;
-    private ServerPropertySyntax attSyntax;
+    private ADSPropertySyntax attSyntax;
 
     /**
      * Private constructor.
      * @param n the name of the attribute.
      */
-    private ServerProperty(String n,ServerPropertySyntax s)
+    private ServerProperty(String n,ADSPropertySyntax s)
     {
       attrName = n;
       attSyntax = s ;
@@ -185,13 +185,14 @@ public class ADSContext
      * Returns the attribute syntax.
      * @return the attribute syntax.
      */
-    public ServerPropertySyntax getAttributeSyntax()
+    public ADSPropertySyntax getAttributeSyntax()
     {
       return attSyntax;
     }
   };
 
   private static HashMap<String, ServerProperty> nameToServerProperty = null;
+
   /**
    * Get a ServerProperty associated to a name.
    * @param name The name of the property to retrieve.
@@ -199,7 +200,7 @@ public class ADSContext
    * @return The corresponding ServerProperty or null if name
    * doesn't match with an existing property.
    */
-  public static ServerProperty getPropFromName(String name)
+  public static ServerProperty getServerPropFromName(String name)
   {
     if (nameToServerProperty == null)
     {
@@ -286,20 +287,74 @@ public class ADSContext
     /**
      * The UID of the administrator.
      */
-    UID,
+    UID("id",ADSPropertySyntax.STRING),
     /**
      * The password of the administrator.
      */
-    PASSWORD,
+    PASSWORD("password",ADSPropertySyntax.STRING),
     /**
      * The description of the administrator.
      */
-    DESCRIPTION,
+    DESCRIPTION("description",ADSPropertySyntax.STRING),
     /**
      * The DN of the administrator.
      */
-    ADMINISTRATOR_DN
-  };
+    ADMINISTRATOR_DN("administrator dn",ADSPropertySyntax.STRING);
+
+    private String attrName;
+    private ADSPropertySyntax attSyntax;
+
+    /**
+     * Private constructor.
+     * @param n the name of the attribute.
+     */
+    private AdministratorProperty(String n,ADSPropertySyntax s)
+    {
+      attrName = n;
+      attSyntax = s ;
+    }
+
+    /**
+     * Returns the attribute name.
+     * @return the attribute name.
+     */
+    public String getAttributeName()
+    {
+      return attrName;
+    }
+
+    /**
+     * Returns the attribute syntax.
+     * @return the attribute syntax.
+     */
+    public ADSPropertySyntax getAttributeSyntax()
+    {
+      return attSyntax;
+    }
+  }
+
+  private static HashMap<String, AdministratorProperty>
+    nameToAdminUSerProperty = null;
+
+  /**
+   * Get a AdministratorProperty associated to a name.
+   * @param name The name of the property to retrieve.
+   *
+   * @return The corresponding AdministratorProperty or null if name
+   * doesn't match with an existing property.
+   */
+  public static AdministratorProperty getAdminUSerPropFromName(String name)
+  {
+    if (nameToAdminUSerProperty == null)
+    {
+      nameToAdminUSerProperty = new HashMap<String, AdministratorProperty>();
+      for (AdministratorProperty u : AdministratorProperty.values())
+      {
+        nameToAdminUSerProperty.put(u.getAttributeName(), u);
+      }
+    }
+    return nameToAdminUSerProperty.get(name);
+  }
 
   // The context used to retrieve information
   InitialLdapContext dirContext;
@@ -897,7 +952,7 @@ public class ADSContext
     LdapName dnCentralAdmin =
       makeDNFromAdministratorProperties(adminProperties);
     BasicAttributes attrs = makeAttrsFromAdministratorProperties(
-        adminProperties);
+        adminProperties, true);
 
     try
     {
@@ -962,22 +1017,39 @@ public class ADSContext
   /**
    * Updates and administrator registered in the ADS.
    * @param adminProperties the new properties of the administrator.
+   * @param newAdminUserId The new admin user Identifier, or null.
    * @throws ADSContextException if something goes wrong.
    */
   public void updateAdministrator(
-      Map<AdministratorProperty, Object> adminProperties)
+      Map<AdministratorProperty, Object> adminProperties, String newAdminUserId)
   throws ADSContextException
   {
 
     LdapName dnCentralAdmin =
       makeDNFromAdministratorProperties(adminProperties);
-    BasicAttributes attrs = makeAttrsFromAdministratorProperties(
-        adminProperties);
 
     try
     {
-      dirContext.modifyAttributes(dnCentralAdmin, DirContext.REPLACE_ATTRIBUTE,
-          attrs);
+      // Entry renaming
+      if (newAdminUserId != null)
+      {
+        HashMap<AdministratorProperty, Object> newAdminUserProps =
+          new HashMap<AdministratorProperty, Object>(adminProperties);
+        newAdminUserProps.put(AdministratorProperty.UID,newAdminUserId);
+        LdapName newDn = makeDNFromAdministratorProperties(newAdminUserProps);
+        dirContext.rename(dnCentralAdmin, newDn);
+        dnCentralAdmin = newDn ;
+        adminProperties.put(AdministratorProperty.UID,newAdminUserId);
+      }
+
+      // Replace properties, if needed.
+      if (adminProperties.size() > 1)
+      {
+        BasicAttributes attrs =
+          makeAttrsFromAdministratorProperties(adminProperties, false);
+        dirContext.modifyAttributes(dnCentralAdmin,
+            DirContext.REPLACE_ATTRIBUTE, attrs);
+      }
     }
     catch (NameNotFoundException x)
     {
@@ -1128,21 +1200,31 @@ public class ADSContext
   /**
    * Returns the attributes for some administrator properties.
    * @param adminProperties the administrator properties.
+   * @param passwordRequired Indicates if the properties should include
+   * the password.
    * @return the attributes for the given administrator properties.
    * @throws ADSContextException if something goes wrong.
    */
   private static BasicAttributes makeAttrsFromAdministratorProperties(
-      Map<AdministratorProperty, Object> adminProperties)
+      Map<AdministratorProperty, Object> adminProperties,
+      boolean passwordRequired)
   throws ADSContextException
   {
     BasicAttributes attrs = new BasicAttributes();
-    String adminPassword = getAdministratorPassword(adminProperties);
     Attribute oc = new BasicAttribute("objectclass");
+    if (passwordRequired)
+    {
+      attrs.put("userPassword", getAdministratorPassword(adminProperties));
+    }
     oc.add("top");
     oc.add("person");
     attrs.put(oc);
     attrs.put("sn", "admin");
-    attrs.put("userPassword", adminPassword);
+    if (adminProperties.containsKey(AdministratorProperty.DESCRIPTION))
+    {
+      attrs.put("description", adminProperties
+          .get(AdministratorProperty.DESCRIPTION));
+    }
     Attribute privilege = new BasicAttribute("ds-privilege-name");
     privilege.add("bypass-acl");
     privilege.add("modify-acl");

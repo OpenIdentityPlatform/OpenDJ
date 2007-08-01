@@ -605,6 +605,23 @@ public class ToolConstants
   public static final String OPTION_VALUE_SERVERID = "{serverID}";
 
   /**
+   * The value for the short option userID attributes.
+   */
+  public static final String OPTION_SHORT_USERID = null;
+
+  /**
+   * The value for the long option userID
+   * attribute.
+   */
+  public static final String OPTION_LONG_USERID= "userID";
+
+  /**
+   * The placeholder value of userID that will be
+   * displayed in usage information.
+   */
+  public static final String OPTION_VALUE_USERID = "{userID}";
+
+  /**
    * The value for the short option set.
    */
   public static final Character OPTION_SHORT_SET = null;

@@ -564,6 +564,63 @@ public final class AdminMessages {
   public static final int MSGID_ADMIN_SERVER_NOT_REGISTERED=
     CATEGORY_MASK_ADMIN | SEVERITY_MASK_FATAL_ERROR | 66;
 
+  /**
+   * The message ID for the message that will be used as the
+   * description for the create-admin-user subcommand part of
+   * dsservice tool. This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_SUBCMD_CREATE_ADMIN_USER_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 67;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description for the delete-admin-user subcommand part of
+   * dsservice tool. This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_SUBCMD_DELETE_ADMIN_USER_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 68;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description for the list-admin-user subcommand part of
+   * dsservice tool. This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_SUBCMD_LIST_ADMIN_USER_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 69;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description for the get-admin-user-properties subcommand part of
+   * dsservice tool. This does not take any arguments.
+   */
+  public static final int
+  MSGID_ADMIN_SUBCMD_GET_ADMIN_USER_PROPERTIES_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 70;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description for the set-admin-user-properties subcommand part of
+   * dsservice tool. This does not take any arguments.
+   */
+  public static final int
+  MSGID_ADMIN_SUBCMD_SET_ADMIN_USER_PROPERTIES_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 71;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description for the list-admin-user-properties subcommand part of
+   * dsservice tool. This does not take any arguments.
+   */
+  public static final int
+  MSGID_ADMIN_SUBCMD_LIST_ADMIN_USER_PROPERTIES_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 72;
+
+  /**
+   * The message ID for the message that will be used as the
+   * description of the "userId" argument. This does not take any arguments.
+   */
+  public static final int MSGID_ADMIN_ARG_USERID_DESCRIPTION =
+    CATEGORY_MASK_ADMIN | SEVERITY_MASK_INFORMATIONAL | 73;
 
   // Prevent instantiation.
   private AdminMessages() {
@@ -774,5 +831,20 @@ public final class AdminMessages {
         "This is a required argument");
     registerMessage(MSGID_ADMIN_SERVER_NOT_REGISTERED,
         "The provided serverId is not registered");
+    registerMessage(MSGID_ADMIN_SUBCMD_CREATE_ADMIN_USER_DESCRIPTION,
+        "Creates a new administrator");
+    registerMessage(MSGID_ADMIN_SUBCMD_DELETE_ADMIN_USER_DESCRIPTION,
+        "Deletes an existing administrator");
+    registerMessage(MSGID_ADMIN_SUBCMD_LIST_ADMIN_USER_DESCRIPTION,
+        "Lists administrators that have been defined");
+    registerMessage(MSGID_ADMIN_SUBCMD_GET_ADMIN_USER_PROPERTIES_DESCRIPTION,
+        "Shows administrator's properties");
+    registerMessage(MSGID_ADMIN_SUBCMD_SET_ADMIN_USER_PROPERTIES_DESCRIPTION,
+        "Modifies administrator's properties");
+    registerMessage(MSGID_ADMIN_SUBCMD_LIST_ADMIN_USER_PROPERTIES_DESCRIPTION,
+        "Describes administrator's properties");
+    registerMessage(MSGID_ADMIN_ARG_USERID_DESCRIPTION,
+        "The administrator's unique identifier. " +
+        "This is a required argument");
   }
 }
