@@ -49,7 +49,8 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   public  static final String filter = "(objectclass=*)";
   public static final String ACCESS_HANDLER_DN =
                                        "cn=Access Control Handler,cn=config";
-
+  public static final String refURL=
+          "ldap://kansashost/OU=People,O=Kansas,C=US";
   //GLOBAL ACIs
 
   protected final static String G_READ_ACI =
@@ -227,9 +228,11 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     argList.add("-s");
     argList.add("sub");
     argList.add(filter);
-    String[] attrs=attr.split("\\s+");
-    for(String a : attrs)
-     argList.add(a);
+    if(attr != null) {
+      String[] attrs=attr.split("\\s+");
+      for(String a : attrs)
+        argList.add(a);
+    }
     String[] args = new String[argList.size()];
     oStream.reset();
     int retVal =
@@ -251,6 +254,12 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   protected void LDIFModify(String ldif, String bindDn, String bindPassword)
   throws Exception {
     _LDIFModify(ldif, bindDn, bindPassword, null, false, -1);
+  }
+
+  protected void LDIFModify(String ldif, String bindDn, String bindPassword,
+                            String ctrlString)
+  throws Exception {
+    _LDIFModify(ldif, bindDn, bindPassword, ctrlString, false, -1);
   }
 
   protected void LDIFDelete(String dn, String bindDn, String bindPassword,
@@ -413,26 +422,26 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   }
 
 
-  protected void addEntries() throws Exception {
+  protected void addEntries(String suffix) throws Exception {
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntries(
-            "dn: ou=People,o=test",
+            "dn: ou=People," + suffix,
             "objectClass: top",
             "objectClass: organizationalUnit",
             "ou: People",
             "",
-            "dn: ou=admins,o=test",
+            "dn: ou=admins," + suffix ,
             "objectClass: top",
             "objectClass: organizationalUnit",
             "ou: admins",
             "",
-            "dn: cn=group,ou=People,o=test",
+            "dn: cn=group,ou=People," + suffix,
             "objectclass: top",
             "objectclass: groupOfNames",
             "cn: group",
-            "member: uid=user.3,ou=People,o=test",
+            "member: uid=user.3,ou=People," + suffix,
             "",
-            "dn: uid=superuser,ou=admins,o=test",
+            "dn: uid=superuser,ou=admins," + suffix,
             "objectClass: top",
             "objectClass: person",
             "objectClass: organizationalPerson",
@@ -444,7 +453,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "userPassword: password",
             "ds-privilege-name: proxied-auth",
             "",
-            "dn: uid=proxyuser,ou=admins,o=test",
+            "dn: uid=proxyuser,ou=admins," + suffix,
             "objectClass: top",
             "objectClass: person",
             "objectClass: organizationalPerson",
@@ -455,7 +464,21 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "cn: User 1",
             "userPassword: password",
             "",
-            "dn: uid=user.1,ou=People,o=test",
+            "dn: uid=smart referral admin,uid=proxyuser,ou=admins," + suffix,
+            "objectClass: top",
+            "objectClass: extensibleobject",
+            "objectClass: referral",
+            "ref:" + refURL,
+            "ref: ldap://texashost/OU=People,O=Texas,C=US",
+            "",
+            "dn: uid=smart referral people,ou=people," + suffix,
+            "objectClass: top",
+            "objectClass: extensibleobject",
+            "objectClass: referral",
+            "ref:" + refURL,
+            "ref: ldap://texashost/OU=People,O=Texas,C=US",
+            "",
+            "dn: uid=user.1,ou=People," + suffix,
             "objectClass: top",
             "objectClass: person",
             "objectClass: organizationalPerson",
@@ -465,10 +488,10 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "sn: 1",
             "cn: User1",
             "l: Austin",
-            "manager: cn=group,ou=People,o=test",
+            "manager: cn=group,ou=People," + suffix,
             "userPassword: password",
             "",
-            "dn: uid=user.2,ou=People,o=test",
+            "dn: uid=user.2,ou=People," + suffix,
             "objectClass: top",
             "objectClass: person",
             "objectClass: organizationalPerson",
@@ -480,7 +503,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
              "l: dallas",
             "userPassword: password",
             "",
-            "dn: uid=user.3,ou=People,o=test",
+            "dn: uid=user.3,ou=People," + suffix,
             "objectClass: top",
             "objectClass: person",
             "objectClass: organizationalPerson",
@@ -493,7 +516,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "userPassword: password",
             "ds-privilege-name: proxied-auth",
             "",
-            "dn: uid=user.4,ou=People,o=test",
+            "dn: uid=user.4,ou=People," + suffix,
             "objectClass: top",
             "objectClass: person",
             "objectClass: organizationalPerson",
@@ -505,7 +528,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
              "l: ft worth",
             "userPassword: password",
             "",
-            "dn: uid=user.5,ou=People,o=test",
+            "dn: uid=user.5,ou=People," + suffix,
             "objectClass: top",
             "objectClass: person",
             "objectClass: organizationalPerson",

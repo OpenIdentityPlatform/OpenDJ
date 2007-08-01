@@ -667,7 +667,7 @@ public class DN2URI extends DatabaseContainer
           } while (status == OperationStatus.SUCCESS);
 
           SearchResultReference reference = new SearchResultReference(URIList);
-          if (!searchOp.returnReference(reference))
+          if (!searchOp.returnReference(dn, reference))
           {
             return false;
           }

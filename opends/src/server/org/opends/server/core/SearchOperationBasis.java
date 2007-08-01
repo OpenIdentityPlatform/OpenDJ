@@ -1040,7 +1040,7 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final boolean returnReference(SearchResultReference reference)
+  public final boolean returnReference(DN dn, SearchResultReference reference)
   {
     // See if the operation has been abandoned.  If so, then don't send the
     // reference and indicate that the search should end.
@@ -1073,7 +1073,7 @@ public class SearchOperationBasis
 
     // See if the client has permission to read this reference.
     if (AccessControlConfigManager.getInstance()
-        .getAccessControlHandler().maySend(this, reference) == false) {
+        .getAccessControlHandler().maySend(dn, this, reference) == false) {
       return true;
     }
 

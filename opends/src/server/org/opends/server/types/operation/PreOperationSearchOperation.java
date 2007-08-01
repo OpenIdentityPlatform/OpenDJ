@@ -175,6 +175,8 @@ public interface PreOperationSearchOperation
   /**
    * Returns the provided search result reference to the client.
    *
+   * @param   dn        A DN related to the specified search
+   *                    reference.
    * @param  reference  The search reference that should be returned.
    *
    * @return  {@code true} if the caller should continue processing
@@ -183,6 +185,7 @@ public interface PreOperationSearchOperation
    *          (e.g., the size limit has been reached or the search has
    *          been abandoned).
    */
-  public boolean returnReference(SearchResultReference reference);
+  public boolean
+  returnReference(DN dn ,SearchResultReference reference);
 }
 

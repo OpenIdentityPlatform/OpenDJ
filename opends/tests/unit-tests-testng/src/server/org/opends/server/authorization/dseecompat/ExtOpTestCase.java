@@ -120,7 +120,7 @@ public class ExtOpTestCase extends AciTestCase {
   public void setupClass() throws Exception {
     TestCaseUtils.startServer();
     deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
-    addEntries();
+    addEntries("o=test");
   }
 
    @AfterClass

@@ -216,7 +216,7 @@ class DefaultAccessControlHandler
    * {@inheritDoc}
    */
   @Override
-  public boolean maySend(SearchOperation searchOperation,
+  public boolean maySend(DN dn, SearchOperation searchOperation,
                          SearchResultReference searchReference)
   {
     return true;

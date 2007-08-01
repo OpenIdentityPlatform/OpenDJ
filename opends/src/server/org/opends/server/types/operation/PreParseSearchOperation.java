@@ -31,14 +31,7 @@ package org.opends.server.types.operation;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.Entry;
-import org.opends.server.types.RawFilter;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -234,6 +227,8 @@ public interface PreParseSearchOperation
    * Returns the provided search result reference to the client.
    *
    * @param  reference  The search reference that should be returned.
+   * @param  dn         A DN related to the specified search
+   *                    reference.
    *
    * @return  {@code true} if the caller should continue processing
    *          the search request and sending additional entries and
@@ -241,6 +236,7 @@ public interface PreParseSearchOperation
    *          (e.g., the size limit has been reached or the search has
    *          been abandoned).
    */
-  public boolean returnReference(SearchResultReference reference);
+  public boolean
+  returnReference(DN dn, SearchResultReference reference);
 }
 

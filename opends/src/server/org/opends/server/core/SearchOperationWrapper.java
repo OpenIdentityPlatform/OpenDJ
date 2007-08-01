@@ -76,9 +76,9 @@ public abstract class SearchOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public boolean returnReference(SearchResultReference reference)
+  public boolean returnReference(DN dn, SearchResultReference reference)
   {
-    return search.returnReference(reference);
+    return search.returnReference(dn, reference);
   }
 
   /**

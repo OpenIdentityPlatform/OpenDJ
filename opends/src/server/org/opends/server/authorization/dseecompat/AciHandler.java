@@ -97,6 +97,12 @@ public class AciHandler
    */
   static AttributeType debugSearchIndex;
 
+  /**
+   * Attribute type corresponding to the "ref" attribute type. Used in the
+   * search reference access check.
+   */
+  static AttributeType refAttrType;
+
  /*
   * DN corresponding to "debugsearchindex" attribute type.
   */
@@ -148,6 +154,14 @@ public class AciHandler
        debugSearchIndex =
        DirectoryServer.
                getDefaultAttributeType(EntryContainer.ATTR_DEBUG_SEARCH_INDEX);
+     }
+
+     if((refAttrType =
+             DirectoryServer.
+                     getAttributeType(ATTR_REFERRAL_URL)) == null) {
+       refAttrType =
+               DirectoryServer.
+                       getDefaultAttributeType(ATTR_REFERRAL_URL);
      }
      try {
        debugSearchIndexDN=DN.decode("cn=debugsearch");
@@ -1232,25 +1246,38 @@ public class AciHandler
          new AciLDAPOperationContainer(operation, e, (ACI_READ | ACI_EXT_OP));
       ret=accessAllowed(operationContainer);
     }
-    if(operation.getRequestOID().equals(OID_PROXIED_AUTH_V2) ||
-            operation.getRequestOID().equals(OID_PROXIED_AUTH_V1))
-       operation.
-              setAttachment(ORIG_AUTH_ENTRY, operation.getAuthorizationEntry());
     return ret;
   }
 
 
-  //Not planned to be implemented methods.
-
-   /**
+  /**
    * {@inheritDoc}
    */
   @Override
-  public boolean maySend(SearchOperation operation,
-      SearchResultReference reference) {
-    //TODO: Deferred.
-    return true;
+  public boolean maySend(DN dn, SearchOperation operation,
+                         SearchResultReference reference) {
+    boolean ret;
+    if(!(ret=skipAccessCheck(operation))) {
+      Entry e = new Entry(dn, null, null, null);
+      LinkedHashSet<AttributeValue> vals = new LinkedHashSet<AttributeValue>();
+      List<String> URLStrings=reference.getReferralURLs();
+      //Load the values, a bind rule might want to evaluate them.
+      for(String URLString : URLStrings) {
+        vals.add(new AttributeValue(refAttrType, URLString));
+      }
+      Attribute attr =
+                     new Attribute(refAttrType, ATTR_REFERRAL_URL, vals);
+      e.addAttribute(attr,null);
+      SearchResultEntry se=new  SearchResultEntry(e);
+      AciLDAPOperationContainer operationContainer =
+              new AciLDAPOperationContainer(operation,
+                                           (ACI_READ), se);
+      operationContainer.setCurrentAttributeType(refAttrType);
+      ret=accessAllowed(operationContainer);
+    }
+    return ret;
   }
+
 
   /**
    * {@inheritDoc}
