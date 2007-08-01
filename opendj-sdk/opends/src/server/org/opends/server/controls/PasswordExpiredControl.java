@@ -28,6 +28,7 @@ package org.opends.server.controls;
 
 
 
+import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
 import org.opends.server.types.LDAPException;
@@ -39,23 +40,20 @@ import static org.opends.server.util.ServerConstants.*;
 
 
 /**
- * This class implements the Netscape password expired control. This is a very
- * simple control because it does not have a value.
+ * This class implements the Netscape password expired control.  The value for
+ * this control should be a string that indicates the length of time until the
+ * password expires, but because it is already expired it will always be "0".
  */
 public class PasswordExpiredControl
        extends Control
 {
-
-
-
   /**
    * Creates a new instance of the password expired control with the default
    * settings.
    */
   public PasswordExpiredControl()
   {
-    super(OID_NS_PASSWORD_EXPIRED, false);
-
+    super(OID_NS_PASSWORD_EXPIRED, false, new ASN1OctetString("0"));
   }
 
 
@@ -70,8 +68,7 @@ public class PasswordExpiredControl
    */
   public PasswordExpiredControl(String oid, boolean isCritical)
   {
-    super(oid, isCritical);
-
+    super(oid, isCritical, new ASN1OctetString("0"));
   }
 
 
@@ -93,11 +90,18 @@ public class PasswordExpiredControl
   {
     if (control.hasValue())
     {
-      int    msgID   = MSGID_PWEXPIRED_CONTROL_HAS_VALUE;
-      String message = getMessage(msgID);
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      String valueStr = control.getValue().stringValue();
+      try
+      {
+        Integer.parseInt(valueStr);
+      }
+      catch (Exception e)
+      {
+        int    msgID   = MSGID_PWEXPIRED_CONTROL_INVALID_VALUE;
+        String message = getMessage(msgID);
+        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, msgID, message);
+      }
     }
-
 
     return new PasswordExpiredControl(control.getOID(), control.isCritical());
   }
