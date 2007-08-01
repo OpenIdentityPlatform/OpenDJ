@@ -48,7 +48,6 @@ import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
@@ -59,6 +58,7 @@ import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 /**
  * This class is handling server group CLI.
  */
@@ -561,14 +561,14 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
   /**
    * {@inheritDoc}
    */
-  public ReturnCode performSubCommand(SubCommand subCmd,
+  public DsFrameworkCliReturnCode performSubCommand(SubCommand subCmd,
       OutputStream outStream, OutputStream errStream)
       throws ADSContextException, ArgumentException
   {
 
     ADSContext adsCtx = null;
     InitialLdapContext ctx = null;
-    ReturnCode returnCode = ReturnCode.ERROR_UNEXPECTED;
+    DsFrameworkCliReturnCode returnCode = ERROR_UNEXPECTED;
 
     try
     {
@@ -593,7 +593,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         adsCtx.registerServer(map);
@@ -608,7 +608,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       // -----------------------
       if (subCmd.getName().equals(unregisterServerSubCmd.getName()))
       {
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
 
         Map<ServerProperty, Object> map = new HashMap<ServerProperty, Object>();
         String serverId = null;
@@ -625,7 +625,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
 
@@ -666,7 +666,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         Set<Map<ServerProperty, Object>> serverList = adsCtx
@@ -679,7 +679,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
           out.println(ServerProperty.ID.getAttributeName() + ": "
               + server.get(ServerProperty.ID));
         }
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else
       // -----------------------
@@ -690,7 +690,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         Set<Map<ServerProperty, Object>> adsServerList = adsCtx
@@ -719,7 +719,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
           }
           out.println();
         }
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else
       // -----------------------
@@ -740,11 +740,11 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         adsCtx.updateServer(map, newServerId);
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else
       // -----------------------
@@ -794,14 +794,14 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         }
         TextTablePrinter printer = new TextTablePrinter(outStream);
         table.print(printer);
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else
       {
         // Should never occurs: If we are here, it means that the code
         // to
         // handle to subcommand is not yet written.
-        returnCode = ReturnCode.ERROR_UNEXPECTED;
+        returnCode = ERROR_UNEXPECTED;
       }
     }
     catch (ADSContextException e)

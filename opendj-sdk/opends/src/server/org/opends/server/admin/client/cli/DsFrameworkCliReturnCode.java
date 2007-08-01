@@ -32,17 +32,12 @@ import java.util.HashMap;
 
 import org.opends.admin.ads.ADSContextException.ErrorType;
 
-/**
- * This class is handling server group CLI.
- */
-public final class DsFrameworkCliReturnCode
-{
   /**
    *
    * The enumeration which defines the return code.
    *
    */
-  public enum ReturnCode
+  public enum DsFrameworkCliReturnCode
   {
     /**
      * successful.
@@ -55,7 +50,7 @@ public final class DsFrameworkCliReturnCode
     SUCCESSFUL_NOP(SUCCESSFUL.getReturnCode(), MSGID_ADMIN_SUCCESSFUL_NOP),
 
     /**
-     * Unable to initialze arguments.
+     * Unable to initialize arguments.
      */
     CANNOT_INITIALIZE_ARGS(1, MSGID_ADMIN_NO_MESSAGE),
 
@@ -155,7 +150,7 @@ public final class DsFrameworkCliReturnCode
     private final int messageId;
 
     // Private constructor.
-    private ReturnCode(int returnCode, int messageId)
+    private DsFrameworkCliReturnCode(int returnCode, int messageId)
     {
       this.returnCode = returnCode;
       this.messageId = messageId;
@@ -180,7 +175,6 @@ public final class DsFrameworkCliReturnCode
     {
       return returnCode;
     }
-  };
 
   /**
    * Indicate whenever the association between ADS errors and return
@@ -188,17 +182,11 @@ public final class DsFrameworkCliReturnCode
    */
   private static boolean initialized = false ;
 
-  // Prevent instantiation.
-  private void DsFrameworkCliReturnCode()
-  {
-    // Do nothing.
-  }
-
   /**
    * The association map between ADS Error and Return code.
    */
-  private static HashMap<ErrorType, ReturnCode> adsErrorToReturnCode =
-    new HashMap<ErrorType, ReturnCode>();
+  private static HashMap<ErrorType, DsFrameworkCliReturnCode>
+    adsErrorToReturnCode = new HashMap<ErrorType, DsFrameworkCliReturnCode>();
 
   /**
    * Associates a set of ADS errors to return code.
@@ -206,35 +194,35 @@ public final class DsFrameworkCliReturnCode
   private  static void registerAdsError()
   {
     adsErrorToReturnCode.put(ErrorType.MISSING_HOSTNAME,
-        ReturnCode.MISSING_HOSTNAME);
+        MISSING_HOSTNAME);
     adsErrorToReturnCode.put(ErrorType.NOVALID_HOSTNAME,
-        ReturnCode.NOVALID_HOSTNAME);
+        NOVALID_HOSTNAME);
     adsErrorToReturnCode.put(ErrorType.MISSING_IPATH,
-        ReturnCode.MISSING_IPATH);
+        MISSING_IPATH);
     adsErrorToReturnCode.put(ErrorType.NOVALID_IPATH,
-        ReturnCode.NOVALID_IPATH);
+        NOVALID_IPATH);
     adsErrorToReturnCode.put(ErrorType.ACCESS_PERMISSION,
-        ReturnCode.ACCESS_PERMISSION);
+        ACCESS_PERMISSION);
     adsErrorToReturnCode.put(ErrorType.ALREADY_REGISTERED,
-        ReturnCode.ALREADY_REGISTERED);
+        ALREADY_REGISTERED);
     adsErrorToReturnCode.put(ErrorType.BROKEN_INSTALL,
-        ReturnCode.BROKEN_INSTALL);
+        BROKEN_INSTALL);
     adsErrorToReturnCode.put(ErrorType.UNEXPECTED_ADS_BACKEND_TYPE,
-        ReturnCode.BROKEN_INSTALL);
+        BROKEN_INSTALL);
     adsErrorToReturnCode.put(ErrorType.NOT_YET_REGISTERED,
-        ReturnCode.NOT_YET_REGISTERED);
+        NOT_YET_REGISTERED);
     adsErrorToReturnCode.put(ErrorType.MISSING_PORT,
-        ReturnCode.MISSING_PORT);
+        MISSING_PORT);
     adsErrorToReturnCode.put(ErrorType.NOVALID_PORT,
-        ReturnCode.NOVALID_PORT);
+        NOVALID_PORT);
     adsErrorToReturnCode.put(ErrorType.MISSING_NAME,
-        ReturnCode.MISSING_NAME);
+        MISSING_NAME);
     adsErrorToReturnCode.put(ErrorType.MISSING_ADMIN_UID,
-        ReturnCode.MISSING_ADMIN_UID);
+        MISSING_ADMIN_UID);
     adsErrorToReturnCode.put(ErrorType.MISSING_ADMIN_PASSWORD,
-        ReturnCode.MISSING_ADMIN_PASSWORD);
+        MISSING_ADMIN_PASSWORD);
     adsErrorToReturnCode.put(ErrorType.ERROR_UNEXPECTED,
-        ReturnCode.ERROR_UNEXPECTED);
+        ERROR_UNEXPECTED);
   }
 
   /**
@@ -242,7 +230,8 @@ public final class DsFrameworkCliReturnCode
    * @param error The ADS error
    * @return the ReturnCode associated to the ADS error.
    */
-  public static ReturnCode getReturncodeFromAdsError(ErrorType error)
+  public static DsFrameworkCliReturnCode
+    getReturncodeFromAdsError(ErrorType error)
   {
     if (! initialized)
     {
@@ -251,4 +240,6 @@ public final class DsFrameworkCliReturnCode
     }
     return adsErrorToReturnCode.get(error);
   }
-}
+ }
+
+

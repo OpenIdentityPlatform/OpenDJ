@@ -32,7 +32,6 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.SubCommandArgumentParser;
 
@@ -40,6 +39,7 @@ import com.sleepycat.je.dbi.GetMode;
 
 import static org.opends.server.messages.AdminMessages.*;
 import static org.opends.server.messages.MessageHandler.*;
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 
 
 /**
@@ -65,7 +65,8 @@ public class CliTest {
     String invalidMsgId;
     String msg;
     int messageID;
-    for (ReturnCode returnCode : ReturnCode.values())
+    for (DsFrameworkCliReturnCode returnCode : DsFrameworkCliReturnCode
+        .values())
     {
       if ((messageID = returnCode.getMessageId()) == MSGID_ADMIN_NO_MESSAGE)
       {

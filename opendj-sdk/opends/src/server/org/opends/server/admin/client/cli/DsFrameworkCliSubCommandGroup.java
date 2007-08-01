@@ -30,7 +30,6 @@ import java.io.OutputStream;
 import java.util.Set;
 
 import org.opends.admin.ads.ADSContextException;
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.SubCommand;
@@ -78,7 +77,7 @@ public interface DsFrameworkCliSubCommandGroup
    *           If there is a problem with any of the parameters used
    *           to execute this subcommand.
    */
-  public ReturnCode performSubCommand(SubCommand subCmd,
+  public DsFrameworkCliReturnCode performSubCommand(SubCommand subCmd,
       OutputStream outStream, OutputStream errStream)
       throws ADSContextException, ArgumentException;
 
