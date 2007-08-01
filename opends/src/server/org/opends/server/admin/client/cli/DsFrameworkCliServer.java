@@ -362,7 +362,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     {
       ServerProperty prop = ServerProperty.ID;
       String attName = prop.getAttributeName();
-      StringArgument arg = new StringArgument(prop.getAttributeName(), null,
+      StringArgument arg = new StringArgument(attName, null,
           prop.getAttributeName(), false, false, true, "", null, null, -1);
       serverProperties.put(prop, arg);
     }
@@ -841,7 +841,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     StringBuilder b = new StringBuilder();
 
     if (readonlyServerProperties.contains(
-        ADSContext.getPropFromName(arg.getName())))
+        ADSContext.getServerPropFromName(arg.getName())))
     {
       b.append("r-"); //$NON-NLS-1$
     }
@@ -907,7 +907,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
 
       // Check that propName is a known prop.
       ServerProperty serverProperty = ADSContext
-          .getPropFromName(propertyName);
+          .getServerPropFromName(propertyName);
       if (serverProperty == null)
       {
         int msgID = MSGID_CLI_ERROR_PROPERTY_UNRECOGNIZED;

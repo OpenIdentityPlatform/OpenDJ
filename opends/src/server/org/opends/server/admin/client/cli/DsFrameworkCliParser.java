@@ -232,6 +232,9 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
     // Server Group cli
     cliGroup.add(new DsFrameworkCliServer());
 
+    // User Admin cli
+    cliGroup.add(new DsFrameworkCliGlobalAdmin());
+
     // Initialization
     Comparator<SubCommand> c = new Comparator<SubCommand>() {
 
