@@ -3766,9 +3766,9 @@ public class ProtocolMessages
 
   /**
    * The message ID for the message that will be used if a password expired
-   * control has a value.  This does not take any arguments.
+   * control has an invalid value.  This does not take any arguments.
    */
-  public static final int MSGID_PWEXPIRED_CONTROL_HAS_VALUE =
+  public static final int MSGID_PWEXPIRED_CONTROL_INVALID_VALUE =
        CATEGORY_MASK_PROTOCOL | SEVERITY_MASK_SEVERE_ERROR | 342;
 
 
@@ -6477,11 +6477,10 @@ public class ProtocolMessages
                     "for use in matching attribute values");
 
 
-    registerMessage(MSGID_PWEXPIRED_CONTROL_HAS_VALUE,
+    registerMessage(MSGID_PWEXPIRED_CONTROL_INVALID_VALUE,
                     "Cannot decode the provided control as a password " +
                     "expired control because the provided control had a " +
-                    "value but the password expired control should not have " +
-                    "a value");
+                    "value that could not be parsed as an integer");
 
 
     registerMessage(MSGID_PWEXPIRING_NO_CONTROL_VALUE,
