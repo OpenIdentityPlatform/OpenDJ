@@ -187,7 +187,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="vlv-index-sorted-set-capacity"
+  <adm:property name="vlv-index-maximum-block-size"
                 mandatory="false"
                 multi-valued="false"
                 read-only="true">

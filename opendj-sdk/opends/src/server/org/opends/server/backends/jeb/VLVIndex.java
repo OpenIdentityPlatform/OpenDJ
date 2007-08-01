@@ -150,7 +150,7 @@ public class VLVIndex extends DatabaseContainer
     this.config = config;
     this.baseDN = config.getVLVIndexBaseDN();
     this.scope = SearchScope.valueOf(config.getVLVIndexScope().name());
-    this.sortedSetCapacity = config.getVLVIndexSortedSetCapacity();
+    this.sortedSetCapacity = config.getVLVIndexMaximumBlockSize();
     this.id2entry = entryContainer.getID2Entry();
 
     try
@@ -1323,15 +1323,15 @@ public class VLVIndex extends DatabaseContainer
     }
 
     // Update sort set capacity only if changed.
-    if(config.getVLVIndexSortedSetCapacity() !=
-        cfg.getVLVIndexSortedSetCapacity())
+    if(config.getVLVIndexMaximumBlockSize() !=
+        cfg.getVLVIndexMaximumBlockSize())
     {
-      this.sortedSetCapacity = cfg.getVLVIndexSortedSetCapacity();
+      this.sortedSetCapacity = cfg.getVLVIndexMaximumBlockSize();
 
       // Require admin action only if the new capacity is larger. Otherwise,
       // we will lazyly update the sorted sets.
-      if(config.getVLVIndexSortedSetCapacity() <
-          cfg.getVLVIndexSortedSetCapacity())
+      if(config.getVLVIndexMaximumBlockSize() <
+          cfg.getVLVIndexMaximumBlockSize())
       {
         adminActionRequired = true;
       }
@@ -1361,7 +1361,7 @@ public class VLVIndex extends DatabaseContainer
 
     // Update the sort order only if changed.
     if(!config.getVLVIndexSortOrder().equals(
-        cfg.getVLVIndexSortedSetCapacity()))
+        cfg.getVLVIndexMaximumBlockSize()))
     {
       String[] sortAttrs = cfg.getVLVIndexSortOrder().split(" ");
       SortKey[] sortKeys = new SortKey[sortAttrs.length];

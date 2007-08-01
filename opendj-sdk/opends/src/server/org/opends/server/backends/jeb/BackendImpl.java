@@ -1080,11 +1080,12 @@ public class BackendImpl
         envConfig.setConfigParam("je.env.isLocking", "true");
         envConfig.setConfigParam("je.env.runCheckpointer", "false");
       }
-      else if(importConfig.clearBackend())
+      else if(importConfig.clearBackend() || cfg.getBackendBaseDN().size() <= 1)
       {
         // We have the writer lock on the environment, now delete the
         // environment and re-open it. Only do this when we are
-        // importing to all the base DNs in the backend.
+        // importing to all the base DNs in the backend or if the backend only
+        // have one base DN.
 
         File backendDirectory = getFileForPath(cfg.getBackendDirectory());
         EnvManager.removeFiles(backendDirectory.getPath());
