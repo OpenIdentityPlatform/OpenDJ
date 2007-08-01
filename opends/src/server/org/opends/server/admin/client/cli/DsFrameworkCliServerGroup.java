@@ -48,12 +48,12 @@ import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.ServerGroupProperty;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 /**
  * This class is handling server group CLI.
  */
@@ -245,12 +245,12 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   private StringArgument listMembersGroupNameArg;
 
   /**
-   * The 'mlist-membership' subcommand.
+   * The 'list-membership' subcommand.
    */
   private SubCommand listMembershipSubCmd;
 
   /**
-   * The 'meber-name' argument of the 'list-membership' subcommand.
+   * The 'member-name' argument of the 'list-membership' subcommand.
    */
   private StringArgument listMembershipMemberNameArg;
 
@@ -278,7 +278,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 
   /**
    * Get the display attribute name for a given attribute.
-   * @param prop The server prperty
+   * @param prop The server property
    * @return the display attribute name for a given attribute
    */
   public String getAttributeDisplayName(ServerGroupProperty prop)
@@ -462,14 +462,14 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   /**
    * {@inheritDoc}
    */
-  public ReturnCode performSubCommand(SubCommand subCmd, OutputStream outStream,
-      OutputStream errStream)
+  public DsFrameworkCliReturnCode performSubCommand(SubCommand subCmd,
+      OutputStream outStream, OutputStream errStream)
       throws ADSContextException, ArgumentException
   {
     ADSContext adsCtx = null ;
     InitialLdapContext ctx = null ;
 
-    ReturnCode returnCode = ReturnCode.ERROR_UNEXPECTED;
+    DsFrameworkCliReturnCode returnCode = ERROR_UNEXPECTED;
     try
     {
       // -----------------------
@@ -495,22 +495,22 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx) ;
         adsCtx.createServerGroup(serverGroupProperties);
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       // -----------------------
       // delete-group subcommand
       // -----------------------
       else if (subCmd.getName().equals(deleteGroupSubCmd.getName()))
       {
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
         String groupId = deleteGroupGroupNameArg.getValue();
         if (groupId.equals(ADSContext.ALL_SERVERGROUP_NAME))
         {
-          return ReturnCode.ACCESS_PERMISSION ;
+          return ACCESS_PERMISSION ;
         }
         HashMap<ServerGroupProperty, Object> serverGroupProperties =
           new HashMap<ServerGroupProperty, Object>();
@@ -519,7 +519,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx) ;
 
@@ -527,7 +527,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         Set<String> serverList = adsCtx.getServerGroupMemberList(groupId);
         for (String serverId : serverList)
         {
-          // serverId conatins "cn=" string, just remove it.
+          // serverId contains "cn=" string, just remove it.
           removeServerFromGroup(adsCtx, groupId,serverId.substring(3));
         }
 
@@ -543,7 +543,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx) ;
 
@@ -650,7 +650,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         catch (IOException e)
         {
         }
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       // -----------------------
       // modify-group subcommand
@@ -700,14 +700,14 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         // Update the server group
         if ( ! (updateRequired || removeRequired ) )
         {
-          returnCode = ReturnCode.SUCCESSFUL_NOP;
+          returnCode = SUCCESSFUL_NOP;
         }
 
         // We need to perform an update
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx) ;
 
@@ -721,7 +721,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
               serverGroupPropertiesToRemove);
         }
 
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       // -----------------------
       // add-to-group subcommand
@@ -733,7 +733,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx) ;
 
@@ -769,7 +769,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx) ;
 
@@ -787,7 +787,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx) ;
 
@@ -795,7 +795,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
         if (memberList == null)
         {
-          returnCode = ReturnCode.SUCCESSFUL;
+          returnCode = SUCCESSFUL;
         }
         StringBuffer buffer = new StringBuffer();
         for (String member : memberList)
@@ -812,7 +812,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         {
         }
 
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       // -----------------------
       // list-membership subcommand
@@ -823,7 +823,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx) ;
 
@@ -837,7 +837,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
           // Get the group name;
           String groupId = groupProps.get(ServerGroupProperty.UID).toString();
 
-          // look for memeber list attribute
+          // look for member list attribute
           for (ServerGroupProperty propName : groupProps.keySet())
           {
             if (propName.compareTo(ServerGroupProperty.MEMBERS) != 0)
@@ -866,13 +866,13 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         catch (IOException e)
         {
         }
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else
       {
         // Should never occurs: If we are here, it means that the code to
         // handle to subcommand is not yet written.
-        returnCode = ReturnCode.ERROR_UNEXPECTED;
+        returnCode = ERROR_UNEXPECTED;
       }
     }
     catch (ADSContextException e)
@@ -922,23 +922,23 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
    *           If there is a problem with any of the parameters used
    *           to create this argument.
    */
-  static ReturnCode removeServerFromGroup(ADSContext adsCtx, String groupId,
-      String serverId)
+  static DsFrameworkCliReturnCode removeServerFromGroup(ADSContext adsCtx,
+      String groupId, String serverId)
       throws ADSContextException
   {
-    ReturnCode returnCode = ReturnCode.SUCCESSFUL;
+    DsFrameworkCliReturnCode returnCode = SUCCESSFUL;
 
     // get the current group member list
     Set<String> memberList = adsCtx.getServerGroupMemberList(groupId);
     if (memberList == null)
     {
-      returnCode = ReturnCode.NOT_YET_REGISTERED;
+      returnCode = NOT_YET_REGISTERED;
     }
     String memberToRemove = "cn="
         + Rdn.escapeValue(serverId);
     if (!memberList.contains(memberToRemove))
     {
-      returnCode = ReturnCode.NOT_YET_REGISTERED;
+      returnCode = NOT_YET_REGISTERED;
     }
 
     memberList.remove(memberToRemove);
@@ -964,7 +964,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     }
     if ( ! found )
     {
-      return returnCode.SERVER_NOT_REGISTERED ;
+      return SERVER_NOT_REGISTERED ;
     }
 
     Set rawGroupList = (Set) serverProperties.get(ServerProperty.GROUPS);
@@ -1001,10 +1001,11 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
    *           If there is a problem with any of the parameters used
    *           to create this argument.
    */
-  static ReturnCode addServerTogroup(ADSContext adsCtx, String groupId,
-      Map<ServerProperty, Object> map) throws ADSContextException
+  static DsFrameworkCliReturnCode addServerTogroup(ADSContext adsCtx,
+      String groupId, Map<ServerProperty, Object> map)
+      throws ADSContextException
   {
-    ReturnCode returnCode = ReturnCode.SUCCESSFUL;
+    DsFrameworkCliReturnCode returnCode = SUCCESSFUL;
     String serverId = (String) map.get(ServerProperty.ID);
 
     // Add the server inside the group
@@ -1019,7 +1020,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         + Rdn.escapeValue(serverId);
     if (memberList.contains(newMember))
     {
-      returnCode = ReturnCode.ALREADY_REGISTERED;
+      returnCode = ALREADY_REGISTERED;
     }
     memberList.add(newMember);
     serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);

@@ -58,7 +58,6 @@ import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
@@ -71,6 +70,7 @@ import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
 
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 
 /**
  * This class will parser CLI arguments.
@@ -522,7 +522,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
    *           If there is a problem with any of the parameters used
    *           to execute this subcommand.
    */
-  public ReturnCode performSubCommand(OutputStream outStream,
+  public DsFrameworkCliReturnCode performSubCommand(OutputStream outStream,
       OutputStream errStream)
     throws ADSContextException, ArgumentException
   {
@@ -538,7 +538,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
 
     // Should never occurs: If we are here, it means that the code to
     // handle to subcommand is not yet written.
-    return ReturnCode.ERROR_UNEXPECTED;
+    return ERROR_UNEXPECTED;
   }
 
   /**
@@ -767,7 +767,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, bindPasswordArg.getLongIdentifier(),
                                   bindPasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
+      return CONFLICTING_ARGS.getReturnCode();
     }
 
     // Couldn't have at the same time trustAll and
@@ -778,7 +778,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
           trustStorePathArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
+      return CONFLICTING_ARGS.getReturnCode();
     }
     if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent())
     {
@@ -786,7 +786,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
           trustStorePasswordArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
+      return CONFLICTING_ARGS.getReturnCode();
     }
     if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent())
     {
@@ -794,7 +794,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, trustAllArg.getLongIdentifier(),
           trustStorePasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
+      return CONFLICTING_ARGS.getReturnCode();
     }
 
     // Couldn't have at the same time trustStorePasswordArg and
@@ -806,7 +806,7 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, trustStorePasswordArg
           .getLongIdentifier(), trustStorePasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
+      return CONFLICTING_ARGS.getReturnCode();
     }
 
     // Couldn't have at the same time startTLSArg and
@@ -818,10 +818,10 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
       String message = getMessage(msgID, startTLSArg
           .getLongIdentifier(), useSSLArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return ReturnCode.CONFLICTING_ARGS.getReturnCode();
+      return CONFLICTING_ARGS.getReturnCode();
     }
 
-    return ReturnCode.SUCCESSFUL_NOP.getReturnCode();
+    return SUCCESSFUL_NOP.getReturnCode();
   }
 
 

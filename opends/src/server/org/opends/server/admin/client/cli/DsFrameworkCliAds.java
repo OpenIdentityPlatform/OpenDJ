@@ -41,11 +41,12 @@ import javax.naming.ldap.InitialLdapContext;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContextHelper;
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
+
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 
 /**
  * This class is handling server group CLI.
@@ -215,14 +216,14 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
   /**
    * {@inheritDoc}
    */
-  public ReturnCode performSubCommand(SubCommand subCmd, OutputStream outStream,
-      OutputStream errStream)
+  public DsFrameworkCliReturnCode performSubCommand(SubCommand subCmd,
+      OutputStream outStream, OutputStream errStream)
       throws ADSContextException, ArgumentException
   {
     ADSContext adsCtx = null ;
     InitialLdapContext ctx = null ;
 
-    ReturnCode returnCode = ReturnCode.ERROR_UNEXPECTED;
+    DsFrameworkCliReturnCode returnCode = ERROR_UNEXPECTED;
 
     try
     {
@@ -234,11 +235,11 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         adsCtx.createAdminData(backendName);
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else if (subCmd.getName().equals(deleteAdsSubCmd.getName()))
       {
@@ -247,18 +248,18 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         helper
             .removeAdministrationSuffix(adsCtx.getDirContext(), backendName);
-        returnCode =  ReturnCode.SUCCESSFUL;
+        returnCode =  SUCCESSFUL;
       }
       else
       {
         // Should never occurs: If we are here, it means that the code to
         // handle to subcommand is not yet written.
-        returnCode = ReturnCode.ERROR_UNEXPECTED;
+        returnCode = ERROR_UNEXPECTED;
       }
     }
     catch (ADSContextException e)

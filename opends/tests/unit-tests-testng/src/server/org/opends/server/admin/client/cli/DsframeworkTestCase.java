@@ -92,7 +92,7 @@ public class DsframeworkTestCase
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
-        System.err), ReturnCode.SUCCESSFUL.getReturnCode());
+        System.err), SUCCESSFUL.getReturnCode());
   }
 
   /**
@@ -112,7 +112,7 @@ public class DsframeworkTestCase
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
-        System.err), ReturnCode.SUCCESSFUL.getReturnCode());
+        System.err), SUCCESSFUL.getReturnCode());
   }
 
   /**
@@ -130,7 +130,7 @@ public class DsframeworkTestCase
     };
 
     assertFalse(DsFrameworkCliMain.mainCLI(args, false, null, null)
-        == ReturnCode.SUCCESSFUL.getReturnCode());
+        == SUCCESSFUL.getReturnCode());
   }
 
   /**
@@ -148,7 +148,7 @@ public class DsframeworkTestCase
     };
 
     assertFalse(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err)
-        == ReturnCode.SUCCESSFUL.getReturnCode());
+        == SUCCESSFUL.getReturnCode());
   }
 
   /**
@@ -166,7 +166,7 @@ public class DsframeworkTestCase
     };
 
     assertFalse(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err)
-        == ReturnCode.SUCCESSFUL.getReturnCode());
+        == SUCCESSFUL.getReturnCode());
   }
 
 
@@ -190,7 +190,7 @@ public class DsframeworkTestCase
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
-        System.err), ReturnCode.SUCCESSFUL.getReturnCode());
+        System.err), SUCCESSFUL.getReturnCode());
   }
 
   /**
@@ -211,7 +211,7 @@ public class DsframeworkTestCase
     };
 
     assertFalse(DsFrameworkCliMain.mainCLI(args, false, System.out, System.err)
-        == ReturnCode.SUCCESSFUL.getReturnCode());
+        == SUCCESSFUL.getReturnCode());
   }
 
   /**
@@ -230,7 +230,7 @@ public class DsframeworkTestCase
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
-        System.err), ReturnCode.SUCCESSFUL.getReturnCode());
+        System.err), SUCCESSFUL.getReturnCode());
   }
 
 
@@ -254,7 +254,7 @@ public class DsframeworkTestCase
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
-        System.err), ReturnCode.SUCCESSFUL.getReturnCode());
+        System.err), SUCCESSFUL.getReturnCode());
   }
 
 
@@ -275,7 +275,7 @@ public class DsframeworkTestCase
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, System.err),
-        ReturnCode.SUCCESSFUL.getReturnCode());
+        SUCCESSFUL.getReturnCode());
   }
 
 
@@ -299,7 +299,7 @@ public class DsframeworkTestCase
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, System.err),
-        ReturnCode.SUCCESSFUL.getReturnCode());
+        SUCCESSFUL.getReturnCode());
   }
 
   /**
@@ -310,15 +310,15 @@ public class DsframeworkTestCase
   {
     String[] args = { "--help" };
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, null),
-        ReturnCode.SUCCESSFUL.getReturnCode());
+        SUCCESSFUL.getReturnCode());
 
     args = new String[] { "-H" };
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, null),
-        ReturnCode.SUCCESSFUL.getReturnCode());
+        SUCCESSFUL.getReturnCode());
 
     args = new String[] { "-?" };
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, null),
-        ReturnCode.SUCCESSFUL.getReturnCode());
+        SUCCESSFUL.getReturnCode());
   }
 }
 

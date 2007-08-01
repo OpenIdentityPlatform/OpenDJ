@@ -177,7 +177,7 @@ public class DsFrameworkCliMain
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return ReturnCode.CANNOT_INITIALIZE_ARGS.getReturnCode();
+      return CANNOT_INITIALIZE_ARGS.getReturnCode();
     }
 
     // Parse the command-line arguments provided to this program.
@@ -192,13 +192,13 @@ public class DsFrameworkCliMain
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
-      return ReturnCode.ERROR_PARSING_ARGS.getReturnCode();
+      return ERROR_PARSING_ARGS.getReturnCode();
     }
 
     // If we should just display usage information, then print it and exit.
     if (argParser.usageOrVersionDisplayed())
     {
-      return ReturnCode.SUCCESSFUL.getReturnCode();
+      return SUCCESSFUL.getReturnCode();
     }
 
     if (argParser.getSubCommand() == null)
@@ -209,19 +209,19 @@ public class DsFrameworkCliMain
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println();
       err.println(argParser.getHelpUsageReference());
-      return ReturnCode.ERROR_PARSING_ARGS.getReturnCode();
+      return ERROR_PARSING_ARGS.getReturnCode();
     }
 
     // Validate args
     int ret = argParser.validateGlobalOption(err);
-    if (ret != ReturnCode.SUCCESSFUL_NOP.getReturnCode())
+    if (ret != SUCCESSFUL_NOP.getReturnCode())
     {
       return ret;
     }
 
     // Check if we need a connection
 
-    ReturnCode returnCode = ReturnCode.SUCCESSFUL;
+    DsFrameworkCliReturnCode returnCode = SUCCESSFUL;
 
 
     // Should we initialize the server in client mode?
@@ -238,12 +238,12 @@ public class DsFrameworkCliMain
       catch (InitializationException e)
       {
         err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
-        return ReturnCode.ERROR_UNEXPECTED.getReturnCode();
+        return ERROR_UNEXPECTED.getReturnCode();
       }
       catch (IllegalStateException e)
       {
         err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
-        return ReturnCode.ERROR_UNEXPECTED.getReturnCode();
+        return ERROR_UNEXPECTED.getReturnCode();
       }
     }
 
@@ -260,7 +260,7 @@ public class DsFrameworkCliMain
           .getError());
       if (returnCode == null)
       {
-        returnCode = ReturnCode.ERROR_UNEXPECTED;
+        returnCode = ERROR_UNEXPECTED;
       }
     }
     catch (ArgumentException ae)
@@ -269,14 +269,14 @@ public class DsFrameworkCliMain
       String message = getMessage(msgID, ae.getMessage());
 
       err.println(wrapText(message, MAX_LINE_WIDTH));
-      return ReturnCode.CANNOT_INITIALIZE_ARGS.getReturnCode();
+      return CANNOT_INITIALIZE_ARGS.getReturnCode();
     }
 
     int msgID = returnCode.getMessageId();
     String message = "" ;
-    if ( (returnCode == ReturnCode.SUCCESSFUL)
+    if ( (returnCode == SUCCESSFUL)
          ||
-         (returnCode == ReturnCode.SUCCESSFUL_NOP))
+         (returnCode == SUCCESSFUL_NOP))
     {
       if (argParser.isVerbose())
       {

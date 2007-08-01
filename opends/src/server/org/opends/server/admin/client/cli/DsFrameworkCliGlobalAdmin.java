@@ -48,7 +48,6 @@ import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.ReturnCode;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
@@ -58,6 +57,7 @@ import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 /**
  * This class is handling user Admin CLI.
  */
@@ -414,14 +414,14 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
   /**
    * {@inheritDoc}
    */
-  public ReturnCode performSubCommand(SubCommand subCmd,
+  public DsFrameworkCliReturnCode performSubCommand(SubCommand subCmd,
       OutputStream outStream, OutputStream errStream)
       throws ADSContextException, ArgumentException
   {
 
     ADSContext adsCtx = null;
     InitialLdapContext ctx = null;
-    ReturnCode returnCode = ReturnCode.ERROR_UNEXPECTED;
+    DsFrameworkCliReturnCode returnCode = ERROR_UNEXPECTED;
 
     try
     {
@@ -438,12 +438,12 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         adsCtx.createAdministrator(map);
 
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else
       // -----------------------
@@ -459,12 +459,12 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         adsCtx.deleteAdministrator(map);
 
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else
       // -----------------------
@@ -475,7 +475,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         Set<Map<AdministratorProperty, Object>> adminUserList = adsCtx
@@ -488,7 +488,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
           out.println(AdministratorProperty.UID.getAttributeName() + ": "
               + user.get(AdministratorProperty.UID));
         }
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else
       // -----------------------
@@ -499,7 +499,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         Set<Map<AdministratorProperty, Object>> adsAdminUserList = adsCtx
@@ -529,7 +529,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
           }
           out.println();
         }
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else
       // -----------------------
@@ -551,11 +551,11 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
-          return ReturnCode.CANNOT_CONNECT_TO_ADS;
+          return CANNOT_CONNECT_TO_ADS;
         }
         adsCtx = new ADSContext(ctx);
         adsCtx.updateAdministrator(map, newServerId);
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       else
       // -----------------------
@@ -605,7 +605,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
         }
         TextTablePrinter printer = new TextTablePrinter(outStream);
         table.print(printer);
-        returnCode = ReturnCode.SUCCESSFUL;
+        returnCode = SUCCESSFUL;
       }
       // -----------------------
       // ERROR
