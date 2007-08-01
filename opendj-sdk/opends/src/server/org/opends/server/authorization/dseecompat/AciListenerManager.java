@@ -46,10 +46,8 @@ import static org.opends.server.messages.AciMessages.*;
 import static org.opends.server.messages.MessageHandler.getMessage;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.util.ServerConstants.*;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.LinkedHashMap;
+
+import java.util.*;
 
 /**
  * The AciListenerManager updates an ACI list after each
@@ -216,6 +214,10 @@ public class AciListenerManager
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
       LinkedList<String>failedACIMsgs=new LinkedList<String>();
+      //Add manageDsaIT control so any ACIs in referral entries will be
+      //picked up.
+      ArrayList<Control> controls = new ArrayList<Control>(1);
+      controls.add(new Control(OID_MANAGE_DSAIT_CONTROL, true));
       for (DN baseDN : backend.getBaseDNs()) {
         try {
           if (! backend.entryExists(baseDN))  {
@@ -233,7 +235,7 @@ public class AciListenerManager
                   conn,
                   InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(),
-                  null, baseDN, SearchScope.WHOLE_SUBTREE,
+                  controls, baseDN, SearchScope.WHOLE_SUBTREE,
                   DereferencePolicy.NEVER_DEREF_ALIASES,
                   0, 0, false, aciFilter, attrs, null);
         LocalBackendSearchOperation localInternalSearch =

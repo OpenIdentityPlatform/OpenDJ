@@ -258,13 +258,15 @@ public interface SearchOperation extends Operation
    * should be performed to potentially send it back to the client.
    *
    * @param  reference  The search reference to send to the client.
+   * @param  dn         The DN related to the specified search reference.
    *
    * @return  <CODE>true</CODE> if the caller should continue processing the
    *          search request and sending additional entries and references , or
    *          <CODE>false</CODE> if not for some reason (e.g., the size limit
    *          has been reached or the search has been abandoned).
    */
-  public abstract boolean returnReference(SearchResultReference reference);
+  public abstract boolean returnReference(DN dn,
+                                          SearchResultReference reference);
 
   /**
    * Sends the search result done message to the client.  Note that this method

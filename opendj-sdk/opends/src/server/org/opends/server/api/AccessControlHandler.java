@@ -308,7 +308,10 @@ public abstract class AccessControlHandler
 
   /**
    * Indicates whether the provided search result reference may be
-   * sent to the client.
+   * sent to the client based on the access control configuration.
+   *
+   * @param  dn         A DN that can be used in the access
+   *                    determination.
    *
    * @param  searchOperation  The search operation with which the
    *                          provided reference is associated.
@@ -319,8 +322,9 @@ public abstract class AccessControlHandler
    *          the reference to be returned to the client, or
    *          {@code false} if not.
    */
-  public abstract boolean maySend(SearchOperation searchOperation,
-                               SearchResultReference searchReference);
+  public abstract boolean maySend(DN dn,
+                             SearchOperation searchOperation,
+                             SearchResultReference searchReference);
 
 }
 
