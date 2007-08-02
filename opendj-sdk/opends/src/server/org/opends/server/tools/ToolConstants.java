@@ -252,7 +252,7 @@ public class ToolConstants
    * The placeholder value of filename that will be displayed in usage
    * information.
    */
-  public static final String OPTION_VALUE_FILENAME = "{filemane}";
+  public static final String OPTION_VALUE_FILENAME = "{filename}";
 
   /**
    * The value for the short option ldifFile.
