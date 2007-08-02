@@ -126,19 +126,26 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 			
-      <function-arg-def name="attributeValue" type="required">
+      <function-arg-def name="attributeValue" type="optional" default="'none'">
         <function-arg-description>
           New attribute value
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 			
+      <function-arg-def name="modifyType" type="optional" default="'set'">
+        <function-arg-description>
+          The modify type. Default value is set.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>			
+			
       <function-arg-def name="expectedRC" type="optional" default="0">
-      <function-arg-description>
-        Expected return code value. Default value is 0
-      </function-arg-description>
-      <function-arg-property name="type" value="string"/>
-    </function-arg-def>			
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>			
 	
     </function-map-args>
     <sequence>
@@ -156,7 +163,12 @@
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('set-%s-prop ' % (objectName))
         STAFCmdParamsList.append('--%s-name "%s" ' % (propertyType,propertyName))
-        STAFCmdParamsList.append('--set "%s:%s"' % (attributeName,attributeValue))
+            
+        if modifyType == 'reset':
+            STAFCmdParamsList.append('--%s %s' % (modifyType,attributeName))
+            
+        else: 
+            STAFCmdParamsList.append('--%s "%s:%s"' % (modifyType,attributeName,attributeValue))
       </script>
      
       <call function="'_dsconfigCommonArgs'"/>
@@ -257,19 +269,26 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 			
-      <function-arg-def name="attributeValue" type="required">
+      <function-arg-def name="attributeValue" type="optional" default="'none'">
         <function-arg-description>
           New attribute value
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 			
+      <function-arg-def name="modifyType" type="optional" default="'set'">
+        <function-arg-description>
+          The modify type. Default value is set.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>			
+			
       <function-arg-def name="expectedRC" type="optional" default="0">
-      <function-arg-description>
-	 Expected return code value. Default value is 0
-      </function-arg-description>
-      <function-arg-property name="type" value="string"/>
-    </function-arg-def>			
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>			
 	
     </function-map-args>
     <sequence>
@@ -286,6 +305,7 @@
         'propertyName'           : '%s' % (propertyName) ,
         'attributeName'          : '%s' % (attributeName) ,
         'attributeValue'         : '%s' % (attributeValue) ,
+        'modifyType'             : '%s' % (modifyType) ,
         'expectedRC'             : expectedRC }
     </call>
         
@@ -502,6 +522,13 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 			
+      <function-arg-def name="modifyType" type="optional" default="'set'">
+        <function-arg-description>
+          The modify type. Default value is set.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>			
+			
       <function-arg-def name="expectedRC" type="optional" default="0">
       <function-arg-description>
 	 Expected return code value. Default value is 0
@@ -524,6 +551,7 @@
         'propertyName'           : '%s' % (mapperName) ,
         'attributeName'          : '%s' % (attributeName) ,
         'attributeValue'         : '%s' % (attributeValue) ,
+        'modifyType'             : '%s' % (modifyType) ,
         'expectedRC'             : expectedRC }
     </call>
             
@@ -738,6 +766,13 @@
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
 			
+      <function-arg-def name="modifyType" type="optional" default="'set'">
+        <function-arg-description>
+          The modify type. Default value is set.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>			
+			
       <function-arg-def name="expectedRC" type="optional" default="0">
       <function-arg-description>
 	 Expected return code value. Default value is 0
@@ -760,6 +795,7 @@
         'propertyName'           : '%s' % (handlerName) ,
         'attributeName'          : '%s' % (propertyName) ,
         'attributeValue'         : '%s' % (propertyValue) ,
+        'modifyType'             : '%s' % (modifyType) ,
         'expectedRC'             : expectedRC }
     </call>
             
