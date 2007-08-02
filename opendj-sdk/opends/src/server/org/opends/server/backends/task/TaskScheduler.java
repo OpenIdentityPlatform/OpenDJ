@@ -1468,6 +1468,19 @@ public class TaskScheduler
 
 
   /**
+   * Indicates whether the current thread already holds a lock on the scheduler.
+   *
+   * @return  {@code true} if the current thread holds the scheduler lock, or
+   *          {@code false} if not.
+   */
+  boolean holdsSchedulerLock()
+  {
+    return schedulerLock.isHeldByCurrentThread();
+  }
+
+
+
+  /**
    * Attempts to acquire a write lock on the specified entry, trying as many
    * times as necessary until the lock has been acquired.
    *
