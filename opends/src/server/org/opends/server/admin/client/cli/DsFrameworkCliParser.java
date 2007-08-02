@@ -682,7 +682,8 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
   public KeyManager getKeyManager()
   {
     KeyStore keyStore = null;
-    String keyStorePasswordValue = null;
+    String keyStorePasswordStringValue = null;
+    char[] keyStorePasswordValue = null;
     if (keyStorePathArg.isPresent())
     {
       try
@@ -690,14 +691,20 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
         FileInputStream fos = new FileInputStream(keyStorePathArg.getValue());
         if (keyStorePasswordArg.isPresent())
         {
-          keyStorePasswordValue = keyStorePasswordArg.getValue();
+          keyStorePasswordStringValue = keyStorePasswordArg.getValue();
         }
         else if (keyStorePasswordFileArg.isPresent())
         {
-          keyStorePasswordValue = keyStorePasswordFileArg.getValue();
+          keyStorePasswordStringValue = keyStorePasswordFileArg.getValue();
         }
+        if (keyStorePasswordStringValue != null)
+        {
+          keyStorePasswordValue = keyStorePasswordStringValue.toCharArray();
+        }
+
         keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        keyStore.load(fos, keyStorePasswordValue.toCharArray());
+        keyStore.load(fos,keyStorePasswordValue);
+        fos.close();
       }
       catch (KeyStoreException e)
       {
@@ -734,8 +741,12 @@ public class DsFrameworkCliParser extends SubCommandArgumentParser
         // in a best effort mode.
         LOG.log(Level.WARNING, "Error with the keystore", e);
       }
-      ApplicationKeyManager akm = new ApplicationKeyManager(keyStore,
-          keyStorePasswordValue.toCharArray());
+      char[] password = null;
+      if (keyStorePasswordStringValue != null)
+      {
+        password = keyStorePasswordStringValue.toCharArray();
+      }
+      ApplicationKeyManager akm = new ApplicationKeyManager(keyStore,password);
       if (certNicknameArg.isPresent())
       {
         return new SelectableCertificateKeyManager(akm, certNicknameArg
