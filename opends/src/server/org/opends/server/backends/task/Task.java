@@ -555,7 +555,14 @@ public abstract class Task
    */
   void setTaskState(TaskState taskState)
   {
-    Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
+    // We only need to grab the entry-level lock if we don't already hold the
+    // broader scheduler lock.
+    boolean needLock = (! taskScheduler.holdsSchedulerLock());
+    Lock lock = null;
+    if (needLock)
+    {
+      lock = taskScheduler.writeLockEntry(taskEntryDN);
+    }
 
     try
     {
@@ -579,7 +586,10 @@ public abstract class Task
     }
     finally
     {
-      taskScheduler.unlockEntry(taskEntryDN, lock);
+      if (needLock)
+      {
+        taskScheduler.unlockEntry(taskEntryDN, lock);
+      }
     }
   }
 
@@ -625,7 +635,14 @@ public abstract class Task
    */
   private void setActualStartTime(long actualStartTime)
   {
-    Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
+    // We only need to grab the entry-level lock if we don't already hold the
+    // broader scheduler lock.
+    boolean needLock = (! taskScheduler.holdsSchedulerLock());
+    Lock lock = null;
+    if (needLock)
+    {
+      lock = taskScheduler.writeLockEntry(taskEntryDN);
+    }
 
     try
     {
@@ -654,7 +671,10 @@ public abstract class Task
     }
     finally
     {
-      taskScheduler.unlockEntry(taskEntryDN, lock);
+      if (needLock)
+      {
+        taskScheduler.unlockEntry(taskEntryDN, lock);
+      }
     }
   }
 
@@ -685,7 +705,14 @@ public abstract class Task
    */
   private void setCompletionTime(long completionTime)
   {
-    Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
+    // We only need to grab the entry-level lock if we don't already hold the
+    // broader scheduler lock.
+    boolean needLock = (! taskScheduler.holdsSchedulerLock());
+    Lock lock = null;
+    if (needLock)
+    {
+      lock = taskScheduler.writeLockEntry(taskEntryDN);
+    }
 
     try
     {
@@ -714,7 +741,10 @@ public abstract class Task
     }
     finally
     {
-      taskScheduler.unlockEntry(taskEntryDN, lock);
+      if (needLock)
+      {
+        taskScheduler.unlockEntry(taskEntryDN, lock);
+      }
     }
   }
 
@@ -879,7 +909,14 @@ public abstract class Task
   public void addLogMessage(ErrorLogSeverity severity, int messageID,
                             String messageString)
   {
-    Lock lock = taskScheduler.writeLockEntry(taskEntryDN);
+    // We only need to grab the entry-level lock if we don't already hold the
+    // broader scheduler lock.
+    boolean needLock = (! taskScheduler.holdsSchedulerLock());
+    Lock lock = null;
+    if (needLock)
+    {
+      lock = taskScheduler.writeLockEntry(taskEntryDN);
+    }
 
     try
     {
@@ -935,7 +972,10 @@ public abstract class Task
     }
     finally
     {
-      taskScheduler.unlockEntry(taskEntryDN, lock);
+      if (needLock)
+      {
+        taskScheduler.unlockEntry(taskEntryDN, lock);
+      }
     }
   }
 
