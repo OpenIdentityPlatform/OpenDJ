@@ -53,12 +53,12 @@
 
  	<!-- Load in the local shared python objects from libraries -->
       <call function="'loadVariables'">
-	 </call>
-  
+	 </call>			    
+		 
       <message>   
 		    '---- Generating Server Certicate -----'
       </message>
-		
+
       <!-- create a server certificate -->           
 		    
       <call function="'genCertificate'">
@@ -298,84 +298,21 @@
       <call function="'loadVariables'">
 	 </call>		 
 		 
-	  <!-- Configure SSL-->
+	  <!-- Configure SSL and TLS -->
 
       <message>
-               '----  Configure SSL ----'
+               '----  Configure SSL  and TLS----'
       </message>	  
 
-     <!--- Enable Key Manager Provider -->
-      <message>
-       'Enabling Key Manager Provider'
-      </message>
-      <call function="'modifyEntry'">
-              {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+       <call function="'configureSSL_TLS'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,		  
-                'entryToBeModified' : '%s/security/client_auth/setup/enable_key_mgr_provider.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }
-      </call>
-
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+                'keystorePin'         : SERVER_STOREPASS,
+		        'certAlias'              : 'server-cert'}
+        </call>
 		 
-     <!--- Enable Trust Manager Provider -->
-      <message>
-         'Enabling Trust Manager Provider'
-      </message>
-
-      <call function="'modifyEntry'">
-               {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
-                'entryToBeModified' : '%s/security/client_auth/setup/enable_trust_mgr_provider.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }		  
-      </call>
-
-
-      <!--- Enable LDAPS Connection Handler -->
-      <message>
-       'Enabling LDAPS Connection Handler - Port number'
-      </message>
-
-      <call function="'modifyEntry'">
-             {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
-                'entryToBeModified' : '%s/security/ldaps_port.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }		  
-      </call>
-
-	  <!--  Enabling LDAPS Connection Handler - Keystore type -->
-      <message>
-       'Enabling LDAPS Connection Handler - Keystore type'
-      </message>
-
-      <call function="'modifyEntry'">
-             {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
-                'entryToBeModified' : '%s/security/client_auth/setup/enable_ldaps_conn_handler.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }		  
-      </call>
-	
-
-        <!--- Enable StartTLS -->
-        <message>
-         'Enabling StartTLS'
-        </message>
-
-      <call function="'addEntry'">
-           {  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeAdded'  : '%s/security/client_auth/setup/enable_startTLS.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }		  
-      </call>
-	
 		 		 		
       <!--- Initial Search With SSL -->
       <message>

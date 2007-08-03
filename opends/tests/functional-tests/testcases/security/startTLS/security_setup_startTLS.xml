@@ -75,14 +75,9 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'keystoreType'   : '%s' % 'startTLS' }
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD }
             </call>
 
-            <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
 
            <!--- Initial Search With StartTLS -->
            <message>

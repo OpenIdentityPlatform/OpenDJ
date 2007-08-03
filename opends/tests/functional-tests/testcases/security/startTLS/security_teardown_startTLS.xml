@@ -56,50 +56,12 @@
                   'result'     : STAXResult }
             </call>
 
-				
-     
-         <!--- Disable SSL Trust Manager Provider -->
-         <message>   'Disabling SSL Trust Manager Provider' </message>
-
-         <call function="'modifyEntry'">
-               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+          <call function="'unconfigureTLS'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified' : '%s/security/startTLS/teardown/disable_trust_mgr_provider.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }			 
-         </call>
-
-
-
-         <!--- Disable Key Manager Provider -->
-         <message>
-          'Disabling Key Manager Provider'
-         </message>
-
-         <call function="'modifyEntry'">
-               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-               'entryToBeModified' : '%s/security/startTLS/teardown/disable_key_mgr_provider.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }			 
-         </call>
-      
-					   
-         <!--- Disable StartTLS -->
-         <message>
-           'Disabling StartTLS'
-         </message>
-
-         <call function="'modifyEntry'">
-                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified' : '%s/security/startTLS/teardown/disable_startTLS.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }			 
-         </call>
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD }
+            </call>				
 						
             <!--- Remove JKS Keystore -->
             <message>

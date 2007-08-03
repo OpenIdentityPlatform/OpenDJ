@@ -105,13 +105,7 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'keystoreType'   : '%s' % 'jks' }
-            </call>
-
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD }
             </call>
 
             <!--- Initial Search With SSL -->
