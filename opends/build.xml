@@ -257,7 +257,7 @@
       </not>
     </condition>
 
-    <condition property="MEM" value="128M">
+    <condition property="MEM" value="192M">
       <not>
         <isset property="MEM" />
       </not>
@@ -563,7 +563,7 @@
   <target name="rebuild"
        description="Rebuild the server without destroying config or data.">
     <!-- Set the amount of memory to use for the build -->
-    <condition property="MEM" value="128M">
+    <condition property="MEM" value="192M">
       <not>
         <isset property="MEM" />
       </not>
@@ -1463,7 +1463,7 @@
   <target name="buildtools" depends="init"
         description="Builds the build tools">
     <!-- Set the amount of memory to use for the build -->
-    <condition property="MEM" value="128M">
+    <condition property="MEM" value="192M">
       <not>
         <isset property="MEM" />
       </not>
