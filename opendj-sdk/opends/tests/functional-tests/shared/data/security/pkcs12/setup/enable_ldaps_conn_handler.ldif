@@ -1,7 +1,0 @@
-dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
-changetype: modify
-replace: ds-cfg-trust-manager-provider-dn
-ds-cfg-trust-manager-provider-dn: cn=Blind Trust,cn=Trust Manager Providers,cn=config
--
-replace: ds-cfg-key-manager-provider-dn
-ds-cfg-key-manager-provider-dn: cn=PKCS12,cn=Key Manager Providers,cn=config
