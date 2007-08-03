@@ -100,14 +100,10 @@
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'keystoreType'     : '%s' % 'pkcs12' }
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+				'keystoreType'     : 'PKCS12' }
             </call>
 
-            <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
-            </call>
 
             <!--- Initial Search With SSL -->
             <message>

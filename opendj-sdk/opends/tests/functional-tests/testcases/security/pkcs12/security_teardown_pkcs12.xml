@@ -79,52 +79,14 @@
             </message>
 
            <!--- Unconfigure  SSL -->
+           <call function="'unconfigureSSL'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+				'keystoreType'     : 'PKCS12' }			   
+            </call>			  
 			  
-			  
-           <!--- Disable LDAPS Connection Handler -->
-           <message>
-             'Disabling LDAPS Connection Handler'
-          </message>
-
-          <call function="'modifyEntry'">
-               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified' : '%s/security/pkcs12/teardown/disable_ldaps_conn_handler.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }			  
-         </call>
-
-     
-         <!--- Disable SSL Trust Manager Provider -->
-         <message>   'Disabling SSL Trust Manager Provider' </message>
-
-         <call function="'modifyEntry'">
-               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'entryToBeModified' : '%s/security/pkcs12/teardown/disable_trust_mgr_provider.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }			 
-         </call>
-
-
-
-         <!--- Disable Key Manager Provider -->
-         <message>
-          'Disabling Key Manager Provider'
-         </message>
-
-         <call function="'modifyEntry'">
-               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
-                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-               'entryToBeModified' : '%s/security/pkcs12/teardown/disable_key_mgr_provider.ldif' % (logsRemoteDataDir),
-                'expectedRC'           :  0 }			 
-         </call>
-
-      
         
             <!--- Remove PKCS12 Keystore -->
             <message>
