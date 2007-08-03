@@ -361,6 +361,7 @@ ds-cfg-backend-import-pass-size: 0
 ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
+ds-cfg-database-cache-percent: 2
 
 dn: cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
@@ -401,6 +402,7 @@ ds-cfg-backend-import-pass-size: 0
 ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
+ds-cfg-database-cache-percent: 2
 
 dn: cn=VLV Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
@@ -458,6 +460,7 @@ ds-cfg-backend-import-pass-size: 0
 ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
+ds-cfg-database-cache-percent: 2
 
 dn: cn=VLV Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
@@ -497,6 +500,7 @@ ds-cfg-backend-import-pass-size: 0
 ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
+ds-cfg-database-cache-percent: 2
 
 dn: cn=VLV Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
@@ -618,6 +622,7 @@ ds-cfg-backend-import-pass-size: 0
 ds-cfg-backend-import-thread-count: 8
 ds-cfg-backend-entries-compressed: false
 ds-cfg-backend-deadlock-retry-limit: 10
+ds-cfg-database-cache-percent: 2
 
 dn: cn=VLV Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
