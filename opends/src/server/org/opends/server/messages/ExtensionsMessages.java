@@ -2948,10 +2948,10 @@ public class ExtensionsMessages
 
   /**
    * The message ID for the message that will be used if a "Who Am I?" request
-   * is received but no client connection structure is available.  This does not
-   * take any arguments.
+   * includes the proxied authorization control and the client doesn't have
+   * permission to use it.  This does not take any arguments.
    */
-  public static final int MSGID_EXTOP_WHOAMI_NO_CLIENT_CONNECTION =
+  public static final int MSGID_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES =
        CATEGORY_MASK_EXTENSIONS | SEVERITY_MASK_SEVERE_ERROR | 277;
 
 
@@ -7155,9 +7155,9 @@ public class ExtensionsMessages
                     "GSSAPI authentication");
 
 
-    registerMessage(MSGID_EXTOP_WHOAMI_NO_CLIENT_CONNECTION,
-                    "No client connection structure is available for use in " +
-                    "determining the requested authorization ID");
+    registerMessage(MSGID_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES,
+                    "You do not have sufficient privileges to use the " +
+                    "proxied authorization control");
 
 
     registerMessage(MSGID_SOFTREFCACHE_DESCRIPTION_LOCK_TIMEOUT,
